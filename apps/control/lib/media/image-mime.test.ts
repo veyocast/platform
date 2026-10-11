@@ -3,6 +3,19 @@ import { describe, expect, it } from "vitest";
 import { detectImageMime } from "./image-mime";
 
 describe("afbeelding magic-byte detectie", () => {
+  it("herkent begrensde AVIF-brands en weigert sequences, HEIC en kapotte boxlengtes", () => {
+    const box = new Uint8Array(24);
+    new DataView(box.buffer).setUint32(0, 24);
+    box.set(new TextEncoder().encode("ftypavif"), 4);
+    box.set(new TextEncoder().encode("mif1avif"), 16);
+    expect(detectImageMime(box)).toBe("image/avif");
+    box.set(new TextEncoder().encode("avis"), 20);
+    expect(detectImageMime(box)).toBeNull();
+    box.set(new TextEncoder().encode("heic"), 8);
+    expect(detectImageMime(box)).toBeNull();
+    new DataView(box.buffer).setUint32(0, 4096);
+    expect(detectImageMime(box)).toBeNull();
+  });
   it.each([
     [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), "image/png"],
     [new Uint8Array([255, 216, 255, 0]), "image/jpeg"],

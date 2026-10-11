@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "scope": "Two actual PostgreSQL sessions using guarded authenticated RPCs in a disposable database; synthetic byte metadata; no Storage/provider/visible-frame claim",
+  "observedAdvisoryWait": true,
+  "editorOutcome": "applied",
+  "deletionOutcome": "applied",
+  "finalTags": 0,
+  "finalFavorites": 1,
+  "immutableByteMetadataPreserved": true,
+  "elapsedMs": 3183
+}

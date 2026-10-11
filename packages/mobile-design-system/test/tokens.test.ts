@@ -17,7 +17,7 @@ describe("FieldFlow v3 native tokens", () => {
     expect(minimumTouchTarget).toBe(
       veyocastFieldflowTokens.touch.minimumTargetPx
     );
-    expect(mobileFontFamily.regular).toBe("Roboto_400Regular");
+    expect(mobileFontFamily.regular).toBe("SitesInter_400Regular");
   });
 
   it("keeps spacing and radii on the governed grids", () => {

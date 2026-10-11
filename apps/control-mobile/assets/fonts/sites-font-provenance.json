@@ -1,0 +1,36 @@
+{
+  "sourcePath": "/fonts/inter.woff2",
+  "sourceSha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+  "tool": "fontTools 4.60.1",
+  "operation": "Lossless WOFF2 decoding and static default-axis weight instancing; no glyph substitutions",
+  "fonts": [
+    {
+      "path": "SitesInter-400.ttf",
+      "weight": 400,
+      "bytes": 66416,
+      "sha256": "19b2e364a739f0a493415b5185f1323f4994fcf451d24ab314cb7ff0504ccd39",
+      "glyphCount": 518
+    },
+    {
+      "path": "SitesInter-500.ttf",
+      "weight": 500,
+      "bytes": 66496,
+      "sha256": "11941c7b03bb08657f5cfdc8660053283f99b00fc27e48ee2d802d58ae642850",
+      "glyphCount": 518
+    },
+    {
+      "path": "SitesInter-600.ttf",
+      "weight": 600,
+      "bytes": 66596,
+      "sha256": "4e6461e1f771e8130e6fc80a7602eaa3f29c66d82e2325a4f219cd24c7c9375c",
+      "glyphCount": 518
+    },
+    {
+      "path": "SitesInter-700.ttf",
+      "weight": 700,
+      "bytes": 66640,
+      "sha256": "2fdcf33cfe31dd3da7c8253089a58b192f4116be4c27bd039cc102ed86c6bcca",
+      "glyphCount": 518
+    }
+  ]
+}

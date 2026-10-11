@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "scope": "Actual production Editor/Picker, original mobile state IDs and controlled HTTP storage/processing/publication boundary. No inferred source pixel, database ACK or physical device result.",
+  "componentSha256": "61b04bd6b5b1fbf699c31b9c4a9095cec19433b8b7f24ed33f230f060fbc172a",
+  "results": [
+    {
+      "caseId": "STATE-0001",
+      "status": "PASS",
+      "state": "loading",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor loading; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 0,
+      "screenshotSha256": "c9d64e29a8ba10a476f52779eed51e7953f3c4e9acd195a039d95747e22cf7a7",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0001.png"
+    },
+    {
+      "caseId": "STATE-0006",
+      "status": "PASS",
+      "state": "empty",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor empty; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 0,
+      "screenshotSha256": "ac74e67a4ac18211f00a3a7102df553209209d3da05dfc1c3fc73122db889dc7",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0006.png"
+    },
+    {
+      "caseId": "STATE-0011",
+      "status": "PASS",
+      "state": "validation",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor validation; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 0,
+      "screenshotSha256": "3f848283fc071c1fa8851a1a29f3d430eb04ffb9f24235d519616e8fce773e3c",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0011.png"
+    },
+    {
+      "caseId": "STATE-0016",
+      "status": "PASS",
+      "state": "network-failure",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor network-failure; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 2,
+      "screenshotSha256": "dbb4752c263cce2479705c695fa13bc64364ff4404d2bf7daf8a30d92f103289",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0016.png"
+    },
+    {
+      "caseId": "STATE-0021",
+      "status": "PASS",
+      "state": "permission-readonly",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor permission-readonly; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 0,
+      "screenshotSha256": "d17cfded3abe775c91daaf8390380069705c4b4f9e909eba5203fb3f6216ce32",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0021.png"
+    },
+    {
+      "caseId": "STATE-0026",
+      "status": "PASS",
+      "state": "revision-conflict",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor revision-conflict; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 2,
+      "screenshotSha256": "925fc811bddcf21af1e54b4fab05e31df722f3c200c84d7433122bbe63028b74",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0026.png"
+    },
+    {
+      "caseId": "STATE-0031",
+      "status": "PASS",
+      "state": "processing-media",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor processing-media; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 0,
+      "screenshotSha256": "a7d8e635380be9451a5dcc95f5656bea817ada02b7c31108d5c329c93429a3b8",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0031.png"
+    },
+    {
+      "caseId": "STATE-0036",
+      "status": "PASS",
+      "state": "publication-pending",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor publication-pending; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 2,
+      "screenshotSha256": "e0b30c9a5a6497e5709774a68efbee3088f58d36aebed477f6a2a9d43c147367",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0036.png"
+    },
+    {
+      "caseId": "STATE-0041",
+      "status": "PASS",
+      "state": "offline-stale",
+      "viewport": "390x844",
+      "setup": "Injecteer productiefixture voor offline-stale; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "actual": "Actual mobile component state, bounded recovery, retained concept, capability/busy controls and absence of false server/frame success verified.",
+      "commandCount": 2,
+      "screenshotSha256": "188bf98a1e8c36adb5da1d5504b665a77a62704dd8708416b4cf8073c7eea371",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-state-evidence/STATE-0041.png"
+    }
+  ]
+}

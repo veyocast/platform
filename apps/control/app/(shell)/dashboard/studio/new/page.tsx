@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { hasCapability } from "@veyocast/auth";
 import {
-  studioSystemTemplates,
+  studioSitesSystemTemplates,
   studioTemplateCategories
 } from "@veyocast/studio";
 import { Button, PageHeader } from "@veyocast/ui";
@@ -87,7 +87,7 @@ export default async function NewStudioPage({
             }]
           : []
       )}
-      templates={studioSystemTemplates}
+      templates={studioSitesSystemTemplates}
     />
   );
 }

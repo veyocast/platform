@@ -10,11 +10,13 @@ import { createOrResumeDynamicSlideVersion } from "../../version-actions";
 import { loadDynamicSlideVersionState } from "../../version-data";
 import { VersionHistory } from "../../version-history";
 import { loadMenuStudioSlide, menuStudioTemplateVersionIds } from "../data";
+import { loadSitesSourceDestinationOptions } from "../../../studio/sportlink/new/sites-source-destination-data";
+import { SitesMenuWizard } from "../sites-menu-wizard";
 import { MenuStudioEditor } from "../menu-studio-editor";
 
 type PageProps = {
   params: Promise<{ slideId: string }>;
-  searchParams: Promise<{ succes?: string }>;
+  searchParams: Promise<{ succes?: string; geavanceerd?: string }>;
 };
 
 export default async function EditMenuStudioPage({ params, searchParams }: PageProps) {
@@ -57,7 +59,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
         title={data.slide.name}
       />
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
-      {draftVersion?.status === "draft" ? <MenuStudioEditor
+      {draftVersion?.status === "draft" ? data.document.sitesConfiguration && query.geavanceerd !== "1" ? <SitesMenuWizard destinationOptions={await loadSitesSourceDestinationOptions()} initialDocument={data.document} initialName={data.slide.name} initialOrientation={data.slide.orientation === "portrait" ? "portrait" : "landscape"} media={data.media} products={data.products} slideId={slideId} sourceId={data.source.id} templateVersionIds={menuStudioTemplateVersionIds(data.templates, data.slide.template_version_id)} /> : <MenuStudioEditor
         initialOrientation={data.slide.orientation === "portrait" ? "portrait" : "landscape"}
         initialDocument={data.document}
         linkedGroupsEnabled={data.flags.linkedGroups}

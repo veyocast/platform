@@ -1,3 +1,4 @@
+import {buildPlayerSitesLedDeliveryMarkup} from "../../../_lib/player-sites-markup";
 import { NextResponse } from "next/server";
 
 import {
@@ -7,6 +8,7 @@ import {
   hashPlayerCredential,
   hydrateLedScoresDeliveryProviderPhotos,
   ledScoresRealtimeBootstrapPayload,
+  ledScoresSitesSystemAssets,
   ledScoresSseHeaders,
   loadLedScoresMatchPlayerBootstrap,
   loadLedScoresPlayerBootstrap,
@@ -149,13 +151,15 @@ export async function GET(request: Request) {
           hydrated,
           currentBootstrap.configs
         );
-        send(delivery.kind, {
+        const projectedDelivery={
           ...withCanvasScene,
           ...(shouldAttachLedScoresConfigAssets(delivery.kind)
             ? { assets: [...(config?.assets ?? []), ...(config?.teamAssets ?? []).filter((asset) => asset.mediaAssetId === withCanvasScene.payload.homeLogo || asset.mediaAssetId === withCanvasScene.payload.awayLogo)] }
             : {}),
           serverTime: new Date().toISOString()
-        });
+        };
+        const sitesPresentation=await buildPlayerSitesLedDeliveryMarkup(projectedDelivery);
+        send(delivery.kind,{...projectedDelivery,...(sitesPresentation?{sitesPresentation}:{})});
       };
       for (const delivery of orderLedScoresPendingDeliveries(
         currentBootstrap.pendingDeliveries,
@@ -212,6 +216,7 @@ export async function GET(request: Request) {
                   }
                   send("configuration", {
                     configs: refreshed.configs,
+                    ...ledScoresSitesSystemAssets(refreshed.configs),
                     matchBindings: currentMatchBootstrap.enabled
                       ? currentMatchBootstrap.bindings
                       : [],
@@ -267,6 +272,7 @@ export async function GET(request: Request) {
                 }
                 send("bootstrap", ledScoresRealtimeBootstrapPayload({
                   configs: refreshed.configs,
+                    ...ledScoresSitesSystemAssets(refreshed.configs),
                   matchBindings: refreshedMatch.bindings,
                   screenId: refreshed.screenId,
                   screenOrientation: refreshed.screenOrientation,

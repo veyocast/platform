@@ -19,3 +19,7 @@ apps/lg-webos-signage/smoketest/veyocast-logo-inverse.svg binary
 
 # This verified canonical source uses Markdown hard line breaks intentionally.
 docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md whitespace=-trailing-space
+
+# The audited Sites handoff is immutable, including original line endings.
+docs/sites-v11-overname/reference/** -text -eol whitespace=cr-at-eol,-blank-at-eof
+docs/sites-v11-overname/handoff/** -text -eol whitespace=cr-at-eol

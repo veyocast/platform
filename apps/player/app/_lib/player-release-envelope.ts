@@ -1,7 +1,15 @@
 import "server-only";
+import {sitesPresentationAssets} from "@veyocast/content-templates/sites-presentation-model";
+import {buildPlayerSitesMarkup} from "./player-sites-markup";
 import { createHash } from "node:crypto";
 
+import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
+
 import {
+  sitesDynamicConfigurationSchema,
+  sitesPresentationSchema,
+  type SitesPresentation,
+  playerYouTubePlaybackSchema,
   playerDynamicTemplateAssetSchema,
   playerDynamicTemplatePayloadSchema,
   playerSponsorPlanSchema,
@@ -72,6 +80,9 @@ type ReleaseItemRow = {
   youtube_online_only: boolean | null;
   youtube_title: string | null;
   youtube_video_id: string | null;
+  youtube_playlist_id:string|null;youtube_playlist_video_ids:unknown;youtube_playlist_repeat:boolean|null;
+  sites_configuration_json:unknown;
+  sites_studio_presentation_json:unknown;
 };
 
 export type PlayerReleaseDevice = {
@@ -101,7 +112,7 @@ export async function loadPlayerReleaseEnvelope({
       .single(),
     admin
       .from("playlist_release_items")
-      .select("id, source_item_id, live_data_enabled, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, engage_public_id, engage_title, engage_question")
+      .select("id, source_item_id, live_data_enabled, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, youtube_playlist_id, youtube_playlist_video_ids, youtube_playlist_repeat, sites_configuration_json, sites_studio_presentation_json, engage_public_id, engage_title, engage_question")
       .eq("release_id", releaseId)
       .eq("tenant_id", tenantId)
       .order("sort_order", { ascending: true })
@@ -122,7 +133,13 @@ export async function loadPlayerReleaseEnvelope({
     tenantId,
     configurationHashes
   );
+  const studioPresentations=new Map<string,Extract<SitesPresentation,{kind:"studio"}>>();
+  for(const item of releaseItems){if(item.sites_studio_presentation_json==null)continue;const parsed=sitesPresentationSchema.safeParse(item.sites_studio_presentation_json);if(!parsed.success||parsed.data.kind!=="studio")throw new Error("SITES_STUDIO_RELEASE_INVALID");studioPresentations.set(item.id,parsed.data);}
+  const studioAssetRefs=[...studioPresentations.values()].flatMap(sitesPresentationAssets).filter(ref=>ref.kind==="tenant");
+  const studioAssets=studioAssetRefs.length?await loadDynamicTemplateAssets(admin,tenantId,[...new Set(studioAssetRefs.map(ref=>ref.mediaAssetId))]):new Map<string,PlayerDynamicTemplateAsset>();
+  if(studioAssetRefs.some(ref=>{const asset=studioAssets.get(ref.mediaAssetId);return !asset||asset.checksumSha256!==ref.checksumSha256||!asset.mimeType.startsWith("image/");}))throw new Error("SITES_STUDIO_ASSETS_UNAVAILABLE");
   const dynamicAssetBytes = uniqueDynamicAssetBytes(dynamicTemplates);
+  const studioAssetBytes=[...studioAssets.values()].reduce((sum,asset)=>sum+asset.bytes,0);
   const sponsorPlan = await loadSponsorPlan(admin, tenantId, device.screenId);
 
   const items = await Promise.all(
@@ -144,6 +161,7 @@ export async function loadPlayerReleaseEnvelope({
         },
         displayTitle: item.display_title ?? item.asset_title,
         durationSeconds: item.duration_seconds,
+        ...(studioPresentations.has(item.id)?{sitesStudioPresentation:studioPresentations.get(item.id),sitesStudioAssets:Object.fromEntries(sitesPresentationAssets(studioPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
         ...(dynamicTemplates.get(item.id)
           ? { dynamicTemplate: dynamicTemplates.get(item.id) }
           : {}),
@@ -162,7 +180,8 @@ export async function loadPlayerReleaseEnvelope({
                 kind: "youtube" as const,
                 privacyEnhanced: true as const,
                 title: item.youtube_title,
-                videoId: item.youtube_video_id
+                videoId: item.youtube_video_id,
+                ...(item.youtube_playlist_id?playerYouTubePlaybackSchema.parse({kind:"youtube",privacyEnhanced:true,title:item.youtube_title,videoId:item.youtube_video_id,playlistId:item.youtube_playlist_id,playlistVideoIds:item.youtube_playlist_video_ids,playlistRepeat:item.youtube_playlist_repeat}):{})
               }
             }
           : {}),
@@ -176,7 +195,7 @@ export async function loadPlayerReleaseEnvelope({
           crop: [item.crop_focus_x, item.crop_focus_y], background: item.background_color,
           muted: item.muted, volume: item.volume_percent, trim: [item.trim_start_seconds,item.trim_end_seconds],
           transition: item.transition, visibility: [item.visible_from,item.visible_until], enabled: item.enabled,
-          youtube: item.youtube_video_id, engage: item.engage_public_id
+          youtube: [item.youtube_video_id,item.youtube_playlist_id,item.youtube_playlist_video_ids,item.youtube_playlist_repeat],sites:item.sites_configuration_json,studio:item.sites_studio_presentation_json, engage: item.engage_public_id
         })).digest("hex"),
         kind: item.asset_kind,
         muted: item.muted,
@@ -217,6 +236,9 @@ export async function loadPlayerReleaseEnvelope({
     })
   );
 
+  for(const item of items)item.sitesPresentation=await buildPlayerSitesMarkup(item);
+  const needsSites=items.some(item=>item.sitesStudioPresentation||item.dynamicTemplate?.data.sitesConfiguration||((item.dynamicTemplate?.data.themePresentation as {selection?:{ref?:{id?:string}}}|undefined)?.selection?.ref?.id==="onzetrots-tv"));
+  const systemAssets=needsSites?sitesSystemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
   const fetchedAt = new Date().toISOString();
   return {
     device,
@@ -238,7 +260,8 @@ export async function loadPlayerReleaseEnvelope({
       releaseId: release.id,
       schemaVersion: 1,
       tenantId: release.tenant_id,
-      totalBytes: release.total_bytes + dynamicAssetBytes + uniqueSponsorAssetBytes(sponsorPlan),
+      totalBytes: release.total_bytes + dynamicAssetBytes + studioAssetBytes + uniqueSponsorAssetBytes(sponsorPlan)+(systemAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0),
+      ...(systemAssets?{systemAssets}:{}),
       totalDurationSeconds: release.total_duration_seconds,
       version: release.version,
       ...(presentationDefaults ? { presentationDefaults } : {}),
@@ -344,7 +367,7 @@ async function loadDynamicTemplatePayloads(
     const snapshot = originalSnapshots.find((value) => value.id === item.dynamic_snapshot_id);
     if (snapshot) configurationHashes.set(item.id, JSON.stringify({
       version: snapshot.dynamic_slide_version_id, template: snapshot.template_version_id,
-      theme: snapshot.snapshot_data_json.themePresentation, editorial: snapshot.snapshot_data_json.editorial
+      theme: snapshot.snapshot_data_json.themePresentation, editorial: snapshot.snapshot_data_json.editorial,sites:item.sites_configuration_json
     }));
   }
   const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled)
@@ -392,6 +415,7 @@ async function loadDynamicTemplatePayloads(
       collectDynamicSnapshotMediaAssetIds(snapshot.snapshot_data_json)
     ])
   );
+  for(const item of releaseItems){const config=sitesDynamicConfigurationSchema.safeParse(item.sites_configuration_json);if(item.dynamic_snapshot_id&&config.success&&config.data.background?.kind==="tenant"){const ids=mediaIdsBySnapshot.get(item.dynamic_snapshot_id)??[];ids.push(config.data.background.mediaAssetId);mediaIdsBySnapshot.set(item.dynamic_snapshot_id,ids);}}
   const mediaAssetIds = [
     ...new Set([...mediaIdsBySnapshot.values()].flat())
   ];
@@ -400,7 +424,9 @@ async function loadDynamicTemplatePayloads(
     : new Map<string, PlayerDynamicTemplateAsset>();
   for (const item of releaseItems) {
     if (!item.dynamic_snapshot_id) continue;
-    const payload = payloads.get(item.dynamic_snapshot_id);
+    const basePayload = payloads.get(item.dynamic_snapshot_id);
+    const override=sitesDynamicConfigurationSchema.safeParse(item.sites_configuration_json);
+    const payload=basePayload&&override.success?{...basePayload,data:{...basePayload.data,sitesConfiguration:override.data}}:basePayload;
     if (!payload) continue;
     const assets = Object.fromEntries(
       (mediaIdsBySnapshot.get(item.dynamic_snapshot_id) ?? []).flatMap(
@@ -422,6 +448,7 @@ async function loadDynamicTemplatePayloads(
 export function collectDynamicSnapshotMediaAssetIds(snapshot: unknown) {
   if (!isRecord(snapshot)) return [];
   const ids = new Set<string>();
+  const sites=sitesDynamicConfigurationSchema.safeParse(snapshot.sitesConfiguration);if(sites.success&&sites.data.background?.kind==="tenant")ids.add(sites.data.background.mediaAssetId);
   const brand = isRecord(snapshot.brand) ? snapshot.brand : null;
   if (
     typeof brand?.logoMediaAssetId === "string" &&

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { sitesDynamicConfigurationSchema } from "./sites-presentation";
+
 import { themeSelectionSchema } from "./theme-engine";
 
 export const sportlinkSlideBlueprintKeys = [
@@ -199,6 +201,7 @@ export const sportlinkDisplayConfigSchema = z.object({
 });
 
 export const sportlinkSlideDraftSchema = z.object({
+  sitesConfiguration: sitesDynamicConfigurationSchema.optional(),
   blueprintKey: z.enum(sportlinkSlideBlueprintKeys),
   context: sportlinkSlideContextSchema,
   display: sportlinkDisplayConfigSchema.default(sportlinkDisplayConfigDefaults),
@@ -211,6 +214,7 @@ export const sportlinkSlideDraftSchema = z.object({
   teamContexts: sportlinkSlideTeamContextsSchema.optional(),
   teamSelection: sportlinkSlideTeamSelectionSchema.optional()
 }).strict().superRefine((draft, refinement) => {
+  if (draft.sitesConfiguration && (draft.sitesConfiguration.provider !== "sportlink" || draft.sitesConfiguration.orientation !== draft.orientation)) refinement.addIssue({code:"custom",path:["sitesConfiguration"],message:"De bron en oriëntatie moeten overeenkomen met de Sportlink-slide."});
   const arrival = [
     "sportlink.visitor_arrivals",
     "sportlink.referee_arrivals"

@@ -1,0 +1,182 @@
+name: Sites reference gates
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sites-reference-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-ui:
+    name: Original Sites responsive UI
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify immutable Source and build Marketing
+        run: |
+          node scripts/verify-sites-reference.mjs
+          pnpm --filter @veyocast/marketing build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify every original responsive criterion
+        shell: bash
+        env:
+          VEYOCAST_SITES_REFERENCE_ORIGIN: http://127.0.0.1:4193
+          VEYOCAST_SITES_RESP_SOURCE_COMPARISON: '1'
+          VEYOCAST_SITES_RESP_REQUIRE_COMPLETE: '1'
+          VEYOCAST_SITES_RESP_OUTPUT: ${{ runner.temp }}/sites-source-ui
+          PLAYWRIGHT_EXTERNAL_SERVERS: '1'
+          PLAYWRIGHT_APPS: marketing
+          MARKETING_PORT: '3318'
+          NODE_OPTIONS: '--max-old-space-size=2048'
+        run: |
+          set -Eeuo pipefail
+          node tests/helpers/sites-reference-runtime.mjs --port 4193 > "$RUNNER_TEMP/sites-reference-runtime.log" 2>&1 &
+          source_runtime_pid=$!
+          pnpm --filter @veyocast/marketing exec next start --port 3318 --hostname 127.0.0.1 > "$RUNNER_TEMP/sites-marketing-runtime.log" 2>&1 &
+          marketing_runtime_pid=$!
+          trap 'kill "$source_runtime_pid" "$marketing_runtime_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --max-time 2 http://127.0.0.1:4193/ > /dev/null && curl --fail --silent --max-time 2 http://127.0.0.1:3318/ > /dev/null; then
+              break
+            fi
+            kill -0 "$source_runtime_pid" "$marketing_runtime_pid"
+            if [[ "$attempt" == 60 ]]; then exit 1; fi
+            sleep 1
+          done
+          pnpm exec playwright test tests/control/sites-source-geometry-comparison.spec.ts --grep 'original RESP-' --project=chromium --workers=1
+          node scripts/verify-sites-comparison.mjs responsive "$RUNNER_TEMP/sites-source-ui/case-readback.json"
+      - name: Preserve individual Source comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sites-source-ui-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/sites-source-ui
+            ${{ runner.temp }}/sites-reference-runtime.log
+            ${{ runner.temp }}/sites-marketing-runtime.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  renderer:
+    name: Original Sites renderers (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: templates-and-tv
+            cases: 'TEMPLATE-|TV-'
+          - group: led
+            cases: 'LED-'
+          - group: sportlink
+            cases: 'SPORTLINK-'
+          - group: menu-and-youtube
+            cases: 'MENU-|YOUTUBE-'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify immutable source against the original handoff
+        run: node scripts/verify-sites-reference.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Compare the original cases without pixel tolerance
+        env:
+          SITES_SOURCE_COMPARE: '1'
+          SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          SITES_CASE_FILTER: ${{ matrix.cases }}
+          SITES_COMPARISON_GROUP: ${{ matrix.group }}
+          NODE_OPTIONS: '--max-old-space-size=2048'
+        run: |
+          export SITES_CAPTURE_TEST_CHROMIUM
+          SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')
+          export SITES_BROADCAST_COMPARISON_DIRECTORY="${RUNNER_TEMP}/sites-reference"
+          pnpm --filter @veyocast/media-worker exec vitest run test/sites-broadcast-source-cases.test.ts --maxWorkers=1 -t "${SITES_CASE_FILTER}"
+          node scripts/verify-sites-comparison.mjs "$SITES_COMPARISON_GROUP" "$RUNNER_TEMP/sites-reference/comparison.json"
+      - name: Verify category-free menu output
+        if: matrix.group == 'menu-and-youtube'
+        env:
+          SITES_SOURCE_COMPARE: '1'
+          SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          SITES_COMPARE_CATEGORY_OFF: '1'
+          NODE_OPTIONS: '--max-old-space-size=2048'
+        run: |
+          export SITES_CAPTURE_TEST_CHROMIUM
+          SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')
+          export SITES_BROADCAST_COMPARISON_DIRECTORY="${RUNNER_TEMP}/sites-reference-menu-no-categories"
+          pnpm --filter @veyocast/media-worker exec vitest run test/sites-broadcast-source-cases.test.ts --maxWorkers=1 -t 'MENU-'
+          node scripts/verify-sites-comparison.mjs menu-category-off "$RUNNER_TEMP/sites-reference-menu-no-categories/comparison.json"
+      - name: Verify contained custom backgrounds
+        if: matrix.group == 'templates-and-tv'
+        env:
+          SITES_SOURCE_COMPARE: '1'
+          SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          SITES_COMPARE_BACKGROUND_CONTAIN: '1'
+          NODE_OPTIONS: '--max-old-space-size=2048'
+        run: |
+          export SITES_CAPTURE_TEST_CHROMIUM
+          SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')
+          export SITES_BROADCAST_COMPARISON_DIRECTORY="${RUNNER_TEMP}/sites-reference-background-contain"
+          pnpm --filter @veyocast/media-worker exec vitest run test/sites-broadcast-source-cases.test.ts --maxWorkers=1 -t 'TV-STATE-(0003|0008|0013|0018|0023|0028|0033|0038|0043|0048|0053|0058|0063|0068|0073|0078)'
+          node scripts/verify-sites-comparison.mjs background-contain "$RUNNER_TEMP/sites-reference-background-contain/comparison.json"
+      - name: Verify all literal Source starter variants
+        if: matrix.group == 'templates-and-tv'
+        timeout-minutes: 15
+        env:
+          SITES_SOURCE_COMPARE: '1'
+          SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          NODE_OPTIONS: '--max-old-space-size=2048'
+        run: |
+          export SITES_CAPTURE_TEST_CHROMIUM
+          SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')
+          export SITES_SOURCE_COMPARISON_DIRECTORY="${RUNNER_TEMP}/sites-reference-literal-starters"
+          pnpm --filter @veyocast/media-worker exec vitest run test/sites-source-comparison.test.ts --maxWorkers=1
+          node scripts/verify-sites-comparison.mjs literal-starters "$RUNNER_TEMP/sites-reference-literal-starters/comparison.json"
+      - name: Preserve readbacks and failed comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sites-reference-${{ matrix.group }}
+          path: |
+            ${{ runner.temp }}/sites-reference/comparison.json
+            ${{ runner.temp }}/sites-reference/*.json
+            ${{ runner.temp }}/sites-reference/*--diff.png
+            ${{ runner.temp }}/sites-reference-menu-no-categories/comparison.json
+            ${{ runner.temp }}/sites-reference-background-contain/comparison.json
+            ${{ runner.temp }}/sites-reference-literal-starters/comparison.json
+            ${{ runner.temp }}/sites-reference-literal-starters/*.json
+            ${{ runner.temp }}/sites-reference-literal-starters/*--diff.png
+          retention-days: 14
+          if-no-files-found: warn

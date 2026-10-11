@@ -1,0 +1,507 @@
+{
+  "scope": "Original24 Studio VISUAL-CASES interaction setups exercised in actual production components; action transport responses are controlled fixtures. Functional and geometry proof, not authoring Sourcepixel parity or real persistence.",
+  "cases": [
+    {
+      "caseId": "STUDIO-0001",
+      "state": "gallery",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "aeddd45e14d2e6e8d48c31c662eadffe2ce6d86139900f812bd82a2fd5a91b13",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0013",
+      "state": "gallery",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "b7f87bd4a565af7d6003274c99a595424d491f966d0db18d3982b8d24ecc3a48",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0002",
+      "state": "new-project",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "b7d347844ac099a49114929d03ba1530091d0d98e9e500835610f9244129aba9",
+      "requests": [
+        {
+          "operation": "create",
+          "input": {
+            "idempotencyKey": "cbdf65d8-58f5-4b97-9c5d-b71020248440",
+            "format": "portrait-hd",
+            "templateId": "sites-v11-matchday-portrait-hd",
+            "sitesTheme": "fieldflow",
+            "applyTenantBrand": "off",
+            "motionEnabled": "off",
+            "name": "QA-01"
+          }
+        }
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0014",
+      "state": "new-project",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "a4414d678ca091a93de7f3a231a0408fa8feb6ab44f665eacd583585332d75dd",
+      "requests": [
+        {
+          "operation": "create",
+          "input": {
+            "idempotencyKey": "63ff87c0-44ed-477a-95fc-94e433b4772c",
+            "format": "portrait-hd",
+            "templateId": "sites-v11-matchday-portrait-hd",
+            "sitesTheme": "fieldflow",
+            "applyTenantBrand": "off",
+            "motionEnabled": "off",
+            "name": "QA-01"
+          }
+        }
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0003",
+      "state": "editor",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "3a48c41ed626cc784921ca0676c1fd32062339c3d95a525421f4ff814c0c3941",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0015",
+      "state": "editor",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "78c965e935101be9ea9efa5b37b874a1622e78627f80c8c46af3b4f8b2102fb1",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0004",
+      "state": "element-tab",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "e10df6f34d6ac6d55c4da6db0a92ae0a1708db4bd64b443fe7399399d52dfed2",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0016",
+      "state": "element-tab",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "0502df25ebf80f7c395f71570c036838808d04303f00837fc6c12960281e84ed",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0005",
+      "state": "background-tab",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "67384064f26910ab9d6f0f495bb85ec4571cc4aec40541701a01f2bf38e9243a",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0017",
+      "state": "background-tab",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "5ff199ec1525a6079a46ddf86705992173445d84c40e932459f2a47b9b2a9697",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0006",
+      "state": "layout",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "0aab6fef1ab0889c0f49ab8485e869694b20f35272eb04cde1d265853eac43c2",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0018",
+      "state": "layout",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "5dd4e5351fcb540fb118c5156d02a9389dfdb9096bc18c4d69f616ee1b7c777e",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0007",
+      "state": "mobile-panels",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "fd3e96380040554d56e11aab0145daef7eaf3e1c3c97b29289aa9c2b8c2133d9",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0019",
+      "state": "mobile-panels",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "78c965e935101be9ea9efa5b37b874a1622e78627f80c8c46af3b4f8b2102fb1",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0008",
+      "state": "brand",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "85d2c31f065ad8bd41568dc511a31f366eac3893d6c61d8b83a72d852517207c",
+      "requests": [
+        {
+          "operation": "save",
+          "input": {
+            "document": {
+              "schemaVersion": 1,
+              "artboard": {
+                "width": 1920,
+                "height": 1080,
+                "orientation": "landscape",
+                "background": {
+                  "kind": "solid",
+                  "color": "#FAFAF7"
+                },
+                "safeArea": {
+                  "top": 64,
+                  "right": 64,
+                  "bottom": 64,
+                  "left": 64
+                }
+              },
+              "motion": {
+                "enabled": false,
+                "durationMs": 10000,
+                "fps": 30
+              },
+              "elements": [],
+              "sitesPresentation": {
+                "kind": "studio",
+                "schemaVersion": 1,
+                "rendererVersion": "sites-v11",
+                "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+                "slide": {
+                  "id": "sites-v11-matchday-landscape-hd",
+                  "name": "Wedstrijd van de dag",
+                  "title": "WEDSTRIJD VANDAAG",
+                  "time": "14:30",
+                  "subtitle": "Heren 1 — S.V. Vooruit",
+                  "location": "Sportpark Houtrust",
+                  "photo": {
+                    "kind": "system",
+                    "path": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+                    "checksumSha256": "03dc11dbd5daa87e84d6e8f21b8ec51b54f271537fd24af57dbf4ea9911a254c"
+                  },
+                  "duration": 10,
+                  "color": "#2f7d5c",
+                  "background": "#123332",
+                  "bold": true,
+                  "italic": false,
+                  "align": "left",
+                  "size": 58,
+                  "context": true,
+                  "showLocation": true,
+                  "animation": "Flow in",
+                  "transition": "Rustig",
+                  "orientation": "landscape",
+                  "clubName": "QA eigen ontwerp",
+                  "logo": {
+                    "kind": "tenant",
+                    "mediaAssetId": "50000000-0000-4000-8000-000000191604",
+                    "checksumSha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930"
+                  },
+                  "themeId": "fieldflow"
+                }
+              },
+              "metadata": {
+                "fontRegistryVersion": "2026-09-09.1",
+                "tenantBrandApplied": false
+              }
+            },
+            "expectedRevision": 4,
+            "idempotencyKey": "81042711-7d07-44f4-8822-99dec88651ea",
+            "projectId": "10000000-0000-4000-8000-000000191603"
+          }
+        }
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0020",
+      "state": "brand",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "c4a97d9343b74989049da3b816897b162b795940150d9e8fb78cec84355cdee1",
+      "requests": [
+        {
+          "operation": "save",
+          "input": {
+            "document": {
+              "schemaVersion": 1,
+              "artboard": {
+                "width": 1920,
+                "height": 1080,
+                "orientation": "landscape",
+                "background": {
+                  "kind": "solid",
+                  "color": "#FAFAF7"
+                },
+                "safeArea": {
+                  "top": 64,
+                  "right": 64,
+                  "bottom": 64,
+                  "left": 64
+                }
+              },
+              "motion": {
+                "enabled": false,
+                "durationMs": 10000,
+                "fps": 30
+              },
+              "elements": [],
+              "sitesPresentation": {
+                "kind": "studio",
+                "schemaVersion": 1,
+                "rendererVersion": "sites-v11",
+                "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+                "slide": {
+                  "id": "sites-v11-matchday-landscape-hd",
+                  "name": "Wedstrijd van de dag",
+                  "title": "WEDSTRIJD VANDAAG",
+                  "time": "14:30",
+                  "subtitle": "Heren 1 — S.V. Vooruit",
+                  "location": "Sportpark Houtrust",
+                  "photo": {
+                    "kind": "system",
+                    "path": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+                    "checksumSha256": "03dc11dbd5daa87e84d6e8f21b8ec51b54f271537fd24af57dbf4ea9911a254c"
+                  },
+                  "duration": 10,
+                  "color": "#2f7d5c",
+                  "background": "#123332",
+                  "bold": true,
+                  "italic": false,
+                  "align": "left",
+                  "size": 58,
+                  "context": true,
+                  "showLocation": true,
+                  "animation": "Flow in",
+                  "transition": "Rustig",
+                  "orientation": "landscape",
+                  "clubName": "QA eigen ontwerp",
+                  "logo": {
+                    "kind": "tenant",
+                    "mediaAssetId": "50000000-0000-4000-8000-000000191604",
+                    "checksumSha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930"
+                  },
+                  "themeId": "fieldflow"
+                }
+              },
+              "metadata": {
+                "fontRegistryVersion": "2026-09-09.1",
+                "tenantBrandApplied": false
+              }
+            },
+            "expectedRevision": 4,
+            "idempotencyKey": "c9b5648a-1b3f-45e9-a7a3-e084a1a4b038",
+            "projectId": "10000000-0000-4000-8000-000000191603"
+          }
+        }
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0009",
+      "state": "undo-redo",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "1a85322b2a1a95294db5b957606aed467ee53155c3f2a5870dad32792d17dfe9",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0021",
+      "state": "undo-redo",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "bf23058f6625fdb879382458a6c8442dcebdea1d87acff6cd6db1d71a1391b8a",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0010",
+      "state": "generate",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "3091263195643dfc78d3aea801243b4e34b0c028b7a4f7f63a7f35499df42f39",
+      "requests": [
+        "render"
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0022",
+      "state": "generate",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "0a4b39eaf708542241237f6cc6f04630bf003538f2638c3ed1fdbfb6681349ad",
+      "requests": [
+        "render"
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0011",
+      "state": "new-tv",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "5a851efffd8b977a92ae52b48410f220b8df2f3df9b7a6f9094dc342800a8c9b",
+      "requests": [
+        {
+          "operation": "create",
+          "input": {
+            "idempotencyKey": "f4915c6a-8c00-4733-b00a-2fcb59798127",
+            "format": "portrait-hd",
+            "templateId": "sites-v11-tv-welkom-portrait-hd",
+            "sitesTheme": "onzetrots-tv",
+            "applyTenantBrand": "off",
+            "motionEnabled": "off",
+            "name": "QA-01"
+          }
+        }
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0023",
+      "state": "new-tv",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "fec42eef9ba2f763292636c2ca9fbfaa2baaa3c3dde45dd7992808d1270ee7f3",
+      "requests": [
+        {
+          "operation": "create",
+          "input": {
+            "idempotencyKey": "8f5bd6d4-394f-4188-852d-22582c864912",
+            "format": "portrait-hd",
+            "templateId": "sites-v11-tv-welkom-portrait-hd",
+            "sitesTheme": "onzetrots-tv",
+            "applyTenantBrand": "off",
+            "motionEnabled": "off",
+            "name": "QA-01"
+          }
+        }
+      ],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0012",
+      "state": "tv-rows",
+      "status": "PASS",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pngSha256": "9dbc6f22bc7a7f9124c1916f28351313b93bf6966545c81d65bfc94279b98230",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    },
+    {
+      "caseId": "STUDIO-0024",
+      "state": "tv-rows",
+      "status": "PASS",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "pngSha256": "0b071089adba158102a7a07797ca072f7659c5779f4158bb3d8bec3c656fed5e",
+      "requests": [],
+      "assertionScope": "Original setup interactions and controlled guarded-transport readback; Sourcepixel parity, real DB persistence/provider/hardware remain separate"
+    }
+  ],
+  "capturedAt": "2026-10-11T22:34:17.380156+00:00",
+  "latestRun": "25/25 passed after final exact Source overview controls, desktop normal wrapping/min42 and mobile44 minima; all24 original Studio interaction IDs plus actual keyboard/focus/Escape/reduced-motion case.",
+  "testLog": "native-proof/studio-interactions-current.log",
+  "implementationSha256": {
+    "apps/control/app/(shell)/dashboard/studio/sites-studio-overview.tsx": "aaef41cd94b84b2fd9c94238d79c25803e57e0a1d04dda417b1deb7901cc23c2",
+    "apps/control/app/(shell)/dashboard/studio/sites-studio-overview.module.css": "6cf48812a719133994be73653cc70d7f9c7527204a0450f5a5f0e6960d8b9824",
+    "apps/control/app/(shell)/dashboard/studio/[designId]/sites-studio-interaction-browser.test.ts": "dec72ce8349890269fccfccb9049797ca8b45481f6852399c09ef7281d002cf7"
+  }
+}

@@ -167,7 +167,7 @@ select throws_ok(
     )
     where id = (select id from menu_test_state where name = 'slide')$$,
   '23514',
-  'new or changed dynamic content must use FieldFlow 1.0.0',
+  'authorable dynamic theme is invalid',
   'new Menu Studio authoring still rejects a legacy root theme'
 );
 

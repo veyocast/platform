@@ -1,4 +1,5 @@
 import Link from "next/link";
+import sites from "../settings/sites-settings.module.css";
 
 import {
   Button,
@@ -42,7 +43,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
       };
 
   return (
-    <>
+    <div className={`${sites.page} ${sites.teamPage}`}>
       <PageHeader
         description="Begrijp wie wat veranderde en welke serverbevestiging daarbij hoort."
         eyebrow={session.tenant}
@@ -90,7 +91,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
         </FilterBar>
       </form>
 
-      <section className="workspace-section" aria-labelledby="audit-table-title">
+      <section className={`${sites.surface} workspace-section`} aria-labelledby="audit-table-title">
         <div className="workspace-section__header">
           <div>
             <h2 className="workspace-section__title" id="audit-table-title">
@@ -187,7 +188,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
           </nav>
         ) : null}
       </section>
-    </>
+    </div>
   );
 }
 

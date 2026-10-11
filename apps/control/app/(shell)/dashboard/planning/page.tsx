@@ -1,31 +1,32 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
   ArrowRight,
-  CalendarCheck2,
   CalendarClock,
-  CircleCheck,
-  Sparkles
+  ChevronRight,
+  Clock3,
+  Layers3,
+  Repeat2
 } from "lucide-react";
 
 import { hasCapability } from "@veyocast/auth";
-import { Button, PageHeader, StatusPill } from "@veyocast/ui";
+import { Button, DialogTrigger, PageHeader } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
-import styles from "../publisher-resources.module.css";
 import { loadContentSchedules } from "./data";
 import {
   ContentScheduleDialog,
-  ScheduleStateDialog
+  RecurringPlanningDialog
 } from "./planning-dialogs";
 import planningStyles from "./planning.module.css";
 import {
   FilteredPlanningEmpty,
   PlanningCalendar,
+  PlanningAgenda,
   PlanningWorkspaceToolbar
 } from "./planning-calendar";
 import {
   buildCalendarDays,
-  isScheduleActiveAt,
   nextScheduleOccurrence,
   normalizePlanningView,
   normalizeReferenceDate,
@@ -34,12 +35,13 @@ import {
   shiftReferenceDate,
   type PlanningView
 } from "./schedule-calendar";
-import { isoToZonedDateTimeLocal } from "./schedule-time";
+import { isoToZonedDateTimeLocal, zonedLocalDateTimeToIso } from "./schedule-time";
 import type { ContentScheduleListItem } from "./planning-types";
 
 type PlanningPageProps = {
   searchParams: Promise<{
     content?: string;
+    edit?: string;
     date?: string;
     fout?: string;
     nieuw?: string;
@@ -79,16 +81,14 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
     (!selectedContent || schedule.playlistId === selectedContent) &&
     scheduleMatchesPeriod(schedule, selectedPeriod, data.timezoneName)
   );
-  const active = filteredSchedules.filter((schedule) =>
-    isScheduleActiveAt(schedule, currentTime, data.timezoneName)
-  ).length;
   const canWrite = session.isLive && session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.playlist.write");
   const canOpenReferenceEditor = canWrite || visualReference;
-  const defaultStartAt = new Date(now + 60 * 60 * 1000).toISOString();
-  const calendarDays = view === "agenda" ? [] : buildCalendarDays(
+  const defaultStartAt = query.nieuw === "1" && query.date ? zonedLocalDateTimeToIso(`${referenceDate}T09:00`,data.timezoneName) : new Date(now + 60 * 60 * 1000).toISOString();
+  const editingSchedule = data.schedules.find(schedule=>schedule.id===query.edit);
+  const calendarDays = buildCalendarDays(
     filteredSchedules,
-    view,
+    view === "agenda" ? "week" : view,
     referenceDate,
     data.timezoneName,
     currentTime
@@ -126,17 +126,15 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
 
   return (
     <div className={planningStyles.planningPage}>
-      <PageHeader
-        description="Bepaal waar en wanneer content zichtbaar wordt."
-        eyebrow="VeyoCast FieldFlow"
-        title="Planning"
-      />
+      <div className={planningStyles.readHeading}><PageHeader description="Bepaal waar en wanneer content zichtbaar wordt." eyebrow="VeyoCast FieldFlow" title="Planning"/></div>
 
       {query.fout ? <p className="notice notice--critical" role="alert"><strong>Planning niet opgeslagen.</strong> {query.fout}</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
       {data.error && !visualReference ? <p className="notice notice--critical" role="alert"><strong>Planning niet geladen.</strong> {data.error}</p> : null}
       {!session.isLive && !visualReference ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte planningen te beheren.</p> : null}
       {session.isLive && !canWrite ? <p className="notice notice--info" role="status">Je kunt de planning bekijken. Playlistbewerkingsrechten zijn nodig om tijdvakken te wijzigen.</p> : null}
+
+      {editingSchedule && canWrite ? <div style={{display:"none"}}><ContentScheduleDialog key={editingSchedule.id} defaultOpen defaultStartAt={defaultStartAt} disabled={false} groups={data.groups} releases={data.releases} screens={data.screens} schedule={editingSchedule} timezoneName={data.timezoneName}/></div> : null}
 
       <PlanningWorkspaceToolbar
         action={(
@@ -186,36 +184,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
       />
 
       {view === "agenda" ? (
-        filteredSchedules.length ? (
-          <ol aria-label="Geplande content" className={styles.scheduleList}>
-            {filteredSchedules.map((schedule) => (
-              <li className={styles.scheduleRow} key={schedule.id}>
-                <span className={styles.scheduleIdentity}><strong>{schedule.name}</strong><small>{schedule.targetKind === "screen" ? "Scherm" : "Schermgroep"} · {schedule.targetName}</small></span>
-                <span className={styles.scheduleContent}><strong>{schedule.playlistName}</strong><small>Immutable versie {schedule.releaseVersion} · prioriteit {schedule.priority} · {sourceLabel(schedule.source)}</small></span>
-                <span className={styles.scheduleTiming}><strong>{scheduleKindLabel(schedule.scheduleKind)}</strong><small>{formatScheduleWindow(schedule.startsAt, schedule.endsAt, schedule.timezoneName)}</small></span>
-                <span className={planningStyles.rowActions}>
-                  <StatusPill label={schedule.enabled ? "Actief" : "Uitgeschakeld"} tone={schedule.enabled ? "success" : "neutral"} />
-                  {canWrite && schedule.source !== "fallback" ? (
-                    <>
-                      <ContentScheduleDialog
-                        defaultStartAt={defaultStartAt}
-                        disabled={false}
-                        groups={data.groups}
-                        releases={data.releases}
-                        schedule={schedule}
-                        screens={data.screens}
-                        timezoneName={data.timezoneName}
-                      />
-                      <ScheduleStateDialog schedule={schedule} timezoneName={data.timezoneName} />
-                    </>
-                  ) : null}
-                </span>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <AgendaEmpty hasAnySchedules={data.schedules.length > 0} />
-        )
+        <section className={planningStyles.agendaPanel}><PlanningAgenda days={calendarDays} timeZone={data.timezoneName}/></section>
       ) : selectedTarget || selectedContent || selectedPeriod !== "day" ? (
         filteredSchedules.length ? (
           <PlanningCalendar
@@ -241,9 +210,8 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
       )}
 
       <PlanningInsights
-        active={active}
         currentTime={currentTime}
-        reference={visualReference}
+        management={row=><RecurringPlanningDialog schedules={filteredSchedules} defaultStartAt={defaultStartAt} disabled={!canWrite} groups={data.groups} releases={data.releases} screens={data.screens} timezoneName={data.timezoneName}>{row}</RecurringPlanningDialog>}
         schedules={filteredSchedules}
         timeZone={data.timezoneName}
       />
@@ -251,88 +219,17 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
   );
 }
 
-function PlanningInsights({
-  active,
-  currentTime,
-  reference,
-  schedules,
-  timeZone
-}: {
-  active: number;
-  currentTime: Date;
-  reference: boolean;
-  schedules: ContentScheduleListItem[];
-  timeZone: string;
-}) {
-  const enabled = schedules.filter((schedule) => schedule.enabled);
-  const next = enabled
-    .flatMap((schedule) => {
-      const occurrence = nextScheduleOccurrence(schedule, currentTime, timeZone);
-      return occurrence ? [{ occurrence, schedule }] : [];
-    })
-    .sort((left, right) =>
-      left.occurrence.startsAt.localeCompare(right.occurrence.startsAt)
-    )[0] ?? null;
-  const recurring = enabled.filter((schedule) => schedule.scheduleKind !== "once").slice(0, 3);
-
-  return (
-    <div className={planningStyles.insightsGrid}>
-      <section className={planningStyles.insightCard} aria-labelledby="smart-planning-title">
-        <header>
-          <div>
-            <p>Automatisering</p>
-            <h2 id="smart-planning-title">Slimme planning</h2>
-          </div>
-          <span>{reference ? 3 : active || recurring.length} actief</span>
-        </header>
-        {recurring.length ? <ul>
-          {recurring.map((schedule) => (
-            <li key={schedule.id}>
-              <Sparkles aria-hidden="true" />
-              <span><strong>{schedule.name}</strong><small>{schedule.targetName} · {scheduleKindLabel(schedule.scheduleKind)}</small></span>
-              <CircleCheck aria-label="Actief" />
-            </li>
-          ))}
-        </ul> : <p className={planningStyles.insightEmpty}>Nog geen terugkerende automatisering ingesteld.</p>}
-      </section>
-
-      <section className={planningStyles.insightCard} aria-labelledby="next-publication-title">
-        <header>
-          <div>
-            <p>Hierna</p>
-            <h2 id="next-publication-title">Volgende publicatie</h2>
-          </div>
-        </header>
-        {next ? (
-          <Link className={planningStyles.nextPublication} href={`/dashboard/planning?view=agenda`}>
-            <CalendarCheck2 aria-hidden="true" />
-            <span>
-              <strong>{next.occurrence.name}</strong>
-              <small>{formatScheduleWindow(
-                next.occurrence.startsAt,
-                next.occurrence.endsAt,
-                timeZone
-              )} · {next.schedule.targetName}</small>
-            </span>
-            <ArrowRight aria-hidden="true" />
-          </Link>
-        ) : <p className={planningStyles.insightEmpty}>Er staat na dit moment geen publicatie klaar.</p>}
-      </section>
-    </div>
-  );
-}
-
-function AgendaEmpty({ hasAnySchedules }: { hasAnySchedules: boolean }) {
-  return (
-    <section className={styles.empty} role="status">
-      <CalendarClock aria-hidden="true" />
-      <h2>{hasAnySchedules ? "Geen momenten voor deze filters" : "Nog geen planning"}</h2>
-      <p>{hasAnySchedules
-        ? "Pas de doelgroep, content of het dagdeel aan."
-        : "Publiceer eerst een playlistversie. Alleen immutable releases kunnen veilig worden ingepland."}</p>
-      {!hasAnySchedules ? <Button asChild variant="secondary"><Link href="/dashboard/playlists">Naar playlists</Link></Button> : null}
-    </section>
-  );
+function PlanningInsights({currentTime,management,schedules,timeZone}:{currentTime:Date;management:(row:ReactNode)=>ReactNode;schedules:ContentScheduleListItem[];timeZone:string}) {
+ const enabled=schedules.filter(schedule=>schedule.enabled);
+ const next=enabled.flatMap(schedule=>{const occurrence=nextScheduleOccurrence(schedule,currentTime,timeZone);return occurrence?[{occurrence,schedule}]:[];}).sort((a,b)=>a.occurrence.startsAt.localeCompare(b.occurrence.startsAt))[0]??null;
+ return <div className={planningStyles.insightsGrid}>
+  <section className={planningStyles.insightCard}><header><div><p>Automatisering</p><h2>Slimme planning</h2></div><span>{enabled.filter(schedule=>schedule.scheduleKind!=="once").length} actief</span></header>
+   {management(<div className={planningStyles.insightRow}><span className={planningStyles.automationIcon}><Repeat2 aria-hidden="true" size={22}/></span><div><strong>Je club in het juiste ritme</strong><p>Terugkerende momenten houden je schermen automatisch actueel.</p></div><DialogTrigger asChild><button type="button" aria-label="Terugkerende momenten beheren"><ChevronRight aria-hidden="true" size={20}/></button></DialogTrigger></div>)}
+  </section>
+  <section className={planningStyles.insightCard}><header><div><p>Hierna</p><h2>Volgende publicatie</h2></div><Clock3 aria-hidden="true" size={19}/></header>
+   <div className={planningStyles.insightRow}><span className={planningStyles.automationIcon}><Layers3 aria-hidden="true" size={22}/></span><div><strong>{next?.occurrence.name??"Nog geen moment gepland"}</strong><p>{next?`${formatScheduleWindow(next.occurrence.startsAt,next.occurrence.endsAt,timeZone)} · ${next.schedule.targetName}`:"Plan het eerste moment voor je schermen."}</p></div></div><Link className={planningStyles.insightLink} href="/dashboard/studio">Bekijk content in Studio <ArrowRight aria-hidden="true" size={16}/></Link>
+  </section>
+ </div>;
 }
 
 function normalizeTargetFilter(
@@ -397,16 +294,6 @@ function planningPeriodLabel(
     year: "numeric"
   }).format(lastDate);
   return `${firstLabel} — ${lastLabel}`;
-}
-
-function sourceLabel(value: string) {
-  if (value === "override") return "Tijdelijke override";
-  if (value === "fallback") return "Fallback";
-  return "Normale planning";
-}
-
-function scheduleKindLabel(value: string) {
-  return ({ custom: "Aangepast", daily: "Dagelijks", once: "Eenmalig", weekly: "Wekelijks" } as Record<string, string>)[value] ?? value;
 }
 
 function formatScheduleWindow(start: string, end: string | null, timezone: string) {

@@ -16,3 +16,7 @@
   .layout, .form { grid-template-columns: 1fr; }
   .message { max-width: 94%; }
 }
+/* Sites ticket surface with real threaded messages and private attachments. */
+.message{padding:18px;background:var(--ff-surface-muted);border:1px solid var(--ff-line);border-radius:12px}.message strong{font-size:12px}.message p{font-size:14px;line-height:1.65;color:var(--ff-ink-muted)}.message header span{font-size:12px;color:var(--ff-ink-muted)}.platformMessage{background:var(--ff-success-surface)}
+.form input:not([type=checkbox]),.form select,.form textarea,.reply input:not([type=checkbox]):not([type=hidden]),.reply textarea{min-height:45px;padding:11px 12px;border:1px solid var(--ff-line);border-radius:9px;background:var(--ff-surface);color:var(--ff-ink);font:inherit;max-width:100%;width:100%}.form label,.reply label{font-size:13px;font-weight:600}.reply{border-color:var(--ff-line)}.attachments a{border-color:var(--ff-line)}.attachments span{color:var(--ff-ink-muted)}
+@media(max-width:760px){.form input:not([type=checkbox]),.form select,.reply input:not([type=checkbox]):not([type=hidden]){min-height:48px}.message header{flex-wrap:wrap}}

@@ -17,6 +17,7 @@ export const DialogClose = DialogPrimitive.Close;
 
 export type DialogContentProps = ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
   closeLabel?: string;
+  size?: "standard" | "wide" | "editor" | "fullscreen";
   showClose?: boolean;
 };
 
@@ -24,14 +25,15 @@ export const DialogContent = forwardRef<
   ComponentRef<typeof DialogPrimitive.Content>,
   DialogContentProps
 >(function DialogContent(
-  { children, className, closeLabel = "Sluiten", showClose = true, ...props },
+  { children, className, closeLabel = "Sluiten", size = "standard", showClose = true, ...props },
   ref
 ) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="vc-overlay vc-dialog__overlay" />
       <DialogPrimitive.Content
-        className={cn("vc-dialog__content", className)}
+        className={cn("vc-dialog__content", `vc-dialog__content--${size}`, className)}
+        data-dialog-size={size}
         ref={ref}
         {...props}
       >
@@ -41,7 +43,7 @@ export const DialogContent = forwardRef<
             aria-label={closeLabel}
             className="vc-overlay-close vc-dialog__close"
           >
-            <span aria-hidden="true">×</span>
+            <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
           </DialogPrimitive.Close>
         ) : null}
       </DialogPrimitive.Content>

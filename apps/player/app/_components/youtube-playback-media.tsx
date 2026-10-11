@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
+
+import {nextYouTubePlaylistIndex} from "../_lib/youtube-playlist";
 
 import type { PlayerManifestItem } from "../_lib/player-manifest";
 
 type YouTubePlayer = {
+  loadVideoById(videoId:string):void;
   destroy(): void;
   mute(): void;
   pauseVideo(): void;
@@ -71,6 +74,7 @@ export function YouTubePlaybackMedia({
   onEnded,
   onFailure,
   onReady,
+  renderFallback,
   passive,
   paused = false
 }: {
@@ -78,6 +82,7 @@ export function YouTubePlaybackMedia({
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: "VIDEO_ERROR") => void;
   onReady: (itemId: string) => void;
+  renderFallback?: (onReady: (itemId: string) => void) => ReactNode;
   passive: boolean;
   paused?: boolean;
 }) {
@@ -89,6 +94,7 @@ export function YouTubePlaybackMedia({
   const binding = item.onlinePlayback?.kind === "youtube"
     ? item.onlinePlayback
     : null;
+  const [fallbackReady,setFallbackReady]=useState(false);const fallbackRemaining=useRef(item.durationSeconds*1000);
   const [fallback, setFallback] = useState(
     passive || typeof navigator !== "undefined" && !navigator.onLine
   );
@@ -97,6 +103,19 @@ export function YouTubePlaybackMedia({
     if (fallback || passive || !hostRef.current || !binding) return;
     let disposed = false;
     let player: YouTubePlayer | null = null;
+    const videos=binding.playlistVideoIds??[binding.videoId];const playlist=Boolean(binding.playlistVideoIds);
+    const unavailable=new Set<string>();let current=0;let elapsedMs=0;let lastTick=performance.now();let playing=false;let boundaryRequested=false;
+    const elapsedTimer=window.setInterval(()=>{const now=performance.now();if(playing&&!pausedRef.current)elapsedMs+=now-lastTick;lastTick=now;if(playlist&&elapsedMs>=item.durationSeconds*1000)boundaryRequested=true;},100);
+    let loadTimeout:number|null=null;
+    const next=(failed=false)=>{
+      if(disposed)return;if(failed)unavailable.add(videos[current]!);
+      const index=nextYouTubePlaylistIndex({videos,current,unavailable,repeat:binding.playlistRepeat??false,boundaryRequested});
+      if(index===null){if(failed&&unavailable.size>=new Set(videos).size)setFallback(true);else onEnded(item.id);return;}
+      current=index;playing=false;lastTick=performance.now();
+      if(loadTimeout!==null)window.clearTimeout(loadTimeout);
+      loadTimeout=window.setTimeout(()=>next(true),10_000);
+      player?.loadVideoById(videos[current]!);if(pausedRef.current)player?.pauseVideo();
+    };
     const timeout = window.setTimeout(() => {
       if (!disposed) setFallback(true);
     }, 10_000);
@@ -106,7 +125,7 @@ export function YouTubePlaybackMedia({
         player = new YT.Player(hostRef.current, {
           events: {
             onError: () => {
-              if (!disposed) setFallback(true);
+              if (!disposed) { if(playlist)next(true);else setFallback(true); }
             },
             onReady: ({ target }) => {
               target.mute();
@@ -115,11 +134,13 @@ export function YouTubePlaybackMedia({
               else target.playVideo();
             },
             onStateChange: ({ data }) => {
+              playing=data===YT.PlayerState.PLAYING;lastTick=performance.now();
               if (data === YT.PlayerState.PLAYING) {
+                if(loadTimeout!==null)window.clearTimeout(loadTimeout);
                 window.clearTimeout(timeout);
                 onReady(item.id);
               } else if (data === YT.PlayerState.ENDED) {
-                onEnded(item.id);
+                if(playlist)next();else onEnded(item.id);
               }
             }
           },
@@ -145,10 +166,12 @@ export function YouTubePlaybackMedia({
     return () => {
       disposed = true;
       window.clearTimeout(timeout);
+      window.clearInterval(elapsedTimer);
+      if(loadTimeout!==null)window.clearTimeout(loadTimeout);
       player?.destroy();
       playerRef.current = null;
     };
-  }, [binding, fallback, item.id, onEnded, onReady, passive]);
+  }, [binding, fallback, item.id, onEnded, onReady, passive,item.durationSeconds]);
 
   useEffect(() => {
     const player = playerRef.current;
@@ -169,7 +192,12 @@ export function YouTubePlaybackMedia({
     return () => window.removeEventListener("offline", offline);
   }, []);
 
+  useEffect(()=>{if(!fallback||!fallbackReady||passive||paused||item.kind!=="image"&&!renderFallback)return;const start=performance.now();const timer=window.setTimeout(()=>onEnded(item.id),Math.max(1,fallbackRemaining.current));return()=>{window.clearTimeout(timer);fallbackRemaining.current=Math.max(1,fallbackRemaining.current-(performance.now()-start));};},[fallback,fallbackReady,item.id,item.kind,onEnded,passive,paused,renderFallback]);
   if (fallback) {
+    if (renderFallback) return renderFallback((itemId) => {
+      setFallbackReady(true);
+      onReady(itemId);
+    });
     if (item.kind === "video") {
       return (
         <video
@@ -195,7 +223,7 @@ export function YouTubePlaybackMedia({
         alt={item.accessibilityName ?? item.title}
         className={`playback-media playback-media--${item.fitMode}`}
         onError={() => onFailure(item.id, "VIDEO_ERROR")}
-        onLoad={() => onReady(item.id)}
+        onLoad={() => {setFallbackReady(true);onReady(item.id);}}
         src={item.source.url}
       />
     );

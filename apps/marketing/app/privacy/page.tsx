@@ -230,7 +230,7 @@ export default function PrivacyPage() {
 
         <section aria-labelledby="doeleinden">
           <h2 id="doeleinden">4. Doeleinden en grondslagen</h2>
-          <div className="legal-table-wrap">
+          <div aria-label="Doeleinden en grondslagen" className="legal-table-wrap" role="region" tabIndex={0}>
             <table>
               <thead>
                 <tr>
@@ -347,7 +347,7 @@ export default function PrivacyPage() {
             bestaat, beoordelen en verwijderen of anonimiseren wij gegevens bij
             een geverifieerd verzoek. De huidige technische uitgangspunten zijn:
           </p>
-          <div className="legal-table-wrap">
+          <div aria-label="Bewaartermijnen" className="legal-table-wrap" role="region" tabIndex={0}>
             <table>
               <thead>
                 <tr>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
+import { detectImageMime } from "./image-mime";
 
 import {
   createImageThumbnail,
@@ -7,6 +8,20 @@ import {
 } from "./raster-normalization";
 
 describe("veilige raster-normalisatie", () => {
+  it("decodeert echte AVIF naar metadata-vrije WebP met dezelfde alpha en afmetingen", async () => {
+    const source = await sharp({
+      create: { background: { r: 20, g: 100, b: 200, alpha: 0.5 }, channels: 4, height: 12, width: 18 }
+    }).avif().withMetadata().toBuffer();
+    expect(detectImageMime(source)).toBe("image/avif");
+    const output = await normalizeRasterImage(source, "image/avif");
+    expect(detectImageMime(output)).toBe("image/webp");
+    const metadata = await sharp(output).metadata();
+    expect(metadata).toMatchObject({ format: "webp", width: 18, height: 12, hasAlpha: true });
+    expect(metadata.exif).toBeUndefined();
+    expect(metadata.icc).toBeUndefined();
+    await expect(normalizeRasterImage(source.subarray(0, 32), "image/avif")).rejects.toThrow();
+    await expect(normalizeRasterImage(output, "image/avif")).rejects.toThrow("invalid_static_avif");
+  });
   it("past EXIF-rotatie toe en levert JPEG zonder metadata uit", async () => {
     const source = await sharp({
       create: { background: "#ff5c20", channels: 3, height: 20, width: 10 }

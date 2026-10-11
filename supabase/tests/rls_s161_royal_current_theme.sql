@@ -173,14 +173,15 @@ select is(
 
 select ok(
   (
-    select count(*) = 1
-      and min(profile.revision) = min(settings.theme_settings_revision)
+    select count(*) = 2
+      and array_agg(profile.theme_id order by profile.theme_id) = array['fieldflow','onzetrots-tv']::text[]
+      and bool_and(profile.revision = settings.theme_settings_revision)
     from public.tenant_theme_profiles profile
     join public.tenant_settings settings
       on settings.tenant_id = profile.tenant_id
     where profile.tenant_id = '16100000-0000-4000-8000-000000000001'
   ),
-  'new-tenant provisioning creates exactly one revision-aligned profile'
+  'new-tenant provisioning creates both authorable revision-aligned profiles'
 );
 
 update public.tenant_theme_profiles profile

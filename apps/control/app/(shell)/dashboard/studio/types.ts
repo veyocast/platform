@@ -26,6 +26,7 @@ export type StudioProjectSummary = {
 };
 
 export type StudioMediaAsset = {
+  checksumSha256?: string | null;
   height: number | null;
   id: string;
   kind: "image" | "video";
@@ -116,3 +117,5 @@ export type StudioBrandResources = {
   brandKit: StudioBrandKit | null;
   error: string | null;
 };
+
+export type StudioSeriesDetail={id:string;name:string;revision:number;items:Array<{id:string;name:string;order:number;draftRevision:number;document:StudioDocument}>};

@@ -1,5 +1,19 @@
 -- Bound to one verified tenant by scripts/current-publication-maintenance.mjs.
-with used as materialized (select playlist_id from private.used_playlist_ids_v1(__TENANT_ID__)),
+with standing_rows as materialized (
+ select standing.source_connection_id,row.value,
+  case when jsonb_typeof(row.value->'form')='array' then row.value->'form' else '[]'::jsonb end as form
+ from public.sports_standings standing
+ cross join lateral jsonb_array_elements(case when jsonb_typeof(standing.rows_json)='array' then standing.rows_json else '[]'::jsonb end) row(value)
+ where standing.tenant_id=__TENANT_ID__ and standing.active
+), standing_form as materialized (
+ select jsonb_array_length(row.form) between 1 and 3 and not exists(
+   select 1 from jsonb_array_elements_text(row.form) outcome where outcome is null or outcome not in ('win','draw','loss')
+  ) as has_valid_form,
+  exists(select 1 from public.sports_teams team where team.tenant_id=__TENANT_ID__ and team.active
+   and team.source_connection_id=row.source_connection_id
+   and row.value->>'externalId' in (team.external_id,team.local_external_id)) as own_team
+ from standing_rows row
+), used as materialized (select playlist_id from private.used_playlist_ids_v1(__TENANT_ID__)),
 referenced as materialized (
  select release_id from public.playlist_publications where tenant_id=__TENANT_ID__
  union select assigned_release_id from public.screens where tenant_id=__TENANT_ID__ and deleted_at is null
@@ -14,6 +28,14 @@ referenced as materialized (
 )
 select jsonb_build_object(
  'tenant',(select jsonb_build_object('id',id,'name',name,'status',status) from public.tenants where id=__TENANT_ID__),
+ 'standingFormCoverage',(select jsonb_build_object(
+  'standingRows',count(*),'rowsWithForm',count(*) filter(where has_valid_form),
+  'ownRows',count(*) filter(where own_team),'ownRowsWithForm',count(*) filter(where own_team and has_valid_form),
+  'opponentRows',count(*) filter(where not own_team),'opponentRowsWithForm',count(*) filter(where not own_team and has_valid_form)
+ ) from standing_form),
+ 'sitesAuthoring',jsonb_build_object('paused',
+  coalesce((select enabled from public.tenant_feature_flags where tenant_id=__TENANT_ID__ and flag_key='sites_authoring_paused'),false)
+  or coalesce((select kill_switch_active from private.tenant_feature_flag_definitions where flag_key='sites_authoring_paused'),true)),
  'theme',(select jsonb_build_object('timezone',timezone_name,'policy',theme_mode_policy,'themeId',default_theme_id) from public.tenant_settings where tenant_id=__TENANT_ID__),
  'profiles',(select coalesce(jsonb_agg(jsonb_build_object('themeId',theme_id,'revision',revision,'selection',selection_json)),'[]') from public.tenant_theme_profiles where tenant_id=__TENANT_ID__),
  'playlists',(select coalesce(jsonb_agg(jsonb_build_object('id',playlist.id,'name',playlist.name,'draftRevision',playlist.revision,

@@ -1,4 +1,5 @@
 import "server-only";
+import { parseSitesLedStoredState, type SitesLedStoredState } from "./sites-led-scene-model";
 import { ledScoresCanvasAssetIds, safeParseLedScoresCanvasExperience } from "@veyocast/contracts";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { deriveLedScoresFeatureAvailability, parseLedScoresEffectiveState, type LedScoresFeatureAvailability } from "../../../../../lib/ledscores-feature-state";
@@ -23,10 +24,10 @@ export async function loadStudioData(tenantId: string) {
     });
   }
   if (availability !== "available") return { ...emptyData(), availability };
-  const [connections, mappings, groups, memberships, screens, devices, assets, sponsors, alerts, draftGroups, publishedGroups, liveSlides, brandKit, sportsClubs, sportlinkConnections, playerPhotos] = await Promise.all([
+  const [connections, mappings, groups, memberships, screens, devices, assets, sponsors, alerts, draftGroups, publishedGroups, liveSlides, brandKit, sportsClubs, sportlinkConnections, playerPhotos, liveStates] = await Promise.all([
     supabase.from("ledscores_connections").select("id,name,provider_club_id,provider_club_name,catalog_synced_at").eq("tenant_id", tenantId).eq("status", "active").order("name"),
     supabase.from("ledscores_team_mappings").select("connection_id,provider_team_key,provider_team_name,scoring_side,active,category,logo_provider_asset_version_id").eq("tenant_id", tenantId).order("created_at"),
-    supabase.from("screen_groups").select("id,name,status").eq("tenant_id", tenantId).order("name"),
+    supabase.from("screen_groups").select("id,name,status").eq("tenant_id", tenantId).eq("is_internal",false).order("name"),
     supabase.from("screen_group_memberships").select("screen_group_id,screen_id").eq("tenant_id", tenantId),
     supabase.from("screens").select("id,name,status").eq("tenant_id", tenantId).is("deleted_at", null).order("name"),
     supabase.from("player_devices").select("screen_id,status,last_seen_at").eq("tenant_id", tenantId).eq("status", "paired"),
@@ -39,7 +40,8 @@ export async function loadStudioData(tenantId: string) {
     supabase.from("studio_tenant_brand_kits").select("logo_media_asset_id").eq("tenant_id", tenantId).maybeSingle(),
     supabase.from("sports_clubs").select("logo_media_asset_id,source_connection_id").eq("tenant_id", tenantId).eq("active", true).not("logo_media_asset_id", "is", null),
     supabase.from("sportlink_connections").select("id").eq("tenant_id", tenantId).eq("status", "active"),
-    supabase.from("ledscores_player_identities").select("manual_photo_media_asset_id").eq("tenant_id", tenantId).eq("active", true).not("manual_photo_media_asset_id", "is", null).limit(1000)
+    supabase.from("ledscores_player_identities").select("manual_photo_media_asset_id").eq("tenant_id", tenantId).eq("active", true).not("manual_photo_media_asset_id", "is", null).limit(1000),
+    supabase.from("ledscores_live_match_states").select("connection_id,state_json").eq("tenant_id", tenantId).limit(100)
   ]);
   const error = [connections.error, mappings.error, groups.error, memberships.error, screens.error, devices.error, assets.error, sponsors.error, alerts.error, draftGroups.error, publishedGroups.error, liveSlides.error, brandKit.error, sportsClubs.error, sportlinkConnections.error, playerPhotos.error].find(Boolean);
   if (error) { console.error("LED Scores Studio laden mislukt", { code: error.code }); return { ...emptyData(), enabled: true }; }
@@ -76,7 +78,7 @@ export async function loadStudioData(tenantId: string) {
     }
   }
   const assetVariants = assetRows.length ? await supabase.from("media_variants")
-    .select("asset_id,variant_type,mime_type,width,height,storage_bucket,storage_path")
+    .select("asset_id,variant_type,mime_type,width,height,storage_bucket,storage_path,checksum_sha256")
     .eq("tenant_id", tenantId)
     .in("asset_id", assetRows.map((asset) => asset.id))
     .in("variant_type", ["thumbnail", "original", "player_1080p"])
@@ -95,7 +97,7 @@ export async function loadStudioData(tenantId: string) {
   return {
     alerts: alerts.data ?? [], assets: signedAssets,
     availability: "available" as const,
-    connections: connections.data ?? [], draftGroups: draftGroups.data ?? [], enabled: true,
+    connections: (connections.data ?? []).map(connection => ({ ...connection, liveState: parseSitesLedStoredState((liveStates.data ?? []).find(state => state.connection_id === connection.id)?.state_json) })), draftGroups: draftGroups.data ?? [], enabled: true,
     groups: (groups.data ?? []).filter((group) => group.status === "active").map((group) => ({ id: group.id, name: group.name, screenIds: (memberships.data ?? []).filter((item) => item.screen_group_id === group.id && activeScreenIds.has(item.screen_id)).map((item) => item.screen_id) })),
     liveSlides: liveSlides.data ?? [],
     mappings: mappings.data ?? [],
@@ -122,6 +124,7 @@ type CanvasAssetRow = {
   width: number | null;
 };
 type CanvasVariantRow = {
+  checksum_sha256?: string | null;
   asset_id: string;
   height: number | null;
   mime_type: string;
@@ -179,6 +182,7 @@ async function signCanvasAssets(
         ?? variants.find((variant) => variant.variant_type === "original");
     return [{
       asset,
+      checksumSha256: variants.find(variant => variant.variant_type === "original")?.checksum_sha256 ?? null,
       height: selected?.height ?? asset.height,
       mimeType: selected?.mime_type ?? asset.mime_type,
       path: selected?.storage_path ?? asset.storage_path,
@@ -202,7 +206,8 @@ async function signCanvasAssets(
     }
   }
   return selections
-    .map(({ asset, height, mimeType, path, width }) => ({
+    .map(({ asset, checksumSha256, height, mimeType, path, width }) => ({
+      checksumSha256,
       canvasCompatible: asset.kind === "image"
         ? ["image/jpeg", "image/png", "image/webp"].includes(asset.mime_type)
         : variantRows.some((variant) =>
@@ -241,7 +246,7 @@ async function signCanvasAssets(
     .sort((left, right) => left.title.localeCompare(right.title, "nl-NL"));
 }
 
-export function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string; is_central_goal_overlay: boolean }>, assets: [] as Array<{ canvasCompatible: boolean; height: number | null; id: string; kind: "image" | "video"; librarySelectable: boolean; logoSelectable: boolean; mimeType: string; previewUrl: string | null; title: string; width: number | null }>, availability: "not_released" as LedScoresFeatureAvailability, connections: [] as Array<{ id: string; name: string; provider_club_id: string | null; provider_club_name: string | null; catalog_synced_at: string | null }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, liveSlides: [] as Array<{ id: string; name: string; orientation: string; status: string; updated_at: string }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string; active: boolean; category: string | null; logo_provider_asset_version_id: string | null }>, publishedGroups: [] as Array<{ alert_version_id: string; screen_group_id: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }>, targetGroups: [] as Array<{ id: string; screenIds: string[] }> }; }
+export function emptyData() { return { alerts: [] as Array<{ id: string; connection_id: string; name: string; status: string; priority: number; duration_ms: number; underlay_policy: string; draft_config: unknown; revision: number; current_published_version_id: string | null; updated_at: string; is_central_goal_overlay: boolean }>, assets: [] as Array<{ checksumSha256?: string | null; canvasCompatible: boolean; height: number | null; id: string; kind: "image" | "video"; librarySelectable: boolean; logoSelectable: boolean; mimeType: string; previewUrl: string | null; title: string; width: number | null }>, availability: "not_released" as LedScoresFeatureAvailability, connections: [] as Array<{ liveState?: SitesLedStoredState | null; id: string; name: string; provider_club_id: string | null; provider_club_name: string | null; catalog_synced_at: string | null }>, draftGroups: [] as Array<{ alert_id: string; screen_group_id: string }>, enabled: false, groups: [] as Array<{ id: string; name: string; screenIds: string[] }>, liveSlides: [] as Array<{ id: string; name: string; orientation: string; status: string; updated_at: string }>, mappings: [] as Array<{ connection_id: string; provider_team_key: string; provider_team_name: string; scoring_side: string; active: boolean; category: string | null; logo_provider_asset_version_id: string | null }>, publishedGroups: [] as Array<{ alert_version_id: string; screen_group_id: string }>, screens: [] as Array<{ id: string; name: string; status: "offline" | "online" | "stale" }>, sponsors: [] as Array<{ id: string; label: string }>, targetGroups: [] as Array<{ id: string; screenIds: string[] }> }; }
 function screenRealtimeStatus(values: Array<string | null>): "offline" | "online" | "stale" {
   const latest = Math.max(...values.map((value) => value ? Date.parse(value) : 0), 0);
   if (latest >= Date.now() - 2 * 60_000) return "online";

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import routeStyles from "../../sites-secondary.module.css";
 
 import { hasCapability } from "@veyocast/auth";
 import { Button, StatusPill } from "@veyocast/ui";
@@ -26,13 +27,13 @@ export default async function FieldFlowThemePage({ searchParams }: PageProps) {
     !data.error;
 
   return (
-    <>
+    <div className={routeStyles.page}>
       <PageHeader
         actions={<Button asChild variant="ghost"><Link href="/dashboard/themes">Terug naar thema's</Link></Button>}
-        description="Beheer Royal Current en Navy Glass als één tenantprofiel en rol wijzigingen veilig uit zonder gepubliceerde releases te muteren."
+        description="Kies FieldFlow of Onze Trots TV en rol je huisstijl veilig uit naar de schermen."
         eyebrow={session.tenant}
         status={{ label: canManage ? "Tenantbreed" : "Alleen bekijken", tone: canManage ? "success" : "warning" }}
-        title="Royal Current · Navy Glass"
+        title="Huisstijl"
       />
       {query.fout ? (
         <p className="notice notice--critical" role="alert">
@@ -95,7 +96,6 @@ export default async function FieldFlowThemePage({ searchParams }: PageProps) {
         </aside>
 
         <form action={updateTenantTheme} className="settings-workspace-form settings-theme-form">
-          <input name="themeSettingsRevision" type="hidden" value={data.revision} />
           <input name="timezoneName" type="hidden" value={data.timezone} />
           <section className="data-surface">
             <TenantThemeEditor
@@ -104,6 +104,7 @@ export default async function FieldFlowThemePage({ searchParams }: PageProps) {
               initialAppearance={data.authority.appearance}
               initialSelection={data.authority.selection}
               initialTheme={data.authority.theme}
+              profileRevisions={data.profileRevisions}
             />
           </section>
           <SettingsDirtySavebar
@@ -112,7 +113,7 @@ export default async function FieldFlowThemePage({ searchParams }: PageProps) {
           />
         </form>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -138,7 +139,7 @@ async function loadTheme(tenantId: string | null, isLive: boolean) {
   }, "2026-01-01T12:00:00.000Z");
   if (!tenantId || !isLive) {
     return {
-      authority: fallback, error: null, revision: 0, rollout: null,
+      authority: fallback, error: null, revision: 0, profileRevisions: { fieldflow: 0, "onzetrots-tv": 0 }, rollout: null,
       screenCount: 0, slideCount: 0, timezone: "Europe/Amsterdam"
     };
   }
@@ -146,26 +147,28 @@ async function loadTheme(tenantId: string | null, isLive: boolean) {
   if (!supabase) {
     return {
       authority: fallback, error: "De beveiligde datasessie ontbreekt.",
-      revision: 0, rollout: null, screenCount: 0, slideCount: 0,
+      revision: 0, profileRevisions: { fieldflow: 0, "onzetrots-tv": 0 }, rollout: null, screenCount: 0, slideCount: 0,
       timezone: "Europe/Amsterdam"
     };
   }
   const [settings, profile, rollout, slides, screens] = await Promise.all([
     supabase.from("tenant_settings").select("default_theme_id,default_theme_version,theme_mode_policy,theme_accent,theme_support,theme_color_overrides,theme_settings_revision,timezone_name").eq("tenant_id", tenantId).maybeSingle(),
-    supabase.from("tenant_theme_profiles").select("appearance_config,color_overrides,revision,selection_json,theme_version").eq("tenant_id", tenantId).eq("theme_id", "fieldflow").maybeSingle(),
-    supabase.from("tenant_theme_rollouts").select("id,status,snapshot_count,ready_snapshot_count,release_count,release_target_count,error_code,created_at").eq("tenant_id", tenantId).eq("theme_id", "fieldflow").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("tenant_theme_profiles").select("theme_id,appearance_config,color_overrides,revision,selection_json,theme_version").eq("tenant_id", tenantId).in("theme_id", ["fieldflow", "onzetrots-tv"]),
+    supabase.from("tenant_theme_rollouts").select("theme_id,id,status,snapshot_count,ready_snapshot_count,release_count,release_target_count,error_code,created_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(10),
     supabase.from("dynamic_slides").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).neq("status", "archived"),
     supabase.from("screens").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).neq("status", "disabled").is("deleted_at", null)
   ]);
   const error = settings.error ?? profile.error ?? rollout.error ?? slides.error ?? screens.error;
-  const missingThemeAuthority = !settings.data || !profile.data;
-  const selection = record(profile.data?.selection_json);
+  const activeThemeId = settings.data?.default_theme_id === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow";
+  const activeProfile = profile.data?.find((entry) => entry.theme_id === activeThemeId);
+  const missingThemeAuthority = !settings.data || !activeProfile;
+  const selection = record(activeProfile?.selection_json);
   const combined = {
     ...(settings.data ?? {}),
-    appearance_config: profile.data?.appearance_config,
-    default_theme_version: profile.data?.theme_version ?? settings.data?.default_theme_version,
+    appearance_config: activeProfile?.appearance_config,
+    default_theme_version: activeProfile?.theme_version ?? settings.data?.default_theme_version,
     theme_accent: selection?.accent ?? settings.data?.theme_accent,
-    theme_color_overrides: profile.data?.color_overrides ?? settings.data?.theme_color_overrides,
+    theme_color_overrides: activeProfile?.color_overrides ?? settings.data?.theme_color_overrides,
     theme_mode_policy: selection?.modePolicy ?? settings.data?.theme_mode_policy,
     theme_support: selection?.support ?? settings.data?.theme_support
   };
@@ -174,8 +177,9 @@ async function loadTheme(tenantId: string | null, isLive: boolean) {
     error: error || missingThemeAuthority
       ? "De actuele theme-status kon niet veilig worden gelezen. Opslaan is geblokkeerd om bestaande instellingen te beschermen."
       : null,
-    revision: Number(profile.data?.revision ?? settings.data?.theme_settings_revision ?? 0),
-    rollout: rollout.data,
+    revision: Number(activeProfile?.revision ?? settings.data?.theme_settings_revision ?? 0),
+    profileRevisions: Object.fromEntries((profile.data ?? []).map((entry) => [entry.theme_id, Number(entry.revision)])),
+    rollout: rollout.data?.find((entry) => entry.theme_id === activeThemeId) ?? null,
     screenCount: screens.count ?? 0,
     slideCount: slides.count ?? 0,
     timezone: settings.data?.timezone_name ?? "Europe/Amsterdam"

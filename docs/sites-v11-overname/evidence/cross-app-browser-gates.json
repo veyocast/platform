@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-11T21:28:04.965744+00:00",
+  "scope": "Actual NoDB Control development fixture plus built production Marketing and Player on local loopback; no deployed environment or real provider claim. The opt-in genuine publisher passed separately against the disposable local database.",
+  "passed": 4,
+  "skipped": 2,
+  "skippedReason": "Dedicated live-pilot opt-in is off for this NoDB cross-app fixture; genuine Sites publisher was separately executed with local authenticated storage.",
+  "logSha256": "9712ca4cb694fab4845aaa355c89b863e8ba9327dae985f56fb42a06bd5b1899",
+  "specs": [
+    {
+      "path": "tests/e2e/pilot-readiness.spec.ts",
+      "sha256": "47c38ee51c2872502b3ed3b6843a9f1276065e93a7286fad7f848aab8c3a2edb"
+    },
+    {
+      "path": "tests/e2e/deployment-readiness.spec.ts",
+      "sha256": "8eb8ae61774db5e372fd19c8a1fc7e94f8d6ea7630b4e24969757b936d052ef0"
+    },
+    {
+      "path": "tests/e2e/live-pilot.spec.ts",
+      "sha256": "994efca314c56a829aa43f316aeb561a99ca8676854c453f64c742842369cbbf"
+    },
+    {
+      "path": "tests/e2e/sites-publisher-live.spec.ts",
+      "sha256": "107dfe88d44b6d8d0a9db0d431b2ceb13cf572d51bb97e00b3b1a43bee4fe8f8"
+    }
+  ]
+}

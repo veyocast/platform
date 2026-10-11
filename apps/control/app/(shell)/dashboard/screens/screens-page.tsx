@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import {
   ChevronRight,
+  ArrowUpRight,
+  Settings,
   CircleCheck,
   Grid3X3,
   List,
@@ -44,6 +46,9 @@ import { ScreenBulkForm } from "./screen-bulk-form";
 import { HealthView } from "./health-view";
 import { VenueView } from "./venue-view";
 import styles from "./screens-overview.module.css";
+import { loadCompositionWorkspace } from "./screen-composition-data";
+import { ScreenCompositionEditor } from "./screen-composition-editor";
+import { ScreenSetupDialog } from "./screen-setup-dialog";
 
 type ScreensPageProps = {
   searchParams: Promise<{
@@ -76,6 +81,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     ? await loadScreenFleet(session.tenantId)
     : emptyScreenFleet();
   const data = visualReference ? createReferenceScreenFleet() : loadedData;
+  const compositionData = await loadCompositionWorkspace(session.tenantId, session.isLive, session.tenant);
   const devicesByScreen = new Map(
     data.devices.filter((device) => device.status === "paired").map((device) => [device.screenId, device])
   );
@@ -151,11 +157,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       className={styles.screensPage}
       data-visual-reference={visualReference ? "true" : undefined}
     >
-      <PageHeader
-        description="Overzicht van alle schermen en schermgroepen."
-        eyebrow="VeyoCast FieldFlow"
-        title="Schermen"
-      />
+      <h1 className="sr-only">Schermen</h1>
 
       {query.fout ? <p className="notice notice--critical" role="alert"><strong>Actie mislukt.</strong> {query.fout}</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
@@ -221,6 +223,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
               </Link>
             ))}
           </div>
+          <div className={styles.groupFooter}><Link href="/dashboard/screens/locations"><MapPin aria-hidden="true" size={16} />Locaties beheren<ArrowUpRight aria-hidden="true" size={14} /></Link>{canManage ? <Link href="/dashboard/screens/groups"><Settings aria-hidden="true" size={16} />Groepen beheren</Link> : null}</div>
         </section>
 
         <section className={styles.mapPanel}>
@@ -279,6 +282,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
         </section>
       </nav>
 
+      {compositionData.error ? <p className="notice notice--warning" role="status">{compositionData.error}</p> : null}
       {view === "venue" ? <div className={styles.specializedView}><VenueView canManage={canManage} data={data} /></div> : null}
       {view === "health" ? <div className={styles.specializedView}><HealthView data={data} /></div> : null}
       {view === "cards" ? (
@@ -324,10 +328,10 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
                 </div>
               </details>
             </form>
-            {canUseReferenceActions ? (
-              <Button asChild><Link href="/dashboard/screens/new"><Plus aria-hidden="true" />Nieuw scherm</Link></Button>
-            ) : null}
+            <div className={styles.toolbarActions}><ScreenCompositionEditor canPublish={canManage && canPublish} data={compositionData} groups={data.groups} initialTarget={selectedGroup ? `group:${selectedGroup}` : "all"} screens={data.screens.filter((screen) => screen.status === "active")} />{canUseReferenceActions ? <ScreenSetupDialog disabled={!canManage || data.screens.length >= data.limit} groups={data.groups} releases={data.assignableReleases} previews={compositionData.playlists} settings={data.settings} /> : null}</div>
           </div>
+
+          <div className={styles.listMeta}><span>{filteredScreens.length} schermen{selectedGroup ? ` in ${currentGroupName}` : ""}</span><div className={styles.viewButtons}><Link aria-label="Lijstweergave" aria-current="page" href={screenHref(query, { view: "overview" })}><List aria-hidden="true" size={16} /></Link><Link aria-label="Rasterweergave" href={screenHref(query, { view: "cards" })}><Grid3X3 aria-hidden="true" size={16} /></Link></div></div>
 
           <ScreenBulkForm
             addToGroupAction={addBulkScreensToGroup}
@@ -582,7 +586,7 @@ function emptyScreenFleet(): ScreenFleetData {
     automation: {},
     devices: [],
     error: null,
-    features: { healthView: true, venueTwin: true },
+    features: { healthView: false, venueTwin: false },
     floorplans: [],
     floorplanAssets: [],
     groups: [],

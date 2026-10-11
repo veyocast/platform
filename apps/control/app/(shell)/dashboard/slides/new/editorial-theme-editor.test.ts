@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import type { EditorialThemeConfig, ThemeSelection } from "@veyocast/contracts";
 import {
+  themeCatalog,
   createRoyalCurrentAppearance,
   createRoyalCurrentTheme,
   royalCurrentPalettePresets
@@ -29,7 +30,7 @@ const selection: ThemeSelection = {
   support: null
 };
 
-describe("Centrale Royal Current clubstijl-editor", () => {
+describe("Centrale authorable clubstijl-editor", () => {
   it("biedt exact de zes normatieve clubkleurpresets", () => {
     expect(fieldflowPalettePresets).toEqual(royalCurrentPalettePresets);
     expect(fieldflowPalettePresets.map((preset) => preset.color)).toEqual([
@@ -79,9 +80,9 @@ describe("Centrale Royal Current clubstijl-editor", () => {
     }
   );
 
-  it.each(["light", "dark"] as const)(
-    "toont de eenvoudige flow en beide live paletpreviews in %s",
-    (mode) => {
+  it.each((["fieldflow", "onzetrots-tv"] as const).flatMap(themeId => (["light", "dark"] as const).map(mode => ({themeId,mode}))))(
+    "toont $themeId en beide live paletpreviews in $mode",
+    ({themeId,mode}) => {
       const theme = createRoyalCurrentTheme({ primary: "#2459ED" }, mode);
       const html = renderToStaticMarkup(createElement(EditorialThemeEditor, {
         appearance: createRoyalCurrentAppearance(),
@@ -90,7 +91,7 @@ describe("Centrale Royal Current clubstijl-editor", () => {
         onAppearanceChange: () => undefined,
         onChange: () => undefined,
         onSelectionChange: () => undefined,
-        selection: { ...selection, modePolicy: { kind: "fixed", mode } },
+        selection: { ...selection, ref: { catalog: "v2", id:themeId, version:themeCatalog[themeId].version }, modePolicy: { kind: "fixed", mode } },
         theme
       }));
       const payloadInput = html.match(
@@ -100,7 +101,9 @@ describe("Centrale Royal Current clubstijl-editor", () => {
         ?.match(/value="([^"]+)"/)?.[1]
         ?.replaceAll("&quot;", '"');
 
-      expect(html).toContain("Royal Current v8");
+      expect(html).toContain(themeCatalog[themeId].name);
+      expect(html).toContain(`value="${themeId}" selected=""`);
+      expect(html).toContain("OnzeTrots TV");
       expect(html).toContain("Primaire clubkleur");
       expect(html).toContain("Standaardpaletten");
       expect(html).toContain("Royal Current live kleurvoorbeeld");
@@ -115,6 +118,8 @@ describe("Centrale Royal Current clubstijl-editor", () => {
       expect(html).toContain("26 semantische kleurrollen");
       expect(html).toContain("QR-voorgrond");
       expect(serializedPayload).toBeDefined();
+      expect(html).toContain(`name="themeId" value="${themeId}"`);
+      expect(html).toContain(`name="themeVersion" value="${themeCatalog[themeId].version}"`);
       expect(Object.keys(JSON.parse(serializedPayload!).fieldflow.light)).toHaveLength(26);
       expect(Object.keys(JSON.parse(serializedPayload!).fieldflow.dark)).toHaveLength(26);
     }

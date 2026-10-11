@@ -27,6 +27,8 @@ import { getSupabasePublicConfig } from "../../../../../lib/supabase/config";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import { TenantStyleSummary } from "../../slides/_components/tenant-style-summary";
+import { SitesLedMomentWizard } from "./sites-led-moment-wizard";
+import { loadSitesSourceDestinationOptions } from "../sportlink/new/sites-source-destination-data";
 import { LedScoresAlertEditor, type AlertEditorValue } from "./alert-editor";
 import { LiveMatchSlideEditor } from "./live-match-slide-editor";
 import {
@@ -61,6 +63,7 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
   const initial = editorValue(edited, data.connections[0]?.id ?? "", data.draftGroups);
   const formatDate = (value: string) => formatTenantDateTime(value, session.timezoneName);
   const resultEventId = safeEventId(params.resultaat);
+  const destinationOptions = await loadSitesSourceDestinationOptions();
   const liveTargetGroups = activePublishedGroupIds(
     data.alerts.map((alert) => ({
       currentPublishedVersionId: alert.current_published_version_id,
@@ -70,15 +73,16 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
   );
 
   return <>
-    <PageHeader
+    {(!canWrite || edited || !data.enabled || !data.connections.length) && <PageHeader
       actions={<div className={styles.headerActions}><Button asChild variant="ghost"><Link href="/dashboard/studio">Terug naar Studio</Link></Button><Button asChild variant="secondary"><Link href="/dashboard/data-sources/led-scores">Databron beheren</Link></Button></div>}
       description="Breng live wedstrijdmomenten als tijdelijke overlays in beeld en maak een tussenstandslide die de laatst gevalideerde wedstrijdinformatie volgt."
       eyebrow="Studio · LED Scores"
       title="Live wedstrijdbeleving"
-    />
+    />}
     {params.fout ? <p className="notice notice--critical" role="alert"><strong>Wedstrijdbeleving-actie mislukt.</strong> {params.fout}</p> : null}
     {params.succes ? <p className="notice notice--success" role="status">{params.succes}{resultEventId ? <> <Link href={`/dashboard/data-sources/led-scores#event-${resultEventId}`}>Bekijk het afleverresultaat per scherm</Link>.</> : null}</p> : null}
     {!data.enabled ? <p className="notice notice--warning" role="status"><strong>{availabilityMessage(data.availability).title}</strong>{" "}{availabilityMessage(data.availability).detail}</p> : !data.connections.length ? <p className="notice notice--warning" role="status"><strong>Eerst een databron koppelen.</strong> Voeg een actieve LED Scores-verbinding toe voordat je een Goal Alert ontwerpt. <Link href="/dashboard/data-sources/led-scores">Open databronbeheer</Link>.</p> : <>
+      {canWrite && !edited && <SitesLedMomentWizard canWrite={canWrite} connections={data.connections}groups={data.groups}screens={data.screens}media={data.assets.flatMap(item=>item.kind==="image"&&item.previewUrl&&item.checksumSha256?[{id:item.id,name:item.title,url:item.previewUrl,checksumSha256:item.checksumSha256}]:[])}destinationOptions={destinationOptions}/>}
       <section className="workspace-section"><h2>Goal Overlay</h2><p>Eén doelpuntenviering voor alle geselecteerde teams, met introvideo en live voorbeeld.</p><Button asChild><Link href="/dashboard/studio/led-scores/goal-overlay">Goal Overlay beheren</Link></Button></section>
       <SummaryStrip items={[
         { label: "Overlay experiences", value: data.alerts.length },
@@ -154,6 +158,7 @@ export default async function LedScoresStudioPage({ searchParams }: Props) {
           assets={data.assets}
           connections={data.connections.map((connection) => ({
             id: connection.id,
+            liveState: connection.liveState,
             mappings: data.mappings.filter((mapping) => mapping.connection_id === connection.id).map((mapping) => ({ side: mapping.scoring_side as "opponent" | "own", teamKey: mapping.provider_team_key, teamName: mapping.provider_team_name })),
             name: connection.name
           }))}

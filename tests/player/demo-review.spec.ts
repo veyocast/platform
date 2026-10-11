@@ -76,28 +76,30 @@ test("demo media requires a session and serves bounded byte ranges", async ({
   const denied = await page.request.get(`${playerURL}/api/player/demo/media`);
   expect(denied.status()).toBe(404);
 
-  const connected = await page.request.post(
-    `${playerURL}/api/player/demo/session`,
-    { data: { code: "VYO 2VY" } }
-  );
-  expect(connected.ok()).toBe(true);
-
-  const partial = await page.request.get(
-    `${playerURL}/api/player/demo/media`,
-    { headers: { Range: "bytes=0-31" } }
-  );
-  expect(partial.status()).toBe(206);
-  expect(partial.headers()["accept-ranges"]).toBe("bytes");
-  expect(partial.headers()["content-length"]).toBe("32");
-  expect(partial.headers()["content-range"]).toBe(
-    "bytes 0-31/12346112"
-  );
-  expect((await partial.body()).byteLength).toBe(32);
-
-  const invalid = await page.request.get(
-    `${playerURL}/api/player/demo/media`,
-    { headers: { Range: "bytes=12346112-" } }
-  );
-  expect(invalid.status()).toBe(416);
-  expect(invalid.headers()["content-range"]).toBe("bytes */12346112");
+  // A production Secure/HttpOnly cookie is consumed by the actual browser.
+  // APIRequestContext has different Secure-cookie handling on loopback HTTP.
+  await page.goto(playerURL);
+  const connected = await page.evaluate(async () => {
+    const response = await fetch("/api/player/demo/session", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: "VYO 2VY" })
+    });
+    return response.ok;
+  });
+  expect(connected).toBe(true);
+  const partial = await page.evaluate(async () => {
+    const response = await fetch("/api/player/demo/media", { headers: { Range: "bytes=0-31" } });
+    return { status: response.status, headers: Object.fromEntries(response.headers), bytes: (await response.arrayBuffer()).byteLength };
+  });
+  expect(partial.status).toBe(206);
+  expect(partial.headers["accept-ranges"]).toBe("bytes");
+  expect(partial.headers["content-length"]).toBe("32");
+  expect(partial.headers["content-range"]).toBe("bytes 0-31/12346112");
+  expect(partial.bytes).toBe(32);
+  const invalid = await page.evaluate(async () => {
+    const response = await fetch("/api/player/demo/media", { headers: { Range: "bytes=12346112-" } });
+    return { status: response.status, contentRange: response.headers.get("content-range") };
+  });
+  expect(invalid.status).toBe(416);
+  expect(invalid.contentRange).toBe("bytes */12346112");
 });

@@ -1,0 +1,426 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "implementationBaseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "fixtureVersion": "QA01-STATE-390x844",
+  "browser": "Chromium1228 / Linux / DPR1",
+  "timezone": "Europe/Amsterdam",
+  "fixedTime": "2026-10-11T10:00:00.000Z",
+  "scope": "Actual production UI components with controlled reads/command/network boundary. Specific Source states reviewed as platform extensions where the prototype has no equivalent. No database write, device ACK or original pixel parity inferred.",
+  "results": [
+    {
+      "caseId": "STATE-0002",
+      "surface": "media",
+      "state": "loading",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor loading; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:36.439Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0002.png",
+      "screenshotSha256": "835e2e0f5f0a2edd8e5324a7f5f114e7ac11f465630741406606a7fecab2a091"
+    },
+    {
+      "caseId": "STATE-0004",
+      "surface": "screens",
+      "state": "loading",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor loading; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:37.184Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0004.png",
+      "screenshotSha256": "c4b7b2184b5cf9cd0e2a5bf5b137f4a69525672068c8a2ea6af18f5ab6659c19"
+    },
+    {
+      "caseId": "STATE-0007",
+      "surface": "media",
+      "state": "empty",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor empty; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:37.884Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0007.png",
+      "screenshotSha256": "b58aa5609b52df62c21296a2440808a30e5fbfbfc5c66284b120d328a6fbfddb"
+    },
+    {
+      "caseId": "STATE-0009",
+      "surface": "screens",
+      "state": "empty",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor empty; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:38.688Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0009.png",
+      "screenshotSha256": "8da149a8d9df6dba468cf88a4bea339c26f057f480816d6c2b6483e806ec03f2"
+    },
+    {
+      "caseId": "STATE-0012",
+      "surface": "media",
+      "state": "validation",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor validation; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:39.676Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0012.png",
+      "screenshotSha256": "dc77eed8af41fc51b9de08b8c77eb3fc41bdcae9bd350ffe650c747e49b4a883"
+    },
+    {
+      "caseId": "STATE-0014",
+      "surface": "screens",
+      "state": "validation",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor validation; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:41.134Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0014.png",
+      "screenshotSha256": "5ed0aaba24628508d98dd30d97620865a9cd074d9a1c9d29711139405632a801"
+    },
+    {
+      "caseId": "STATE-0017",
+      "surface": "media",
+      "state": "network-failure",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor network-failure; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:41.969Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0017.png",
+      "screenshotSha256": "f07e7912084fccc09b6d6b51d17216002b04f41a16db2610eb80fdc52dca2880"
+    },
+    {
+      "caseId": "STATE-0019",
+      "surface": "screens",
+      "state": "network-failure",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor network-failure; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:43.518Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 1,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0019.png",
+      "screenshotSha256": "5ed0aaba24628508d98dd30d97620865a9cd074d9a1c9d29711139405632a801"
+    },
+    {
+      "caseId": "STATE-0022",
+      "surface": "media",
+      "state": "permission-readonly",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor permission-readonly; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:44.282Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0022.png",
+      "screenshotSha256": "1c2b0d9a32ea4bec601708f8b911b9db3cca6ad6feda8483bfe0e0b3ae5c143c"
+    },
+    {
+      "caseId": "STATE-0024",
+      "surface": "screens",
+      "state": "permission-readonly",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor permission-readonly; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:45.085Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0024.png",
+      "screenshotSha256": "17ade7de5e22d492a6cb9343f37d313de35812a03f1223c30b4ed85b0f5a9f7a"
+    },
+    {
+      "caseId": "STATE-0027",
+      "surface": "media",
+      "state": "revision-conflict",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor revision-conflict; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:46.451Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 1,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0027.png",
+      "screenshotSha256": "cb417e0cdfb3fdda92405edd81eb4b8da5f24305f4c55bebbc09f6f76aac1326"
+    },
+    {
+      "caseId": "STATE-0029",
+      "surface": "screens",
+      "state": "revision-conflict",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor revision-conflict; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:47.915Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 1,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0029.png",
+      "screenshotSha256": "5ed0aaba24628508d98dd30d97620865a9cd074d9a1c9d29711139405632a801"
+    },
+    {
+      "caseId": "STATE-0032",
+      "surface": "media",
+      "state": "processing-media",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor processing-media; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:48.721Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0032.png",
+      "screenshotSha256": "c3c9eb992700fc1384bb9570cc1160994f145959126a004363a1ed8149e54232"
+    },
+    {
+      "caseId": "STATE-0034",
+      "surface": "screens",
+      "state": "processing-media",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor processing-media; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:49.432Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0034.png",
+      "screenshotSha256": "9dcc0ababdff170875326d07728629b81605cd3d33a4f9773fd7dfba2db821ee"
+    },
+    {
+      "caseId": "STATE-0037",
+      "surface": "media",
+      "state": "publication-pending",
+      "status": "NOT_APPLICABLE",
+      "explanation": "The Media library exposes immutable release usage, and does not claim publication/device acknowledgement. Pending publication belongs to the Playlist/Screen workflow; this case verifies no invented Media publication state or success.",
+      "setup": "Injecteer productiefixture voor publication-pending; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:50.118Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0037.png",
+      "screenshotSha256": "f29ff46840d8595a98be3cf4d1c79c18f2f025eb643421a2c535c685d211bbc6"
+    },
+    {
+      "caseId": "STATE-0039",
+      "surface": "screens",
+      "state": "publication-pending",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor publication-pending; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:50.852Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0039.png",
+      "screenshotSha256": "161c097ca60257d0a96a6ff9e8103699cf6cd81fcc30b107c57e8e646a2a5513"
+    },
+    {
+      "caseId": "STATE-0042",
+      "surface": "media",
+      "state": "offline-stale",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor offline-stale; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/media/image-upload-form.tsx": "ad4ec3abafaef34f491505564889c4747af9b262395c088c031b85bd21b7f65f",
+        "apps/control/app/(shell)/dashboard/media/media-library-workspace.tsx": "504321b96630702fdaf836cca3825038a206b6d8b8460e1e2c9d8caad13cfc3e",
+        "apps/control/app/globals.css": "f2963fe50c621fef9cfb2cbe9a0b78090ae2be7f5bbba8bd259710f776fdbf82"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:51.752Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0042.png",
+      "screenshotSha256": "f07e7912084fccc09b6d6b51d17216002b04f41a16db2610eb80fdc52dca2880"
+    },
+    {
+      "caseId": "STATE-0044",
+      "surface": "screens",
+      "state": "offline-stale",
+      "status": "PASS",
+      "explanation": "",
+      "setup": "Injecteer productiefixture voor offline-stale; geen echte credentials of provider calls; observeer bestaande servergrens.",
+      "expected": "Zelfde componenttaal, herstelactie zichtbaar, bestaande invoer behouden; geen false-success of geblokkeerde navigatie; ontbrekende Sites-state als gemotiveerde uitbreiding apart reviewen.",
+      "componentSha256": {
+        "apps/control/app/(shell)/dashboard/screens/screens-page.tsx": "9014d3d74115140253f69c54ff0fdd92c0b900072c90f3964ec910a288112ec0",
+        "apps/control/app/(shell)/dashboard/screens/screen-composition-editor.tsx": "af901062abd278806e18482297bd523faf8329b1a4b88127f371ec10ec2fd132",
+        "apps/control/lib/screen-health.ts": "e9e10ad87ae90658d185dddc897f6293458896a5feb0c85ad1077114a70f159b"
+      },
+      "viewport": "390x844",
+      "date": "2026-10-11T20:31:52.533Z",
+      "geometry": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "commandCount": 0,
+      "screenshot": "/dev/shm/veyocast-s191-media-screens-state-evidence/STATE-0044.png",
+      "screenshotSha256": "133bd5e92ae1bc505362b49bea58a7e191707b7fda8845ba10896d84572d89ed"
+    }
+  ]
+}

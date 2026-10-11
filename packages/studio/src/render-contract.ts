@@ -39,7 +39,7 @@ export type StudioRenderRequest = z.infer<typeof studioRenderRequestSchema>;
 
 export const studioRenderResultSchema = z.object({
   checksumSha256: z.string().regex(/^[a-f0-9]{64}$/),
-  durationMs: z.number().int().min(0).max(30_000),
+  durationMs: z.number().int().min(0).max(120_000),
   fileSizeBytes: z.number().int().positive(),
   height: z.union([z.literal(1080), z.literal(1920)]),
   mimeType: z.enum(["image/png", "video/mp4"]),

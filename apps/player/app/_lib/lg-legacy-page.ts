@@ -1,3 +1,9 @@
+import { legacyEngageCss, lgSitesEngageScript } from "./lg-sites-engage";
+import { lgSitesGoalScript } from "./lg-sites-goal";
+import { lgSitesRuntimeScript } from "./lg-sites-runtime";
+import { lgSitesYouTubeScript } from "./lg-sites-youtube";
+import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
+
 import { createMediaTraffic } from "./media-traffic";
 import { createMediaDownloader } from "./media-download";
 import { resolveSportListLayout } from "../../../../packages/content-templates/src/sport-list-layout";
@@ -94,6 +100,7 @@ const legacyConfig = {
   requestTimeoutMs: 12_000,
   storageReserveBytes: 16 * 1024 * 1024,
   storageReserveMaximumBytes: 64 * 1024 * 1024,
+  sitesSystemAssets: sitesSystemAssets.files,
   themeCatalog: legacyThemeCatalog,
   themeFontSizes: themeBaseFontSizes,
   themeManifestVersion: themeManifestSource.manifestVersion,
@@ -123,6 +130,11 @@ export function renderLgLegacyHtml() {
     @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:700;font-display:block;src:url("/fonts/royal-current/roboto-700.woff2") format("woff2")}
     @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:900;font-display:block;src:url("/fonts/royal-current/roboto-900.woff2") format("woff2")}
     ${legacyAdditionalFontFaces}
+    .lg-engage-media{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;width:100%;height:100%}
+    .lg-engage-artboard{position:absolute;overflow:hidden;transform-origin:0 0}
+    .lg-screen-composition,.lg-sites-canvas,.lg-youtube-media{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;width:100%;height:100%}
+    .lg-youtube-media iframe{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;border:0}
+    .lg-sites-artboard{overflow:hidden}
     *{box-sizing:border-box}
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050505;color:#f7f5f0;font-family:Arial,Helvetica,sans-serif}
     body{position:relative}
@@ -139,7 +151,7 @@ export function renderLgLegacyHtml() {
     .default-waiting-card{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:0;overflow:hidden;border:1px solid rgba(20,36,77,.12);border-radius:28px;background:rgba(255,255,255,.94);box-shadow:0 18px 60px rgba(20,36,77,.13)}
     #default-waiting[data-theme="dark"] .default-waiting-card{border-color:rgba(255,255,255,.14);background:rgba(18,31,59,.96);box-shadow:0 18px 60px rgba(0,0,0,.25)}
     .default-waiting-card:before,.default-waiting-card:after{position:absolute;top:-24%;left:50%;width:120%;height:145%;border:1px solid rgba(106,142,243,.25);border-radius:50%;content:"";transform:translateX(-50%) rotate(-17deg);pointer-events:none}
-    .default-waiting-card:after{inset:0;width:100%;height:100%;border:0;background:radial-gradient(circle at 50% 12%,rgba(143,174,255,.32),transparent 38%);transform:none}
+    .default-waiting-card:after{top:0;right:0;bottom:0;left:0;width:100%;height:100%;border:0;background:radial-gradient(circle at 50% 12%,rgba(143,174,255,.32),transparent 38%);transform:none}
     .default-waiting-clock{position:absolute;z-index:1;top:2vw;right:2.1vw;font-size:clamp(16px,1.55vw,28px);font-weight:800}
     .default-waiting-content{position:relative;z-index:1;display:flex;align-items:center;flex-direction:column;max-width:1200px;min-width:0;text-align:center}
     .default-waiting-tenant{margin:0 0 2vh;color:#65718c;font-size:clamp(12px,1vw,18px);font-weight:800;letter-spacing:.2em;text-transform:uppercase}
@@ -1029,6 +1041,11 @@ export function renderLgLegacyHtml() {
     var startBirthdayConfetti = ${startBirthdayConfetti.toString()};
     var birthdayCalendarDay = ${birthdayCalendarDay.toString()};
     var resolveSportListLayout = ${resolveSportListLayout.toString()};
+    ${lgSitesRuntimeScript()}
+    ${lgSitesGoalScript()}
+    ${lgSitesYouTubeScript()}
+    var LEGACY_ENGAGE_CSS = ${JSON.stringify(legacyEngageCss).replace(/</g, "\\u003c")};
+    ${lgSitesEngageScript()}
     var runtime = {
       activeIndex: 0,
       activationInFlight: false,
@@ -3186,6 +3203,7 @@ export function renderLgLegacyHtml() {
       return true;
     }
     function clearGoalElement() {
+      if (runtime.goalSitesCleanup) { runtime.goalSitesCleanup(); runtime.goalSitesCleanup = null; }
       if (runtime.goalV2Cleanup) { runtime.goalV2Cleanup(); runtime.goalV2Cleanup = null; }
       var overlay = byId("goal-overlay");
       var media;
@@ -3224,6 +3242,8 @@ export function renderLgLegacyHtml() {
       var element;
       if (runtime.goalPauseApplied) return;
       runtime.goalPauseApplied = true;
+      lgCompositionPause(true);
+      if (runtime.currentElement && runtime.currentElement.lgPause) runtime.currentElement.lgPause(true);
       if (runtime.currentElement && runtime.currentElement.birthdayRefresh) runtime.currentElement.birthdayRefresh();
       if (runtime.playbackTimer !== null && runtime.playbackDeadlineAt > 0) {
         remaining = Math.max(1, runtime.playbackDeadlineAt - monotonicNow());
@@ -3252,6 +3272,8 @@ export function renderLgLegacyHtml() {
       var video;
       if (!runtime.goalPauseApplied) return;
       runtime.goalPauseApplied = false;
+      lgCompositionPause(false);
+      if (runtime.currentElement && runtime.currentElement.lgPause) runtime.currentElement.lgPause(false);
       if (runtime.currentElement && runtime.currentElement.birthdayRefresh) runtime.currentElement.birthdayRefresh();
       video = runtime.goalPausedVideo;
       runtime.goalPausedVideo = null;
@@ -3732,6 +3754,7 @@ export function renderLgLegacyHtml() {
         }
         return;
       }
+      if (goalRecord(value.sitesPresentation)) message.goal.sitesPresentation = value.sitesPresentation;
       terminalOutcome = findGoalTerminalOutcome(
         message.goal.deliveryId,
         message.goal.eventId,
@@ -3856,6 +3879,11 @@ export function renderLgLegacyHtml() {
               message.goal.scorerName = pendingEnrichment.player.name;
             }
             if (message.goal.underlayPolicy === "pause") pauseGoalUnderlay();
+            if (lgSitesRenderGoal(message.goal,message.expiresAt,serverOffset,function (ready) {
+              if (runtime.goalActiveModel !== message.goal) { goalTerminalAcknowledge(token,message.goal.deliveryId,message.goal.eventId,"skipped","sites_overlay_superseded",message.expiresAt);return; }
+              if (!ready) { hideGoalOverlay(true);goalTerminalAcknowledge(token,message.goal.deliveryId,message.goal.eventId,"failed","legacy_sites_frame_unavailable",message.expiresAt);return; }
+              frameRendered();
+            })) return;
             if (message.goal.kind === "goal") renderGoalOverlay(message.goal);
             else renderMatchOverlay(message.goal);
           }
@@ -3871,6 +3899,8 @@ export function renderLgLegacyHtml() {
           );
           return;
         }
+        function frameRendered() {
+          currentServerNow = now() + serverOffset;
         renderDetail = "render_latency_ms:" +
           String(Math.max(0, now() + serverOffset - message.executeAt));
         goalTerminalAcknowledge(
@@ -3899,7 +3929,7 @@ export function renderLgLegacyHtml() {
             currentServerNow
           );
         }
-        if (message.goal.kind === "lineup_clear" || message.goal.configuration) return;
+        if (message.goal.kind === "lineup_clear" || message.goal.configuration && !lgSitesGoalDocument(message.goal)) return;
         visibleFor = Math.max(
           1,
           Math.min(
@@ -3912,6 +3942,8 @@ export function renderLgLegacyHtml() {
             hideGoalOverlay(true);
           }
         }, visibleFor);
+        }
+        frameRendered();
       }, activateIn);
     }
     function handleGoalEnrichmentDelivery(value, token) {
@@ -4018,6 +4050,7 @@ export function renderLgLegacyHtml() {
       if (event === "bootstrap" || event === "configuration") {
         if (record.screenOrientation === "portrait" || record.screenOrientation === "landscape") runtime.goalScreenOrientation = record.screenOrientation;
         var prepared = preloadGoalAssets(record.configs);
+        if (Array.isArray(record.sitesSystemAssets)) { prepared = Promise.all([prepared,lgSitesPrepareSystemAssets(record.sitesSystemAssets)]).then(function (ready) { return ready.every(function (value) { return value; }); }); }
         if (Array.isArray(record.matchBindings)) {
           for (var bindingIndex = 0;
             bindingIndex < Math.min(50, record.matchBindings.length);
@@ -4503,6 +4536,8 @@ export function renderLgLegacyHtml() {
       };
     }
     function releaseAssets(envelope) {
+      var zones = lgCompositionZones(envelope);
+      if (zones === null) return null;
       var items = playableItems(envelope);
       var assets = [];
       var index;
@@ -4534,6 +4569,26 @@ export function renderLgLegacyHtml() {
           if (!asset) return null;
           assets.push(asset);
         }
+      }
+      var systemAssets = envelope.manifest && envelope.manifest.systemAssets;
+      if (systemAssets) {
+        if (!Array.isArray(systemAssets) || systemAssets.length !== CONFIG.sitesSystemAssets.length) return null;
+        var seenSystem = {};
+        for (index = 0; index < systemAssets.length; index += 1) {
+          var system = systemAssets[index];
+          var trusted = CONFIG.sitesSystemAssets.filter(function (expected) { return expected.path === system.path; })[0];
+          if (!trusted || seenSystem[system.path] || trusted.sha256 !== system.checksumSha256 || trusted.bytes !== system.bytes || trusted.mimeType !== system.mimeType) return null;
+          seenSystem[system.path] = true;
+          asset = cacheAsset({ id: "sites-v11" }, "system", { bytes: system.bytes, checksumSha256: system.checksumSha256, mimeType: system.mimeType, url: system.path });
+          if (!asset) return null;
+          assets.push(asset);
+        }
+      } else if (items.some(function (entry) { return Boolean(entry.sitesPresentation); })) return null;
+      for (index = 0; index < zones.length; index += 1) {
+        if (zones[index].id === "main") continue;
+        var childAssets = releaseAssets(zones[index].envelope);
+        if (!childAssets || !childAssets.length) return null;
+        assets = assets.concat(childAssets);
       }
       return assets;
     }
@@ -4902,12 +4957,7 @@ export function renderLgLegacyHtml() {
       }
     }
     function liveDataChanged(freshEnvelope) {
-      var currentItems = runtime.envelope && runtime.envelope.manifest.items || [];
-      var current = {};
-      currentItems.forEach(function (item) { current[item.id] = item.dynamicTemplate && item.dynamicTemplate.snapshotHash; });
-      return freshEnvelope.manifest.items.some(function (item) {
-        return (item.dynamicTemplate && item.dynamicTemplate.snapshotHash) !== current[item.id];
-      });
+      return lgEnvelopeDataIdentity(runtime.envelope) !== lgEnvelopeDataIdentity(freshEnvelope);
     }
     function refreshSameReleaseMediaAccess(freshEnvelope) {
       var currentManifest = runtime.envelope && runtime.envelope.manifest;
@@ -4943,6 +4993,10 @@ export function renderLgLegacyHtml() {
         ) {
           currentItem.source.posterUrl = freshItem.source.posterUrl;
         }
+        if (freshItem.sitesPresentation) {
+          currentItem.sitesPresentation = freshItem.sitesPresentation;
+          if (runtime.currentItem && runtime.currentItem.id === currentItem.id && runtime.currentElement && runtime.currentElement.refreshSitesData) runtime.currentElement.refreshSitesData(currentItem);
+        }
         if (freshItem.dynamicTemplate && currentItem.dynamicTemplate &&
           freshItem.dynamicTemplate.snapshotHash !== currentItem.dynamicTemplate.snapshotHash) {
           currentItem.dynamicTemplate = freshItem.dynamicTemplate;
@@ -4967,6 +5021,16 @@ export function renderLgLegacyHtml() {
           refreshDynamicTemplateMediaAccess(currentItem.dynamicTemplate, freshItem.dynamicTemplate);
         }
       }
+      var compositionController = runtime.currentElement && runtime.currentElement.lgComposition;
+      if (compositionController && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(freshEnvelope)) {
+        compositionController.frames.forEach(function (frame) {
+          var id = frame.getAttribute("data-lg-composition-zone");
+          var freshZone = id === "main" ? freshEnvelope : freshEnvelope.composition && freshEnvelope.composition.zones[id];
+          if (freshZone && frame.contentWindow && frame.contentWindow.__veyocastLgZone) frame.contentWindow.__veyocastLgZone.refresh(freshZone);
+        });
+        compositionController.envelope = freshEnvelope;
+      }
+      runtime.envelope.composition = freshEnvelope.composition;
       runtime.envelope.state = freshEnvelope.state;
       runtime.envelope.fetchedAt = freshEnvelope.fetchedAt;
       runtime.envelope.device = freshEnvelope.device;
@@ -4979,8 +5043,8 @@ export function renderLgLegacyHtml() {
         runtime.targetRevision = null; runtime.targetKey = null; runtime.targetScreenId = envelope.device.screenId;
       }
       if (runtime.targetRevision && !revision) return false;
-      var dataKey = envelope.manifest.items.map(function (item) { return item.dynamicTemplate ? item.dynamicTemplate.snapshotHash : ""; }).join(":");
-      var key = String(revision || "legacy") + ":" + releaseIdOf(envelope) + ":" + dataKey;
+      var dataKey = lgEnvelopeDataIdentity(envelope);
+      var key = String(revision || "legacy") + ":" + releaseIdOf(envelope) + ":" + lgCompositionIdentity(envelope) + ":" + dataKey;
       if (revision && runtime.targetRevision &&
         (revision.length < runtime.targetRevision.length ||
         (revision.length === runtime.targetRevision.length && revision < runtime.targetRevision))) return false;
@@ -4997,6 +5061,7 @@ export function renderLgLegacyHtml() {
         runtime.boundaryMonotonic = null;
       }
       runtime.pendingRelease = null;
+      lgCompositionCancelBoundary();
       if (runtime.preparationXhr) { runtime.preparationXhr.abort(); runtime.preparationXhr = null; }
       if (runtime.activationTransaction) {
         try { runtime.activationTransaction.abort(); } catch (error) {}
@@ -5093,7 +5158,7 @@ export function renderLgLegacyHtml() {
             byId("offline").className = "";
             if (
               !forceRefresh &&
-              releaseIdOf(runtime.envelope) === releaseIdOf(body) && !liveDataChanged(body)
+              releaseIdOf(runtime.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(body) && !liveDataChanged(body)
             ) {
               runtime.pendingRelease = null;
               refreshSameReleaseMediaAccess(body);
@@ -5106,7 +5171,7 @@ export function renderLgLegacyHtml() {
             if (
               !forceRefresh &&
               runtime.pendingRelease &&
-              releaseIdOf(runtime.pendingRelease.envelope) === releaseIdOf(body)
+              releaseIdOf(runtime.pendingRelease.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.pendingRelease.envelope) === lgCompositionIdentity(body)
             ) {
               setState("SWITCH_PENDING");
               runtime.syncPhase = "switch_pending";
@@ -5145,7 +5210,7 @@ export function renderLgLegacyHtml() {
               }
               if (runtime.publicationTrace && runtime.publicationTrace.releaseId === releaseIdOf(body)) runtime.publicationTrace.assetsReadyAt = new Date().toISOString();
               runtime.forceManifestRefresh = false;
-              if (releaseIdOf(runtime.envelope) === releaseIdOf(body)) {
+              if (releaseIdOf(runtime.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(body)) {
                 runtime.pendingRelease = null;
                 refreshSameReleaseMediaAccess(body);
                 runtime.itemFailures = {};
@@ -5279,8 +5344,12 @@ export function renderLgLegacyHtml() {
         callback(false);
         return;
       }
-      assets = cached.assets;
-      uniqueAssets = uniqueReleaseAssets(assets);
+      assets = releaseAssets(cached.envelope);
+      uniqueAssets = assets && uniqueReleaseAssets(assets);
+      var storedAssets = uniqueReleaseAssets(cached.assets);
+      if (!uniqueAssets || !storedAssets || uniqueAssets.length !== storedAssets.length || uniqueAssets.some(function (expected) {
+        return !storedAssets.some(function (stored) { return stored.cacheKey === expected.cacheKey && stored.bytes === expected.bytes && stored.checksumSha256 === expected.checksumSha256 && (stored.mimeType === undefined || stored.mimeType === expected.mimeType); });
+      })) { callback(false); return; }
       if (!uniqueAssets || !uniqueAssets.length) {
         callback(false);
         return;
@@ -5419,7 +5488,7 @@ export function renderLgLegacyHtml() {
           var current = currentRequest.result;
           if (
             current &&
-            releaseIdOf(current.envelope) !== releaseIdOf(envelope)
+            (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope))
           ) {
             previousStore.put(current);
           }
@@ -5741,6 +5810,7 @@ export function renderLgLegacyHtml() {
         return;
       }
       if (element.birthdayCleanup) { element.birthdayCleanup(); element.birthdayCleanup = null; }
+      if (element.lgCleanup) { element.lgCleanup(); element.lgCleanup = null; }
       if (element.tagName === "VIDEO") {
         element.oncanplay = null;
         element.onended = null;
@@ -5770,6 +5840,7 @@ export function renderLgLegacyHtml() {
       runtime.pendingObjectUrls = [];
     }
     function clearMedia() {
+      cancelLegacyEngage();
       runtime.playbackGeneration += 1;
       clearPlaybackTimers();
       cancelPendingMedia();
@@ -5802,6 +5873,7 @@ export function renderLgLegacyHtml() {
       runtime.currentElement = element;
       runtime.currentObjectUrls = objectUrls || [];
       element.className += " visible";
+      lgEngageFallbackReady();
       if (previousElement && previousElement.birthdayCleanup) { previousElement.birthdayCleanup(); previousElement.birthdayCleanup = null; }
       if (previousElement && previousElement !== element) {
         previousElement.className += " retiring";
@@ -5976,11 +6048,13 @@ export function renderLgLegacyHtml() {
       runtime.currentItem = item;
       setState(runtime.offline ? "OFFLINE_PLAYING" : "PLAYING");
       runtime.syncPhase = runtime.pendingRelease ? "switch_pending" : "active";
+      cancelLegacyEngage();
       runtime.playbackGeneration += 1;
       generation = runtime.playbackGeneration;
       clearPlaybackTimers();
       cancelPendingMedia();
       silenceCurrentMediaEvents();
+      if (!legacyIsCompositionZone && runtime.envelope.composition) { lgCompositionStart(runtime.envelope, generation); return; }
       sourceForItem(item, function (sourceUrl, objectUrl, networkVideoSource) {
         var objectUrls = objectUrl ? [objectUrl] : [];
         if (
@@ -5992,6 +6066,15 @@ export function renderLgLegacyHtml() {
         }
         if (!sourceUrl) {
           failItem("LEGACY_CACHE_MISSING");
+          return;
+        }
+        if (playLegacyEngage(item, sourceUrl, objectUrls, generation)) return;
+        if (playLegacyYouTube(item, sourceUrl, objectUrls, generation)) return;
+        if (item.sitesPresentation) {
+          if (!playSitesMarkup(item, sourceUrl, objectUrls, generation)) {
+            if (item.kind === "video") playVideo(item, sourceUrl, objectUrls, generation, false);
+            else playImage(item, sourceUrl, objectUrls, generation);
+          }
           return;
         }
         if (validDynamicTemplate(item.dynamicTemplate)) {
@@ -6028,7 +6111,18 @@ export function renderLgLegacyHtml() {
         }
       });
     }
+    function playLegacyVerifiedFallback(item, sourceUrl, objectUrls, generation) {
+      if (item.sitesPresentation && playSitesMarkup(item, sourceUrl, objectUrls, generation)) return;
+      if (item.kind === "video") playVideo(item, sourceUrl, objectUrls, generation, false);
+      else playImage(item, sourceUrl, objectUrls, generation);
+    }
     function mediaReady() {
+      if (legacyIsCompositionZone) {
+        byId("status").hidden = true;
+        if (legacyZoneCallbacks) legacyZoneCallbacks.ready(runtime.currentItem, runtime.activeIndex);
+        return;
+      }
+      lgCompositionAck();
       if (runtime.currentItem && runtime.currentItem.id) {
         delete runtime.itemFailures[runtime.currentItem.id];
       }
@@ -9978,6 +10072,7 @@ export function renderLgLegacyHtml() {
       );
     }
     function nextItem() {
+      if (lgZoneBoundary()) return;
       if (runtime.goalPauseApplied) return;
       if (runtime.applicationReloadPending) {
         runtime.applicationReloadPending = false;
@@ -10058,6 +10153,8 @@ export function renderLgLegacyHtml() {
       };
     }
     function sendHeartbeat() {
+      if (legacyIsCompositionZone) return;
+      lgCompositionAck();
       if (!runtime.deviceToken) return;
       if (runtime.heartbeatInFlight) { runtime.heartbeatPending = true; return; }
       runtime.heartbeatInFlight = true;
@@ -10289,36 +10386,31 @@ export function renderLgLegacyHtml() {
       );
       function continueBoot() {
         if (generation !== runtime.bootGeneration) return;
-        registerInstallation(function (ok, code, retryAfter) {
+        function registerAndSync(cached) {
           if (generation !== runtime.bootGeneration) return;
-          if (!ok) {
-            scheduleBoot(
-              code || "INSTALLATION_API_UNAVAILABLE",
-              "De installatie kon tijdelijk niet worden gecontroleerd.",
-              retryAfter
-            );
-            return;
+          if (cached && !runtime.currentElement) {
+            runtime.cachedRelease = cached;
+            runtime.envelope = cached.envelope;
+            runtime.releaseSource = "cache";
+            runtime.offline = window.navigator.onLine === false;
+            byId("offline").className = runtime.offline ? "visible" : "";
+            startRelease(cached.envelope, "cache");
           }
-          runtime.syncFailures = 0;
-          if (!runtime.deviceToken) {
-            ensurePairing();
-            return;
-          }
-          restartGoalRealtime();
-          readCachedRelease(runtime.deviceToken, function (cached) {
+          registerInstallation(function (ok, code, retryAfter) {
             if (generation !== runtime.bootGeneration) return;
-            if (cached) {
-              runtime.cachedRelease = cached;
-              runtime.envelope = cached.envelope;
-              runtime.releaseSource = "cache";
-              runtime.offline = window.navigator.onLine === false;
-              byId("offline").className = runtime.offline ? "visible" : "";
-              startRelease(cached.envelope, "cache");
+            if (!ok) {
+              scheduleBoot(code || "INSTALLATION_API_UNAVAILABLE", "De installatie kon tijdelijk niet worden gecontroleerd.", retryAfter);
+              return;
             }
+            runtime.syncFailures = 0;
+            if (!runtime.deviceToken) { ensurePairing(); return; }
+            restartGoalRealtime();
             runtime.identityReady = true;
             syncManifest();
           });
-        });
+        }
+        if (runtime.deviceToken) readCachedRelease(runtime.deviceToken, registerAndSync);
+        else registerAndSync(null);
       }
       if (runtime.deviceToken) {
         continueBoot();
@@ -10336,6 +10428,7 @@ export function renderLgLegacyHtml() {
       });
     }
     window.onerror = function (message) {
+      if (legacyIsCompositionZone) { if (legacyZoneCallbacks) legacyZoneCallbacks.failed(); return true; }
       log("LEGACY_CLIENT_EXCEPTION", String(message || "onbekende fout"));
       showStatus(
         "Playerherstel",
@@ -10349,6 +10442,8 @@ export function renderLgLegacyHtml() {
     window.onunhandledrejection = function () {
       log("LEGACY_PROMISE_REJECTION", "onafgehandelde browserbelofte");
     };
+    if (legacyIsCompositionZone) { lgInstallZoneBridge(); return; }
+    window.setInterval(function () { lgCompositionCancelBoundary(); }, 250);
     window.setInterval(sendHeartbeat, CONFIG.heartbeatIntervalMs);
     window.setInterval(pollCommands, CONFIG.commandIntervalMs);
     window.addEventListener("online", function () {

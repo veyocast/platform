@@ -1,4 +1,5 @@
 import "server-only";
+import sitesSystemAudit from "../../../../packages/content-templates/src/sites-system-assets.json";
 
 import { createHash } from "node:crypto";
 
@@ -173,7 +174,12 @@ export function ledScoresRealtimeBootstrapPayload({
   screenOrientation?: "portrait" | "landscape" | null;
   serverTime: string;
 }) {
-  return { configs, matchBindings, screenId, ...(screenOrientation ? { screenOrientation } : {}), serverTime };
+  return { configs, matchBindings,...ledScoresSitesSystemAssets(configs), screenId, ...(screenOrientation ? { screenOrientation } : {}), serverTime };
+}
+
+export function ledScoresSitesSystemAssets(configs:readonly unknown[]){
+ const enabled=configs.some(value=>{if(!isRecord(value)||!isRecord(value.config))return false;const parsed=safeParseLedScoresCanvasExperience(value.config.canvasExperience);return parsed.success&&Object.values(parsed.data.scenes).some(pair=>pair.landscape.sitesConfiguration||pair.portrait.sitesConfiguration);});
+ return enabled?{sitesSystemAssets:sitesSystemAudit.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}))}:{};
 }
 
 export function normalizeLedScoresDelivery(value: unknown) {
@@ -255,22 +261,22 @@ export function attachLedScoresCanvasSceneToDelivery(
     uuid(candidate.alertVersionId) === delivery.alertVersionId
   );
   if (!isRecord(config) || !isRecord(config.config)) return sanitized;
+  const experience = safeParseLedScoresCanvasExperience(config.config.canvasExperience);
+  const moment = ledScoresCanvasMomentForDelivery(delivery);
+  const sitesScene = experience.success && moment && (experience.data.scenes[moment].landscape.sitesConfiguration || experience.data.scenes[moment].portrait.sitesConfiguration);
   const goalConfiguration = goalOverlayConfigurationSchema.safeParse(config.config.goalOverlay);
-  if (delivery.kind === "goal" && goalConfiguration.success) {
     const teams = Array.isArray(config.teams) ? config.teams : [];
     const team = (key: unknown) => teams.find((item) => isRecord(item) &&
       item.connectionId === delivery.payload.connectionId && item.teamKey === key);
     const home = team(delivery.payload.homeTeamKey);
     const away = team(delivery.payload.awayTeamKey);
+  if (delivery.kind === "goal" && goalConfiguration.success && !sitesScene) {
     return { ...sanitized, payload: {
       ...safePayload, goalOverlay: goalConfiguration.data,
       homeLogo: isRecord(home) ? home.logoAssetId : null,
       awayLogo: isRecord(away) ? away.logoAssetId : null
     } };
   }
-  const experience = safeParseLedScoresCanvasExperience(
-    config.config.canvasExperience
-  );
   if (!experience.success) return sanitized;
   const availableAssetIds = new Set(
     Array.isArray(config.assets)
@@ -284,13 +290,13 @@ export function attachLedScoresCanvasSceneToDelivery(
   if (ledScoresCanvasAssetIds(experience.data).some(
     (mediaAssetId) => !availableAssetIds.has(mediaAssetId)
   )) return sanitized;
-  const moment = ledScoresCanvasMomentForDelivery(delivery);
   return moment
     ? {
         ...sanitized,
         payload: {
           ...safePayload,
-          scene: experience.data.scenes[moment]
+          scene: experience.data.scenes[moment],
+          ...(delivery.kind==="goal"?{homeLogo:isRecord(home)?home.logoAssetId:null,awayLogo:isRecord(away)?away.logoAssetId:null}:{})
         }
       }
     : sanitized;

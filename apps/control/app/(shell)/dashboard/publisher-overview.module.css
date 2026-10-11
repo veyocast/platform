@@ -595,3 +595,16 @@
 @media (prefers-reduced-motion: reduce) {
   .metricCard { transition: none; }
 }
+
+/* Production-only unavailable and empty states; no reference data is synthesized. */
+.dataNotice{background:var(--ff-warning-surface);border:1px solid var(--ff-border);border-radius:14px;color:var(--ff-warning);font-size:13px;padding:12px 16px;margin:18px 0 0}
+.attentionBanner[data-unknown]{background:var(--ff-surface);border-color:var(--ff-border)}
+.attentionBanner[data-unknown] .attentionIcon{background:var(--ff-surface-muted);color:var(--ff-ink-soft)}
+.featureVisual img{object-fit:cover}
+.featureLocation{display:inline-flex;gap:4px;align-items:center;font-style:normal;margin-top:8px;font-size:10px}.featureLocation svg{width:10px;height:10px}
+.featureEmpty{height:328px;margin-top:8px;background:var(--ff-surface-muted);border-radius:16px;display:grid;place-content:center;justify-items:center;gap:12px;padding:28px;text-align:center;color:var(--ff-ink-soft)}.featureEmpty>a{color:var(--ff-petrol)}
+.todayEmpty,.quickEmpty{padding:32px 8px;color:var(--ff-ink-soft);font-size:13px}
+.panelOverflowAction{width:36px;height:36px;border:1px solid var(--ff-border);border-radius:11px;display:grid;place-items:center;color:var(--ff-ink-soft)}.panelOverflowAction svg{width:15px;height:15px}
+@media(max-width:760px){.featureEmpty{height:270px}}
+
+.referenceDashboard .metricCard strong,.referenceDashboard .featureCopy strong{font-family:"Manrope Variable",sans-serif}

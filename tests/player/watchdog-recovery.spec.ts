@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import {readFile} from "node:fs/promises";
 
 import { expect, test } from "@playwright/test";
 
@@ -209,16 +210,18 @@ test("retries a decode failure once, skips it and reports recovery in heartbeat"
   }, { timeout: 5_000 }).toBe(true);
 });
 
-test("detects a stalled video that stops making time progress", async ({ page }) => {
+test("detects a stalled video that stops making time progress", async ({ page,context }) => {
   const manifestResponse = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`
   );
   const baseline = (await manifestResponse.json()) as PlayerManifestEnvelope;
+  const bytes=await readFile("apps/player/public/lg-probe/h264-baseline-aac.mp4");
   const stalledVideo = {
     ...baseline.manifest.items[1],
     id: "stalled-video",
     title: "Stalled video",
-    durationSeconds: 30
+    durationSeconds: 30,
+    source:{url:`${playerURL}/watchdog-stalled.mp4`,mimeType:"video/mp4",bytes:bytes.length,checksumSha256:createHash("sha256").update(bytes).digest("hex")}
   };
   const fallbackImage = {
     ...baseline.manifest.items[0],
@@ -232,7 +235,7 @@ test("detects a stalled video that stops making time progress", async ({ page })
       manifestHash: "8".repeat(64),
       releaseId: "88888888-8888-4888-8888-888888888888",
       totalBytes:
-        (stalledVideo.source.posterBytes ?? 0) + fallbackImage.source.bytes,
+        bytes.length + fallbackImage.source.bytes,
       totalDurationSeconds: 40,
       version: 8,
       items: [stalledVideo, fallbackImage]
@@ -242,19 +245,22 @@ test("detects a stalled video that stops making time progress", async ({ page })
   await page.route("**/api/player/manifest", (route) =>
     route.fulfill({ body: JSON.stringify(manifest), contentType: "application/json" })
   );
+  await context.route("**/watchdog-stalled.mp4",route=>route.fulfill({body:bytes,contentType:"video/mp4"}));
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=10000&watchdogMs=1000`);
 
   const video = page.getByTestId("player-video");
   await expect(video).toBeAttached();
-  await video.evaluate((element) => {
-    element.dispatchEvent(new Event("playing", { bubbles: true }));
+  await expect.poll(()=>video.evaluate((element:HTMLVideoElement)=>element.currentTime)).toBeGreaterThan(0);
+  await expect(video).toBeVisible();
+  await video.evaluate((element:HTMLVideoElement) => {
+    element.playbackRate=0;
     element.dispatchEvent(new Event("stalled", { bubbles: true }));
   });
-  await expect(video).toBeVisible();
+  await expect(video).toHaveJSProperty("paused",false);
 
   await expect(page.getByLabel("Player diagnostics")).toContainText(
     "Playbackfout VIDEO_STALLED_TIMEOUT",
-    { timeout: 2_500 }
+    { timeout: process.env.PLAYWRIGHT_PRODUCTION_SERVERS==="1"?14_500:2_500 }
   );
   await expect(page.getByLabel("Player diagnostics")).toContainText(
     "opnieuw geprobeerd"

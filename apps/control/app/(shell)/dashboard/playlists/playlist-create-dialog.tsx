@@ -38,18 +38,19 @@ const templateOptions = [
 
 export function PlaylistCreateDialog({
   canWrite,
-  sources
+  sources,open,onOpenChange,hideTrigger=false
 }: {
   canWrite: boolean;
   sources: PlaylistSource[];
+  open?:boolean;onOpenChange?:(open:boolean)=>void;hideTrigger?:boolean;
 }) {
   const [mode, setMode] = useState<CreationMode>("blank");
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Dialog open={open}onOpenChange={onOpenChange}>
+      {!hideTrigger&&<DialogTrigger asChild>
         <Button disabled={!canWrite}>Nieuwe playlist</Button>
-      </DialogTrigger>
+      </DialogTrigger>}
       <DialogContent aria-describedby="playlist-create-description">
         <DialogHeader>
           <DialogTitle>Nieuwe playlist</DialogTitle>

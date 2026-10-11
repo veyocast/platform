@@ -9,7 +9,7 @@ test("Studio overview and creation journey use real responsive controls", async 
 }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ height: 900, width: 1440 });
-  await page.goto("/dashboard/studio");
+  await page.goto("/dashboard/studio?advanced=1");
 
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Studio" })
@@ -208,6 +208,7 @@ test("desktop Studio editor supports editing, preview and revision inspection", 
   await page.getByRole("button", { name: "Voorbeeld" }).last().click();
   const previewDialog = page.getByRole("dialog");
   await expect(previewDialog.getByRole("heading", { name: "Voorbeeld" })).toBeVisible();
+  expect(await previewDialog.evaluate((element) => element.parentElement?.parentElement === document.body)).toBe(true);
   const reducedMotion = previewDialog.getByRole("checkbox", {
     name: "Beweging beperken"
   });

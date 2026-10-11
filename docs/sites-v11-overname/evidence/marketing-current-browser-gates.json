@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-10-11T22:39:57.198961+00:00",
+  "scope": "Actual production-mode local Marketing3318 with existing test-only signed-intent server configuration; 15 first-run passes and one explicit superseding retry, not a new full run; no deployment or hardware claim.",
+  "result": {
+    "uniquePassingCases": 16,
+    "firstRunPassingCases": 15,
+    "firstRunFailures": 1,
+    "supersededFailure": "signed venue setup: external server omitted the existing Playwright test-only signing setting; truthful unavailable state was returned. Correct server configuration restored, same actual case passed.",
+    "targetedRetryPassingCases": 1
+  },
+  "logs": [
+    {
+      "name": "veyocast-s191-final-marketing-current-browser.log",
+      "sha256": "645c65587d205fb7fefcd2d9ae9acd1d427ac58644126a13e4a9bca172d4dd88"
+    },
+    {
+      "name": "veyocast-s191-final-marketing-signed-intent-rerun.log",
+      "sha256": "723fe4a288571aa53751f43331908ae142b3ee83a529ab033d03f48b6df08f61"
+    }
+  ]
+}

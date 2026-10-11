@@ -8,6 +8,13 @@ const viewports = [
   { height: 900, width: 1440 }
 ] as const;
 
+async function triggerInsideViewport(page: Page) {
+  const trigger = page.getByRole("button", { name: "Actieve context: Museumkwartier" });
+  if (!(await trigger.isVisible())) return false;
+  const box = await trigger.boundingBox(), viewport = page.viewportSize();
+  return Boolean(box && viewport && box.x >= 0 && box.x + box.width <= viewport.width && box.y >= 0 && box.y + box.height <= viewport.height);
+}
+
 async function openDashboard(page: Page) {
   await expect(async () => {
     try {
@@ -26,7 +33,7 @@ async function openDashboard(page: Page) {
     const contextTrigger = page.getByRole("button", {
       name: "Actieve context: Museumkwartier"
     });
-    if (await contextTrigger.isVisible()) {
+    if (await triggerInsideViewport(page)) {
       await expect(contextTrigger).toBeEnabled();
       return;
     }
@@ -54,7 +61,7 @@ test("floating panels stay above clipped containers at every Control breakpoint"
     const contextTrigger = page.getByRole("button", {
       name: "Actieve context: Museumkwartier"
     });
-    if (!(await contextTrigger.isVisible())) {
+    if (!(await triggerInsideViewport(page))) {
       await expect(async () => {
         const mobileMoreTrigger = page.getByRole("button", {
           exact: true,
@@ -66,12 +73,14 @@ test("floating panels stay above clipped containers at every Control breakpoint"
         await expect(navigationTrigger).toBeEnabled();
         await navigationTrigger.click();
         await expect(page.locator("#control-sidebar-navigation")).toHaveClass(
-          /control-sidebar--open/
+          /\bopen\b/
         );
         await expect(contextTrigger).toBeVisible();
       }).toPass({ timeout: 20_000 });
     }
 
+    await contextTrigger.scrollIntoViewIfNeeded();
+    await expect.poll(() => triggerInsideViewport(page)).toBe(true);
     await contextTrigger.click();
     const panel = page.locator("[data-floating-panel]");
     await expect(panel).toBeVisible();
@@ -117,14 +126,22 @@ test("het volledige Meer-paneel blijft bereikbaar op echte mobiele viewports", a
     await page.setViewportSize(viewport);
     await openDashboard(page);
     const more = page.getByRole("button", { exact: true, name: "Meer" });
-    const trigger = await more.isVisible()
-      ? more
-      : page.getByRole("button", { name: "Navigatie openen" });
-    await trigger.click();
+    if (await more.isVisible()) {
+      await more.click();
+    } else {
+      // Sites keeps a visible desktop rail from 768px onward. Its More
+      // section expands in that rail instead of opening a mobile drawer.
+      await page.getByRole("button", { name: "Meer onderdelen", exact: true }).click();
+    }
 
     const sidebar = page.locator("#control-sidebar-navigation");
-    await expect(sidebar).toHaveClass(/control-sidebar--open/);
-    const footer = sidebar.locator(".control-sidebar__footer");
+    await expect(sidebar).toBeVisible();
+    if (viewport.width < 768) {
+      await expect(sidebar).toHaveClass(/\bopen\b/);
+    } else {
+      await expect(page.locator("#control-secondary-navigation")).toBeVisible();
+    }
+    const footer = sidebar.locator(".vx-side-footer");
     await footer.scrollIntoViewIfNeeded();
     await expect(footer).toBeVisible();
     const bounds = await footer.boundingBox();

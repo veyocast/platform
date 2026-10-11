@@ -1,10 +1,13 @@
 import { hasCapability } from "@veyocast/auth";
+import { ShieldCheck } from "lucide-react";
+import sites from "../settings/sites-settings.module.css";
+
 import { DataTable } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { loadTenantTeam } from "../../../../lib/control-overview";
 import { formatTenantDateTime } from "../../../../lib/tenant-time";
-import { PageHeader, StatusPill } from "../../_components/shell-primitives";
+import { StatusPill } from "../../_components/shell-primitives";
 import {
   changeTenantMemberRole,
   resendTenantInvitation
@@ -19,7 +22,7 @@ import {
   RevokeInvitationDialog
 } from "./team-action-dialogs";
 import { TeamInviteDialog } from "./team-invite-dialog";
-import { TeamTabs } from "./team-tabs";
+import { TeamSearch, TeamTabs } from "./team-tabs";
 
 type TeamPageProps = Readonly<{
   searchParams: Promise<{ fout?: string; succes?: string; waarschuwing?: string }>;
@@ -47,14 +50,13 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   const customRoleNames = new Map(customRoles.map((role) => [role.id, role.name]));
 
   return (
-    <>
-      <PageHeader
-        actions={canManage ? <TeamInviteDialog canManageOwners={canManageOwners} customRoles={activeCustomRoles} /> : null}
-        description="Beheer toegang met beschermde standaardrollen en tenant-eigen werkrollen."
-        eyebrow={session.tenant}
-        status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
-        title="Team"
-      />
+    <div className={`${sites.page} ${sites.teamPage}`}>
+      <h1 className="sr-only">Team</h1>
+      {canManage ? (
+        <header className={sites.actionHeading}>
+          <TeamInviteDialog canManageOwners={canManageOwners} customRoles={activeCustomRoles} />
+        </header>
+      ) : null}
 
       {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte teamleden en rollen te beheren.</p> : null}
       {session.tenantStatus === "paused" ? <p className="notice notice--warning" role="status">Deze vereniging is gepauzeerd. Toegang blijft zichtbaar, maar wijzigingen zijn databasebreed geblokkeerd.</p> : null}
@@ -63,8 +65,9 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       {query.waarschuwing === "bezorging" ? <p className="notice notice--warning" role="status"><strong>Uitnodiging veilig geregistreerd.</strong> De e-mailprovider bevestigde de bezorging nog niet. Verstuur een nieuwe link om de oude token in te trekken.</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{teamSuccess[query.succes] ?? "De teamwijziging is opgeslagen en geaudit."}</p> : null}
 
-      <TeamTabs>
-      <section className="workspace-section" aria-labelledby="custom-roles-title" data-team-panel="roles">
+      <TeamTabs memberCount={data.members.length}>
+      <section className={`${sites.surface} workspace-section`} aria-labelledby="custom-roles-title" data-team-panel="roles">
+        <div className={sites.roleGrid}>{[["Eigenaar","Alle instellingen, teamleden en publicaties beheren."],["Beheerder","Content, schermen, planning en teamleden beheren."],["Editor","Content maken, aanpassen en publicaties voorbereiden."],["Kijker","Content, schermen en planning bekijken."]].map(([title,description])=><section className={sites.surface} key={title}><header><h2>{title}</h2></header><ShieldCheck aria-hidden="true" className={sites.roleIcon}/><p>{description}</p><StatusPill label="Standaardrol" tone="neutral"/></section>)}</div>
         <div className="workspace-section__header">
           <div>
             <h2 className="workspace-section__title" id="custom-roles-title">Custom rollen</h2>
@@ -117,17 +120,12 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         )}
       </section>
 
-      <section className="workspace-section" aria-labelledby="team-table-title" data-team-panel="members">
-        <div className="workspace-section__header">
-          <div>
-            <h2 className="workspace-section__title" id="team-table-title">Gebruikers en rollen</h2>
-            <p className="work-panel__meta">De laatste eigenaar en je eigen toegang zijn beschermd tegen self-lockout.</p>
-          </div>
-          <StatusPill
-            label={data.members.length === 1 ? "1 persoon" : `${data.members.length} personen`}
-            tone="neutral"
-          />
+      <section className={`${sites.surface} workspace-section`} aria-labelledby="team-table-title" data-team-panel="members">
+        <div className={sites.surfaceHeading}>
+          <h2 id="team-table-title">Gebruikers en rollen</h2>
+          <p>Iedereen heeft de juiste toegang tot de club.</p>
         </div>
+        <TeamSearch panel="members" />
         {data.members.length ? (
           <DataTable caption="Toegang binnen de actieve vereniging." tableKey="tenant-team-members">
               <thead><tr><th scope="col">Gebruiker</th><th scope="col">Rol</th><th scope="col">Toegevoegd</th><th scope="col">Beheer</th></tr></thead>
@@ -142,8 +140,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                   return (
                     <tr key={member.user_id}>
                       <td data-label="Gebruiker">
-                        <span className="table-primary" title={member.display_name || undefined}>{member.display_name || `Gebruiker ${member.user_id.slice(0, 8)}`}</span>
-                        {isSelf ? <span className="table-secondary">Huidige gebruiker</span> : null}
+                        <div className={sites.person}><span>{String(member.display_name||"Gebruiker").split(" ").map(word=>word[0]).slice(0,2).join("")}</span><div><strong title={member.display_name||undefined}>{member.display_name||`Gebruiker ${member.user_id.slice(0,8)}`}</strong><small>{isSelf?"Jij · ":""}Toegevoegd {formatDate(member.created_at)}</small></div></div>
                       </td>
                       <td data-label="Rol">{accessLabel(member.role, member.custom_role_id, customRoleNames)}</td>
                       <td data-label="Toegevoegd">{formatDate(member.created_at)}</td>
@@ -180,11 +177,12 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         ) : <p className="notice" role="status">Nog geen teamleden binnen deze vereniging.</p>}
       </section>
 
-      <section className="workspace-section" id="uitnodigingen" aria-labelledby="team-invitations-title" data-team-panel="invitations">
+      <section className={`${sites.surface} workspace-section`} id="uitnodigingen" aria-labelledby="team-invitations-title" data-team-panel="invitations">
         <div className="workspace-section__header">
           <div><h2 className="workspace-section__title" id="team-invitations-title">Uitnodigingen</h2><p className="work-panel__meta">Pending, verlopen, geaccepteerd en ingetrokken blijven zichtbaar als beheerbewijs.</p></div>
           <StatusPill label={`${data.invitations.length} totaal`} tone="neutral" />
         </div>
+        <TeamSearch panel="invitations" />
         {data.invitations.length ? (
           <DataTable caption="Persoonlijke tenantuitnodigingen." tableKey="tenant-team-invitations">
               <thead><tr><th scope="col">E-mail</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col">Bezorging</th><th scope="col">Actie</th></tr></thead>
@@ -213,7 +211,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         ) : <p className="notice" role="status">Er zijn nog geen uitnodigingen verstuurd.</p>}
       </section>
       </TeamTabs>
-    </>
+    </div>
   );
 }
 

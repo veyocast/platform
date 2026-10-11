@@ -15,20 +15,21 @@ test("renders the marketing homepage with canon-safe messaging", async ({ page }
       name: "Van clubverhaal naar ieder scherm."
     })
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Plan een demo" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Bekijk hoe het werkt" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start gratis", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bekijk hoe het werkt" }).first()).toBeVisible();
   await expect(page.getByText("Binnen minuten live", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Direct zien wat er speelt." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ieder moment voelt als maatwerk." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Eén platform voor de hele club." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Meer clubgevoel. Minder beheer." })).toBeVisible();
   await expect(
-    page.locator(".prototype-price__card").getByText("€ 5,95", { exact: true })
+    page.locator('[data-sites="price-card"]').getByText("€ 5,95", { exact: true })
   ).toBeVisible();
   await expect(page.getByText("Verenigingscommunicatie die vanzelf stroomt.", { exact: true })).toBeVisible();
 
-  await page.getByRole("link", { name: "Bekijk hoe het werkt" }).first().click();
+  await page.getByRole("button", { name: "Bekijk hoe het werkt" }).first().click();
   await expect(page).toHaveURL(/#opstelling$/);
+  await expect(page.locator("#opstelling")).toBeInViewport();
   await expect(page.getByRole("heading", { name: "Bouw je VeyoCast-opstelling." })).toBeVisible();
 });
 
@@ -37,10 +38,10 @@ test("keeps hero overlays in front and separates the setup columns", async ({ pa
   await page.goto(`${marketingURL}/#opstelling`);
 
   const geometry = await page.evaluate(() => {
-    const stage = document.querySelector<HTMLElement>(".prototype-hero__stage");
-    const media = document.querySelector<HTMLElement>(".prototype-hero__media");
-    const chip = document.querySelector<HTMLElement>(".prototype-stage-chip--top");
-    const player = document.querySelector<HTMLElement>(".prototype-player-bar");
+    const stage = document.querySelector<HTMLElement>('[data-sites="hero-stage"]');
+    const media = document.querySelector<HTMLElement>('[data-sites="hero-media"]');
+    const chip = document.querySelector<HTMLElement>('[data-sites="hero-top-chip"]');
+    const player = document.querySelector<HTMLElement>('[data-sites="hero-player-bar"]');
     const map = document.querySelector<HTMLElement>(".setup-builder__venue-map");
     const zones = document.querySelector<HTMLElement>(".setup-builder__zone-list");
 

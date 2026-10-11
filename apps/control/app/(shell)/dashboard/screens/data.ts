@@ -250,7 +250,7 @@ export async function loadScreenFleet(tenantId: string): Promise<ScreenFleetData
     loadAllPages((from, to) => supabase.from("playlists").select("id, name, status").eq("tenant_id", tenantId).order("id").range(from, to)),
     supabase.from("tenants").select("screen_limit").eq("id", tenantId).maybeSingle(),
     supabase.from("tenant_settings").select("default_screen_orientation, default_resolution_width, default_resolution_height").eq("tenant_id", tenantId).maybeSingle(),
-    loadAllPages((from, to) => supabase.from("screen_groups").select("id, name, revision").eq("tenant_id", tenantId).eq("status", "active").order("name").order("id").range(from, to)),
+    loadAllPages((from, to) => supabase.from("screen_groups").select("id, name, revision").eq("tenant_id", tenantId).eq("is_internal", false).eq("status", "active").order("name").order("id").range(from, to)),
     loadAllPages((from, to) => supabase.from("screen_group_memberships").select("screen_group_id, screen_id").eq("tenant_id", tenantId).order("screen_group_id").order("screen_id").range(from, to)),
     loadAllPages((from, to) => supabase.from("screen_automation_settings").select("screen_id, enabled, schedule_mode, temporary_override, temporary_override_until").eq("tenant_id", tenantId).order("screen_id").range(from, to)),
     loadAllPages((from, to) => supabase.from("screen_automation_periods").select("screen_id, weekday, start_local_time, enabled").eq("tenant_id", tenantId).order("screen_id").order("weekday").order("start_local_time").range(from, to)),
@@ -438,7 +438,7 @@ export async function loadScreenDetail(
     supabase.from("audit_events").select("id, action, target_type, target_id, result, metadata, created_at").eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(250),
     supabase.from("screen_group_memberships").select("screen_group_id").eq("tenant_id", tenantId).eq("screen_id", screenId),
     supabase.from("content_schedules").select("id, name, target_kind, target_screen_id, target_screen_group_id, release_id, timezone_name, starts_at, ends_at, priority, source, enabled").eq("tenant_id", tenantId).order("starts_at"),
-    supabase.from("screen_groups").select("id, name").eq("tenant_id", tenantId),
+    supabase.from("screen_groups").select("id, name").eq("tenant_id", tenantId).eq("is_internal", false),
     supabase.from("player_commands").select("id, command_type, created_at, expires_at, delivered_at, acknowledged_at, completed_at, failed_at, failure_code").eq("tenant_id", tenantId).eq("screen_id", screenId).order("created_at", { ascending: false }).limit(25)
   ]);
   const error = [

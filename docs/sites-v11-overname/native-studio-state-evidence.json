@@ -1,0 +1,99 @@
+{
+  "scope": "Actual Studio components; guarded action results injected without credentials/providers. Production states absent from prototype are explicit extensions, not source pixel-parity claims.",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "cases": [
+    {
+      "caseId": "STATE-0003",
+      "state": "loading",
+      "status": "PASS",
+      "pngSha256": "f8e1f990e4663a47af54a010bc73136f0590b6aaa331abb1cfa31b1a9bb3c39d",
+      "requests": [],
+      "inputRetained": false,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0008",
+      "state": "empty",
+      "status": "PASS",
+      "pngSha256": "f4dc28c515303b474f824fa6ac9459bdcb40378f9ec7b1308465a5c1353f54ed",
+      "requests": [],
+      "inputRetained": false,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0013",
+      "state": "validation",
+      "status": "PASS",
+      "pngSha256": "af9174107b4451604e7cd4c508f432a5595dcc9e688e958ec29a919727bfdf80",
+      "requests": [],
+      "inputRetained": false,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0018",
+      "state": "network-failure",
+      "status": "PASS",
+      "pngSha256": "81c4f55d02f134854250abe66ac769f4c73353f400c277e077c2a7a50617e1f6",
+      "requests": [
+        "save"
+      ],
+      "inputRetained": true,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0023",
+      "state": "permission-readonly",
+      "status": "PASS",
+      "pngSha256": "76eb200dc2ed1dd53a703bb72ad1fd47390d51b2b4b0c6cf0758bca1d4625ffa",
+      "requests": [],
+      "inputRetained": false,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0028",
+      "state": "revision-conflict",
+      "status": "PASS",
+      "pngSha256": "d5d92923780153eba65c5301e7795c9951f877e4ab75849b2447abf4e5d10344",
+      "requests": [
+        "save"
+      ],
+      "inputRetained": true,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0033",
+      "state": "processing-media",
+      "status": "PASS",
+      "pngSha256": "29d2a95f9ad3f59f1a59a59fee36dc09c56d771d40a5b345b178a2f010cf0250",
+      "requests": [],
+      "inputRetained": false,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0038",
+      "state": "publication-pending",
+      "status": "PASS",
+      "pngSha256": "13c23926f268cfd14f55428b75c0902d2823ddf25d5c5d02e99933685f278883",
+      "requests": [
+        "render",
+        "readback"
+      ],
+      "inputRetained": false,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    },
+    {
+      "caseId": "STATE-0043",
+      "state": "offline-stale",
+      "status": "PASS",
+      "pngSha256": "0ab9d637b86f85f8e8c6a1ed768fd5b626a7e70fe6dfefaa1b1cfb0f78b2cbb9",
+      "requests": [],
+      "inputRetained": true,
+      "assertionScope": "Production state interaction and retained input; no source pixel parity or actual provider/hardware acceptance"
+    }
+  ],
+  "testFile": "apps/control/app/(shell)/dashboard/studio/[designId]/sites-studio-state-browser.test.ts",
+  "provenance": "Original VISUAL-CASES.csv PRODUCTION_STATE Studio rows; actual platform editor, deterministic guarded result injection. No provider, credential, publication or source pixel claim."
+}

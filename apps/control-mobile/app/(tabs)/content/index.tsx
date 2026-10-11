@@ -42,6 +42,7 @@ export default function ContentScreen() {
         }
       >
         <PageHeader eyebrow="Bibliotheek" title="Content" />
+        <Button variant="secondary" onPress={()=>router.push("/studio")}>Studio en opgeslagen ontwerpen</Button>
         <SegmentedControl
           accessibilityLabel="Contenttype"
           onChange={setSegment}

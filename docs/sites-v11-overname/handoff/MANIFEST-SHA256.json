@@ -1,0 +1,1407 @@
+{
+  "algorithm": "sha256",
+  "created_at": "2026-10-11",
+  "scope": "All package files except this manifest",
+  "files": [
+    {
+      "path": "00-LEESMIJ.md",
+      "size": 8829,
+      "sha256": "f38d28fba86668efbb632cbad9f0b24c4eabafd8776caa0a4747fd3101d4b4e0"
+    },
+    {
+      "path": "01-CANON.md",
+      "size": 17285,
+      "sha256": "10ab47f2f9c05b97164ecfc86936d0d5f02a77d053a2b0672ffad043c9334c99"
+    },
+    {
+      "path": "CODEX-STARTPROMPT.txt",
+      "size": 12589,
+      "sha256": "33471f2b74f342e8368cc76bcb941c6a223d322e04286bb2f03af32c03813db1"
+    },
+    {
+      "path": "SOURCE-PROVENANCE.json",
+      "size": 952,
+      "sha256": "28d61aa751fb75bc9676df525706282f1341ddf496b2a63f7dbf756f47a2d238"
+    },
+    {
+      "path": "VERIFICATION.json",
+      "size": 3127,
+      "sha256": "7b87ce5037c1c87f54ce824cbabccf655a253b9e7de58abd6c112a9e59c61283"
+    },
+    {
+      "path": "docs/ACCEPTATIE-EN-QA.md",
+      "size": 14931,
+      "sha256": "e7163152fcfea70548023f4bb118951ebe24f8e23708efa041a8ebea5eb58281"
+    },
+    {
+      "path": "docs/PLATFORM-BEHOUD-EN-DEPLOYMENT.md",
+      "size": 18777,
+      "sha256": "67f2cb383e01ba6ff9e8f4e2ad97eb520164e30fc3bb113152a8b18589aeb733"
+    },
+    {
+      "path": "docs/TEMPLATES-PLAYER-INTEGRATIE.md",
+      "size": 23114,
+      "sha256": "f2142ab45d86d29aad5ffc1e00ef2966f54969a6cfc944dbb19e7a99cf249390"
+    },
+    {
+      "path": "docs/UI-STYLING-CANON.md",
+      "size": 23874,
+      "sha256": "bf3cbefa169c7a0cf864c9d672d071d2dcfa0a64521da6344f393881ee90604e"
+    },
+    {
+      "path": "docs/UITVOERINGSPLAN.md",
+      "size": 19877,
+      "sha256": "4a12174a05ac37cbcf4c8d20d9289b960474d08273a6faefe938518e4e5277ff"
+    },
+    {
+      "path": "docs/WORKFLOWS-DATA-MIGRATIE.md",
+      "size": 21524,
+      "sha256": "05ecc8e919c354666c5296867ae32bfb7818f9ecc5b2d2c54ab567f5cbba6be7"
+    },
+    {
+      "path": "inventory/ASSETS.csv",
+      "size": 21393,
+      "sha256": "95033bf68eb57c512d48884167e51eb2c94f2b0a764f487f921389548db13362"
+    },
+    {
+      "path": "inventory/GITHUB-TREE.txt",
+      "size": 301529,
+      "sha256": "045c267d9e3d9ba50fd8e3ac1a7738de11168ee576e432f65ed5fe97f41b2c77"
+    },
+    {
+      "path": "inventory/ROUTE-MAPPING.csv",
+      "size": 84266,
+      "sha256": "6a32735d5fac71147e52c3b52c8f6693027425b024ad019c8a230df3c23bedbd"
+    },
+    {
+      "path": "inventory/SITES-FILES.json",
+      "size": 42238,
+      "sha256": "eaf8c6b279036cb7e15af32cb34c9fdec42404d410bb21a25db97d132afdacb7"
+    },
+    {
+      "path": "inventory/TEMPLATE-MAPPING.csv",
+      "size": 13423,
+      "sha256": "6572d1122481fd9477e970355d427c99b27b1f13059dcae7cc03b1a8506a2415"
+    },
+    {
+      "path": "inventory/UI-TOKENS.csv",
+      "size": 218124,
+      "sha256": "de90e871102e4dd74852de070292def3ec0d1bc6cd3511dc99e0a9e1b471ba24"
+    },
+    {
+      "path": "inventory/VISUAL-CASES.csv",
+      "size": 573194,
+      "sha256": "85c2b175297887aa30fbc6beb0cce34d5c4a91c9ce96087da4d35a05d47d5b50"
+    },
+    {
+      "path": "inventory/WORKFLOW-MAPPING.csv",
+      "size": 12453,
+      "sha256": "3cb685f47761d87f844a0c83807a833bd08979ea5506ec957c846541631b7f07"
+    },
+    {
+      "path": "reference-preview/dist/assets/index-DZlyF2x1.js",
+      "size": 676868,
+      "sha256": "461f6601281e4574ca93d0583bd9a930d2a65837c807b783b490f9dfb056e3b3"
+    },
+    {
+      "path": "reference-preview/dist/assets/index-Dj6sed1s.css",
+      "size": 458840,
+      "sha256": "833b1944e2d0586706066e6583cf7d6372f8261d43cbc7d0e159880bdafdc9b3"
+    },
+    {
+      "path": "reference-preview/dist/index.html",
+      "size": 456,
+      "sha256": "236905c77425e455c1d85806a33ab4e3c8e164f6757119be7585fab4c6faf806"
+    },
+    {
+      "path": "reference-preview/index.html",
+      "size": 353,
+      "sha256": "588d8a666df341f1502e5911e9c3a57a807fe15e3b36940b6a0220abe213c080"
+    },
+    {
+      "path": "reference-preview/main.tsx",
+      "size": 789,
+      "sha256": "4f07b74ec6a5d6b8178e5e978deed1fd3b33cc60b62203683807563999d3d7a5"
+    },
+    {
+      "path": "reference-preview/serve.py",
+      "size": 1539,
+      "sha256": "b85d773158f6555abba12949a41323b0cec9df5d517db774fd5511733e7e32df"
+    },
+    {
+      "path": "source/sites/.gitignore",
+      "size": 824,
+      "sha256": "65c950beefe57952cd630bb6ae071b0302279c9b97d9ee8517ea6d2f4cd0b4f2"
+    },
+    {
+      "path": "source/sites/.npmrc",
+      "size": 45,
+      "sha256": "a3909ac0447c469fda12c57374993be70f47ce73e49fd3124678c7c047f2214d"
+    },
+    {
+      "path": "source/sites/.openai/hosting.json",
+      "size": 91,
+      "sha256": "3e67c65ff453a9c16c0cf10fbe80639c0c52a4b297f417ae3989d0a79b17b113"
+    },
+    {
+      "path": "source/sites/README.md",
+      "size": 5395,
+      "sha256": "f6ef44ca8c67eb7740166d508896f8b08ded0438a03c70b8cbc203aaefe992ee"
+    },
+    {
+      "path": "source/sites/app/chatgpt-auth.ts",
+      "size": 2550,
+      "sha256": "4265a2e7c2dcb3a6f4b7026f762bf5b6e4caec76cc13c0a45987ee9a9f2e42cc"
+    },
+    {
+      "path": "source/sites/app/fieldflow.css",
+      "size": 4668,
+      "sha256": "7fd618bc8067fbbf4ce3fbf737d81d4d296c7dca9c7f7b0f5f2d63234ba4703d"
+    },
+    {
+      "path": "source/sites/app/globals.css",
+      "size": 15789,
+      "sha256": "c7467900bd215de1302ac33224b9ffc39760443afa73d8c87cc657d51068ad45"
+    },
+    {
+      "path": "source/sites/app/layout.tsx",
+      "size": 551,
+      "sha256": "3e6a0ff847c4e228f2420173c2bdef988542e634831d420fd8daaa059cc98eb1"
+    },
+    {
+      "path": "source/sites/app/page.tsx",
+      "size": 95,
+      "sha256": "2255fff0acac1d95c69fbf5dc4f6d5814a02b6b53457046ecd7e14e73ebaa5ca"
+    },
+    {
+      "path": "source/sites/app/prototype/app.tsx",
+      "size": 15680,
+      "sha256": "1f8b2d3affd0c9b5638e0a21a000a8b34aa9404bf5ca4212c42937d1f9e25b78"
+    },
+    {
+      "path": "source/sites/app/prototype/commerce.module.css",
+      "size": 14806,
+      "sha256": "05dab05cf6a569270cc724fa8104c14e73d0ef06f80f7256af68bd453fa4dd9b"
+    },
+    {
+      "path": "source/sites/app/prototype/commerce.tsx",
+      "size": 37701,
+      "sha256": "4c3f1207237b986f94adfc9a043855caa21af0cd6a24ca66a8868db94b9c9742"
+    },
+    {
+      "path": "source/sites/app/prototype/content.module.css",
+      "size": 46470,
+      "sha256": "92a494597a4eb76e6b5fe24aeb37ca243f052ae9734d27620d8d37fb5b5c8c30"
+    },
+    {
+      "path": "source/sites/app/prototype/content.tsx",
+      "size": 50170,
+      "sha256": "5d528892c4a5beaf0ad3da688580c597d7d9aa6b5b61b371ee0a3b2c3bde4d2e"
+    },
+    {
+      "path": "source/sites/app/prototype/experience.module.css",
+      "size": 8860,
+      "sha256": "178e2a79cc445345245939c0c19ff5f56fb7e4d40cdfe320b97fa9f03ae848ae"
+    },
+    {
+      "path": "source/sites/app/prototype/experience.tsx",
+      "size": 13557,
+      "sha256": "09473b1fa9b0f11c4d18c60d8fb89a2f81f74e01a3b45ff0a545ff227c89c9a4"
+    },
+    {
+      "path": "source/sites/app/prototype/led-fullscreen.module.css",
+      "size": 2223,
+      "sha256": "d0772718fbb8d1c4fa9031f6676a7b75df15a9902f4c9dc2ca1932a2ce41fe1d"
+    },
+    {
+      "path": "source/sites/app/prototype/led-fullscreen.tsx",
+      "size": 5693,
+      "sha256": "fcff55d52dbf2c1073606763b453366ae1456bcf8545360a0da988b168805b2f"
+    },
+    {
+      "path": "source/sites/app/prototype/led-scores.module.css",
+      "size": 17800,
+      "sha256": "e8458ef335274664a446af619073047a0059548c7a4c9da7e8e989162b23efa3"
+    },
+    {
+      "path": "source/sites/app/prototype/led-scores.tsx",
+      "size": 35587,
+      "sha256": "73907bb232fc24b11d2e66917a2df4842a5cd4ec4245759d7074321a5352ca22"
+    },
+    {
+      "path": "source/sites/app/prototype/led-sizing-controls.module.css",
+      "size": 2578,
+      "sha256": "1e60a83aeb1cc9b83ec201a837ee4845c154893ae33e6f4956fcb812a47747e5"
+    },
+    {
+      "path": "source/sites/app/prototype/led-sizing-controls.tsx",
+      "size": 3324,
+      "sha256": "1d560dea8d9a8bbe44ec41fb6f6831fddbd6895afe69b8c251ff394e9cd12b5e"
+    },
+    {
+      "path": "source/sites/app/prototype/led-slide.module.css",
+      "size": 12377,
+      "sha256": "fa0b552821dbde631e541a0f870396728b8a40966685ae8c3d815107de9724b2"
+    },
+    {
+      "path": "source/sites/app/prototype/led-slide.tsx",
+      "size": 7583,
+      "sha256": "60ae058367b4fd5c5858d1e14934cd051edb8e9250e2f02fe26e774987e1498a"
+    },
+    {
+      "path": "source/sites/app/prototype/marketing.module.css",
+      "size": 31488,
+      "sha256": "f6a1051b313967011391d7028ecf9c574f7f29272e67bde3e38130767ba8eeaf"
+    },
+    {
+      "path": "source/sites/app/prototype/marketing.tsx",
+      "size": 13443,
+      "sha256": "0262db90477aaf62bf65758c054de591172d067cd31ba8cd7eb81874513a0f37"
+    },
+    {
+      "path": "source/sites/app/prototype/media-assets.tsx",
+      "size": 3463,
+      "sha256": "f044137dfc6778e1a1daf3a67da54571319e10d284373c71b128ae10dafcf351"
+    },
+    {
+      "path": "source/sites/app/prototype/onzetrots-backgrounds.ts",
+      "size": 1910,
+      "sha256": "50867a51be319ce466baea84e8425d45f4b16b620adc7db946e55eb9f612cc5b"
+    },
+    {
+      "path": "source/sites/app/prototype/onzetrots-tv-adapter.ts",
+      "size": 4787,
+      "sha256": "3376c5bd78e548568175857e2564563cd8e60ef1bec6b934e16dc90bd0d40ce3"
+    },
+    {
+      "path": "source/sites/app/prototype/onzetrots-tv-editor.tsx",
+      "size": 13496,
+      "sha256": "7731cf638892a1381857c0f42f1bbf43324a23dc90c6a5128ab47f584ae9ad54"
+    },
+    {
+      "path": "source/sites/app/prototype/onzetrots-tv-templates.ts",
+      "size": 6463,
+      "sha256": "08f3237300eb83fde2efc11de3d6555336c1b8f8ecb15c91320dffa9cb070eb9"
+    },
+    {
+      "path": "source/sites/app/prototype/onzetrots-tv.css",
+      "size": 61200,
+      "sha256": "bce381594058f24eca4b68c7b4dbb46b2871643fe85ef60143f2dd48521ed46f"
+    },
+    {
+      "path": "source/sites/app/prototype/onzetrots-tv.tsx",
+      "size": 22357,
+      "sha256": "9c0957bf299c4e08cec42906dd66154aa027e8d0812bef2c43cbeadc50aea5dc"
+    },
+    {
+      "path": "source/sites/app/prototype/overview.module.css",
+      "size": 13444,
+      "sha256": "76e5db4fd5aa8727a1c895f51b50224999b7df91e18b142fd7427d6b65c74e11"
+    },
+    {
+      "path": "source/sites/app/prototype/overview.tsx",
+      "size": 6327,
+      "sha256": "101991f254f44232c0e24b076c70931d48a16c2fdaeea8f842686b6c7e1060c8"
+    },
+    {
+      "path": "source/sites/app/prototype/planning.module.css",
+      "size": 31234,
+      "sha256": "358f872ddf90d3325f18c9fe97567fd3eeaa30c38e2e0ea132640ea7579084d9"
+    },
+    {
+      "path": "source/sites/app/prototype/planning.tsx",
+      "size": 23262,
+      "sha256": "c880867f7a22fc7542c32368b0eda03f612e3559d7992688d478c3809efeb6f1"
+    },
+    {
+      "path": "source/sites/app/prototype/playlist-editor.module.css",
+      "size": 23847,
+      "sha256": "6326fe304838db366dee7ad5e07d44ea6d92ae13cc9e391de779e38085e85f1a"
+    },
+    {
+      "path": "source/sites/app/prototype/playlist-editor.tsx",
+      "size": 32815,
+      "sha256": "2d2bd63d52956c8d1dab4cbb237fad17ca5d9c502589d7c44c4ec0d2405e609d"
+    },
+    {
+      "path": "source/sites/app/prototype/playlist-library.module.css",
+      "size": 7801,
+      "sha256": "6e56e6bf84fc94218a9dfadc407d25691ae377bc8ba3a57eee1e2bafaeafc46b"
+    },
+    {
+      "path": "source/sites/app/prototype/playlist-library.tsx",
+      "size": 7284,
+      "sha256": "808458c5b9e4754c5d04c7735fde359a6cba75959500f49a54d504f822779700"
+    },
+    {
+      "path": "source/sites/app/prototype/playlist-media-picker.module.css",
+      "size": 10771,
+      "sha256": "716804d98441913266fe68659de8489d99715dca9b1e583707fc3aace935c3ab"
+    },
+    {
+      "path": "source/sites/app/prototype/playlist-media-picker.tsx",
+      "size": 16744,
+      "sha256": "7a931d7f6ac56f3622d35c1eb28fefed82139d69e3208881fcb2096954b420f0"
+    },
+    {
+      "path": "source/sites/app/prototype/playlist-storage.ts",
+      "size": 896,
+      "sha256": "8657c136c5885d87d29835e372a6e64b58c06e84a583f727a81e031fdfd78f12"
+    },
+    {
+      "path": "source/sites/app/prototype/screen-data.ts",
+      "size": 1279,
+      "sha256": "840e384b62b8da5c94d75a132040907d3d03d8da3668e8f6bbfe932ac335d543"
+    },
+    {
+      "path": "source/sites/app/prototype/screen-theme-picker.module.css",
+      "size": 2402,
+      "sha256": "fbe0abf2b4f40e60d4aa77d20cf5e26a2aa28a93a22f2ecb62e17411df591d9d"
+    },
+    {
+      "path": "source/sites/app/prototype/screen-theme-picker.tsx",
+      "size": 1253,
+      "sha256": "01df7d804953589ec097332f083ccc688246d4e72a33085448f591c7ae0d63a8"
+    },
+    {
+      "path": "source/sites/app/prototype/screen-themes.ts",
+      "size": 2199,
+      "sha256": "ef2f3f07efb7f617be6125ff7e5b6b05267329260512b569e9a3826bf1463599"
+    },
+    {
+      "path": "source/sites/app/prototype/screens.module.css",
+      "size": 37199,
+      "sha256": "8964200cf50454d62226d26107ecc4ac0108cb14fe65fdea54fa02a615fea11c"
+    },
+    {
+      "path": "source/sites/app/prototype/screens.tsx",
+      "size": 30224,
+      "sha256": "1e227fcce54a12ff7e80a416070c362b6474b1b1948cffe2e2a94bf3b30935c7"
+    },
+    {
+      "path": "source/sites/app/prototype/settings.module.css",
+      "size": 10871,
+      "sha256": "b08d68863d11bda0a39403d1bd2b05ce481a2b23f43a3b7855e39ce5052629a5"
+    },
+    {
+      "path": "source/sites/app/prototype/settings.tsx",
+      "size": 26973,
+      "sha256": "622642c19c7910eba79901545f8726c96cc96ec797a2103f604bfe2b42b882a1"
+    },
+    {
+      "path": "source/sites/app/prototype/shared.tsx",
+      "size": 3252,
+      "sha256": "0c180ee995ec5f2c2961d019b08d8f4bc992231afbca26ca5f498a19e5125cd9"
+    },
+    {
+      "path": "source/sites/app/prototype/sportlink.module.css",
+      "size": 13974,
+      "sha256": "c509f8c1d2e6ea60dccf2ec1de4a5afe4e95834416078d2b984c969bb270e53f"
+    },
+    {
+      "path": "source/sites/app/prototype/sportlink.tsx",
+      "size": 38276,
+      "sha256": "c77c03b62de351e66dc706e4120d31069c479f0ebaf7b22c38e906c9530a210d"
+    },
+    {
+      "path": "source/sites/app/prototype/studio.module.css",
+      "size": 42098,
+      "sha256": "0c2e0b9bd133122108807520d61504d16654b60a864d96274437769527ab0eb0"
+    },
+    {
+      "path": "source/sites/app/prototype/studio.tsx",
+      "size": 54424,
+      "sha256": "550920d2057d3126fed00adc856b8aa19a77c8bd392d9c8db7e5ec1f6571e3ea"
+    },
+    {
+      "path": "source/sites/app/tokens.css",
+      "size": 18455,
+      "sha256": "368399f509423f166b8f8d7969a637d1a14772af34e2ced096137186fd66641c"
+    },
+    {
+      "path": "source/sites/build/connector-preview-plugin.mjs",
+      "size": 7211,
+      "sha256": "a6a9fe2086e302f94a3f91e3c1a68a45bb3aa07d4a79faf01b14732191eb4e80"
+    },
+    {
+      "path": "source/sites/build/connector-preview-worker.mjs",
+      "size": 594,
+      "sha256": "c1b6b2c420cb67d9e28f8f4ae440f578c0dfd4cb840a12cfe4b58076629a17ba"
+    },
+    {
+      "path": "source/sites/build/sites-vite-plugin.LICENSE",
+      "size": 1063,
+      "sha256": "7de1e115d165f176e68f962acdb809b5ab8d8ae78d3981e0701392b2ac50c713"
+    },
+    {
+      "path": "source/sites/build/sites-vite-plugin.ts",
+      "size": 7185,
+      "sha256": "07af20e7097d9ed1d76f7c446d02997550b8fc5ca89668b249e25eabd62c6834"
+    },
+    {
+      "path": "source/sites/build/sites-worker.ts",
+      "size": 1279,
+      "sha256": "28a75f74adfc226a773d1c00d5779c26412eea40a104da5c77f7d0f0fc30f0e8"
+    },
+    {
+      "path": "source/sites/cloudflare-env.d.ts",
+      "size": 99,
+      "sha256": "8b0eca84aa3364cc7ccc43cc3af6beb88dd34ebd410de08690bf094ce39fbcb0"
+    },
+    {
+      "path": "source/sites/components/connector-error.tsx",
+      "size": 1082,
+      "sha256": "2d0d04559952ce9c9a327cca499f4b99f35d885cccfce375230e116695d3f155"
+    },
+    {
+      "path": "source/sites/components/ui/accordion.tsx",
+      "size": 2048,
+      "sha256": "a4f153089ba886dfcf73fac26b5c01ca933fa12fbe88df6fb723912bfffdfbb0"
+    },
+    {
+      "path": "source/sites/components/ui/alert-dialog.tsx",
+      "size": 5439,
+      "sha256": "9a8d950f2b9b4352d5ebb762fb44d5c28c2d353aa29712071973656a8736e311"
+    },
+    {
+      "path": "source/sites/components/ui/alert.tsx",
+      "size": 1614,
+      "sha256": "2cc59b5f7bda91c1670884b1bf46bfc8a2a6f226cef184f5762acc037188885b"
+    },
+    {
+      "path": "source/sites/components/ui/aspect-ratio.tsx",
+      "size": 274,
+      "sha256": "b1c157886236782cb92d8fbcd4749532aaf6d8aabefd6e157ca40358f902f407"
+    },
+    {
+      "path": "source/sites/components/ui/attachment.tsx",
+      "size": 6002,
+      "sha256": "ae8a25dd1a896d3964e3ef54d97e51221b418cde287dfd794428b89951c5c790"
+    },
+    {
+      "path": "source/sites/components/ui/avatar.tsx",
+      "size": 2916,
+      "sha256": "58a846bf1617b94b9681921db9b8461d0145f311424663d11678a06b6153cb34"
+    },
+    {
+      "path": "source/sites/components/ui/badge.tsx",
+      "size": 1776,
+      "sha256": "46a0de5224f6a5d5d63d45246534288518dce888f031064bff925bbc7fe6ad97"
+    },
+    {
+      "path": "source/sites/components/ui/breadcrumb.tsx",
+      "size": 2350,
+      "sha256": "d4c0831bba2212e778248f54a6ace6ef378df8bba4616d1abf27787a31eabae5"
+    },
+    {
+      "path": "source/sites/components/ui/bubble.tsx",
+      "size": 4699,
+      "sha256": "870cc0c5cfc8a515053f7e41e706a6bd017a909b45f1305fd3b164a52cc4483b"
+    },
+    {
+      "path": "source/sites/components/ui/button-group.tsx",
+      "size": 2202,
+      "sha256": "784c89d8ee683e1bc972ae69e6ea8225a7f63abe22aa1b5fc3423ae8a2a399c0"
+    },
+    {
+      "path": "source/sites/components/ui/button.tsx",
+      "size": 2392,
+      "sha256": "cc36af0f8b5019c33cc039fbf03bb952a513072b15b55b53c592b78af3e5f4c4"
+    },
+    {
+      "path": "source/sites/components/ui/calendar.tsx",
+      "size": 7832,
+      "sha256": "3855fbe0d3f8ad3a4b93071f98b76a9f6782d46ec8b05f5d2ddbee1e4e39bc84"
+    },
+    {
+      "path": "source/sites/components/ui/card.tsx",
+      "size": 1987,
+      "sha256": "c48dd3b96be90a7066f1aebf294f0af9d00ebcdc367d5d4aca55429ade570c1c"
+    },
+    {
+      "path": "source/sites/components/ui/carousel.tsx",
+      "size": 5556,
+      "sha256": "b7ea0dda3903d972c186f739e23da61f547bc83b5a0bf13b16856577846d5fc3"
+    },
+    {
+      "path": "source/sites/components/ui/chart.tsx",
+      "size": 10614,
+      "sha256": "45aa5ea4a386f4fb5b8869ff4bab3a08cf89255190ee322043baf84c3e950b6a"
+    },
+    {
+      "path": "source/sites/components/ui/checkbox.tsx",
+      "size": 1214,
+      "sha256": "b23ab9d4deeedf2ac8f512c368361ede681aa383437ef48563a6f9b7dbe95f27"
+    },
+    {
+      "path": "source/sites/components/ui/collapsible.tsx",
+      "size": 795,
+      "sha256": "c6598e5584f4258b5d9fefadbc5ad6a66888ad58729f4b634a0bb2d9c513188b"
+    },
+    {
+      "path": "source/sites/components/ui/combobox.tsx",
+      "size": 9158,
+      "sha256": "2d68e78b2dc7e38a085f222dede60a80b4f8229a6e91732c484605e204d46735"
+    },
+    {
+      "path": "source/sites/components/ui/command.tsx",
+      "size": 4818,
+      "sha256": "361193df1e3d64a9e9b5048f045264782fcb387aab3f00f2b805fdcbf538b16a"
+    },
+    {
+      "path": "source/sites/components/ui/context-menu.tsx",
+      "size": 8268,
+      "sha256": "2cf1fcf59df0649a3e2a126d1df2f639145f6b6bf5689ee54af1f40ab1245017"
+    },
+    {
+      "path": "source/sites/components/ui/dialog.tsx",
+      "size": 4303,
+      "sha256": "dce39c6adc47d997bd2567f8b7a72f466b0134715105cd42f9194007b8ecdb14"
+    },
+    {
+      "path": "source/sites/components/ui/direction.tsx",
+      "size": 506,
+      "sha256": "84ae2ad658207f0e0f367978e5508cd8027cd00c29c41d3d13db21a708c3d1e6"
+    },
+    {
+      "path": "source/sites/components/ui/drawer.tsx",
+      "size": 4255,
+      "sha256": "cb6eaf58eb0757ca91af284e5d925b89a42ad7eb19cb3f44c575a3487aa9350f"
+    },
+    {
+      "path": "source/sites/components/ui/dropdown-menu.tsx",
+      "size": 8418,
+      "sha256": "98f0dcdae38225b73734aceeb9213dd751fea2c72ea520df31003cd133deac8a"
+    },
+    {
+      "path": "source/sites/components/ui/empty.tsx",
+      "size": 2396,
+      "sha256": "ae95bdcf367a076ae02e7925f14522a148798f72d9651749c6d55497dba584c0"
+    },
+    {
+      "path": "source/sites/components/ui/field.tsx",
+      "size": 6159,
+      "sha256": "ba67d76f017ac059fc86cf8c344e0b2991c4322d3619e125498c19b87f6eefbd"
+    },
+    {
+      "path": "source/sites/components/ui/form.tsx",
+      "size": 3757,
+      "sha256": "315b46bb75ab7d1c6061b5d750aa4bedf6e7a455e15e2d7f9182f053d5972b1e"
+    },
+    {
+      "path": "source/sites/components/ui/hover-card.tsx",
+      "size": 1526,
+      "sha256": "f5d8df42c59370ec14d61bcc54f7d68e9bb7dfa0d6a872b2f7cffc2aafbf23b8"
+    },
+    {
+      "path": "source/sites/components/ui/input-group.tsx",
+      "size": 5065,
+      "sha256": "6afbd58fea4c438e6252dc4568bddc122e84ababead4ad5cee50ace01100c9a0"
+    },
+    {
+      "path": "source/sites/components/ui/input-otp.tsx",
+      "size": 2254,
+      "sha256": "161946daa89f0eda2575b9271c0494e35807c4ffb55598a49f67160c17fec299"
+    },
+    {
+      "path": "source/sites/components/ui/input.tsx",
+      "size": 962,
+      "sha256": "8c4612a7c41319ac5049daa3b34b080f9784b6245c17780eb87c127e58e473db"
+    },
+    {
+      "path": "source/sites/components/ui/item.tsx",
+      "size": 4486,
+      "sha256": "6e2144d6d87142dbbe56d568810bf546318c8aa661447ebb0d76ebbf382cb45f"
+    },
+    {
+      "path": "source/sites/components/ui/kbd.tsx",
+      "size": 862,
+      "sha256": "6088c3a5432338b1719c17e9b5d0e1fa74fd1f66060f248fc88909d33a82cd13"
+    },
+    {
+      "path": "source/sites/components/ui/label.tsx",
+      "size": 606,
+      "sha256": "a476e41f08b9de5bd447de66a33d8bc2ad18f2fa6b96c064778bab4b6f439f4c"
+    },
+    {
+      "path": "source/sites/components/ui/marker.tsx",
+      "size": 1864,
+      "sha256": "3d798763f094b2bb5e7ade2d5cd1b9bab498bc8ca7fd4cfaf4e5835bdedc34a0"
+    },
+    {
+      "path": "source/sites/components/ui/menubar.tsx",
+      "size": 8389,
+      "sha256": "9243af8afcea03703398ccd1c2a8c0a87ad6cbaf2bd272fb609f5b79fe46aebb"
+    },
+    {
+      "path": "source/sites/components/ui/message-scroller.tsx",
+      "size": 3992,
+      "sha256": "bb7660a248e4e9589c3816c7c1c199ea1381a70d2c8476ae895b567a7a4d86cf"
+    },
+    {
+      "path": "source/sites/components/ui/message.tsx",
+      "size": 2232,
+      "sha256": "9d2952bf3b641081f09aa2739535e6bbd1be0a4946789752a2c20d8aaef43185"
+    },
+    {
+      "path": "source/sites/components/ui/native-select.tsx",
+      "size": 1995,
+      "sha256": "007516b111fca8c98a6c40c94ab91bb68cc5b52afce1ed1f5e510c3d86e7347c"
+    },
+    {
+      "path": "source/sites/components/ui/navigation-menu.tsx",
+      "size": 6658,
+      "sha256": "889d358a77de88e9cb6f39ea4895ea4c76eaf01d731b74e44f1c41e97a78a044"
+    },
+    {
+      "path": "source/sites/components/ui/pagination.tsx",
+      "size": 2717,
+      "sha256": "374ad135c3d4ff3ec080a0009cd9745cdd0e12faa89d2b0e86074f11e5127fd1"
+    },
+    {
+      "path": "source/sites/components/ui/popover.tsx",
+      "size": 2357,
+      "sha256": "31c350309ff5d3034e6ecf1b0eda75ba8855bdbf987fc7ad6d71f0ef07c5a447"
+    },
+    {
+      "path": "source/sites/components/ui/progress.tsx",
+      "size": 755,
+      "sha256": "c8c26e8f5f041c3cdf4915347dc1d9c022f9448f149990fadcaf303e952fa57d"
+    },
+    {
+      "path": "source/sites/components/ui/radio-group.tsx",
+      "size": 1460,
+      "sha256": "fe5ce39636d0818c2bf9c4eebddff893d1225fa2c81b5fa4bb8cbb39a8c913ce"
+    },
+    {
+      "path": "source/sites/components/ui/resizable.tsx",
+      "size": 1815,
+      "sha256": "bc63958467aa00557c551bb0d96a5ae4c965c1e1ba2380e595949d933b132f7c"
+    },
+    {
+      "path": "source/sites/components/ui/scroll-area.tsx",
+      "size": 1639,
+      "sha256": "8bd9d986b2844c9a87de825c6de4787b6739b36c3dc9a05ccf3eb107160e4043"
+    },
+    {
+      "path": "source/sites/components/ui/select.tsx",
+      "size": 6353,
+      "sha256": "0b796a108a4eb5ba52d9ad938b7aea36dc56ae66c703a6d0a23dbc24f96daff3"
+    },
+    {
+      "path": "source/sites/components/ui/separator.tsx",
+      "size": 694,
+      "sha256": "6da346505c8629a4668420d2a5ca48891383bbe0b0ceb14163537c671879427e"
+    },
+    {
+      "path": "source/sites/components/ui/sheet.tsx",
+      "size": 4188,
+      "sha256": "63863cf2df8f8973e52b3459ac9bdbf81be1262dbc70eb53d5271ffb03488e16"
+    },
+    {
+      "path": "source/sites/components/ui/sidebar.tsx",
+      "size": 21526,
+      "sha256": "4a8d73e7730a2b1fcecfca31299ed26db65c2307b84197a59c6ec7c01c7ad28e"
+    },
+    {
+      "path": "source/sites/components/ui/skeleton.tsx",
+      "size": 276,
+      "sha256": "ba48dd5be5a6a1378bd4e011028654b5bf419f1e7d20ee4b9f8330c1264e7239"
+    },
+    {
+      "path": "source/sites/components/ui/slider.tsx",
+      "size": 1991,
+      "sha256": "0e37484f4b416e79ac18c655cac961aefacf6e67085cfc2b320ea8af545635a3"
+    },
+    {
+      "path": "source/sites/components/ui/sonner.tsx",
+      "size": 1034,
+      "sha256": "13ccc9b0fe4248e622f83a1d3b2f0566b72b5e04162d7d0c8db8945ecc71b55f"
+    },
+    {
+      "path": "source/sites/components/ui/spinner.tsx",
+      "size": 331,
+      "sha256": "3e6e6e8d37fb4069f8e43e55318f8db06fbc36e6c8be0096da3c9337c1c798b9"
+    },
+    {
+      "path": "source/sites/components/ui/switch.tsx",
+      "size": 1408,
+      "sha256": "386d4d4deb39f34126f9700fe9bf5393d238485dd94018bba9d154dda84c62ae"
+    },
+    {
+      "path": "source/sites/components/ui/table.tsx",
+      "size": 2478,
+      "sha256": "20e5a7f224959c6b75802995706a97e9da171f693d4b6b1b436388fcd9df96f3"
+    },
+    {
+      "path": "source/sites/components/ui/tabs.tsx",
+      "size": 3782,
+      "sha256": "865d0194331b9b2be36723fa79d3575dc83078b4cb941cafee87cb72fc2cff46"
+    },
+    {
+      "path": "source/sites/components/ui/textarea.tsx",
+      "size": 759,
+      "sha256": "253cdeb487c73beaaccdf47fc163e36e7d5b7ae6ddf09a4f64998a109a112979"
+    },
+    {
+      "path": "source/sites/components/ui/toggle-group.tsx",
+      "size": 2308,
+      "sha256": "69f643e889e933f05c1439084480d8646f66a161c7d1cf0730ee926382ade35e"
+    },
+    {
+      "path": "source/sites/components/ui/toggle.tsx",
+      "size": 1565,
+      "sha256": "ba4d0b0a2b2fee75dc36dfc19e32082e721024b919050c97fd5dc70faa924e16"
+    },
+    {
+      "path": "source/sites/components/ui/tooltip.tsx",
+      "size": 1830,
+      "sha256": "a0784eb77831a799fad7991df4f1b666f876201565a80175e1aa68733574a2e4"
+    },
+    {
+      "path": "source/sites/components.json",
+      "size": 420,
+      "sha256": "31f4ca67a4a62572571003d3d5aac85ee6fbfca67a192924bac6b168d95e98fd"
+    },
+    {
+      "path": "source/sites/db/index.ts",
+      "size": 423,
+      "sha256": "dc7610b00b918e0ffff1360a63626f16655ced3064b2eaf96095a4101fb14bcd"
+    },
+    {
+      "path": "source/sites/db/schema.ts",
+      "size": 169,
+      "sha256": "13ddacbf0be50e054d450a6c642b7fdc1aa943fd6b99084711e07e58b600390d"
+    },
+    {
+      "path": "source/sites/docs/feature-audit.md",
+      "size": 5371,
+      "sha256": "5885168c8b2fcf95085c0c3267f146e31a911015e536c74ec4c9ca857782b86f"
+    },
+    {
+      "path": "source/sites/docs/onzetrots-background-process.md",
+      "size": 4772,
+      "sha256": "b2b318f4ac14a34787110c98b3fea84d66c2017001df0683ba988e2efc8642e0"
+    },
+    {
+      "path": "source/sites/docs/onzetrots-tv-source/BRONVERSIE.json",
+      "size": 1513,
+      "sha256": "de9b490f1c17da3b71590c57b89dbf180876b778650489ddc79d15856dc5ca55"
+    },
+    {
+      "path": "source/sites/docs/onzetrots-tv-source/FONT-METADATA.txt",
+      "size": 1595,
+      "sha256": "948a2f64892efcb7ac5e3d00e13cda4b45cb1ac7c20b68675b8879c025b7adbd"
+    },
+    {
+      "path": "source/sites/docs/onzetrots-tv-source/ONTWERPINSTRUCTIES.md",
+      "size": 31370,
+      "sha256": "565a29beb2bcd5586612f04d013c5ab623ddc2234654fba220a4e51811b21d71"
+    },
+    {
+      "path": "source/sites/docs/onzetrots-tv-source/TECHNISCHE-OVERDRACHT.md",
+      "size": 6811,
+      "sha256": "a47c3a769789b21ea9c6775bb8d5ca593e9fbc3d5e1b4e96e22d25e28bfa0d97"
+    },
+    {
+      "path": "source/sites/docs/onzetrots-tv.md",
+      "size": 2392,
+      "sha256": "191ac7e3c6bc0dd7a1eb0772bce5f34009dfb4d30d1663e6165bdade351c26f1"
+    },
+    {
+      "path": "source/sites/drizzle/meta/_journal.json",
+      "size": 61,
+      "sha256": "90cb374e093894d0efce6f1830d873a42aadd8ba49d2f024495e5cb2e1c8c303"
+    },
+    {
+      "path": "source/sites/drizzle.config.ts",
+      "size": 148,
+      "sha256": "af081f7384aaeb0082cf422e29f139d137ca2f6a57c69b2c37b9fb1f8479867b"
+    },
+    {
+      "path": "source/sites/eslint.config.mjs",
+      "size": 846,
+      "sha256": "f22a254df7d934bbf9be499d3c969a13abb7f7f64c03f5967d0095cad81dfe06"
+    },
+    {
+      "path": "source/sites/examples/d1/app/api/notes/route.ts",
+      "size": 1700,
+      "sha256": "a3d4a74fd53b7bf53e2df41f169d9d9d44a8b22aeb6d92f4e754956079af8909"
+    },
+    {
+      "path": "source/sites/examples/d1/db/schema.ts",
+      "size": 370,
+      "sha256": "d89eabd95716ce404f5f7ca2a254220435be8ddce7c899d7ef461ff22ec80454"
+    },
+    {
+      "path": "source/sites/hooks/use-mobile.ts",
+      "size": 565,
+      "sha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b"
+    },
+    {
+      "path": "source/sites/lib/connector-context.ts",
+      "size": 612,
+      "sha256": "bbddff68689cb0f6926fecd4b8b96f12f2054277c296e97b0df07d4ad5ece24e"
+    },
+    {
+      "path": "source/sites/lib/connector-contract.mts",
+      "size": 5362,
+      "sha256": "e1a7b24a8793af34b595690d9b1300c897c7321c14f215cedf58ad95799d7c3e"
+    },
+    {
+      "path": "source/sites/lib/connector-errors.mts",
+      "size": 2717,
+      "sha256": "a22edf13d6873ae832c4a2a0d579fc666c73ec996ef0722d39172649d38f0871"
+    },
+    {
+      "path": "source/sites/lib/connector-preview.d.ts",
+      "size": 433,
+      "sha256": "abd69a94f7f61f1359063bb557574faae35e8ff5a028cc4c04b9ee248ef52642"
+    },
+    {
+      "path": "source/sites/lib/connectors.ts",
+      "size": 416,
+      "sha256": "1c93d747e384c8e17e3e3dd5361b24412babf5eba2a11d2ae7a75f4e0924112c"
+    },
+    {
+      "path": "source/sites/lib/utils.ts",
+      "size": 177,
+      "sha256": "53f3d3d070f0a9082934da25b875f9499855c2b0693868dd28be8c23d8730f68"
+    },
+    {
+      "path": "source/sites/next.config.ts",
+      "size": 133,
+      "sha256": "614bce25b089c3f19b1e17a6346c74b858034040154c6621e7d35303004767cc"
+    },
+    {
+      "path": "source/sites/package.json",
+      "size": 2139,
+      "sha256": "9dc3b3fb45e75d8125571ca78fd170a62bbc0f57521dcd2e53bc84a5a435c377"
+    },
+    {
+      "path": "source/sites/pnpm-lock.yaml",
+      "size": 345021,
+      "sha256": "095ba6f301ba3997da2c251dfc4b805c220624bdf0921d905eaceee0d1fb29c9"
+    },
+    {
+      "path": "source/sites/pnpm-workspace.yaml",
+      "size": 736,
+      "sha256": "4a69dc93a75ff4a33f54c2853d5317c8e7374faab592f3472b5164257bff8066"
+    },
+    {
+      "path": "source/sites/postcss.config.mjs",
+      "size": 94,
+      "sha256": "dfac7ac2d86d326a0e5adb024e7943c181393ed17a5fcb8f0315b24c7da6ddde"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-apple-touch-icon-180.png",
+      "size": 2611,
+      "sha256": "92d341ccd6841af42e018336491ec5b3ba77d2728f516a45033483c80b68b662"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-favicon-16.png",
+      "size": 344,
+      "sha256": "a1ab273d453a1953b89524e82139166a570a97546d92eb4fbbba8c15bc85f067"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-favicon-32.png",
+      "size": 615,
+      "sha256": "8c9f636fd7bdcc632f5bcc793eb5c122d7a8bf4499859bf83452b15bfc702fd3"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-favicon-48.png",
+      "size": 842,
+      "sha256": "6888982869a0cdcde101721d20bc1596bdd1b96d53250e86fa46c119089fd80c"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-favicon.ico",
+      "size": 1855,
+      "sha256": "026d2adb445f61cc401cacb06b19a1496cc63fe55a12c16c7dcc8583c7453162"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-favicon.svg",
+      "size": 955,
+      "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-192.png",
+      "size": 3093,
+      "sha256": "4d4c596252167fc51c2d8056447a63156561754f3d017e36356770e410708bba"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-512.png",
+      "size": 11090,
+      "sha256": "666c6f7beea3512e354c0de4fc2b9a9379b2aa9cad20e11f1f17e55356eb1530"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-maskable-1024.png",
+      "size": 35308,
+      "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-maskable-192.png",
+      "size": 2797,
+      "sha256": "f368eb013ed35b7d274c0426a1f50c6b90b9b4d15de3aa6bfe5cdc64bc6ba9f4"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-maskable-256.png",
+      "size": 4148,
+      "sha256": "6fd104c3bc45cf10ccebdfd9d97ebb80a56b76abd085a3c37f26807771aa16f8"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-maskable-384.png",
+      "size": 7562,
+      "sha256": "9d04b525d6279452b1f830f902faac74116c827668b983fb8fd37b56d6508806"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-maskable-512.png",
+      "size": 11777,
+      "sha256": "bedcc9c8da7296d0133ae82cd1c964a8c7537b4d2afacf739bf5dee248f3060f"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-maskable.svg",
+      "size": 942,
+      "sha256": "848bc4e2be047906fac9444bedda97e70999a358ee349d82b02fbfebc074ebc5"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-icon-primary.svg",
+      "size": 955,
+      "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-logo-inverse.svg",
+      "size": 3910,
+      "sha256": "ebeba6d04108bf04fa2d85cf655d4f68689165da151c970ddb8e30c7ec3e1d1a"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-logo-monochrome-black.svg",
+      "size": 3955,
+      "sha256": "4d06227db59cc810ba8067fd685a976785fb371d7207b9b3302311cdcb11b0e6"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-logo-monochrome-white.svg",
+      "size": 3955,
+      "sha256": "d487489cad2d15e40fb62b2fe24fab26bca04c200cdb562e1b8bc3b0c6be596b"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-logo-primary.svg",
+      "size": 3955,
+      "sha256": "0b9720fd6eb70b402ff39072ce3985d1478888434065d6abfb1867b5ac11dd01"
+    },
+    {
+      "path": "source/sites/public/brand/veyocast-social-avatar-1024.png",
+      "size": 35308,
+      "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10"
+    },
+    {
+      "path": "source/sites/public/favicon.svg",
+      "size": 712,
+      "sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7"
+    },
+    {
+      "path": "source/sites/public/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp",
+      "size": 137240,
+      "sha256": "5115506847b4e78a4ea51618be9fd1c04202ced1564b00a47961e56a6941fe1a"
+    },
+    {
+      "path": "source/sites/public/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+      "size": 118058,
+      "sha256": "b7fce5339c8c865ee5ae86693c349d5f3a724b5235c9c7b80dcea2d688dfecb0"
+    },
+    {
+      "path": "source/sites/public/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp",
+      "size": 89984,
+      "sha256": "cc94973585c9248d11b9b4bb871416ab49a413904e7bd928132cd0e9a3d1d2ef"
+    },
+    {
+      "path": "source/sites/public/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+      "size": 168136,
+      "sha256": "03dc11dbd5daa87e84d6e8f21b8ec51b54f271537fd24af57dbf4ea9911a254c"
+    },
+    {
+      "path": "source/sites/public/file.svg",
+      "size": 392,
+      "sha256": "1e0ae4d1a1ddfa36752988647b731e4abf150c414d069ec83c96fb0aaeff0307"
+    },
+    {
+      "path": "source/sites/public/fonts/inter.woff2",
+      "size": 48256,
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
+    },
+    {
+      "path": "source/sites/public/fonts/manrope.woff2",
+      "size": 24836,
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972"
+    },
+    {
+      "path": "source/sites/public/fonts/onzetrots-brush-Apache-2.0.txt",
+      "size": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "source/sites/public/fonts/onzetrots-brush.ttf",
+      "size": 73276,
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c"
+    },
+    {
+      "path": "source/sites/public/fonts/onzetrots-display.ttf",
+      "size": 88228,
+      "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77"
+    },
+    {
+      "path": "source/sites/public/fonts/onzetrots-licenses.txt",
+      "size": 238,
+      "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081"
+    },
+    {
+      "path": "source/sites/public/globe.svg",
+      "size": 1036,
+      "sha256": "d051a8c47936990a9085693d307bb7cea1bc1b6d7ed956bcbaacf674f4ec96b9"
+    },
+    {
+      "path": "source/sites/public/onzetrots/brush/brush-frame.png",
+      "size": 1743290,
+      "sha256": "4b002d67496adcc267160f002cedd117c8f1b13d619de0404f026647bfd7b9f7"
+    },
+    {
+      "path": "source/sites/public/onzetrots/brush/clubhuis.svg",
+      "size": 2846314,
+      "sha256": "8bb77aef3580efc3883cd43c2b10c42c85be0b7a1230a773a72dc377382f5f3b"
+    },
+    {
+      "path": "source/sites/public/onzetrots/brush/duindorp-luchtfoto.svg",
+      "size": 2743679,
+      "sha256": "f4c08b3cb5e713d1e317e5e62e1b1ddb3265d5c3442cedab0dc814b07d536e50"
+    },
+    {
+      "path": "source/sites/public/onzetrots/brush/havenlicht.svg",
+      "size": 2506195,
+      "sha256": "de9b50862e815400d9544b373fd59d19d844a8e6f635b27fa13109ba6de1f394"
+    },
+    {
+      "path": "source/sites/public/onzetrots/brush/historische-poort.svg",
+      "size": 2802083,
+      "sha256": "b6a6b3f19b27270ae610bf383ae79d177ea09f2faa146a0c8419a5e745fb280a"
+    },
+    {
+      "path": "source/sites/public/onzetrots/brush/kerk.svg",
+      "size": 2754901,
+      "sha256": "6e7531ea29a64f99b8c2da53f0209ceeb5bef43546246ecc55728379ca01ddf8"
+    },
+    {
+      "path": "source/sites/public/onzetrots/brush/sources.json",
+      "size": 1808,
+      "sha256": "b26efd467ae96c24ee3e325dfccc3ce34dede7574f860f29cf02056ccce845a0"
+    },
+    {
+      "path": "source/sites/public/onzetrots/duindorp-logo.png",
+      "size": 69175,
+      "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930"
+    },
+    {
+      "path": "source/sites/public/onzetrots/houtrust-brush.webp",
+      "size": 596258,
+      "sha256": "4e654df31f432c922a44b1670f6bf8d64af3361d40645f410de0a4d696d46171"
+    },
+    {
+      "path": "source/sites/public/onzetrots/originals/clubhuis.jpg",
+      "size": 390077,
+      "sha256": "59f2c6f69fe0550cb261fe9fb67a46d08038dce890a3d03681d6a8121aec0b1c"
+    },
+    {
+      "path": "source/sites/public/onzetrots/originals/duindorp-luchtfoto.jpg",
+      "size": 313095,
+      "sha256": "c4f9b1a26cff9cc9517cb5392ec684378914c6561d4b1fcb32c23bd107dd23e2"
+    },
+    {
+      "path": "source/sites/public/onzetrots/originals/havenlicht.jpg",
+      "size": 134853,
+      "sha256": "70794084caa404e23e8215e4a33783e094e4210911d49553eeeca45a40945cd8"
+    },
+    {
+      "path": "source/sites/public/onzetrots/originals/historische-poort.jpg",
+      "size": 356883,
+      "sha256": "5065f77c59a6b57dadf458bbc11674bece0cb4563ae65979139ec9b91c2f854c"
+    },
+    {
+      "path": "source/sites/public/onzetrots/originals/kerk.jpg",
+      "size": 321494,
+      "sha256": "36c51d7c7dec84a79336fb176d37ed7fdbb6eadcc7854b5eccf351f4fbcdcbe7"
+    },
+    {
+      "path": "source/sites/public/onzetrots/originals/sources.json",
+      "size": 1763,
+      "sha256": "c46199f75e2a1eea0921ac656c2eccaf4300365c579c00d6293f6db5d07aae3e"
+    },
+    {
+      "path": "source/sites/public/onzetrots/paint-wall.webp",
+      "size": 642098,
+      "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310"
+    },
+    {
+      "path": "source/sites/public/onzetrots/premium/clubhuis.png",
+      "size": 3557785,
+      "sha256": "7942a36dd34c06c4b576e122d52acc8f970e9a10af78d2e15861d0893da63efd"
+    },
+    {
+      "path": "source/sites/public/onzetrots/premium/duindorp-luchtfoto.png",
+      "size": 3569369,
+      "sha256": "a11606f1cc19a5f5885c506b265d654ac888d449afba1099ebb34a8f59695c60"
+    },
+    {
+      "path": "source/sites/public/onzetrots/premium/havenlicht.png",
+      "size": 3501140,
+      "sha256": "0a1009d093fce5d96f8e697624f2509e779acb0b7c36f3f7fac366333dc6db3e"
+    },
+    {
+      "path": "source/sites/public/onzetrots/premium/historische-poort.png",
+      "size": 3552880,
+      "sha256": "1776fefafb9f4845c67f1148c7971682b58be68c0f9f2ff2b4545355eac2d5d7"
+    },
+    {
+      "path": "source/sites/public/onzetrots/premium/kerk.png",
+      "size": 3624327,
+      "sha256": "0a2b23aaa9a3caddb6b7a6f36f5bfc2ed83c2f64ba32438a63023905d62ee7ec"
+    },
+    {
+      "path": "source/sites/public/onzetrots/premium/sources.json",
+      "size": 15625,
+      "sha256": "2cb61c2f5f61fea1d4da7bdedf096b1719e1859b02715eaafdef01e7e7c2501d"
+    },
+    {
+      "path": "source/sites/public/onzetrots/readability-brush.svg",
+      "size": 1143,
+      "sha256": "f42dba3e394f6c87a1381a55214c6998ba8e80ee17709702ab537e969a17dfbb"
+    },
+    {
+      "path": "source/sites/public/onzetrots/type-distress.svg",
+      "size": 495,
+      "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/clubmuur-lettering.webp",
+      "size": 428940,
+      "sha256": "c4bf31d7c6331f76f6e4db9bbac59052a01ad9c6f6ae3abe497925f90e15bf32"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/clubmuur-players/trio-1280.webp",
+      "size": 244872,
+      "sha256": "543bb88be5c642cac8ed64c3f0f1f8e38608d8640fe5f41623a6477d62b89291"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/clubmuur-portraits-v14/05-juichen-1280.webp",
+      "size": 252048,
+      "sha256": "a7519a49d43abe4e0bdc786780ad7d377528114085801c5de2592c38140a3dbb"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/clubmuur-portraits-v14/07-walking-1280.webp",
+      "size": 282362,
+      "sha256": "6e5926d26fbf048d3a5e0ef091de8dc3b895df12ebd11e4e2a42c53a53907bfc"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/clubmuur-portraits-v17/10-strijd-1280.webp",
+      "size": 286764,
+      "sha256": "16a4d2f6e372ec0deccd0f435506c15351fd54033d486b9b28c44b0cd557d433"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/clubmuur-wall.webp",
+      "size": 642098,
+      "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/logo.png",
+      "size": 69175,
+      "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/sponsors/bnu.svg",
+      "size": 9817,
+      "sha256": "44f2ccd12438bcfb292e1283ecac9ef7f5758d4cb77b14e65835260181285504"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/sponsors/deelman-daktechniek.svg",
+      "size": 64066,
+      "sha256": "555ca80ae9e1b9e60cf9179092ac0201e4adaf4032b0d53be979dc6d328e23b1"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/sponsors/dg-webservices.svg",
+      "size": 9286,
+      "sha256": "dbe2716900d7137fe74250b2ef0708d668fdc8596161c07474006aed56d1c031"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/sponsors/kwaliteit-kozijnen-holland.svg",
+      "size": 46866,
+      "sha256": "9eac38ab31bae0373a516e88724a246841c14a3efa5bfc61ca40b2537b224f68"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/sponsors/proto-tegelzetbedrijf.svg",
+      "size": 30279,
+      "sha256": "337a0308cef2a2b7b68d89d0f2afcb789467aaaaf7651803e92e8a4e04321d01"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/sponsors/rw-repair.png",
+      "size": 30510,
+      "sha256": "2698a951c6f595bdc3b08cd0ec891575b3122d891cd0b783a8e22515080f866d"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/assets/type-distress.svg",
+      "size": 495,
+      "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-0.ttf",
+      "size": 86636,
+      "sha256": "0d85af813fc3ed87db0c6265515689b2eef5cbaf7aab17922528dfc95a2cd73f"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-1.ttf",
+      "size": 87120,
+      "sha256": "7dde307fa887fc65ff5830cfada77a7decc5dae8d3c816c9d39ba3f1af1c4ed7"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-2.ttf",
+      "size": 87556,
+      "sha256": "73bc9e17231e9073780d3c81574c7253cecd5645c93544df1a935054b39a364f"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-3.ttf",
+      "size": 88228,
+      "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-4.ttf",
+      "size": 94972,
+      "sha256": "a13d9b41b0a471ce58f0e46d377fa3cc76615e4632c3b15eb397caadf7a13f0a"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-5.ttf",
+      "size": 95060,
+      "sha256": "f433e5d333be1128d8ec8a28b8aadd0314d10e14e4105406076666bc830fc15d"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-6.ttf",
+      "size": 95096,
+      "sha256": "6bad1a774228464cc88b8b0271555b266f7a3c64a7bedf15e165fdab4f6ac0ce"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-7.ttf",
+      "size": 94928,
+      "sha256": "b9584e099e0e7f1e1e914c3037aabb9010c50346a3ce8df5eeeeecc0563044d8"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-8.ttf",
+      "size": 95688,
+      "sha256": "b8f802f05b322a7345805f5b89f8bb976604cc719a91530918d5ce3c47160950"
+    },
+    {
+      "path": "source/sites/public/onzetrots-tv/fonts/club-font-9.ttf",
+      "size": 73276,
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c"
+    },
+    {
+      "path": "source/sites/public/window.svg",
+      "size": 386,
+      "sha256": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66"
+    },
+    {
+      "path": "source/sites/scripts/build-onzetrots-backgrounds.mjs",
+      "size": 3667,
+      "sha256": "04e4e615744dd5b23e0c711377a72bc989b169ba45ff73bcc6994dfbbd11f3ad"
+    },
+    {
+      "path": "source/sites/scripts/build-verified.sh",
+      "size": 661,
+      "sha256": "2ae5329ac860076070c9217a43106a15cb5ecf907a0f7baeb9ef903f76b53c68"
+    },
+    {
+      "path": "source/sites/scripts/connector-preview/connector-preview-session.mjs",
+      "size": 6855,
+      "sha256": "57224ad185a25115a14fccc68d3217e55b199260c3dd98a2c807beffec1a0a9b"
+    },
+    {
+      "path": "source/sites/scripts/connector-preview/host-binding.mjs",
+      "size": 7793,
+      "sha256": "9e44ab6864133a5c82f834a5904ebb7d6104cb783c24efba3c0fe1a161182cea"
+    },
+    {
+      "path": "source/sites/scripts/connector-preview/protocol.mjs",
+      "size": 1781,
+      "sha256": "111e062ebf08d3f180130f5bc3dcb3c1414c1d7be3c032c9d675a61c0c7513a8"
+    },
+    {
+      "path": "source/sites/scripts/execution-profile.mjs",
+      "size": 624,
+      "sha256": "2e71116f4d2b70cff8bb70436f8dd5c709ec7ff62893424530f404e0193d3630"
+    },
+    {
+      "path": "source/sites/scripts/install-ci.mjs",
+      "size": 1685,
+      "sha256": "4a5a92d60a08d0ba54effd8373da2da06284312c55b767287c68a0bec7200da7"
+    },
+    {
+      "path": "source/sites/scripts/install-ci.sh",
+      "size": 6783,
+      "sha256": "10d8764a61be50351dc3496e13588270de7956f0aa5f1189c49cabb2d89fe5c0"
+    },
+    {
+      "path": "source/sites/scripts/install-pnpm.sh",
+      "size": 9015,
+      "sha256": "a684c02c2b493dfbf262a66252a5cd36f81ca995a4024761728662ae63aa40c0"
+    },
+    {
+      "path": "source/sites/scripts/npm-install.mjs",
+      "size": 7025,
+      "sha256": "9715c6a32d1d4a0289ef6376a0e819c3b6a6416b8a9877733d9fb4339ce626b6"
+    },
+    {
+      "path": "source/sites/scripts/pnpm-install.mjs",
+      "size": 10633,
+      "sha256": "a83164e344c1947053def83b546be8115deaa827314bbaead7afe6b6451c5cdf"
+    },
+    {
+      "path": "source/sites/scripts/run-framework.mjs",
+      "size": 993,
+      "sha256": "9bf9f41a29314cabe0238b8e9c540ec3f7b5a6adafc7c8fb6c3940722d061dca"
+    },
+    {
+      "path": "source/sites/scripts/sites-env.mjs",
+      "size": 906,
+      "sha256": "5de99d6806b01f0ee0b941af3684d75dcf1afbbcff22cb95bfa2e584c5dafa88"
+    },
+    {
+      "path": "source/sites/scripts/sites-env.sh",
+      "size": 1530,
+      "sha256": "df86ebfc27d2f00860036658e933ac0ddd7b5f6879aa5d51218f0863c7e1fb60"
+    },
+    {
+      "path": "source/sites/tsconfig.json",
+      "size": 800,
+      "sha256": "7199c6e4e400921e8049729840165a39f1476fa97901bed00239e7697bfe8da4"
+    },
+    {
+      "path": "source/sites/vendor/shadcn-tailwind-4.13.0.LICENSE.md",
+      "size": 1063,
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+    },
+    {
+      "path": "source/sites/vendor/shadcn-tailwind-4.13.0.css",
+      "size": 16041,
+      "sha256": "bc7d83425702955b4cb67cb14ede9d603f9d912376d57a2d81d661094d2a782a"
+    },
+    {
+      "path": "source/sites/vite.config.ts",
+      "size": 3115,
+      "sha256": "6f6d890794fbe23f3e35cceb327f49d5977432a5aaf715e040a6408932da395b"
+    },
+    {
+      "path": "tools/build-reference.mjs",
+      "size": 1001,
+      "sha256": "4a1b5f30a5d6ea8c84173075aea79bd0543a7dd9f01da26547bb8ae627cd9281"
+    },
+    {
+      "path": "tools/verify-package.py",
+      "size": 6027,
+      "sha256": "54afab2ba0f484bf9fda89fa5479a8cb6930da6d56b954f1a55073e278fee16e"
+    }
+  ]
+}

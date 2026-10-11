@@ -67,7 +67,7 @@ export async function uploadValidatedImageCandidate({
 
   if (!(candidate instanceof File) || candidate.size === 0) {
     throw new MediaUploadError(
-      "Er is geen bruikbare afbeelding gekozen. Kies een JPEG-, PNG-, WebP-, GIF- of veilig SVG-bestand met inhoud."
+      "Er is geen bruikbare afbeelding gekozen. Kies een JPEG-, PNG-, WebP-, AVIF-, GIF- of veilig SVG-bestand met inhoud."
     );
   }
 
@@ -83,7 +83,7 @@ export async function uploadValidatedImageCandidate({
   }
 
   const receivedBytes = Buffer.from(await candidate.arrayBuffer());
-  const detectedMimeType = detectImageMime(receivedBytes);
+  let detectedMimeType = detectImageMime(receivedBytes);
 
   if (
     !detectedMimeType ||
@@ -112,12 +112,16 @@ export async function uploadValidatedImageCandidate({
       );
     }
   } else if (
+    detectedMimeType === "image/avif" ||
     detectedMimeType === "image/jpeg" ||
     detectedMimeType === "image/png" ||
     detectedMimeType === "image/webp"
   ) {
     try {
       bytes = await normalizeRasterImage(receivedBytes, detectedMimeType);
+      // AVIF is a supported upload, but releases use the normalized WebP bytes
+      // so every Player, including Static LG, shares one verified artifact.
+      if (detectedMimeType === "image/avif") detectedMimeType = "image/webp";
     } catch {
       throw new MediaUploadError(
         "De afbeelding kon niet binnen de veilige pixel- en decoderlimieten worden verwerkt. Er is niets opgeslagen; exporteer het bestand opnieuw."

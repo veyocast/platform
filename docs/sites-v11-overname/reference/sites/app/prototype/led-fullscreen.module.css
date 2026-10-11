@@ -1,0 +1,108 @@
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: #07101b;
+  color: #fff;
+}
+
+.dialog::backdrop { background: #07101b; }
+
+.surface {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #07101b;
+  isolation: isolate;
+}
+
+.surface:fullscreen { width: 100vw; height: 100vh; height: 100dvh; }
+
+.slide {
+  width: min(100vw, calc(100vh * 16 / 9));
+  width: min(100vw, calc(100dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  flex: none;
+}
+
+.slide[data-orientation=portrait] {
+  width: min(100vw, calc(100vh * 9 / 16));
+  width: min(100vw, calc(100dvh * 9 / 16));
+  aspect-ratio: 9 / 16;
+}
+
+/* Scope overrides to the single preview root, never its content or images. */
+.dialog .slide > div {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.toolbar {
+  position: absolute;
+  z-index: 10;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid #ffffff24;
+  border-radius: 14px;
+  background: #07101bd9;
+  box-shadow: 0 4px 20px #0003;
+  backdrop-filter: blur(12px);
+}
+
+.toolbar button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.toolbar button:hover { background: #ffffff21; }
+.toolbar button:focus-visible { outline: 2px solid #fff; outline-offset: -2px; background: #ffffff21; }
+
+.notice {
+  position: absolute;
+  z-index: 10;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(560px, calc(100% - 32px));
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #07101beb;
+  color: #fff;
+  font: 500 13px/1.5 Inter, Arial, sans-serif;
+  text-align: center;
+}
+
+.notice:empty { display: none; }

@@ -12,7 +12,7 @@ import { PublishJourney } from "./publish-journey";
 
 type PublishJourneyPageProps = {
   params: Promise<{ playlistId: string }>;
-  searchParams: Promise<{ fout?: string }>;
+  searchParams: Promise<{ fout?: string;screens?:string }>;
 };
 
 export default async function PublishJourneyPage({ params, searchParams }: PublishJourneyPageProps) {
@@ -93,6 +93,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
     {playlist && studio ? (
       <PublishJourney
         canPublish={canPublish}
+        initialScreenIds={(query.screens??'').split(',').filter(id=>preflight.screenStates.some(state=>state.screen.id===id))}
         idempotencyKey={randomUUID()}
         playlist={{
           id: playlist.id,

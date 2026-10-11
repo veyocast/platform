@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "testFile": "apps/control/app/(shell)/dashboard/playlists/_components/sites/media-placement-duration.test.ts",
+  "assertionsPassed": 7,
+  "log": "/tmp/veyocast-s191-video-duration-regression.log",
+  "logSha256": "00985bc1316be55f7d8319888264f7596f812a834940ac52a9791a54caf60d49",
+  "scope": "Actual pure duration helper and batch-plan validation: verified10.033second ready video produces11second add/patch; undefined/zero/negative/NaN/infinity rejected; images/YouTube12seconds retained and existing SQL minimum5/maximum3600 respected. Genuine Storage/TUS/worker/publish proof is separate in media-workflow-live-readback.json."
+}

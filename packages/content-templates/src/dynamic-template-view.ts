@@ -39,7 +39,7 @@ import {
   resolveMenuScenePages,
   type MenuSceneAsset,
   type ResolvedMenuScenePage
-} from "./menu-scene";
+} from "./menu-scene-model";
 import {
   freezeThemePresentation,
   parseThemePresentationSnapshot,

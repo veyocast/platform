@@ -71,9 +71,12 @@ import {
   ledScoresCanvasEditorReducer,
   sceneAt
 } from "./canvas-experience-state";
+import { SitesLedSceneEditor } from "./sites-led-scene-editor";
+import type { SitesLedStoredState } from "./sites-led-scene-model";
 import styles from "./canvas-experience-editor.module.css";
 
 export type LedScoresTenantMedia = {
+  checksumSha256?: string | null;
   height: number | null;
   id: string;
   kind: "image" | "video";
@@ -84,6 +87,8 @@ export type LedScoresTenantMedia = {
 };
 
 export type LedScoresCanvasExperienceEditorProps = {
+  liveState?: SitesLedStoredState | null;
+  durationMs?: number;
   activeMoment: LedScoresCanvasMomentKey;
   canUpload: boolean;
   experience: LedScoresCanvasExperience;
@@ -137,7 +142,9 @@ export function LedScoresCanvasExperienceEditor({
   onActiveMomentChange,
   onChange,
   onUpload,
-  tenantMedia
+  tenantMedia,
+  liveState,
+  durationMs = 8000
 }: LedScoresCanvasExperienceEditorProps) {
   const [state, dispatch] = useReducer(
     ledScoresCanvasEditorReducer,
@@ -322,6 +329,8 @@ export function LedScoresCanvasExperienceEditor({
 
   return (
     <section className={styles.editor} aria-label="LED Scores canvaseditor">
+      <SitesLedSceneEditor moment={activeMoment} scene={scene} media={tenantMedia} liveState={liveState} durationMs={durationMs} onMomentChange={onActiveMomentChange} onOrientationChange={setOrientation} onChange={next => dispatch({ type: "replace-scene", moment: activeMoment, orientation, scene: next })} />
+      <details open={!scene.sitesConfiguration}><summary>Geavanceerde canvaseditor</summary>
       <header className={styles.header}>
         <div>
           <span className={styles.eyebrow}><Sparkles aria-hidden="true" />Dynamische wedstrijdexperience</span>
@@ -409,6 +418,7 @@ export function LedScoresCanvasExperienceEditor({
         </div>
         <MobileFooter mobileStep={mobileStep} onStepChange={setMobileStep} />
       </div> : null}
+      </details>
     </section>
   );
 }

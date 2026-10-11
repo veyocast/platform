@@ -7,8 +7,10 @@ import { redirect } from "next/navigation";
 import { hasCapability, type Capability } from "@veyocast/auth";
 import {
   applyStudioBrandKit,
+  createTenantSitesStudioStarter,
   createEmptyStudioDocument,
   getStudioSystemTemplate,
+  studioDocumentAssetIds,
   parseStudioDocument,
   type StudioDocument,
   type StudioRenderOutputType
@@ -17,6 +19,7 @@ import {
 import {
   requireTenantControlSession
 } from "../../../../lib/control-session";
+import {getVerifiedSitesTenantBrandLogo} from "./sites-tenant-brand";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
 const studioCapabilities = {
@@ -54,6 +57,8 @@ export async function createStudioProject(formData: FormData) {
   const systemTemplate = templateId
     ? getStudioSystemTemplate(templateId)
     : undefined;
+  const sitesTheme=formData.get("sitesTheme");
+  if(sitesTheme!==null&&(sitesTheme!=="fieldflow"&&sitesTheme!=="onzetrots-tv"||systemTemplate?.document.sitesPresentation?.kind!=="studio"||systemTemplate.document.sitesPresentation.slide.themeId!==sitesTheme||systemTemplate.formatId!==formatId))redirectStudioError("Het gekozen schermthema, template of formaat is ongeldig. Kies het startpunt opnieuw.");
   const motionEnabled = formData.get("motionEnabled") === "on";
 
   if (!session.isLive) {
@@ -123,13 +128,18 @@ export async function createStudioProject(formData: FormData) {
         "De gekozen huisstijl is niet meer beschikbaar. Controleer de Studio-huisstijl."
       );
     }
-    document = applyStudioBrandKit(document, {
+    document = document.sitesPresentation?.kind==="studio"?parseStudioDocument({...document,sitesPresentation:{...document.sitesPresentation,slide:{...document.sitesPresentation.slide,logo:await getVerifiedSitesTenantBrandLogo(supabase,session.tenantId),...(document.sitesPresentation.slide.themeId==="fieldflow"?{background:brandResult.data.primary_color,color:brandResult.data.secondary_color}:{}),tv:document.sitesPresentation.slide.tv?{...document.sitesPresentation.slide.tv,logo:await getVerifiedSitesTenantBrandLogo(supabase,session.tenantId)}:undefined}}}):applyStudioBrandKit(document, {
       logoMediaAssetId: brandResult.data.logo_media_asset_id,
       primaryColor: brandResult.data.primary_color,
       secondaryColor: brandResult.data.secondary_color
     });
   }
 
+  if(document.sitesPresentation?.kind==="studio"&&formData.get("projectKind")!=="tenant_template"){
+    const brandLogo=await getVerifiedSitesTenantBrandLogo(supabase,session.tenantId);document=createTenantSitesStudioStarter(document,session.tenant,brandLogo);document=parseStudioDocument({...document,sitesPresentation:document.sitesPresentation?.kind==="studio"?{...document.sitesPresentation,slide:{...document.sitesPresentation.slide,name}}:undefined});
+    const key=idempotencyValue(formData);const created=await supabase.rpc("create_studio_series_v1",{p_tenant_id:session.tenantId,p_name:name,p_idempotency_key:key,p_slides:[{name,document,referencedAssetIds:referencedAssetIds(document),commandKey:key}]});
+    const seriesId=resultString(created.data,"seriesId");if(created.error||!seriesId)redirectStudioError(createErrorMessage(created.error?.code));revalidatePath("/dashboard/studio");redirect(`/dashboard/studio/${seriesId}`);
+  }
   const { data, error } = await supabase.rpc("create_studio_project_v1", {
     p_document: document,
     p_idempotency_key: idempotencyValue(formData),
@@ -179,7 +189,7 @@ function studioCreationDocument({
     },
     motion: {
       ...(sourceDocument ?? fallback).motion,
-      enabled: motionEnabled
+      enabled: motionEnabled || Boolean(sourceDocument?.sitesPresentation && sourceDocument.motion.enabled)
     }
   });
 }
@@ -631,17 +641,7 @@ export async function canEditStudioProject(
   );
 }
 
-function referencedAssetIds(document: StudioDocument) {
-  return [
-    ...new Set(
-      document.elements.flatMap((element) =>
-        element.type === "image" || element.type === "video"
-          ? [element.mediaAssetId]
-          : []
-      )
-    )
-  ];
-}
+function referencedAssetIds(document: StudioDocument) { return studioDocumentAssetIds(document); }
 
 function projectName(formData: FormData) {
   return safeProjectName(formData.get("name"));
@@ -698,6 +698,7 @@ function resultInteger(value: unknown, key: string) {
 }
 
 function createErrorMessage(code: string | undefined) {
+  if(code==="55000")return "Sites-authoring is tijdelijk gepauzeerd. Je bestaande ontwerpen en scherminhoud blijven beschikbaar.";
   if (code === "42501") {
     return "Je hebt geen recht om binnen deze vereniging een ontwerp te maken.";
   }
@@ -708,6 +709,7 @@ function createErrorMessage(code: string | undefined) {
 }
 
 function saveErrorMessage(code: string | undefined) {
+  if(code==="55000")return "Sites-authoring is tijdelijk gepauzeerd. Je lokale wijzigingen blijven zichtbaar; herstel of hervat via de beheerder.";
   if (code === "42501") {
     return "Je mag dit ontwerp niet bewerken.";
   }

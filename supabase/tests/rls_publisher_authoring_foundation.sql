@@ -200,51 +200,39 @@ select is(
 );
 
 select lives_ok(
-  $$insert into public.media_folders (
-      id, tenant_id, name, created_by
-    ) values (
-      '30000000-0000-4000-8000-000000000451',
-      '10000000-0000-4000-8000-000000000451',
-      'Sponsors',
-      '00000000-0000-4000-8000-000000000451'
-    )$$,
-  'editor can organise media in an own-tenant folder'
+  $$create temporary table foundation_folder_result as
+    select public.mutate_media_organization_v1(
+      '10000000-0000-4000-8000-000000000451', 'create_folder',
+      '{"name":"Sponsors"}', '41000000-0000-4000-8000-000000000454') as receipt$$,
+  'editor can organise media through own-tenant guarded folder commands'
 );
 select lives_ok(
-  $$update public.media_assets
-    set folder_id = '30000000-0000-4000-8000-000000000451'
-    where id = '20000000-0000-4000-8000-000000000451'$$,
-  'editor can place media in an own-tenant folder'
+  $$select public.mutate_media_organization_v1(
+    '10000000-0000-4000-8000-000000000451', 'move_asset',
+    jsonb_build_object('assetId','20000000-0000-4000-8000-000000000451',
+      'folderId',(select receipt->>'targetId' from foundation_folder_result)),
+    '41000000-0000-4000-8000-000000000455')$$,
+  'editor can place media in an own-tenant folder through the guarded command'
 );
 select lives_ok(
-  $$insert into public.media_tags (
-      id, tenant_id, name, color, created_by
-    ) values (
-      '31000000-0000-4000-8000-000000000451',
-      '10000000-0000-4000-8000-000000000451',
-      'Sponsor',
-      '#FF5C20',
-      '00000000-0000-4000-8000-000000000451'
-    );
-    insert into public.media_asset_tags (
-      tenant_id, media_asset_id, tag_id, created_by
-    ) values (
-      '10000000-0000-4000-8000-000000000451',
-      '20000000-0000-4000-8000-000000000451',
-      '31000000-0000-4000-8000-000000000451',
-      '00000000-0000-4000-8000-000000000451'
-    )$$,
-  'editor can tag media within the tenant boundary'
+  $$create temporary table foundation_tag_result as
+    select public.mutate_media_organization_v1(
+      '10000000-0000-4000-8000-000000000451', 'create_tag',
+      '{"name":"Sponsor","color":"#FF5C20"}',
+      '41000000-0000-4000-8000-000000000451') as receipt;
+    select public.mutate_media_organization_v1(
+      '10000000-0000-4000-8000-000000000451', 'assign_tag',
+      jsonb_build_object('assetId','20000000-0000-4000-8000-000000000451',
+        'tagId',(select receipt->>'targetId' from foundation_tag_result)),
+      '41000000-0000-4000-8000-000000000452')$$,
+  'editor can tag media through tenant-scoped guarded commands'
 );
 select lives_ok(
-  $$insert into public.media_asset_favorites (
-      tenant_id, media_asset_id, user_id
-    ) values (
-      '10000000-0000-4000-8000-000000000451',
-      '20000000-0000-4000-8000-000000000451',
-      '00000000-0000-4000-8000-000000000451'
-    )$$,
-  'a member can favorite media for the own account'
+  $$select public.mutate_media_organization_v1(
+    '10000000-0000-4000-8000-000000000451', 'set_favorite',
+    '{"assetId":"20000000-0000-4000-8000-000000000451","favorite":true}',
+    '41000000-0000-4000-8000-000000000453')$$,
+  'a member can favorite media for the own account through the guarded command'
 );
 select lives_ok(
   $$insert into public.publisher_saved_views (
@@ -326,7 +314,7 @@ select throws_ok(
       'Niet toegestaan'
     )$$,
   '42501',
-  'new row violates row-level security policy for table "media_tags"',
+  'permission denied for table media_tags',
   'a viewer cannot mutate shared media organisation'
 );
 select is(
@@ -363,13 +351,15 @@ select is(
   0::bigint,
   'another tenant cannot read tenant templates'
 );
+-- Direct browser writes are command-only; separately retain the composite-FK proof.
+reset role;
 select throws_ok(
   $$insert into public.media_asset_tags (
       tenant_id, media_asset_id, tag_id
     ) values (
       '10000000-0000-4000-8000-000000000452',
       '20000000-0000-4000-8000-000000000452',
-      '31000000-0000-4000-8000-000000000451'
+      (select (receipt->>'targetId')::uuid from foundation_tag_result)
     )$$,
   '23503',
   'insert or update on table "media_asset_tags" violates foreign key constraint "media_asset_tags_tenant_id_tag_id_fkey"',

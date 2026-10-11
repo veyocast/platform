@@ -3,8 +3,7 @@
 import Link from "next/link";
 import {
   Check,
-  Eye,
-  LayoutGrid
+  LayoutGrid, CalendarDays, Trophy, MapPin, ShieldCheck, Gift, ArrowLeft, ArrowRight
 } from "lucide-react";
 import {
   useMemo,
@@ -31,20 +30,17 @@ import {
   type ThemeAppearanceSettings,
   type ThemeSelection
 } from "@veyocast/contracts";
-import { createRoyalCurrentPalette } from "@veyocast/content-templates";
 import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { buildSportlinkSlideDrafts } from "@veyocast/domain";
 import {
   Button,
   Field,
-  JourneyShell,
   MultiSelectDropdown,
   StatusPill
 } from "@veyocast/ui";
 
 import { FieldFlowStyleStep } from "../../../slides/_components/fieldflow-style-step";
 import {
-  SportlinkMatchRowPreview,
   sportlinkMatchRowPreviewKind
 } from "../../../slides/_components/sportlink-match-row-preview";
 import { SportlinkMatchLocationsField } from "../../../slides/_components/sportlink-match-location-field";
@@ -56,6 +52,13 @@ import {
   type SportlinkSlideBatchActionResult
 } from "./actions";
 import styles from "./sportlink-bulk-wizard.module.css";
+import sites from "./sites-source-wizard.module.css";
+import { createSitesSourceDesign, updateSitesSourceDesign } from "./sites-source-design";
+import { SitesSportlinkFamilyWizard } from "./sites-sportlink-family-wizard";
+import { SitesSportlinkDraftPreview } from "./sites-sportlink-preview";
+import { SitesSourceDesignControls } from "./sites-source-design-controls";
+import { SitesSourceDestinationPicker, SitesSourceDestinationAfterSave } from "./sites-source-destination";
+import { emptySitesSourceDestinationOptions, initialSitesSourceDestination, validSitesSourceDestination, type SitesSourceDestinationOptions } from "./sites-source-destination-model";
 
 type TeamContext = {
   competitionId: string;
@@ -85,9 +88,9 @@ type BlueprintTeamSelection = {
 
 const steps = [
   "Inhoud kiezen",
-  "Teams selecteren",
-  "Competitie instellen",
-  "Stijl en weergave",
+  "Teams & gegevens",
+  "Vormgeving",
+  "Schermen",
   "Controleren"
 ] as const;
 const blueprintKeys = Object.keys(
@@ -99,21 +102,23 @@ const allTeamsValue = "__all_teams__";
 
 export function SportlinkBulkWizard({
   action,
-  defaultThemeAppearance,
   defaultThemeSelection,
   media,
   sources,
   teams,
-  templates
+  templates,
+  destinationOptions = emptySitesSourceDestinationOptions
 }: {
+  destinationOptions?: SitesSourceDestinationOptions;
   action: (formData: FormData) => Promise<SportlinkSlideBatchActionResult>;
   defaultThemeAppearance: ThemeAppearanceSettings;
   defaultThemeSelection: ThemeSelection;
-  media: SportlinkMediaOption[];
+  media: Array<SportlinkMediaOption & { checksumSha256?: string; url?: string }>;
   sources: Array<{ id: string; name: string }>;
   teams: Team[];
   templates: Template[];
 }) {
+  const [destination, setDestination] = useState(initialSitesSourceDestination);
   const [draftNames, setDraftNames] = useState<Record<string, string>>({});
   const [step, setStep] = useState(0);
   const [sourceId, setSourceId] = useState(sources[0]?.id ?? "");
@@ -144,6 +149,8 @@ export function SportlinkBulkWizard({
   const [arrivalConfig, setArrivalConfig] = useState<SportlinkArrivalConfig>(
     () => sportlinkArrivalConfigSchema.parse({})
   );
+  const [sitesDesign, setSitesDesign] = useState(() => createSitesSourceDesign("sportlink", "Dit weekend op de club"));
+  const [mobilePreview, setMobilePreview] = useState(false);
   const [creationResult, setCreationResult] = useState<
     SportlinkSlideBatchActionResult | null
   >(null);
@@ -245,7 +252,8 @@ export function SportlinkBulkWizard({
         name: draftNames[draftKey(draft)] ?? draft.name,
         arrival: isArrivalKey(draft.blueprintKey) ? arrivalConfig : undefined,
         display,
-        themeSelection
+        themeSelection,
+        sitesConfiguration: { ...sitesDesign, orientation }
       }));
     } catch {
       return [];
@@ -263,7 +271,8 @@ export function SportlinkBulkWizard({
     teamContexts,
     teamSelections,
     templateMap,
-    themeSelection
+    themeSelection,
+    sitesDesign
   ]);
 
   const requiredSlideTypes = [
@@ -287,7 +296,7 @@ export function SportlinkBulkWizard({
     : step === 1
       ? everyPurposeHasTeams && drafts.length > 0 && !batchTooLarge && !missingTemplates.length
       : step < 4
-        ? drafts.length > 0 && !batchTooLarge
+        ? drafts.length > 0 && !batchTooLarge && (step !== 3 || validSitesSourceDestination(destination, destinationOptions))
         : false;
   const payload = { dataSourceId: sourceId, drafts, idempotencyKey };
   const firstDraft = drafts[0] ?? null;
@@ -390,6 +399,7 @@ export function SportlinkBulkWizard({
       !(submitter instanceof HTMLElement) ||
       submitter.dataset.createSportlinkBatch !== "true" ||
       step !== 4 ||
+      !validSitesSourceDestination(destination, destinationOptions) ||
       !drafts.length ||
       batchTooLarge ||
       missingTemplates.length ||
@@ -410,38 +420,16 @@ export function SportlinkBulkWizard({
   }
 
   return (
-    <form className={styles.wizard} onSubmit={submitBatch}>
+    <>
+    <SitesSportlinkFamilyWizard destinationOptions={destinationOptions} sources={sources} teams={teams} templates={templates} media={media.flatMap(item => item.checksumSha256 && item.url ? [{ id: item.id, name: item.name, checksumSha256: item.checksumSha256, url: item.url }] : [])} themeSelection={themeSelection} />
+    <form className={`${styles.wizard} ${sites.page}`} onSubmit={submitBatch}>
       <input name="payload" type="hidden" value={JSON.stringify(payload)} />
-      <JourneyShell
-        actions={(
-          <Button asChild variant="secondary">
-            <Link href="/dashboard/studio/new">Annuleren</Link>
-          </Button>
-        )}
-        aside={(
-          <WizardPreview
-            appearance={defaultThemeAppearance}
-            draft={previewDraft}
-            orientation={orientation}
-            selection={previewDraft?.themeSelection ?? themeSelection}
-          />
-        )}
-        currentStep={String(step)}
-        description={(
-          <>
-            <strong>{drafts.length}</strong>{" "}
-            {drafts.length === 1 ? "slide" : "slides"}
-            {selectedTeamIds.length
-              ? " met " + selectedTeamIds.length + " " +
-                (selectedTeamIds.length === 1 ? "team" : "teams")
-              : ""}.
-          </>
-        )}
-        eyebrow={"Studio · stap " + (step + 1) + " van " + steps.length}
-        steps={steps.map((label, index) => ({ id: String(index), label }))}
-        title={steps[step]}
-      >
-        <section className={styles.panel}>
+      <h1 className="sr-only">Sportlink Studio</h1><div className={sites.header}><div><Link className={sites.back} href="/dashboard/studio"><ArrowLeft size={16} />Terug naar Studio</Link><div className={sites.eyebrow}>SPORTLINK STUDIO</div><h2>De club, altijd in beeld.</h2><p>Kies je inhoud, teams en vormgeving. Controleer je ontwerpen voordat je opslaat.</p></div></div>
+      <nav className={sites.wizardSteps} aria-label="Sportlink-wizardstappen">{steps.map((label, index) => <button key={label} type="button" disabled={index > step || isCreating || created} data-active={index === step} data-done={index < step} aria-current={index === step ? "step" : undefined} onClick={() => setStep(index)}><span>{index < step ? <Check size={15} /> : index + 1}</span><b>{label}</b></button>)}</nav>
+      <div className={sites.mobileSwitch}><button type="button" data-active={!mobilePreview} onClick={() => setMobilePreview(false)}>Instellen</button><button type="button" data-active={mobilePreview} onClick={() => setMobilePreview(true)}>Schermvoorbeeld</button></div>
+      <div className={sites.workspace}>
+        <section className={`${sites.panel} ${sites.controls} ${mobilePreview ? sites.mobileHidden : ""}`}>
+
           {step === 0 ? (
             <PurposeStep
               onSourceChange={resetSource}
@@ -466,7 +454,7 @@ export function SportlinkBulkWizard({
               updateRegularSelection={updateRegularSelection}
             />
           ) : null}
-          {step === 2 ? (
+          {step === 1 && selectedTeams.length ? (
             <CompetitionStep
               setTeamContexts={setTeamContexts}
               teamContexts={teamContexts}
@@ -482,7 +470,13 @@ export function SportlinkBulkWizard({
               })}
             />
           ) : null}
-          {step === 3 ? (
+          {step === 2 ? (<>
+            <SitesSourceDesignControls media={media.flatMap(item => item.url && item.checksumSha256 ? [{ id: item.id, name: item.name, url: item.url, checksumSha256: item.checksumSha256 }] : [])} design={{ ...sitesDesign, orientation }} onChange={(patch) => {
+              setSitesDesign((current) => updateSitesSourceDesign(current, patch));
+              if (patch.orientation) setOrientation(patch.orientation);
+              setCreationResult(null);
+            }} />
+            <details><summary>Wedstrijdinformatie en uitgebreide instellingen</summary>
             <ThemeDisplayStep
               arrivalConfig={arrivalConfig}
               display={display}
@@ -495,7 +489,9 @@ export function SportlinkBulkWizard({
               setThemeSelection={setThemeSelection}
               themeSelection={themeSelection}
             />
-          ) : null}
+            </details>
+          </>) : null}
+          {step === 3 ? <><StepHeading eyebrow="Bestemming" title="Waar komt je ontwerp in beeld?" description="Bewaar het ontwerp of kies een echte playlist en doelschermen. Je bevestigt de daadwerkelijke publicatie pas na opslaan en de gereedheidscontrole." /><SitesSourceDestinationPicker options={destinationOptions} value={destination} onChange={setDestination} /></> : null}
           {step === 4 ? (
             <ReviewStep
               creationResult={creationResult}
@@ -516,8 +512,13 @@ export function SportlinkBulkWizard({
               Deze selectie maakt {drafts.length} slides. Kies maximaal {sportlinkSlideBatchMaxDrafts} slides per batch; één clubbrede slide mag tot {sportlinkSlideTeamContextsMax} teams bevatten.
             </p>
           ) : null}
+        {creationResult?.ok && <SitesSourceDestinationAfterSave destination={destination} designs={creationResult.slides.map(slide => ({ slideId: slide.slideId, snapshotId: slide.snapshotId, durationSeconds: Math.max(5, sitesDesign.seconds) }))} />}
         </section>
-      </JourneyShell>
+        <aside className={`${sites.previewPanel} ${!mobilePreview ? sites.mobileHidden : ""}`}>
+          <SitesSportlinkDraftPreview draft={previewDraft} sourceId={sourceId} />
+          <div className={sites.previewMeta}><span>{orientation === "portrait" ? "9:16" : "16:9"}</span><span>{sitesDesign.seconds} sec per pagina</span><span>{sitesDesign.rowsPerPage} rijen</span></div>
+        </aside>
+      </div>
 
       <footer className={styles.actions}>
         <div>
@@ -540,7 +541,7 @@ export function SportlinkBulkWizard({
             <Button
               key="continue"
               disabled={!canNext}
-              onClick={() => setStep((value) => value + 1)}
+              onClick={() => { setStep((value) => value + 1); setMobilePreview(false); }}
               type="button"
             >
               Volgende
@@ -553,7 +554,7 @@ export function SportlinkBulkWizard({
             <Button
               key="create"
               data-create-sportlink-batch="true"
-              disabled={!drafts.length || batchTooLarge || Boolean(missingTemplates.length) || isCreating}
+              disabled={!drafts.length || batchTooLarge || Boolean(missingTemplates.length) || isCreating || !validSitesSourceDestination(destination, destinationOptions)}
               type="submit"
             >
               {isCreating
@@ -564,6 +565,7 @@ export function SportlinkBulkWizard({
         </div>
       </footer>
     </form>
+    </>
   );
 }
 
@@ -607,6 +609,14 @@ function PurposeStep({
           Koppel en synchroniseer eerst Sportlink via Databronnen.
         </p>
       ) : null}
+      <div className={sites.kindGrid}>{([
+        { name: "Programma", description: "De komende wedstrijden van je club of poule.", icon: CalendarDays, key: "sportlink.club_schedule_next_7_days" },
+        { name: "Uitslagen", description: "De laatste resultaten, helder op één scherm.", icon: Trophy, key: "sportlink.club_results_previous_7_days" },
+        { name: "Stand", description: "Poulepositie, punten en doelsaldo.", icon: LayoutGrid, key: "sportlink.pool_standings" },
+        { name: "Bezoekers welkom", description: "Een warm welkom met veld en kleedkamer.", icon: MapPin, key: "sportlink.visitor_arrivals" },
+        { name: "Scheidsrechters welkom", description: "Wedstrijdinformatie voor de arbitrage.", icon: ShieldCheck, key: "sportlink.referee_arrivals" }
+      ] as const).map(({ name, description, icon: Icon, key }) => <button className={sites.kind} key={key} type="button" data-selected={selected.includes(key)} aria-pressed={selected.includes(key)} onClick={() => toggle(key)}><div><Icon size={25} /><span className={sites.tick}>{selected.includes(key) && <Check size={13} />}</span></div><strong>{name}</strong><p>{description}</p></button>)}<Link className={sites.kind} href="/dashboard/studio/sportlink/birthdays/new"><div><Gift size={25} /><ArrowRight size={16} /></div><strong>Verjaardagen</strong><p>Zet jarige leden in het zonnetje.</p></Link></div>
+      <details><summary>Periode, poule en alle aanvullende varianten</summary>
       <ChoiceGroup
         description="Eén gekoppeld component dat automatisch over de geselecteerde teams en pagina’s wisselt."
         keys={arrivalKeys}
@@ -621,6 +631,8 @@ function PurposeStep({
         selected={selected}
         toggle={toggle}
       />
+      <Button asChild type="button" variant="secondary"><Link href="/dashboard/slides/new">Alle Sportlink-slidefamilies openen</Link></Button>
+      </details>
     </>
   );
 }
@@ -991,7 +1003,7 @@ function ThemeDisplayStep({
   return (
     <>
       <StepHeading
-        description="De gekozen Royal Current/Navy Glass-weergave wordt expliciet in iedere nieuwe versie opgeslagen."
+        description="Kies welke wedstrijdinformatie zichtbaar is. De gekozen vormgeving wordt samen met je ontwerp bewaard."
         eyebrow="Vormgeving"
         title="Rustig, herkenbaar en leesbaar op afstand"
       />
@@ -1268,93 +1280,6 @@ function ReviewStep({ creationResult, drafts, onNameChange, teamName, themeSelec
   );
 }
 
-function WizardPreview({ appearance, draft, orientation, selection }: {
-  appearance: ThemeAppearanceSettings;
-  draft: SportlinkSlideDraft | null;
-  orientation: "landscape" | "portrait";
-  selection: ThemeSelection;
-}) {
-  const definition = themeCatalog[themeId(selection)];
-  const configuration = appearance.schemaVersion === 2
-    ? appearance.palette
-    : {
-        background: "club" as const,
-        primary: selection.accent ?? definition.accentDefault,
-        secondary: selection.support,
-        version: 1 as const
-      };
-  const mode = selection.modePolicy.kind === "fixed"
-    ? selection.modePolicy.mode
-    : selection.modePolicy.kind === "schedule"
-      ? selection.modePolicy.fallback
-      : "light";
-  const palette = createRoyalCurrentPalette(
-    configuration,
-    mode === "dark" ? "glass" : "royal"
-  );
-  const contextCount = draft?.teamSelection?.teamContexts.length ??
-    draft?.teamContexts?.length ??
-    (draft ? 1 : 0);
-  const contextCopy = !draft
-    ? "Je eerste selectie verschijnt hier."
-    : draft.teamSelection?.mode === "all"
-      ? "Alle teams in één clubbrede slide"
-      : draft.teamSelection
-        ? contextCount + " " + (contextCount === 1 ? "team" : "teams") +
-          " in één clubbrede slide"
-        : isArrivalKey(draft.blueprintKey)
-          ? contextCount + " " + (contextCount === 1 ? "team" : "teams") +
-            " gekoppeld"
-          : draft.name.split(" · ")[0];
-  const matchRowKind = sportlinkMatchRowPreviewKind(draft?.blueprintKey);
-
-  return (
-    <aside className={styles.preview}>
-      <header>
-        <Eye aria-hidden="true" />
-        <span>
-          <strong>Live stijlpreview</strong>
-          <small>{orientation === "portrait" ? "Staand" : "Liggend"}</small>
-        </span>
-      </header>
-      <div
-        className={styles.previewViewport}
-        data-orientation={orientation}
-        style={{
-          "--preview-accent": palette["--accent"],
-          "--preview-canvas": palette["--bg"],
-          "--preview-line": palette["--line"],
-          "--preview-muted": palette["--muted"],
-          "--preview-surface": palette["--surface"],
-          "--preview-text": palette["--ink"],
-          fontFamily: appearance.schemaVersion === 2 ? "Roboto, sans-serif" : undefined
-        } as React.CSSProperties}
-      >
-        <span>SPORTLINK</span>
-        <h2>
-          {draft ? shortBlueprintLabel(draft.blueprintKey) : "Kies je content"}
-        </h2>
-        {draft && matchRowKind ? (
-          <SportlinkMatchRowPreview
-            blueprintKey={draft.blueprintKey}
-            display={draft.display}
-            orientation={orientation}
-          />
-        ) : (
-          <>
-            <p>{contextCopy}</p>
-            <div><i /><i /><i /></div>
-          </>
-        )}
-        <footer>{definition.name}</footer>
-      </div>
-      <p>
-        Na aanmaken vult VeyoCast deze slide met actuele providerdata. Er worden
-        geen voorbeeldscores verzonnen.
-      </p>
-    </aside>
-  );
-}
 
 function StepHeading({ description, eyebrow, title }: {
   description: string;

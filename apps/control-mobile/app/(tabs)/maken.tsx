@@ -196,6 +196,7 @@ export default function MakenScreen() {
       <ScreenScrollView>
         <PageHeader eyebrow="Snel maken" title="Maken" />
         <View style={styles.actions}>
+          <Button onPress={()=>router.push("/studio")}>Nieuw Studio-ontwerp</Button>
           <Button
             icon={<ImagePlus color="#0A0A0A" size={20} />}
             onPress={() => void pick("library")}

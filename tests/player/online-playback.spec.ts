@@ -18,9 +18,10 @@ test("fetches an online release manifest and starts playback", async ({
   const playerResponse = await page.goto(
     `${playerURL}/?deviceToken=demo-online&durationMs=750`
   );
-  expect(playerResponse?.headers()["content-security-policy"]).toContain(
-    "http://127.0.0.1:54321"
-  );
+  const policy=playerResponse?.headers()["content-security-policy"];
+  expect(policy).toContain("default-src 'self'");
+  if(process.env.PLAYWRIGHT_PRODUCTION_SERVERS==="1")expect(policy).not.toContain("http://127.0.0.1:54321");
+  else expect(policy).toContain("http://127.0.0.1:54321");
 
   await expect(page.getByLabel("Release playback")).toBeVisible();
   await expect(page.getByRole("img", { name: "Clubhuis entree" })).toBeVisible();
@@ -273,7 +274,8 @@ test("loops to the muted video slot without browser controls", async ({
   await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=300`);
 
   const video = page.getByTestId("player-video");
-  await expect(video).toBeAttached({ timeout: 3_000 });
+  // Production deliberately ignores diagnostic durationMs overrides.
+  await expect(video).toBeAttached({ timeout: process.env.PLAYWRIGHT_PRODUCTION_SERVERS==="1"?8_000:3_000 });
   await video.dispatchEvent("playing");
   await expect(video).toBeVisible();
   await expect(video).toHaveJSProperty("muted", true);

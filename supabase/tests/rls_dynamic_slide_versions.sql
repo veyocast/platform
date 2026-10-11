@@ -83,7 +83,7 @@ select throws_ok(
     )
     where id = '30000000-0000-4000-8000-000000001221'$$,
   '23514',
-  'new or changed dynamic content must use FieldFlow 1.0.0',
+  'authorable dynamic theme is invalid',
   'the database rejects a hidden legacy theme for changed authoring'
 );
 select ok(

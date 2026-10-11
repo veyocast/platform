@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import {
   normalizeProductRows,
   sanitizeProductMapping,
@@ -11,6 +12,7 @@ import { redirect } from "next/navigation";
 import { requireTenantCapability } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { loadProductImport } from "./data";
+import { normalizeProductCsvRows } from "./product-csv-import";
 
 export async function remapProductImport(formData: FormData) {
   const { session, supabase } = await productContext("tenant.product.write");
@@ -22,9 +24,8 @@ export async function remapProductImport(formData: FormData) {
     requested[header] = String(formData.get(`target-${index}`) ?? "");
   });
   const mapping = sanitizeProductMapping(current.headers, requested);
-  const normalized = normalizeProductRows(
-    current.rows.map((row) => row.source as Record<string, ProductCellValue>),
-    mapping
+  const normalized = (current.fileName.toLowerCase().endsWith(".csv") ? normalizeProductCsvRows : normalizeProductRows)(
+    current.rows.map((row) => row.source as Record<string, ProductCellValue>), mapping
   );
   const { error } = await supabase.rpc("replace_product_import_rows_v1", {
     p_column_mapping: mapping,
@@ -81,6 +82,45 @@ export async function updateProduct(formData: FormData) {
   redirect(`/dashboard/integrations/twelve-products?succes=product#product-${productId}`);
 }
 
+export async function manageProduct(formData: FormData) {
+  const { session, supabase } = await productContext("tenant.product.write");
+  const action = String(formData.get("action") ?? "");
+  if (!["create", "update", "delete"].includes(action)) redirect("/dashboard/integrations/twelve-products?fout=invoer");
+  const productId = action === "create" ? null : uuidValue(formData, "productId");
+  const dataSourceId = action === "create" ? uuidValue(formData, "dataSourceId") : null;
+  const revision = integerValue(formData, "revision", 0, Number.MAX_SAFE_INTEGER);
+  const values = action === "delete" ? {} : {
+    name: requiredTextValue(formData, "name", 160), description: textValue(formData, "description", 1000),
+    category: textValue(formData, "category", 160), priceCents: currencyCents(formData.get("price")),
+    vatRate: decimalValue(formData.get("vatRate"), 0, 100), unit: textValue(formData, "unit", 80),
+    barcode: textValue(formData, "barcode", 80), externalId: textValue(formData, "externalId", 160), active: formData.get("active") === "on"
+  };
+  const idempotencyKey = formData.has("idempotencyKey") ? uuidValue(formData, "idempotencyKey") : randomUUID();
+  const { data, error } = await supabase.rpc("manage_tenant_product_v2", { p_tenant_id: session.tenantId, p_product_id: productId, p_data_source_id: dataSourceId,
+    p_expected_revision: revision, p_action: action, p_values: values, p_idempotency_key: idempotencyKey });
+  const result = outcome(data);
+  if (error || typeof result !== "string" || !["created", "updated", "archived"].includes(result)) redirect(`/dashboard/integrations/twelve-products?fout=${error?.code === "23505" ? "artikelnummer" : outcome(data) === "conflict" ? "conflict" : "opslaan"}`);
+  revalidatePath("/dashboard/integrations/twelve-products");
+  redirect(`/dashboard/integrations/twelve-products?succes=${action === "delete" ? "verwijderd" : "product"}`);
+}
+
+export async function setProductAvailability(input: { productId: string; expectedRevision: number; active: boolean; idempotencyKey: string }): Promise<{ ok: true; active: boolean; revision: number } | { ok: false; conflict: boolean; message: string }> {
+  const { session, supabase } = await productContext("tenant.product.write");
+  if (!/^[0-9a-f-]{36}$/i.test(input.productId) || !/^[0-9a-f-]{36}$/i.test(input.idempotencyKey) || !Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 0 || typeof input.active !== "boolean") return { ok: false, conflict: false, message: "De beschikbaarheidsopdracht is ongeldig. Er is niets gewijzigd. Vernieuw de lijst." };
+  try {
+    const current = await supabase.from("tenant_products").select("name,description,category,price_cents,vat_rate,unit,barcode,source_external_id").eq("tenant_id", session.tenantId).eq("id", input.productId).is("deleted_at", null).maybeSingle();
+    if (current.error || !current.data) return { ok: false, conflict: false, message: "Dit product is niet meer beschikbaar in je vereniging. Er is niets gewijzigd. Vernieuw de lijst." };
+    const value = current.data;
+    const { data, error } = await supabase.rpc("manage_tenant_product_v2", { p_tenant_id: session.tenantId, p_product_id: input.productId, p_data_source_id: null, p_expected_revision: input.expectedRevision, p_action: "update", p_idempotency_key: input.idempotencyKey,
+      p_values: { name: value.name, description: value.description, category: value.category, priceCents: value.price_cents, vatRate: value.vat_rate, unit: value.unit, barcode: value.barcode, externalId: value.source_external_id, active: input.active } });
+    const result = data as { outcome?: string; revision?: number } | null;
+    if (result?.outcome === "conflict" || error?.code === "40001") return { ok: false, conflict: true, message: "Dit product is intussen gewijzigd. De beschikbaarheid is niet aangepast. Je keuze blijft zichtbaar; laad de nieuwste lijst en controleer het product." };
+    if (error || result?.outcome !== "updated" || !Number.isSafeInteger(result.revision)) return { ok: false, conflict: false, message: "De server bevestigde deze wijziging niet. De huidige catalogus blijft behouden. Probeer dezelfde keuze opnieuw of vernieuw de lijst." };
+    revalidatePath("/dashboard/integrations/twelve-products");
+    return { ok: true, active: input.active, revision: result.revision! };
+  } catch { return { ok: false, conflict: false, message: "De verbinding werd onderbroken. De beschikbaarheid kon niet worden bevestigd. Je keuze blijft behouden; probeer opnieuw met dezelfde sleutel." }; }
+}
+
 async function productContext(capability: "tenant.product.write") {
   const session = await requireTenantCapability(capability);
   const supabase = await createControlSupabaseClient();
@@ -117,11 +157,12 @@ function textValue(formData: FormData, name: string, max: number) {
 function currencyCents(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   if (!text) return null;
-  const number = Number(text.replace(/[€\s]/g, "").replace(",", "."));
-  if (!Number.isFinite(number) || number < 0 || number > 1_000_000) {
-    redirect("/dashboard/integrations/twelve-products?fout=invoer");
-  }
-  return Math.round(number * 100);
+  const normalized = text.replace(/[€\s]/g, "").replace(",", ".");
+  if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) redirect("/dashboard/integrations/twelve-products?fout=invoer");
+  const [whole, fraction = ""] = normalized.split(".");
+  const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+  if (!Number.isSafeInteger(cents) || cents < 0 || cents > 100_000_000) redirect("/dashboard/integrations/twelve-products?fout=invoer");
+  return cents;
 }
 
 function decimalValue(value: FormDataEntryValue | null, min: number, max: number) {

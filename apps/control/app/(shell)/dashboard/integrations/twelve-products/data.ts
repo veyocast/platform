@@ -5,14 +5,15 @@ import type { ProductImportView, ProductView } from "./types";
 
 export async function loadProductsWorkspace(tenantId: string) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return { error: true, imports: [], products: [] };
-  const [productsResult, importsResult] = await Promise.all([
+  if (!supabase) return { error: true, imports: [], products: [], manualSources: [] };
+  const [productsResult, importsResult, sourcesResult] = await Promise.all([
     supabase
       .from("tenant_products")
       .select(
-        "id, slug, name, description, category, price_cents, vat_rate, unit, barcode, source_external_id, custom_fields, image_media_asset_id, active, revision, updated_at"
+        "id, data_source_id, slug, name, description, category, price_cents, vat_rate, unit, barcode, source_external_id, custom_fields, image_media_asset_id, active, revision, updated_at"
       )
       .eq("tenant_id", tenantId)
+      .is("deleted_at", null)
       .order("active", { ascending: false })
       .order("category", { ascending: true, nullsFirst: false })
       .order("name", { ascending: true })
@@ -24,7 +25,8 @@ export async function loadProductsWorkspace(tenantId: string) {
       )
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
-      .limit(20)
+      .limit(20),
+    supabase.from("dynamic_data_sources").select("id,name").eq("tenant_id", tenantId).eq("kind", "manual_products").eq("status", "active").order("name")
   ]);
   const logoUrls = await loadProductLogoUrls(
     supabase,
@@ -34,7 +36,8 @@ export async function loadProductsWorkspace(tenantId: string) {
     )
   );
   return {
-    error: Boolean(productsResult.error || importsResult.error),
+    error: Boolean(productsResult.error || importsResult.error || sourcesResult.error),
+    manualSources: sourcesResult.data ?? [],
     imports: (importsResult.data ?? []).map((row) => ({
       appliedAt: row.applied_at,
       createdAt: row.created_at,
@@ -48,6 +51,7 @@ export async function loadProductsWorkspace(tenantId: string) {
     })) as ProductImportView[],
     products: (productsResult.data ?? []).map((row) => ({
       active: row.active,
+      dataSourceId: row.data_source_id,
       barcode: row.barcode,
       category: row.category,
       customFields: isRecord(row.custom_fields) ? row.custom_fields : {},

@@ -1,0 +1,65 @@
+{
+  "description": "Original uploaded photographs, copied byte-for-byte without visual modification.",
+  "images": [
+    {
+      "file": "havenlicht.jpg",
+      "uploaded_filename": "1000310216.jpg",
+      "format": "JPEG",
+      "dimensions": {
+        "width": 1117,
+        "height": 1536
+      },
+      "sha256": "70794084caa404e23e8215e4a33783e094e4210911d49553eeeca45a40945cd8",
+      "bytes": 134853,
+      "byte_identical": true
+    },
+    {
+      "file": "kerk.jpg",
+      "uploaded_filename": "1000310214.webp",
+      "format": "JPEG",
+      "dimensions": {
+        "width": 1536,
+        "height": 1153
+      },
+      "sha256": "36c51d7c7dec84a79336fb176d37ed7fdbb6eadcc7854b5eccf351f4fbcdcbe7",
+      "bytes": 321494,
+      "byte_identical": true
+    },
+    {
+      "file": "duindorp-luchtfoto.jpg",
+      "uploaded_filename": "1000310220.jpg",
+      "format": "JPEG",
+      "dimensions": {
+        "width": 1536,
+        "height": 864
+      },
+      "sha256": "c4f9b1a26cff9cc9517cb5392ec684378914c6561d4b1fcb32c23bd107dd23e2",
+      "bytes": 313095,
+      "byte_identical": true
+    },
+    {
+      "file": "historische-poort.jpg",
+      "uploaded_filename": "1000310218.jpg",
+      "format": "JPEG",
+      "dimensions": {
+        "width": 1536,
+        "height": 1152
+      },
+      "sha256": "5065f77c59a6b57dadf458bbc11674bece0cb4563ae65979139ec9b91c2f854c",
+      "bytes": 356883,
+      "byte_identical": true
+    },
+    {
+      "file": "clubhuis.jpg",
+      "uploaded_filename": "1000310210.jpg",
+      "format": "JPEG",
+      "dimensions": {
+        "width": 1536,
+        "height": 979
+      },
+      "sha256": "59f2c6f69fe0550cb261fe9fb67a46d08038dce890a3d03681d6a8121aec0b1c",
+      "bytes": 390077,
+      "byte_identical": true
+    }
+  ]
+}

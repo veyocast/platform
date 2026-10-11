@@ -1,0 +1,96 @@
+{
+  "scope": "Verified actual local log markers and validator exit codes; independent Source comparisons are SHA-verified aggregates, not a single full rerun; no deployment or hardware claim.",
+  "recordedAt": "2026-10-11T23:24:43.882345+00:00",
+  "gates": {
+    "lint": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
+      "logSHA256": "c40464c84032cfb3ed2ed945287d4484b9ba22b459e299f599c2ed21b44f621f"
+    },
+    "typecheck": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
+      "logSHA256": "bee8c970d6f5e658ed2f42f518fd73f87a0026de1db2b5b60b0482e4fde6e909"
+    },
+    "unit": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
+      "logSHA256": "0a2409d242acdf51ce53b93294eecf34d183b985ef7440de04230eed34970712"
+    },
+    "databaseReset": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Finished supabase db reset",
+      "logSHA256": "60fda0b826d16893e91e2b16ae15b45945646a7a96fddd3acd90e8d7f904c2ce"
+    },
+    "rls": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "All tests successful\\.[\\s\\S]*Files=102, Tests=2886[\\s\\S]*Result: PASS",
+      "logSHA256": "6c0b40bf5e7ad655c73626a36b6988741ebb302fbc3edb2da0c2e7732893022d",
+      "files": 102,
+      "assertions": 2886
+    },
+    "workflows": {
+      "status": "PASS",
+      "actualExitCode": 0,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vps": {
+      "status": "PASS",
+      "actualExitCode": 0,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "missingMarketingConfigurationRejected": true
+    },
+    "runnerLint": {
+      "status": "PASS",
+      "actualExitCode": 0,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+18 successful, 18 total",
+      "logSHA256": "0f7d381da98efb7915146c39acd47695af8668b89a4c98af94c0e42ed4bff649",
+      "cachedUnchangedTasks": 13,
+      "rebuiltApplications": [
+        "control",
+        "marketing",
+        "player",
+        "control-mobile",
+        "media-worker"
+      ],
+      "duration": "2m31.875s",
+      "scope": "Current final implementation, including verified video placement duration; earlier CSS-only rebuild is superseded."
+    },
+    "originalCaseClosure": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "pass 9[\\s\\S]*fail 0",
+      "logSHA256": "33d0bc07fca6c5be25ca6f0729b0554790c75c4267365e08fd975380a0190de9"
+    },
+    "originalRendererClosure": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Verified complete actual Source readbacks: templates-and-tv",
+      "logSHA256": "f245f054b366357e00eeeb7e7e1d9352c62b17ab62da61b3aadece8184023063",
+      "originalCases": 548,
+      "actualShaVerifiedFrames": 644
+    },
+    "supplementalRendererClosure": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Verified complete actual Source readbacks: literal-starters",
+      "logSHA256": "2da04827db986fdee6e4b713abab8454572780feba1ae5a7db5d75ce4f10a4e4",
+      "literalVariants": 76,
+      "menuCategoryOffCases": 12,
+      "containedBackgroundCases": 16
+    },
+    "verifiedVideoDuration": {
+      "status": "PASS",
+      "actualUnitRegressions": 7,
+      "realTUSWorkerAndPublication": "evidence/media-workflow-live-readback.json"
+    },
+    "originalResponsiveClosure": {
+      "status": "PASS",
+      "originalCases": 66,
+      "actualCurrentFullRun": true,
+      "evidence": "evidence/responsive-source-comparison.json",
+      "guard": "verify-sites-comparison.mjs responsive"
+    }
+  }
+}

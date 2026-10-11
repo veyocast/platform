@@ -1,0 +1,39 @@
+{
+  "exported_at": "2026-10-11",
+  "source_commit": "50dfd0fd50f5d409d1587e765029353e1294bd8a",
+  "site_url": "https://duindorp-onze-trots.dgwebserv.chatgpt.site/narrowcasting",
+  "scope": "Narrowcasting module, 8 screens in 2 orientations",
+  "original_files": [
+    "components/narrowcasting-studio.tsx",
+    "components/narrowcasting-sports.tsx",
+    "components/narrowcasting-club.tsx",
+    "app/narrowcasting.css",
+    "app/narrowcasting-sports.css",
+    "app/narrowcasting-club.css",
+    "app/narrowcasting/page.tsx",
+    "app/fonts.css"
+  ],
+  "included_assets": [
+    "assets/clubmuur-lettering.webp",
+    "assets/clubmuur-players/trio-1280.webp",
+    "assets/clubmuur-portraits-v14/05-juichen-1280.webp",
+    "assets/clubmuur-portraits-v14/07-walking-1280.webp",
+    "assets/clubmuur-portraits-v17/10-strijd-1280.webp",
+    "assets/clubmuur-wall.webp",
+    "assets/logo.png",
+    "assets/sponsors/bnu.svg",
+    "assets/sponsors/deelman-daktechniek.svg",
+    "assets/sponsors/dg-webservices.svg",
+    "assets/sponsors/kwaliteit-kozijnen-holland.svg",
+    "assets/sponsors/proto-tegelzetbedrijf.svg",
+    "assets/sponsors/rw-repair.png",
+    "assets/type-distress.svg"
+  ],
+  "changes_in_standalone": [
+    "Relative local asset URLs",
+    "Clubmuur back links use original live site",
+    "Player deep links use current preview file URL",
+    "Separate React entry and minimal base CSS; no Sites runtime",
+    "CSS masks, CSS backgrounds and fonts embedded as data URLs in the compiled preview CSS"
+  ]
+}

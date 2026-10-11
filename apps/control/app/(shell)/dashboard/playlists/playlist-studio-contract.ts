@@ -7,6 +7,9 @@ export type PlaylistStudioItem = {
   displayTitle: string | null;
   dynamicSlideId: string | null;
   dynamicSnapshotId: string | null;
+  sitesConfiguration?: unknown;
+  youtubeSourceId?: string | null;
+  engageCampaignId?: string | null;
   durationSeconds: number;
   enabled: boolean;
   fitMode: "contain" | "cover";

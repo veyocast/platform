@@ -2,6 +2,8 @@
 .github
 .next
 **/.next
+.next-qa
+**/.next-qa
 .supabase
 .turbo
 **/.turbo
@@ -17,3 +19,4 @@ test-results
 .env
 .env.*
 !.env.example
+docs/sites-v11-overname/reference

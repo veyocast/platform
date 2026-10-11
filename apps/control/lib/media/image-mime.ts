@@ -1,4 +1,5 @@
 export type DetectedImageMimeType =
+  | "image/avif"
   | "image/gif"
   | "image/jpeg"
   | "image/png"
@@ -6,6 +7,18 @@ export type DetectedImageMimeType =
   | "image/webp";
 
 export function detectImageMime(bytes: Uint8Array): DetectedImageMimeType | null {
+  // The AVIF FileTypeBox is first. Inspect only its bounded brand list;
+  // decoding still verifies AV1 and dimensions before anything is stored.
+  if (bytes.length >= 20 && ascii(bytes, 4, 8) === "ftyp") {
+    const size = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0);
+    if (size >= 20 && size <= Math.min(bytes.length, 4_096) && size % 4 === 0) {
+      const brands = [ascii(bytes, 8, 12)];
+      for (let offset = 16; offset < size; offset += 4) {
+        brands.push(ascii(bytes, offset, offset + 4));
+      }
+      if (brands.includes("avif") && !brands.includes("avis")) return "image/avif";
+    }
+  }
   if (
     bytes.length >= 8 &&
     equal(bytes.subarray(0, 8), [137, 80, 78, 71, 13, 10, 26, 10])

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createDefaultLedScoresCanvasExperience } from "@veyocast/contracts";
+import { createDefaultLedScoresCanvasExperience,defaultGoalOverlayConfiguration,sitesDynamicConfigurationSchema,sitesPresentationSourceRevision } from "@veyocast/contracts";
 
 import {
   attachLedScoresCanvasSceneToDelivery,
@@ -21,6 +21,7 @@ import {
 } from "./player-ledscores-server";
 
 describe("LED Scores Player server boundary", () => {
+  it("keeps an explicitly saved Sites scene ahead of a historical goal design",()=>{const experience=createDefaultLedScoresCanvasExperience();for(const orientation of ["landscape","portrait"] as const)experience.scenes.goalOwn[orientation].sitesConfiguration=sitesDynamicConfigurationSchema.parse({schemaVersion:1,rendererVersion:"sites-v11",sourceRevision:sitesPresentationSourceRevision,themeId:"onzetrots-tv",orientation,provider:"led-scores",title:"Exact club goal"});const delivery=normalizeLedScoresDelivery({id:"10000000-0000-4000-8000-000000191231",alert_version_id:"20000000-0000-4000-8000-000000191231",screen_id:"30000000-0000-4000-8000-000000191231",message_kind:"goal",execute_at:"2026-10-11T12:00:00Z",expires_at:"2026-10-11T12:00:10Z",payload:{scoringSide:"own"}})!;const result=attachLedScoresCanvasSceneToDelivery(delivery,[{alertVersionId:delivery.alertVersionId,config:{canvasExperience:experience,goalOverlay:defaultGoalOverlayConfiguration}}]);expect(result.payload.scene).toEqual(experience.scenes.goalOwn);expect(result.payload.goalOverlay).toBeUndefined();});
   it("selecteert de canvas-scene uitsluitend uit de bijbehorende immutable alertversie", () => {
     const experience = createDefaultLedScoresCanvasExperience();
     const delivery = normalizeLedScoresDelivery({

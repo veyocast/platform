@@ -1,0 +1,28 @@
+{
+  "caseId": "DEVICE-0003",
+  "status": "PARTIAL",
+  "model": "Linux headless Chromium",
+  "os": "Linux",
+  "browserVersion": "149.0.7827.55",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "fullKeyboardCreatePath": true,
+  "focusReturn": true,
+  "escape": true,
+  "reducedMotion": {
+    "preference": true,
+    "animated": 0
+  },
+  "zoom": {
+    "width": 1440,
+    "height": 900,
+    "dpr": 1,
+    "overflow": false
+  },
+  "limitations": [
+    "Headless Chromium did not expose browser chrome zoom shortcuts; 200% native browser zoom remains unexecuted."
+  ],
+  "scope": "Actual production Studio components with controlled guarded action transport; no physical device or provider claims."
+}

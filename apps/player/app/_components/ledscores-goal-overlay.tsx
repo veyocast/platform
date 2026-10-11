@@ -4,14 +4,17 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { goalOverlayConfigurationSchema, type GoalOverlayConfiguration } from "@veyocast/contracts";
+import { type GoalOverlayConfiguration } from "@veyocast/contracts";
+import {parseGoalMessage} from "../_lib/ledscores-goal-message";
+export {parseGoalMessage} from "../_lib/ledscores-goal-message";
+import {prepareSitesSystemAssets} from "../_lib/sites-system-asset-cache";
+import {SitesLedOverlay} from "./sites-led-overlay";
 import { GoalCelebration, logGoal } from "./goal-celebration";
 import { goalMediaCache } from "../_lib/goal-media-cache";
 
 import { localStorageDeviceTokenKey } from "../_lib/player-manifest";
 import {
   chooseLatestLedScoresMatchState,
-  parseLedScoresCanvasScenePair,
   parseLedScoresGoalEnrichmentMessage,
   parseLedScoresMatchOverlayMessage,
   parseLedScoresMatchStateMessage,
@@ -91,9 +94,7 @@ export type ActiveLedScoresGoal = {
   underlayPolicy: "continue" | "pause";
 };
 
-export type ActiveLedScoresOverlay =
-  | ActiveLedScoresGoal
-  | ActiveLedScoresMatchOverlay;
+export type ActiveLedScoresOverlay = (ActiveLedScoresGoal|ActiveLedScoresMatchOverlay)&{sitesSystemAssetUrls?:Record<string,string>};
 
 type ScheduledGoalIdentity = Pick<ActiveLedScoresGoal, "deliveryId" | "eventId">;
 type ScheduledOverlayDelivery = ScheduledGoalIdentity & {
@@ -236,6 +237,8 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
     }
   );
   const activeRef = useRef<ActiveLedScoresOverlay | null>(null);
+  const sitesRenderedRef=useRef<{id:string;report:()=>void}|null>(null);
+  const rendered=useCallback((id:string)=>{if(activeRef.current?.deliveryId===id&&sitesRenderedRef.current?.id===id){const report=sitesRenderedRef.current.report;sitesRenderedRef.current=null;report();}},[]);
   const activationTimerRef = useRef<number | null>(null);
   const expiryTimerRef = useRef<number | null>(null);
   const scheduledRef = useRef<ScheduledOverlayDelivery | null>(null);
@@ -254,6 +257,8 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
     const token = readDeviceToken() ?? "";
     if (!token) return;
     let cancelled = false;
+    const tenantObjectUrls=new Map<string,Map<string,string>>();
+    const releaseSitesDelivery=(id:string)=>{const urls=tenantObjectUrls.get(id);if(!urls)return;urls.forEach(url=>URL.revokeObjectURL(url));tenantObjectUrls.delete(id);};
     let terminalRetryTimer: number | null = null;
     let terminalFlushInFlight = false;
     const connectionController = new AbortController();
@@ -288,6 +293,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
       detail: string | null,
       expiresAt: number
     ) {
+      if(status!=="rendered")releaseSitesDelivery(delivery.deliveryId);
       const entry = {
         createdAt: Date.now(),
         deliveryId: delivery.deliveryId,
@@ -361,6 +367,8 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
     finishRef.current = (deliveryId) => {
       if (activeRef.current?.deliveryId !== deliveryId) return;
       enrichmentSequencesRef.current.delete(activeRef.current.eventId);
+      releaseSitesDelivery(deliveryId);
+      if(sitesRenderedRef.current?.id===deliveryId)sitesRenderedRef.current=null;
       activeRef.current = null;
       drainGoals();
     };
@@ -375,6 +383,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
       overlay: ActiveLedScoresOverlay;
       serverTime: string;
     }) => {
+      if(cancelled)return;
       const serverOffsetMs = Date.parse(serverTime) - Date.now();
       const serverNow = Date.now() + serverOffsetMs;
       const expiresAt = Date.parse(expiresAtValue);
@@ -456,6 +465,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         if (activeRef.current?.kind === "goal") {
           enrichmentSequencesRef.current.delete(activeRef.current.eventId);
         }
+        if(activeRef.current)releaseSitesDelivery(activeRef.current.deliveryId);
         activeRef.current = null;
         if (!continuingQueue) setActive(null);
       }
@@ -483,6 +493,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         }
         if (overlay.kind === "lineup_clear") {
           if (activeRef.current?.kind === "lineup") {
+            releaseSitesDelivery(activeRef.current.deliveryId);
             activeRef.current = null;
             setActive(null);
           }
@@ -506,7 +517,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         }
         activeRef.current = activated;
         setActive(activated);
-        window.requestAnimationFrame(() => {
+        const reportRendered=()=>{
           acknowledgeTerminal(
             overlay,
             "rendered",
@@ -523,7 +534,8 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
             );
           }
           if (overlay.kind === "goal") rememberGoal(overlay.eventId, expiresAt);
-        });
+        };
+        if(activated.sitesSystemAssetUrls)sitesRenderedRef.current={id:overlay.deliveryId,report:reportRendered};else window.requestAnimationFrame(reportRendered);
         if (overlay.kind !== "goal" || !overlay.configuration) {
           expiryTimerRef.current = window.setTimeout(() => {
             finishRef.current(overlay.deliveryId);
@@ -532,7 +544,21 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
       }, activateIn);
     };
     let screenOrientation: "portrait" | "landscape" | null = null;
-    const handleGoal = (value: unknown) => {
+    let sitesAssetsPromise:ReturnType<typeof prepareSitesSystemAssets>|null=null;
+    let systemAssets:Awaited<ReturnType<typeof prepareSitesSystemAssets>>=null;
+    const localizeSites=async(overlay:ActiveLedScoresOverlay):Promise<ActiveLedScoresOverlay>=>{
+     if(!overlay.scene||(screenOrientation==="portrait"?!overlay.scene.portrait.sitesConfiguration:!overlay.scene.landscape.sitesConfiguration))return overlay;
+     if(!sitesAssetsPromise)sitesAssetsPromise=prepareSitesSystemAssets({signal:connectionController.signal});
+     const system=await sitesAssetsPromise;if(!system||connectionController.signal.aborted)return {...overlay,scene:null};systemAssets=system;
+     // Configuration prefetch owns downloads; a live moment consumes verified local bytes only.
+     // Missing bytes keep the score visible through the established fallback and never hold a live moment for downloads.
+     const existing=tenantObjectUrls.get(overlay.deliveryId)??new Map<string,string>();
+     const assets=new Map(overlay.assets);for(const [id,asset]of assets){const url=existing.get(id)??await goalMediaCache.localUrl(asset);if(!url||connectionController.signal.aborted){existing.forEach(value=>URL.revokeObjectURL(value));tenantObjectUrls.delete(overlay.deliveryId);return {...overlay,scene:null};}existing.set(id,url);assets.set(id,{...asset,url});}
+     tenantObjectUrls.set(overlay.deliveryId,existing);
+     const resolve=(url:string|null|undefined)=>[...overlay.assets].find(([,asset])=>asset.url===url)?.[0];const mapped=(url:string|null|undefined)=>{if(url&&assets.has(url))return assets.get(url)!.url;const id=resolve(url);return id?assets.get(id)?.url??url??null:url??null;};
+     return overlay.kind==="goal"?{...overlay,assets,sitesSystemAssetUrls:system.urls,homeLogo:mapped(overlay.homeLogo),awayLogo:mapped(overlay.awayLogo)}:{...overlay,assets,sitesSystemAssetUrls:system.urls,home:{...overlay.home,logoUrl:mapped(overlay.home.logoUrl)},away:{...overlay.away,logoUrl:mapped(overlay.away.logoUrl)},lineup:overlay.lineup.map(player=>({...player,photoUrl:mapped(player.photoUrl)}))};
+    };
+    const handleGoal = async(value: unknown) => {
       const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
       const message = parseGoalMessage(value);
       if (!message) {
@@ -547,9 +573,10 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
       message.goal.screenOrientation = screenOrientation;
       logGoal("goal_event_received", message.goal.eventId);
       void acknowledge(token, message.goal.deliveryId, "received", null);
-      scheduleOverlay({ ...message, overlay: message.goal });
+      const receivedAt=Date.now();const overlay=await localizeSites(message.goal);
+      scheduleOverlay({ ...message,serverTime:new Date(Date.parse(message.serverTime)+Date.now()-receivedAt).toISOString(),overlay });
     };
-    const handleMatchOverlay = (value: unknown) => {
+    const handleMatchOverlay = async(value: unknown) => {
       const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
       const message = parseLedScoresMatchOverlayMessage(value);
       if (!message) {
@@ -562,7 +589,8 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
         return;
       }
       void acknowledge(token, message.overlay.deliveryId, "received", null);
-      scheduleOverlay(message);
+      const receivedAt=Date.now();const overlay=await localizeSites(message.overlay);
+      scheduleOverlay({...message,serverTime:new Date(Date.parse(message.serverTime)+Date.now()-receivedAt).toISOString(),overlay});
     };
     const handleGoalEnrichment = (value: unknown) => {
       const possibleDeliveryId = isRecord(value) ? safeUuid(value.id) : null;
@@ -626,6 +654,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
       if (event === "bootstrap" || event === "configuration") {
         if (value.screenOrientation === "portrait" || value.screenOrientation === "landscape") screenOrientation = value.screenOrientation;
         const prepared = preloadAssets(Array.isArray(value.configs) ? value.configs : []);
+        if(Array.isArray(value.sitesSystemAssets)&&!sitesAssetsPromise)sitesAssetsPromise=prepareSitesSystemAssets({signal:connectionController.signal}).then(result=>{systemAssets=result;return result;});
         if (Array.isArray(value.matchBindings)) {
           for (const binding of value.matchBindings) {
             storeMatchState(binding, value.serverTime);
@@ -638,11 +667,11 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
           });
         }
       } else if (event === "goal") {
-        handleGoal(value);
+        void handleGoal(value);
       } else if (event === "goal_enrichment") {
         handleGoalEnrichment(value);
       } else if (event === "match_overlay") {
-        handleMatchOverlay(value);
+        void handleMatchOverlay(value);
       } else if (event === "match_state") {
         storeMatchState(value);
       }
@@ -661,6 +690,9 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
       goalQueue.length = 0;
       finishRef.current = () => undefined;
       goalMediaCache.dispose();
+      systemAssets?.dispose();
+      for(const id of tenantObjectUrls.keys())releaseSitesDelivery(id);
+      sitesRenderedRef.current=null;
       scheduledRef.current = null;
       pendingEnrichmentsRef.current.clear();
       enrichmentSequencesRef.current.clear();
@@ -671,6 +703,7 @@ export function useLedScoresRealtime(enabled: boolean, subscriptionKey = "") {
   return {
     active,
     complete,
+    rendered,
     matchStates,
     pauseUnderlay: active?.underlayPolicy === "pause"
   };
@@ -800,16 +833,17 @@ export function LedScoresGoalOverlayContent({
 export function LedScoresExperienceOverlay({
   overlay,
   theme = null,
-  onComplete = () => undefined
+  onComplete = () => undefined,
+  onReady = () => undefined
 }: {
   overlay: ActiveLedScoresOverlay | null;
   theme?: FrozenPlayerTheme | null;
   onComplete?: (deliveryId: string) => void;
+  onReady?: (deliveryId: string) => void;
 }) {
-  if (overlay?.kind === "goal" && overlay.configuration) return <GoalCelebration key={overlay.deliveryId} goal={overlay} theme={theme} onComplete={onComplete} />;
-  return overlay?.kind === "goal"
-    ? <LedScoresGoalOverlay goal={overlay} theme={theme} />
-    : <LedScoresMatchOverlay overlay={overlay} theme={theme} />;
+  const legacy=overlay?.kind==="goal"&&overlay.configuration?<GoalCelebration key={overlay.deliveryId} goal={overlay} theme={theme} onComplete={onComplete}/>:overlay?.kind==="goal"?<LedScoresGoalOverlay goal={overlay} theme={theme}/>:<LedScoresMatchOverlay overlay={overlay} theme={theme}/>;
+  if(overlay?.scene&&(overlay.scene.landscape.sitesConfiguration||overlay.scene.portrait.sitesConfiguration))return <SitesLedOverlay key={overlay.deliveryId} overlay={overlay} onComplete={onComplete} onReady={onReady} fallback={legacy}/>;
+  return legacy;
 }
 
 export function ledScoresScoringTeam(goal: Pick<
@@ -875,122 +909,6 @@ export function goalCanvasValues(
   };
 }
 
-export function parseGoalMessage(value: unknown) {
-  if (!isRecord(value) || !isRecord(value.payload) || !Array.isArray(value.assets)) return null;
-  const payload = value.payload;
-  const deliveryId = safeUuid(value.id);
-  const executeAt = safeTimestamp(value.executeAt);
-  const expiresAt = safeTimestamp(value.expiresAt);
-  const serverTime = safeTimestamp(value.serverTime);
-  const eventId = safeUuid(payload.eventId);
-  const scoringSide: ActiveLedScoresGoal["scoringSide"] | null =
-    payload.scoringSide === "own" || payload.scoringSide === "opponent" || payload.scoringSide === "unknown"
-      ? payload.scoringSide
-      : null;
-  const design = parseDesign(payload.design);
-  const durationMs = boundedInteger(payload.durationMs, 2_000, 30_000);
-  const homeScore = boundedInteger(payload.homeScore, 0, 999);
-  const awayScore = boundedInteger(payload.awayScore, 0, 999);
-  const previousHomeScore = boundedInteger(payload.previousHomeScore, 0, 999);
-  const previousAwayScore = boundedInteger(payload.previousAwayScore, 0, 999);
-  const player = parseGoalPlayer(payload.player ?? payload.scorer);
-  if (!deliveryId || !executeAt || !expiresAt || !serverTime || !eventId || !scoringSide || !design || durationMs === null || homeScore === null || awayScore === null || previousHomeScore === null || previousAwayScore === null) return null;
-  const assets = parseLedScoresOverlayAssets(value.assets);
-  return {
-    executeAt,
-    expiresAt,
-    goal: {
-      alertVersionId: safeOptionalUuid(value.alertVersionId),
-      screenOrientation: null as "portrait" | "landscape" | null,
-      assets,
-      competition: safeText(payload.competition, 160),
-      matchName: safeText(payload.matchName, 240),
-      round: safeText(payload.round, 80),
-      venue: safeText(payload.venue, 160),
-      configuration: goalOverlayConfigurationSchema.safeParse(payload.goalOverlay).success ? goalOverlayConfigurationSchema.parse(payload.goalOverlay) : null,
-      homeLogo: safeOptionalUuid(payload.homeLogo),
-      awayLogo: safeOptionalUuid(payload.awayLogo),
-      awayScore,
-      awayTeam: safeText(payload.awayTeam, 160) ?? "Uitteam",
-      deliveryId,
-      design,
-      durationMs,
-      eventId,
-      eventKind: payload.eventKind === "synthetic_test" ? "synthetic_test" as const : "live" as const,
-      homeScore,
-      homeTeam: safeText(payload.homeTeam, 160) ?? "Thuisteam",
-      kind: "goal" as const,
-      logoMediaAssetId: safeOptionalUuid(payload.logoMediaAssetId),
-      matchClock: safeText(payload.matchClock, 40),
-      mediaAssetId: safeOptionalUuid(payload.mediaAssetId),
-      previousAwayScore,
-      previousHomeScore,
-      player,
-      scene: parseLedScoresCanvasScenePair(payload.scene, assets),
-      scorerName: player?.name ?? safeText(payload.scorerName, 160),
-      scoringSide,
-      soundMediaAssetId: safeOptionalUuid(payload.soundMediaAssetId),
-      soundVolume: boundedInteger(payload.soundVolume, 0, 100) ?? 70,
-      sponsorMediaAssetId: safeOptionalUuid(payload.sponsorMediaAssetId),
-      underlayPolicy: payload.underlayPolicy === "pause" ? "pause" as const : "continue" as const
-    },
-    serverTime
-  };
-}
-
-function GoalSound({ asset, volume }: { asset: OverlayAsset; volume: number }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume / 100;
-  }, [volume]);
-  return <audio autoPlay preload="auto" ref={audioRef} src={asset.url} />;
-}
-
-function GoalSponsor({
-  aboveCanvas = false,
-  asset
-}: {
-  aboveCanvas?: boolean;
-  asset: OverlayAsset;
-}) {
-  return <aside
-    className={aboveCanvas
-      ? `${styles.sponsor} ${styles.canvasSponsor}`
-      : styles.sponsor}
-    data-testid="ledscores-goal-sponsor"
-  >
-    <span>Mede mogelijk gemaakt door</span>
-    <img alt="Sponsor" src={asset.url} />
-  </aside>;
-}
-
-async function consumeSseStream(
-  stream: ReadableStream<Uint8Array>,
-  onEvent: (event: string, value: unknown) => void,
-  cancelled: () => boolean
-) {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  try {
-    while (!cancelled()) {
-      const chunk = await reader.read();
-      if (chunk.done) return;
-      buffer += decoder.decode(chunk.value, { stream: true });
-      let boundary = buffer.indexOf("\n\n");
-      while (boundary >= 0) {
-        const block = buffer.slice(0, boundary);
-        buffer = buffer.slice(boundary + 2);
-        const parsed = parseSseBlock(block);
-        if (parsed) onEvent(parsed.event, parsed.value);
-        boundary = buffer.indexOf("\n\n");
-      }
-      if (buffer.length > 4 * 1024 * 1024) buffer = "";
-    }
-  } finally {
-    await reader.cancel().catch(() => undefined);
-  }
-}
 
 export function parseSseBlock(value: string) {
   if (!value || value.startsWith(":")) return null;
@@ -1142,15 +1060,8 @@ function hasSeenGoal(eventId: string, now: number) { return readDedupeEntries(no
 function rememberGoal(eventId: string, expiresAt: number) { try { const entries = readDedupeEntries(Date.now()).filter((entry) => entry.eventId !== eventId); entries.push({ eventId, expiresAt }); window.localStorage.setItem(dedupeStorageKey, JSON.stringify(entries.slice(-maximumDedupeEntries))); } catch { /* in-memory delivery replacement still prevents current-session repeats */ } }
 function readDedupeEntries(now: number): Array<{ eventId: string; expiresAt: number }> { try { const parsed = JSON.parse(window.localStorage.getItem(dedupeStorageKey) ?? "[]") as unknown; return Array.isArray(parsed) ? parsed.flatMap((entry) => isRecord(entry) && safeUuid(entry.eventId) && typeof entry.expiresAt === "number" && entry.expiresAt > now ? [{ eventId: String(entry.eventId), expiresAt: entry.expiresAt }] : []).slice(-maximumDedupeEntries) : []; } catch { return []; } }
 function assetFor(assets: Map<string, OverlayAsset>, id: string | null) { return id ? assets.get(id) ?? null : null; }
-function parseGoalPlayer(value: unknown): LedScoresPlayerViewModel | null { if (!isRecord(value)) return null; const name = safeText(value.name, 160); if (!name) return null; const rawNumber = typeof value.number === "number" ? String(value.number) : value.number; return { id: safeText(value.id ?? value.providerPlayerId, 200), name, number: safeText(rawNumber, 16), photoUrl: safeWebUrl(value.photoUrl) }; }
-function safeWebUrl(value: unknown) { return typeof value === "string" && value.length <= 2_000 && /^https?:\/\//.test(value) ? value : null; }
 function initials(value: string) { return value.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("") || "VC"; }
-function parseDesign(value: unknown): OverlayDesign | null { if (!isRecord(value)) return null; const headline = safeText(value.headline, 80); const secondaryText = safeText(value.secondaryText, 160) ?? ""; const scorerFallback = safeText(value.scorerFallback, 120) ?? "Doelpunt!"; const palette = ["electric-orange", "ink-black", "signal-red", "white"].includes(String(value.palette)) ? String(value.palette) as OverlayDesign["palette"] : null; const animation = ["impact", "pulse", "slide", "none"].includes(String(value.animation)) ? String(value.animation) as OverlayDesign["animation"] : null; const logoScale = ["small", "medium", "large"].includes(String(value.logoScale)) ? String(value.logoScale) as OverlayDesign["logoScale"] : "medium"; if (!headline || !palette || !animation) return null; return { animation, headline, logoPosition: value.logoPosition === "center" ? "center" : "left", logoScale, palette, scorerFallback, secondaryText, showClock: value.showClock === true, showPreviousScore: value.showPreviousScore === true, showScorer: value.showScorer !== false, typography: value.typography === "body" ? "body" : "display" }; }
 function safeUuid(value: unknown) { return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ? value : null; }
-function safeOptionalUuid(value: unknown) { return value === null || value === undefined || value === "" ? null : safeUuid(value); }
-function safeTimestamp(value: unknown) { return typeof value === "string" && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : null; }
-function safeText(value: unknown, maximum: number) { return typeof value === "string" && value.trim() && value.length <= maximum ? value.trim() : null; }
-function boundedInteger(value: unknown, minimum: number, maximum: number) { const number = Number(value); return Number.isInteger(number) && number >= minimum && number <= maximum ? number : null; }
 function isRecord(value: unknown): value is Record<string, unknown> { return Boolean(value) && typeof value === "object" && !Array.isArray(value); }
 function reconnectDelayMs(attempt: number, random: () => number) {
   const exponentialDelay = 1_000 * 2 ** Math.min(5, Math.max(0, attempt - 1));
@@ -1169,4 +1080,58 @@ async function waitForReconnect(milliseconds: number, signal: AbortSignal) {
     signal.addEventListener("abort", onAbort, { once: true });
     if (signal.aborted) finish();
   });
+}
+
+function GoalSound({ asset, volume }: { asset: OverlayAsset; volume: number }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume / 100;
+  }, [volume]);
+  return <audio autoPlay preload="auto" ref={audioRef} src={asset.url} />;
+}
+
+function GoalSponsor({
+  aboveCanvas = false,
+  asset
+}: {
+  aboveCanvas?: boolean;
+  asset: OverlayAsset;
+}) {
+  return <aside
+    className={aboveCanvas
+      ? `${styles.sponsor} ${styles.canvasSponsor}`
+      : styles.sponsor}
+    data-testid="ledscores-goal-sponsor"
+  >
+    <span>Mede mogelijk gemaakt door</span>
+    <img alt="Sponsor" src={asset.url} />
+  </aside>;
+}
+
+async function consumeSseStream(
+  stream: ReadableStream<Uint8Array>,
+  onEvent: (event: string, value: unknown) => void,
+  cancelled: () => boolean
+) {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  try {
+    while (!cancelled()) {
+      const chunk = await reader.read();
+      if (chunk.done) return;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      let boundary = buffer.indexOf("\n\n");
+      while (boundary >= 0) {
+        const block = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+        const parsed = parseSseBlock(block);
+        if (parsed) onEvent(parsed.event, parsed.value);
+        boundary = buffer.indexOf("\n\n");
+      }
+      if (buffer.length > 4 * 1024 * 1024) buffer = "";
+    }
+  } finally {
+    await reader.cancel().catch(() => undefined);
+  }
 }

@@ -1,0 +1,9 @@
+import {describe,expect,it,vi} from "vitest";
+import {awaitNativePlacementTheme} from "./placement-theme";
+const projectId="10000000-0000-4000-8000-000000191291",jobId="20000000-0000-4000-8000-000000191291",mediaAssetId="30000000-0000-4000-8000-000000191291";
+const pending={status:"pending"as const,projectId,jobId},ready={status:"ready"as const,mediaAssetId,checksumSha256:"a".repeat(64),presentation:null};
+describe("native placement theme waits for verified render acknowledgement",()=>{
+ it("remembers an existing job after a connection failure and resumes without creating another render",async()=>{let remembered:string|undefined;const prepare=vi.fn().mockResolvedValue(pending),status=vi.fn().mockRejectedValueOnce(Error("The connection was interrupted")).mockResolvedValueOnce(ready);await expect(awaitNativePlacementTheme({prepare,status,onPending:id=>{remembered=id;},wait:async()=>undefined})).rejects.toThrow("connection");expect(remembered).toBe(jobId);expect(await awaitNativePlacementTheme({prepare,status,onPending:()=>undefined,existingJobId:remembered!})).toEqual(ready);expect(prepare).toHaveBeenCalledTimes(1);expect(status).toHaveBeenLastCalledWith(jobId);});
+ it("never returns a ready replacement for a failed or unverified render",async()=>{await expect(awaitNativePlacementTheme({prepare:async()=>({status:"failed",code:"render_unverified"}),status:async()=>ready,onPending:()=>undefined})).rejects.toThrow("niet volledig geverifieerd");});
+ it("bounds polling while preserving the acknowledged job for an explicit retry",async()=>{let clock=0,remembered="";await expect(awaitNativePlacementTheme({prepare:async()=>pending,status:async()=>pending,onPending:id=>{remembered=id;},now:()=>clock,wait:async milliseconds=>{clock+=milliseconds;},timeoutMs:5000})).rejects.toThrow("nog niet bevestigd");expect(clock).toBe(5000);expect(remembered).toBe(jobId);});
+});

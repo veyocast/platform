@@ -14,6 +14,11 @@ export async function updateTenantSettings(formData: FormData) {
     fail("Live Supabase is niet beschikbaar. Er is niets opgeslagen; herstel de configuratie en log opnieuw in.");
   }
   const name = String(formData.get("name") ?? "").trim();
+  const clubLocation = String(formData.get("clubLocation") ?? "").trim();
+  const clubWebsite = String(formData.get("clubWebsite") ?? "").trim();
+  const profileRevision = Number(formData.get("profileRevision"));
+  const idempotencyKey = String(formData.get("idempotencyKey") ?? "");
+  if (clubLocation.length > 120 || clubWebsite.length > 500 || (clubWebsite && !/^https:\/\/[^\s@]+$/.test(clubWebsite)) || !Number.isSafeInteger(profileRevision) || profileRevision < 0 || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) fail("De vestigingsplaats, HTTPS-website of instellingenrevisie is ongeldig. Controleer de velden en vernieuw de pagina.");
   const primaryColor = String(formData.get("primaryColor") ?? "")
     .trim()
     .toUpperCase();
@@ -55,7 +60,11 @@ export async function updateTenantSettings(formData: FormData) {
     fail("De standaardachtergrondkleur is ongeldig.");
   }
 
-  const { error } = await supabase.rpc("update_tenant_control_settings_v3", {
+  const { data, error } = await supabase.rpc("update_tenant_control_settings_v4", {
+    p_club_location: clubLocation,
+    p_club_website: clubWebsite,
+    p_expected_profile_revision: profileRevision,
+    p_idempotency_key: idempotencyKey,
     p_default_background_color: defaultBackgroundColor || null,
     p_default_fit_mode: fitMode,
     p_default_image_duration_seconds: imageDuration,
@@ -71,11 +80,15 @@ export async function updateTenantSettings(formData: FormData) {
   });
 
   if (error) {
-    console.error("Tenantinstellingen opslaan mislukt", error);
+    console.error("Tenantinstellingen opslaan mislukt", { code: error.code });
     fail(error.code === "42501"
       ? "Je hebt geen toestemming om deze instellingen te wijzigen."
       : "De instellingen konden niet veilig worden opgeslagen. De vorige waarden blijven actief.");
   }
+
+  const result = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : null;
+  if (result?.outcome === "conflict") fail("De instellingen zijn intussen gewijzigd. Vernieuw de pagina en controleer je aanpassingen; de actuele waarden blijven behouden.");
+  if (result?.outcome !== "saved") fail("De server gaf geen opslagbevestiging. Vernieuw de pagina voordat je opnieuw opslaat.");
 
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard");

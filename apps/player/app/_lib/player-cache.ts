@@ -1,3 +1,5 @@
+import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
+import {publishedScreenCompositionSchema} from "@veyocast/contracts";
 import type { PlayerDynamicTemplateAsset } from "@veyocast/contracts";
 import type { PlayerSponsorCreative, PlayerSponsorPlan } from "@veyocast/contracts";
 
@@ -33,7 +35,7 @@ export type PlayerCacheAsset = {
   cacheKey: string;
   checksumSha256: string;
   itemId: string;
-  kind: "dynamic" | "media" | "poster" | "sponsor";
+  kind: "dynamic" | "media" | "poster" | "sponsor" | "system";
   url: string;
 };
 
@@ -63,6 +65,7 @@ export type PlayerCacheResult =
 export function getCacheableAssets(
   manifest: PlayerReleaseManifest
 ): PlayerCacheAsset[] {
+  if(manifest.systemAssets){const expected=new Map(sitesSystemAssets.files.map(asset=>[asset.path,asset]));if(manifest.systemAssets.length!==expected.size||new Set(manifest.systemAssets.map(asset=>asset.path)).size!==expected.size||manifest.systemAssets.some(asset=>{const trusted=expected.get(asset.path);return !trusted||trusted.sha256!==asset.checksumSha256||trusted.bytes!==asset.bytes||trusted.mimeType!==asset.mimeType;}))throw new Error("SITES_ASSET_MANIFEST_INVALID");}
   const contentAssets = manifest.items.flatMap((item) => {
     const assets: PlayerCacheAsset[] = [];
 
@@ -82,7 +85,7 @@ export function getCacheableAssets(
       );
     }
 
-    for (const asset of Object.values(item.dynamicTemplate?.assets ?? {})) {
+    for (const asset of Object.values({...item.dynamicTemplate?.assets,...item.sitesStudioAssets})) {
       assets.push(toDynamicCacheAsset(item, asset));
       if (
         asset.posterUrl && asset.posterBytes && asset.posterChecksumSha256
@@ -109,7 +112,15 @@ export function getCacheableAssets(
       return [asset];
     })
   ) ?? [];
-  return [...contentAssets, ...sponsorAssets];
+  const systemAssets=(manifest.systemAssets??[]).flatMap(asset=>{const cacheKey=`/__veyocast-player-cache/${asset.checksumSha256}`;if(seen.has(cacheKey))return [];seen.add(cacheKey);return [{...asset,cacheKey,itemId:"sites-v11",kind:"system" as const,url:asset.path}];});
+  return [...contentAssets, ...sponsorAssets,...systemAssets];
+}
+
+
+export function getEnvelopeCacheableAssets(envelope:PlayerManifestEnvelope):PlayerCacheAsset[]{
+ if(envelope.composition){const parsed=publishedScreenCompositionSchema.safeParse(envelope.composition.published);if(!parsed.success)throw new Error("COMPOSITION_ASSETS_UNAVAILABLE");const bindings=parsed.data.bindings.filter(binding=>binding.zoneId!=="main");if(Object.keys(envelope.composition.zones).length!==bindings.length||bindings.some(binding=>{const zone=envelope.composition!.zones[binding.zoneId as "side"|"bottom"];return !zone||zone.composition||zone.manifest.tenantId!==envelope.manifest.tenantId||zone.device.id!==envelope.device.id||zone.device.screenId!==envelope.device.screenId||zone.manifest.releaseId!==binding.releaseId||zone.manifest.playlistId!==binding.playlistId;}))throw new Error("COMPOSITION_ASSETS_UNAVAILABLE");}
+ const assets=[...getCacheableAssets(envelope.manifest),...Object.values(envelope.composition?.zones??{}).flatMap(zone=>getCacheableAssets(zone.manifest))];
+ return [...new Map(assets.map(asset=>[asset.cacheKey,asset])).values()];
 }
 
 export async function preparePendingRelease({
@@ -124,10 +135,11 @@ export async function preparePendingRelease({
   store?: PlayerMediaStore;
 }): Promise<PlayerCacheResult> {
   if (envelope.manifest.schemaVersion !== 1) return { ok: false, error: "PLAYER_UPDATE_REQUIRED" };
+  let assets:PlayerCacheAsset[];try{assets=getEnvelopeCacheableAssets(envelope);}catch{return {ok:false,error:"RELEASE_ASSET_MANIFEST_INVALID"};}
   preparingMediaCount += 1;
   try {
     await mediaCollection;
-    const assets = getCacheableAssets(envelope.manifest);
+
     const cachedAssets = await inspectCachedAssets(assets, store, signal);
     const storageCheck = await hasEnoughStorage(cachedAssets.missingBytes);
 
@@ -541,6 +553,9 @@ export async function hydratePreparedRelease(
   preparedRelease: Pick<CachedPlayerRelease, "assets" | "envelope">,
   store = createPlayerMediaStore(playerAssetCacheName)
 ): Promise<HydratedPlayerRelease> {
+  const required=getEnvelopeCacheableAssets(preparedRelease.envelope);
+  const provided=new Map(preparedRelease.assets.map(asset=>[asset.cacheKey,asset]));
+  if(required.some(asset=>{const stored=provided.get(asset.cacheKey);return !stored||stored.bytes!==asset.bytes||stored.checksumSha256!==asset.checksumSha256;}))throw new Error("cached release contains an incomplete composition");
   const objectUrls: Record<string, string> = {};
   const playbackUrls: Record<string, string> = {};
   const cachedAssets = await inspectCachedAssets(preparedRelease.assets, store);
@@ -608,6 +623,7 @@ function withCachedUrls(
 
   return {
     ...envelope,
+    ...(envelope.composition?{composition:{...envelope.composition,zones:Object.fromEntries(Object.entries(envelope.composition.zones).map(([id,zone])=>[id,withCachedUrls(zone,playbackUrls)]))}}:{}),
     manifest: {
       ...manifest,
       ...(manifest.sponsorPlan
@@ -643,7 +659,9 @@ function withCachedUrls(
 
         return {
           ...item,
+          ...(manifest.systemAssets?.length?{sitesSystemAssetUrls:Object.fromEntries(manifest.systemAssets.map(asset=>[asset.path,playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.path]))}:{}),
           ...(dynamicTemplate ? { dynamicTemplate } : {}),
+          ...(item.sitesStudioAssets?{sitesStudioAssets:Object.fromEntries(Object.entries(item.sitesStudioAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           source: {
             ...item.source,
             ...mediaSource,
@@ -697,6 +715,7 @@ export function refreshHydratedReleaseEnvelope({
             : freshEnvelope.entitlementVerified
         }
       : {}),
+    ...(freshEnvelope.composition?{composition:{...freshEnvelope.composition,zones:Object.fromEntries(Object.entries(freshEnvelope.composition.zones).map(([id,zone])=>[id,refreshHydratedReleaseEnvelope({cachedEnvelope:cachedEnvelope.composition?.zones[id as "side"|"bottom"]??zone,freshEnvelope:zone,online})]))}}:{}),
     manifest: {
       ...freshEnvelope.manifest,
       ...(freshEnvelope.manifest.sponsorPlan
@@ -726,6 +745,8 @@ export function refreshHydratedReleaseEnvelope({
 
         return {
           ...item,
+          ...(item.sitesStudioAssets?{sitesStudioAssets:Object.fromEntries(Object.entries(item.sitesStudioAssets).map(([id,asset])=>{const cached=cachedItem.sitesStudioAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
+          ...(cachedItem.sitesSystemAssetUrls?{sitesSystemAssetUrls:cachedItem.sitesSystemAssetUrls}:{}),
           ...(item.dynamicTemplate
             ? {
                 dynamicTemplate: refreshDynamicTemplateAssetAccess(

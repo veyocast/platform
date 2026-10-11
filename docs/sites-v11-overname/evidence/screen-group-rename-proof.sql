@@ -1,0 +1,42 @@
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000101',true);
+select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000000101","role":"authenticated","aal":"aal2"}',true);
+do $$
+declare
+ tenant uuid:='10000000-0000-4000-8000-000000000101';
+ group_id uuid;screen_id uuid;schedule_id uuid;release_id uuid;
+ created jsonb;renamed jsonb;restored jsonb;scheduled jsonb;
+ before_refs jsonb;after_refs jsonb;restored_refs jsonb;proof jsonb;
+ old_revision bigint;new_revision bigint;
+begin
+ assert current_user='authenticated','WF21 requires actual authenticated database role';
+ assert auth.uid()='00000000-0000-4000-8000-000000000101','WF21 actor must be isolated pilot owner';
+ created:=public.mutate_screen_group_v1(tenant,null,0,'create',jsonb_build_object('name','WF21 ephemeral QA group'),gen_random_uuid());
+ assert created->>'outcome'='applied','WF21 group create must be acknowledged';
+ group_id:=(created->>'groupId')::uuid;
+ screen_id:=public.create_screen_onboarding_v2(tenant,'WF21 ephemeral QA screen','','landscape',1920,1080,null,group_id,gen_random_uuid());
+ assert screen_id is not null,'WF21 guarded ephemeral screen required';
+ select id into release_id from public.playlist_releases where tenant_id=tenant order by published_at,id limit 1;
+ assert release_id is not null,'WF21 needs a real immutable local release reference';
+ scheduled:=public.mutate_content_schedule_v2(tenant,null,0,'create',jsonb_build_object('name','WF21 ephemeral disabled group target','targetKind','screen_group','targetId',group_id,'releaseId',release_id,'timezoneName','Europe/Amsterdam','startsAt','2027-10-11T10:00:00Z','endsAt','2027-10-11T11:00:00Z','scheduleKind','once','enabled',false,'priority',100),gen_random_uuid());
+ assert scheduled->>'outcome'='applied','WF21 guarded schedule target required';
+ schedule_id:=(scheduled->>'scheduleId')::uuid;
+ select revision into old_revision from public.screen_groups where tenant_id=tenant and id=group_id;
+ before_refs:=jsonb_build_object('groupId',group_id,'screenId',(select membership.screen_id from public.screen_group_memberships membership where membership.tenant_id=tenant and membership.screen_group_id=group_id),'scheduleId',schedule_id,'targetGroupId',(select target_screen_group_id from public.content_schedules where tenant_id=tenant and id=schedule_id),'releaseId',(select schedule.release_id from public.content_schedules schedule where schedule.tenant_id=tenant and schedule.id=schedule_id));
+ renamed:=public.mutate_screen_group_v1(tenant,group_id,old_revision,'update',jsonb_build_object('name','WF21 ephemeral QA group renamed'),gen_random_uuid());
+ assert renamed->>'outcome'='applied' and (renamed->>'groupId')::uuid=group_id,'WF21 rename must preserve acknowledged group identity';
+ after_refs:=jsonb_build_object('groupId',(select id from public.screen_groups where tenant_id=tenant and id=group_id),'screenId',(select membership.screen_id from public.screen_group_memberships membership where membership.tenant_id=tenant and membership.screen_group_id=group_id),'scheduleId',schedule_id,'targetGroupId',(select target_screen_group_id from public.content_schedules where tenant_id=tenant and id=schedule_id),'releaseId',(select schedule.release_id from public.content_schedules schedule where schedule.tenant_id=tenant and schedule.id=schedule_id));
+ assert before_refs=after_refs,'WF21 rename must preserve screen membership and actual schedule UUID/release reference';
+ assert (select name from public.screen_groups where tenant_id=tenant and id=group_id)='WF21 ephemeral QA group renamed','WF21 actual persisted rename required';
+ select revision into new_revision from public.screen_groups where tenant_id=tenant and id=group_id;
+ assert new_revision>old_revision,'WF21 group revision must advance';
+ restored:=public.mutate_screen_group_v1(tenant,group_id,new_revision,'update',jsonb_build_object('name','WF21 ephemeral QA group'),gen_random_uuid());
+ assert restored->>'outcome'='applied','WF21 guarded restoration required';
+ restored_refs:=jsonb_build_object('groupId',(select id from public.screen_groups where tenant_id=tenant and id=group_id),'screenId',(select membership.screen_id from public.screen_group_memberships membership where membership.tenant_id=tenant and membership.screen_group_id=group_id),'scheduleId',schedule_id,'targetGroupId',(select target_screen_group_id from public.content_schedules where tenant_id=tenant and id=schedule_id),'releaseId',(select schedule.release_id from public.content_schedules schedule where schedule.tenant_id=tenant and schedule.id=schedule_id));
+ assert restored_refs=before_refs,'WF21 restoring name must preserve targets too';
+ proof:=jsonb_build_object('workflowId','WF21','status','PASS','scope','Actual authenticated-role guarded SQL/RPC on isolated seeded pilot tenant with test AAL2 claims, own ephemeral group/screen/disabled future schedule; no UI, browser-session, provider or physical-device claim. Entire test rolls back.','tenantId',tenant,'actorId',auth.uid(),'groupId',group_id,'screenId',screen_id,'scheduleId',schedule_id,'before',before_refs,'renamed',after_refs,'restored',restored_refs,'renameReceipt',renamed,'restoreReceipt',restored,'beforeRevision',old_revision,'renamedRevision',new_revision,'assertions',jsonb_build_object('authenticatedRole',true,'tenantScoped',true,'guardedGroupCreation',true,'guardedScreenMembership',true,'actualDisabledScheduleTarget',true,'actualRename',true,'sameUuid',true,'sameTargetReferences',true,'sameImmutableReleaseReference',true,'revisionAdvanced',true,'guardedRestoration',true),'rollbackCleanup',true);
+ perform set_config('veyocast.local_wf21_proof',proof::text,true);
+end $$;
+select current_setting('veyocast.local_wf21_proof');
+rollback;

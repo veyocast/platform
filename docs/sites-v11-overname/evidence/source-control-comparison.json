@@ -1,0 +1,755 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "fixture": "Identical QA-01 model values, frozen 11 October2026 12:00 Europe/Amsterdam, Chromium1228 DPR1",
+  "scope": "Actual independent frozen Vite Source and production JSX/CSS, genuine loaded audited fonts/assets. Paired screenshots, raw pixel diff, geometry and specific semantic differences. No tolerance converted to pixelPASS and no authenticated DB/device acceptance inferred.",
+  "results": [
+    {
+      "surface": "setup",
+      "viewport": "1440x900",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 195,
+          "y": 191.796875,
+          "width": 1050,
+          "height": 516.390625,
+          "padding": "24px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw scherm instellen1Scherm2Content3ControlerenBegin bij de plek waar je bezoekers dit scherm zien.SchermnaamSchermgroepBinnenOri\u00ebntatieLiggend (16:9)Staand (9:16)AnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/setup-1440-source.png",
+        "sha256": "ae134c1e611881b13ed2396184e0f92031c74f71923beea0a993f1ea70a7443d"
+      },
+      "production": {
+        "geometry": {
+          "x": 195,
+          "y": 173.0546875,
+          "width": 1050,
+          "height": 553.890625,
+          "padding": "24px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw scherm instellen1Scherm2Content3ControlerenBegin bij de plek waar je bezoekers dit scherm zien.SchermnaamSchermgroepGeen groepBinnenOri\u00ebntatieLiggend (16:9)Staand (9:16)Locatie en resolutieLocatieBreedteHoogteAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/setup-1440-new.png",
+        "sha256": "6372df71226a4f7dde5cd16f81fbaa736d08226adc5604e5ba86f44de8f4d626"
+      },
+      "pixels": {
+        "sourceSize": [
+          1050,
+          518
+        ],
+        "productionSize": [
+          1050,
+          554
+        ],
+        "differentPixels": 96771,
+        "totalPixels": 581700,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/setup-1440-diff.png"
+      },
+      "semanticDifference": "Production adds optional collapsed location/resolution controls and preserves true physical pairing/ACK guidance.",
+      "observedDifferences": [
+        "Production retains optional collapsed physical location/resolution settings and a true no-group option. This adds a visible disclosure row and changes measured height."
+      ]
+    },
+    {
+      "surface": "composition",
+      "viewport": "1440x900",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 195,
+          "y": 89.203125,
+          "width": 1050,
+          "height": 721.59375,
+          "padding": "24px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Je scherm indelen1Indeling2Zonecontent3ControlerenKies de indeling die past bij je locatie. Met meerdere zones kunnen score, programma en clubnieuws tegelijk in beeld.Toepassen opAlle schermen (3)Binnen (2)Kantine TV 1Kantine TV 2EntreeOri\u00ebntatieLiggend (16:9)Staand (9:16)Volledig schermHoofdvlak + zijbalkHoofdvlak + onderbalkDrie zonesVoorbeeld16:9DUINDORP SVWelkom bij Duindorp SVAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/composition-1440-source.png",
+        "sha256": "7307e9bd19ae65c32d0a9372b932492115aa87747cdc4913506fd8de29cbab1b"
+      },
+      "production": {
+        "geometry": {
+          "x": 195,
+          "y": 87.453125,
+          "width": 1050,
+          "height": 725.09375,
+          "padding": "24px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Je scherm indelen1Indeling2Zonecontent3ControlerenKies de indeling die past bij je locatie. Met meerdere zones kunnen score, programma en clubnieuws tegelijk in beeld.Toepassen opAlle schermen (3)Binnen (2)Kantine TV 1Kantine TV 2EntreeOri\u00ebntatieLiggend (16:9)Staand (9:16)Volledig schermHoofdvlak + zijbalkHoofdvlak + onderbalkDrie zonesVoorbeeld16:9DUINDORP SVWelkom bij Duindorp SVAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/composition-1440-new.png",
+        "sha256": "c68a7f7cd292f10e277e0694bc08b2999ec9bd6e746d0c54ae17f9c45a315aec"
+      },
+      "pixels": {
+        "sourceSize": [
+          1050,
+          722
+        ],
+        "productionSize": [
+          1050,
+          726
+        ],
+        "differentPixels": 188165,
+        "totalPixels": 762300,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/composition-1440-diff.png"
+      },
+      "semanticDifference": "Actual measured geometry and pixels; controls/data match the deterministic fixture, trusted service boundaries remain explicit.",
+      "observedDifferences": [
+        "Production uses canonical Electric Orange primary action and keyboard focus handling. Outer desktop height differs by 3.5px; phone bounds match. Actual raw photo preview uses frozen typed tenant/title provenance; measured photo crop differences remain recorded."
+      ]
+    },
+    {
+      "surface": "planning",
+      "viewport": "1440x900",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 195,
+          "y": 101.953125,
+          "width": 1050,
+          "height": 696.078125,
+          "padding": "24px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw moment plannen1Content & schermen2Wanneer3ControlerenWat wil je laten zien, en op welke schermen?Naam van het momentContentClubhuis \u2014 VandaagTonen opAlle schermenBinnenKantine TV 1Kantine TV 2Entree3 schermen geselecteerdKantine TV 1 \u00b7 Kantine TV 2 \u00b7 EntreeAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/planning-1440-source.png",
+        "sha256": "6cd29839af15a75560e47f32356ed7079551d938d75dacc916c822d07f1af711"
+      },
+      "production": {
+        "geometry": {
+          "x": 195,
+          "y": 103.2109375,
+          "width": 1050,
+          "height": 693.578125,
+          "padding": "24px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw moment plannen1Content & schermen2Wanneer3ControlerenWat wil je laten zien, en op welke schermen?Naam van het momentContentKies een playlistClubhuis \u2014 VandaagTonen opAlle schermenBinnenKantine TV 1Kantine TV 2Entree3 schermen geselecteerdKantine TV 1 \u00b7 Kantine TV 2 \u00b7 EntreePlan \u00e9\u00e9n moment of maak een terugkerend ritme. We controleren of dezelfde schermen al content tonen.BegindatumVanTotTijden zijn lokaal \u00b7 Europe/Amsterdam. De weekplanning toont 08:00 tot 22:00.HerhalingEenmaligElke week op deze dagElke dagSpecifieke weekdagenKalenderkleurGroen \u00b7 ProgrammaBlauw \u00b7 InformatieOranje \u00b7 Speciaal momentPetrol \u00b7 ClubnieuwsDit moment is actiefGeavanceerde planningEinddatumSoort planningNormale planningTijdelijke overridePrioriteitBij overlap gaat een individueel scherm v\u00f3\u00f3r een groep; vervolgens geldt de hoogste prioriteit.ContentClubhuis \u2014 VandaagSchermenAlle schermen \u00b7 3 schermenWanneerEenmalig \u00b7 2026-10-11Tijd12:00\u201322:00StatusActiefClubhuis \u2014 VandaagAfspeellijstDe standaard content blijft buiten dit moment zichtbaar.AnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/planning-1440-new.png",
+        "sha256": "02d0551f4a31aaccf5850ec22823172bccac39a29fc31dd53c0d66255aa511d9"
+      },
+      "pixels": {
+        "sourceSize": [
+          1050,
+          698
+        ],
+        "productionSize": [
+          1050,
+          694
+        ],
+        "differentPixels": 100481,
+        "totalPixels": 732900,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/planning-1440-diff.png"
+      },
+      "semanticDifference": "Production uses immutable release IDs and actual timezone/conflict validation; Source local-demo notice is not copied.",
+      "observedDifferences": [
+        "Production preserves immutable release IDs, empty selection, actual timezone/recurrence/priority fields and conflict guidance. Mobile canonical touch controls and the guarded form change measured height; Source local-demo feedback is not copied."
+      ]
+    },
+    {
+      "surface": "shell",
+      "viewport": "390x844",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 79,
+          "padding": "17px 16px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(255, 255, 255)",
+          "text": "VeyoCast FieldFlowGoedemorgen, DannyDit is wat er vandaag speelt bij Duindorp SV.Demo-omgevingZoeken\u2318 KDGDannyBeheerder"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/shell-390-source.png",
+        "sha256": "b765e1dd99aec8f784852f29b1814eed6944847ebc048a7f88520a515c9e7e42"
+      },
+      "production": {
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 79,
+          "padding": "17px 16px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(255, 255, 255)",
+          "text": "VeyoCast FieldFlowGoedemorgen, DannyDit is wat er vandaag speelt bij Duindorp SV.Vereniging actiefZoeken\u2318 KDGDannyBeheerder"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/shell-390-new.png",
+        "sha256": "fcd568101bfcce93860db5af283585212ff79da20524d4341b8fc4603a677609"
+      },
+      "pixels": {
+        "sourceSize": [
+          390,
+          79
+        ],
+        "productionSize": [
+          390,
+          79
+        ],
+        "differentPixels": 1365,
+        "totalPixels": 30810,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/shell-390-diff.png"
+      },
+      "semanticDifference": "Source Demo-omgeving versus truthful active-tenant status; authenticated live status is retained.",
+      "observedDifferences": [
+        "Truthful active-tenant status replaces Source Demo-omgeving. Canonical accessible account/notification controls and text tokens are retained."
+      ]
+    },
+    {
+      "surface": "playlist-editor",
+      "viewport": "390x844",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "padding": "0px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Playlist bewerkenClubhuis \u2014 VandaagInhoud4VoorbeeldDetailsJouw volgorde0:59 totaalSelecteerVolgorde1Welkom bij Duindorp SVAfbeelding12s2Samen maken we de clubAfbeelding15s3Wedstrijd van vandaagAfbeelding20s4Bedankt, partners!Afbeelding12sInhoud toevoegenZo komt het in beeldLive voorbeeld1 / 4DUINDORP SVWelkom bij Duindorp SVPlaylist afspelenWelkom bij Duindorp SVAfbeelding \u00b7 12 sec.Tijdens het afspelen loopt het voorbeeld automatisch door je playlist.Naam in playlistSeconden in beeld10s15s20sSchermthemaSamen voor de club.Oorspronkelijke stijlONZE TROTS.OnzeTrots TVKopi\u00ebrenVerwijderenGeen nieuwe wijzigingenToevoegenOpslaanPubliceren"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-editor-390-source.png",
+        "sha256": "ffa726cbc028cee90b002c56d1b42e04e8551e246f37a634241ea8eaf24d4d77"
+      },
+      "production": {
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "padding": "0px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Playlist bewerkenClubhuis \u2014 VandaagInhoud4VoorbeeldDetailsJouw volgorde0:59 totaalSelecteerVolgorde1Welkom bij Duindorp SVAfbeelding12s2Samen maken we de clubAfbeelding15s3Wedstrijd van vandaagAfbeelding20s4Bedankt, partners!Afbeelding12sInhoud toevoegenZo komt het in beeldLive voorbeeld1 / 4DUINDORP SVWelkom bij Duindorp SVPlaylist afspelenWelkom bij Duindorp SVAfbeelding \u00b7 12 sec.Tijdens het afspelen loopt het voorbeeld automatisch door je playlist.Naam in playlistSeconden in beeld10s15s20sSchermthemaSamen voor de club.Oorspronkelijke stijlONZE TROTS.OnzeTrots TVKopi\u00ebrenVerwijderenGeen nieuwe wijzigingenToevoegenOpslaanPubliceren"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-editor-390-new.png",
+        "sha256": "e8ac0b55ca5a94b9ad157b3712a19ebf03add31889bb44f79279ca168d601598"
+      },
+      "pixels": {
+        "sourceSize": [
+          390,
+          844
+        ],
+        "productionSize": [
+          390,
+          844
+        ],
+        "differentPixels": 2873,
+        "totalPixels": 329160,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/playlist-editor-390-diff.png"
+      },
+      "semanticDifference": "Actual measured geometry and pixels; controls/data match the deterministic fixture, trusted service boundaries remain explicit.",
+      "observedDifferences": [
+        "The Source and production contain the same four typed placements, duration, labels and modal bounds. Raw nonzero pixels remain recorded; canonical controls/focus are retained."
+      ]
+    },
+    {
+      "surface": "playlist-picker",
+      "viewport": "390x844",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "padding": "0px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Kies je clubverhaalInhoud toevoegenMediaStudioSportlink & LEDUploadenAlle mappenClubfoto\u2019sFavorieten3 bestandenSelecteer allesNieuwe clubfotoClubfoto\u2019s \u00b7 12 sec.PortretfotoClubfoto\u2019s \u00b7 12 sec.Geverifieerde videoVideo niet beschikbaar in deze demoJPG, PNG, WebP of AVIF \u00b7 maximaal 20 MB per foto. Eigen beelden blijven bewaard in deze browser.Kies de inhoud voor je playlist0 geselecteerd. 0 items worden toegevoegd in de volgorde van je selectie."
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-picker-390-source.png",
+        "sha256": "bb6e9ef8c16c6c164555bc171c1af5e9830a43b252bfc41fca32d7e07e895cde"
+      },
+      "production": {
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "padding": "0px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Kies je clubverhaalInhoud toevoegenMediaStudioSportlink & LEDUploadenAlle mappenClubfoto\u2019sFavorieten3 bestandenSelecteer allesNieuwe clubfotoClubfoto\u2019s \u00b7 12 sec.PortretfotoClubfoto\u2019s \u00b7 12 sec.Geverifieerde videoGeverifieerde videoJPG, PNG, WebP of AVIF \u00b7 maximaal 25 MB per foto. Uploads worden priv\u00e9 opgeslagen en gecontroleerd.Kies de inhoud voor je playlist0 geselecteerd. 0 items worden toegevoegd in de volgorde van je selectie."
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-picker-390-new.png",
+        "sha256": "8ee70fb6ace9cd1366b7a6654ccd42f1a32fdca6bdfc0c3db0b981a5d72cce38"
+      },
+      "pixels": {
+        "sourceSize": [
+          390,
+          844
+        ],
+        "productionSize": [
+          390,
+          844
+        ],
+        "differentPixels": 38053,
+        "totalPixels": 329160,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/playlist-picker-390-diff.png"
+      },
+      "semanticDifference": "Actual measured geometry and pixels; controls/data match the deterministic fixture, trusted service boundaries remain explicit.",
+      "observedDifferences": [
+        "Production offers the verified ready video; Source disables video in its local demo. Production describes private validated uploads with the real 25MB limit rather than browser-only 20MB storage."
+      ]
+    },
+    {
+      "surface": "setup",
+      "viewport": "390x844",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 17,
+          "y": 94.109375,
+          "width": 356,
+          "height": 655.78125,
+          "padding": "20px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw scherm instellen1Scherm2Content3ControlerenBegin bij de plek waar je bezoekers dit scherm zien.SchermnaamSchermgroepBinnenOri\u00ebntatieLiggend (16:9)Staand (9:16)AnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/setup-390-source.png",
+        "sha256": "a4bb2c7df29405658af9c8b822ca93a00df66f40858569e846fe757db8b1d669"
+      },
+      "production": {
+        "geometry": {
+          "x": 17.007736206054688,
+          "y": 81.89730834960938,
+          "width": 355.9844970703125,
+          "height": 680.251708984375,
+          "padding": "20px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw scherm instellen1Scherm2Content3ControlerenBegin bij de plek waar je bezoekers dit scherm zien.SchermnaamSchermgroepGeen groepBinnenOri\u00ebntatieLiggend (16:9)Staand (9:16)Locatie en resolutieLocatieBreedteHoogteAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/setup-390-new.png",
+        "sha256": "d97bbd0e5f4a62659815941116062dfde0db97c54a84a6663f2b4e078df26519"
+      },
+      "pixels": {
+        "sourceSize": [
+          356,
+          656
+        ],
+        "productionSize": [
+          356,
+          682
+        ],
+        "differentPixels": 49324,
+        "totalPixels": 242792,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/setup-390-diff.png"
+      },
+      "semanticDifference": "Production adds optional collapsed location/resolution controls and preserves true physical pairing/ACK guidance.",
+      "observedDifferences": [
+        "Production retains optional collapsed physical location/resolution settings and a true no-group option. This adds a visible disclosure row and changes measured height."
+      ]
+    },
+    {
+      "surface": "composition",
+      "viewport": "390x844",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 17,
+          "y": 12,
+          "width": 356,
+          "height": 820,
+          "padding": "20px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Je scherm indelen1Indeling2Zonecontent3ControlerenKies de indeling die past bij je locatie. Met meerdere zones kunnen score, programma en clubnieuws tegelijk in beeld.Toepassen opAlle schermen (3)Binnen (2)Kantine TV 1Kantine TV 2EntreeOri\u00ebntatieLiggend (16:9)Staand (9:16)Volledig schermHoofdvlak + zijbalkHoofdvlak + onderbalkDrie zonesVoorbeeld16:9DUINDORP SVWelkom bij Duindorp SVAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/composition-390-source.png",
+        "sha256": "b1cc0837bf7da188e7cd57eb9517c241b5b3d492da5ad2d2b6b92edeeb7d56f4"
+      },
+      "production": {
+        "geometry": {
+          "x": 17,
+          "y": 12,
+          "width": 356,
+          "height": 820,
+          "padding": "20px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Je scherm indelen1Indeling2Zonecontent3ControlerenKies de indeling die past bij je locatie. Met meerdere zones kunnen score, programma en clubnieuws tegelijk in beeld.Toepassen opAlle schermen (3)Binnen (2)Kantine TV 1Kantine TV 2EntreeOri\u00ebntatieLiggend (16:9)Staand (9:16)Volledig schermHoofdvlak + zijbalkHoofdvlak + onderbalkDrie zonesVoorbeeld16:9DUINDORP SVWelkom bij Duindorp SVAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/composition-390-new.png",
+        "sha256": "03d5e795a9fc28ca7135ba4667f874819fdc6835368f1078005d29c167ebd7db"
+      },
+      "pixels": {
+        "sourceSize": [
+          356,
+          820
+        ],
+        "productionSize": [
+          356,
+          820
+        ],
+        "differentPixels": 58808,
+        "totalPixels": 291920,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/composition-390-diff.png"
+      },
+      "semanticDifference": "Actual measured geometry and pixels; controls/data match the deterministic fixture, trusted service boundaries remain explicit.",
+      "observedDifferences": [
+        "Production uses canonical Electric Orange primary action and keyboard focus handling. Outer desktop height differs by 3.5px; phone bounds match. Actual raw photo preview uses frozen typed tenant/title provenance; measured photo crop differences remain recorded."
+      ]
+    },
+    {
+      "surface": "planning",
+      "viewport": "390x844",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 17,
+          "y": 57.953125,
+          "width": 356,
+          "height": 728.078125,
+          "padding": "20px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw moment plannen1Content & schermen2Wanneer3ControlerenWat wil je laten zien, en op welke schermen?Naam van het momentContentClubhuis \u2014 VandaagTonen opAlle schermenBinnenKantine TV 1Kantine TV 2Entree3 schermen geselecteerdKantine TV 1 \u00b7 Kantine TV 2 \u00b7 EntreeAnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/planning-390-source.png",
+        "sha256": "96e5de36a1e0d4c4d619dbc751e737f9e776f1299c0f26001d35e815a94a3f55"
+      },
+      "production": {
+        "geometry": {
+          "x": 17,
+          "y": 34.2109375,
+          "width": 356,
+          "height": 775.578125,
+          "padding": "20px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Nieuw moment plannen1Content & schermen2Wanneer3ControlerenWat wil je laten zien, en op welke schermen?Naam van het momentContentKies een playlistClubhuis \u2014 VandaagTonen opAlle schermenBinnenKantine TV 1Kantine TV 2Entree3 schermen geselecteerdKantine TV 1 \u00b7 Kantine TV 2 \u00b7 EntreePlan \u00e9\u00e9n moment of maak een terugkerend ritme. We controleren of dezelfde schermen al content tonen.BegindatumVanTotTijden zijn lokaal \u00b7 Europe/Amsterdam. De weekplanning toont 08:00 tot 22:00.HerhalingEenmaligElke week op deze dagElke dagSpecifieke weekdagenKalenderkleurGroen \u00b7 ProgrammaBlauw \u00b7 InformatieOranje \u00b7 Speciaal momentPetrol \u00b7 ClubnieuwsDit moment is actiefGeavanceerde planningEinddatumSoort planningNormale planningTijdelijke overridePrioriteitBij overlap gaat een individueel scherm v\u00f3\u00f3r een groep; vervolgens geldt de hoogste prioriteit.ContentClubhuis \u2014 VandaagSchermenAlle schermen \u00b7 3 schermenWanneerEenmalig \u00b7 2026-10-11Tijd12:00\u201322:00StatusActiefClubhuis \u2014 VandaagAfspeellijstDe standaard content blijft buiten dit moment zichtbaar.AnnulerenVolgende"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/planning-390-new.png",
+        "sha256": "6fd9461219e9e6247058cfe491a52aeb295a2a8469e3b2fbdba8c4fb6227352d"
+      },
+      "pixels": {
+        "sourceSize": [
+          356,
+          730
+        ],
+        "productionSize": [
+          356,
+          776
+        ],
+        "differentPixels": 82838,
+        "totalPixels": 276256,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/planning-390-diff.png"
+      },
+      "semanticDifference": "Production uses immutable release IDs and actual timezone/conflict validation; Source local-demo notice is not copied.",
+      "observedDifferences": [
+        "Production preserves immutable release IDs, empty selection, actual timezone/recurrence/priority fields and conflict guidance. Mobile canonical touch controls and the guarded form change measured height; Source local-demo feedback is not copied."
+      ]
+    },
+    {
+      "surface": "shell",
+      "viewport": "1440x900",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 248,
+          "y": 0,
+          "width": 1192,
+          "height": 128.140625,
+          "padding": "24px 28px 23px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "VeyoCast FieldFlowGoedemorgen, DannyDit is wat er vandaag speelt bij Duindorp SV.Demo-omgevingZoeken\u2318 KDGDannyBeheerder"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/shell-1440-source.png",
+        "sha256": "248d31d6d6a71f0acdd5d73e04f01e02c4868f8292d3002f9de4cdaeab743e50"
+      },
+      "production": {
+        "geometry": {
+          "x": 248,
+          "y": 0,
+          "width": 1192,
+          "height": 128.140625,
+          "padding": "24px 28px 23px",
+          "radius": "0px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "VeyoCast FieldFlowGoedemorgen, DannyDit is wat er vandaag speelt bij Duindorp SV.Vereniging actiefZoeken\u2318 KDGDannyBeheerder"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/shell-1440-new.png",
+        "sha256": "84c722f2c8e0c5859688417eb14f6cda8c578a0fefc33126e7cb4dfea151bd62"
+      },
+      "pixels": {
+        "sourceSize": [
+          1192,
+          129
+        ],
+        "productionSize": [
+          1192,
+          129
+        ],
+        "differentPixels": 10912,
+        "totalPixels": 153768,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/shell-1440-diff.png"
+      },
+      "semanticDifference": "Source Demo-omgeving versus truthful active-tenant status; authenticated live status is retained.",
+      "observedDifferences": [
+        "Truthful active-tenant status replaces Source Demo-omgeving. Canonical accessible account/notification controls and text tokens are retained."
+      ]
+    },
+    {
+      "surface": "playlist-editor",
+      "viewport": "1440x900",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 120,
+          "y": 24,
+          "width": 1200,
+          "height": 852,
+          "padding": "0px",
+          "radius": "24px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Playlist bewerkenClubhuis \u2014 VandaagInhoud4VoorbeeldDetailsJouw volgorde0:59 totaalSelecteerVolgorde1Welkom bij Duindorp SVAfbeelding12s2Samen maken we de clubAfbeelding15s3Wedstrijd van vandaagAfbeelding20s4Bedankt, partners!Afbeelding12sInhoud toevoegenZo komt het in beeldLive voorbeeld1 / 4DUINDORP SVWelkom bij Duindorp SVPlaylist afspelenWelkom bij Duindorp SVAfbeelding \u00b7 12 sec.Tijdens het afspelen loopt het voorbeeld automatisch door je playlist.Naam in playlistSeconden in beeld10s15s20sSchermthemaSamen voor de club.Oorspronkelijke stijlONZE TROTS.OnzeTrots TVKopi\u00ebrenVerwijderenGeen nieuwe wijzigingenToevoegenOpslaanPubliceren"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-editor-1440-source.png",
+        "sha256": "d82432d47621c012690168cfae05e75d379d35bd439533cc0ade7d2ae298ac16"
+      },
+      "production": {
+        "geometry": {
+          "x": 120,
+          "y": 24,
+          "width": 1200,
+          "height": 852,
+          "padding": "0px",
+          "radius": "24px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Playlist bewerkenClubhuis \u2014 VandaagInhoud4VoorbeeldDetailsJouw volgorde0:59 totaalSelecteerVolgorde1Welkom bij Duindorp SVAfbeelding12s2Samen maken we de clubAfbeelding15s3Wedstrijd van vandaagAfbeelding20s4Bedankt, partners!Afbeelding12sInhoud toevoegenZo komt het in beeldLive voorbeeld1 / 4DUINDORP SVWelkom bij Duindorp SVPlaylist afspelenWelkom bij Duindorp SVAfbeelding \u00b7 12 sec.Tijdens het afspelen loopt het voorbeeld automatisch door je playlist.Naam in playlistSeconden in beeld10s15s20sSchermthemaSamen voor de club.Oorspronkelijke stijlONZE TROTS.OnzeTrots TVKopi\u00ebrenVerwijderenGeen nieuwe wijzigingenToevoegenOpslaanPubliceren"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-editor-1440-new.png",
+        "sha256": "b87a8c79d286c161b20b89b1eab99f6abdcb338ee7461a289abe1b787bd34803"
+      },
+      "pixels": {
+        "sourceSize": [
+          1200,
+          852
+        ],
+        "productionSize": [
+          1200,
+          852
+        ],
+        "differentPixels": 4459,
+        "totalPixels": 1022400,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/playlist-editor-1440-diff.png"
+      },
+      "semanticDifference": "Actual measured geometry and pixels; controls/data match the deterministic fixture, trusted service boundaries remain explicit.",
+      "observedDifferences": [
+        "The Source and production contain the same four typed placements, duration, labels and modal bounds. Raw nonzero pixels remain recorded; canonical controls/focus are retained."
+      ]
+    },
+    {
+      "surface": "playlist-picker",
+      "viewport": "1440x900",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 120,
+          "y": 24,
+          "width": 1200,
+          "height": 852,
+          "padding": "0px",
+          "radius": "24px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Kies je clubverhaalInhoud toevoegenMediaStudioSportlink & LEDUploadenAlle mappenClubfoto\u2019sFavorieten3 bestandenSelecteer allesNieuwe clubfotoClubfoto\u2019s \u00b7 12 sec.PortretfotoClubfoto\u2019s \u00b7 12 sec.Geverifieerde videoVideo niet beschikbaar in deze demoJPG, PNG, WebP of AVIF \u00b7 maximaal 20 MB per foto. Eigen beelden blijven bewaard in deze browser.Kies de inhoud voor je playlist0 geselecteerd. 0 items worden toegevoegd in de volgorde van je selectie."
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-picker-1440-source.png",
+        "sha256": "588ccf76028cf8430f37f27b77bcc9e939d43488f8d5711a99972388d8adb06c"
+      },
+      "production": {
+        "geometry": {
+          "x": 120,
+          "y": 24,
+          "width": 1200,
+          "height": 852,
+          "padding": "0px",
+          "radius": "24px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(18, 62, 60)",
+          "text": "Kies je clubverhaalInhoud toevoegenMediaStudioSportlink & LEDUploadenAlle mappenClubfoto\u2019sFavorieten3 bestandenSelecteer allesNieuwe clubfotoClubfoto\u2019s \u00b7 12 sec.PortretfotoClubfoto\u2019s \u00b7 12 sec.Geverifieerde videoGeverifieerde videoJPG, PNG, WebP of AVIF \u00b7 maximaal 25 MB per foto. Uploads worden priv\u00e9 opgeslagen en gecontroleerd.Kies de inhoud voor je playlist0 geselecteerd. 0 items worden toegevoegd in de volgorde van je selectie."
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/playlist-picker-1440-new.png",
+        "sha256": "48a61ac0484ee4f4d9924c859bd35ab248ea58cb6cf6fc91ed1201c5a9f21721"
+      },
+      "pixels": {
+        "sourceSize": [
+          1200,
+          852
+        ],
+        "productionSize": [
+          1200,
+          852
+        ],
+        "differentPixels": 71411,
+        "totalPixels": 1022400,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/playlist-picker-1440-diff.png"
+      },
+      "semanticDifference": "Actual measured geometry and pixels; controls/data match the deterministic fixture, trusted service boundaries remain explicit.",
+      "observedDifferences": [
+        "Production offers the verified ready video; Source disables video in its local demo. Production describes private validated uploads with the real 25MB limit rather than browser-only 20MB storage."
+      ]
+    },
+    {
+      "surface": "media",
+      "viewport": "390x844",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 15,
+          "y": 25.3125,
+          "width": 360,
+          "height": 793.359375,
+          "padding": "0px",
+          "radius": "16px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Clubhuis in de ochtendIn gebruikNaamMapClubcontentTags \u00b7 gescheiden door komma\u2019sCollecties \u00b7 gescheiden door komma\u2019sFavoriet beeldGebruikt in 1 playlistsClubhuis \u2014 VandaagWijzigingen opslaanAan playlist toevoegenAfbeelding archiveren"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/media-390-source.png",
+        "sha256": "e9fcd1a460c0bf49053ca45204380b4c135c2607c9177d32a89c6fc50bc44fb3"
+      },
+      "production": {
+        "geometry": {
+          "x": 15,
+          "y": 25.3203125,
+          "width": 360,
+          "height": 793.359375,
+          "padding": "0px",
+          "radius": "16px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Clubhuis in de ochtendIn gebruikNaamMapHoofdniveauClubcontentTags \u00b7 gescheiden door komma\u2019sCollecties \u00b7 gescheiden door komma\u2019sFavoriet beeld1 conceptplaylistWijzigingen opslaanAan playlist toevoegenAfbeelding archiverenBestandsdetails en gebruik bekijken"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/media-390-new.png",
+        "sha256": "c418a97eb6fb264216ebe7c00e2b91b311f3e7c4124d91d9ed7181d676127672"
+      },
+      "pixels": {
+        "sourceSize": [
+          360,
+          794
+        ],
+        "productionSize": [
+          360,
+          794
+        ],
+        "differentPixels": 109508,
+        "totalPixels": 285840,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/media-390-diff.png"
+      },
+      "semanticDifference": "Source inline metadata controls are connected to the actual atomic tenant/CAS command; physical byte metadata and immutable usage retain guarded advanced readback.",
+      "observedDifferences": [
+        "Production distinguishes one concept playlist from a published/on-screen release and retains guarded advanced file-details access. Folder choices include the real root. Outer modal bounds match; image crop and all raw pixel differences remain recorded."
+      ]
+    },
+    {
+      "surface": "media",
+      "viewport": "1440x900",
+      "status": "MEASURED_DIFFERENCE",
+      "source": {
+        "geometry": {
+          "x": 195,
+          "y": 45,
+          "width": 1050,
+          "height": 810,
+          "padding": "0px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Clubhuis in de ochtendIn gebruikNaamMapClubcontentTags \u00b7 gescheiden door komma\u2019sCollecties \u00b7 gescheiden door komma\u2019sFavoriet beeldGebruikt in 1 playlistsClubhuis \u2014 VandaagWijzigingen opslaanAan playlist toevoegenAfbeelding archiveren"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/media-1440-source.png",
+        "sha256": "d05a2275cc8f74ef703cbe1d974dbc8db5758b61ff546e47da662e9e43781e47"
+      },
+      "production": {
+        "geometry": {
+          "x": 195,
+          "y": 45,
+          "width": 1050,
+          "height": 810,
+          "padding": "0px",
+          "radius": "22px",
+          "font": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif",
+          "color": "rgb(23, 32, 30)",
+          "text": "Clubhuis in de ochtendIn gebruikNaamMapHoofdniveauClubcontentTags \u00b7 gescheiden door komma\u2019sCollecties \u00b7 gescheiden door komma\u2019sFavoriet beeld1 conceptplaylistWijzigingen opslaanAan playlist toevoegenAfbeelding archiverenBestandsdetails en gebruik bekijken"
+        },
+        "path": "/dev/shm/veyocast-s191-control-source-comparison/media-1440-new.png",
+        "sha256": "83228f88edf48675b5b7f281e60c8590cb42d94e129c84e6b00f12d904268573"
+      },
+      "pixels": {
+        "sourceSize": [
+          1050,
+          810
+        ],
+        "productionSize": [
+          1050,
+          810
+        ],
+        "differentPixels": 259354,
+        "totalPixels": 850500,
+        "diff": "/dev/shm/veyocast-s191-control-source-comparison/media-1440-diff.png"
+      },
+      "semanticDifference": "Source inline metadata controls are connected to the actual atomic tenant/CAS command; physical byte metadata and immutable usage retain guarded advanced readback.",
+      "observedDifferences": [
+        "Production distinguishes one concept playlist from a published/on-screen release and retains guarded advanced file-details access. Folder choices include the real root. Outer modal bounds match; image crop and all raw pixel differences remain recorded."
+      ]
+    }
+  ],
+  "executionProvenance": {
+    "log": "/tmp/s191-fourteen-source-pairs-final.log",
+    "executedPairs": 14,
+    "surfaces": [
+      "shell",
+      "playlist-editor",
+      "playlist-picker",
+      "media",
+      "setup",
+      "composition",
+      "planning"
+    ],
+    "widths": [
+      390,
+      1440
+    ],
+    "runSeconds": 28.6,
+    "scope": "Actual independent frozen Source and current production component bundles, controlled read-only Next/HTTP boundaries. All raw source/new/diff captures are retained; test execution is not a claim that nonzero pixel differences are identical."
+  }
+}

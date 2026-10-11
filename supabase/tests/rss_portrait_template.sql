@@ -48,8 +48,8 @@ select is(
     where slug like 'editorial-arena-%'
       and status = 'published'
   ),
-  52::bigint,
-  'thirteen capability-backed types expose four Editorial Arena variants'
+  64::bigint,
+  'the existing fifty-two Editorial Arena variants and twelve new canonical family variants are available'
 );
 
 select is(
@@ -66,8 +66,8 @@ select is(
         'sport_volunteers'
       )
   ),
-  0::bigint,
-  'remaining types without a complete data flow stay inactive'
+  12::bigint,
+  'six additional families with tested canonical source flows expose both orientations'
 );
 
 select ok(

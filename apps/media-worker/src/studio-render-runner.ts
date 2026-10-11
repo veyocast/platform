@@ -41,6 +41,7 @@ import {
   type StudioBackgroundVideo,
   StudioVideoRenderError
 } from "./studio-render-video";
+import { createSitesStudioCapture, SitesDomCaptureError, type SitesStudioCapture } from "./sites-dom-capture";
 import { maxUploadBytes } from "./media-processing";
 
 export type StudioRenderWorkerConfig = {
@@ -88,6 +89,7 @@ export async function runStudioRenderOnce({
   backend,
   config,
   encodeMp4 = encodeStudioMp4,
+  sitesCaptureFactory = createSitesStudioCapture,
   renderer,
   signal,
   validateMp4 = probeAndValidateStudioMp4
@@ -95,6 +97,7 @@ export async function runStudioRenderOnce({
   backend: StudioRenderBackend;
   config: StudioRenderWorkerConfig;
   encodeMp4?: StudioMp4Encoder;
+  sitesCaptureFactory?: typeof createSitesStudioCapture;
   renderer: StudioExternalRenderer;
   signal?: AbortSignal;
   validateMp4?: StudioMp4Validator;
@@ -105,6 +108,7 @@ export async function runStudioRenderOnce({
     config.maxAttempts
   );
   if (!job) return { status: "idle" };
+  let sitesCapture: SitesStudioCapture | undefined;
 
   try {
     return await withStudioRenderTempDirectory(async (workingDirectory) => {
@@ -117,6 +121,8 @@ export async function runStudioRenderOnce({
         workingDirectory
       });
       const { assetSources, backgroundVideo } = preparedAssets;
+      if(job.document.sitesPresentation)sitesCapture=await sitesCaptureFactory({document:job.document,assetSources,signal});
+      const renderPng=(input:Parameters<typeof renderStudioPng>[0])=>sitesCapture?sitesCapture.renderPng(input.timeMs??1200):renderStudioPng(input);
       const paths = studioRenderArtifactPaths(job);
       const outputPath = join(
         workingDirectory,
@@ -144,7 +150,7 @@ export async function runStudioRenderOnce({
               signal,
               workingDirectory
             })
-          : await renderStudioPng({
+          : await renderPng({
               assetSources,
               document: job.document,
               renderer,
@@ -159,6 +165,7 @@ export async function runStudioRenderOnce({
           assetSources,
           backgroundVideo,
           document: job.document,
+          ...(sitesCapture ? {renderFrame:(timeMs:number)=>sitesCapture!.renderRgba(timeMs),timeoutMs:300000}:{}),
           onFrame: async (frameIndex, frameCount) => {
             if (frameIndex % studioFps !== 0) return;
             await update({
@@ -194,7 +201,7 @@ export async function runStudioRenderOnce({
               signal,
               workingDirectory
             })
-          : await renderStudioPng({
+          : await renderPng({
               assetSources,
               document: job.document,
               renderer,
@@ -286,6 +293,8 @@ export async function runStudioRenderOnce({
       mediaAssetId: job.mediaAssetId,
       status: reported === "queued" ? "retry_scheduled" : reported
     };
+  } finally {
+    await sitesCapture?.close();
   }
 }
 
@@ -345,6 +354,7 @@ export function studioRenderRetryDelaySeconds(attemptCount: number) {
 
 export function classifyStudioRenderFailure(error: unknown) {
   if (error instanceof StudioRenderJobError) return error;
+  if (error instanceof SitesDomCaptureError) return new StudioRenderJobError(error.code,true,error.message);
   if (error instanceof StudioRenderBackendError) {
     return new StudioRenderJobError(
       error.code,
@@ -474,6 +484,7 @@ async function prepareStudioAssets({
       }
       const source =
         `data:${asset.mimeType};base64,${(await readFile(destination)).toString("base64")}`;
+      if(job.document.sitesPresentation)sources[asset.assetId]={height:asset.height,href:source,width:asset.width};
       for (const element of job.document.elements) {
         if (element.type === "image" && element.mediaAssetId === asset.assetId) {
           sources[element.id] = {

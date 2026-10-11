@@ -46,10 +46,10 @@ test("keeps the documented local demo pilot traceable across product planes", as
 
   await page.goto("/dashboard/playlists");
   await expect(
-    page.getByLabel("Control status").getByText("Demomodus", { exact: true })
+    page.getByRole("status").filter({ hasText: "Configureer Supabase en log in om echte playlists te maken en bewerken." })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
+  await expect(page.locator("#control-content").getByRole("heading", { name: "Playlists", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Nieuwe playlist", exact: true })).toBeDisabled();
 
   await page.goto("/dashboard/screens");
   await expect(
@@ -57,7 +57,11 @@ test("keeps the documented local demo pilot traceable across product planes", as
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
   await page.goto("/dashboard/screens/new");
-  await expect(page.getByRole("button", { name: "Scherm maken en doorgaan" })).toBeDisabled();
+  const setup = page.getByRole("dialog", { name: "Nieuw scherm instellen" });
+  await expect(setup).toBeVisible();
+  await expect(setup.getByLabel("Schermnaam", { exact: true })).toBeDisabled();
+  await expect(setup.getByRole("button", { name: "Volgende", exact: true })).toBeDisabled();
+  await expect(setup.getByRole("status")).toContainText("Er wordt niets aangemaakt");
 
   const manifestResponse = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`

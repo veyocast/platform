@@ -67,6 +67,21 @@ docker compose -p veyocast-production --profile production --file infra/vps/comp
 docker compose -p veyocast-production --profile production --file infra/vps/compose.yaml config --format json > "${production_config}"
 node scripts/validate-compose-config.mjs "${production_config}" production "${DEPLOYMENT_SHA}"
 
+# A healthy image alone must not hide missing calculator server configuration.
+node --input-type=module - "${production_config}" "${DEPLOYMENT_SHA}" <<'NODE'
+import { readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+const [source, revision] = process.argv.slice(2);
+const config = JSON.parse(readFileSync(source, 'utf8'));
+delete config.services.marketing.environment.VEYOCAST_SETUP_INTENT_SIGNING_SECRET;
+const path = `${source}.missing-intent-config`;
+try {
+  writeFileSync(path, JSON.stringify(config));
+  const result = spawnSync(process.execPath, ['scripts/validate-compose-config.mjs', path, 'production', revision], { encoding: 'utf8' });
+  if (result.status === 0 || !result.stderr.includes('calculatorflow')) throw new Error('Missing Marketing server configuration was not rejected.');
+} finally { rmSync(path, { force: true }); }
+NODE
+
 export WORKER_COMPOSE_PROJECT_NAME=veyocast-production-worker
 docker compose -p veyocast-production-worker --file infra/vps/worker.compose.yaml config --quiet
 docker compose -p veyocast-production-worker --file infra/vps/worker.compose.yaml config --format json > "${production_worker_config}"

@@ -28,6 +28,7 @@ import {
 import { Badge, Button, MultiSelectDropdown } from "@veyocast/ui";
 
 import { saveLedScoresGoalAlert } from "./actions";
+import { createSitesLedCanvasExperience, type SitesLedStoredState } from "./sites-led-scene-model";
 import { LedScoresCanvasExperienceEditor } from "./canvas-experience-editor";
 import { CanvasMediaUploadDialog } from "./canvas-media-upload-dialog";
 import {
@@ -57,6 +58,7 @@ export type AlertEditorValue = {
 
 type Group = { id: string; name: string; screenIds: string[] };
 type Asset = {
+  checksumSha256?: string | null;
   canvasCompatible: boolean;
   height: number | null;
   id: string;
@@ -70,6 +72,7 @@ type Asset = {
 };
 type ExistingAlert = { groupIds: string[]; id: string; name: string; priority: number; status: string };
 type Connection = {
+  liveState?: SitesLedStoredState | null;
   id: string;
   mappings: Array<{ side: "opponent" | "own"; teamKey: string; teamName: string }>;
   name: string;
@@ -117,6 +120,7 @@ export function LedScoresAlertEditor({
   const [experienceName, setExperienceName] = useState(initial.name);
   const [selectedGroups, setSelectedGroups] = useState(initial.groupIds);
   const [connectionId, setConnectionId] = useState(initial.connectionId);
+  const [durationMs, setDurationMs] = useState(initial.durationMs);
   const [priority, setPriority] = useState(initial.priority);
   const [underlayPolicy, setUnderlayPolicy] = useState(initial.underlayPolicy);
   const [previewKind, setPreviewKind] = useState<PreviewKind>("own");
@@ -124,7 +128,7 @@ export function LedScoresAlertEditor({
   const [activeCanvasMoment, setActiveCanvasMoment] = useState<LedScoresCanvasMomentKey>("goalOwn");
   const [canvasExperience, setCanvasExperience] = useState<LedScoresCanvasExperience>(() => {
     const parsed = safeParseLedScoresCanvasExperience(initial.config.canvasExperience);
-    return parsed.success ? parsed.data : createDefaultLedScoresCanvasExperience();
+    return parsed.success ? parsed.data : initial.id ? createDefaultLedScoresCanvasExperience() : createSitesLedCanvasExperience(initial.durationMs);
   });
   const [uploadOpen, setUploadOpen] = useState(false);
   const [triggerOwn, setTriggerOwn] = useState(readBoolean(initial.config.triggerOwn, true));
@@ -244,7 +248,7 @@ export function LedScoresAlertEditor({
             <label><span>Naam van deze experience</span><input maxLength={120} name="name" onChange={(event) => setExperienceName(event.target.value)} placeholder="Wedstrijddag hoofdveld" required value={experienceName} /></label>
             <label><span>LED Scores-verbinding</span><select name="connectionId" onChange={(event) => setConnectionId(event.target.value)} required value={connectionId}>{connections.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label><span>Prioriteit</span><input max={1000} min={0} name="priority" onChange={(event) => setPriority(Number(event.target.value))} type="number" value={priority} /></label>
-            <label><span>Standaardduur overlay</span><select defaultValue={initial.durationMs} name="durationMs"><option value="5000">5 seconden</option><option value="8000">8 seconden</option><option value="12000">12 seconden</option><option value="20000">20 seconden</option></select></label>
+            <label><span>Standaardduur overlay</span><select value={durationMs} onChange={event => setDurationMs(Number(event.target.value))} name="durationMs"><option value="5000">5 seconden</option><option value="8000">8 seconden</option><option value="12000">12 seconden</option><option value="20000">20 seconden</option></select></label>
             <label><span>Onderliggende playlist</span><select name="underlayPolicy" onChange={(event) => setUnderlayPolicy(event.target.value)} value={underlayPolicy}><option value="continue">Laat doorgaan</option><option value="pause">Pauzeer en hervat exact</option></select></label>
             <label><span>Actief vanaf (UTC, optioneel)</span><input defaultValue={dateTimeValue(initial.config.activeFrom)} name="activeFrom" type="datetime-local" /></label>
             <label><span>Actief tot (UTC, optioneel)</span><input defaultValue={dateTimeValue(initial.config.activeUntil)} name="activeUntil" type="datetime-local" /></label>
@@ -342,15 +346,17 @@ export function LedScoresAlertEditor({
 
         <section aria-labelledby="experience-design" hidden={activeStep !== "design"}>
           <StepHeading
-            description="Plaats teksten, scorevelden, spelerfoto's, vormen en eigen media vrij op twee afzonderlijke schermstanden. De Player rendert alleen veilige databindingen."
+            description="Kies je schermthema en ontwerp ieder wedstrijdmoment voor liggende en staande schermen."
             icon={<Sparkles aria-hidden="true" />}
             number={2}
-            title="Geavanceerde canvaseditor"
+            title="Vormgeving"
           />
           <LedScoresCanvasExperienceEditor
             activeMoment={activeCanvasMoment}
             canUpload={uploadConfig?.canUpload ?? false}
             experience={canvasExperience}
+            liveState={connection?.liveState}
+            durationMs={durationMs}
             onActiveMomentChange={setActiveCanvasMoment}
             onChange={setCanvasExperience}
             onUpload={() => setUploadOpen(true)}

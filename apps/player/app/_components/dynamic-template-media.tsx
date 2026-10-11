@@ -15,6 +15,9 @@ import {
   parseLedScoresLiveMatchConfig,
   type LedScoresMatchState
 } from "../_lib/ledscores-match-experience";
+import {buildSitesPresentationFromDynamicPayload} from "@veyocast/content-templates/sites-dynamic-projector";
+import {SitesDynamicMedia} from "./sites-dynamic-media";
+import {formatLedScoresClock,resolveLedScoresClockSeconds} from "../_lib/ledscores-match-experience";
 import { LedScoresLiveMatchSlide } from "./ledscores-match-experience";
 import { themePresentationFromDynamicData } from "./player-presentation-theme";
 
@@ -27,7 +30,7 @@ export function DynamicTemplateMedia({
   passive = false,
   paused = false
 }: {
-  item: EditorialArenaItem;
+  item: EditorialArenaItem & {sitesSystemAssetUrls?:Record<string,string>};
   liveMatchStates?: ReadonlyMap<string, LedScoresMatchState>;
   onEnded: (itemId: string) => void;
   onBoundary?: (itemId: string) => void;
@@ -108,7 +111,10 @@ export function DynamicTemplateMedia({
     return () => window.cancelAnimationFrame(frame);
   }, [item.id, onEnded, onReady, passive, paused, shouldSkip]);
 
+  const sites=useMemo(()=>buildSitesPresentationFromDynamicPayload(item.dynamicTemplate,undefined,matchTime,liveState?{...liveState,clockLabel:formatLedScoresClock(resolveLedScoresClockSeconds(liveState.clock,matchTime.valueOf()+(liveState.serverTimeOffsetMs??0),liveState.staleAfter))}:null),[item.dynamicTemplate,liveState,matchTime]);
+  useEffect(()=>{if(!sites||!liveState?.clock?.running||passive||paused)return;const timer=window.setInterval(()=>setMatchTime(new Date()),1000);return()=>window.clearInterval(timer);},[Boolean(sites),liveState?.clock?.running,passive,paused]);
   if (shouldSkip) return null;
+  if(sites)return <SitesDynamicMedia key={item.id} item={item} presentation={sites} fallback={<EditorialArenaRenderer item={item} now={matchTime} onBoundary={onBoundary} onReady={onReady} passive={passive} paused={paused} runtimeEffects/>} onReady={onReady} onBoundary={onBoundary} passive={passive} paused={paused}/>;
   if (liveMatch && liveConfig && liveState) {
     return (
       <LedScoresLiveMatchSlide

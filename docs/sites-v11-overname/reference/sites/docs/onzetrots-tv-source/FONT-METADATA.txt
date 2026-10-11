@@ -1,0 +1,59 @@
+club-font-0.ttf
+0: Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
+1: Barlow Condensed SemiBold
+2: Regular
+14: http://scripts.sil.org/OFL
+
+club-font-1.ttf
+0: Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
+1: Barlow Condensed
+2: Bold
+14: http://scripts.sil.org/OFL
+
+club-font-2.ttf
+0: Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
+1: Barlow Condensed ExtraBold
+2: Regular
+14: http://scripts.sil.org/OFL
+
+club-font-3.ttf
+0: Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
+1: Barlow Condensed Black
+2: Regular
+14: http://scripts.sil.org/OFL
+
+club-font-4.ttf
+0: Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+1: Manrope
+2: Regular
+14: http://scripts.sil.org/OFL
+
+club-font-5.ttf
+0: Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+1: Manrope Medium
+2: Regular
+14: http://scripts.sil.org/OFL
+
+club-font-6.ttf
+0: Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+1: Manrope SemiBold
+2: Regular
+14: http://scripts.sil.org/OFL
+
+club-font-7.ttf
+0: Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+1: Manrope
+2: Bold
+14: http://scripts.sil.org/OFL
+
+club-font-8.ttf
+0: Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+1: Manrope ExtraBold
+2: Regular
+14: http://scripts.sil.org/OFL
+
+club-font-9.ttf
+0: Copyright (c) 2010 by Font Diner, Inc. All rights reserved.
+1: Permanent Marker
+2: Regular
+14: http://www.apache.org/licenses/LICENSE-2.0

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-11T22:21:39.626217+00:00",
+  "scope": "Actual production tenant-authenticated series loader with controlled query responses. Units verify RLS query scope and complete aggregation; no new pixel or production-DB claim.",
+  "status": "PASS",
+  "testFile": "apps/control/app/(shell)/dashboard/studio/sites-studio-overview-data.test.ts",
+  "tests": 15,
+  "seriesRegressionTests": 9,
+  "existingDynamicCountTests": 6,
+  "cases": [
+    "eight actual ordered members form one120s card; unrelated design remains",
+    "canonical first member outside overview page gets actual document and revision",
+    "incomplete tenant-visible relation fails closed",
+    "archived series keeps original standalone project",
+    "transient DB error has safe recovery text",
+    "non-live/empty overview performs no query",
+    "missing live tenant fails closed before query",
+    "old completed overview summary/newly saved member duration cannot be mixed",
+    "outside-page first metadata/draft interval closes through final revision read"
+  ],
+  "codeSha256": {
+    "apps/control/app/(shell)/dashboard/studio/sites-studio-overview-data.ts": "899fa0698950324c61e4fdd38d05a80be4b6838becb3ac77c96f3f925449d1d1",
+    "apps/control/app/(shell)/dashboard/studio/sites-studio-overview-data.test.ts": "7bc5d962cba805def8af24b622236e372b5f7c69bdec14426f788fd61bf44b13",
+    "apps/control/app/(shell)/dashboard/studio/page.tsx": "e97d1406f2587b265e8daf2efeb6a21948bc95e35014bb9d9ba725388c027c66"
+  },
+  "unitLog": {
+    "path": "native-proof/studio-series-overview-units.log",
+    "sha256": "9e34b5802b7313b85199f06faaf309224d2f3e60d4e1f857e341964e5e2d023f"
+  },
+  "validation": [
+    "Control full tsc --noEmit passed",
+    "scoped ESLint --max-warnings=0 passed"
+  ],
+  "independentReadOnlyReview": "ACK after the two revision-closure fixes; reviewer ran diff --check but did not repeat unit tests",
+  "membershipRemovalSemantics": "Verwijderen uit reeks removes only membership; the actual design remains standalone. Archiving/deleting needs the existing separate tenant.studio.archive capability. This is deliberately preserved behavior, not superseded-version retention."
+}

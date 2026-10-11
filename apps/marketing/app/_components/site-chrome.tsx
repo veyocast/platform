@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { ResilientMarketingImage } from "./resilient-marketing-image";
 
@@ -42,6 +45,8 @@ const footerGroups = [
 ] as const;
 
 export function MarketingFooter() {
+  const pathname = usePathname();
+  if (pathname === "/") return null;
   return (
     <footer className="marketing-footer">
       <div className="marketing-container marketing-footer__compact">

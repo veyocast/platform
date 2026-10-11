@@ -8,6 +8,7 @@ import {
   type PlayerManifestProblem,
   type PlayerWaitingContentEnvelope
 } from "../../../_lib/player-manifest";
+import {loadAuthorizedScreenComposition} from "../../../_lib/player-screen-composition";
 import { loadPlayerReleaseEnvelope } from "../../../_lib/player-release-envelope";
 import { signPlayerEntitlement } from "../../../_lib/player-entitlement-server";
 import {
@@ -79,6 +80,9 @@ type BootstrapRow = {
   screen_name: string;
   screen_status: string;
   tenant_id: string;
+  composition?:unknown;
+  desired_composition_id?:string|null;
+  active_composition_id?:string|null;
 };
 
 type TenantRow = { name: string };
@@ -214,6 +218,7 @@ async function getLiveManifest(request: Request, token: string | null) {
       releaseId: bootstrap.desired_release_id,
       tenantId: bootstrap.tenant_id
     });
+    body.composition=await loadAuthorizedScreenComposition({candidate:bootstrap.composition,main:body,load:releaseId=>loadPlayerReleaseEnvelope({device:body.device,releaseId,tenantId:bootstrap.tenant_id})});
     body.target = { revision: bootstrap.target_revision, publicationId: bootstrap.publication_id,
       configRevision: bootstrap.config_revision, assignmentSource: bootstrap.assignment_source,
       committedAt: bootstrap.target_changed_at };
@@ -227,7 +232,7 @@ async function getLiveManifest(request: Request, token: string | null) {
     });
     const current = checked.data as BootstrapRow | null;
     if (checked.error || !current || current.target_revision !== bootstrap.target_revision ||
-      current.desired_release_id !== bootstrap.desired_release_id || current.data_key !== bootstrap.data_key || current.sponsor_key !== bootstrap.sponsor_key) {
+      current.desired_release_id !== bootstrap.desired_release_id || current.data_key !== bootstrap.data_key || current.sponsor_key !== bootstrap.sponsor_key || current.desired_composition_id!==bootstrap.desired_composition_id) {
       return manifestProblem(409, "ERROR_RECOVERABLE", { cause: "De schermopdracht wijzigde tijdens het ophalen.",
         code: "TARGET_CHANGED", effect: "De huidige inhoud blijft spelen.", recovery: "De Player haalt direct de actuele opdracht op." });
     }

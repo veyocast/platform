@@ -1,5 +1,11 @@
 # Design Implementation Canon
 
+De expliciete productopdracht van 11 oktober 2026 vervangt voor de gemapte
+Sites-v11-oppervlakken conflicterende oudere zichtbare indelingen, stijlen en
+authoringkeuzes. De gerichte delta, bron-SHA's en behouden governancegrenzen
+staan in [Sites v11-overname](sites-v11-overname/README.md). Security, locked
+merkassets, toegankelijkheid, immutable publicaties en Player-LKG blijven gelden.
+
 ## Source order
 
 1. Approved logo/icon master assets, once supplied.

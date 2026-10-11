@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-11",
+  "scope": "Source comparison, reference bundle compilation and handoff integrity only",
+  "performed": {
+    "sites_deployment_metadata": {
+      "status": "PASS",
+      "version": 11,
+      "deployment_status": "succeeded",
+      "commit": "b1cae899af19fc39908217253094c5240d7359fc"
+    },
+    "github_checkout": {
+      "status": "PASS",
+      "branch": "main",
+      "commit": "6fcc26f02c8050b7244e3660a93b85f02491e121"
+    },
+    "source_byte_comparison_to_git_commit": {
+      "status": "PASS",
+      "checked_files": 253,
+      "mismatches": 0,
+      "excluded": [
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "repos_unchanged": {
+      "status": "PASS",
+      "sites_clean": true,
+      "github_clean": true
+    },
+    "assets": {
+      "status": "PASS",
+      "public_files": 82,
+      "public_bytes": 40240981,
+      "all_literal_source_asset_refs_resolved": true,
+      "compiled_css_url_occurrences": 35,
+      "missing": 0
+    },
+    "shared_assets_compared_to_github": {
+      "status": "PASS",
+      "identical_brand_files": 20,
+      "identical_fieldflow_photos": 4,
+      "identical_base_tokens": true
+    },
+    "reference_build": {
+      "status": "PASS",
+      "command": "node tools/build-reference.mjs",
+      "node": "24.19.0",
+      "vite": "8.0.13",
+      "react": "19.2.6",
+      "react_dom": "19.2.6",
+      "lucide_react": "1.31.0",
+      "vite_react_plugin": "6.0.2",
+      "modules_transformed": 1841,
+      "dependency_origin": "Existing installed matching dependency versions reused; no fresh full Sites dependency install claimed",
+      "warning": "Reference JS chunk exceeds Vite 500 kB advisory. This is a local QA bundle, not production optimization evidence."
+    },
+    "reference_server_path_unit_check": {
+      "status": "PASS",
+      "entry_and_asset_paths": 86,
+      "traversal_rejected": true,
+      "server_started": false
+    },
+    "python_javascript_helper_syntax": {
+      "status": "PASS",
+      "files": [
+        "tools/verify-package.py",
+        "reference-preview/serve.py",
+        "tools/build-reference.mjs"
+      ]
+    },
+    "csv_structure_and_ids": {
+      "status": "PASS",
+      "routes_and_endpoints": 225,
+      "template_mappings": 46,
+      "workflow_mappings": 30,
+      "token_declarations": 1341,
+      "visual_cases": 1209,
+      "all_visual_cases_status": "NOT_RUN"
+    }
+  },
+  "not_performed": [
+    "Production deployment SHA or VPS configuration inspection",
+    "Implementation, database migration, publication, merge or deployment changes",
+    "Production monorepo lint/typecheck/build/test/RLS/e2e execution",
+    "Browser screenshots, interaction verification or pixel comparison",
+    "Physical mobile, Android TV or Static LG device acceptance",
+    "Inventory/export of private user browser-local designs or IndexedDB images",
+    "Live provider credential, Sportlink/LED/Twelve/YouTube end-to-end verification"
+  ],
+  "transport_check": "Run python3 tools/verify-package.py on the untouched extracted package. Checksums identify exact files; they are not a digital signature or proof of production parity."
+}

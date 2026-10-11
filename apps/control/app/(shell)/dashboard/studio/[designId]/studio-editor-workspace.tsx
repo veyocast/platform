@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import {
   type CSSProperties,
   useCallback,
@@ -3608,7 +3609,7 @@ function PreviewDialog({
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [onClose, open]);
   if (!open) return null;
-  return (
+  return createPortal(
     <div className={styles.previewBackdrop} role="presentation">
       <section
         aria-labelledby="studio-preview-title"
@@ -3684,7 +3685,7 @@ function PreviewDialog({
           </span>
         </footer>
       </section>
-    </div>
+    </div>, document.body
   );
 }
 
@@ -3721,7 +3722,7 @@ function RevisionDialog({
   }, [onClose, open]);
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className={styles.previewBackdrop} role="presentation">
       <section
         aria-labelledby="studio-revisions-title"
@@ -3824,7 +3825,7 @@ function RevisionDialog({
           </section>
         </div>
       </section>
-    </div>
+    </div>, document.body
   );
 }
 

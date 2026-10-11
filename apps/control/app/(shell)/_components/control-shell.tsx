@@ -21,7 +21,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Activity,
   BadgeCheck,
-  Bell,
   Building2,
   CalendarDays,
   ChevronDown,
@@ -81,6 +80,7 @@ import {
   type GlobalUploadTrayItem
 } from "./global-upload-tray";
 import { FloatingPanel } from "./floating-panel";
+import { ControlNotificationsDialog } from "./control-notifications-dialog";
 
 type ControlShellProps = {
   children: ReactNode;
@@ -92,6 +92,7 @@ type ControlShellProps = {
 
 const navigationIcons: Record<string, LucideIcon> = {
   Account: BadgeCheck,
+  Support: ShieldCheck,
   Activiteit: Activity,
   Bronnen: ServerCog,
   Instellingen: Settings,
@@ -121,9 +122,9 @@ const managementStorageKey = "veyocast-control-management-open";
 const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 118, 111)}-control-sidebar-collapsed`;
 const mobilePrimaryLabels = [
   "Vandaag",
-  "Schermen",
+  "Playlists",
   "Studio",
-  "Planning"
+  "Schermen"
 ] as const;
 
 export function ControlShell({
@@ -145,6 +146,7 @@ export function ControlShell({
   const [resourceResults, setResourceResults] = useState<ControlSearchResult[]>([]);
   const [isResourceSearchPending, setResourceSearchPending] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const previousFocusedElementRef = useRef<HTMLElement | null>(null);
   const visibleNavigationGroups = useMemo(
     () =>
@@ -184,6 +186,7 @@ export function ControlShell({
     "/dashboard",
     "/dashboard/planning",
     "/dashboard/playlists",
+    "/dashboard/media",
     "/dashboard/screens",
     "/dashboard/studio"
   ].includes(pathname) || (
@@ -199,6 +202,17 @@ export function ControlShell({
     displayContextName,
     displayUserName
   );
+  const sourceDescriptions: Readonly<Record<string, string>> = {
+    "/dashboard/playlists": "Stel de perfecte afspeellijst samen.",
+    "/dashboard/screens": "Al je schermen. Eén helder overzicht.",
+    "/dashboard/planning": "De juiste content, op het juiste moment.",
+    "/dashboard/media": "Al je beelden en video’s op één plek.",
+    "/dashboard/settings": "Maak VeyoCast helemaal van jouw club.",
+    "/dashboard/team": "Samen het clubverhaal maken.",
+    "/dashboard/support": "We helpen je graag verder.",
+    "/dashboard/sources": "Verbind je clubinformatie met je schermen."
+  };
+  const shellDescription = sourceDescriptions[pathname] ?? pagePresentation.description;
   const topbarStatusTone = visualReference
     ? "success"
     : !session.isLive
@@ -242,7 +256,7 @@ export function ControlShell({
   }, []);
 
   useEffect(() => {
-    if (!isMobileNavOpen) return;
+    if (!isMobileNavOpen || isSearchOpen) return;
 
     const sidebar = sidebarRef.current;
     const firstFocusable = Array.from(
@@ -283,7 +297,7 @@ export function ControlShell({
 
     document.addEventListener("keydown", handleDrawerKeyDown);
     return () => document.removeEventListener("keydown", handleDrawerKeyDown);
-  }, [isMobileNavOpen]);
+  }, [isMobileNavOpen, isSearchOpen]);
 
   useEffect(() => {
     const query = searchQuery.trim();
@@ -316,6 +330,11 @@ export function ControlShell({
       window.clearTimeout(timeout);
     };
   }, [isSearchOpen, searchQuery, session.isLive]);
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+    document.title = `${activeNavigationItem?.label === "Vandaag" ? "Overzicht" : activeNavigationItem?.label ?? pagePresentation.title} — VeyoCast`;
+  }, [pathname, activeNavigationItem?.label, pagePresentation.title]);
 
   const searchResults = useMemo(() => {
     const query = searchQuery.trim().toLocaleLowerCase("nl-NL");
@@ -375,11 +394,27 @@ export function ControlShell({
     setResourceResults([]);
   }
 
+  const availableItems = visibleNavigationGroups.flatMap((group) => group.items);
+  const primaryLabels = ["Vandaag", "Studio", "Schermen", "Planning", "Media"];
+  const primaryNavigation = hasTenantNavigationContext
+    ? primaryLabels.flatMap((label) => availableItems.filter((item) => item.label === label))
+    : availableItems;
+  const secondaryNavigation = hasTenantNavigationContext
+    ? availableItems.filter((item) => !primaryLabels.includes(item.label) && item.label !== "Instellingen")
+    : [];
+  const secondaryOpen = isManagementOpen || secondaryNavigation.some((item) => isActive(pathname, item));
+  const navigation = (items: ControlNavigationItem[]) => items.map((item) => {
+    const label = item.label === "Vandaag" ? "Overzicht" : item.label;
+    const Icon = navigationIcons[label] ?? LayoutDashboard;
+    const active = isActive(pathname, item);
+    return <Link aria-current={active ? "page" : undefined} className={active ? "active" : undefined} href={item.href} key={item.href} onClick={() => closeMobileNavigation(false)} title={isSidebarCollapsed ? label : undefined}><Icon aria-hidden="true" /><span>{label}</span></Link>;
+  });
+
   return (
     <Dialog onOpenChange={handleSearchOpenChange} open={isSearchOpen}>
       <ControlThemeBootstrap />
       <div
-        className={`control-shell control-shell--motion${isSidebarCollapsed ? " control-shell--collapsed" : ""}`}
+        className={`sites-control vx-shell${isSidebarCollapsed ? " collapsed" : ""}`}
         data-fieldflow="v3"
         data-navigation-scope={activeNavigationScope}
         data-route-family={pagePresentation.family}
@@ -387,91 +422,23 @@ export function ControlShell({
         data-shell-heading={shellOwnsHeading ? "true" : "false"}
         data-shell-mode={isImmersiveEditor ? "immersive" : "standard"}
       >
-      <a className="skip-link" href="#control-content">
-        Naar inhoud
-      </a>
-      <button
-        aria-label="Navigatie sluiten"
-        className={`control-nav-backdrop${isMobileNavOpen ? " control-nav-backdrop--visible" : ""}`}
-        onClick={() => closeMobileNavigation()}
-        type="button"
-      />
-      <aside
-        aria-label="Control navigatie"
-        className={`control-sidebar${isMobileNavOpen ? " control-sidebar--open" : ""}`}
-        data-scope={activeNavigationScope}
-        id="control-sidebar-navigation"
-        ref={sidebarRef}
-      >
-        <div className="control-mobile-menu-header">
-          <p className="control-mobile-menu-title">Meer</p>
-          <IconButton
-            aria-label="Meer-menu sluiten"
-            className="control-mobile-sheet-close"
-            disabled={!isInteractive}
-            onClick={() => closeMobileNavigation()}
-            title="Meer-menu sluiten"
-          >
-            <X aria-hidden="true" />
-          </IconButton>
-        </div>
-        <div className="control-sidebar__top">
-          <div className="control-brand">
-            <Image
-              alt="VeyoCast"
-              className="control-brand__icon"
-              height={28}
-              priority
-              src="/brand/veyocast-icon-primary.svg"
-              width={28}
-            />
-            <div className="control-brand__wordmark">
-              <Image
-                alt="VeyoCast"
-                className="control-brand__logo control-brand__logo--primary"
-                height={28}
-                priority
-                src="/brand/veyocast-logo-primary.svg"
-                width={120}
-              />
-              <Image
-                alt=""
-                aria-hidden="true"
-                className="control-brand__logo control-brand__logo--inverse"
-                height={28}
-                priority
-                src="/brand/veyocast-logo-monochrome-white.svg"
-                width={120}
-              />
-              <p className="control-brand__meta">
-                {hasTenantNavigationContext ? "Fieldflow" : "Control"}
-              </p>
-            </div>
-            <IconButton
-              aria-controls="control-sidebar-navigation"
-              aria-expanded={!isSidebarCollapsed}
-              aria-label={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"}
-              className="control-sidebar__collapse"
-              disabled={!isInteractive}
-              onClick={toggleSidebar}
-              title={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"}
-            >
-              {isSidebarCollapsed ? <PanelLeftOpen aria-hidden="true" /> : <PanelLeftClose aria-hidden="true" />}
-            </IconButton>
-            <IconButton
-              aria-label="Navigatie sluiten"
-              className="control-sidebar__close"
-              disabled={!isInteractive}
-              onClick={() => closeMobileNavigation()}
-              title="Navigatie sluiten"
-            >
-              <X aria-hidden="true" />
-            </IconButton>
+        <a className="vx-skip" href="#control-content">Naar inhoud</a>
+        <button aria-label="Navigatie sluiten" className={`vx-backdrop${isMobileNavOpen ? " open" : ""}`} onClick={() => closeMobileNavigation()} type="button" />
+        <aside aria-label="Control navigatie" className={`vx-sidebar${isMobileNavOpen ? " open" : ""}`} data-scope={activeNavigationScope} id="control-sidebar-navigation" ref={sidebarRef}>
+          <div className="vx-brand">
+            <Link href={hasTenantNavigationContext ? "/dashboard" : "/platform"} onClick={() => closeMobileNavigation(false)}><Image alt="VeyoCast" height={30} priority src="/brand/veyocast-logo-monochrome-white.svg" width={119} /></Link>
+            <button aria-controls="control-sidebar-navigation" aria-expanded={!isSidebarCollapsed} aria-label={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"} className="vx-collapse" disabled={!isInteractive} onClick={toggleSidebar} type="button">{isSidebarCollapsed ? <PanelLeftOpen size={21} aria-hidden="true" /> : <PanelLeftClose size={21} aria-hidden="true" />}</button>
+            <button aria-label="Menu sluiten" className="demo-icon vx-mobile-close" disabled={!isInteractive} onClick={() => closeMobileNavigation()} type="button"><X aria-hidden="true" /></button>
           </div>
-
+          <nav aria-label="Hoofdnavigatie" className="vx-nav">
+            {navigation(primaryNavigation)}
+            {secondaryNavigation.length ? <><button aria-controls="control-secondary-navigation" aria-expanded={secondaryOpen} className="vx-more" onClick={toggleManagement} type="button"><MoreHorizontal aria-hidden="true" /><span>Meer onderdelen</span><ChevronDown aria-hidden="true" style={{ transform: secondaryOpen ? "rotate(180deg)" : undefined }} /></button>{secondaryOpen ? <div className="vx-secondary" id="control-secondary-navigation">{navigation(secondaryNavigation)}</div> : null}</> : null}
+          </nav>
+          <div className="vx-side-footer">
+            {hasTenantNavigationContext && tenantSettingsItem ? <Link aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined} className="vx-side-settings" href={tenantSettingsItem.href}><Settings size={17} aria-hidden="true" /><span>Instellingen</span></Link> : null}
           <FloatingPanel
             align="start"
-            className="tenant-switcher"
+            className="vx-tenant-anchor"
             contentClassName={`tenant-switcher__menu${
               hasTenantNavigationContext ? " tenant-switcher__menu--tenant" : ""
             }`}
@@ -479,23 +446,10 @@ export function ControlShell({
             disabled={!isInteractive}
             role="group"
             trigger={
-              <>
-              <span className="tenant-switcher__mark" aria-hidden="true">
-                {initials(displayContextName)}
-              </span>
-              <span className="tenant-switcher__copy">
-                <span className="tenant-switcher__label">
-                  {hasTenantNavigationContext
-                    ? "Actieve vereniging"
-                    : "Platformcontext"}
-                </span>
-                <span className="tenant-switcher__value">{displayContextName}</span>
-              </span>
-              <ChevronDown aria-hidden="true" className="tenant-switcher__chevron" />
-              </>
+              <><span className="vx-avatar" aria-hidden="true">{initials(displayContextName)}</span><strong>{displayContextName}</strong><ChevronDown size={15} aria-hidden="true" /></>
             }
             triggerAriaLabel={`Actieve context: ${displayContextName}`}
-            triggerClassName="tenant-switcher__trigger"
+            triggerClassName="vx-tenant"
             triggerTitle={isSidebarCollapsed ? displayContextName : undefined}
           >
             <>
@@ -534,212 +488,26 @@ export function ControlShell({
               </Link>
             </>
           </FloatingPanel>
-        </div>
-
-        <nav className="control-navigation-landmark" aria-label="Hoofdnavigatie">
-          <div className="control-nav">
-          {visibleNavigationGroups.map((group, index, renderedGroups) => (
-            <section
-              aria-labelledby={`control-nav-${group.id}`}
-              className="control-nav__group"
-              data-collapsed={
-                group.section === "organization" &&
-                !isManagementOpen &&
-                !group.items.some((item) => isActive(pathname, item))
-                  ? "true"
-                  : undefined
-              }
-              data-scope={group.scope}
-              key={group.id}
-            >
-              {index === 0 || renderedGroups[index - 1]?.scope !== group.scope ? (
-                <div className="control-nav__context">
-                  <span>{group.contextLabel}</span>
-                  <small>{group.description}</small>
-                </div>
-              ) : null}
-              <div className="control-nav__group-heading">
-                <h2 className="control-nav__heading" id={`control-nav-${group.id}`}>
-                  {group.title}
-                </h2>
-                {group.section === "organization" ? (
-                  <button
-                    aria-controls={`control-nav-list-${group.id}`}
-                    aria-expanded={
-                      isManagementOpen ||
-                      group.items.some((item) => isActive(pathname, item))
-                    }
-                    aria-label={`${group.title} ${
-                      isManagementOpen ||
-                      group.items.some((item) => isActive(pathname, item))
-                        ? "inklappen"
-                        : "uitklappen"
-                    }`}
-                    className="control-nav__group-toggle"
-                    onClick={toggleManagement}
-                    type="button"
-                  >
-                    <ChevronDown aria-hidden="true" />
-                  </button>
-                ) : null}
-              </div>
-              <ul
-                className="control-nav__list"
-                id={`control-nav-list-${group.id}`}
-              >
-                {group.items.map((item) => {
-                  const visibleLabel = item.label === "Vandaag" ? "Overzicht" : item.label;
-                  const Icon = navigationIcons[visibleLabel] ?? LayoutDashboard;
-                  const active = isActive(pathname, item);
-
-                  return (
-                    <li
-                      data-mobile-primary={
-                        mobilePrimaryLabels.includes(
-                          item.label as (typeof mobilePrimaryLabels)[number]
-                        )
-                          ? "true"
-                          : undefined
-                      }
-                      key={item.href}
-                    >
-                      <Link
-                        aria-current={active ? "page" : undefined}
-                        aria-label={isSidebarCollapsed ? visibleLabel : undefined}
-                        className="control-nav__link"
-                        href={item.href}
-                        onClick={() => closeMobileNavigation(false)}
-                        title={isSidebarCollapsed ? visibleLabel : undefined}
-                      >
-                        <Icon aria-hidden="true" className="control-nav__icon" />
-                        <span className="control-nav__copy">
-                          <span className="control-nav__label">{visibleLabel}</span>
-                          <span className="control-nav__description">{item.description}</span>
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
+            <a className="vx-website" href="https://veyocast.nl"><ChevronLeft size={15} aria-hidden="true" /><span>Terug naar website</span></a>
           </div>
-        </nav>
-
-        <div className="control-sidebar__footer">
-          {hasTenantNavigationContext && tenantSettingsItem ? (
-            <Link
-              aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined}
-              className="control-legal-link control-settings-link"
-              href={tenantSettingsItem.href}
-            >
-              <Settings aria-hidden="true" />
-              <span>Instellingen</span>
-            </Link>
-          ) : null}
-          <div className="control-organization-card" aria-label={`Actieve vereniging: ${displayContextName}`}>
-            <span className="control-organization-card__mark" aria-hidden="true">
-              {initials(displayContextName)}
-            </span>
-            <span>
-              <strong>{displayContextName}</strong>
-              <small>{session.tenantRoleLabel ?? "Beheerder"}</small>
-            </span>
-            <ChevronDown aria-hidden="true" />
-          </div>
-          <a className="control-legal-link control-website-link" href="https://veyocast.nl">
-            <ChevronLeft aria-hidden="true" />
-            <span>Terug naar website</span>
-          </a>
-        </div>
-      </aside>
-
-      <main
-        className={`control-main${isImmersiveEditor ? " control-main--editor" : ""}`}
-      >
-        <header className="control-topbar" aria-label="Control status">
-          <div className="topbar-context">
-            <IconButton
-              aria-label="Navigatie openen"
-              className="control-menu-trigger"
-              disabled={!isInteractive}
-              onClick={openMobileNavigation}
-              title="Navigatie openen"
-            >
-              <Menu aria-hidden="true" />
-            </IconButton>
-            <div className="topbar-context__copy">
-              {hasTenantNavigationContext ? <p className="topbar-context__eyebrow">VeyoCast FieldFlow</p> : null}
-              {shellOwnsHeading ? (
-                <h1>{pagePresentation.title}</h1>
-              ) : (
-                <p className="topbar-context__title">{pagePresentation.title}</p>
-              )}
-              <p className="topbar-context__description">{pagePresentation.description}</p>
+        </aside>
+        <main className="vx-main" ref={mainRef}>
+          <header aria-label="Control status" className="vx-header">
+            <div className="vx-title">
+              <button aria-controls="control-sidebar-navigation" aria-expanded={isMobileNavOpen} aria-label="Navigatie openen" className="demo-icon vx-menu-trigger" disabled={!isInteractive} onClick={openMobileNavigation} type="button"><Menu aria-hidden="true" /></button>
+              <div>{hasTenantNavigationContext ? <small className="vx-eyebrow">VeyoCast FieldFlow</small> : null}{shellOwnsHeading ? <h1>{pagePresentation.title}</h1> : <p className="vx-page-title">{pagePresentation.title}</p>}<p>{shellDescription}</p></div>
             </div>
-          </div>
-          <div className="topbar-actions">
-            <span className="control-health-pill" data-tone={topbarStatusTone}>
-              <StatusDot status={topbarStatusTone} />
-              {visualReference
-                ? "Alles werkt"
-                : session.isLive
-                ? session.tenantStatus === "paused" ? "Alleen lezen" : "Tenant actief"
-                : "Demomodus"}
-            </span>
-            <DialogTrigger asChild>
-              <button
-                aria-label="Snel naar een onderdeel"
-                aria-keyshortcuts="Control+K Meta+K"
-                className="command-search"
-                disabled={!isInteractive}
-                type="button"
-              >
-                <Search aria-hidden="true" />
-                <span>Zoeken</span>
-                <kbd>⌘ K</kbd>
-              </button>
-            </DialogTrigger>
-            <IconButton
-              asChild
-              aria-label="Meldingen openen"
-              className="topbar-help"
-              title="Meldingen"
-            >
-              <Link href={hasTenantNavigationContext ? "/dashboard/activity" : "/platform/system"}>
-                <Bell aria-hidden="true" />
-              </Link>
-            </IconButton>
-            <AccountMenu
-              activeScope={activeNavigationScope}
-              displayName={displayUserName}
-              displayRole={visualReference ? "Beheerder" : undefined}
-              session={session}
-              variant="topbar"
-            />
-          </div>
-        </header>
-        <div
-          className={`control-content${isImmersiveEditor ? " control-content--editor" : ""}`}
-          id="control-content"
-          tabIndex={-1}
-        >
-          {children}
-        </div>
-      </main>
-      {hasTenantNavigationContext ? (
-        <GlobalUploadTray items={uploadQueue} />
-      ) : null}
-      {hasTenantNavigationContext ? (
-        <MobileBottomNav
-          groups={visibleNavigationGroups}
-          isInteractive={isInteractive}
-          isMoreOpen={isMobileNavOpen}
-          onMore={openMobileNavigation}
-          pathname={pathname}
-        />
-      ) : null}
-
+            <div className="vx-header-actions">
+              <span className="vx-health" data-tone={topbarStatusTone}><StatusDot status={topbarStatusTone} />{visualReference ? "Alles werkt" : session.isLive ? session.tenantStatus === "paused" ? "Alleen lezen" : "Vereniging actief" : "Demomodus"}</span>
+              <DialogTrigger asChild><button aria-label="Snel naar een onderdeel" aria-keyshortcuts="Control+K Meta+K" className="vx-search" disabled={!isInteractive} type="button"><Search size={17} aria-hidden="true" /><span>Zoeken</span><kbd>⌘ K</kbd></button></DialogTrigger>
+              <ControlNotificationsDialog canRead={session.isLive && hasTenantNavigationContext && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.audit.read")} tenantId={hasTenantNavigationContext ? session.tenantId : null} tenantName={displayContextName} timezoneName={session.timezoneName} />
+              <AccountMenu activeScope={activeNavigationScope} displayName={displayUserName} displayRole={visualReference ? "Beheerder" : undefined} session={session} variant="topbar" />
+            </div>
+          </header>
+          <div className={`vx-content${pathname === "/dashboard" ? " overview" : ""}${isImmersiveEditor ? " vx-content--editor" : ""}`} id="control-content" tabIndex={-1}>{children}</div>
+        </main>
+        {hasTenantNavigationContext ? <GlobalUploadTray items={uploadQueue} /> : null}
+        {hasTenantNavigationContext ? <MobileBottomNav groups={visibleNavigationGroups} isInteractive={isInteractive} isMoreOpen={isMobileNavOpen} onMore={openMobileNavigation} pathname={pathname} /> : null}
         <DialogContent className="command-palette" showClose={false}>
           <DialogTitle className="vc-visually-hidden">
             Snel naar een onderdeel
@@ -841,11 +609,11 @@ function AccountMenu({
     <Dialog>
       <DialogTrigger asChild>
         {variant === "topbar" ? (
-          <button aria-label="Accountmenu openen" className="control-account-trigger" type="button">
-            <span className="control-user__avatar" aria-hidden="true">
+          <button aria-label="Accountmenu openen" className="vx-account" type="button">
+            <span className="vx-avatar" aria-hidden="true">
               {initials(triggerName)}
             </span>
-            <span className="control-account-trigger__copy">
+            <span className="vx-account-copy">
               <strong>{firstName(triggerName)}</strong>
               <small>{triggerRole}</small>
             </span>
@@ -863,7 +631,7 @@ function AccountMenu({
       <DialogContent className="control-account-menu">
         <DialogHeader>
           <div className="control-account-menu__identity">
-            <span className="control-user__avatar" aria-hidden="true">
+            <span className="vx-avatar" aria-hidden="true">
               {initials(session.userName)}
             </span>
             <div>
@@ -968,13 +736,13 @@ function MobileBottomNav({
   return (
     <nav
       aria-label="Mobiele hoofdnavigatie"
-      className="control-mobile-nav"
+      className="vx-bottomnav"
     >
-      <ul className="control-mobile-nav__list">
+      <ul className="vx-bottomnav-list">
         {items.map((item) => {
           const visibleLabel = item.label === "Vandaag" ? "Overzicht" : item.label;
           const Icon = visibleLabel === "Overzicht"
-            ? Home
+            ? LayoutDashboard
             : navigationIcons[visibleLabel] ?? LayoutDashboard;
           const active = isActive(pathname, item);
 
@@ -982,7 +750,7 @@ function MobileBottomNav({
             <li key={item.href}>
               <Link
                 aria-current={active ? "page" : undefined}
-                className="control-mobile-nav__item"
+                className={active ? "active" : undefined}
                 href={item.href}
               >
                 <Icon aria-hidden="true" />
@@ -995,13 +763,13 @@ function MobileBottomNav({
           <button
             aria-controls="control-sidebar-navigation"
             aria-expanded={isMoreOpen}
-            className="control-mobile-nav__item"
-            data-active={moreActive ? "true" : undefined}
+            aria-current={moreActive ? "page" : undefined}
+            className={isMoreOpen ? "active" : undefined}
             disabled={!isInteractive}
             onClick={onMore}
             type="button"
           >
-            <MoreHorizontal aria-hidden="true" />
+            <Menu aria-hidden="true" />
             <span>Meer</span>
           </button>
         </li>
@@ -1012,7 +780,7 @@ function MobileBottomNav({
 
 function isActive(pathname: string, item: ControlNavigationItem) {
   if (item.href === "/dashboard" || item.href === "/platform") {
-    return pathname === item.href;
+    return pathname === item.href || (item.href === "/dashboard" && pathname === "/dashboard/pilot");
   }
 
   return pathname === item.href || pathname.startsWith(`${item.href}/`);

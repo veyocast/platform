@@ -7067,3 +7067,115 @@ body:has(.prototype-home) .mobile-menu-trigger {
   }
 }
 }
+
+/* Sites v11 local font bytes and effective app typography. */
+@font-face{font-family:'Inter Variable';src:url('/fonts/inter.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Manrope Variable';src:url('/fonts/manrope.woff2') format('woff2');font-weight:200 800;font-style:normal;font-display:swap}
+html[data-design-system="fieldflow"] body{font-size:14px;line-height:1.5}
+html[data-design-system="fieldflow"] :where(h1,h2,h3){font-variation-settings:normal}
+
+/* Exact Sites FieldFlow aliases precede the original Marketing module. */
+html[data-design-system="fieldflow"] {
+  --ff-bg: #f4f7f5;
+  --ff-canvas: #eaf0ed;
+  --ff-surface: #ffffff;
+  --ff-surface-raised: #ffffff;
+  --ff-surface-muted: #eaf0ed;
+  --ff-ink: #17201e;
+  --ff-ink-soft: #5d6b67;
+  --ff-ink-muted: #5d6b67;
+  --ff-ink-inverse: #f4f7f5;
+  --ff-border: #d7e0dc;
+  --ff-border-strong: #b8c6c0;
+  --ff-sidebar: #123332;
+  --ff-sidebar-raised: #173e3b;
+  --ff-sidebar-active: #20504b;
+  --ff-sidebar-border: #2b5b56;
+  --ff-sidebar-text-muted: #c9d8d3;
+  --ff-petrol: #07504a;
+  --ff-on-petrol: #f4f7f5;
+  --ff-heading: var(--ff-petrol);
+  --ff-brand: var(--vc-brand-electric-orange);
+  --ff-on-brand: #17201e;
+  --ff-focus: #397db6;
+  --ff-field: #2f7d5c;
+  --ff-warm: #e98a4a;
+  --ff-warm-ink: #9b461c;
+  --ff-success: #237453;
+  --ff-success-surface: #e4f2eb;
+  --ff-warning: #9a650c;
+  --ff-warning-surface: #fff2d8;
+  --ff-danger: #b33a3a;
+  --ff-danger-surface: #fbe9e9;
+  --ff-info: #397db6;
+  --ff-info-surface: #e7f0f8;
+  --ff-shadow-1: 0 1px 2px rgb(18 51 50 / 5%);
+  --ff-shadow-2: 0 8px 24px rgb(18 51 50 / 8%);
+  --ff-shadow-3: 0 20px 56px rgb(18 51 50 / 14%);
+  --ff-sidebar-expanded: 248px;
+  --ff-sidebar-compact: 72px;
+  --ff-topbar-desktop: 64px;
+  --ff-topbar-mobile: 56px;
+  --ff-content-max: 1440px;
+  --ff-mobile-nav-height: 72px;
+  --ff-motion-instant: 100ms;
+  --ff-motion-quick: 160ms;
+  --ff-motion-standard: 220ms;
+  --ff-motion-deliberate: 320ms;
+  --ff-radius-compact: 8px;
+  --ff-radius-control: 12px;
+  --ff-radius-card: 16px;
+  --ff-radius-marketing: 24px;
+
+  /* Compatibility aliases for the established shared component contract. */
+  --vc-background: var(--ff-bg);
+  --vc-surface: var(--ff-surface);
+  --vc-surface-muted: var(--ff-surface-muted);
+  --vc-surface-strong: var(--ff-canvas);
+  --vc-text: var(--ff-ink);
+  --vc-text-muted: var(--ff-ink-soft);
+  --vc-text-subtle: var(--ff-ink-muted);
+  --vc-border: var(--ff-border);
+  --vc-border-strong: var(--ff-border-strong);
+  --vc-focus: var(--ff-focus);
+  --vc-action: var(--ff-brand);
+  --vc-on-action: var(--ff-on-brand);
+  --vc-link: var(--ff-info);
+  --vc-component-height-input-standard: 44px;
+  --vc-component-height-input-touch: 44px;
+  --vc-semantic-success-solid: var(--ff-success);
+  --vc-semantic-success-surface: var(--ff-success-surface);
+  --vc-semantic-success-text: #236f37;
+  --vc-semantic-warning-solid: var(--ff-warning);
+  --vc-semantic-warning-surface: var(--ff-warning-surface);
+  --vc-semantic-warning-text: #7d5112;
+  --vc-semantic-critical-solid: var(--ff-danger);
+  --vc-semantic-critical-surface: var(--ff-danger-surface);
+  --vc-semantic-critical-text: #8b2d25;
+  --vc-semantic-info-solid: var(--ff-info);
+  --vc-semantic-info-surface: var(--ff-info-surface);
+  --vc-semantic-info-text: #285b8f;
+  --vc-vector-brand-petrol: var(--ff-petrol);
+  --vc-component-height-topbar: var(--ff-topbar-desktop);
+  color-scheme: light;
+}/* GitHub-only SEO, legal and pricing routes keep their content, canonical and
+   real signed-intent services; these are scoped Sites-derived style adapters. */
+.page-hero,.legal-hero{background:var(--ff-canvas);color:var(--ff-ink)}
+.page-hero h1,.legal-hero h1{font-family:'Manrope Variable',var(--ff-font-display);color:var(--ff-brand-petrol);font-weight:650;letter-spacing:-1.8px;line-height:1.08}
+.page-hero__lead,.legal-hero__description{font-family:'Inter Variable',var(--ff-font-body);font-size:17px;line-height:1.75;color:var(--ff-ink-muted)}
+.benefit-card,.pricing-card,.form-section__grid form,.legal-content article{background:var(--ff-surface);border-color:var(--ff-line);border-radius:17px;box-shadow:none}
+.marketing-section h2,.legal-content h2{font-family:'Manrope Variable',var(--ff-font-display);font-weight:650;color:var(--ff-brand-petrol)}
+.marketing-section h3,.legal-content h3{color:var(--ff-brand-petrol);font-weight:650}
+.marketing-section p,.legal-content p,.legal-content li{color:var(--ff-ink-muted);line-height:1.7}
+.lead-form input,.lead-form select,.lead-form textarea{border-radius:9px;border-color:var(--ff-line);min-height:45px;font-size:14px}
+@media(max-width:760px){.page-hero__lead,.legal-hero__description{font-size:15px}.lead-form input,.lead-form select{min-height:48px}}
+
+/* WCAG AA foregrounds on the retained light SEO/legal/pricing surfaces. */
+html[data-design-system="fieldflow"] .breadcrumbs,html[data-design-system="fieldflow"] .page-hero .eyebrow,html[data-design-system="fieldflow"] .workflow-section .eyebrow,html[data-design-system="fieldflow"] .workflow-list>li>div>span,html[data-design-system="fieldflow"] .workflow-list p,html[data-design-system="fieldflow"] .price-calculator .eyebrow,html[data-design-system="fieldflow"] .price-calculator p>span,html[data-design-system="fieldflow"] .legal-hero .eyebrow,html[data-design-system="fieldflow"] .legal-hero__updated,html[data-design-system="fieldflow"] .legal-hero time{color:var(--ff-ink-muted)}
+html[data-design-system="fieldflow"] .breadcrumbs :is(a,span){color:var(--ff-ink-muted)}
+html[data-design-system="fieldflow"] .workflow-section :is(.eyebrow,p),html[data-design-system="fieldflow"] .workflow-list>li>div>span,html[data-design-system="fieldflow"] .price-calculator__rate :is(.eyebrow,p>span){color:var(--ff-sidebar-text-muted)}
+
+/* Preserve the original post-component heading cascade and complete font
+   family in the imported Source homepage. Locked font bytes are unchanged. */
+html[data-design-system="fieldflow"] .sites-marketing-home { --vc-font-display: "Manrope Variable", Manrope, "Inter Variable", sans-serif; }
+html[data-design-system="fieldflow"] .sites-marketing-home :where(h1,h2,h3) { font-family: "Manrope Variable", Manrope, "Inter Variable", sans-serif; font-variation-settings: normal; letter-spacing: -.025em; }

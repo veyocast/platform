@@ -1,6 +1,10 @@
 node_modules/
 .next/
+.next
+.next-qa/
+.next-qa
 .turbo/
+.turbo
 dist/
 out/
 coverage/

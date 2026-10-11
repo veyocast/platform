@@ -1,0 +1,173 @@
+{
+  "status": "PASS",
+  "scope": "Actual current Control browser/a11y journeys in the explicit isolated NoDB developer fixture. This is an honest22+3 aggregation, not one uninterrupted25-case run. Authenticated storage/provider/physical acceptance is separate.",
+  "uniqueCasesPassed": 25,
+  "aggregation": [
+    {
+      "log": "/tmp/veyocast-s191-final-current-control-a11y.log",
+      "passed": 22,
+      "failure": "One ambiguous Schermen h1 selector matched visible Control-status header and accessible main heading; the two serial following cases were unexecuted.",
+      "logSha256": "50f1970e8d8cf42899318852b06c64899c249edbe866852e59e71479179e3d79"
+    },
+    {
+      "log": "/tmp/veyocast-s191-final-current-control-a11y-recovery.log",
+      "passed": 3,
+      "elapsedSeconds": 15.8,
+      "logSha256": "fecf4b234cb60244c29057df14b2928d6b292fd1fc1922ed8c1649a203afe9a9",
+      "recovery": "Locator explicitly scopes the actual visible Control status header; lifecycle fields/disabled creation/NoDB guard and all following pilot/auth assertions remain."
+    }
+  ],
+  "results": [
+    {
+      "case": "tests/a11y/control-shell.spec.ts:9:5 \u203a control shell exposes keyboard and landmark basics",
+      "status": "PASS",
+      "elapsed": "2.1s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:24:5 \u203a fixed FieldFlow tenant navigation remains keyboard reachable",
+      "status": "PASS",
+      "elapsed": "1.4s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:44:5 \u203a control shell reflows across canonical viewport widths",
+      "status": "PASS",
+      "elapsed": "2.0s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:98:5 \u203a mobile navigation never mixes tenant and platform destinations",
+      "status": "PASS",
+      "elapsed": "3.4s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:133:5 \u203a all Control overview routes remain inside the viewport",
+      "status": "PASS",
+      "elapsed": "1.6m",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:182:5 \u203a dynamic content workspaces remain usable on mobile and desktop",
+      "status": "PASS",
+      "elapsed": "25.4s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:219:5 \u203a Bronnen exposes Twelve Producten as a responsive secondary journey",
+      "status": "PASS",
+      "elapsed": "4.6s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:280:5 \u203a screen workspace keeps its primary controls readable on desktop and mobile",
+      "status": "PASS",
+      "elapsed": "2.1s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:305:5 \u203a Source resource filters remain keyboard reachable through compact desktop",
+      "status": "PASS",
+      "elapsed": "1.9s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:324:5 \u203a activity workspace remains readable without fictional mobile rows",
+      "status": "PASS",
+      "elapsed": "795ms",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:341:5 \u203a tenant context selection is explicit and keyboard reachable",
+      "status": "PASS",
+      "elapsed": "2.1s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:380:5 \u203a media route exposes upload intake labels and status landmarks",
+      "status": "PASS",
+      "elapsed": "5.0s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:469:5 \u203a playlists route exposes searchable resource filters and safe creation",
+      "status": "PASS",
+      "elapsed": "1.7s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:499:5 \u203a Publicaties explains current publication and live data on mobile",
+      "status": "PASS",
+      "elapsed": "918ms",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:516:5 \u203a settings and theme routes expose real defaults with safe permission state",
+      "status": "PASS",
+      "elapsed": "5.0s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:590:5 \u203a billing surfaces explain shadow mode and remain usable on mobile",
+      "status": "PASS",
+      "elapsed": "2.8s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:618:5 \u203a team route exposes roles and a safely disabled invitation flow",
+      "status": "PASS",
+      "elapsed": "780ms",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:630:5 \u203a tenant management exposes a labelled and safely disabled creation flow",
+      "status": "PASS",
+      "elapsed": "1.3s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/screens-mobile.spec.ts:99:5 \u203a screen onboarding becomes a sequential mobile flow without horizontal overflow",
+      "status": "PASS",
+      "elapsed": "1.4s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/screens-mobile.spec.ts:121:5 \u203a playlist authoring and settings remain sequential on mobile",
+      "status": "PASS",
+      "elapsed": "3.2s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/screens-mobile.spec.ts:162:5 \u203a dashboard forms and surfaces share canonical alignment",
+      "status": "PASS",
+      "elapsed": "5.8s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/studio.spec.ts:3:5 \u203a Studio exposes named controls, status and keyboard alternatives",
+      "status": "PASS",
+      "elapsed": "4.6s",
+      "execution": "initial22"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:658:5 \u203a screens onboarding exposes labelled lifecycle and safely disabled creation",
+      "status": "PASS",
+      "elapsed": "5.6s",
+      "execution": "actual3recovery"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:690:5 \u203a pilot route exposes a sequential and fully labelled flow",
+      "status": "PASS",
+      "elapsed": "1.4s",
+      "execution": "actual3recovery"
+    },
+    {
+      "case": "tests/a11y/control-shell.spec.ts:706:5 \u203a public auth routes have clear headings and forms",
+      "status": "PASS",
+      "elapsed": "2.5s",
+      "execution": "actual3recovery"
+    }
+  ],
+  "currentTestFileSha256": "1c16630f6dc357fe2c22ca3ece9e6b33c4a92650217b670a2f3d94ae9e5b0330"
+}

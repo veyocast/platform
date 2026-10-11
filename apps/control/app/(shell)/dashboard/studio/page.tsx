@@ -1,6 +1,7 @@
 import Link from "next/link";
+import {randomUUID} from "node:crypto";
+import {createStudioTvCollection} from "./sites-series-actions";
 import {
-  Archive,
   Clock3,
   Film,
   Grid3X3,
@@ -8,7 +9,6 @@ import {
   List,
   Plus,
   RadioTower,
-  Sparkles
 } from "lucide-react";
 
 import { hasCapability } from "@veyocast/auth";
@@ -27,12 +27,18 @@ import {
   loadStudioOverview,
   type StudioOverviewFilter
 } from "./data";
+import {StudioEmptyState} from "./studio-route-states";
+import {readControlSitesAuthoringPaused,sitesAuthoringPausedMessage} from "../../../../lib/sites-authoring-state";
+import {SitesStudioOverview} from "./sites-studio-overview";
+import {loadStudioDynamicDesignCount,loadStudioSeriesOverview} from "./sites-studio-overview-data";
+import {createStudioProject} from "./actions";
 import { BrandKitDialog } from "./brand-kit-dialog";
 import { ProjectActions } from "./project-actions";
 import styles from "./studio.module.css";
 
 type StudioPageProps = {
   searchParams: Promise<{
+    advanced?: string;
     format?: string;
     fout?: string;
     kind?: string;
@@ -51,17 +57,21 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
   const session = await requireTenantControlSession("tenant.studio.read");
   const params = await searchParams;
   const filter = parseFilter(params);
-  const [data, brandResources] = await Promise.all([
+  const [data, brandResources, dynamicDesignCount, authoringPaused] = await Promise.all([
     loadStudioOverview(
       session.tenantId,
       session.isLive,
       session.userId,
       filter
     ),
-    loadStudioBrandResources(session.tenantId, session.isLive)
+    loadStudioBrandResources(session.tenantId, session.isLive),
+    params.advanced === "1" ? Promise.resolve(null) : loadStudioDynamicDesignCount(
+      session.tenantId, session.isLive, hasCapability(session.capabilities, "tenant.dynamic_slide.read")
+    ),
+    readControlSitesAuthoringPaused(session.tenantId,session.isLive)
   ]);
   const canCreate =
-    session.tenantStatus === "active" &&
+    session.tenantStatus === "active" && !authoringPaused &&
     hasCapability(session.capabilities, "tenant.studio.create");
   const canArchive = hasCapability(
     session.capabilities,
@@ -89,6 +99,15 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
   );
   const view = filter.view ?? "grid";
 
+  const groupedOverview=params.advanced==="1"?{projects:data.projects,error:null}:await loadStudioSeriesOverview(session.tenantId,session.isLive,data.projects);
+  if(params.advanced!=="1")return <>
+    {authoringPaused&&<p role="status" className="notice notice--warning">{sitesAuthoringPausedMessage}</p>}
+    {params.fout&&<p role="alert" className="notice notice--critical">{params.fout}</p>}
+    {params.succes&&<p role="status" className="notice notice--success">{params.succes}</p>}
+    {(data.error||groupedOverview.error)&&<p role="alert">{data.error||groupedOverview.error}</p>}
+    <SitesStudioOverview projects={groupedOverview.projects} dynamicDesignCount={dynamicDesignCount} tenantName={session.tenant} canCreate={canCreate} action={createStudioProject} collectionAction={createStudioTvCollection} hasTenantBrand={Boolean(brandResources.brandKit)} brandControl={canManageBrand?<BrandKitDialog assets={brandResources.assets} brandKit={brandResources.brandKit} tenantName={session.tenant}/>:undefined}/>
+  </>;
+
   return (
     <>
       <PageHeader
@@ -114,6 +133,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
                 tenantName={session.tenant}
               />
             ) : null}
+            {canCreate ? <form action={createStudioTvCollection}><input type="hidden" name="idempotencyKey" value={randomUUID()}/><input type="hidden" name="orientation" value="landscape"/><Button variant="secondary" type="submit">OnzeTrots TV · volledige collectie</Button></form> : null}
             {canCreate ? (
               <Button asChild>
                 <Link href="/dashboard/studio/new">
@@ -124,7 +144,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
             ) : null}
           </>
         }
-        description="Maak clubcontent vanuit Royal Current/Navy Glass-systeemtemplates of als vrij ontwerp. Vrije media en bestaande pixels worden nooit automatisch opnieuw gekleurd."
+        description="Maak je clubmomenten in FieldFlow of OnzeTrots TV. Begin met een template of voeg een complete reeks toe."
         eyebrow={session.tenant}
         status={
           !session.isLive
@@ -205,6 +225,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
       ) : null}
 
       <form method="get" role="search">
+        <input type="hidden" name="advanced" value="1"/>
         <FilterBar
           activeCount={filterCount(filter)}
           actions={
@@ -370,22 +391,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
           })}
         </section>
       ) : (
-        <section className={styles.empty} role="status">
-          {filter.status === "archived" ? (
-            <Archive aria-hidden="true" />
-          ) : (
-            <Sparkles aria-hidden="true" />
-          )}
-          <h2>Geen passende ontwerpen</h2>
-          <p>
-            Pas je filters aan of start met een veilig VeyoCast-template.
-          </p>
-          {canCreate ? (
-            <Button asChild>
-              <Link href="/dashboard/studio/new">Nieuw ontwerp</Link>
-            </Button>
-          ) : null}
-        </section>
+        <StudioEmptyState archived={filter.status==="archived"} canCreate={canCreate}/>
       )}
     </>
   );

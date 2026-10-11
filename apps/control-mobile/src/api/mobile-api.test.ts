@@ -1,0 +1,17 @@
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
+import {mobileApi,MobileApiError} from "./mobile-api";
+import type {PlaylistBatchCommand} from "@veyocast/contracts";
+const state=vi.hoisted(()=>({token:"test-only-session-token",fetch:vi.fn()}));
+vi.mock("../config/runtime",()=>({readMobileRuntimeConfig:()=>({config:{controlOrigin:"https://control.example.test",supabaseUrl:"https://db.example.test",supabaseAnonKey:"public-test-configuration"},error:null})}));
+vi.mock("../auth/supabase",()=>({mobileSupabase:{auth:{getSession:async()=>({data:{session:state.token?{access_token:state.token}:null}})}}}));
+const tenantId="10000000-0000-4000-8000-000000191281";
+const command:PlaylistBatchCommand={playlistId:"20000000-0000-4000-8000-000000191281",expectedRevision:7,idempotencyKey:"30000000-0000-4000-8000-000000191281",operations:[{operation:"patch",itemId:"40000000-0000-4000-8000-000000191281",patch:{displayTitle:"Mijn plaatsing"}}]};
+const confirmed=()=>new Response(JSON.stringify({data:{outcome:"applied",actualRevision:8,itemIds:{}},meta:{version:"2",requestId:"test-request"}}),{status:200});
+beforeEach(()=>{state.token="test-only-session-token";state.fetch.mockReset();vi.stubGlobal("fetch",state.fetch);});
+afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
+describe("native v2 authenticated acknowledgement transport",()=>{
+ it("does not send an API request without an existing signed-in session",async()=>{state.token="";await expect(mobileApi.mutatePlaylistBatchV2(tenantId,command)).rejects.toMatchObject({code:"UNAUTHENTICATED",status:401});expect(state.fetch).not.toHaveBeenCalled();});
+ it("retains the exact idempotency key, patch and revision across an uncertain network result",async()=>{state.fetch.mockRejectedValueOnce(Error("PRIVATE_PROVIDER_VALUE")).mockResolvedValueOnce(confirmed());await expect(mobileApi.mutatePlaylistBatchV2(tenantId,command)).rejects.toMatchObject({code:"NETWORK_UNAVAILABLE"});expect(await mobileApi.mutatePlaylistBatchV2(tenantId,command)).toMatchObject({outcome:"applied",actualRevision:8});const first=state.fetch.mock.calls[0]![1]as RequestInit,second=state.fetch.mock.calls[1]![1]as RequestInit;expect(first.body).toBe(second.body);expect(JSON.parse(String(second.body))).toEqual(command);expect(second.headers).toMatchObject({"X-VeyoCast-Tenant-Id":tenantId,Authorization:"Bearer test-only-session-token"});expect(state.fetch.mock.calls[1]![0]).toBe(`https://control.example.test/api/mobile/v2/playlists/${command.playlistId}`);});
+ it("bounds a hanging response body as well as the initial network connection",async()=>{vi.useFakeTimers();const response=confirmed();response.json=()=>new Promise(()=>undefined);state.fetch.mockResolvedValue(response);const result=mobileApi.mutatePlaylistBatchV2(tenantId,command);const rejection=expect(result).rejects.toMatchObject({code:"NETWORK_UNAVAILABLE",status:503});await vi.advanceTimersByTimeAsync(30_001);await rejection;expect((state.fetch.mock.calls[0]![1]as RequestInit).signal?.aborted).toBe(true);});
+ it("does not treat an unconfirmed or older response contract as saved",async()=>{state.fetch.mockResolvedValue(new Response(JSON.stringify({data:{outcome:"applied",actualRevision:8,itemIds:{}},meta:{requestId:"test",version:"1"}}),{status:200}));await expect(mobileApi.mutatePlaylistBatchV2(tenantId,command)).rejects.toBeInstanceOf(MobileApiError);await expect(mobileApi.mutatePlaylistBatchV2(tenantId,command)).rejects.toMatchObject({code:"API_CONTRACT_MISMATCH"});});
+});

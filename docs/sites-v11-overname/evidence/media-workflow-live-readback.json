@@ -1,0 +1,185 @@
+{
+  "scope": "isolated local authenticated browser + actual private Storage/TUS + actual production media worker/FFmpeg + guarded PostgreSQL commands; no production/provider/hardware claim",
+  "timestamp": "2026-10-11T23:20:01.815Z",
+  "baseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "testFileSha256": "512757266b8a2e75856a392e95af1bc3abcfdf86f17eb427b77e89bbdd087ead",
+  "workflows": {
+    "WF04": {
+      "status": "PASS",
+      "actualPrivateUploads": 240,
+      "bankReadback": {
+        "ready": 240,
+        "assets": 240,
+        "verifiedOriginals": 240,
+        "storedPrivateOriginals": 240
+      },
+      "pagedTotal": 240,
+      "pageSize": 48,
+      "folderFilteredTotal": 2,
+      "selectedAssetIds": [
+        "5db9f56f-44ce-4b2d-9c01-403fc0a8e1c5",
+        "0e821c63-e826-4dc3-8d11-c80c08687442"
+      ],
+      "selectionPreservedAcross": [
+        "server pagination",
+        "folder filter",
+        "empty search"
+      ]
+    },
+    "WF05": {
+      "status": "PASS",
+      "selectedFiles": 3,
+      "succeeded": 2,
+      "rejected": 1,
+      "persistedAfterReload": [
+        {
+          "id": "57c48d13-44a9-461d-a094-cce8b0f9eac3",
+          "bytes": 91,
+          "title": "WF 1791760760925 upload A",
+          "sha256": "197f81aa5aa5b26398eb25fa041a3ebb33c8ef3d89778023f6ca3bf18f8985b7",
+          "status": "ready"
+        },
+        {
+          "id": "680493e6-ef1f-435d-96a7-6f5b095919fa",
+          "bytes": 91,
+          "title": "WF 1791760760925 upload B",
+          "sha256": "197f81aa5aa5b26398eb25fa041a3ebb33c8ef3d89778023f6ca3bf18f8985b7",
+          "status": "ready"
+        }
+      ],
+      "playlistItemCount": 4
+    },
+    "WF07": {
+      "status": "PASS",
+      "sourceBytes": 12346112,
+      "sourceSha256": "204a5193f7a94fa84dbea0f45a37e30bc2d7796f0a917083fc676140202c7396",
+      "toolchain": {
+        "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+        "ffprobe": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers",
+        "localPackageVerification": {
+          "provenance": "Ubuntu noble ffmpeg 7:6.1.1-3ubuntu5; apt-get download verified package checksums; extracted into disposable RAM; no OS/repository dependency changes",
+          "debSha256": "1a23baace5f2688a47e28119aedae6993cd638e6279a7227dfc52d9a337a1c17",
+          "matchesAptMetadata": true,
+          "ffmpegExecutableSha256": "ed16af623947494a72e284b6eb8ff225f2da22b38b5d5069c2fd4b4ba3384e41",
+          "ffprobeExecutableSha256": "272f6ebc634a63d9c8b4ca68e964119d980f25154e5aa2c35e5487da48e9a58f"
+        }
+      },
+      "confirmedPausedOffset": 6291456,
+      "transfers": [
+        {
+          "method": "POST",
+          "status": 201,
+          "offset": 6291456,
+          "requestOffset": null,
+          "location": "/storage/v1/upload/resumable/dGVuYW50LW1lZGlhL3RlbmFudHMvMTAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMTAxL2Fzc2V0cy9mNjE1OGM1NC1lNTBmLTQwYjQtOTBiOS03NDRkNmVmNzQ3NGIvb3JpZ2luYWwvZGVtb3ZleW8ubXA0L2MxM2UwOGE3LTM2MjYtNDQyNi1hMWQyLWMzNzAxNWQ5MTUzMg"
+        },
+        {
+          "method": "HEAD",
+          "status": 200,
+          "offset": 6291456,
+          "requestOffset": null,
+          "location": "/storage/v1/upload/resumable/dGVuYW50LW1lZGlhL3RlbmFudHMvMTAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMTAxL2Fzc2V0cy9mNjE1OGM1NC1lNTBmLTQwYjQtOTBiOS03NDRkNmVmNzQ3NGIvb3JpZ2luYWwvZGVtb3ZleW8ubXA0L2MxM2UwOGE3LTM2MjYtNDQyNi1hMWQyLWMzNzAxNWQ5MTUzMg"
+        },
+        {
+          "method": "PATCH",
+          "status": 204,
+          "offset": 12346112,
+          "requestOffset": 6291456,
+          "location": "/storage/v1/upload/resumable/dGVuYW50LW1lZGlhL3RlbmFudHMvMTAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMTAxL2Fzc2V0cy9mNjE1OGM1NC1lNTBmLTQwYjQtOTBiOS03NDRkNmVmNzQ3NGIvb3JpZ2luYWwvZGVtb3ZleW8ubXA0L2MxM2UwOGE3LTM2MjYtNDQyNi1hMWQyLWMzNzAxNWQ5MTUzMg"
+        }
+      ],
+      "paused": {
+        "status": "uploading",
+        "assetId": "f6158c54-e50f-40b4-90b9-744d6ef7474b",
+        "jobCount": 0,
+        "variants": [],
+        "posterCount": 0,
+        "sessionCount": 1,
+        "durationSeconds": null,
+        "playbackVariantCount": 0
+      },
+      "queued": {
+        "status": "processing",
+        "assetId": "f6158c54-e50f-40b4-90b9-744d6ef7474b",
+        "jobCount": 1,
+        "variants": [],
+        "posterCount": 0,
+        "sessionCount": 1,
+        "durationSeconds": null,
+        "playbackVariantCount": 0
+      },
+      "blockedBeforeProcessing": {
+        "sqlstate": "23514"
+      },
+      "legacyPublishNegative": {
+        "scope": "privileged legacy-corruption placement only inside explicitly rolled-back transaction; actual authenticated publish RPC invoked",
+        "sqlstate": "23514",
+        "explicitRollback": true,
+        "before": {
+          "releases": 0,
+          "draftItems": 4,
+          "publications": 0,
+          "draftRevision": 10,
+          "configRevision": 0
+        },
+        "after": {
+          "releases": 0,
+          "draftItems": 4,
+          "publications": 0,
+          "draftRevision": 10,
+          "configRevision": 0
+        }
+      },
+      "workerResult": {
+        "assetId": "f6158c54-e50f-40b4-90b9-744d6ef7474b",
+        "jobId": "148d9aa1-45bc-42e1-b7f4-2456ca3ba18e",
+        "status": "completed"
+      },
+      "ready": {
+        "status": "ready",
+        "assetId": "f6158c54-e50f-40b4-90b9-744d6ef7474b",
+        "jobCount": 1,
+        "variants": [
+          {
+            "type": "original",
+            "bytes": 12346112,
+            "sha256": "204a5193f7a94fa84dbea0f45a37e30bc2d7796f0a917083fc676140202c7396"
+          },
+          {
+            "type": "player_1080p",
+            "bytes": 6596098,
+            "sha256": "41ca6c8858a3787aaa18ba420414d8376cb772a8fc430dc14cea7aa3d0c19eb6"
+          },
+          {
+            "type": "thumbnail",
+            "bytes": 910235,
+            "sha256": "130adef1c59cd2c8f245528c66b300f1234416b1ab8d29a021531c29bb025fa3"
+          }
+        ],
+        "posterCount": 1,
+        "sessionCount": 1,
+        "durationSeconds": 10.033,
+        "playbackVariantCount": 1
+      },
+      "placementDuration": 11,
+      "publishedVideo": [
+        {
+          "bytes": 6596098,
+          "sha256": "41ca6c8858a3787aaa18ba420414d8376cb772a8fc430dc14cea7aa3d0c19eb6",
+          "variant": "player_1080p",
+          "releaseId": "fcd0ba66-716d-4695-81df-99d23ae6573a"
+        }
+      ],
+      "serverPublicationReceipt": "BEGIN\nSET\nSET\n{\"outcome\": \"published\", \"releaseId\": \"fcd0ba66-716d-4695-81df-99d23ae6573a\", \"actualRevision\": 13, \"targetSnapshotId\": \"baa7d073-948b-4e50-b36e-ef926d059748\"}\nCOMMIT"
+    }
+  },
+  "gate": {
+    "command": "VEYOCAST_LIVE_PILOT=1 pnpm exec playwright test tests/e2e/sites-media-workflows-live.spec.ts --project=chromium --workers=1",
+    "actualExitCode": 0,
+    "browserTestsPassed": 1,
+    "originalWorkflowsPassed": 3,
+    "elapsedSeconds": 47.4,
+    "logSha256": "a1af19d39e1149c7bbab76847239d406ba9a3b22446905fc631824a4196a89e6"
+  }
+}

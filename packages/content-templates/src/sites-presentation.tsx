@@ -1,0 +1,24 @@
+"use client";
+import React,{type ReactNode} from "react";
+import {sitesPresentationSchema,type SitesPresentation} from "@veyocast/contracts";
+import {OnzeTrotsTvPreview} from "./sites-onzetrots-tv";
+import {LedSlidePreview} from "./sites-led-slide";
+import {SlideCanvas} from "./sites-studio-canvas";
+import {SitesDynamicCanvas} from "./sites-dynamic-canvas";
+import {sitesPresentationCss} from "./sites-styles";
+import {sitesPresentationPages,resolveSitesSystemAsset,resolveSitesStudioPage,resolveSitesDynamicPage,type SitesAssetResolver} from "./sites-presentation-model";
+export * from "./sites-presentation-model";
+export function SitesPresentationView({presentation,resolveAsset=resolveSitesSystemAsset,page=0,active=false,compact=false,includeStyles=true,systemAssetUrls={}}:{presentation:SitesPresentation;resolveAsset?:SitesAssetResolver;page?:number;active?:boolean;compact?:boolean;includeStyles?:boolean;systemAssetUrls?:Readonly<Record<string,string>>}) {
+ const supplied=resolveAsset;resolveAsset=asset=>asset.kind==="system"?systemAssetUrls[asset.path]??supplied(asset):supplied(asset);
+ const input=sitesPresentationSchema.parse(presentation);const pages=sitesPresentationPages(input);const safePage=Math.min(pages-1,Math.max(0,Math.trunc(page)));let node:ReactNode;
+ if(input.kind==="studio"){
+  const {slide,content}=resolveSitesStudioPage(input,resolveAsset,safePage);
+  if(slide.themeId==="onzetrots-tv"&&content)node=<OnzeTrotsTvPreview content={content} orientation={slide.orientation} active={active} compact={compact}/>;else node=<SlideCanvas slide={slide} playing={active}/>;
+ }else{
+  const config=input.configuration;const {content,design}=resolveSitesDynamicPage(input,resolveAsset,safePage);
+  if(config.themeId==="onzetrots-tv")node=<OnzeTrotsTvPreview content={content} orientation={config.orientation} active={active} compact={compact}/>;
+  else {node=config.provider==="led-scores"&&config.ledTheme!=="fieldflow"?<LedSlidePreview design={design} background={design.background} active={active} compact={compact}/>:<SitesDynamicCanvas design={design} active={active} compact={compact}/>;}
+ }
+ return <>{includeStyles&&<style>{sitesPresentationCss.replace(/url\(["']?(\/[^"')]+)["']?\)/g,(match,path:string)=>systemAssetUrls[path]?`url("${systemAssetUrls[path]}")`:match)}</style>}{node}</>;
+}
+export {buildSitesPresentationFromDynamicPayload,resolveSitesDynamicAsset,sitesDynamicAssetReference,type SitesLedMatchProjection} from "./sites-dynamic-projector";

@@ -562,6 +562,7 @@ function canvasSceneAssetsAreRenderable(
   assets: ReadonlyMap<string, LedScoresOverlayAsset>
 ) {
   for (const scene of [pair.landscape, pair.portrait]) {
+    const ref=scene.sitesConfiguration?.background;if(ref?.kind==="tenant"){const image=assets.get(ref.mediaAssetId);if(!image?.mimeType.startsWith("image/")||image.checksum!==ref.checksumSha256)return false;}
     if (
       scene.background.kind === "media" &&
       !assets.has(scene.background.mediaAssetId)

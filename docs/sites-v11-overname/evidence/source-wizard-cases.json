@@ -1,0 +1,1195 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "bundleJsSha256": "c46c53671a3c4ec054c006ecdddd8bdc9b3635dcf62709b2b1c75f91b81b05e8",
+  "bundleCssSha256": "68a74a451a376be0d6322556ddf05a4a7ad501e89940b4f81d6a32dbbb7770b3",
+  "implementationBaseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "componentSha256": {
+    "apps/control/app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx": "a1cc52f05effc952ef5e488571a259f86fcd8dc2ea5397afa9b90ead96935e04",
+    "apps/control/app/(shell)/dashboard/slides/menu-studio/sites-menu-wizard.tsx": "72e63555ebc42b99ebbcbabcaf8ba7d49c5e5edd5c9ccb348085dda0ef907a3a",
+    "apps/control/app/(shell)/dashboard/studio/led-scores/sites-led-moment-wizard.tsx": "8225b9242a41263aac2a439b6b1cbd128772d7b83122ba8db6b8fa12f1680907",
+    "apps/control/app/(shell)/dashboard/data-sources/led-scores/sites-led-connection-wizard.tsx": "15f4b04f9172a0884c78655dc71935f309195e639c60216b24a3ba75e8d03cc1",
+    "apps/control/app/(shell)/dashboard/data-sources/sportlink/sites-sportlink-connection-wizard.tsx": "3a4a0efb1b1a212220a84d9e63ea2a0d511e4ca874e0b8a5a5cf8cf4e40e377c",
+    "apps/control/app/(shell)/dashboard/integrations/youtube/sites-youtube-workspace.tsx": "11e3be3b23f6d93f8e5980a10b36760c671b2318354f94765e95692678e9325f"
+  },
+  "fixtureVersion": "QA-01/QA-SL-01/QA-MENU-01-20261011-v1",
+  "fixedTime": "2026-10-11T10:00:00.000Z",
+  "timezone": "Europe/Amsterdam",
+  "browser": "Chromium / Linux / DPR1",
+  "scope": "Actual production Source JSX/CSS, controlled server-action transport. Screenshots/layout/interaction assertions; source golden pixel comparison and provider/storage/hardware validation are separate gates.",
+  "results": [
+    {
+      "case_id": "WIZARD-0001",
+      "viewport": "390x844",
+      "state": "1-Inhoud",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0001-390x844.png",
+      "screenshotSha256": "2be64737fee49db158d4b1fef0ccf35beda68c7b0a2a9fa898ea0cfdd50bccf3",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0002",
+      "viewport": "1440x900",
+      "state": "1-Inhoud",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0002-1440x900.png",
+      "screenshotSha256": "071d2b8d9afce8482c5e7e3d43b81305ceeef905e9dd6d8a96118362b23cc13b",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0003",
+      "viewport": "390x844",
+      "state": "2-Momenten",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0003-390x844.png",
+      "screenshotSha256": "1fd65f816055929e9ba8fd0777fb839915a204213c8a0d3964e4cd316ca414c1",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0004",
+      "viewport": "1440x900",
+      "state": "2-Momenten",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0004-1440x900.png",
+      "screenshotSha256": "d2311241c0c08b6e684090fb1adfb937b5f5e0a45041cc968e2dfbcbc3ec25e9",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0005",
+      "viewport": "390x844",
+      "state": "3-Vormgeving",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0005-390x844.png",
+      "screenshotSha256": "267e3b9e941ad095d0202dfc8bd9a8710f08cf964906910515885d585bd8b89a",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0006",
+      "viewport": "1440x900",
+      "state": "3-Vormgeving",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0006-1440x900.png",
+      "screenshotSha256": "7ea8cb5d5862fd9c1beabcfa2647742f2ce111061ace60c0f9bc07486f0e356a",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0007",
+      "viewport": "390x844",
+      "state": "4-Schermen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0007-390x844.png",
+      "screenshotSha256": "351a90746ca03daff60fef45b1648dc8ba5680c7e62398bc9824d9e83b9e2937",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0008",
+      "viewport": "1440x900",
+      "state": "4-Schermen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0008-1440x900.png",
+      "screenshotSha256": "df9dc07672f0bdf1dc2e82254ffe754b7bc38c3a7cd3e729a6ad446d3b8367c6",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0009",
+      "viewport": "390x844",
+      "state": "5-Afronden",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0009-390x844.png",
+      "screenshotSha256": "3817474f4e880f01c2c087144b317e62338c948c09ecaade748cb2e2014c35fa",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0010",
+      "viewport": "1440x900",
+      "state": "5-Afronden",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0010-1440x900.png",
+      "screenshotSha256": "a553dfa6e726fa177946ffa7369a2bf1fb9835bf6540bc3c3634bb0cda05c78e",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud",
+        "Momenten",
+        "Vormgeving",
+        "Schermen",
+        "Afronden"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0011",
+      "viewport": "390x844",
+      "state": "1-Inhoud kiezen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0011-390x844.png",
+      "screenshotSha256": "fbf6f48179e4a19a5a5872c889acdeb98e1f123586822918062b2ff499611c0a",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "1Inhoud kiezen"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0012",
+      "viewport": "1440x900",
+      "state": "1-Inhoud kiezen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0012-1440x900.png",
+      "screenshotSha256": "362f2bd17eeafa28f5fcd5ea4c6d420687a2ccc2d0796a846aee90ab5dbfc0a1",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "1Inhoud kiezen"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0013",
+      "viewport": "390x844",
+      "state": "2-Teams & gegevens",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0013-390x844.png",
+      "screenshotSha256": "eb27eb4eb9a28afb4cbb28a1b15915820b253e85707ee4ddfe863707ac590dea",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "2Teams & gegevens"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0014",
+      "viewport": "1440x900",
+      "state": "2-Teams & gegevens",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0014-1440x900.png",
+      "screenshotSha256": "7a80bad51825ca780dbd61d82917ac7f77c85c5db93663b77d0c0008c3c62cae",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "2Teams & gegevens"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0015",
+      "viewport": "390x844",
+      "state": "3-Vormgeving",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0015-390x844.png",
+      "screenshotSha256": "a777c500b65a906d3208cc21978a8ef91021e7c2b889f7fcffa1df4d2406ed75",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "3Vormgeving"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0016",
+      "viewport": "1440x900",
+      "state": "3-Vormgeving",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0016-1440x900.png",
+      "screenshotSha256": "ef2dea4390c4ce30a787ec32f5e2c8df6415a31284a9817ed58527c8d5e0223b",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "3Vormgeving"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0017",
+      "viewport": "390x844",
+      "state": "4-Schermen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0017-390x844.png",
+      "screenshotSha256": "c766a16c69c96fc116a69479ad44eda8508a2d3621f9715e8892c63d6247eaa2",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "4Schermen"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0018",
+      "viewport": "1440x900",
+      "state": "4-Schermen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0018-1440x900.png",
+      "screenshotSha256": "572fcb458c3a4354f9f6b11393e863e2af23231ee2fb74ba192509e5fcd128f6",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "4Schermen"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0019",
+      "viewport": "390x844",
+      "state": "5-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0019-390x844.png",
+      "screenshotSha256": "3285f0007455c26754969cc7fa1dc8cf877ad8676cd40d3be55a96f3de40028f",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "5Controleren"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0020",
+      "viewport": "1440x900",
+      "state": "5-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0020-1440x900.png",
+      "screenshotSha256": "638250a1dea691a752164d20db17efd9cfd44a967053b012476f8c16a3efc19e",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "5Controleren"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Inhoud kiezen",
+        "Teams & gegevens",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0021",
+      "viewport": "390x844",
+      "state": "1-Producten",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0021-390x844.png",
+      "screenshotSha256": "f0ca5a04ccefc0cd81c3976cece8ef02b662c8a089e055880c54538dae8eb0f4",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "1Producten"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0022",
+      "viewport": "1440x900",
+      "state": "1-Producten",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0022-1440x900.png",
+      "screenshotSha256": "453fd365768816c59e57304fa5536ea8d72b98093ee7a58bba228d1a1d8b6810",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "1Producten"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0023",
+      "viewport": "390x844",
+      "state": "2-Vormgeving",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0023-390x844.png",
+      "screenshotSha256": "4251981d53b270cacf647629108c1554fb42b4519b8c08483ca576612000a7e9",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "2Vormgeving"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0024",
+      "viewport": "1440x900",
+      "state": "2-Vormgeving",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0024-1440x900.png",
+      "screenshotSha256": "8751c104c2407ccfd4c8cb2569010978dcb39fe68859fb898b989e3fc8571922",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "2Vormgeving"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0025",
+      "viewport": "390x844",
+      "state": "3-Schermen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0025-390x844.png",
+      "screenshotSha256": "47382845e12e804c9c60994525008054b3764c984d085b152de547701f070595",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "3Schermen"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0026",
+      "viewport": "1440x900",
+      "state": "3-Schermen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0026-1440x900.png",
+      "screenshotSha256": "79d9da9e90d42fcf2f99dd2f91b6edf61d1c4cbd66b6e664c9a32bf7f13e08d6",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "3Schermen"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0027",
+      "viewport": "390x844",
+      "state": "4-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0027-390x844.png",
+      "screenshotSha256": "e2afaf21444986c1e4735634e81ccc52b417a8f812d68837452e4cde95ebbd91",
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "stepper": [
+          "4Controleren"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0028",
+      "viewport": "1440x900",
+      "state": "4-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0028-1440x900.png",
+      "screenshotSha256": "c75cf582a6ac8f4fd8cf281652a124d8fcea4a4f88cc12147e5f6fd319f303bb",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "stepper": [
+          "4Controleren"
+        ],
+        "fontFamily": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Producten",
+        "Vormgeving",
+        "Schermen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Stepper/order, actual control interaction/preservation, ready preview and no horizontal overflow. Captured actual production Source JSX/CSS; source golden pixel comparison remains NOT_RUN."
+    },
+    {
+      "case_id": "WIZARD-0029",
+      "viewport": "390x844",
+      "state": "1-Club en scorebord",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0029-390x844.png",
+      "screenshotSha256": "6d76386989075fee45c51a467cf8e8482a429f240474589129f301e85971039c",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Club en scorebord",
+        "Teams koppelen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0030",
+      "viewport": "1440x900",
+      "state": "1-Club en scorebord",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0030-1440x900.png",
+      "screenshotSha256": "c5618ff731a06d1fa2db14eb2b3939e23f4410c3d1b519e458f580e4da000de0",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Club en scorebord",
+        "Teams koppelen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0031",
+      "viewport": "390x844",
+      "state": "2-Teams koppelen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0031-390x844.png",
+      "screenshotSha256": "bb1b726294c2270c3dd0564ae3e4429ed81c4dff296d2e8bde5c9713faa18200",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Club en scorebord",
+        "Teams koppelen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0032",
+      "viewport": "1440x900",
+      "state": "2-Teams koppelen",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0032-1440x900.png",
+      "screenshotSha256": "cd2eaf86a2b8b4c1a6fb263148886d46aeaae244e8d24a88a7dc3dbd792c76b2",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Club en scorebord",
+        "Teams koppelen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0033",
+      "viewport": "390x844",
+      "state": "3-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0033-390x844.png",
+      "screenshotSha256": "f0d573524003bde6e40bf35bd384739b2b8605e9ead210ab9a5ff2840dcc24b3",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Club en scorebord",
+        "Teams koppelen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0034",
+      "viewport": "1440x900",
+      "state": "3-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0034-1440x900.png",
+      "screenshotSha256": "b6c74f7a721f9cd4d4b905abb77e868f60d0cf0403710d9b1297c349b9327960",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Club en scorebord",
+        "Teams koppelen",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0035",
+      "viewport": "390x844",
+      "state": "1-Vereniging",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0035-390x844.png",
+      "screenshotSha256": "e002c0c23a6c1079abd13aeabdfe2cafe5049f65d8d6f9b98bfbf4838132c0cc",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Vereniging",
+        "Teams",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0036",
+      "viewport": "1440x900",
+      "state": "1-Vereniging",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0036-1440x900.png",
+      "screenshotSha256": "37a30c72ba2fe526bca12a38d86c3cbebd6a8d0bb8948bd1f5fd102fed1b3eb2",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Vereniging",
+        "Teams",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0037",
+      "viewport": "390x844",
+      "state": "2-Teams",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0037-390x844.png",
+      "screenshotSha256": "81bf5f56a2719a89e4e6a5d8b7c545587f5c29f761b398e8cc3e5a4e1d421f18",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Vereniging",
+        "Teams",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0038",
+      "viewport": "1440x900",
+      "state": "2-Teams",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0038-1440x900.png",
+      "screenshotSha256": "ede3a2a9728b6483932a6a5df2cea46a3ea5f1e51860093a8edd711956cbfbbc",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Vereniging",
+        "Teams",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0039",
+      "viewport": "390x844",
+      "state": "3-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0039-390x844.png",
+      "screenshotSha256": "677f33c30f3a67dd5990fd35d8ca6de5a965032eb99d63cee5f2218765856086",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Vereniging",
+        "Teams",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0040",
+      "viewport": "1440x900",
+      "state": "3-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0040-1440x900.png",
+      "screenshotSha256": "76fcacf5aac717c9310e84c230ef4604d0e1fc2c8ae79c7d0beb6fef7d721276",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Vereniging",
+        "Teams",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0041",
+      "viewport": "390x844",
+      "state": "1-Videolink",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0041-390x844.png",
+      "screenshotSha256": "d796cab3e0d142a2d62714f6804373b3cf08b67699e89c2e3e5abc2e86e7ade2",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Videolink",
+        "Fallback",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0042",
+      "viewport": "1440x900",
+      "state": "1-Videolink",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0042-1440x900.png",
+      "screenshotSha256": "3ff90570d8ea67335ad49f36a9bbf1c9211cf8f5b281d4446ce7ad5a3dcfd9c7",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Videolink",
+        "Fallback",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0043",
+      "viewport": "390x844",
+      "state": "2-Fallback",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0043-390x844.png",
+      "screenshotSha256": "8dd1fc757d70be83385d6217e4045fea8d67d9c55d8cc722e4da3e791ff8e9cb",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Videolink",
+        "Fallback",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0044",
+      "viewport": "1440x900",
+      "state": "2-Fallback",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0044-1440x900.png",
+      "screenshotSha256": "cffe93edcdbdcc3b98ceaa168d5ae3c9c876a23f129ffb03f47b6b279e3c5a70",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Videolink",
+        "Fallback",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0045",
+      "viewport": "390x844",
+      "state": "3-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0045-390x844.png",
+      "screenshotSha256": "31f4e6157d23b26355e9a95dffa35221bf4dda280677a166d02654da3ec9f55e",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Videolink",
+        "Fallback",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0046",
+      "viewport": "1440x900",
+      "state": "3-Controleren",
+      "status": "PASS",
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/WIZARD-0046-1440x900.png",
+      "screenshotSha256": "d039a423a79f542987a5029b478d8126263c48664fe9295fbe8a0131f6783d8c",
+      "noEarlySave": true,
+      "backPreservesInput": true,
+      "actualSteps": [
+        "Videolink",
+        "Fallback",
+        "Controleren"
+      ],
+      "pixelGoldenCompared": false,
+      "visualAssertionScope": "Actual production Source JSX/CSS controls, original stepper/viewports, retained inputs, loaded fonts, no horizontal overflow. Provider and storage action boundary controlled; source golden comparison separate."
+    },
+    {
+      "case_id": "WIZARD-0047",
+      "viewport": "390x844",
+      "state": "1-Scherm",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0048",
+      "viewport": "1440x900",
+      "state": "1-Scherm",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0049",
+      "viewport": "390x844",
+      "state": "2-Content",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0050",
+      "viewport": "1440x900",
+      "state": "2-Content",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0051",
+      "viewport": "390x844",
+      "state": "3-Controleren",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0052",
+      "viewport": "1440x900",
+      "state": "3-Controleren",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0053",
+      "viewport": "390x844",
+      "state": "1-Indeling",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0054",
+      "viewport": "1440x900",
+      "state": "1-Indeling",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0055",
+      "viewport": "390x844",
+      "state": "2-Zonecontent",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0056",
+      "viewport": "1440x900",
+      "state": "2-Zonecontent",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0057",
+      "viewport": "390x844",
+      "state": "3-Controleren",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0058",
+      "viewport": "1440x900",
+      "state": "3-Controleren",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0059",
+      "viewport": "390x844",
+      "state": "1-Content & schermen",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0060",
+      "viewport": "1440x900",
+      "state": "1-Content & schermen",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0061",
+      "viewport": "390x844",
+      "state": "2-Wanneer",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0062",
+      "viewport": "1440x900",
+      "state": "2-Wanneer",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0063",
+      "viewport": "390x844",
+      "state": "3-Controleren",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    },
+    {
+      "case_id": "WIZARD-0064",
+      "viewport": "1440x900",
+      "state": "3-Controleren",
+      "status": "NOT_RUN",
+      "owner": "publication_retention",
+      "reason": "Separate wizard/owner case not executed by this component run."
+    }
+  ],
+  "artifactNotes": "Screenshots stay in the RAM test-artifact directory. These metadata are durable; individual PNG SHA256 values and bundle hashes identify the executed actual production components. Provider/SSR/storage/hardware and Source-golden pixel comparison are separate gates."
+}

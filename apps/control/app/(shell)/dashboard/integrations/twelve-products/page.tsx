@@ -1,10 +1,8 @@
 import { hasCapability } from "@veyocast/auth";
-import { SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
-import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
-import { ProductImportDialog } from "./product-import-dialog";
-import { ProductTable } from "./product-table";
+import { StatusPill } from "../../../_components/shell-primitives";
+import { SitesProductsWorkspace } from "./sites-products-workspace";
 import { loadProductsWorkspace } from "./data";
 import styles from "./products.module.css";
 
@@ -17,29 +15,18 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const query = await searchParams;
   const data = session.isLive
     ? await loadProductsWorkspace(session.tenantId!)
-    : { error: false, imports: [], products: [] };
+    : { error: false, imports: [], products: [], manualSources: [] };
   const canWrite =
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.product.write");
   const canUploadLogo =
     canWrite && hasCapability(session.capabilities, "tenant.media.write");
-  const activeCount = data.products.filter((product) => product.active).length;
-  const categories = new Set(
-    data.products.flatMap((product) => product.category ? [product.category] : [])
-  ).size;
-
   return (
     <>
-      <PageHeader
-        actions={<ProductImportDialog disabled={!canWrite} />}
-        description="Beheer Twelve-producten en prijzen als gecontroleerde Excel-snapshot voor Studio-slides."
-        eyebrow={session.tenant}
-        title="Twelve Producten"
-      />
       {!session.isLive ? (
         <p className="notice notice--warning" role="status">
-          Configureer Supabase om echte productcatalogi te importeren.
+          De productcatalogus is tijdelijk niet beschikbaar. Je opgeslagen menu’s blijven behouden. Probeer later opnieuw.
         </p>
       ) : null}
       {data.error ? (
@@ -57,47 +44,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       {query.succes ? (
         <p className="notice notice--success" role="status">
           {query.succes === "geimporteerd"
-            ? "De gecontroleerde productregels zijn toegepast. Studio gebruikt bij een nieuwe render een immutable snapshot."
-            : "De productregel is opgeslagen."}
+            ? "De gecontroleerde productregels zijn toegepast. Open je menuontwerp om de actuele producten en prijzen over te nemen."
+            : query.succes === "verwijderd" ? "Het product is verwijderd uit je assortiment. Opgeslagen menu’s en publicaties blijven behouden." : "De productregel is opgeslagen."}
         </p>
       ) : null}
 
-      <SummaryStrip
-        items={[
-          { label: "Actieve producten", value: String(activeCount) },
-          { label: "Categorieën", value: String(categories) },
-          { label: "Imports", value: String(data.imports.length) }
-        ]}
-      />
-
-      <section className="workspace-section" aria-labelledby="products-title">
-        <div className="workspace-section__header">
-          <div>
-            <h2 className="workspace-section__title" id="products-title">Producten</h2>
-            <p className="work-panel__meta">
-              Wijzig waarden rechtstreeks per productregel. Een shortcode wordt
-              pas bij genereren naar een vaste waarde omgezet.
-            </p>
-          </div>
-          <StatusPill label={`${data.products.length} totaal`} tone="neutral" />
-        </div>
-        {data.products.length ? (
-          <ProductTable
-            canUploadLogo={canUploadLogo}
-            canWrite={canWrite}
-            products={data.products}
-          />
-        ) : (
-          <div className={styles.empty}>
-            <h3>Nog geen producten</h3>
-            <p>
-              Importeer de actuele Twelve-export. VeyoCast stelt daarna normale
-              kolomnamen voor voordat iets aan de catalogus wordt toegevoegd.
-            </p>
-            <ProductImportDialog disabled={!canWrite} />
-          </div>
-        )}
-      </section>
+      <SitesProductsWorkspace products={data.products} manualSources={data.manualSources} canWrite={canWrite} canUploadLogo={canUploadLogo} />
 
       <section className="workspace-section" aria-labelledby="imports-title">
         <div className="workspace-section__header">
@@ -131,6 +83,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
 const productErrors: Record<string, string> = {
   configuratie: "De live omgeving is niet beschikbaar.",
+  artikelnummer: "Dit artikelnummer is al in gebruik in deze bron. Kies een ander nummer; er is niets opgeslagen.",
   conflict: "Iemand anders wijzigde deze productregel. Vernieuw en probeer opnieuw.",
   invoer: "Controleer de naam, prijs en btw-waarde.",
   opslaan: "De server bevestigde de wijziging niet veilig."

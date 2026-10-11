@@ -15,7 +15,7 @@ jobs:
   foundation:
     name: Foundation gates
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -39,23 +39,68 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Lint bounded acceptance runners
+        run: pnpm exec eslint scripts/run-browser-gates.mjs scripts/run-local-publisher-gate.mjs scripts/verify-composition-concurrency.mjs scripts/verify-media-metadata-concurrency.mjs scripts/verify-sites-reference.mjs scripts/verify-sites-comparison.mjs scripts/sites-case-inventory.mjs scripts/sites-case-inventory.test.mjs scripts/validate-compose-config.mjs tests/e2e/sites-media-workflows-live.spec.ts playwright.config.ts --max-warnings=0
+
       - name: Typecheck
         run: pnpm typecheck
 
       - name: Unit tests
-        run: pnpm test
+        run: pnpm test --concurrency=1
 
       - name: Build
-        run: pnpm build
+        run: pnpm build --concurrency=1
 
-      - name: Install Chromium for media egress regression
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Verify local playback bytes and service-worker ranges
-        run: pnpm exec playwright test tests/player/media-egress.spec.ts tests/player-offline/range-service-worker.spec.ts --project=chromium
+      - name: Preserve the complete original Sites case set
+        run: node --test scripts/sites-case-inventory.test.mjs
 
       - name: Validate GitHub Actions workflows
         run: bash scripts/validate-github-actions.sh
 
       - name: Validate VPS deployment definitions
         run: bash scripts/validate-vps-deployment.sh
+
+  browsers:
+    name: Browser gates (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [control, player, marketing, cross]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Player artifact
+        if: matrix.group == 'player'
+        run: pnpm --filter @veyocast/player build
+      - name: Build Marketing artifact
+        if: matrix.group == 'marketing'
+        run: pnpm --filter @veyocast/marketing build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify every discovered spec in the application group
+        env:
+          PLAYWRIGHT_GATE_GROUP: ${{ matrix.group }}
+          PLAYWRIGHT_GATE_OUTPUT: ${{ runner.temp }}/browser-gates
+        run: node scripts/run-browser-gates.mjs
+      - name: Preserve browser failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: browser-gates-${{ matrix.group }}-${{ github.sha }}
+          path: ${{ runner.temp }}/browser-gates
+          if-no-files-found: ignore
+          retention-days: 14

@@ -73,8 +73,8 @@ export function tenantThemeSelection(
     ...selection,
     ref: {
       catalog: "v2",
-      id: "fieldflow",
-      version: themeCatalog.fieldflow.version
+      id: selection.ref.catalog === "v2" && selection.ref.id === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow",
+      version: selection.ref.catalog === "v2" && selection.ref.id === "onzetrots-tv" ? themeCatalog["onzetrots-tv"].version : themeCatalog.fieldflow.version
     }
   };
 }

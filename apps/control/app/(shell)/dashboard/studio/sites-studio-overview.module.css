@@ -1,0 +1,25 @@
+.title { font-size: 23px; font-weight: 650; letter-spacing: -.025em; line-height: 1.5; margin: 0; }
+/* Source Studio controls inherit their authoring context; these rules never target a broadcast canvas. */
+:global(html[data-design-system="fieldflow"]) .overview :global(.vc-button) { font: inherit; white-space: normal; height: auto; }
+/* Preserve canonical label/control association with the original Field geometry. */
+.overview .collectionField, .overview .templateField { display: grid; gap: 7px; font-size: 12px; font-weight: 600; color: var(--ff-ink-soft); }
+.overview .collectionField { max-width: 280px; margin-bottom: 20px; }
+.overview .templateField { width: 240px; margin-bottom: 16px; }
+.overview .collectionField > label, .overview .templateField > label { font-size: 12px; font-weight: 600; line-height: 1.5; color: var(--ff-ink-soft); }
+.overview .collectionField > select, .overview .templateField > select { padding: 11px 12px; font-size: 14px; font-weight: 600; line-height: normal; min-height: 43px; }
+.collectionForm { flex-shrink: 0; }
+@media (max-width: 700px) {
+ .title { font-size: 21px; }
+ :global(html[data-design-system="fieldflow"]) .overview .headerControls :global(.vc-button) { font-size: 13px; }
+ .collectionForm, .collectionForm > button { width: 100%; }
+ .overview .collectionField { max-width: none; }
+ .overview .templateField { width: 100%; }
+}
+@media (max-width: 767px) {
+ .overview .collectionField > select, .overview .templateField > select { font-size: 16px; min-height: 44px; }
+}
+
+@media (min-width: 768px) {
+ :global(html[data-design-system="fieldflow"]) .overview :global(.vc-button) { min-height: 42px; }
+ :global(html[data-design-system="fieldflow"]) .overview :global(.vc-button--primary) { min-height: 44px; }
+}

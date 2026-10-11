@@ -27,6 +27,8 @@ describe("image upload policy", () => {
   });
 
   it("accepteert geanimeerde en veilig te sanitiseren beeldformaten", () => {
+    expect(validateImageUploadFile({ size: maxRasterImageUploadBytes, type: "image/avif" })).toBeNull();
+    expect(validateImageUploadFile({ size: maxRasterImageUploadBytes + 1, type: "image/avif" })).toBe("file_too_large");
     expect(validateImageUploadFile({ size: 1024, type: "image/gif" })).toBeNull();
     expect(validateImageUploadFile({ size: 1024, type: "image/svg+xml" })).toBeNull();
     expect(validateImageUploadFile({ size: maxImageUploadBytes, type: "image/gif" })).toBeNull();

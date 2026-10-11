@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const authorableThemeIds = ["fieldflow"] as const;
+export const authorableThemeIds = ["fieldflow", "onzetrots-tv"] as const;
 
 export const legacyRenderableThemeIds = [
   "editorial",
@@ -16,8 +16,9 @@ export const legacyRenderableThemeIds = [
 ] as const;
 
 export const renderableThemeIds = [
-  ...authorableThemeIds,
-  ...legacyRenderableThemeIds
+  "fieldflow",
+  ...legacyRenderableThemeIds,
+  "onzetrots-tv"
 ] as const;
 
 /** @deprecated Use authorableThemeIds for UI and renderableThemeIds for playback. */

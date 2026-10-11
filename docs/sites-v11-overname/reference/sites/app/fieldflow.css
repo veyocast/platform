@@ -1,0 +1,145 @@
+/*
+ * FieldFlow v3
+ *
+ * Product-scoped semantic aliases over the locked VeyoCast brand tokens.
+ * This file is loaded after the historic Control CSS so migrations can happen
+ * route by route without changing player, marketing or public brand contracts.
+ */
+
+html[data-design-system="fieldflow"] {
+  --ff-bg: #f4f7f5;
+  --ff-canvas: #eaf0ed;
+  --ff-surface: #ffffff;
+  --ff-surface-raised: #ffffff;
+  --ff-surface-muted: #eaf0ed;
+  --ff-ink: #17201e;
+  --ff-ink-soft: #5d6b67;
+  --ff-ink-muted: #5d6b67;
+  --ff-ink-inverse: #f4f7f5;
+  --ff-border: #d7e0dc;
+  --ff-border-strong: #b8c6c0;
+  --ff-sidebar: #123332;
+  --ff-sidebar-raised: #173e3b;
+  --ff-sidebar-active: #20504b;
+  --ff-sidebar-border: #2b5b56;
+  --ff-sidebar-text-muted: #c9d8d3;
+  --ff-petrol: #07504a;
+  --ff-on-petrol: #f4f7f5;
+  --ff-heading: var(--ff-petrol);
+  --ff-brand: var(--vc-brand-electric-orange);
+  --ff-on-brand: #17201e;
+  --ff-focus: #397db6;
+  --ff-field: #2f7d5c;
+  --ff-warm: #e98a4a;
+  --ff-warm-ink: #9b461c;
+  --ff-success: #237453;
+  --ff-success-surface: #e4f2eb;
+  --ff-warning: #9a650c;
+  --ff-warning-surface: #fff2d8;
+  --ff-danger: #b33a3a;
+  --ff-danger-surface: #fbe9e9;
+  --ff-info: #397db6;
+  --ff-info-surface: #e7f0f8;
+  --ff-shadow-1: 0 1px 2px rgb(18 51 50 / 5%);
+  --ff-shadow-2: 0 8px 24px rgb(18 51 50 / 8%);
+  --ff-shadow-3: 0 20px 56px rgb(18 51 50 / 14%);
+  --ff-sidebar-expanded: 248px;
+  --ff-sidebar-compact: 72px;
+  --ff-topbar-desktop: 64px;
+  --ff-topbar-mobile: 56px;
+  --ff-content-max: 1440px;
+  --ff-mobile-nav-height: 72px;
+  --ff-motion-instant: 100ms;
+  --ff-motion-quick: 160ms;
+  --ff-motion-standard: 220ms;
+  --ff-motion-deliberate: 320ms;
+  --ff-radius-compact: 8px;
+  --ff-radius-control: 12px;
+  --ff-radius-card: 16px;
+  --ff-radius-marketing: 24px;
+
+  /* Compatibility aliases for the established shared component contract. */
+  --vc-background: var(--ff-bg);
+  --vc-surface: var(--ff-surface);
+  --vc-surface-muted: var(--ff-surface-muted);
+  --vc-surface-strong: var(--ff-canvas);
+  --vc-text: var(--ff-ink);
+  --vc-text-muted: var(--ff-ink-soft);
+  --vc-text-subtle: var(--ff-ink-muted);
+  --vc-border: var(--ff-border);
+  --vc-border-strong: var(--ff-border-strong);
+  --vc-focus: var(--ff-focus);
+  --vc-action: var(--ff-brand);
+  --vc-on-action: var(--ff-on-brand);
+  --vc-link: var(--ff-info);
+  --vc-component-height-input-standard: 44px;
+  --vc-component-height-input-touch: 44px;
+  --vc-semantic-success-solid: var(--ff-success);
+  --vc-semantic-success-surface: var(--ff-success-surface);
+  --vc-semantic-success-text: #236f37;
+  --vc-semantic-warning-solid: var(--ff-warning);
+  --vc-semantic-warning-surface: var(--ff-warning-surface);
+  --vc-semantic-warning-text: #7d5112;
+  --vc-semantic-critical-solid: var(--ff-danger);
+  --vc-semantic-critical-surface: var(--ff-danger-surface);
+  --vc-semantic-critical-text: #8b2d25;
+  --vc-semantic-info-solid: var(--ff-info);
+  --vc-semantic-info-surface: var(--ff-info-surface);
+  --vc-semantic-info-text: #285b8f;
+  --vc-vector-brand-petrol: var(--ff-petrol);
+  --vc-component-height-topbar: var(--ff-topbar-desktop);
+  color-scheme: light;
+}
+
+html[data-design-system="fieldflow"][data-theme="dark"] {
+  --ff-bg: #071c1b;
+  --ff-canvas: #0b2523;
+  --ff-surface: #0d2927;
+  --ff-surface-raised: #123332;
+  --ff-surface-muted: #163a37;
+  --ff-ink: #f4f7f5;
+  --ff-ink-soft: #c9d8d3;
+  --ff-ink-muted: #9fb5ae;
+  --ff-ink-inverse: #17201e;
+  --ff-heading: var(--ff-ink);
+  --ff-border: #2b4b47;
+  --ff-border-strong: #47706a;
+  --ff-focus: #76b4e1;
+  --ff-field: #65c49a;
+  --ff-success: #65c49a;
+  --ff-success-surface: #123a2c;
+  --ff-warning: #e1b35e;
+  --ff-warning-surface: #3c2c0d;
+  --ff-danger: #ee8888;
+  --ff-danger-surface: #431f1f;
+  --ff-info: #76b4e1;
+  --ff-info-surface: #14334b;
+  --ff-shadow-1: 0 1px 2px rgb(0 0 0 / 22%);
+  --ff-shadow-2: 0 10px 30px rgb(0 0 0 / 30%);
+  --ff-shadow-3: 0 24px 64px rgb(0 0 0 / 42%);
+  --vc-semantic-success-text: #91d19f;
+  --vc-semantic-warning-text: #e7bf7b;
+  --vc-semantic-critical-text: #ee9b94;
+  --vc-semantic-info-text: #9fc3e5;
+  color-scheme: dark;
+}
+
+html[data-design-system="fieldflow"],
+html[data-design-system="fieldflow"] body {
+  background: var(--ff-bg);
+  color: var(--ff-ink);
+}
+
+html[data-design-system="fieldflow"] body {
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+}
+
+html[data-design-system="fieldflow"] :where(h1, h2, h3, .vc-page-header__title) {
+  font-family: "Manrope Variable", Manrope, "Inter Variable", sans-serif;
+  font-variation-settings: "wght" 680;
+  letter-spacing: -0.025em;
+}
+

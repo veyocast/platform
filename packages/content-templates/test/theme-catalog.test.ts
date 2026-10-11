@@ -40,10 +40,10 @@ import {
 } from "../src/theme-visual-matrix";
 
 describe("theme catalog v2", () => {
-  it("keeps FieldFlow authorable and all eleven renderable themes available", () => {
+  it("keeps both Sites themes authorable and every historical theme renderable", () => {
     expect(Object.keys(themeCatalog)).toEqual([...selectableThemeIds]);
-    expect(themeManifest.themes).toHaveLength(11);
-    expect(authorableThemeIds).toEqual(["fieldflow"]);
+    expect(themeManifest.themes).toHaveLength(12);
+    expect(authorableThemeIds).toEqual(["fieldflow", "onzetrots-tv"]);
   });
 
   it("fails explicitly for unknown authoring themes", () => {

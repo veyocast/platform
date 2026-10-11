@@ -1,11 +1,17 @@
+import type {PlayerSitesMarkup} from "./player-sites-markup";
+import type {PlayerScreenComposition} from "./player-screen-composition";
+
 import type {
   PlayerDynamicTemplatePayload,
+  PlayerDynamicTemplateAsset,
+  SitesPresentation,
   PlayerEngagePlayback,
   PlayerPlaybackItem,
   PlayerSponsorPlan,
   SignedPlayerEntitlement,
   PlayerYouTubePlayback
 } from "@veyocast/contracts";
+
 
 import { localStorageDeviceTokenKey } from "./player-storage";
 import {
@@ -67,6 +73,10 @@ export type PlayerManifestItem = PlayerPlaybackItem & {
   contentHash?: string;
   dynamicTemplate?: PlayerDynamicTemplatePayload;
   onlinePlayback?: PlayerEngagePlayback | PlayerYouTubePlayback;
+  sitesSystemAssetUrls?:Record<string,string>;
+  sitesPresentation?:PlayerSitesMarkup;
+  sitesStudioPresentation?:Extract<SitesPresentation,{kind:"studio"}>;
+  sitesStudioAssets?:Record<string,PlayerDynamicTemplateAsset>;
   source: {
     url: string;
     fallbackUrl?: string;
@@ -92,10 +102,12 @@ export type PlayerReleaseManifest = {
   totalBytes: number;
   presentationDefaults?: PlayerManifestPresentationDefaults;
   sponsorPlan?: PlayerSponsorPlan;
+  systemAssets?:Array<{path:string;checksumSha256:string;bytes:number;mimeType:string}>;
   items: PlayerManifestItem[];
 };
 
 export type PlayerManifestEnvelope = {
+  composition?:PlayerScreenComposition;
   target?: {
     revision: string;
     publicationId: string;
@@ -447,7 +459,7 @@ export function getPlayerItemPlaybackDurationMs(
   const durationMs = Math.max(
     getPlaybackDurationMs(item, overrideMs),
     item.dynamicTemplate
-      ? dynamicTemplateMinimumPlaybackMs(item.dynamicTemplate)
+      ? item.dynamicTemplate.data.sitesConfiguration ? 0 : dynamicTemplateMinimumPlaybackMs(item.dynamicTemplate)
       : 0
   );
   const { visibleUntil } = resolvePlayerItemPresentation(item);

@@ -6,9 +6,12 @@ import QRCode from "qrcode";
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { loadTenantStyleData } from "../../../../lib/tenant-style-data";
 import { TenantStyleSummary } from "../slides/_components/tenant-style-summary";
-import { saveEngageCampaign, transitionEngageCampaign } from "./actions";
+import { saveEngageCampaign, saveSitesEngageCampaign, transitionEngageCampaign } from "./actions";
 import { loadEngageWorkspace } from "./data";
 import styles from "./engage.module.css";
+import sites from "./sites-engage.module.css";
+import {SitesEngagePrimary} from "./sites-engage-primary";
+import {loadVisibleEngageResults} from "./sites-engage-data";
 
 const tones = { archived: "neutral", closed: "neutral", draft: "warning", live: "success", scheduled: "info" } as const;
 
@@ -26,12 +29,14 @@ export default async function EngagePage({ searchParams }: { searchParams: Promi
     qrCodes.set(campaign.id, await QRCode.toDataURL(`${baseUrl}/engage/${campaign.public_id}`, { margin: 1, width: 224 }));
   }
 
-  return <div className={styles.shell}>
-    <header className={styles.hero}><p className={styles.eyebrow}>{session.tenant} · Premium module</p><h1>Engage</h1><p>Maak een publieksactie, deel één privacybewuste QR-link en volg live stemmen zonder namen, ruwe IP-adressen of verborgen tracking.</p></header>
+  const publicResults=data.enabled?await loadVisibleEngageResults(data.campaigns):{};
+  const primaryPolls=data.campaigns.map(campaign=>{const publicResult=publicResults[campaign.id];const metric=data.metrics.find(metric=>metric.campaign_id===campaign.id);const count=metric?Number(metric.total_votes):null;return{id:campaign.id,publicId:campaign.public_id,title:campaign.title,question:campaign.question,status:campaign.status,revision:Number(campaign.revision),kind:campaign.kind,resultVisibility:campaign.result_visibility,startsAt:campaign.starts_at,endsAt:campaign.ends_at,totalVotes:count!==null&&Number.isSafeInteger(count)&&count>=0?count:null,resultsVisible:publicResult?.resultsVisible===true,options:data.options.filter(option=>option.campaign_id===campaign.id).map(option=>({id:option.id,label:option.label,voteCount:publicResult?.resultsVisible?publicResult.options.find(value=>value.id===option.id)?.voteCount??null:null}))};});
+  return <div className={styles.shell}><h1 className="sr-only">Engage</h1>
+    <SitesEngagePrimary polls={primaryPolls} enabled={data.enabled} canWrite={canWrite} saveAction={saveSitesEngageCampaign}/>
     {params.succes ? <p className={styles.banner} role="status">Wijziging opgeslagen.</p> : null}
     {params.fout ? <p className={styles.banner} role="alert"><strong>Wijziging mislukt.</strong> Controleer de invoer, status en rollout.</p> : null}
     {!data.enabled ? <section className={`${styles.panel} ${styles.gate}`}><StatusPill label="Niet geactiveerd" tone="warning" /><h2>Engage staat achter een gecontroleerde featureflag</h2><p className={styles.meta}>Een platformbeheerder activeert de pilot per tenant. De flag verleent geen rechten en publieke campagnes blijven tot dat moment onbereikbaar.</p></section> : null}
-    {data.enabled ? <>
+    {data.enabled ? <details className={sites.advanced} id="engage-advanced"><summary>Campagnes, zichtbaarheid en QR-beheer</summary>
       <TenantStyleSummary
         context="De stemoproep en resultaatweergave gebruiken deze clubstijl. Vraag, keuzes, zichtbaarheid en QR-bestemming blijven campagnegegevens en veranderen het palet niet."
         style={tenantStyle}
@@ -40,7 +45,7 @@ export default async function EngagePage({ searchParams }: { searchParams: Promi
         <article className={styles.panel}><h2>Campagnes</h2><p className={styles.meta}>{data.campaigns.length} campagnes · {data.metrics.reduce((total, metric) => total + Number(metric.total_votes), 0)} geldige stemmen</p><ul className={styles.list}>{data.campaigns.map((campaign) => {
           const options = data.options.filter((option) => option.campaign_id === campaign.id);
           const campaignVotes = Number(data.metrics.find((metric) => metric.campaign_id === campaign.id)?.total_votes ?? 0);
-          return <li className={styles.campaign} key={campaign.id}><div><strong>{campaign.title}</strong><small>{campaign.question}</small><small>{options.length} keuzes · {campaignVotes} stemmen · resultaten {visibilityLabel(campaign.result_visibility)}</small></div><div className={styles.actions}><StatusPill label={statusLabel(campaign.status)} tone={tones[campaign.status as keyof typeof tones] ?? "neutral"} />{qrCodes.get(campaign.id) ? <Image alt={`QR-code voor ${campaign.title}`} className={styles.qr} height={112} src={qrCodes.get(campaign.id) ?? ""} unoptimized width={112} /> : null}{canWrite ? <LifecycleActions id={campaign.id} status={campaign.status} /> : null}</div></li>;
+          return <li className={styles.campaign} id={`engage-campaign-${campaign.id}`} key={campaign.id}><div><strong>{campaign.title}</strong><small>{campaign.question}</small><small>{options.length} keuzes · {campaignVotes} stemmen · resultaten {visibilityLabel(campaign.result_visibility)}</small></div><div className={styles.actions}><StatusPill label={statusLabel(campaign.status)} tone={tones[campaign.status as keyof typeof tones] ?? "neutral"} />{qrCodes.get(campaign.id) ? <Image alt={`QR-code voor ${campaign.title}`} className={styles.qr} height={112} src={qrCodes.get(campaign.id) ?? ""} unoptimized width={112} /> : null}{canWrite ? <LifecycleActions id={campaign.id} status={campaign.status} /> : null}</div></li>;
         })}</ul>{!data.campaigns.length ? <p>Nog geen campagnes. Maak rechts het eerste concept.</p> : null}</article>
         {canWrite ? <article className={styles.panel}><h2>Nieuwe publieksactie</h2><p className={styles.meta}>Eén optie per regel. Een concept is pas publiek nadat je het start.</p><form action={saveEngageCampaign} className={styles.form}>
           <div className={styles.formGrid}><label className={styles.field}><span>Type</span><select name="kind"><option value="poll">Poll</option><option value="motm">Man/vrouw van de wedstrijd</option></select></label><label className={styles.field}><span>Resultaten tonen</span><select name="resultVisibility"><option value="after_vote">Na stemmen</option><option value="after_close">Na sluiten</option><option value="live">Direct live</option></select></label></div>
@@ -52,7 +57,7 @@ export default async function EngagePage({ searchParams }: { searchParams: Promi
         </form></article> : null}
       </section>
       <section className={styles.panel}><h2>Scherm- en QR-flow</h2><p className={styles.meta}>De publieke link is geschikt voor een lokale QR-code en live resultaatweergave. Stemdata verandert de campagneconfiguratie niet: publicatieconfiguratie en runtime-resultaten blijven gescheiden.</p></section>
-    </> : null}
+    </details> : null}
   </div>;
 }
 

@@ -15,6 +15,7 @@ export type PlanningHrefOptions = {
 };
 
 export type CalendarSchedule = {
+  calendarTone?: "green" | "blue" | "orange" | "petrol";
   enabled: boolean;
   endsAt: string | null;
   id: string;
@@ -32,6 +33,8 @@ export type CalendarSchedule = {
 };
 
 export type CalendarOccurrence = {
+  isRecurring?: boolean;
+  calendarTone?: "green" | "blue" | "orange" | "petrol";
   enabled: boolean;
   endsAt: string | null;
   name: string;
@@ -303,6 +306,8 @@ function toOccurrence(
   endsAt: string | null
 ): CalendarOccurrence {
   return {
+    calendarTone: schedule.calendarTone,
+    isRecurring: schedule.scheduleKind !== "once",
     enabled: schedule.enabled,
     endsAt,
     name: schedule.name,

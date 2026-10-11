@@ -1,4 +1,6 @@
 import { readFileSync } from "node:fs";
+import { Buffer } from "node:buffer";
+import process from "node:process";
 
 const [path, environment, revision] = process.argv.slice(2);
 if (!path || !["staging", "production"].includes(environment) || !/^[0-9a-f]{40}$/.test(revision ?? "")) {
@@ -43,6 +45,14 @@ for (const service of expectedServices) {
 
   if (definition.volumes || Object.keys(definition.networks ?? {}).join(",") !== "app") {
     throw new Error(`${service} gebruikt onverwachte volumes of netwerken.`);
+  }
+}
+
+if (environment === "production") {
+  const intentSecret = config.services.marketing.environment?.VEYOCAST_SETUP_INTENT_SIGNING_SECRET;
+  if (typeof intentSecret !== "string" || Buffer.byteLength(intentSecret) < 32
+    || intentSecret !== config.services.control.environment?.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY) {
+    throw new Error("Marketing mist de bestaande serversleutel voor de calculatorflow.");
   }
 }
 

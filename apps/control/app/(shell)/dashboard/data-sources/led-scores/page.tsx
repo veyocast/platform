@@ -14,6 +14,7 @@ import {
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
+import { SitesLedConnectionWizard } from "./sites-led-connection-wizard";
 import {
   linkLedScoresClub,
   saveLedScoresConnection,
@@ -96,6 +97,7 @@ export default async function LedScoresPage({ searchParams }: Props) {
         {availabilityMessage(data.availability).detail}
       </div>
     </section> : <>
+      <SitesLedConnectionWizard canManage={canManage} clubs={data.sportsClubs} teams={data.sportsTeams} />
       <SummaryStrip items={[
         { label: "Verbindingen", value: data.connections.length },
         { label: "Provider verbonden", value: connectedProviderCount, tone: connectedProviderCount > 0 ? "success" : "warning" },
@@ -135,6 +137,7 @@ export default async function LedScoresPage({ searchParams }: Props) {
               {connection.health_detail ? <p className={styles.meta}>{connection.health_detail}</p> : null}
               <p className="notice"><strong>Clubidentiteit.</strong> {connection.provider_club_id ? `${connection.provider_club_name} · LED Scores club-ID ${connection.provider_club_id}` : "De connector haalt de club-ID en teamcatalogus op bij verbinden."} {connection.catalog_synced_at ? `Catalogus bijgewerkt: ${formatDate(connection.catalog_synced_at)}.` : ""}</p>
               {canManage ? <>
+                <SitesLedConnectionWizard canManage={canManage} clubs={data.sportsClubs} teams={data.sportsTeams} initial={{ connectionId: connection.id, expectedRevision: connection.revision, name: connection.name, clubSlug: connection.club_slug, scoreboardLabel: connection.scoreboard_label, status: connection.status === "paused" ? "paused" : "active", sportsClubId: connection.sports_club_id, mappings: mappings.length ? mappings.map(item => ({ teamKey: item.provider_team_key, teamName: item.provider_team_name, side: item.scoring_side as "own" | "opponent", sportsTeamId: item.sports_team_id })) : [{teamKey:"",teamName:"",side:"own",sportsTeamId:null},{teamKey:"",teamName:"",side:"opponent",sportsTeamId:null}] }} />
                 <form action={linkLedScoresClub} className={styles.form}>
                   <input name="connectionId" type="hidden" value={connection.id} /><input name="expectedRevision" type="hidden" value={connection.revision} />
                   <label><span>VeyoCast-vereniging koppelen</span><select name="sportsClubId" defaultValue={connection.sports_club_id ?? ""}><option value="">Geen Sportlink-vereniging gekoppeld</option>{data.sportsClubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></label>
@@ -237,7 +240,7 @@ async function loadLedScores(tenantId: string) {
   if (availability !== "available") return { ...emptyData(), availability };
   const since = new Date(Date.now() - 86_400_000).toISOString();
   const [connections, mappings, sportsTeams, events, eventCount, screens, devices, sportsClubs] = await Promise.all([
-    supabase.from("ledscores_connections").select("id,name,club_slug,provider_club_id,provider_club_name,sports_club_id,catalog_synced_at,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,lease_expires_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
+    supabase.from("ledscores_connections").select("id,name,club_slug,scoreboard_label,provider_club_id,provider_club_name,sports_club_id,catalog_synced_at,status,health_status,health_detail,revision,baseline_json,last_source_message_at,last_connected_at,last_disconnected_at,lease_expires_at,last_test_at,last_test_status,last_test_detail,reconnect_count,invalid_message_count").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("ledscores_team_mappings").select("id,connection_id,provider_team_key,provider_team_name,sports_team_id,scoring_side").eq("tenant_id", tenantId).order("created_at"),
     supabase.from("sports_teams").select("id,name").eq("tenant_id", tenantId).eq("active", true).order("name").limit(250),
     supabase.from("ledscores_goal_events").select("id,connection_id,event_kind,source_observed_at,detected_at,home_team,away_team,home_score,away_score,scoring_side,dispatch_status").eq("tenant_id", tenantId).order("detected_at", { ascending: false }).limit(25),

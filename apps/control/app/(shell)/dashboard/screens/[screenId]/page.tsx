@@ -29,6 +29,9 @@ import {
 import { ScreenLifecycleActions } from "./screen-lifecycle-actions";
 import { ScreenPlayerRecoveryActions } from "./screen-player-recovery-actions";
 import { ScreenAutomation } from "./screen-automation";
+import { loadCompositionWorkspace } from "../screen-composition-data";
+import { CompositionPreview, ScreenCompositionEditor } from "../screen-composition-editor";
+import styles from "../screens-overview.module.css";
 
 type ScreenDetailPageProps = {
   params: Promise<{ screenId: string }>;
@@ -38,6 +41,7 @@ type ScreenDetailPageProps = {
 const tabs = [
   ["overview", "Overzicht"],
   ["content", "Content"],
+  ["layout", "Indeling"],
   ["planning", "Planning"],
   ["automation", "Automatisering"],
   ["health", "Gezondheid"],
@@ -55,6 +59,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
     : null;
   if (session.isLive && !data?.screen && !data?.error) notFound();
   const screen = data?.screen ?? null;
+  const compositionData = activeTab === "layout" || activeTab === "overview" ? await loadCompositionWorkspace(session.tenantId, session.isLive, session.tenant) : null;
   const pairedDevice = data?.devices.find((device) => device.status === "paired") ?? null;
   const automation = activeTab === "automation" && session.isLive && session.tenantId
     ? await loadScreenAutomation(session.tenantId, screenId)
@@ -67,7 +72,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
   );
   const status = screenStatus(screen?.status, pairedDevice, pairedDevice?.lastSeenAt ?? null);
 
-  return <>
+  return <div className={styles.detailRoute}>
     <Link className="breadcrumb-link" href="/dashboard/screens">← Terug naar schermvloot</Link>
     <PageHeader
       actions={screen ? <div className="page-action-group">
@@ -84,7 +89,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
     {data?.error ? <p className="notice notice--critical" role="alert"><strong>Schermdetails onvolledig.</strong> {data.error}</p> : null}
 
     {screen && data ? <>
-      <nav className="detail-tabs" aria-label="Schermdetails">
+      <nav className={styles.detailTabs} aria-label="Schermdetails">
         {tabs.map(([value, label]) => <Link aria-current={activeTab === value ? "page" : undefined} href={`/dashboard/screens/${screen.id}?tab=${value}`} key={value}>{label}</Link>)}
       </nav>
 
@@ -96,6 +101,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
         screen={screen}
         venueContext={data.venueContext}
       /> : null}
+      {activeTab === "layout" && compositionData ? <div className={styles.editorForm}><p>Verdeel je scherm in zones en combineer je eigen Studio-ontwerpen, scorebord en clubprogramma.</p>{compositionData.error ? <p className="notice notice--critical" role="alert">{compositionData.error}</p> : null}{compositionData.drafts.find((draft) => draft.screenId === screen.id)?.configuration ? <CompositionPreview configuration={compositionData.drafts.find((draft) => draft.screenId === screen.id)!.configuration!} content={Object.fromEntries(compositionData.drafts.find((draft) => draft.screenId === screen.id)!.configuration!.zones.map((zone) => [zone.id, `playlist:${zone.playlistId}`]))} playlists={compositionData.playlists} /> : null}<div className={styles.formActions}><ScreenCompositionEditor canPublish={canManage && hasCapability(session.capabilities, "tenant.playlist.publish")} data={compositionData} groups={[]} initialTarget={screen.id} screens={[screen]} /></div></div> : null}
       {activeTab === "content" ? <ContentTab releases={data.releases} screen={screen} /> : null}
       {activeTab === "planning" ? (
         <PlanningTab
@@ -137,7 +143,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
       {activeTab === "settings" ? <SettingsTab canManage={canManage} groups={data.groups} screen={screen} /> : null}
       {activeTab === "activity" ? <EventsTab events={data.auditEvents} /> : null}
     </> : null}
-  </>;
+  </div>;
 }
 
 function OverviewTab({

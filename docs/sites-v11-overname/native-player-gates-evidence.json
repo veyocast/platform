@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-11",
+  "scope": "Production Next Player browser software suite, pinned Chromium; no physical LG/native hardware claim",
+  "broad": {
+    "discovered": 237,
+    "passed": 228,
+    "skipped": 2,
+    "failed": 7,
+    "failures": [
+      "[chromium] \u203a tests/player/demo-review.spec.ts:73:5 \u203a demo media requires a session and serves bounded byte ranges",
+      "[chromium] \u203a tests/player/latest-publication.spec.ts:240:7 \u203a browser: a late obsolete download cannot replace the ready newest target",
+      "[chromium] \u203a tests/player/online-playback.spec.ts:7:5 \u203a fetches an online release manifest and starts playback",
+      "[chromium] \u203a tests/player/online-playback.spec.ts:270:5 \u203a loops to the muted video slot without browser controls",
+      "[chromium] \u203a tests/player/periodic-manifest-sync.spec.ts:7:5 \u203a polls, deduplicates and activates a verified release on the next item boundary",
+      "[chromium] \u203a tests/player/periodic-manifest-sync.spec.ts:64:5 \u203a does not activate a pending release after the desired release is withdrawn",
+      "[chromium] \u203a tests/player/watchdog-recovery.spec.ts:212:5 \u203a detects a stalled video that stops making time progress"
+    ]
+  },
+  "reruns": {
+    "targeted": {
+      "passed": 7,
+      "tests": [
+        "tests/player/latest-publication.spec.ts:240:7 \u203a browser: a late obsolete download cannot replace the ready newest target",
+        "tests/player/latest-publication.spec.ts:240:7 \u203a static-lg: a late obsolete download cannot replace the ready newest target",
+        "tests/player/online-playback.spec.ts:7:5 \u203a fetches an online release manifest and starts playback",
+        "tests/player/online-playback.spec.ts:271:5 \u203a loops to the muted video slot without browser controls",
+        "tests/player/periodic-manifest-sync.spec.ts:9:5 \u203a polls, deduplicates and activates a verified release on the next item boundary",
+        "tests/player/periodic-manifest-sync.spec.ts:67:5 \u203a does not activate a pending release after the desired release is withdrawn",
+        "tests/player/watchdog-recovery.spec.ts:213:5 \u203a detects a stalled video that stops making time progress"
+      ],
+      "resolvedOriginalFailures": 6,
+      "alreadyPassingRechecked": 1
+    },
+    "demo": {
+      "passed": 2,
+      "tests": [
+        "tests/player/demo-review.spec.ts:5:5 \u203a staging reviewcode opens, controls and disconnects the virtual demo",
+        "tests/player/demo-review.spec.ts:73:5 \u203a demo media requires a session and serves bounded byte ranges"
+      ],
+      "resolvedOriginalFailures": 1,
+      "alreadyPassingRechecked": 1
+    }
+  },
+  "reconciliation": {
+    "uniqueTests": 237,
+    "passed": 235,
+    "skipped": 2,
+    "unresolvedFailures": 0,
+    "formula": "228 initial passes + 7 superseded original failures = 235 unique passing tests; targeted 7 and demo 2 contain 2 already-passing rechecks, which are not added again."
+  },
+  "evidence": {
+    "broad": {
+      "logPath": "/tmp/veyocast-s191-player-browser.log",
+      "sha256": "cfe994a9f2917161ce1d0c200c75f63320159b0ebf154ace82bb2f48b48e3e2b"
+    },
+    "targeted": {
+      "logPath": "/dev/shm/veyocast-s191-player-targeted-final.log",
+      "sha256": "b68b48929e2bec1a78ca65ee901e5f419a4941946f94bc005a718b64f5abaf26"
+    },
+    "demo": {
+      "logPath": "/tmp/veyocast-s191-demo-review-final.log",
+      "sha256": "1355f27e5112d6a8124480edd63a8ace06b7ff541b86e569297cdcb12d1fe6c7"
+    }
+  },
+  "changes": {
+    "latestPublication": "Context routing supplies controlled fixture bytes to active service-worker requests; latest verified target and late-obsolete rejection remain asserted.",
+    "onlinePlayback": "Production CSP expectation and actual immutable 5s first-item duration replace development override assumptions; muted video, controls and loop assertions preserved.",
+    "periodicManifestSync": "Actual visible-first-frame readiness, production 8s polling and immutable fixture item boundaries are observed; withdrawal and LKG assertions preserved.",
+    "watchdog": "Real controlled checksum-verified H264/AAC playback progresses before a deliberate playbackRate=0 stall, then the production 12s watchdog is observed; healthy video remains distinct from a true stall.",
+    "demo": "Existing secure session established with real browser cookie chain; unauthenticated denial and bounded byte-range assertions retained."
+  },
+  "limitations": [
+    "The final count reconciles the original broad run and explicit passing reruns; it is not a second full-suite execution.",
+    "Two original skips remain skips.",
+    "Physical WebOS/LG and native-device acceptance require their own evidence."
+  ]
+}

@@ -1,0 +1,84 @@
+Je werkt aan github.com/veyocast/platform. Voer de volledige UI/UX-migratie uit volgens het bijgevoegde overdrachtspakket. De producteigenaar wil exact de huidige Sites-interface, alle templates en Studio’s in VeyoCast gebruiken, met echte productiefunctionaliteit.
+
+PAKKETPAD: <ABSOLUUT_PAD_NAAR_DIT_PAKKET>
+
+DOEL
+Gebruik de meegeleverde Sites-bron als directe visuele en interactionele implementatiebasis. Niet opnieuw ontwerpen vanaf screenshots, niet alleen kleuren aanpassen, niet stoppen na een plan of demo. Lever dezelfde componentcompositie, CSS, typografie, assets, templates, responsive layouts en mobiele bediening op de bestaande beveiligde platformkern. Behoud alle bestaande platformfuncties die Sites niet demonstreert.
+
+VERSIES
+- Visuele bron: Sites v11, b1cae899af19fc39908217253094c5240d7359fc.
+- Onderzochte GitHub-basis: 6fcc26f02c8050b7244e3660a93b85f02491e121.
+- De live productie-SHA is niet onderzocht. Verifieer die vóór uitrol.
+- Als de doelrepository verder is: vergelijk de wijzigingen sinds de onderzochte SHA en behoud ze. Reset niet naar de oude basis en overschrijf geen werk van anderen.
+
+LEES EN BEREID VOOR
+1. Lees de actuele AGENTS.md-bestanden en toepasselijke technische/security/design-/Playercanons in de echte repository.
+2. Lees 00-LEESMIJ.md, 01-CANON.md, docs/UITVOERINGSPLAN.md, alle vier detailrapporten en docs/ACCEPTATIE-EN-QA.md in het pakket.
+3. Controleer het pakket met python3 tools/verify-package.py voordat je dependencies installeert of iets herbouwt. De bron onder source/sites blijft de onveranderde referentie.
+4. Neem inventory/ROUTE-MAPPING.csv, TEMPLATE-MAPPING.csv, WORKFLOW-MAPPING.csv en VISUAL-CASES.csv over als afvinkbare migratieadministratie in de doelrepository. Iedere rij krijgt implementatiepad, status en bewijs. Geen rijen ongemerkt schrappen.
+5. Maak een geïsoleerde branch/worktree vanaf de actuele juiste basis. Leg een scoped design-delta vast met bron-SHA’s. Deze productopdracht vervangt eerdere conflicterende zichtbare indelingen/stijlkeuzes voor de genoemde oppervlakken en breidt de FieldFlow-only authoringkeuze uit. Zij schrapt geen security, immutable publicatie, locked branding, accessibility of devicegaranties. Gebruik geen eerdere stijlcanon om stil terug te ontwerpen naar de oude UI.
+6. Start de pakketreferentie lokaal indien de omgeving dat toestaat, naast de nieuwe Control-app. Gebruik de bestaande toegestane browsertestworkflow. Als runtime-/deviceonderzoek geblokkeerd is, voltooi alle uitvoerbare implementatie en meld het ontbrekende bewijs concreet; claim geen pixelpariteit.
+
+EXACTE VORMGEVING
+- Kopieer en extraheer de relevante originele JSX/CSS en assets; bouw geen benaderende nieuwe pagina’s.
+- app/tokens.css, app/fieldflow.css, app/globals.css en alle gebruikte module-CSS vormen samen de effectieve cascade. De basistokens waren al gelijk; alleen tokens wijzigen bereikt het doel niet.
+- Fontbytes, fontgewichten, brush/grunge-masks, vijf herkenbare landmarkachtergronden, TV-assets en VeyoCast-merkassets blijven exact. Geen nieuwe beeldgeneratie, stockvervanging, andere fonts of kleurharmonisatie.
+- Neem de actuele mobiele navigatie over: Overzicht, Playlists, Studio, Schermen, Meer. Planning blijft beschikbaar via Meer. Oudere screenshots zijn niet de actuele bron.
+- Gebruik echte Next-routes/deep links en bewaak browser-terug, dirty state, focus, safe-area, toetsenbord en sticky acties. Kopieer de hashrouter/history-trucs niet blind.
+- Voor productiepagina’s zonder Sites-equivalent: behoud alle functies en data, maak ze met dezelfde gedeelde componenten consistent. Noteer die apart als nieuwe uitwerking; claim geen bronidentieke pixels voor een niet-bestaande referentie.
+
+MOBIELE PLAYLIST EN MEDIA
+- Neem playlist-library, playlist-editor en playlist-media-picker als actuele editor over, inclusief schermvullende mobiele flow, multiselect, zoek/filter/collecties/favorieten, vaste toevoegactie, selectievolgorde, preview, duur, bulkduur, bulkthema, dupliceren, herstel en wijzigingswaarschuwing.
+- Sluit aan op de bestaande servergefilterde/pagineerbare bibliotheek, guarded services/RPC’s, tenantcontext, capabilities, expected revisions en idempotency.
+- Voeg een begrensd atomisch batchcommand toe voor gemengde inhoud, volledige Studio-reeksen en bulkacties. Geen Promise.all met dezelfde stale revision en geen vereenvoudigd Sites-object over rijke productierecords schrijven.
+- Behoud secties, crop/fit/trim/audio/volume/zichtbaarheid, video, YouTube, Engage, archiveren/herstellen en readiness. Video-disabled in Sites is een demobeperking, geen producteis.
+- Gebruik bestaande veilige image- en TUS-video-uploadpipeline. Voeg veilige AVIF-normalisatie toe om het Sites-formaat te ondersteunen. Behoud bestaande productieformaten en verwerking-/quarantainestatussen.
+- Opslaan betekent serverbevestiging. Herladen en een tweede sessie moeten dezelfde inhoud tonen; twee editors veroorzaken een zichtbaar oplosbaar conflict, geen stille overschrijving.
+
+ALLE STUDIO’S, TEMPLATES EN SCHERMTHEMA’S
+- Lever de 11 algemene Sites-startpunten en de 8 extra OnzeTrots TV-startpunten, met beide oriëntaties en volledig bewerkbare velden. Behoud bestaande aanvullende productietemplates en historische releases.
+- Maak onderscheid tussen Control-appskin, contentthema fieldflow/onzetrots-tv en de oude LED-presentatiekeuzes blue/paper/fieldflow. Neem alle Sites-varianten mee; OnzeTrots TV komt erbij.
+- Behoud per-item/selectie/playlist/projectthema, achtergronden, crop, overlay, layout, accent, duur per gegevenspagina, safe area, uitlijning, schalen en controles. Behoud gegevens bij themawissel en na opslaan/herladen.
+- Maak een strikt versieerbaar schema voor de Sites-templateparameters. Breid Zod, centrale thema-/fontcatalogi, LED/Studio/Menu-contracten, servervalidatie, databaseguards, snapshots en assetcollectie gezamenlijk uit met forward-only migrations. Nieuwe keuze in alleen clientstate is geen implementatie.
+- Extraheer een trusted gedeelde presentatierenderer voor Control, previews, worker en moderne Player. Bestaande SVG/resvg-templates zijn visueel anders. Voeg een begrensde DOM-captureadapter aan de bestaande immutable Studio-workerketen toe, tenzij je vooraf aantoont dat de huidige compiler alle layouts en motion exact weergeeft. Geen willekeurige HTML/JS of remote netwerktoegang in de worker.
+- Static LG heeft een eigen renderer: werk die expliciet bij, met compatibele vaste canvascoördinaten/assets/fonts en een veilige fallback. Een verouderde PNG is geen correcte live-scoreweergave. Android/webOS-hosts houden hun bestaande player-/cachearchitectuur.
+- Sportlink: exacte zeskaart-/wizardflow plus behoud van alle 17 bestaande productie-slidefamilies; getypeerde echte providerdata in plaats van demoRows of tekstparsing. Onbekende scores/velden blijven onbekend.
+- LED Scores: live-score en tijdelijke overlays; goalOwn/goalOpponent/goalUnknown, thuis/uitopstelling, start/rust/einde; titel/score/logo/teamschalen 70–200%, schermvullendpreset, klok/tijdlijn/branding, bron- en schermselectie. Gebruik bestaande providerleases, security, deduplicatie, prioriteit en betrouwbare aflevering.
+- Menu/Twelve: bestaande productimport en Menu-documenten, geld in integerbedragen, productidentiteiten, categorieën en actuele brondata/snapshotsemantiek behouden. Noem een Excel-import geen bewezen live Twelve-API.
+- YouTube: behoud de echte single-video-integratie en fallback; implementeer ook de in Sites aangeboden playlistconfiguratie via een gecontroleerd contract en provider/playbackpad. Niet stil het eerste video-ID opslaan. Een uitgeschakelde playlistoptie is alleen tijdelijke bouwstatus, geen voltooiing. Fallbacktemplates krijgen echte media-ID’s/checksums.
+
+SCHERMEN, CONTENTZONES, PLANNING EN PUBLICATIE
+- Koppel de Sites-schermwizard aan echte pairing, schermgroepen, memberships, telemetry en status. Mock online/actief nooit als echte meting presenteren.
+- Implementeer volledig beeld, zijvlak, onderbalk en drie contentvlakken end-to-end. Bestaande fysieke venue_zones zijn geen simultane contentzones. Volg het expliciete zonebesluit in UITVOERINGSPLAN.md en behoud bestaande sponsor/LED/planningsprioriteiten.
+- Gebruik echte plannerconflicten, tenanttimezone/DST, capabilities en targets. Nieuwe defaultcontent mag lopende planning niet ongemerkt uitschakelen.
+- Behoud S185: immutable configuratie/publication en onafhankelijke published_dynamic_data; bronrefresh verandert geen release, afspeelindex of itemtimer. Monotone target_revision; nieuwere opdracht wint, activatie pas met complete geverifieerde assets op juiste grens; last-known-good blijft.
+- UI-status volgt echte gewenste, voorbereidende en actieve/first-framebevestiging. Een opgeslagen record of heartbeat bewijst niet dat nieuw beeld zichtbaar is.
+
+OVERIGE PLATFORMSCOPE
+- Werk alle routematrixrijen af: Control, aanvullende platform/admin/auth/billing/support/importpagina’s, Marketing, Player en native contracten. Bestaande diepe links, SEO- en juridische routes blijven bereikbaar.
+- Responsive Control/PWA wordt exact uitgevoerd. React Native krijgt de equivalente componenttaal/taakvolgorde voor de gemapte schermen; behoud uploadqueue, SecureStore, biometrie en notificaties. DOM/CSS is niet rechtstreeks native. Native build-/devicebewijs apart rapporteren.
+- Houd bestaande featureflags/cohorten en noodstop semantisch intact. Maak de nieuwe UI daadwerkelijk bereikbaar voor de bedoelde stagingcohort; alleen code achter een nooit geactiveerde flag is geen oplevering.
+
+BROWSERINHOUD EN BRONASSETS
+- source/sites bevat alle ingecheckte broncode, templates en 82 public-assets. Persoonlijke browserontwerpen/uploads staan NIET in de ZIP en zijn niet geïnventariseerd.
+- Bouw indien zulke inhoud moet worden overgenomen een expliciete export/import van JSON plus originele IndexedDB-blobs. Eerst uploaden/verifiëren, dan IDs remappen en concepten opslaan. Blokkeer ontbrekende blobs met een concrete melding; raad nooit een foto uit een naam en seed geen persoonlijke Duindorp-data naar alle tenants.
+- Geen veyocast-demo-*, blob:- of asset:-referentie als productie-authority. Tijdelijke preview-URLs zijn geen immutable asset-ID. Import/export moet versieerbaar, tenantgebonden en hervatbaar zijn.
+
+WERKVOLGORDE EN VOLTOOIING
+Werk de fasen uit UITVOERINGSPLAN.md door en ga door met alle uitvoerbare werkzaamheden. De canon en mappings zijn niet optioneel. Breng gerichte kleine commits en tests aan; lever geen losstaand tweede demo-platform op.
+
+Voer de actuele repo-gates en relevante DB/RLS-, mobile-, worker-, Player-, offline- en a11ytests uit. Destructieve database-reset uitsluitend in de expliciet geïsoleerde lokale testdatabase. Behoud de mutatietestguards.
+
+Visuele acceptatie: dezelfde browser, viewport, fixturedata, fonts-ready, motionstand en bronassets; referentie/nieuw/diff voor routes, dialogs, wizardstappen en alle templatefamilies. Beoordeel handmatig naast pixel-/geometriechecks. Verander niet alle goldens om een afwijkende UI groen te krijgen. Geen bewijsclaim met alleen typecheck of build.
+
+Functionele acceptatie: op mobiel upload → mixed select → toevoegen → herordenen/duur/thema → bewaren → tweede sessie → publiceren → device download/verificatie → first frame; ook fouten, concurrentie, ontbrekende assets, alle rollen en cross-tenant weigering. Beide oriëntaties, live refresh zonder timerreset, goal dedupe en offline/reconnect moeten werken.
+
+Leg stagingbewijs vast met exacte SHA, image-digests, migrations, featurecohort, screenshots, contracttests en hardwarestatus. Volg de bestaande beschermde deploypipeline. Maak PR en concrete release-instructies reviewbaar; productiepromotie gebeurt pas onder de dan geldende expliciete releaseautorisatie, met dezelfde geteste immutable images. Geen losse build/git-pull in productie, geen infrastructuurvervanging door de Sites-runtime.
+
+Lever op:
+1. Werkende migratie in de echte repository met alle mappings afgevinkt of aantoonbaar geblokkeerd.
+2. Design-delta, contract/schema-/DB-migraties, assetmanifest en herkomst.
+3. Bewijsmatrix met screenshots/testresultaten/stagingreadbacks en afzonderlijke echte beperkingen.
+4. PR-beschrijving en reproduceerbare uitrol/rollback-instructies.
+
+Markeer het werk niet compleet zolang zichtbare controls niet echt opslaan, templates ontbreken, één Playerpad achterblijft, een relevante feature alleen mockdata gebruikt of de noodzakelijke acceptatie nog niet is bewezen. Meld eventuele externe blokkades specifiek en lever al het overige volledig af.

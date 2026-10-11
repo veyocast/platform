@@ -1,11 +1,14 @@
 import Link from "next/link";
+import sites from "../sites-screen-auxiliary.module.css";
 
 import { hasCapability } from "@veyocast/auth";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
-import { claimScreenPairing, createScreenOnboarding } from "../actions";
+import { claimScreenPairing } from "../actions";
+import { ScreenSetupDialog } from "../screen-setup-dialog";
+import { loadCompositionWorkspace } from "../screen-composition-data";
 import { loadScreenDetail, loadScreenFleet } from "../data";
 import { OnboardingStatusRefresh } from "./onboarding-status-refresh";
 
@@ -21,6 +24,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
     ? await loadScreenFleet(session.tenantId)
     : null;
   const selectedScreen = fleet?.screens.find((screen) => screen.id === query.screen) ?? null;
+  const composition = await loadCompositionWorkspace(session.tenantId, session.isLive, session.tenant);
   const detail = selectedScreen && session.tenantId
     ? await loadScreenDetail(session.tenantId, selectedScreen.id)
     : null;
@@ -33,7 +37,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
   );
   const limitReached = Boolean(fleet && fleet.screens.length >= fleet.limit);
 
-  return <>
+  return <div className={sites.page}>
     <Link className="breadcrumb-link" href="/dashboard/screens">← Terug naar schermvloot</Link>
     <PageHeader
       actions={selectedScreen ? <Link className="button-link button-link--secondary" href={`/dashboard/screens/${selectedScreen.id}`}>Open schermdetail</Link> : null}
@@ -51,60 +55,19 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
     {fleet?.error || detail?.error ? <p className="notice notice--critical" role="alert"><strong>Onboardingdata onvolledig.</strong> {fleet?.error || detail?.error}</p> : null}
     {query.screen && !selectedScreen ? <p className="notice notice--warning" role="status">Het gekozen scherm hoort niet bij deze vereniging of bestaat niet meer. Start een nieuwe onboarding vanuit de schermvloot.</p> : null}
 
-    <ol className="screen-onboarding-steps" aria-label="Onboardingstappen">
+    {selectedScreen ? <ol className="screen-onboarding-steps" aria-label="Onboardingstappen">
       <OnboardingStep complete={Boolean(selectedScreen)} current={!selectedScreen} label="Schermdetails" />
       <OnboardingStep complete={Boolean(selectedScreen)} current={false} label={selectedScreen?.assignedReleaseId ? "Content gekozen" : "Content optioneel"} />
       <OnboardingStep complete={Boolean(pairedDevice)} current={Boolean(selectedScreen && !pairedDevice)} label="Player koppelen" />
       <OnboardingStep complete={Boolean(firstHeartbeat)} current={Boolean(pairedDevice && !firstHeartbeat)} label="Eerste heartbeat" />
       <OnboardingStep complete={Boolean(firstHeartbeat)} current={Boolean(firstHeartbeat)} label="Afronden" />
-    </ol>
+    </ol> : null}
 
     {!selectedScreen ? (
       <section className="onboarding-workspace" aria-labelledby="screen-details-title">
-        <div className="workspace-section__header">
-          <div>
-            <p className="eyebrow">Stap 1 en 2</p>
-            <h2 className="workspace-section__title" id="screen-details-title">Schermdetails en eerste content</h2>
-            <p className="work-panel__meta">De limiet wordt in dezelfde databasetransactie gecontroleerd. Content mag je veilig overslaan.</p>
-          </div>
-          <StatusPill
-            label={fleet ? `${fleet.screens.length}/${fleet.limit} schermen` : "Live data vereist"}
-            tone={limitReached ? "warning" : "neutral"}
-          />
-        </div>
+        <h2 id="screen-details-title">Schermdetails en eerste content</h2>
         {limitReached ? <p className="notice notice--warning" role="status">De schermlimiet is bereikt. Er wordt niets aangemaakt; vraag een platformbeheerder om de limiet te verhogen.</p> : null}
-        <form action={createScreenOnboarding} className="playlist-form onboarding-form">
-          {pairingCode ? <input name="pairingCode" type="hidden" value={pairingCode} /> : null}
-          <div className="field">
-            <label htmlFor="screen-name">Schermnaam</label>
-            <input disabled={!canManage || limitReached} id="screen-name" maxLength={120} name="name" placeholder="Bijvoorbeeld kantine hoofdscherm" required type="text" />
-          </div>
-          <div className="field">
-            <label htmlFor="screen-location">Locatie</label>
-            <input disabled={!canManage || limitReached} id="screen-location" maxLength={160} name="location" placeholder="Kantine" type="text" />
-          </div>
-          <div className="form-grid">
-            <div className="field">
-              <label htmlFor="screen-orientation">Oriëntatie</label>
-              <select defaultValue={fleet?.settings.orientation ?? "landscape"} disabled={!canManage || limitReached} id="screen-orientation" name="orientation">
-                <option value="landscape">Liggend</option>
-                <option value="portrait">Staand</option>
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="initial-release">Eerste content (optioneel)</label>
-              <select defaultValue="" disabled={!canManage || limitReached} id="initial-release" name="initialReleaseId">
-                <option value="">Later kiezen</option>
-                {fleet?.assignableReleases.map((release) => <option key={release.id} value={release.id}>{release.playlistName}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="form-grid">
-            <div className="field"><label htmlFor="screen-width">Breedte</label><input defaultValue={fleet?.settings.width ?? 1920} disabled={!canManage || limitReached} id="screen-width" max={7680} min={320} name="resolutionWidth" required type="number" /></div>
-            <div className="field"><label htmlFor="screen-height">Hoogte</label><input defaultValue={fleet?.settings.height ?? 1080} disabled={!canManage || limitReached} id="screen-height" max={4320} min={240} name="resolutionHeight" required type="number" /></div>
-          </div>
-          <button className="button-link button-link--primary" disabled={!canManage || limitReached} type="submit">Scherm maken en doorgaan</button>
-        </form>
+        <ScreenSetupDialog defaultOpen={!limitReached} disabled={!canManage || limitReached} groups={fleet?.groups ?? []} releases={fleet?.assignableReleases ?? []} previews={composition.playlists} settings={fleet?.settings ?? { width: 1920, height: 1080, orientation: "landscape" }} pairingCode={pairingCode} />
       </section>
     ) : (
       <section className="onboarding-workspace" aria-labelledby="pairing-step-title">
@@ -159,7 +122,7 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
         </>}
       </section>
     )}
-  </>;
+  </div>;
 }
 
 function OnboardingStep({ complete, current, label }: { complete: boolean; current: boolean; label: string }) {

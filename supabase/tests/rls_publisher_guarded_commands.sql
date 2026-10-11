@@ -490,8 +490,8 @@ select is(
     select count(*) from public.publisher_command_receipts
     where tenant_id = '10000000-0000-4000-8000-000000000471'
   ),
-  11::bigint,
-  'server-authoritative command receipts cover applied and conflict outcomes'
+  12::bigint,
+  'server-authoritative command receipts cover applied and conflict outcomes, including the rich restore wrapper'
 );
 select is(
   (
@@ -499,8 +499,8 @@ select is(
     where tenant_id = '10000000-0000-4000-8000-000000000471'
       and action like 'publisher.%'
   ),
-  11::bigint,
-  'every command receipt points to a server-authored audit event'
+  12::bigint,
+  'every command receipt, including rich restore, points to a server-authored audit event'
 );
 
 reset role;
