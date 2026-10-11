@@ -110,6 +110,11 @@ for (const row of cases) {
         if (row.state === "revision-conflict") await expect(editor.getByText(/serverversie 7/)).toBeVisible();
         await page.getByRole("button", { name: "Opslaan", exact: true }).click(); await expect.poll(() => commands.length).toBe(2);
         expect(commands[1]).toEqual(commands[0]);
+        // Request receipt precedes response consumption. Escape is deliberately
+        // blocked while saving; wait for actual retry failure and restored editing.
+        await expect(page.getByRole("button", { name: "Opslaan", exact: true })).toBeEnabled();
+        await expect(editor.getByRole("alert")).toContainText("wijzigingen blijven open");
+        await expect(name).toBeEnabled();
         await page.keyboard.press("Escape"); await expect(page.getByRole("heading", { name: "Je hebt nog wijzigingen" })).toBeVisible();
         await page.getByRole("button", { name: "Verder bewerken", exact: true }).click(); await expect(name).toHaveValue(ownName); break;
       }

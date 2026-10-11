@@ -252,11 +252,22 @@ test("detects a stalled video that stops making time progress", async ({ page,co
   await expect(video).toBeAttached();
   await expect.poll(()=>video.evaluate((element:HTMLVideoElement)=>element.currentTime)).toBeGreaterThan(0);
   await expect(video).toBeVisible();
-  await video.evaluate((element:HTMLVideoElement) => {
-    element.playbackRate=0;
-    element.dispatchEvent(new Event("stalled", { bubbles: true }));
-  });
+  await video.evaluate((element:HTMLVideoElement) => { element.playbackRate=0; });
   await expect(video).toHaveJSProperty("paused",false);
+  // A real decoder can emit one final progress event after the rate changes.
+  // Signal the stall only after its actual media clock has stopped; otherwise
+  // that pending progress legitimately clears the earlier stalled signal.
+  await video.evaluate(async (element:HTMLVideoElement) => {
+    const deadline=performance.now()+2_000;
+    let previous=element.currentTime,stableSince=performance.now();
+    while(performance.now()<deadline){
+      await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+      const now=performance.now(),current=element.currentTime;
+      if(current!==previous){previous=current;stableSince=now;}
+      if(now-stableSince>=400){element.dispatchEvent(new Event("stalled",{bubbles:true}));return;}
+    }
+    throw Error("The real media clock did not stop for the stalled-video fixture.");
+  });
 
   await expect(page.getByLabel("Player diagnostics")).toContainText(
     "Playbackfout VIDEO_STALLED_TIMEOUT",

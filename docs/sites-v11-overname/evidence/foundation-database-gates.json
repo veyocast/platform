@@ -1,21 +1,28 @@
 {
   "scope": "Verified actual local log markers and validator exit codes; independent Source comparisons are SHA-verified aggregates, not a single full rerun; no deployment or hardware claim.",
-  "recordedAt": "2026-10-11T23:24:43.882345+00:00",
+  "recordedAt": "2026-10-11T23:55:37.358715+00:00",
   "gates": {
     "lint": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "c40464c84032cfb3ed2ed945287d4484b9ba22b459e299f599c2ed21b44f621f"
+      "logSHA256": "260123d43a1f6505264c434a80d6cf525a545318428e4f7ebb15ea337b0081a9",
+      "supersedesLocalLogSHA256": "c40464c84032cfb3ed2ed945287d4484b9ba22b459e299f599c2ed21b44f621f",
+      "scope": "Final CI-recovery implementation; actual local full workspace gate."
     },
     "typecheck": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "bee8c970d6f5e658ed2f42f518fd73f87a0026de1db2b5b60b0482e4fde6e909"
+      "logSHA256": "24d330330aad856cb9f0c84374b27680389d29e006df6c1391d77f0a9cb75edb",
+      "supersedesLocalLogSHA256": "bee8c970d6f5e658ed2f42f518fd73f87a0026de1db2b5b60b0482e4fde6e909",
+      "scope": "Final CI-recovery implementation; actual local full workspace gate."
     },
     "unit": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "0a2409d242acdf51ce53b93294eecf34d183b985ef7440de04230eed34970712"
+      "logSHA256": "3e05bea9d8ad2f0e1c0488dba561d3a4d75e826e19c055e2d16bebd57e53852b",
+      "scope": "Final CI-recovery implementation; actual local full workspace gate.",
+      "supersedesLocalLogSHA256": "0a2409d242acdf51ce53b93294eecf34d183b985ef7440de04230eed34970712",
+      "crossRepositoryTestkitCacheBypassed": true
     },
     "databaseReset": {
       "status": "PASS",
@@ -32,7 +39,7 @@
     "workflows": {
       "status": "PASS",
       "actualExitCode": 0,
-      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      "logSHA256": "d79b1f87464a8f8f0064bd183620482a4b43b2d71e48dc900faf41776291fcb2"
     },
     "vps": {
       "status": "PASS",
@@ -48,8 +55,8 @@
     "build": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+18 successful, 18 total",
-      "logSHA256": "0f7d381da98efb7915146c39acd47695af8668b89a4c98af94c0e42ed4bff649",
-      "cachedUnchangedTasks": 13,
+      "logSHA256": "9a946dab6b37672ab0efd6800a25ace1c7e30c5773644852720dca508427a896",
+      "cachedUnchangedTasks": 11,
       "rebuiltApplications": [
         "control",
         "marketing",
@@ -57,8 +64,9 @@
         "control-mobile",
         "media-worker"
       ],
-      "duration": "2m31.875s",
-      "scope": "Current final implementation, including verified video placement duration; earlier CSS-only rebuild is superseded."
+      "duration": "2m26.896s",
+      "scope": "Final CI-recovery implementation; actual local full workspace gate.",
+      "supersedesLocalLogSHA256": "0f7d381da98efb7915146c39acd47695af8668b89a4c98af94c0e42ed4bff649"
     },
     "originalCaseClosure": {
       "status": "PASS",
@@ -92,5 +100,70 @@
       "evidence": "evidence/responsive-source-comparison.json",
       "guard": "verify-sites-comparison.mjs responsive"
     }
+  },
+  "ciBoundaryRecovery": {
+    "initialHead": "9f6562286c8306a13b5e111c742809c4f83fa336",
+    "initialRun": "https://github.com/veyocast/platform/actions/runs/38184749691",
+    "actualFailedJob": "Foundation gates",
+    "cause": [
+      "Studio contract dependency absent in outdated architecture rule",
+      "Erased type imports incorrectly traversed as runtime server edges",
+      "Repository-wide scanner could reuse cache after application edits"
+    ],
+    "recovery": {
+      "runtimeParser": "TypeScript AST; runtime server edges remain denied; declaration-level erased imports only",
+      "actualUncachedTests": 29,
+      "securityParserRegressions": 14,
+      "testkitLint": "PASS",
+      "testkitTypecheck": "PASS",
+      "turboCache": "explicitly bypassed for cross-repository testkit task",
+      "logSHA256": {
+        "tests": "8dbca1afbb24153029e7ee5d734d5820c47a8f5c2281ee25a1d799deb7134f8f",
+        "lint": "b543827ce56a63357c629028555ecec2cc964dda33dbbf2a9a2872b1a2ab20f8",
+        "typecheck": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+        "turboBypass": "fc411fc226deab40eb1358cbcdc887bbeb3d45ceb0f10d805f8f3304f136d0f0"
+      }
+    }
+  },
+  "androidSdkRecovery": {
+    "actualFailedRun": "https://github.com/veyocast/platform/actions/runs/38184749729",
+    "cause": "Pinned Android setup action default includes retired tools package",
+    "explicitPlatformToolsDeclarations": 5,
+    "negativeRegressions": 5,
+    "actionlintShellcheck": "PASS",
+    "logSHA256": "d79b1f87464a8f8f0064bd183620482a4b43b2d71e48dc900faf41776291fcb2"
+  },
+  "ciBrowserRecovery": {
+    "failedRun": "https://github.com/veyocast/platform/actions/runs/38184749691",
+    "control": {
+      "actualTargetedCases": 4,
+      "passed": 4,
+      "actualStrictMainViewports": 2,
+      "actualWorkspaceRoutesPerViewport": 15,
+      "unchangedAxeAssertions": true,
+      "logSHA256": "880abc422e4761cab8121fe9f6aaa609975031ef6491e0ea5f31f454beaf1a51"
+    },
+    "player": {
+      "actualTargetedCases": 2,
+      "passed": 2,
+      "stallFixture": "Waits until the actual decoder clock stops; pending progress must settle before sending the stalled signal",
+      "browserProcessLifetime": "Every discovered Player spec runs once in ordered cohorts of at most 12 files; no automatic retry or omitted tests",
+      "logSHA256": "13232c20be41e9647e070b5c5160d5e08c31a1e3172a29a711d445d833b54e25"
+    }
+  },
+  "ciRasterRecovery": {
+    "failedRun": "https://github.com/veyocast/platform/actions/runs/38184749859",
+    "actualOriginalCases": 8,
+    "actualFrames": 14,
+    "changedPixels": 0,
+    "evidenceScope": "Targeted actual verification; the next complete CI run is still required. Specific compositor resampling cause is an inference, not locally reproduced.",
+    "guard": "Both screenshot transports require 1200 ms elapsed settling and at least three identical PNGs spanning 350 ms; immutable source content, fixtures, zero-pixel assertions and requested animation times are preserved.",
+    "workerLaterVideoFrames": "Page settling runs only for a newly captured page",
+    "actualChromiumSecurityCases": 7,
+    "comparisonSHA256": "833ce848ec59be4cc8759b65ecdf5d1eb3ef9b0833b2aaabcad207846256b2f6",
+    "ledComparisonSHA256": "e8e1b44868ee93e9d7661245ea3395096e2a5aa017ae210431b37611e301f371",
+    "logSHA256": "7056bffa96a8f12514a0deffebf5002c316c5ce43bfc2fa982be125683339af5",
+    "ledLogSHA256": "dbdf3a70b73b277db369d4b493d67e41221fcb96c998bedf6ea6debda88b4036",
+    "securityLogSHA256": "752fee31e12901a54bf3c4f014df775b8c1c83a7b4b971b627a3b60ae9e9ddfb"
   }
 }

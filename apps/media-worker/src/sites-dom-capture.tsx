@@ -31,6 +31,27 @@ const files=new Map(systemAssets.files.map(asset=>[asset.path,asset]));
 const defaultPublicDirectory=fileURLToPath(new URL("../../player/public/",import.meta.url));
 const maximumAssetBytes=24*1024*1024;
 const maximumSessionBytes=96*1024*1024;
+/** Decode and equal adjacent frames can precede a later compositor repaint.
+ * Require an elapsed settling period and a continuous exact raster window.
+ * Call once per page, after pausing animations at the requested frame.
+ */
+export async function captureSettledSitesRaster(page:Page):Promise<Buffer>{
+ await page.waitForTimeout(1200);
+ let png=await page.screenshot({type:"png",timeout:15000});
+ let hash=createHash("sha256").update(png).digest("hex"),stableSince=Date.now(),stableSamples=1;
+ const deadline=Date.now()+3000;
+ while(Date.now()<deadline){
+  await page.waitForTimeout(100);
+  await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+  const next=await page.screenshot({type:"png",timeout:15000}),nextHash=createHash("sha256").update(next).digest("hex");
+  png=next;
+  if(nextHash===hash){
+   stableSamples++;
+   if(stableSamples>=3&&Date.now()-stableSince>=350)return png;
+  }else{hash=nextHash;stableSince=Date.now();stableSamples=1;}
+ }
+ throw new SitesDomCaptureError();
+}
 export function buildSitesCaptureHtml(presentation:SitesPresentation,assetSources:StudioSvgAssetSources,page=0,active=false){
  const input=sitesPresentationSchema.parse(presentation);
  const content=renderToStaticMarkup(<SitesStaticView presentation={input} page={page} active={active} includeStyles={false} resolveAsset={asset=>{
@@ -135,20 +156,12 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
    });
 
    await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+   // Initial pages need an elapsed quiet raster window. Later video frames
+   // retain their explicit timeline and do not repeat the page settling wait.
+   const png=capturedKey.split(":")[0]!==String(targetPage)
+    ?await captureSettledSitesRaster(page):await page.screenshot({type:"png",timeout:15000});
+   if(assetFailed)throw new SitesDomCaptureError();
    if(onMeasure)onMeasure(await page.evaluate(()=>Array.from(document.querySelectorAll("h2,p,span,strong,small,[data-fit-content]")).map(node=>{const style=getComputedStyle(node);return {tag:node.tagName,className:node.className,font:style.fontFamily,size:style.fontSize,weight:style.fontWeight,variation:style.fontVariationSettings,fit:style.getPropertyValue("--led-auto-fit"),letterSpacing:style.letterSpacing,width:node.clientWidth,height:node.clientHeight,transform:style.transform,bounds:node.getBoundingClientRect().toJSON(),smoothing:style.getPropertyValue("-webkit-font-smoothing"),rendering:style.textRendering};})));
-   let png=await page.screenshot({type:"png",timeout:15000});
-   if(browserLifecycle&&capturedKey.split(":")[0]!==String(targetPage)){
-    // Stable layout can precede the compositor's final image/font raster.
-    // Accept an immutable page only when consecutive actual PNGs agree.
-    // This is exact byte equality, never a pixel tolerance or mask.
-    const rasterDeadline=Date.now()+3000;let hash=createHash("sha256").update(png).digest("hex");let settled=false;
-    while(Date.now()<rasterDeadline){
-     await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
-     const next=await page.screenshot({type:"png",timeout:15000}),nextHash=createHash("sha256").update(next).digest("hex");
-     png=next;if(nextHash===hash){settled=true;break;}hash=nextHash;
-    }
-    if(!settled)throw new SitesDomCaptureError();
-   }
    capturedPng=png;capturedKey=key;return capturedPng;
   };
   return {renderPng:async time=>{try{return await sharp(await capture(time)).toColourspace("srgb").withIccProfile("srgb").png().toBuffer();}catch{throw new SitesDomCaptureError();}},renderRgba:async time=>{try{const png=await capture(time);if(capturedRgba&&rgbaKey===capturedKey)return capturedRgba;capturedRgba=await sharp(png).ensureAlpha().raw().toBuffer();rgbaKey=capturedKey;return capturedRgba;}catch{throw new SitesDomCaptureError();}},close:async()=>{clearTimeout(deadline);signal?.removeEventListener("abort",onAbort);await close();}};

@@ -37,6 +37,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          # The action already installs command-line tools; "tools" is retired.
+          packages: platform-tools
 
       - name: Install pinned Android SDK components
         run: sdkmanager "platform-tools" "platforms;android-37.1" "build-tools;36.0.0"

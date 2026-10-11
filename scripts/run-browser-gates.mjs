@@ -27,27 +27,40 @@ if (!selected.length || selected.some(group => !Object.hasOwn(groups, group))) {
 }
 const results = process.env.PLAYWRIGHT_GATE_OUTPUT ?? join(process.env.RUNNER_TEMP ?? "/tmp", "veyocast-browser-gates");
 for (const group of selected) {
-  const output = join(results, group);
-  mkdirSync(output, { recursive: true });
-  process.stdout.write(`Browser gate: ${group}; ${groups[group].length} spec files.\n`);
-  const result = spawnSync("pnpm", ["exec", "playwright", "test", ...groups[group], "--project=chromium", "--workers=1", "--timeout=60000", `--output=${output}`], {
-    stdio: "inherit",
-    env: {
-      ...process.env,
-      PLAYWRIGHT_APPS: group === "cross" ? "control,marketing,player" : group,
-      // Production Player/Marketing tests exercise the built artifacts. Control's
-      // intentional no-database fixture remains development-only; authenticated
-      // production Control is covered separately with real disposable Supabase.
-      PLAYWRIGHT_PRODUCTION_SERVERS: group === "player" || group === "marketing" ? "1" : "0",
-      // Keep the guarded development fixture, using one bounded compiler for
-      // the route matrix. Production builds and authenticated database gates
-      // still exercise the production artifact and actual permissions.
-      PLAYWRIGHT_TURBOPACK: group === "control" || group === "cross" ? "1" : "0",
-      // The complete Control route gate repeatedly compiles authenticated and
-      // guarded no-database routes. Give its single compiler enough heap to
-      // avoid Next's automatic restarts interrupting an active navigation.
-      NODE_OPTIONS: process.env.NODE_OPTIONS ?? (group === "control" ? "--max-old-space-size=3072" : "--max-old-space-size=2048")
-    }
-  });
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  // The full Player gate includes native media decoders across 47 specs. Bound
+  // each browser process lifetime instead of retrying or skipping a crashed
+  // test. Each fresh process still executes every selected assertion once.
+  const batchSize = group === "player" ? 12 : groups[group].length;
+  const batches = [];
+  for (let offset = 0; offset < groups[group].length; offset += batchSize) {
+    batches.push(groups[group].slice(offset, offset + batchSize));
+  }
+  if (JSON.stringify(batches.flat()) !== JSON.stringify(groups[group])) {
+    throw new Error("Browser batches must preserve every discovered spec in order.");
+  }
+  for (const [batchIndex, batch] of batches.entries()) {
+    const output = join(results, group, `batch-${batchIndex + 1}`);
+    mkdirSync(output, { recursive: true });
+    process.stdout.write(`Browser gate: ${group}; batch ${batchIndex + 1}/${batches.length}; ${batch.length} spec files.\n`);
+    const result = spawnSync("pnpm", ["exec", "playwright", "test", ...batch, "--project=chromium", "--workers=1", "--timeout=60000", `--output=${output}`], {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        PLAYWRIGHT_APPS: group === "cross" ? "control,marketing,player" : group,
+        // Production Player/Marketing tests exercise the built artifacts. Control's
+        // intentional no-database fixture remains development-only; authenticated
+        // production Control is covered separately with real disposable Supabase.
+        PLAYWRIGHT_PRODUCTION_SERVERS: group === "player" || group === "marketing" ? "1" : "0",
+        // Keep the guarded development fixture, using one bounded compiler for
+        // the route matrix. Production builds and authenticated database gates
+        // still exercise the production artifact and actual permissions.
+        PLAYWRIGHT_TURBOPACK: group === "control" || group === "cross" ? "1" : "0",
+        // The complete Control route gate repeatedly compiles authenticated and
+        // guarded no-database routes. Give its single compiler enough heap to
+        // avoid Next's automatic restarts interrupting an active navigation.
+        NODE_OPTIONS: process.env.NODE_OPTIONS ?? (group === "control" ? "--max-old-space-size=3072" : "--max-old-space-size=2048")
+      }
+    });
+    if (result.status !== 0) process.exit(result.status ?? 1);
+  }
 }

@@ -17,6 +17,14 @@ Root beheert de beperkte `.gitattributes`-uitzondering voor de immutable Source-
 en handoffbestanden, zodat Git de oorspronkelijke bytechecksums niet door
 regelafbrekingsnormalisatie verandert. Deze uitbreiding is vóór wijziging
 expliciet gerapporteerd.
+De CI-herstelronde omvat tevens de bestaande Android-workflows en hun centrale
+validator, plus `packages/testkit/**` en `turbo.json` voor correcte, niet-gecachete
+controles van runtime- en type-importgrenzen. Beide uitbreidingen zijn vóór
+wijziging expliciet gerapporteerd.
+De verse browsergates omvatten ook de feitelijke mobiele navigatiecontrastregel
+en de semantiek van canvas-body landmarks, plus bestaande netwerk-/status-
+regressietests. De rendergate onderzoekt Source- en worker-rasterstabilisatie
+met behoud van nul pixeltolerantie. Sourcebestanden blijven byte-ongewijzigd.
 Subagents krijgen expliciete, onderling exclusieve bestandsverdelingen.
 Migrations zijn uitsluitend forward-only in nieuwe S191-bestanden.
 Serviceworkers en gegenereerde types hebben één aangewezen eigenaar.

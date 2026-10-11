@@ -3010,7 +3010,8 @@ html[data-design-system="fieldflow"] .vc-badge--neutral{color:var(--vc-text)}
    with existing semantic text roles for both active and inactive labels. */
 .sites-control .vx-bottomnav a,
 .sites-control .vx-bottomnav button { color: var(--ff-ink-muted); }
-.sites-control .vx-bottomnav .active { color: var(--ff-petrol); }
+.sites-control .vx-bottomnav a.active,
+.sites-control .vx-bottomnav button.active { color: var(--ff-petrol); }
 /* The original globals cascade follows component CSS. Keep its full font
    family and heading tracking in these Source authoring surfaces. */
 html[data-design-system="fieldflow"] .sites-control {

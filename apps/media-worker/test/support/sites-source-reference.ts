@@ -4,6 +4,7 @@ import {readFile} from "node:fs/promises";
 import {dirname,join,resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {chromium,type Browser} from "playwright-core";
+import {captureSettledSitesRaster} from "../../src/sites-dom-capture";
 import manifest from "../../../../packages/content-templates/src/sites-system-assets.json";
 interface BundleFile {path:string;text:string}
 interface SourcePlugin {name:string;setup(build:{onLoad(options:{filter:RegExp},callback:(args:{path:string})=>Promise<{contents:string;loader:"tsx"}>):void}):void}
@@ -33,10 +34,11 @@ export async function createSitesSourceReference(sourceDirectory:string,executab
    await page.setContent(kind==="static"?String(props).replaceAll("http://sites-render.invalid",origin):`<!doctype html><html lang="nl" data-design-system="fieldflow"><head><base href="${origin}/"><style>${css}</style><style>html,body,#root{margin:0;width:${width}px;height:${height}px;overflow:hidden}#root{container-type:inline-size}${frameCss}</style></head><body><div id="root"></div><script>${script.replace(/<\/script/gi,"<\\/script")};renderSource('${kind}',${json});</script></body></html>`,{waitUntil:"load",timeout:15000});
    await page.waitForFunction(()=>globalThis.document.querySelector("#root,#sites-capture")!.childElementCount>0,{timeout:10000});
    await page.evaluate(async()=>{await globalThis.document.fonts.ready;await Promise.all(Array.from(globalThis.document.images).map(image=>image.decode()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
-   await page.waitForTimeout(1200);await page.evaluate(()=>globalThis.document.getAnimations().forEach(animation=>{animation.pause();animation.currentTime=1200;}));
+   await page.evaluate(()=>globalThis.document.getAnimations().forEach(animation=>{animation.pause();animation.currentTime=1200;}));
+   const png=await captureSettledSitesRaster(page);
    if(errors.length)throw Error(`Reference failed: ${errors.join(",")}`);
    if(onMeasure)onMeasure(await page.evaluate(()=>Array.from(globalThis.document.querySelectorAll("h2,p,span,strong,small,[data-fit-content]")).map(node=>{const style=getComputedStyle(node);return {tag:node.tagName,className:node.className,font:style.fontFamily,size:style.fontSize,weight:style.fontWeight,variation:style.fontVariationSettings,fit:style.getPropertyValue("--led-auto-fit"),letterSpacing:style.letterSpacing,width:node.clientWidth,height:node.clientHeight,transform:style.transform,bounds:node.getBoundingClientRect().toJSON(),smoothing:style.getPropertyValue("-webkit-font-smoothing"),rendering:style.textRendering};})));
-   return await page.screenshot({type:"png"});
+   return png;
   }finally{await page.close();}
  }};
 }

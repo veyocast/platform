@@ -96,7 +96,13 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   ).toBeVisible();
   const twelveCard = page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) });
   await expect(twelveCard.getByRole("link", { name: "Koppeling bekijken" })).toBeVisible();
-  await expect(twelveCard.getByText("0 opgeslagen koppelingen")).toBeVisible();
+  await twelveCard.getByRole("button", { name: "Twelve statusdetails, 0 opgeslagen koppelingen", exact: true }).click();
+  const twelveStatus = page.getByRole("dialog", { name: "Twelve statusdetails", exact: true });
+  await expect(twelveStatus.getByText("0 opgeslagen koppelingen", { exact: true })).toBeVisible();
+  await expect(twelveStatus.getByText("Nog niet ingesteld", { exact: true })).toBeVisible();
+  await expect(twelveStatus.getByText("Er is nog geen bron gekoppeld.", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(twelveStatus).not.toBeVisible();
   await follow(
     page,
     () => twelveCard.getByRole("link", { name: "Koppeling bekijken" }),

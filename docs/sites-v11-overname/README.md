@@ -81,3 +81,15 @@ browserpariteit, echte serveropslag, stagingreadbacks en fysieke hardware zijn
 afzonderlijke bewijzen. Ontbrekende fysieke apparaten of externe providers
 worden als concrete blokkade vermeld. Ze worden niet afgeleid uit een build,
 heartbeat of geslaagde lokale screenshot.
+
+De verse CI-herstelronde corrigeert de Studio-dependencyregel en maakt
+repositorybrede grenscontroles expliciet ongecached. Een TypeScript-AST
+onderscheidt gewiste type-imports van werkelijk bereikbare servercode;
+veertien negatieve en positieve regressiegevallen bewaken die grens.
+Android-SDK-bootstrap gebruikt expliciet het ondersteunde platform-tools-
+pakket; de centrale validator weigert ontbrekende en verouderde instellingen.
+Mobiele navigatie behoudt het toegankelijke kleurentoken en canvasvoorbeelden
+voegen geen tweede paginalandmark toe. Bron en worker accepteren een nieuwe
+beeldpagina pas na een verstreken, exact gelijke rasterperiode; latere
+videoframes houden hun eigen tijdlijn. De gehele oorspronkelijke CI-caseset
+blijft verplicht, inclusief nul pixeltolerantie.

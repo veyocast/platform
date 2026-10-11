@@ -46,6 +46,8 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {
       new RegExp(`${pathname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
     );
     await expect(page.locator("#control-content")).toBeVisible();
+    // Broadcast previews are images inside the workspace, not page landmarks.
+    await expect(page.getByRole("main")).toHaveCount(1);
     await expect(
       page.getByRole("main").getByRole("heading", { level: 1 }).first()
     ).toBeVisible();
