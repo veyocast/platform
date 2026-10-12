@@ -13,6 +13,14 @@ const MAX_BODY = 65_536;
 const ENDPOINT_QUERY_KEYS = new Set(["host", "hostaddr", "port", "user", "dbname", "database", "service", "servicefile", "reference"]);
 const ENDPOINT_ENV_KEYS = ["PGHOST", "PGHOSTADDR", "PGPORT", "PGUSER", "PGDATABASE", "PGSERVICE", "PGSERVICEFILE"];
 const PG_CODES = new Set(["08001", "08006", "28P01", "28000", "42501", "57014", "53300", "57P01", "57P02", "57P03", "3D000", "42P01"]);
+// CLI 2.109.1 interpolates SqlError.toString(), which retains the reviewed
+// reason message but erases its driver cause. Exact matches identify that
+// client stage only; they cannot establish a network, TLS or server cause.
+const CLI_CONNECT_FAILURES = new Map([
+  ["failed to connect to postgres: SqlError: PgClient: Failed to connect", "SQL_CLIENT_CONNECT_FAILED"],
+  ["failed to connect to postgres: SqlError: PgClient: Connection timed out", "SQL_CLIENT_DEADLINE"],
+  ["failed to connect to postgres: SqlError: Failed to acquire connection", "SQL_POOL_ACQUIRE_FAILED"]
+]);
 class ProbeFault extends Error { constructor(code) { super(code); this.code = code; } }
 const elapsed = (start) => Math.max(0, Math.round(performance.now() - start));
 const unsafeCharacters = (value) => [...value].some((character) => character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127);
@@ -145,11 +153,13 @@ function sqlResult(result) {
   if (result.timedOut) return { status: "failed", code: "SQL_TIMEOUT" };
   let data;
   try { data = JSON.parse(result.stdout); } catch { return { status: "failed", code: "SQL_OUTPUT_INVALID" }; }
-  // Only explicitly named failure fields are reviewed. Never scan messages,
-  // causes, arbitrary nested objects or stderr for PostgreSQL-looking strings.
+  // SQLSTATEs come only from explicitly named fields. The exact reviewed CLI
+  // messages below produce fixed stage categories, never any message text.
+  // Never scan causes, arbitrary nested objects or stderr for SQLSTATEs.
   if (data?.error?.code === "LegacyDbConnectError" || data?.error?.code === "LegacyDbQueryExecError") {
     const databaseCode = reviewedDatabaseCode(data.error.databaseCode) ?? reviewedDatabaseCode(data.error.sqlState);
     return { status: "failed", code: data.error.code === "LegacyDbConnectError" ? "SQL_CONNECT_FAILED" : "SQL_QUERY_FAILED",
+      ...(data.error.code === "LegacyDbConnectError" ? { cliFailureCategory: CLI_CONNECT_FAILURES.get(data.error.message) ?? "UNKNOWN" } : {}),
       ...(databaseCode ? { databaseCode } : {}) };
   }
   if (!result.ok) return { status: "failed", code: "SQL_EXEC_FAILED" };
@@ -161,7 +171,7 @@ function sqlResult(result) {
 /** Injected adapters support synthetic tests; they do not prove a live CLI. */
 export async function probeRuntimeDatabase({ environment = process.env, targetEnvironment, expectedRuntimeSha, tenantId }, {
   fetchImpl = globalThis.fetch, executeSql = createSqlAdapter(), now = () => new Date(),
-  healthDeadlineMs = 5_000, sqlDeadlineMs = 52_000, restDeadlineMs = 10_000
+  healthDeadlineMs = 5_000, gatewayDeadlineMs = 5_000, sqlDeadlineMs = 52_000, restDeadlineMs = 10_000
 } = {}) {
   const started = performance.now();
   let scope;
@@ -175,7 +185,7 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
       || !/^[0-9a-f]{40}$/.test(expectedRuntimeSha ?? "") || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(tenantId ?? "")
       || !/^[a-z0-9]{20}$/.test(environment.SUPABASE_PROJECT_REF ?? "")
       || environment.NEXT_PUBLIC_SUPABASE_URL !== `https://${environment.SUPABASE_PROJECT_REF}.supabase.co/` && environment.NEXT_PUBLIC_SUPABASE_URL !== `https://${environment.SUPABASE_PROJECT_REF}.supabase.co`
-      || ![[healthDeadlineMs, 5_000], [sqlDeadlineMs, 52_000], [restDeadlineMs, 10_000]].every(([value, max]) => Number.isInteger(value) && value > 0 && value <= max)) {
+      || ![[healthDeadlineMs, 5_000], [gatewayDeadlineMs, 5_000], [sqlDeadlineMs, 52_000], [restDeadlineMs, 10_000]].every(([value, max]) => Number.isInteger(value) && value > 0 && value <= max)) {
       return report("SCOPE_INVALID", {}, 2);
     }
     scope = { environment: targetEnvironment, runtimeSha: expectedRuntimeSha, tenantId };
@@ -207,6 +217,27 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
     } catch { return report("SECRET_CONFIG_INVALID", { health }, 2); }
     const budget = { normalSeconds: config.normalBudgetSeconds, normalSource: config.normalBudgetSource,
       diagnosticSeconds: 45, overridden: config.budgetOverridden, processDeadlineMs: 52_000 };
+    // A gateway response (including HTTP 401) proves neither authentication
+    // nor a database read. Never send credentials, read its body, or let a
+    // failed gateway check prevent the independent SQL and REST attempts.
+    const gatewayStart = performance.now();
+    let gatewayHttpStatus = null, gateway;
+    try {
+      await bounded(async (signal) => {
+        const response = await fetchImpl(`https://${environment.SUPABASE_PROJECT_REF}.supabase.co/rest/v1/`, {
+          method: "GET", redirect: "error", signal
+        });
+        gatewayHttpStatus = Number.isInteger(response.status) && response.status >= 100 && response.status <= 599 ? response.status : null;
+        await response.body?.cancel().catch(() => {});
+        if (gatewayHttpStatus === null) throw new ProbeFault("REST_GATEWAY_READ_FAILED");
+      }, gatewayDeadlineMs, "REST_GATEWAY_TIMEOUT");
+      gateway = { status: "responded" };
+    } catch (error) {
+      gateway = { status: "failed", code: error instanceof ProbeFault && error.code === "REST_GATEWAY_TIMEOUT"
+        ? "REST_GATEWAY_TIMEOUT" : "REST_GATEWAY_READ_FAILED" };
+    }
+    gateway.httpStatus = gatewayHttpStatus;
+    gateway.elapsedMs = elapsed(gatewayStart);
     const sqlStart = performance.now();
     let sql;
     try { sql = sqlResult(await bounded((signal) => executeSql({ databaseUrl: config.databaseUrl, sql: tenantReadSql(tenantId), signal }), sqlDeadlineMs, "SQL_TIMEOUT")); }
@@ -238,7 +269,7 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
     rest.httpStatus = httpStatus;
     rest.elapsedMs = elapsed(restStart);
     const ready = sql.status === "passed" && rest.status === "passed";
-    return report(ready ? "DATABASE_READY" : "DATABASE_READ_UNPROVEN", { health, budget, sql, rest }, ready ? 0 : 1);
+    return report(ready ? "DATABASE_READY" : "DATABASE_READ_UNPROVEN", { health, budget, gateway, sql, rest }, ready ? 0 : 1);
   } catch { return report("PROBE_FAILED"); }
 }
 

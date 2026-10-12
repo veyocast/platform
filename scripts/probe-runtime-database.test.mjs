@@ -21,6 +21,7 @@ const sqlPass = async () => ({ ok: true, stdout: '[{"database_ready":1,"tenant_a
 function fixtureFetch(rest = [{ id: tenant, status: "active" }], status = 200, capture = []) {
   return async (url, options) => {
     capture.push({ url, options });
+    if (url.endsWith("/rest/v1/")) return new globalThis.Response("RAW_PRIVATE_ERROR", { status: 401 });
     if (url.includes(".supabase.co/")) return globalThis.Response.json(rest, { status });
     const service = url.includes("//control.") || url.includes("//staging-control.") ? "control" : "player";
     return globalThis.Response.json({ service, status: "ok", environment: url.includes("staging-") ? "staging" : "production", revision: sha });
@@ -36,10 +37,13 @@ test("synthetic scoped SQL and REST both pass; only fixed scope/results emitted"
   const result = await probeRuntimeDatabase(input(), { fetchImpl: fixtureFetch(undefined, 200, capture), executeSql: async (arg) => { request = arg; return sqlPass(); } });
   assert.equal(result.exitCode, 0); assert.equal(result.report.verdict, "DATABASE_READY");
   assert.equal(request.sql, tenantReadSql(tenant)); assert.equal(request.databaseUrl, uri + "&connect_timeout=45");
-  assert.equal(capture.length, 3); assert.equal(capture[0].options.headers, undefined); assert.equal(capture[1].options.headers, undefined);
-  assert.equal(capture[2].url, `https://${project}.supabase.co/rest/v1/tenants?select=id,status&id=eq.${tenant}&limit=1`);
-  assert.deepEqual(capture[2].options.headers, { apikey: secret, Authorization: `Bearer ${secret}` });
-  assert.equal(capture[2].options.redirect, "error"); privateOutput(result);
+  assert.equal(capture.length, 4); assert.equal(capture[0].options.headers, undefined); assert.equal(capture[1].options.headers, undefined);
+  assert.equal(capture[2].url, `https://${project}.supabase.co/rest/v1/`);
+  assert.equal(capture[2].options.headers, undefined); assert.equal(capture[2].options.method, "GET"); assert.equal(capture[2].options.redirect, "error");
+  assert.equal(result.report.gateway.status, "responded"); assert.equal(result.report.gateway.httpStatus, 401);
+  assert.equal(capture[3].url, `https://${project}.supabase.co/rest/v1/tenants?select=id,status&id=eq.${tenant}&limit=1`);
+  assert.deepEqual(capture[3].options.headers, { apikey: secret, Authorization: `Bearer ${secret}` });
+  assert.equal(capture[3].options.redirect, "error"); privateOutput(result);
 });
 
 test("diagnostic overrides only connect_timeout bytes; preserves TLS/credentials/options/query order", () => {
@@ -85,7 +89,7 @@ test("SQL connection and query failures still perform exactly one REST read and 
   for (const [failure, expected] of [["LegacyDbConnectError", "SQL_CONNECT_FAILED"], ["LegacyDbQueryExecError", "SQL_QUERY_FAILED"]]) {
     const capture = [];
     const result = await probeRuntimeDatabase(input(), { fetchImpl: fixtureFetch(undefined, 200, capture), executeSql: async () => ({ ok: false, stdout: JSON.stringify({ error: { code: failure, databaseCode: "57014", message: secret, cause: { code: "28P01", detail: "RAW_PRIVATE_ERROR" } } }) }) });
-    assert.equal(result.exitCode, 1); assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(result.report.sql.code, expected); assert.equal(result.report.sql.databaseCode, "57014"); assert.equal(result.report.rest.status, "passed"); assert.equal(capture.length, 3); privateOutput(result);
+    assert.equal(result.exitCode, 1); assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(result.report.sql.code, expected); assert.equal(result.report.sql.databaseCode, "57014"); assert.equal(result.report.rest.status, "passed"); assert.equal(capture.length, 4); privateOutput(result);
   }
 });
 
@@ -120,16 +124,90 @@ test("oversized child stdout and streamed REST response are independently reject
 test("SQL adapter deadline aborts unresolved operation and still isolates REST once", async () => {
   let aborted = false; const capture = [];
   const result = await probeRuntimeDatabase(input(), { sqlDeadlineMs: 10, fetchImpl: fixtureFetch(undefined, 200, capture), executeSql: ({ signal }) => { signal.addEventListener("abort", () => { aborted = true; }); return new Promise(() => {}); } });
-  assert.equal(result.report.sql.code, "SQL_TIMEOUT"); assert.equal(aborted, true); assert.equal(capture.length, 3); assert.equal(result.report.rest.status, "passed");
+  assert.equal(result.report.sql.code, "SQL_TIMEOUT"); assert.equal(aborted, true); assert.equal(capture.length, 4); assert.equal(result.report.rest.status, "passed");
 });
 
 test("REST deadline aborts request after successful SQL and preserves UNPROVEN verdict", async () => {
   let aborted = false; const native = fixtureFetch();
   const result = await probeRuntimeDatabase(input(), { executeSql: sqlPass, restDeadlineMs: 10, fetchImpl: (url, opts) => {
-    if (!url.includes(".supabase.co/")) return native(url, opts);
+    if (!url.includes("/rest/v1/tenants?")) return native(url, opts);
     opts.signal.addEventListener("abort", () => { aborted = true; }); return new Promise(() => {});
   } });
   assert.equal(result.report.rest.code, "REST_TIMEOUT"); assert.equal(aborted, true); assert.equal(result.exitCode, 1);
+});
+
+test("gateway body is canceled without reading and 401 is only transport evidence", async () => {
+  const native = fixtureFetch(); const order = []; let canceled = false;
+  const result = await probeRuntimeDatabase(input(), {
+    fetchImpl: async (url, options) => {
+      if (!url.endsWith("/rest/v1/")) { order.push(url.includes(".supabase.co/") ? "rest" : "health"); return native(url, options); }
+      order.push("gateway"); assert.equal(options.headers, undefined); assert.equal(options.redirect, "error");
+      return { status: 401, body: { cancel: async () => { canceled = true; } },
+        json: () => { throw new Error("RAW_PRIVATE_ERROR"); }, text: () => { throw new Error(secret); } };
+    },
+    executeSql: async () => { order.push("sql"); return { ok: false, stdout: JSON.stringify({ error: { code: "LegacyDbConnectError", message: secret } }) }; }
+  });
+  assert.equal(canceled, true); assert.deepEqual(order, ["health", "health", "gateway", "sql", "rest"]);
+  assert.equal(result.report.gateway.status, "responded"); assert.equal(result.report.gateway.httpStatus, 401);
+  assert.equal(result.report.rest.status, "passed"); assert.equal(result.report.verdict, "UNPROVEN"); privateOutput(result);
+});
+
+test("gateway timeout or failure never suppresses independent SQL and authenticated REST", async () => {
+  for (const failure of ["timeout", "error"]) {
+    const native = fixtureFetch(); let sqlCalls = 0, restCalls = 0, aborted = false;
+    const result = await probeRuntimeDatabase(input(), { gatewayDeadlineMs: 10,
+      fetchImpl: (url, options) => {
+        if (url.endsWith("/rest/v1/")) {
+          if (failure === "error") throw new Error("RAW_PRIVATE_ERROR " + uri + " " + secret);
+          options.signal.addEventListener("abort", () => { aborted = true; }); return new Promise(() => {});
+        }
+        if (url.includes("/rest/v1/tenants?")) restCalls++;
+        return native(url, options);
+      }, executeSql: () => { sqlCalls++; return sqlPass(); }
+    });
+    assert.equal(result.report.gateway.code, failure === "timeout" ? "REST_GATEWAY_TIMEOUT" : "REST_GATEWAY_READ_FAILED");
+    assert.equal(result.report.gateway.httpStatus, null); assert.equal(sqlCalls, 1); assert.equal(restCalls, 1);
+    assert.equal(result.report.verdict, "DATABASE_READY"); assert.equal(result.exitCode, 0);
+    assert.equal(aborted, failure === "timeout"); privateOutput(result);
+  }
+});
+
+test("gateway response with both database reads failed cannot prove readiness", async () => {
+  const result = await probeRuntimeDatabase(input(), { fetchImpl: fixtureFetch({ message: secret }, 503),
+    executeSql: async () => ({ ok: false, stdout: JSON.stringify({ error: { code: "LegacyDbConnectError" } }) }) });
+  assert.equal(result.report.gateway.status, "responded"); assert.equal(result.report.gateway.httpStatus, 401);
+  assert.equal(result.report.sql.status, "failed"); assert.equal(result.report.rest.status, "failed");
+  assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(result.exitCode, 1); privateOutput(result);
+});
+
+test("gateway hard deadline cannot be enlarged and public scope failure sends no gateway request", async () => {
+  let calls = 0;
+  const invalid = await probeRuntimeDatabase(input(), { gatewayDeadlineMs: 5_001,
+    fetchImpl: () => { calls++; throw new Error(secret); }, executeSql: () => { calls++; throw new Error(secret); } });
+  assert.equal(invalid.report.code, "SCOPE_INVALID"); assert.equal(calls, 0);
+  const scoped = await probeRuntimeDatabase(input(), { fetchImpl: async (url) => {
+    calls++; assert.equal(url.includes(".supabase.co/"), false);
+    return globalThis.Response.json({ environment: "production", revision: "b".repeat(40), service: "control", status: "ok" });
+  }, executeSql: () => { throw new Error(secret); } });
+  assert.equal(scoped.report.code, "PUBLIC_HEALTH_SCOPE_MISMATCH"); assert.equal(calls, 1); privateOutput(scoped);
+});
+
+test("only complete known CLI connect messages receive fixed client-stage categories", async () => {
+  const known = [
+    ["failed to connect to postgres: SqlError: PgClient: Failed to connect", "SQL_CLIENT_CONNECT_FAILED"],
+    ["failed to connect to postgres: SqlError: PgClient: Connection timed out", "SQL_CLIENT_DEADLINE"],
+    ["failed to connect to postgres: SqlError: Failed to acquire connection", "SQL_POOL_ACQUIRE_FAILED"]
+  ];
+  for (const [message, expected] of [...known, ...known.map(([message]) => [message + " " + secret, "UNKNOWN"]),
+    ["failed to connect to postgres: " + uri, "UNKNOWN"], ["57014 " + secret, "UNKNOWN"]]) {
+    const result = await probeRuntimeDatabase(input(), { fetchImpl: fixtureFetch(), executeSql: async () => ({ ok: false,
+      stdout: JSON.stringify({ error: { code: "LegacyDbConnectError", message, cause: { code: "28P01", message: secret } } }) }) });
+    assert.equal(result.report.sql.code, "SQL_CONNECT_FAILED"); assert.equal(result.report.sql.cliFailureCategory, expected);
+    assert.equal(result.report.sql.databaseCode, undefined); assert.equal(result.report.rest.status, "passed"); privateOutput(result);
+  }
+  const queryFailure = await probeRuntimeDatabase(input(), { fetchImpl: fixtureFetch(), executeSql: async () => ({ ok: false,
+    stdout: JSON.stringify({ error: { code: "LegacyDbQueryExecError", message: known[0][0] } }) }) });
+  assert.equal(queryFailure.report.sql.code, "SQL_QUERY_FAILED"); assert.equal(queryFailure.report.sql.cliFailureCategory, undefined);
 });
 
 test("native spawn adapter supplies exact pinned CLI flags/stdin and abort kills owned group", async () => {
