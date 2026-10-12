@@ -480,6 +480,14 @@ function MotionMedia({
     const startSeconds = startMs / 1_000;
     const endSeconds = endMs === null ? null : endMs / 1_000;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let active = true;
+    let frame: number | null = null;
+    const stopFragmentGuard = () => {
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      frame = null;
+    };
+    const canGuardFragment = () => active && endSeconds !== null && autoPlay &&
+      !document.hidden && !reducedMotion.matches && !video.paused && !video.ended;
     const seekToStart = () => {
       if (Number.isFinite(video.duration)) {
         video.currentTime = Math.min(startSeconds, Math.max(0, video.duration - 0.01));
@@ -487,10 +495,11 @@ function MotionMedia({
     };
     const syncPlayback = () => {
       if (document.hidden || reducedMotion.matches || !autoPlay) {
+        stopFragmentGuard();
         video.pause();
         return;
       }
-      void video.play().catch(() => undefined);
+      void video.play().then(startFragmentGuard).catch(() => undefined);
     };
     const handleTimeUpdate = () => {
       if (endSeconds === null || video.currentTime < endSeconds) return;
@@ -507,19 +516,38 @@ function MotionMedia({
       seekToStart();
       syncPlayback();
     };
+    // Periodic timeupdate can arrive 250 ms apart. Check a playing, visible
+    // fragment on each render frame as well, retaining the media events.
+    function guardFragmentEnd() {
+      frame = null;
+      if (!canGuardFragment()) return;
+      handleTimeUpdate();
+      startFragmentGuard();
+    }
+    function startFragmentGuard() {
+      if (frame === null && canGuardFragment()) {
+        frame = window.requestAnimationFrame(guardFragmentEnd);
+      }
+    }
     const handleReducedMotion = () => syncPlayback();
     const handleVisibility = () => syncPlayback();
 
     video.addEventListener("loadedmetadata", seekToStart);
     video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("playing", startFragmentGuard);
+    video.addEventListener("pause", stopFragmentGuard);
     video.addEventListener("ended", handleEnded);
     document.addEventListener("visibilitychange", handleVisibility);
     reducedMotion.addEventListener("change", handleReducedMotion);
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) seekToStart();
     syncPlayback();
     return () => {
+      active = false;
+      stopFragmentGuard();
       video.removeEventListener("loadedmetadata", seekToStart);
       video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("playing", startFragmentGuard);
+      video.removeEventListener("pause", stopFragmentGuard);
       video.removeEventListener("ended", handleEnded);
       document.removeEventListener("visibilitychange", handleVisibility);
       reducedMotion.removeEventListener("change", handleReducedMotion);
