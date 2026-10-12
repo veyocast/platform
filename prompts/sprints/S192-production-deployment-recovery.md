@@ -17,7 +17,9 @@ immutable image-ID. Stop uitsluitend die draaiende worker tijdelijk vóór de
 normale migratiecontrole. Arm herstel vóór stop; herstel bij ERR, EXIT, INT en
 TERM. Herstel vóór runtime-mutation exact dezelfde container; gebruik daarna
 de bestaande applicatierollback. Bewaar de vorige configuratie wanneer herstel
-faalt. Healthchecks moeten fouten expliciet doorgeven, ook wanneer Bash-errexit
+faalt. Bewaar en herstel alle vier runtimebestanden ook bij gedeeltelijke
+statuscommit; verdere INT/TERM mogen lopend herstel niet afbreken. Healthchecks
+moeten fouten expliciet doorgeven, ook wanneer Bash-errexit
 door een conditionele functieaanroep uitgeschakeld is.
 
 Begrensde transportdiagnostiek mag DNS/TCP/PostgreSQL-SSLRequest/TLS controleren,

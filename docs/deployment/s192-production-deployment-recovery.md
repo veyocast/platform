@@ -28,9 +28,14 @@ historyguards. Control en Player blijven beschikbaar; lokale offlineplayback
 wordt niet gewijzigd.
 
 EXIT herstelt eerst en ruimt daarna tijdelijke bestanden op. ERR bewaart zijn
-foutcode; INT en TERM eindigen met 130 en 143. Bij een vroege fout wordt exact
+foutcode; INT en TERM eindigen met 130 en 143. Tijdens herstel worden verdere
+INT/TERM-signalen genegeerd; SIGKILL blijft buiten shellherstel. Bij een vroege
+fout wordt exact
 het oude container-ID herstart. Na runtime-mutation blijft de vorige
-image/configuratierollback leidend. Elke healthcheck geeft een fout expliciet
+image/configuratierollback leidend. Vóór mutation worden alle vier runtime-
+bestanden beveiligd bewaard: environment, huidige/vorige revision en manifest.
+Ook een gedeeltelijk gecommitteerde status wordt exact teruggezet voordat
+herstelstatus wordt gewist. Elke healthcheck geeft een fout expliciet
 door, zodat een latere succesvolle check een mislukte check niet kan verbergen.
 Mislukt herstel, dan blijft de beveiligde vorige runtimeconfiguratie behouden
 voor incidentherstel en eindigt de deployment met een fout.
@@ -47,7 +52,7 @@ daarom geen bewijs van production-LED/Sportlink-verversing. De live readbacks
 worden na de nieuwe deployment afzonderlijk vastgelegd, inclusief gewone
 automatische vijfminutencycli en stabiele configuratie-/release-ID's.
 
-Lokale gates: 33/33 gedragsmatige lifecycle-, migration-hook- en transporttests;
+Lokale gates: 45/45 gedragsmatige lifecycle-, migration-hook- en transporttests;
 workspace lint, typecheck en unit-tests elk 30/30; build 18/18. Shellsyntax,
 VPS/Compose-configuraties, rollbackcontract en GitHub Actions-validator slagen.
 De CI draait de nieuwe tests verplicht via de bestaande VPS-validator. Deze

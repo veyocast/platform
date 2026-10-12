@@ -14,6 +14,7 @@ recovery_failed=false
 candidate_env_file=""
 temporary_marketing_container=""
 previous_env_snapshot=""
+previous_state_directory=""
 rendered_compose_file=""
 rendered_worker_compose_file=""
 
@@ -75,6 +76,9 @@ cleanup() {
   fi
   if [[ ${recovery_failed} != true && -n ${previous_env_snapshot} && -f ${previous_env_snapshot} ]]; then
     rm -f -- "${previous_env_snapshot}"
+  fi
+  if [[ ${recovery_failed} != true && -n ${previous_state_directory} && -d ${previous_state_directory} ]]; then
+    rm -rf -- "${previous_state_directory}"
   fi
   if [[ -n ${rendered_compose_file} && -f ${rendered_compose_file} ]]; then
     rm -f -- "${rendered_compose_file}"
@@ -178,6 +182,9 @@ restore_previous_release() {
 
   local -a args=(docker compose -p "${compose_project}" --env-file "${previous_env_snapshot}" --file "${compose_file}")
   local -a worker_args=(docker compose -p "${WORKER_COMPOSE_PROJECT_NAME}" --env-file "${previous_env_snapshot}" --file "${worker_compose_file}")
+  # Workerreadiness moet de bewaarde oude configuratie gebruiken; de candidate
+  # kan tijdens een gedeeltelijke statuscommit al naar .env.runtime zijn verplaatst.
+  local -a WORKER_COMPOSE_ARGS=("${worker_args[@]}")
   if [[ ${environment} == production ]]; then
     args+=(--profile production)
   fi
@@ -208,9 +215,41 @@ restore_previous_release() {
   release_metadata=${saved_metadata}
   release_key_fingerprint=${saved_fingerprint}
   NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${saved_key}
+  if ! restore_runtime_state; then
+    echo "Herstel van de opgeslagen releasestatus faalde; de vorige configuratie blijft behouden." >&2
+    return 1
+  fi
   mutation_started=false
   quiesced_worker_id=""
   echo "De vorige applicatierelease is opnieuw gezond geactiveerd." >&2
+}
+
+snapshot_runtime_state() {
+  local name
+  previous_state_directory=$(mktemp -d "${runtime_directory}/.runtime-state.previous.XXXXXX") || return 1
+  for name in .env.runtime REVISION PREVIOUS_REVISION RELEASE_MANIFEST; do
+    if [[ -e ${runtime_directory}/${name} ]]; then
+      if [[ ! -f ${runtime_directory}/${name} || -L ${runtime_directory}/${name} ]]; then
+        echo "Runtimebestanden zijn ongeldig voor veilig deploymentherstel." >&2
+        return 1
+      fi
+      install -m 0600 "${runtime_directory}/${name}" "${previous_state_directory}/${name}" || return 1
+    fi
+  done
+}
+
+restore_runtime_state() {
+  [[ -n ${previous_state_directory} && -d ${previous_state_directory} ]] || return 1
+  local name temporary
+  for name in .env.runtime REVISION PREVIOUS_REVISION RELEASE_MANIFEST; do
+    if [[ -f ${previous_state_directory}/${name} ]]; then
+      temporary=$(mktemp "${runtime_directory}/.runtime-state.restore.XXXXXX") || return 1
+      install -m 0600 "${previous_state_directory}/${name}" "${temporary}" || return 1
+      mv -f -- "${temporary}" "${runtime_directory}/${name}" || return 1
+    else
+      rm -f -- "${runtime_directory}/${name}" || return 1
+    fi
+  done
 }
 
 quiesce_previous_worker() {
@@ -283,7 +322,9 @@ recover_interrupted_deployment() {
 
 on_exit() {
   local exit_code=$?
-  trap - ERR EXIT INT TERM
+  trap - ERR EXIT
+  # Een tweede normaal afbreeksignaal mag het lopende herstel niet onderbreken.
+  trap '' INT TERM
   if ! recover_interrupted_deployment; then
     recovery_failed=true
     echo "Automatisch herstel kon niet worden bevestigd; de vorige runtimeconfiguratie blijft behouden." >&2
@@ -830,6 +871,7 @@ deploy_release() {
   fi
   compose_arguments
   validate_compose
+  snapshot_runtime_state
 
   cd "${repository_root}"
   if [[ ${deployment_mode} == release ]]; then

@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -22,7 +24,8 @@ const functions = [...source.matchAll(/^([A-Za-z_][A-Za-z_0-9]*)\(\) \{[\s\S]*?^
 for (const name of [
   "cleanup", "restore_previous_release", "quiesce_previous_worker",
   "recover_interrupted_deployment", "on_exit", "on_error",
-  "verify_health_matrix", "deploy_release"
+  "verify_health_matrix", "deploy_release", "snapshot_runtime_state",
+  "restore_runtime_state", "write_state_file", "commit_release_state"
 ]) {
   assert.ok(functions.some((match) => match[1] === name), `Missing deployment function: ${name}`);
 }
@@ -30,12 +33,13 @@ const shellFunctions = functions.map((match) => match[0]).join("\n\n");
 const shellTraps = source.match(/^trap .+$/gm)?.join("\n");
 assert.ok(shellTraps, "Deployment traps must be present");
 const initialState = source.slice(0, source.indexOf("\ncase ")).split("\n")
-  .filter((line) => /^(mutation_started|quiesced_worker_id|recovery_failed|candidate_env_file|temporary_marketing_container|previous_env_snapshot|rendered_compose_file|rendered_worker_compose_file)=/.test(line))
+  .filter((line) => /^(mutation_started|quiesced_worker_id|recovery_failed|candidate_env_file|temporary_marketing_container|previous_env_snapshot|previous_state_directory|rendered_compose_file|rendered_worker_compose_file)=/.test(line))
   .join("\n");
 const oldSha = "a".repeat(40);
 const nextSha = "b".repeat(40);
 const workerId = "c".repeat(64);
 const oldImage = `sha256:${"d".repeat(64)}`;
+const runtimeFiles = [".env.runtime", "REVISION", "PREVIOUS_REVISION", "RELEASE_MANIFEST"];
 const fixtures = [];
 
 afterEach(() => {
@@ -72,6 +76,14 @@ test("an interrupted first stop is completed before starting the same draining w
   assert.ok(!run.trace.includes("start-noop-draining"));
 });
 
+test("a second TERM during recovery cannot interrupt restart and preserves the original143", () => {
+  const run = runDeployment("second-TERM");
+  assert.equal(run.result.status, 143);
+  assertRecovery(run);
+  assert.ok(run.trace.indexOf("second-TERM") < run.trace.indexOf(`start:${workerId}`));
+  assertRuntimeRestored(run);
+});
+
 test("apply failure uses the old immutable release rollback instead of early same-ID restart", () => {
   const run = runDeployment("apply-fail");
   assert.equal(run.result.status, 41);
@@ -94,6 +106,7 @@ test("successful deployment commits the new release and never restarts the old w
   assert.equal(run.trace.filter((event) => event.startsWith("stop:")).length, 1);
   assert.ok(!run.trace.some((event) => event.startsWith("start:")));
   assert.deepEqual(run.backups, []);
+  assert.deepEqual(run.stateBackups, []);
 });
 
 for (const scenario of ["restore-stop-fail", "restore-start-fail", "restore-inspect-fail"]) {
@@ -101,6 +114,7 @@ for (const scenario of ["restore-stop-fail", "restore-start-fail", "restore-insp
     const run = runDeployment(scenario);
     assert.equal(run.result.status, 41);
     assert.equal(run.backups.length, 1);
+    assertStateBackupRetained(run);
     assert.match(readFileSync(join(run.runtime, run.backups[0]), "utf8"), new RegExp(`DEPLOYMENT_SHA=${oldSha}`));
     assert.match(run.result.stderr, /herstel kon niet worden bevestigd/);
     assert.ok(!readdirSync(run.runtime).some((name) => name.startsWith(".env.runtime.candidate.")));
@@ -160,6 +174,49 @@ test("a missing running worker does not start or stop a previously inactive serv
   assert.equal(run.result.status, 0);
   assert.ok(run.trace.includes("migrate:apply"));
   assert.ok(!run.trace.some((event) => /^(stop:|start:)/.test(event)));
+});
+
+for (const file of runtimeFiles) {
+  for (const [interruption, exitCode] of [["error", 51], ["TERM", 143]]) {
+    test(`${interruption} after committing ${file} restores all four original runtime files`, () => {
+      const run = runDeployment(`commit-${interruption}:${file}`);
+      assert.equal(run.result.status, exitCode);
+      assert.ok(run.trace.includes(`commit-interrupted:${file}`));
+      assert.ok(run.trace.includes(`compose-up:apps:${oldSha}`));
+      assert.ok(run.trace.includes(`health:worker:${oldSha}`));
+      assert.ok(run.trace.some((event) => event.startsWith(`worker-readiness-env:${oldSha}:.env.runtime.previous.`)), "Rollback readiness must use the existing old environment snapshot");
+      assertRuntimeRestored(run);
+      assert.deepEqual(run.backups, []);
+      assert.deepEqual(run.stateBackups, []);
+    });
+  }
+}
+
+test("INT after committing the candidate environment restores runtime files with exit130", () => {
+  const run = runDeployment("commit-INT:.env.runtime");
+  assert.equal(run.result.status, 130);
+  assertRuntimeRestored(run);
+  assert.deepEqual(run.stateBackups, []);
+});
+
+test("rollback removes newly written state files that were absent before deployment", () => {
+  const run = runDeployment("commit-error:RELEASE_MANIFEST", "deploy_release", {
+    missingRuntimeFiles: ["PREVIOUS_REVISION", "RELEASE_MANIFEST"]
+  });
+  assert.equal(run.result.status, 51);
+  assertRuntimeRestored(run);
+  assert.deepEqual(run.stateBackups, []);
+});
+
+test("a runtime-state restoration write failure retains both protected backups", () => {
+  const run = runDeployment("state-restore-fail");
+  assert.equal(run.result.status, 51);
+  assert.ok(run.trace.includes("runtime-state-write-failed:REVISION"));
+  assert.equal(run.backups.length, 1);
+  assertStateBackupRetained(run);
+  assert.equal(readFileSync(join(run.runtime, "REVISION"), "utf8").trim(), nextSha);
+  assert.match(run.result.stderr, /Herstel van de opgeslagen releasestatus faalde/);
+  assert.match(run.result.stderr, /herstel kon niet worden bevestigd/);
 });
 
 test("migration-list failure runs one bounded diagnostic, preserves exit17 and never pushes", () => {
@@ -240,7 +297,7 @@ fi
   return { result, trace };
 }
 
-function runDeployment(scenario, entrypoint = "deploy_release") {
+function runDeployment(scenario, entrypoint = "deploy_release", { missingRuntimeFiles = [] } = {}) {
   const directory = mkdtempSync(join(tmpdir(), "veyocast-deployment-lifecycle-"));
   fixtures.push(directory);
   const runtime = join(directory, "runtime");
@@ -254,8 +311,16 @@ function runDeployment(scenario, entrypoint = "deploy_release") {
     }));
     writeFileSync(join(releases, sha, "SERVER_ACTIONS_KEY_FINGERPRINT"), "synthetic-fingerprint\n");
   }
-  writeFileSync(join(runtime, ".env.runtime"), `DEPLOYMENT_SHA=${oldSha}\nNEXT_SERVER_ACTIONS_ENCRYPTION_KEY=synthetic-old-key\n`, { mode: 0o600 });
-  writeFileSync(join(runtime, "REVISION"), `${oldSha}\n`);
+  const originalState = new Map([
+    [".env.runtime", `DEPLOYMENT_SHA=${oldSha}\nNEXT_SERVER_ACTIONS_ENCRYPTION_KEY=synthetic-old-key\n`],
+    ["REVISION", `${oldSha}\n`],
+    ["PREVIOUS_REVISION", `${"e".repeat(40)}\n`],
+    ["RELEASE_MANIFEST", `${JSON.stringify({ revision: oldSha, environment: "production", original: true })}\n`]
+  ]);
+  for (const [name, contents] of originalState) {
+    if (missingRuntimeFiles.includes(name)) originalState.set(name, undefined);
+    else writeFileSync(join(runtime, name), contents, { mode: 0o600 });
+  }
   writeFileSync(join(directory, "worker-state"), "running\n");
   writeFileSync(join(directory, "stop-count"), "0\n");
   writeFileSync(join(directory, "trace"), "");
@@ -286,7 +351,35 @@ function runDeployment(scenario, entrypoint = "deploy_release") {
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /synthetic-server-key|synthetic-device-token|synthetic-device-secret|synthetic-next-key|synthetic-old-key/);
   const trace = readFileSync(join(directory, "trace"), "utf8").trim().split("\n").filter(Boolean);
   assert.ok(!trace.some((event) => event.startsWith("unexpected:")), `Unexpected boundary invocation: ${trace.join("\n")}`);
-  return { directory, runtime, result, trace, backups: readdirSync(runtime).filter((name) => name.startsWith(".env.runtime.previous.")) };
+  const remaining = readdirSync(runtime);
+  return {
+    directory, runtime, result, trace, originalState,
+    backups: remaining.filter((name) => name.startsWith(".env.runtime.previous.")),
+    stateBackups: remaining.filter((name) => name.startsWith(".runtime-state.previous."))
+  };
+}
+
+function assertRuntimeRestored(run) {
+  for (const [name, contents] of run.originalState) {
+    const file = join(run.runtime, name);
+    if (contents === undefined) assert.ok(!existsSync(file), `${name} must retain its original absence`);
+    else {
+      assert.equal(readFileSync(file, "utf8"), contents, `${name} must be restored byte-for-byte`);
+      assert.equal(statSync(file).mode & 0o777, 0o600, `${name} must remain protected`);
+    }
+  }
+}
+
+function assertStateBackupRetained(run) {
+  assert.equal(run.stateBackups.length, 1);
+  const directory = join(run.runtime, run.stateBackups[0]);
+  assert.equal(statSync(directory).mode & 0o777, 0o700);
+  for (const [name, contents] of run.originalState) {
+    if (contents === undefined) continue;
+    const file = join(directory, name);
+    assert.equal(readFileSync(file, "utf8"), contents, `Retained ${name} must contain the original state`);
+    assert.equal(statSync(file).mode & 0o777, 0o600);
+  }
 }
 
 function assertRecovery(run) {
@@ -312,20 +405,51 @@ validate_compose() { record compose-validation; }
 cleanup_old_images() { record image-cleanup; }
 show_sanitized_logs() { record sanitized-logs; }
 rm() { record "cleanup:$*"; command rm "$@"; }
+mv() {
+  local destination=${"$"}{!#} name
+  name=${"$"}{destination##*/}
+  if [[ $SCENARIO == state-restore-fail && -e $TEST_DIRECTORY/commit-interrupted && $destination == "$runtime_directory/REVISION" ]]; then
+    record runtime-state-write-failed:REVISION
+    return 52
+  fi
+  command mv "$@" || return $?
+  [[ $destination == "$runtime_directory/$name" ]] || return 0
+  case "$name" in .env.runtime|REVISION|PREVIOUS_REVISION|RELEASE_MANIFEST) ;; *) return 0 ;; esac
+  [[ ! -e $TEST_DIRECTORY/commit-interrupted ]] || return 0
+  if [[ $SCENARIO == "commit-error:$name" || ( $SCENARIO == state-restore-fail && $name == .env.runtime ) ]]; then
+    printf 'yes\n' > "$TEST_DIRECTORY/commit-interrupted"
+    record "commit-interrupted:$name"
+    return 51
+  elif [[ $SCENARIO == "commit-TERM:$name" || $SCENARIO == "commit-INT:$name" ]]; then
+    printf 'yes\n' > "$TEST_DIRECTORY/commit-interrupted"
+    record "commit-interrupted:$name"
+    if [[ $SCENARIO == commit-TERM:* ]]; then kill -TERM "$$"; else kill -INT "$$"; fi
+  fi
+}
 check_health_url() {
   local locality=local
   [[ $2 != https://* ]] || locality=public
   record "health:$1:$locality:$DEPLOYMENT_SHA"
   if [[ $1 == control && ( $SCENARIO == matrix-control-fail || ( $SCENARIO == rollback-control-fail && $DEPLOYMENT_SHA == "$TEST_OLD_SHA" ) || ( $SCENARIO == candidate-health-fail && $DEPLOYMENT_SHA == "$TEST_NEXT_SHA" ) ) ]]; then return 49; fi
 }
-check_worker_readiness() { record "health:worker:$DEPLOYMENT_SHA"; }
+check_worker_readiness() {
+  record "health:worker:$DEPLOYMENT_SHA"
+  local argument env_file= prior=
+  for argument in "${"$"}{WORKER_COMPOSE_ARGS[@]}"; do
+    if [[ $prior == --env-file ]]; then env_file=$argument; break; fi
+    prior=$argument
+  done
+  [[ -n $env_file && -r $env_file ]] || { record worker-readiness-env-missing; return 64; }
+  [[ $(sed -n 's/^DEPLOYMENT_SHA=//p' "$env_file") == "$DEPLOYMENT_SHA" ]] || { record worker-readiness-env-wrong; return 65; }
+  record "worker-readiness-env:$DEPLOYMENT_SHA:${"$"}{env_file##*/}"
+}
 bash() {
   if [[ $1 != scripts/migrate-supabase.sh ]]; then record "unexpected:bash:$*"; return 97; fi
   record "migrate:$2"
   if [[ $2 == dry-run ]]; then
     case "$SCENARIO" in
       dry-run-fail|restore-stop-fail|restore-start-fail|restore-inspect-fail) return 41 ;;
-      signal-TERM) kill -TERM "$$" ;;
+      signal-TERM|second-TERM) kill -TERM "$$" ;;
       signal-INT) kill -INT "$$" ;;
       restore-failure-zero-exit) exit 0 ;;
     esac
@@ -362,6 +486,7 @@ docker() {
       printf 'draining\n' > "$TEST_DIRECTORY/worker-state"
       if [[ $SCENARIO == stop-fail && $count == 1 ]]; then return 42; fi
       if [[ $SCENARIO == restore-stop-fail && $count == 2 ]]; then return 43; fi
+      if [[ $SCENARIO == second-TERM && $count == 2 ]]; then record second-TERM; kill -TERM "$$"; fi
       printf 'stopped\n' > "$TEST_DIRECTORY/worker-state" ;;
     start)
       [[ $2 == "$TEST_WORKER_ID" ]] || { record "unexpected:start:$*"; return 97; }
