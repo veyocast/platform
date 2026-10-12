@@ -15,6 +15,7 @@ import { dirname, join } from "node:path";
 import process from "node:process";
 import { afterEach, test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { getDatabaseCliConfig } from "./database-cli-config.mjs";
 
 const repository = dirname(dirname(fileURLToPath(import.meta.url)));
 const source = readFileSync(join(repository, "scripts/deploy-vps.sh"), "utf8");
@@ -222,12 +223,12 @@ test("a runtime-state restoration write failure retains both protected backups",
 test("migration-list failure runs one bounded diagnostic, preserves exit17 and never pushes", () => {
   const run = runMigration("list-fail", "apply");
   assert.equal(run.result.status, 17);
-  assert.deepEqual(run.trace, ["migration-safety", "migration-list", "transport-diagnostic"]);
+  assert.deepEqual(run.trace, ["migration-safety", "connection-url", "connection-summary", "migration-list", "transport-diagnostic"]);
 });
 
 for (const [mode, expected] of [
-  ["dry-run", ["migration-safety", "migration-list", "db-push-dry-run"]],
-  ["apply", ["migration-safety", "migration-list", "db-push-dry-run", "db-push-apply"]]
+  ["dry-run", ["migration-safety", "connection-url", "connection-summary", "migration-list", "db-push-dry-run"]],
+  ["apply", ["migration-safety", "connection-url", "connection-summary", "migration-list", "db-push-dry-run", "db-push-apply"]]
 ]) {
   test(`successful ${mode} retains the normal migration order without diagnostics`, () => {
     const run = runMigration("success", mode);
@@ -242,7 +243,28 @@ test("a migration safety failure prevents both database connections and diagnost
   assert.deepEqual(run.trace, ["migration-safety"]);
 });
 
-function runMigration(scenario, mode) {
+test("migration commands respect URI and environment budgets while diagnostics retain the original URI", () => {
+  for (const options of [
+    { databaseUrl: "postgresql://fixture:synthetic-password@fixture.invalid/postgres?sslmode=verify-full&connect_timeout=120", pgConnectTimeout: "invalid" },
+    { databaseUrl: "postgresql://fixture:synthetic-password@fixture.invalid/postgres?sslmode=require", pgConnectTimeout: "30" }
+  ]) {
+    const success = runMigration("success", "apply", options);
+    assert.equal(success.result.status, 0);
+    const failure = runMigration("list-fail", "apply", options);
+    assert.equal(failure.result.status, 17);
+    assert.equal(failure.trace.filter((event) => event === "transport-diagnostic").length, 1);
+  }
+});
+
+test("invalid migration budgets fail before any database connection or diagnostic", () => {
+  const run = runMigration("success", "apply", { pgConnectTimeout: "121" });
+  assert.equal(run.result.status, 1);
+  assert.deepEqual(run.trace, ["migration-safety", "connection-url"]);
+  assert.equal(run.result.stdout, "");
+  assert.equal(run.result.stderr, "DATABASE_CONNECTION_CONFIG_INVALID\n");
+});
+
+function runMigration(scenario, mode, { databaseUrl = "postgresql://fixture:synthetic-password@fixture.invalid/postgres", pgConnectTimeout } = {}) {
   const directory = mkdtempSync(join(tmpdir(), "veyocast-migration-lifecycle-"));
   fixtures.push(directory);
   const bin = join(directory, "bin");
@@ -256,14 +278,20 @@ case "$1" in
     printf 'migration-safety\\n' >> "$TEST_TRACE"
     [[ $SCENARIO != safety-fail ]] || exit 19 ;;
   scripts/probe-database-transport.mjs)
+    [[ $SUPABASE_DB_URL == "$TEST_ORIGINAL_DATABASE_URL" ]] || exit 97
     printf 'transport-diagnostic\\n' >> "$TEST_TRACE"
     exit 1 ;;
+  scripts/database-cli-config.mjs)
+    if [[ $2 == --url ]]; then printf 'connection-url\\n' >> "$TEST_TRACE";
+    elif [[ $2 == --summary ]]; then printf 'connection-summary\\n' >> "$TEST_TRACE";
+    else exit 97; fi
+    exec "$TEST_NODE_EXECUTABLE" "$TEST_REPOSITORY/scripts/database-cli-config.mjs" "$2" ;;
   *) printf 'unexpected-node\\n' >> "$TEST_TRACE"; exit 97 ;;
 esac
 `, { mode: 0o700 });
   writeFileSync(join(bin, "pnpm"), `#!/usr/bin/env bash
 set -Eeuo pipefail
-if [[ $1 != exec || $2 != supabase || $5 != --db-url || $6 != "$SUPABASE_DB_URL" ]]; then
+if [[ $1 != exec || $2 != supabase || $5 != --db-url || $6 != "$TEST_DATABASE_CLI_URL" ]]; then
   printf 'unexpected-pnpm\\n' >> "$TEST_TRACE"; exit 97
 fi
 if [[ $3 == migration && $4 == list && $# == 6 ]]; then
@@ -277,14 +305,23 @@ else
   printf 'unexpected-pnpm\\n' >> "$TEST_TRACE"; exit 97
 fi
 `, { mode: 0o700 });
+  const env = { ...process.env };
+  delete env.PGCONNECT_TIMEOUT;
+  if (pgConnectTimeout !== undefined) env.PGCONNECT_TIMEOUT = pgConnectTimeout;
+  let config;
+  try { config = getDatabaseCliConfig(databaseUrl, pgConnectTimeout); } catch { /* Invalid configuration must fail before pnpm. */ }
   const result = spawnSync("bash", [join(repository, "scripts/migrate-supabase.sh"), mode], {
     cwd: directory,
     env: {
-      ...process.env,
+      ...env,
       PATH: `${bin}:${process.env.PATH}`,
       TEST_TRACE: traceFile,
+      TEST_NODE_EXECUTABLE: process.execPath,
+      TEST_REPOSITORY: repository,
+      TEST_DATABASE_CLI_URL: config?.databaseUrl ?? "",
+      TEST_ORIGINAL_DATABASE_URL: databaseUrl,
       SCENARIO: scenario,
-      SUPABASE_DB_URL: "postgresql://fixture:synthetic-password@fixture.invalid/postgres",
+      SUPABASE_DB_URL: databaseUrl,
       SUPABASE_PROJECT_REF: "fixture",
       GITHUB_SHA: nextSha
     },
@@ -294,6 +331,11 @@ fi
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /synthetic-password|postgresql:\/\//);
   const trace = readFileSync(traceFile, "utf8").trim().split("\n").filter(Boolean);
   assert.ok(!trace.some((event) => event.startsWith("unexpected")));
+  if (trace.includes("connection-summary")) {
+    assert.deepEqual(JSON.parse(result.stdout), {
+      event: "database_connection_budget", seconds: config.connectTimeoutSeconds, source: config.budgetSource
+    });
+  }
   return { result, trace };
 }
 
