@@ -75,3 +75,25 @@ Actual gewone stagingcancellationbewijs na mainstage vereist vóór prodquiescen
 Nieuwe productieplanprobe38288935523 SUCCESS/DIAGNOSTIC_COMPLETE is daadwerkelijke
 veilige observatie, geen herstelbewijs. Canonicalselectieveprunepredicate wordt
 onafhankelijk met echte localprod-scaleplan onderzocht; repoDDL nog nietowned.
+
+Root stop-and-report ownership extension after concrete plan evidence: selective
+canonicalheartbeatDELETE predicate loses375k-row SeqScan in actual localPG15.8
+custom/genericEXPLAIN when partial(tenant_id,active_release_id)ISNOTNULL index is
+present; same stats and read-onlylookup33.796ms→0.740ms. NoDELETEexecuted, no actual
+productiontiming/causeclaim. Root now owns only new
+supabase/migrations/20261012190000_s198_heartbeat_release_lookup.sql plus the fixed
+index-name allowlists in scripts/publication-runtime-metadata.mjs and
+scripts/probe-publication-runtime.mjs. Root retains docs/prompt/ledger. Other
+DBfunctions/security/RLS/eligibility/deletionrules unchanged; existing full
+canonical-prune/RLSsuite plus dbreset are required before secondcommit/push.
+No schema concurrencyconflicts, dependencies, generatedtypes or seedchanges.
+DDL creates index only; forwardbuildlocking impact assessed, rollbackDROPINDEX
+would remove only optimization. Existing ordinary stage-first migrationpath.
+
+Root extends the same ownership to the two corresponding metadata/probe test
+fixtures only, preserving shape/privacy/cap assertions for the new fixed index.
+Actual old-head CI38290582006 exposed missing rg in workflow enumeration and
+stale trusted-main/direct-node validator patterns. Root now owns only
+scripts/validate-github-actions.sh and scripts/validate-deploy-workflow-security.mjs
+to fix enumeration without extra dependencies and verify both exact reviewed
+main/cancellation/exec branches. Original CI failure is retained, no gate removed.

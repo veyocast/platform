@@ -23,10 +23,15 @@ const indexes = {
   sports_public_people: ["sports_public_people_pkey", "sports_public_people_tenant_id_id_key", "sports_public_people_tenant_id_source_connection_id_externa_key"],
   sportlink_team_members: ["sportlink_team_members_pkey", "sportlink_team_members_tenant_id_id_key", "sportlink_team_members_tenant_id_connection_id_identity_key_key", "sportlink_team_members_match_idx", "sportlink_team_members_code_idx"],
   sportlink_birthdays: ["sportlink_birthdays_pkey", "sportlink_birthdays_tenant_id_id_key", "sportlink_birthdays_tenant_id_connection_id_external_id_key", "sportlink_birthdays_window_idx", "sportlink_birthdays_conflicts_idx"],
-  player_heartbeats: ["player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx"]
+  player_heartbeats: ["player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx", "player_heartbeats_tenant_active_release_idx"]
 };
 const fields = (status = "unset") => timeoutKeys.map((key) => ({ key, status, milliseconds: null }));
-const index = (name) => ({ name, present: true, valid: true, ready: true, columnCount: 1, keyColumnCount: 1, columnsTruncated: false, partial: false, hasExpressions: false, columns: ["id"] });
+const index = (name) => {
+  const heartbeatLookup = name === "player_heartbeats_tenant_active_release_idx";
+  return { name, present: true, valid: true, ready: true, columnCount: heartbeatLookup ? 2 : 1,
+    keyColumnCount: heartbeatLookup ? 2 : 1, columnsTruncated: false, partial: heartbeatLookup,
+    hasExpressions: false, columns: heartbeatLookup ? ["tenant_id", "active_release_id"] : ["id"] };
+};
 function fixture() {
   return {
     scopeReady: true,

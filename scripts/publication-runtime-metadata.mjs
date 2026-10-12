@@ -21,7 +21,7 @@ const TABLES = {
   sports_public_people: ["sports_public_people_pkey", "sports_public_people_tenant_id_id_key", "sports_public_people_tenant_id_source_connection_id_externa_key"],
   sportlink_team_members: ["sportlink_team_members_pkey", "sportlink_team_members_tenant_id_id_key", "sportlink_team_members_tenant_id_connection_id_identity_key_key", "sportlink_team_members_match_idx", "sportlink_team_members_code_idx"],
   sportlink_birthdays: ["sportlink_birthdays_pkey", "sportlink_birthdays_tenant_id_id_key", "sportlink_birthdays_tenant_id_connection_id_external_id_key", "sportlink_birthdays_window_idx", "sportlink_birthdays_conflicts_idx"],
-  player_heartbeats: ["player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx"]
+  player_heartbeats: ["player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx", "player_heartbeats_tenant_active_release_idx"]
 };
 const COLUMNS = new Set(["id", "tenant_id", "source_connection_id", "connection_id", "external_id", "active", "starts_at", "status", "season_key", "last_synced_at", "logo_provider_asset_version_id", "identity_key", "normalized_name", "external_member_code", "next_occurrence", "display_name", "match_status", "device_id", "screen_id", "created_at", "active_release_id", "expression", "unreviewed"]);
 const TRACKING = {

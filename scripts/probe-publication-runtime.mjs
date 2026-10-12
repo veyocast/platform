@@ -29,7 +29,7 @@ const INDEXES = new Set([
   "dynamic_release_refresh_queue_due_idx", "dynamic_release_refresh_queue_pkey",
   "dynamic_slide_snapshots_pkey", "dynamic_slide_snapshots_tenant_id_id_key", "dynamic_slide_snapshots_source_idx", "publication_snapshots_prune_page_idx",
   "player_devices_pkey", "player_devices_one_paired_per_screen_uq", "player_devices_tenant_composition_idx", "player_devices_tenant_id_id_key",
-  "player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx",
+  "player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx", "player_heartbeats_tenant_active_release_idx",
   "player_sync_events_pkey", "player_sync_events_tenant_device_created_idx", "player_sync_events_tenant_release_created_idx",
   "playlist_items_pkey", "playlist_items_tenant_playlist_idx", "publication_items_snapshot_reference_idx",
   "playlist_publications_pkey", "playlist_publications_tenant_id_playlist_id_key",

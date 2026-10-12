@@ -46,7 +46,7 @@ function runtimeCatalog() {
     sports_public_people: ["sports_public_people_pkey", "sports_public_people_tenant_id_id_key", "sports_public_people_tenant_id_source_connection_id_externa_key"],
     sportlink_team_members: ["sportlink_team_members_pkey", "sportlink_team_members_tenant_id_id_key", "sportlink_team_members_tenant_id_connection_id_identity_key_key", "sportlink_team_members_match_idx", "sportlink_team_members_code_idx"],
     sportlink_birthdays: ["sportlink_birthdays_pkey", "sportlink_birthdays_tenant_id_id_key", "sportlink_birthdays_tenant_id_connection_id_external_id_key", "sportlink_birthdays_window_idx", "sportlink_birthdays_conflicts_idx"],
-    player_heartbeats: ["player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx"]
+    player_heartbeats: ["player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx", "player_heartbeats_tenant_active_release_idx"]
   };
   return {
     scopeReady: true,
@@ -55,8 +55,12 @@ function runtimeCatalog() {
     functions: functions.map(([schema, name]) => ({ schema, name, overloads: 1, timeouts: timeouts() })),
     tables: Object.entries(indexes).map(([relation, names]) => ({ relation, present: true, estimatedRows: 10, statsKnown: true, liveRowsEstimate: 12, deadRowsEstimate: 1,
       lastAnalyzeAt: "2026-10-12T10:00:00Z", lastAutoAnalyzeAt: null, unreviewedIndexCount: 0,
-      indexes: names.map((name) => ({ name, present: true, valid: true, ready: true, columnCount: 1, keyColumnCount: 1, columnsTruncated: false,
-        partial: false, hasExpressions: false, columns: ["id"] })) })),
+      indexes: names.map((name) => {
+        const heartbeatLookup = name === "player_heartbeats_tenant_active_release_idx";
+        return { name, present: true, valid: true, ready: true, columnCount: heartbeatLookup ? 2 : 1,
+          keyColumnCount: heartbeatLookup ? 2 : 1, columnsTruncated: false, partial: heartbeatLookup,
+          hasExpressions: false, columns: heartbeatLookup ? ["tenant_id", "active_release_id"] : ["id"] };
+      }) })),
     statementStatistics: { installed: true, schema: "extensions", viewPresent: true, tracking: [
       { key: "pg_stat_statements.track", status: "set", value: "top" }, { key: "pg_stat_statements.track_planning", status: "set", value: "off" },
       { key: "track_activities", status: "set", value: "on" }, { key: "track_functions", status: "set", value: "none" }

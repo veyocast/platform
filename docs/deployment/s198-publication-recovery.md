@@ -89,6 +89,54 @@ De datasetstatus blijft matchesfailed/UNKNOWN_ERROR en competitionfailed/TRANSPO
 53bindings/1218releases/21909snapshots zijn behouden. Succes van de diagnose is
 geen herstel van Sportlink, opruiming of twee gewone cycli.
 
+## Begrensde lookupindex
+
+Een onafhankelijk lokaal PostgreSQL15.8-experiment met375806 synthetische
+heartbeats en identieke statistieken vóór/na ondersteunt de precieze bestaande
+prunepredicate tenant_id=$1 AND active_release_id=$2. Custom én generic plans
+wisselen van SeqScan naar IndexScan wanneer uitsluitend de partial index
+(tenant_id, active_release_id) WHERE active_release_id IS NOT NULL wordt toegevoegd.
+Een read-only SELECTctid voor286rows meet33.796ms→0.740ms; geen DELETE is uitgevoerd.
+Dit bewijst de lokale lookupverbetering, geen werkelijk productieaantal, volledige
+RPC-timing of oorzaak van eerdere SQL/connectfailures. Alle kandidaat- en
+referenceguards blijven letterlijk ongewijzigd.
+
+De nieuwe migratie maakt alleen deze index transactioneel aan. OrdinaryCREATEINDEX
+neemt een SHARE-lock die heartbeatwrites kort kan blokkeren. Transaction-local
+lock_timeout≤1s en statement_timeout≤30s begrenzen lockacquisitie/build; iedere
+bestaande strengere sessielimiet blijft behouden. Zeven werkelijke onafhankelijke
+lokale PostgreSQL-cases bewijzen unlimited/looser/equal/stricter-deadlines,
+lock_timeout55P03 en statement_timeout57014, rollback van een eerder in dezelfde
+transactie gemaakte TEMP-index en herstel van oorspronkelijke sessielimieten.
+De lockcontender gebruikt een owned advisorylock; dit is deadline-/atomiciteitsbewijs,
+geen concurrerende CREATEINDEX-tablelocktiming. Failure rolt de volledige
+migratie terug. De standaard stage-first migratiepath blijft verplicht; rollback
+DROPINDEX verwijdert uitsluitend de optimalisatie. Er verandert geen RLS-policy,
+functie, toegang, release-eligibility, providerimport of timeoutinstelling buiten
+deze migratietransactie. De vaste beide diagnostic-indexallowlists en testfixtures
+kennen alleen de exacte nieuwe naam en de twee keys/partialflag.
+
+De eerste daadcb1c-CI [38290582006](https://github.com/veyocast/platform/actions/runs/38290582006)
+faalt in Foundation op ontbrekende rg bij workflowenumeratie; de oorspronkelijke
+failurelog is behouden. Dezelfde oude PR-run heeft bovendien237PlayerPASS/
+15bestaandeSKIP/1FAIL: native Chromium SIGSEGV tijdens browser.newContext vóór
+welkomstraster-assertions. De resourceoorzaak is onbekend; geen assertion is
+gewijzigd of overgeslagen. Beide oorspronkelijke failures blijven zichtbaar.
+Enumeration gebruikt nu Bash nullglob, met failure bij
+geen workflows. De bestaande securityvalidator verwachtte bovendien een oudere
+trusted-main/direct-nodevorm. De nieuwe assertions verifiëren beide actuele
+probe-workflows op exact main, expliciete defaultfalse, exclusieve deploygroep,
+installsuccess-arming, vaste gequote execbranches en cancellationfailuremarker.
+De onafhankelijke validatorreview vindt vervolgens vier werkelijke mutantpasses:
+criticalguard in een buurstep, defaultfalse in een buurinput, extra secret-printcode
+vóór de vaste dispatch en ontbrekende install_client-id. Deze zijn opgelost door
+input-/stepownership en volledige scriptbody/arminginstall te controleren; de
+bestaande shelltraceguard is ook versterkt voor gecombineerde -Eeuxo-flags.
+Een begrensde tweede mutantset vindt nog continue-on-error op install/critical
+steps en een main-guard in een buurjob. De validator verbiedt failureomzetting/
+shelloverride en vereist het enige expliciete probejob met zijn eigen guard.
+Er zijn geen workflow-, ShellCheck- of beveiligingsgates verwijderd.
+
 ## Validatie en resterende acceptatie
 
 De twee native request-regressies falen werkelijk vóór de runnerfix en slagen
@@ -109,8 +157,14 @@ detached wrapper/descendant. De volledige VPS-validator slaagt werkelijk exit0
 met200/200 operationele tests zonderSKIP; gepinde workflowlint/ShellCheck slagen.
 Onafhankelijke reviews bevestigen frozen runner/runtime/helper, workflowcancel-
 guards en root-owned smoke zonder blockers. Geen bestaande gate/assertion is
-verwijderd. Exacte commit-CI, stage-first deployment en gewone beschermde staging-
-cancellation/feitelijk workerherstel volgen.
+verwijderd. De uiteindelijke begrensde migratie doorstaat een fresh lokale dbreset en de
+volledige RLS-suite102bestanden/2886assertions zonderfailure. Het werkelijke
+indexcatalogus toont valid=true/ready=true en precies tenant_id,active_release_id
+met de NOTNULL partialpredicate. De bijgewerkte44probe/metadata-tests blijven
+groen; de eerste9 fixturefailures vóór naamsynchronisatie zijn behouden.
+Volledige VPS200/200 en gepinde workflowlint/ShellCheck slagen opnieuw.
+Workspace lint slaagt30/30 (cache). Exacte nieuwe commit-CI, stage-first deployment
+en gewone beschermde stagingcancellation/feitelijk workerherstel volgen.
 De protected quiesced probe moet aantonen wat daadwerkelijk gelezen kan worden;
 apphealth of lokale tests vervangen dat bewijs niet. Ook feitelijke opruiming,
 opponentvorm, post-deploy verjaardagssync en twee gewone ververscycli zijn nog
