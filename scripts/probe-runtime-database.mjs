@@ -91,6 +91,7 @@ export function createSqlAdapter(spawnImpl = spawn, killImpl = process.kill.bind
       resolve({ ok: ok && !timedOut && !tooLarge, stdout: Buffer.concat(chunks).toString("utf8"), timedOut, tooLarge });
     };
     const aborted = () => { timedOut = true; stopGroup(); };
+    if (signal.aborted) { timedOut = true; finish(false); return; }
     try {
       child = spawnImpl("pnpm", ["exec", "supabase", "db", "query", "--db-url", databaseUrl,
         "--dns-resolver", "native", "--agent", "no", "--output-format", "json"],
@@ -116,14 +117,30 @@ export function createSqlAdapter(spawnImpl = spawn, killImpl = process.kill.bind
   });
 }
 
-async function bounded(operation, milliseconds, code) {
+async function bounded(operation, milliseconds, code, operationSignal) {
   const controller = new globalThis.AbortController();
-  let timer;
+  let timer, rejectAbort;
+  const abort = () => {
+    // The active SQL adapter kills only its own detached group synchronously
+    // before cancellation can return to the CLI. Never propagate private reasons.
+    controller.abort();
+    rejectAbort?.(new ProbeFault("PROBE_CANCELLED"));
+  };
   try {
-    return await Promise.race([Promise.resolve().then(() => operation(controller.signal)), new Promise((_, reject) => {
+    const cancelled = new Promise((_, reject) => { rejectAbort = reject; });
+    operationSignal?.addEventListener("abort", abort, { once: true });
+    if (operationSignal?.aborted) abort();
+    const deadline = new Promise((_, reject) => {
       timer = setTimeout(() => { controller.abort(); reject(new ProbeFault(code)); }, milliseconds);
+    });
+    return await Promise.race([cancelled, deadline, Promise.resolve().then(() => {
+      if (operationSignal?.aborted) throw new ProbeFault("PROBE_CANCELLED");
+      return operation(controller.signal);
     })]);
-  } finally { clearTimeout(timer); }
+  } finally {
+    clearTimeout(timer);
+    operationSignal?.removeEventListener("abort", abort);
+  }
 }
 
 async function limitedJson(response) {
@@ -171,7 +188,7 @@ function sqlResult(result) {
 /** Injected adapters support synthetic tests; they do not prove a live CLI. */
 export async function probeRuntimeDatabase({ environment = process.env, targetEnvironment, expectedRuntimeSha, tenantId }, {
   fetchImpl = globalThis.fetch, executeSql = createSqlAdapter(), now = () => new Date(),
-  healthDeadlineMs = 5_000, gatewayDeadlineMs = 5_000, sqlDeadlineMs = 52_000, restDeadlineMs = 10_000
+  healthDeadlineMs = 5_000, gatewayDeadlineMs = 5_000, sqlDeadlineMs = 52_000, restDeadlineMs = 10_000, operationSignal
 } = {}) {
   const started = performance.now();
   let scope;
@@ -185,10 +202,12 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
       || !/^[0-9a-f]{40}$/.test(expectedRuntimeSha ?? "") || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(tenantId ?? "")
       || !/^[a-z0-9]{20}$/.test(environment.SUPABASE_PROJECT_REF ?? "")
       || environment.NEXT_PUBLIC_SUPABASE_URL !== `https://${environment.SUPABASE_PROJECT_REF}.supabase.co/` && environment.NEXT_PUBLIC_SUPABASE_URL !== `https://${environment.SUPABASE_PROJECT_REF}.supabase.co`
+      || (operationSignal !== undefined && !(operationSignal instanceof globalThis.AbortSignal))
       || ![[healthDeadlineMs, 5_000], [gatewayDeadlineMs, 5_000], [sqlDeadlineMs, 52_000], [restDeadlineMs, 10_000]].every(([value, max]) => Number.isInteger(value) && value > 0 && value <= max)) {
       return report("SCOPE_INVALID", {}, 2);
     }
     scope = { environment: targetEnvironment, runtimeSha: expectedRuntimeSha, tenantId };
+    if (operationSignal?.aborted) return report("PROBE_CANCELLED");
     const prefix = targetEnvironment === "staging" ? "staging-" : "";
     const health = [];
     for (const [service, path] of [["control", "/api/health"], ["player", "/healthz"]]) {
@@ -200,23 +219,27 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
           const body = await limitedJson(response);
           if (!exactKeys(body, ["environment", "revision", "service", "status"]) || body.environment !== targetEnvironment
             || body.revision !== expectedRuntimeSha || body.service !== service || body.status !== "ok") throw new ProbeFault("PUBLIC_HEALTH_SCOPE_MISMATCH");
-        }, healthDeadlineMs, "PUBLIC_HEALTH_TIMEOUT");
+        }, healthDeadlineMs, "PUBLIC_HEALTH_TIMEOUT", operationSignal);
+        if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health });
         health.push({ service, status: "passed", elapsedMs: elapsed(begin) });
       } catch (error) {
+        if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health });
         const code = error instanceof ProbeFault && ["PUBLIC_HEALTH_READ_FAILED", "PUBLIC_HEALTH_SCOPE_MISMATCH", "PUBLIC_HEALTH_TIMEOUT"].includes(error.code) ? error.code : "PUBLIC_HEALTH_READ_FAILED";
         health.push({ service, status: "failed", code, elapsedMs: elapsed(begin) });
         return report(code, { health });
       }
     }
+    if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health });
     // No credential property is accessed until both public release checks pass.
     let config, serviceKey;
     try {
       config = diagnosticDatabaseConfig(environment.SUPABASE_DB_URL, environment.PGCONNECT_TIMEOUT, environment.SUPABASE_PROJECT_REF, environment);
       serviceKey = environment.SUPABASE_SERVICE_ROLE_KEY;
       if (typeof serviceKey !== "string" || !serviceKey || serviceKey.length > 16_384 || unsafeCharacters(serviceKey)) throw new ProbeFault("SECRET_CONFIG_INVALID");
-    } catch { return report("SECRET_CONFIG_INVALID", { health }, 2); }
+    } catch { return report(operationSignal?.aborted ? "PROBE_CANCELLED" : "SECRET_CONFIG_INVALID", { health }, operationSignal?.aborted ? 1 : 2); }
     const budget = { normalSeconds: config.normalBudgetSeconds, normalSource: config.normalBudgetSource,
       diagnosticSeconds: 45, overridden: config.budgetOverridden, processDeadlineMs: 52_000 };
+    if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health, budget });
     // A gateway response (including HTTP 401) proves neither authentication
     // nor a database read. Never send credentials, read its body, or let a
     // failed gateway check prevent the independent SQL and REST attempts.
@@ -230,19 +253,22 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
         gatewayHttpStatus = Number.isInteger(response.status) && response.status >= 100 && response.status <= 599 ? response.status : null;
         await response.body?.cancel().catch(() => {});
         if (gatewayHttpStatus === null) throw new ProbeFault("REST_GATEWAY_READ_FAILED");
-      }, gatewayDeadlineMs, "REST_GATEWAY_TIMEOUT");
+      }, gatewayDeadlineMs, "REST_GATEWAY_TIMEOUT", operationSignal);
       gateway = { status: "responded" };
     } catch (error) {
-      gateway = { status: "failed", code: error instanceof ProbeFault && error.code === "REST_GATEWAY_TIMEOUT"
+      gateway = { status: "failed", code: operationSignal?.aborted ? "PROBE_CANCELLED" : error instanceof ProbeFault && error.code === "REST_GATEWAY_TIMEOUT"
         ? "REST_GATEWAY_TIMEOUT" : "REST_GATEWAY_READ_FAILED" };
     }
     gateway.httpStatus = gatewayHttpStatus;
     gateway.elapsedMs = elapsed(gatewayStart);
+    if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health, budget, gateway });
     const sqlStart = performance.now();
     let sql;
-    try { sql = sqlResult(await bounded((signal) => executeSql({ databaseUrl: config.databaseUrl, sql: tenantReadSql(tenantId), signal }), sqlDeadlineMs, "SQL_TIMEOUT")); }
-    catch (error) { sql = { status: "failed", code: error instanceof ProbeFault && error.code === "SQL_TIMEOUT" ? "SQL_TIMEOUT" : "SQL_EXEC_FAILED" }; }
+    try { sql = sqlResult(await bounded((signal) => executeSql({ databaseUrl: config.databaseUrl, sql: tenantReadSql(tenantId), signal }), sqlDeadlineMs, "SQL_TIMEOUT", operationSignal)); }
+    catch (error) { sql = { status: "failed", code: operationSignal?.aborted ? "PROBE_CANCELLED" : error instanceof ProbeFault && error.code === "SQL_TIMEOUT" ? "SQL_TIMEOUT" : "SQL_EXEC_FAILED" }; }
+    if (operationSignal?.aborted) sql = { status: "failed", code: "PROBE_CANCELLED" };
     sql.elapsedMs = elapsed(sqlStart);
+    if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health, budget, gateway, sql });
     // Exactly one separate REST attempt is still useful when SQL fails.
     const restStart = performance.now();
     let httpStatus = null, rest;
@@ -259,18 +285,19 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
         }
         if (!Array.isArray(data) || data.length !== 1 || !exactKeys(data[0], ["id", "status"])
           || data[0].id !== tenantId || data[0].status !== "active") throw new ProbeFault("REST_SCOPE_UNPROVEN");
-      }, restDeadlineMs, "REST_TIMEOUT");
+      }, restDeadlineMs, "REST_TIMEOUT", operationSignal);
       rest = { status: "passed", code: "REST_READY", tenantActive: true };
     } catch (error) {
-      const code = error instanceof ProbeFault && ["REST_TIMEOUT", "REST_READ_FAILED", "REST_SCOPE_UNPROVEN"].includes(error.code) ? error.code
+      const code = operationSignal?.aborted ? "PROBE_CANCELLED" : error instanceof ProbeFault && ["REST_TIMEOUT", "REST_READ_FAILED", "REST_SCOPE_UNPROVEN"].includes(error.code) ? error.code
         : error instanceof ProbeFault && error.code === "OUTPUT_TOO_LARGE" ? "REST_OUTPUT_TOO_LARGE" : "REST_READ_FAILED";
       rest = { status: "failed", code, ...(error instanceof ProbeFault && reviewedDatabaseCode(error.databaseCode) ? { databaseCode: error.databaseCode } : {}) };
     }
     rest.httpStatus = httpStatus;
     rest.elapsedMs = elapsed(restStart);
+    if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health, budget, gateway, sql, rest });
     const ready = sql.status === "passed" && rest.status === "passed";
     return report(ready ? "DATABASE_READY" : "DATABASE_READ_UNPROVEN", { health, budget, gateway, sql, rest }, ready ? 0 : 1);
-  } catch { return report("PROBE_FAILED"); }
+  } catch { return report(operationSignal?.aborted ? "PROBE_CANCELLED" : "PROBE_FAILED"); }
 }
 
 export async function writeProbeArtifact(directory, report) {
@@ -292,7 +319,16 @@ export async function runtimeProbeCli({ argv = process.argv.slice(2), environmen
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.stdout.on("error", () => process.exit(1));
-  const exitCode = await runtimeProbeCli();
-  process.stdout.write("", () => process.exit(exitCode));
+  const controller = new globalThis.AbortController();
+  let cancellationExitCode;
+  const cancel = (code) => {
+    if (cancellationExitCode !== undefined) return;
+    cancellationExitCode = code;
+    controller.abort();
+  };
+  process.on("SIGINT", () => cancel(130));
+  process.on("SIGTERM", () => cancel(143));
+  process.stdout.on("error", () => { controller.abort(); process.exit(1); });
+  const exitCode = await runtimeProbeCli({ operationSignal: controller.signal });
+  process.stdout.write("", () => process.exit(cancellationExitCode ?? exitCode));
 }

@@ -4,11 +4,12 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 import { EventEmitter } from "node:events";
-import { mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { delimiter, join } from "node:path";
 import { ReadableStream } from "node:stream/web";
 import { test } from "node:test";
+import { fileURLToPath, pathToFileURL, URL } from "node:url";
 import { createSqlAdapter, diagnosticDatabaseConfig as scopedDatabaseConfig, probeRuntimeDatabase, runtimeProbeCli, tenantReadSql, writeProbeArtifact } from "./probe-runtime-database.mjs";
 
 // Synthetic adapters verify contracts/privacy, not production CLI reachability.
@@ -303,3 +304,104 @@ test("actual Linux detached group abort terminates both wrapper and a real desce
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("already-cancelled operation starts no checks and reads no credentials", async () => {
+  const controller = new globalThis.AbortController(); controller.abort(new Error(uri + secret));
+  const environment = env(); let reads = 0, calls = 0;
+  for (const name of ["SUPABASE_DB_URL", "SUPABASE_SERVICE_ROLE_KEY"]) Object.defineProperty(environment, name, { get() { reads++; throw new Error(secret); } });
+  const result = await probeRuntimeDatabase(input(environment), { operationSignal: controller.signal,
+    fetchImpl: () => { calls++; throw new Error(secret); }, executeSql: () => { calls++; throw new Error(secret); } });
+  assert.equal(result.report.code, "PROBE_CANCELLED"); assert.equal(result.exitCode, 1); assert.equal(reads, 0); assert.equal(calls, 0); privateOutput(result);
+});
+
+test("operation cancellation aborts each active stage and prevents every subsequent check without private reasons", async () => {
+  for (const [phase, expected] of [["health", ["health"]], ["gateway", ["health", "health", "gateway"]],
+    ["sql", ["health", "health", "gateway", "sql"]], ["rest", ["health", "health", "gateway", "sql", "rest"]]]) {
+    const controller = new globalThis.AbortController(); const calls = []; let aborted = false;
+    const native = fixtureFetch();
+    const hang = (signal) => new Promise((_, reject) => {
+      signal.addEventListener("abort", () => { aborted = true; reject(Object.assign(new Error(secret + uri), { code: secret, cause: new Error("RAW_PRIVATE_ERROR") })); }, { once: true });
+      globalThis.queueMicrotask(() => controller.abort(new Error(secret + uri)));
+    });
+    const result = await probeRuntimeDatabase(input(), { operationSignal: controller.signal,
+      fetchImpl: (url, options) => {
+        const stage = url.endsWith("/rest/v1/") ? "gateway" : url.includes("/rest/v1/tenants?") ? "rest" : "health";
+        calls.push(stage); return stage === phase ? hang(options.signal) : native(url, options);
+      }, executeSql: (request) => { calls.push("sql"); return phase === "sql" ? hang(request.signal) : sqlPass(); }
+    });
+    assert.equal(aborted, true); assert.deepEqual(calls, expected); assert.equal(result.report.code, "PROBE_CANCELLED");
+    assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(result.exitCode, 1); privateOutput(result);
+  }
+});
+
+test("native SQL adapter does not spawn an already-cancelled request", async () => {
+  const controller = new globalThis.AbortController(); controller.abort(new Error(secret)); let calls = 0;
+  const result = await createSqlAdapter(() => { calls++; throw new Error(secret); }, () => { calls++; throw new Error(secret); })({ databaseUrl: uri, sql: tenantReadSql(tenant), signal: controller.signal });
+  assert.equal(calls, 0); assert.equal(result.ok, false); assert.equal(result.timedOut, true); assert.equal(result.stdout, ""); privateOutput(result);
+});
+
+for (const [phase, signal, exitCode] of [["health", "SIGINT", 130], ["sql", "SIGTERM", 143], ["sql", "SIGINT", 130], ["rest", "SIGTERM", 143]]) {
+  test(`actual Linux runtime CLI ${signal} cancellation during ${phase} stops owned SQL descendants and later checks`, { skip: process.platform !== "linux", timeout: 20_000 }, async () => {
+    const directory = await mkdtemp(join(tmpdir(), "runtime-cli-cancel-"));
+    let child, wrapperPid, descendantPid, closed;
+    const alive = async (pid) => {
+      try { const value = await readFile(`/proc/${pid}/stat`, "utf8"); return value.slice(value.lastIndexOf(")") + 2).split(" ")[0] !== "Z"; }
+      catch { return false; }
+    };
+    try {
+      const marker = join(directory, "active.json"), stages = join(directory, "stages.txt"), hook = join(directory, "fetch-hook.mjs"), binary = join(directory, "pnpm");
+      await writeFile(hook, `import{appendFileSync,writeFileSync}from'node:fs';
+globalThis.fetch=async(url,options)=>{
+ const stage=url.endsWith('/rest/v1/')?'gateway':url.includes('/rest/v1/tenants?')?'rest':'health';
+ appendFileSync(process.env.PROBE_TEST_STAGES,stage+'\\n',{mode:0o600});
+ if(stage===process.env.PROBE_TEST_CANCEL_PHASE){writeFileSync(process.env.PROBE_TEST_MARKER,JSON.stringify({phase:stage}),{mode:0o600});return new Promise((_,reject)=>options.signal.addEventListener('abort',()=>reject(new Error(${JSON.stringify(secret + uri)})),{once:true}));}
+ if(stage==='gateway')return new Response('RAW_PRIVATE_ERROR',{status:401});
+ if(stage==='rest')return Response.json([{id:${JSON.stringify(tenant)},status:'active'}]);
+ return Response.json({environment:'production',revision:${JSON.stringify(sha)},service:url.includes('player')?'player':'control',status:'ok'});
+};\n`, { mode: 0o600 });
+      await writeFile(binary, `#!/usr/bin/env node
+const fs=require('node:fs');const{spawn}=require('node:child_process');let sql='';
+process.stdin.setEncoding('utf8');process.stdin.on('data',part=>{sql+=part});process.stdin.on('end',()=>{
+ fs.appendFileSync(process.env.PROBE_TEST_STAGES,'sql\\n',{mode:0o600});
+ if(process.env.PROBE_TEST_CANCEL_PHASE==='sql'){const descendant=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});process.stderr.write('RAW_PRIVATE_ERROR');fs.writeFileSync(process.env.PROBE_TEST_MARKER,JSON.stringify({phase:'sql',wrapper:process.pid,descendant:descendant.pid}),{mode:0o600});setInterval(()=>{},1000);return;}
+ process.stdout.write('[{"database_ready":1,"tenant_active":true}]',()=>process.exit(0));
+});\n`, { mode: 0o700 });
+      await chmod(binary, 0o700);
+      child = spawn(process.execPath, [fileURLToPath(new URL("./probe-runtime-database.mjs", import.meta.url)), "production", sha, tenant], {
+        env: { ...env(), PATH: `${directory}${delimiter}${process.env.PATH}`, NODE_OPTIONS: `--import=${pathToFileURL(hook).href}`,
+          RUNNER_TEMP: directory, PROBE_TEST_CANCEL_PHASE: phase, PROBE_TEST_MARKER: marker, PROBE_TEST_STAGES: stages },
+        detached: true, stdio: ["ignore", "pipe", "pipe"]
+      });
+      let stdout = "", stderr = "";
+      child.stdout.on("data", (part) => { stdout += part; }); child.stderr.on("data", (part) => { stderr += part; });
+      closed = new Promise((resolve, reject) => { child.once("close", (code, terminationSignal) => resolve({ code, signal: terminationSignal })); child.once("error", reject); });
+      let active;
+      for (let poll = 0; poll < 500; poll++) {
+        try { active = JSON.parse(await readFile(marker, "utf8")); break; } catch { await delay(10); }
+      }
+      assert.equal(active?.phase, phase);
+      if (phase === "sql") {
+        wrapperPid = active.wrapper; descendantPid = active.descendant;
+        assert.equal(Number.isInteger(wrapperPid), true); assert.equal(Number.isInteger(descendantPid), true);
+        assert.equal(await alive(wrapperPid), true); assert.equal(await alive(descendantPid), true);
+      }
+      assert.equal(child.kill(signal), true);
+      const terminal = await closed;
+      assert.equal(terminal.code, exitCode); assert.equal(terminal.signal, null);
+      if (phase === "sql") {
+        for (let poll = 0; poll < 100 && (await alive(wrapperPid) || await alive(descendantPid)); poll++) await delay(10);
+        assert.equal(await alive(wrapperPid), false); assert.equal(await alive(descendantPid), false);
+      }
+      const report = JSON.parse(stdout); assert.equal(report.code, "PROBE_CANCELLED"); assert.equal(report.verdict, "UNPROVEN"); privateOutput(report); privateOutput(stderr);
+      assert.deepEqual(JSON.parse(await readFile(join(directory, "runtime-database-probe.json"), "utf8")), report);
+      assert.equal((await stat(join(directory, "runtime-database-probe.json"))).mode & 0o777, 0o600);
+      const expected = { health: ["health"], sql: ["health", "health", "gateway", "sql"], rest: ["health", "health", "gateway", "sql", "rest"] };
+      assert.deepEqual((await readFile(stages, "utf8")).trim().split("\n"), expected[phase]);
+    } finally {
+      if (child?.exitCode === null && child.signalCode === null) { try { process.kill(-child.pid, "SIGKILL"); } catch { /* Only this test's CLI group. */ } }
+      if (Number.isInteger(wrapperPid)) { try { process.kill(-wrapperPid, "SIGKILL"); } catch { /* Only this test's SQL group. */ } }
+      if (closed) await closed;
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+}

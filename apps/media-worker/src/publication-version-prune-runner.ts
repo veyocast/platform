@@ -21,7 +21,8 @@ export class PublicationVersionPruneRunner {
     if (signal?.aborted) return { status: "idle" };
     let errorCode = "publication_version_prune_failed";
     try {
-      const result = await this.client.rpc("prune_queued_publication_versions_v1", { p_limit: 25 });
+      const request = this.client.rpc("prune_queued_publication_versions_v1", { p_limit: 25 });
+      const result = await (signal ? request.abortSignal(signal) : request);
       if (result.error) throw new Error(errorCode);
       errorCode = "publication_version_prune_response_invalid";
       if (!isRecord(result.data) || (result.data.status !== "completed" && result.data.status !== "idle")) {
