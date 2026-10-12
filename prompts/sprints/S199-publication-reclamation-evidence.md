@@ -64,3 +64,19 @@ Root additionally owns only the fixed phase allowlist in
 scripts/publication-database-query.mjs; its existing query/process/privacy budget
 tests remain unchanged. The explicit reclamation_evidence phase is necessary
 for the new fixed read; no arbitrary phase, SQL, timeout or metadata expansion.
+
+Na stop-and-report van twee echte native browsercrashes is root ownership
+uitgebreid naar uitsluitend de Playerbrowserprocesgrens in
+scripts/run-browser-gates.mjs en de bestaande gatevalidatie indien nodig.
+Run38299307350 faalde in attempt1/job114978030630 vóór een assertion bij
+browser.newContext in connectivity; de eenmalige failed-jobrerun faalde in
+attempt2/job114983883473 op dezelfde native SIGSEGV vóór een andere testcase
+(welcome-arrivals-motion). Beide attempts hebben dezelfde native crashoffsets;
+de specifieke C++-oorzaak is onbewezen. Bewaar beide rode attempts. De volledige
+Chromium/new-headlesskandidaat faalde een bestaande lokale beeldreferentie en is
+teruggenomen; playwright.config.ts blijft woordelijk gelijk. Begrens uitsluitend
+het reeds bestaande Playerbatchesysteem tot één testbestand per browserproces;
+alle ontdekte bestanden blijven in dezelfde volgorde precies eenmaal uitgevoerd.
+Geen dependency/lock/installcommand, retry, skip, snapshot, assertie, worker- of
+budgetwijziging. De eerdere lokale netwerkkandidaat PASS is geen gate-PASS.
+Echte gerichte regressies en de volledige nieuwe PR-/Sourcegates moeten slagen.

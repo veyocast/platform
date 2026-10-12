@@ -106,3 +106,40 @@ beide headerowners, de ongewijzigde bodychecks en de exacte5s herstelmatcher.
 Workspace lint/typecheck/test zijn opnieuw ieder30/30 groen; scopeESLint en
 diffcheck slagen. Dit vervangt het oorspronkelijke rode CI-bewijs niet:
 de nieuwe volledige exacte CI blijft vóór merge verplicht.
+
+De volgende run38299307350 op60993150 behield de herstelde asserties, maar
+faalde vóór een assertion door een native Chromium-headless-shell1228-crash.
+Attempt1/job114978030630 faalde bij connectivity (log-SHA256
+`a924ba797f0f01c84120eca091de8f9ee1cae263a3f943dd3297d4c058dc173c`).
+De eenmalige failed-jobrerun faalde bij welcome-arrivals-motion in
+attempt2/job114983883473 (log-SHA256
+`ff4af641eeaf273384ae4274d8b62728f8183e0c229cf8a24e0632d1476f9476`).
+Beide native stacks hebben dezelfde genormaliseerde crashoffsets en de ongeldige
+pointer0x1b0; symbolen ontbreken, dus de specifieke C++-oorzaak blijft onbewezen.
+De samengestelde laatste attempt omvat alle90 specs:555 PASS/579 bestaande
+SKIP/1 FAIL. De vier ongewijzigde succesvolle jobs zijn hergebruikte attempt1-
+resultaten, geen nieuwe testexecuties. Beide rode bewijsindexes blijven bewaard.
+
+De afzonderlijke Source-run38299307351 op dezelfde609-code is volledig groen:
+alle vijf jobs,66 responsivecontroles en652 cases/760 frames met strikt nul
+pixelverschil. Dit is zelfstandig beeldbewijs, geen groene Playergate.
+Bewijsindex SHA256
+`abe56d5867d96ad502183e67c6368721c3adaeabb21fe9f7bfc13c82a428ca93`.
+
+Een lokale kandidaat met dezelfde gepinde volledige Chromium/new-headless
+passeerde de netwerkcase, maar faalde de bestaande welkomstbeeldreferentie met
+6230 pixels verschil; de oorspronkelijke shell passeerde dezelfde volledige
+welkomstcase. Een afzonderlijke fontpositioneringskandidaat faalde eveneens
+(8310 pixels verschil). Deze kandidaten zijn teruggenomen. Configuratie,
+snapshots, tolerantie, workers, dependencies en installcommands blijven gelijk.
+
+Alleen de al bestaande Playerbatchgrens verandert van twaalf naar één spec per
+browserproces. Zo blijft native toestand van een testbestand niet bestaan in
+een volgend bestand. Elk ontdekt bestand wordt in dezelfde volgorde eenmaal
+uitgevoerd; een fout blijft onmiddellijk fataal. De volledige nieuwe CI moet
+bevestigen of deze levensduurbegrenzing betrouwbaar werkt. Een private mock
+bevestigt47 geordende Playerinvocaties zonder dubbele of ontbrekende specs;
+dit is geen browsertest. De twee eerder gecrashte echte cases slagen elk in
+een afzonderlijk oorspronkelijk Chromiumproces (9.6s en12.2s run), inclusief
+de ongewijzigde welkomstscreenshot. Volledige PR- en Sourcegates op de nieuwe
+commit blijven noodzakelijk.
