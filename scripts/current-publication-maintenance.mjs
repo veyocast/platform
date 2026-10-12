@@ -3,10 +3,11 @@ import { performance } from "node:perf_hooks";
 import process from "node:process";
 import { setTimeout } from "node:timers";
 import { URL } from "node:url";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDatabaseCliConfig } from "./database-cli-config.mjs";
 import { executePublicationQuery } from "./publication-database-query.mjs";
+import { reclamationEvidenceSql, sanitizeReclamationEvidence } from "./publication-reclamation-evidence.mjs";
 
 const env = process.env;
 const mode = env.PUBLICATION_OPERATION ?? "inventory";
@@ -17,12 +18,21 @@ const operator = env.OPERATOR;
 const reason = env.REASON;
 const selectedPlaylist = env.PLAYLIST_ID?.trim();
 const observationSeconds = Number(env.OBSERVATION_SECONDS ?? "0");
-if (!["inventory", "refresh", "cutover"].includes(mode) || !["staging", "production"].includes(targetEnvironment) ||
+if (!["inventory", "refresh", "cutover", "reclamation"].includes(mode) || !["staging", "production"].includes(targetEnvironment) ||
     !tenantName || tenantName.length > 120 || !/^[0-9a-f]{40}$/.test(sha ?? "") ||
     !/^github:[A-Za-z0-9-]{1,39}$/.test(operator ?? "") || !reason || reason.length < 10 || reason.length > 240 ||
     env.GITHUB_REF !== "refs/heads/main" || !env.SUPABASE_DB_URL ||
     (selectedPlaylist && !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(selectedPlaylist)) ||
     !Number.isInteger(observationSeconds) || observationSeconds < 0 || observationSeconds > 180) throw new Error("PUBLICATION_OPERATION_INVALID");
+const evidenceSince = env.EVIDENCE_SINCE || undefined;
+if (mode === "reclamation") {
+  // Validate the new read-only scope before database client configuration.
+  reclamationEvidenceSql("00000000-0000-0000-0000-000000000000", evidenceSince);
+  if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(env.EXPECTED_TENANT_ID ?? "")
+    || !/^[0-9a-f]{40}$/.test(env.GITHUB_SHA ?? "") || selectedPlaylist || observationSeconds !== 0) {
+    throw new Error("RECLAMATION_SCOPE_INVALID");
+  }
+}
 const databaseCliConfig = getDatabaseCliConfig(env.SUPABASE_DB_URL, env.PGCONNECT_TIMEOUT);
 const databaseCommandTimeout = Math.min(130_000, Math.max(60_000, (databaseCliConfig.connectTimeoutSeconds + 10) * 1000));
 console.log(JSON.stringify({ event: "database_connection_budget", seconds: databaseCliConfig.connectTimeoutSeconds, source: databaseCliConfig.budgetSource }));
@@ -42,6 +52,15 @@ function query(phase, sql) {
   return executePublicationQuery({ phase, databaseUrl: databaseCliConfig.databaseUrl, sql, timeoutMs: databaseCommandTimeout, signal: operationController.signal },
     { onDiagnostic: (diagnostic) => console.log(JSON.stringify(diagnostic)) });
 }
+async function assertDeployedHealth() {
+  const prefix = targetEnvironment === "staging" ? "staging-" : "";
+  for (const [app, path] of [["control", "/api/health"], ["player", "/healthz"]]) {
+    const response = await globalThis.fetch(`https://${prefix}${app}.veyocast.nl${path}`, {
+      signal: globalThis.AbortSignal.any([operationController.signal, globalThis.AbortSignal.timeout(10_000)]) });
+    const health = await response.json();
+    if (!response.ok || health.revision !== sha) throw new Error(`DEPLOYED_${app.toUpperCase()}_SHA_MISMATCH`);
+  }
+}
 async function maintainPublication() {
   const tenants = await query("tenant_lookup", `select id,name,status from public.tenants where name=${literal(tenantName)};`);
   if (tenants.length !== 1 || tenants[0].status !== "active") throw new Error("EXACT_ACTIVE_TENANT_REQUIRED");
@@ -49,6 +68,25 @@ async function maintainPublication() {
   if (env.EXPECTED_TENANT_ID && tenant.id !== env.EXPECTED_TENANT_ID) throw new Error("TENANT_ID_MISMATCH");
   const expanded = (await query("schema_presence", "select to_regclass('public.playlist_publications') is not null as available;"))[0]?.available === true;
   if (!expanded && mode !== "inventory") throw new Error("PUBLICATION_DATABASE_MIGRATION_REQUIRED");
+  const outputDirectory = env.RUNNER_TEMP ?? "/tmp";
+  if (mode === "reclamation") {
+    const evidencePath = join(outputDirectory, "publication-reclamation.json");
+    // Remove only this owned report; exclusive recreation also rejects symlink races.
+    rmSync(evidencePath, { force: true });
+    await assertDeployedHealth();
+    const rows = await query("reclamation_evidence", reclamationEvidenceSql(tenant.id, evidenceSince));
+    if (rows.length !== 1) throw new Error("RECLAMATION_SHAPE_INVALID");
+    const evidence = sanitizeReclamationEvidence(rows[0]?.report);
+    if (evidence.tenantId !== tenant.id) throw new Error("RECLAMATION_SCOPE_INVALID");
+    writeFileSync(evidencePath, JSON.stringify({
+      operation: mode, deploymentSha: sha, workflowSha: env.GITHUB_SHA,
+      completionScope: "sanitized_read_observations_not_end_to_end_acceptance", evidence
+    }, null, 2), { mode: 0o600, flag: "wx" });
+    console.log(JSON.stringify({ operation: mode, tenantId: tenant.id,
+      completionScope: "sanitized_read_observations_not_end_to_end_acceptance",
+      report: "publication-reclamation.json" }));
+    return;
+  }
   const inventoryFile = expanded ? "current-publication-inventory.sql" : "legacy-publication-inventory.sql";
   const sql = readFileSync(new URL(`./sql/${inventoryFile}`, import.meta.url), "utf8").replaceAll("__TENANT_ID__", `${literal(tenant.id)}::uuid`);
   const inventory = async () => {
@@ -58,17 +96,10 @@ async function maintainPublication() {
     return { ...report, inventoryCommandMs: Math.round(performance.now() - started) };
   };
   const before = await inventory();
-  const outputDirectory = env.RUNNER_TEMP ?? "/tmp";
   writeFileSync(join(outputDirectory, "publication-before.json"), JSON.stringify(before, null, 2));
   const changes = [];
   if (mode !== "inventory") {
-    const prefix = targetEnvironment === "staging" ? "staging-" : "";
-    for (const [app, path] of [["control", "/api/health"], ["player", "/healthz"]]) {
-      const response = await globalThis.fetch(`https://${prefix}${app}.veyocast.nl${path}`, {
-        signal: globalThis.AbortSignal.any([operationController.signal, globalThis.AbortSignal.timeout(10_000)]) });
-      const health = await response.json();
-      if (!response.ok || health.revision !== sha) throw new Error(`DEPLOYED_${app.toUpperCase()}_SHA_MISMATCH`);
-    }
+    await assertDeployedHealth();
   }
   if (mode === "refresh") {
     changes.push((await query("refresh_command", `select private.refresh_used_publication_sources_v1(${literal(tenant.id)}::uuid,${literal(sha)},${literal(reason)},${literal(operator)}) as result;`))[0]?.result);
