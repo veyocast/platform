@@ -31,6 +31,10 @@ const files=new Map(systemAssets.files.map(asset=>[asset.path,asset]));
 const defaultPublicDirectory=fileURLToPath(new URL("../../player/public/",import.meta.url));
 const maximumAssetBytes=24*1024*1024;
 const maximumSessionBytes=96*1024*1024;
+/** Image downsampling can select a different cached raster under concurrent
+ * raster workers. Use the same deterministic transport for Source and output.
+ */
+export const sitesCaptureBrowserArgs:readonly string[]=["--disable-dev-shm-usage","--no-sandbox","--num-raster-threads=1"];
 /** Decode and equal adjacent frames can precede a later compositor repaint.
  * Require an elapsed settling period and a continuous exact raster window.
  * Call once per page, after pausing animations at the requested frame.
@@ -51,6 +55,15 @@ export async function captureSettledSitesRaster(page:Page):Promise<Buffer>{
   }else{hash=nextHash;stableSince=Date.now();stableSamples=1;}
  }
  throw new SitesDomCaptureError();
+}
+/** Optional diagnostic measurements from browser bytes before PNG conversion. */
+export async function measureSitesCaptureRaster(page:Page,png:Uint8Array){
+ const document=await page.evaluate(()=>({viewport:{width:innerWidth,height:innerHeight,devicePixelRatio},elements:Array.from(globalThis.document.querySelectorAll("h2,p,span,strong,small,[data-fit-content],img")).map(node=>{
+  const style=getComputedStyle(node),parent=node.parentElement;
+  return {tag:node.tagName,className:node.className,font:style.fontFamily,size:style.fontSize,weight:style.fontWeight,variation:style.fontVariationSettings,fit:style.getPropertyValue("--led-auto-fit"),letterSpacing:style.letterSpacing,width:node.clientWidth,height:node.clientHeight,transform:style.transform,bounds:node.getBoundingClientRect().toJSON(),smoothing:style.getPropertyValue("-webkit-font-smoothing"),rendering:style.textRendering,
+   ...(node instanceof HTMLImageElement?{image:{naturalWidth:node.naturalWidth,naturalHeight:node.naturalHeight,complete:node.complete,sourcePath:node.currentSrc.startsWith("data:")?"data:":node.currentSrc?new URL(node.currentSrc).pathname:"",objectFit:style.objectFit,objectPosition:style.objectPosition,imageRendering:style.imageRendering,filter:style.filter,opacity:style.opacity},parent:parent?{tag:parent.tagName,className:parent.className,transform:getComputedStyle(parent).transform,bounds:parent.getBoundingClientRect().toJSON()}:null}:{})};
+ })}));
+ return {...document,rawPngSha256:createHash("sha256").update(png).digest("hex"),rawPixelSha256:createHash("sha256").update(await sharp(png).removeAlpha().raw().toBuffer()).digest("hex")};
 }
 export function buildSitesCaptureHtml(presentation:SitesPresentation,assetSources:StudioSvgAssetSources,page=0,active=false){
  const input=sitesPresentationSchema.parse(presentation);
@@ -93,7 +106,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
  if(signal?.aborted)throw new SitesDomCaptureError();
  const trustedBundle=browserLifecycle?await getSitesBrowserRenderBundle().catch(()=>{throw new SitesDomCaptureError();}):undefined;
  const tenantAssetSources=browserLifecycle?browserAssetSources(assetSources):{};
- const browser:Browser=await chromium.launch({args:["--disable-dev-shm-usage","--no-sandbox"],executablePath,headless:true,timeout:15000});
+ const browser:Browser=await chromium.launch({args:[...sitesCaptureBrowserArgs],executablePath,headless:true,timeout:15000});
  if(signal?.aborted){await browser.close().catch(()=>undefined);throw new SitesDomCaptureError();}
  let page:Page;const close=()=>browser.close().catch(()=>undefined);const onAbort=()=>{void close();};signal?.addEventListener("abort",onAbort,{once:true});
  const deadline=setTimeout(()=>{void close();},Math.min(300000,60000+totalDurationMs*2));
@@ -161,7 +174,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
    const png=capturedKey.split(":")[0]!==String(targetPage)
     ?await captureSettledSitesRaster(page):await page.screenshot({type:"png",timeout:15000});
    if(assetFailed)throw new SitesDomCaptureError();
-   if(onMeasure)onMeasure(await page.evaluate(()=>Array.from(document.querySelectorAll("h2,p,span,strong,small,[data-fit-content]")).map(node=>{const style=getComputedStyle(node);return {tag:node.tagName,className:node.className,font:style.fontFamily,size:style.fontSize,weight:style.fontWeight,variation:style.fontVariationSettings,fit:style.getPropertyValue("--led-auto-fit"),letterSpacing:style.letterSpacing,width:node.clientWidth,height:node.clientHeight,transform:style.transform,bounds:node.getBoundingClientRect().toJSON(),smoothing:style.getPropertyValue("-webkit-font-smoothing"),rendering:style.textRendering};})));
+   if(onMeasure)onMeasure(await measureSitesCaptureRaster(page,png));
    capturedPng=png;capturedKey=key;return capturedPng;
   };
   return {renderPng:async time=>{try{return await sharp(await capture(time)).toColourspace("srgb").withIccProfile("srgb").png().toBuffer();}catch{throw new SitesDomCaptureError();}},renderRgba:async time=>{try{const png=await capture(time);if(capturedRgba&&rgbaKey===capturedKey)return capturedRgba;capturedRgba=await sharp(png).ensureAlpha().raw().toBuffer();rgbaKey=capturedKey;return capturedRgba;}catch{throw new SitesDomCaptureError();}},close:async()=>{clearTimeout(deadline);signal?.removeEventListener("abort",onAbort);await close();}};

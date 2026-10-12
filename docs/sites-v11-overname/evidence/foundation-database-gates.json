@@ -1,27 +1,27 @@
 {
   "scope": "Verified actual local log markers and validator exit codes; independent Source comparisons are SHA-verified aggregates, not a single full rerun; no deployment or hardware claim.",
-  "recordedAt": "2026-10-11T23:55:37.358715+00:00",
+  "recordedAt": "2026-10-12T00:47:56.767242+00:00",
   "gates": {
     "lint": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "260123d43a1f6505264c434a80d6cf525a545318428e4f7ebb15ea337b0081a9",
-      "supersedesLocalLogSHA256": "c40464c84032cfb3ed2ed945287d4484b9ba22b459e299f599c2ed21b44f621f",
-      "scope": "Final CI-recovery implementation; actual local full workspace gate."
+      "logSHA256": "3d932d04556a87e569ee553ab4e520cbf97942fa15bea421021ae1f1c4a66fcd",
+      "supersedesLocalLogSHA256": "260123d43a1f6505264c434a80d6cf525a545318428e4f7ebb15ea337b0081a9",
+      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes."
     },
     "typecheck": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "24d330330aad856cb9f0c84374b27680389d29e006df6c1391d77f0a9cb75edb",
-      "supersedesLocalLogSHA256": "bee8c970d6f5e658ed2f42f518fd73f87a0026de1db2b5b60b0482e4fde6e909",
-      "scope": "Final CI-recovery implementation; actual local full workspace gate."
+      "logSHA256": "07dc439bd5b4bdecefc4a61657d942a50768f03299aab28ba910b952539fc2ce",
+      "supersedesLocalLogSHA256": "24d330330aad856cb9f0c84374b27680389d29e006df6c1391d77f0a9cb75edb",
+      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes."
     },
     "unit": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "3e05bea9d8ad2f0e1c0488dba561d3a4d75e826e19c055e2d16bebd57e53852b",
-      "scope": "Final CI-recovery implementation; actual local full workspace gate.",
-      "supersedesLocalLogSHA256": "0a2409d242acdf51ce53b93294eecf34d183b985ef7440de04230eed34970712",
+      "logSHA256": "07c979d37e5a4a8e209101e6c6f6f9044d6b0517db7d0cba61e3b94c7e653ab1",
+      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes.",
+      "supersedesLocalLogSHA256": "3e05bea9d8ad2f0e1c0488dba561d3a4d75e826e19c055e2d16bebd57e53852b",
       "crossRepositoryTestkitCacheBypassed": true
     },
     "databaseReset": {
@@ -55,8 +55,8 @@
     "build": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+18 successful, 18 total",
-      "logSHA256": "9a946dab6b37672ab0efd6800a25ace1c7e30c5773644852720dca508427a896",
-      "cachedUnchangedTasks": 11,
+      "logSHA256": "45073eac5ff95308d218ea4a0eda07689840fadc15302aee956bb46fb172deb1",
+      "cachedUnchangedTasks": 13,
       "rebuiltApplications": [
         "control",
         "marketing",
@@ -64,9 +64,9 @@
         "control-mobile",
         "media-worker"
       ],
-      "duration": "2m26.896s",
-      "scope": "Final CI-recovery implementation; actual local full workspace gate.",
-      "supersedesLocalLogSHA256": "0f7d381da98efb7915146c39acd47695af8668b89a4c98af94c0e42ed4bff649"
+      "duration": "2m21.657s",
+      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes.",
+      "supersedesLocalLogSHA256": "9a946dab6b37672ab0efd6800a25ace1c7e30c5773644852720dca508427a896"
     },
     "originalCaseClosure": {
       "status": "PASS",
@@ -164,6 +164,91 @@
     "ledComparisonSHA256": "e8e1b44868ee93e9d7661245ea3395096e2a5aa017ae210431b37611e301f371",
     "logSHA256": "7056bffa96a8f12514a0deffebf5002c316c5ce43bfc2fa982be125683339af5",
     "ledLogSHA256": "dbdf3a70b73b277db369d4b493d67e41221fcb96c998bedf6ea6debda88b4036",
-    "securityLogSHA256": "752fee31e12901a54bf3c4f014df775b8c1c83a7b4b971b627a3b60ae9e9ddfb"
+    "securityLogSHA256": "752fee31e12901a54bf3c4f014df775b8c1c83a7b4b971b627a3b60ae9e9ddfb",
+    "completeCiFollowup": {
+      "head": "6d54bd6bfa3b77fa52f18d624214e9d1131c9f48",
+      "run": "https://github.com/veyocast/platform/actions/runs/38186123151",
+      "sportlink": {
+        "passed": 69,
+        "failed": 3
+      },
+      "templatesAndTv": {
+        "passed": 168,
+        "failed": 4
+      },
+      "status": "FAIL",
+      "finding": "Elapsed raster settling is insufficient. Every observed difference is confined to small club logos. A local Source PNG exactly matches the CI Source bytes; worker raster drift remains under investigation. Original zero-pixel assertions remain unchanged.",
+      "led": {
+        "passed": 288,
+        "failed": 0
+      }
+    },
+    "concurrencyReproduction": "evidence/raster-concurrency-readback.json",
+    "sharedPolicy": "Both launchers explicitly use one raster task thread; original Source content, assets, frame clocks and strict zero-pixel assertions remain unchanged.",
+    "actualRepositoryCaptureSecurityAfterThreadChange": {
+      "passed": 7,
+      "logSHA256": "56ab29e43a569cbdea3926582625730a138fb7a91fb0dbe3e2a8b60a3b1d0de2"
+    },
+    "actualRepositoryVerification": {
+      "cases": 8,
+      "frames": 13,
+      "changedPixels": 0,
+      "rawSourceProductionPixelsEqual": true,
+      "comparisonSHA256": "2e94eae67f8635a384baf211806a1ee679aa128d167afb48996d8e8443b8908e",
+      "logSHA256": "483a74c3263a7d8ceca44d3987b12c3fbce2e6d1343bc29bbbe57283fb6fc172",
+      "fullCiPending": true
+    }
+  },
+  "nativeHeapRecovery": {
+    "failedRun": "https://github.com/veyocast/platform/actions/runs/38186123173",
+    "failedTask": ":expo-modules-core:lintAnalyzeRelease",
+    "actualCause": "OutOfMemoryError while Android lint ApiDatabase.writeDatabase allocates SDK API lookup database",
+    "logSHA256": "61d5724cd80f03688350878226c46c095ad3fbd8448fc6aaf8044a77a5e1a428",
+    "configuredHeap": "4g",
+    "configuredMetaspace": "1g",
+    "maximumWorkers": 2,
+    "verification": "Workflow syntax and ShellCheck passed; actual native AAB rerun is still required. No additional lint exclusion added.",
+    "configurationReference": "https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties"
+  },
+  "freshCiWebDatabase": {
+    "head": "6d54bd6bfa3b77fa52f18d624214e9d1131c9f48",
+    "foundation": "PASS",
+    "databaseAndRls": "PASS",
+    "marketing": "PASS",
+    "cross": "PASS",
+    "control": {
+      "passed": 298,
+      "skipped": 562
+    },
+    "player": {
+      "passed": 235,
+      "skipped": 15
+    },
+    "originalResponsiveCases": 66,
+    "originalMenuYouTube": "PASS",
+    "androidPlayer": "PASS",
+    "lgHostedValidation": "PASS",
+    "scope": "Actual GitHub checks; conditional skips are not counted as executed acceptance."
+  },
+  "productionBeforeDeployment": {
+    "workerProbeRun": 38186528458,
+    "workerRuntime": "healthy",
+    "diagnosticStatus": "FAIL",
+    "code": "PUBLICATION_DATABASE_OPERATION_FAILED",
+    "inventoryRun": 38188214556,
+    "inventoryStatus": "FAIL",
+    "scope": "Both read-only old c3ef6b release checks failed without usable fresh DB counters. Initial inventory tenant SELECT failed before any mutation; underlying remote connection cause is not established. Local CLI TLS failure is expected because isolated Supabase has no TLS and is not proof of the production cause."
+  },
+  "safeOperatorDiagnostics": {
+    "cliFailureCodes": [
+      "LegacyDbConnectError",
+      "LegacyDbQueryExecError"
+    ],
+    "localSqlExecutionFailureTag": "LegacyDbQueryExecError",
+    "providerRpcCodePolicy": "Explicit known SQLSTATE/PGRST allowlist only; no raw response message, detail, hint, connection URL or credentials.",
+    "scope": "Diagnostic-only; unknown remote baseline cause is preserved as unknown.",
+    "privacyChecks": 3,
+    "status": "PASS",
+    "privacyEvidenceSHA256": "50a5009a4251ac8e2e5894b8c84f363c2fc0c4bc53544550b972a71ace54f4c2"
   }
 }

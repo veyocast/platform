@@ -40,7 +40,7 @@ jobs:
         run: pnpm lint
 
       - name: Lint bounded acceptance runners
-        run: pnpm exec eslint scripts/run-browser-gates.mjs scripts/run-local-publisher-gate.mjs scripts/verify-composition-concurrency.mjs scripts/verify-media-metadata-concurrency.mjs scripts/verify-sites-reference.mjs scripts/verify-sites-comparison.mjs scripts/sites-case-inventory.mjs scripts/sites-case-inventory.test.mjs scripts/validate-compose-config.mjs tests/e2e/sites-media-workflows-live.spec.ts playwright.config.ts --max-warnings=0
+        run: pnpm exec eslint scripts/current-publication-maintenance.mjs scripts/run-browser-gates.mjs scripts/run-local-publisher-gate.mjs scripts/verify-composition-concurrency.mjs scripts/verify-media-metadata-concurrency.mjs scripts/verify-sites-reference.mjs scripts/verify-sites-comparison.mjs scripts/sites-case-inventory.mjs scripts/sites-case-inventory.test.mjs scripts/validate-compose-config.mjs tests/e2e/sites-media-workflows-live.spec.ts playwright.config.ts --max-warnings=0
 
       - name: Typecheck
         run: pnpm typecheck

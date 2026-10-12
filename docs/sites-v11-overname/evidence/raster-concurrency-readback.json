@@ -1,0 +1,161 @@
+{
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "scope": "Actual targeted Source/production captures with the exact full Chrome executable used in CI; no whole-CI, deployment or hardware claim. Headless-shell experiments are excluded.",
+  "browser": {
+    "version": "149.0.7827.55",
+    "revision": 1228,
+    "binaryKind": "full Chrome",
+    "rasterArgument": "--num-raster-threads=1",
+    "backend": "GaneshGL/SwANGLE retained",
+    "multipleRasterThreads": "disabled_off"
+  },
+  "caseCount": 7,
+  "frameCount": 12,
+  "exactFrames": 12,
+  "comparisons": [
+    {
+      "caseId": "TV-0010",
+      "page": 0,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "4cb339dcd012b7e55b8f120d66f8f7285595b950913682bd82ed6b0a2e285ae7",
+      "productionSha256": "b98221014c6408a03960afc3479d5848171039d43c2d5bac9c3911adf458266d",
+      "fixtureSha256": "2222cef7ac6b0574a0f403116d9711cf421594d985c2a5ae82268fd4ef49658d"
+    },
+    {
+      "caseId": "TV-STATE-0020",
+      "page": 0,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "c0e118ffc65407e4c2ee9f5c0a93e71fe108655c1e4d9ced0a52e8e113c57f72",
+      "productionSha256": "9f8a82fadfde234bf47c2dceb5bf2cd7c3560b4fc6e87374e73930b3718902d5",
+      "fixtureSha256": "345a92bc8142b64f8a7c66ee8aefc128909ebd5afdb285ab95992f5c9b55dd9b"
+    },
+    {
+      "caseId": "TV-STATE-0020",
+      "page": 1,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "a51eab2768fedde60bed3433ee9cb52e8abed0e588bdc2764cabb04cb3387823",
+      "productionSha256": "60c0089664d8405f8d116bfe8bd365ee5bce78c810e7de7b9c69da81b354edef",
+      "fixtureSha256": "345a92bc8142b64f8a7c66ee8aefc128909ebd5afdb285ab95992f5c9b55dd9b"
+    },
+    {
+      "caseId": "TV-STATE-0025",
+      "page": 0,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "389e0d587a644acc75a300288d913863980ef79fdd9b2caf74d32d91bd25debc",
+      "productionSha256": "551ce0705e05848efb1c5bb32888ae9ba0871e7ad628c6e9ce9133607bc52fb4",
+      "fixtureSha256": "fa2381cad0f8ae1cbe7eabcce07df95c62dedc23869c6cb94826532e06c4b77e"
+    },
+    {
+      "caseId": "TV-STATE-0025",
+      "page": 1,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "2120b7c70b7594b3189a750f2c11095abee4eb00881e022773f9e98c42fb1e27",
+      "productionSha256": "9dc895cc0e2b19dbf9553a42c8b8313d3e4e73e2653f4bc11fe2b4c41fc3d3aa",
+      "fixtureSha256": "fa2381cad0f8ae1cbe7eabcce07df95c62dedc23869c6cb94826532e06c4b77e"
+    },
+    {
+      "caseId": "TV-0017",
+      "page": 0,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "15e83f3a09549a72a6085329490f4cc9bfae8f57cb7675e082af5eab24b8111c",
+      "productionSha256": "e5b2fc09cb6928fc42fe9ba1de2c1dbca404ea41ee8f8abc4e9c1a323a9e02fb",
+      "fixtureSha256": "2d7b631cdcb158ee0018627da2596097691480aff84317f70513e1981cf50e59"
+    },
+    {
+      "caseId": "SPORTLINK-0021",
+      "page": 0,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "6f9675362c6a9ae23ffe7b9a6730991db13578de5fa1e1758ee9d45f10088a77",
+      "productionSha256": "bfbf83d9ceacdd2283ed149818e80920439327effe4a19068763566f89a03fb3",
+      "fixtureSha256": "179e4e38efc239fc3c8f0db04d19f1b1f8d9fb52da18469b384afe0a1f23764b"
+    },
+    {
+      "caseId": "SPORTLINK-0021",
+      "page": 2,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "1d8896ce4b7e1bc6da96056e56bfd4bf546f04e4fda809510c1b431eb62abd45",
+      "productionSha256": "4c1d7949aad255dbff3d1eef220e7e35fd81166d461a22ed338fd32751865619",
+      "fixtureSha256": "179e4e38efc239fc3c8f0db04d19f1b1f8d9fb52da18469b384afe0a1f23764b"
+    },
+    {
+      "caseId": "SPORTLINK-0031",
+      "page": 0,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "24216f63134c2bbba3775691e535ced5c2c914c6daaf54ed8395e288f7b841e4",
+      "productionSha256": "913385deeaad061205486c0cea33447e9ea61bc464c91e49b0ddb7004adb9575",
+      "fixtureSha256": "c1b1475911b44b596954b8b6d60b87c7802924cbbea9bd1f080331c1e67bbcff"
+    },
+    {
+      "caseId": "SPORTLINK-0031",
+      "page": 2,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "4fbe4437a93a7d3c7c650786d2e5ea34a26eeafb45c7d5dce967d1685504c07a",
+      "productionSha256": "71a70f80aee846bd6234f3dc8b4024e343f70a8256712b9c54dd24512ddbe8d5",
+      "fixtureSha256": "c1b1475911b44b596954b8b6d60b87c7802924cbbea9bd1f080331c1e67bbcff"
+    },
+    {
+      "caseId": "SPORTLINK-0035",
+      "page": 0,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "30c040fc79d110fdca7d214abdee2f3ce04cdf480ad34021e6cf294432738abc",
+      "productionSha256": "14d9332658d4041f427bfa3bc3e43f8a0b0c5ea0984a0f9527b400c3529375f4",
+      "fixtureSha256": "6bf5f9beddd05a7ad5eef8b76b6a7ca681d4fb02be0f8cac9bb01424e5b58e69"
+    },
+    {
+      "caseId": "SPORTLINK-0035",
+      "page": 2,
+      "changedPixels": 0,
+      "maximumChannelDifference": 0,
+      "sourceSha256": "8184bb73e7d52eea2fa083629c1e173c90ac12bfd19dcc6bafe78818d2800562",
+      "productionSha256": "391c4fa7fdeb8e8f5f44d8174d09dc7bb349a9586cc680ed6c82df0f57a2b5bf",
+      "fixtureSha256": "6bf5f9beddd05a7ad5eef8b76b6a7ca681d4fb02be0f8cac9bb01424e5b58e69"
+    }
+  ],
+  "reproducedOriginalCiDelta": {
+    "n": 2356,
+    "max": 23,
+    "xmin": 135,
+    "xmax": 1187,
+    "ymin": 410,
+    "ymax": 904,
+    "bands": [
+      [
+        0,
+        589
+      ],
+      [
+        1,
+        589
+      ],
+      [
+        2,
+        589
+      ],
+      [
+        3,
+        589
+      ]
+    ]
+  },
+  "originalCiProductionPngMatches": [
+    "SPORTLINK-0021 page0",
+    "TV-0017 page0",
+    "TV-STATE-0020 page1",
+    "TV-STATE-0025 page1"
+  ],
+  "logSHA256": "7032f64b7aca9ddc352e841ab7f8d1904b4c0fcb2b6b213f47d432d9bed23e00",
+  "completeComparisonSHA256": "d7437099df2a32b7bdc45ddfe16a3d13d37dfd4631dca7227566d5088c3940cb",
+  "switchReference": "https://raw.githubusercontent.com/chromium/chromium/main/cc/base/switches.cc",
+  "verification": "Full CI after the repository launcher change is still required."
+}

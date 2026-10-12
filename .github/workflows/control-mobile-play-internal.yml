@@ -148,7 +148,12 @@ jobs:
           ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_ALIAS }}
           ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_CONTROL_UPLOAD_KEY_PASSWORD }}
         working-directory: apps/control-mobile/android
-        run: ./gradlew lint test bundleRelease --no-daemon
+        # SDK 36 API database analysis needs more than Expo's default heap.
+        run: >-
+          ./gradlew lint test bundleRelease
+          "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
+          --max-workers=2
+          --no-daemon
 
       - name: Install verified bundletool
         run: |

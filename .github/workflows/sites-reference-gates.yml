@@ -116,6 +116,7 @@ jobs:
         env:
           SITES_SOURCE_COMPARE: '1'
           SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          SITES_COMPARE_MEASURE: '1'
           SITES_CASE_FILTER: ${{ matrix.cases }}
           SITES_COMPARISON_GROUP: ${{ matrix.group }}
           NODE_OPTIONS: '--max-old-space-size=2048'
@@ -130,6 +131,7 @@ jobs:
         env:
           SITES_SOURCE_COMPARE: '1'
           SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          SITES_COMPARE_MEASURE: '1'
           SITES_COMPARE_CATEGORY_OFF: '1'
           NODE_OPTIONS: '--max-old-space-size=2048'
         run: |
@@ -143,6 +145,7 @@ jobs:
         env:
           SITES_SOURCE_COMPARE: '1'
           SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          SITES_COMPARE_MEASURE: '1'
           SITES_COMPARE_BACKGROUND_CONTAIN: '1'
           NODE_OPTIONS: '--max-old-space-size=2048'
         run: |
@@ -157,6 +160,7 @@ jobs:
         env:
           SITES_SOURCE_COMPARE: '1'
           SITES_SOURCE_COMPARE_REPORT_ONLY: '0'
+          SITES_COMPARE_MEASURE: '1'
           NODE_OPTIONS: '--max-old-space-size=2048'
         run: |
           export SITES_CAPTURE_TEST_CHROMIUM
@@ -172,11 +176,11 @@ jobs:
           path: |
             ${{ runner.temp }}/sites-reference/comparison.json
             ${{ runner.temp }}/sites-reference/*.json
-            ${{ runner.temp }}/sites-reference/*--diff.png
+            ${{ runner.temp }}/sites-reference/*.png
             ${{ runner.temp }}/sites-reference-menu-no-categories/comparison.json
             ${{ runner.temp }}/sites-reference-background-contain/comparison.json
             ${{ runner.temp }}/sites-reference-literal-starters/comparison.json
             ${{ runner.temp }}/sites-reference-literal-starters/*.json
-            ${{ runner.temp }}/sites-reference-literal-starters/*--diff.png
+            ${{ runner.temp }}/sites-reference-literal-starters/*.png
           retention-days: 14
           if-no-files-found: warn

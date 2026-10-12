@@ -93,7 +93,7 @@ jobs:
           const raw = readFileSync(process.argv[2], 'utf8');
           if (!raw.trim() || Buffer.byteLength(raw) > 1000000) process.exit(1);
           const events = new Set(['live_integration_diagnostics','live_integration_birthday_probe','live_integration_probe_failed']);
-          const keys = new Set(['event','code','tenantId','releaseSha','environment','readinessFresh','diagnostic','schemaVersion','observedAt',
+          const keys = new Set(['event','code','databaseCode','tenantId','releaseSha','environment','readinessFresh','diagnostic','schemaVersion','observedAt',
             'sources','sourceId','sourceKind','status','providerStatus','revision','lastAttemptAt','lastSuccessAt','errorCode','ledScores',
             'connectionId','health','lastValidMessageAt','lastConnectedAt','lastDisconnectedAt','leaseActive','leaseExpiresAt','reconnectCount',
             'invalidMessageCount','lastTestAt','lastTestStatus','lastHealthCode','lastEventAt','persistedMessageEventCount24h','goalCount24h',

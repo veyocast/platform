@@ -4,7 +4,7 @@ import {readFile} from "node:fs/promises";
 import {dirname,join,resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {chromium,type Browser} from "playwright-core";
-import {captureSettledSitesRaster} from "../../src/sites-dom-capture";
+import {captureSettledSitesRaster,measureSitesCaptureRaster,sitesCaptureBrowserArgs} from "../../src/sites-dom-capture";
 import manifest from "../../../../packages/content-templates/src/sites-system-assets.json";
 interface BundleFile {path:string;text:string}
 interface SourcePlugin {name:string;setup(build:{onLoad(options:{filter:RegExp},callback:(args:{path:string})=>Promise<{contents:string;loader:"tsx"}>):void}):void}
@@ -23,7 +23,7 @@ export async function createSitesSourceReference(sourceDirectory:string,executab
  const script=result.outputFiles.find(file=>file.path.endsWith(".js"))!.text,css=result.outputFiles.find(file=>file.path.endsWith(".css"))!.text;
  const files=["app/prototype/studio.tsx","app/prototype/studio.module.css","app/prototype/experience.tsx","app/prototype/experience.module.css","app/prototype/onzetrots-tv.tsx","app/prototype/onzetrots-tv.css","app/prototype/led-slide.tsx","app/prototype/led-slide.module.css","app/globals.css","app/fieldflow.css","app/prototype/onzetrots-tv-templates.ts","app/prototype/sportlink.tsx","app/prototype/led-scores.tsx","app/prototype/onzetrots-tv-adapter.ts"];
  const sourceHashes=Object.fromEntries(await Promise.all(files.map(async name=>[name,sourceComparisonHash(await readFile(join(sourceDirectory,name)))])));
- const browser:Browser=await chromium.launch({executablePath,headless:true,args:["--disable-dev-shm-usage","--no-sandbox"],timeout:15000});
+ const browser:Browser=await chromium.launch({executablePath,headless:true,args:[...sitesCaptureBrowserArgs],timeout:15000});
  const publicDirectory=fileURLToPath(new URL("../../../player/public/",import.meta.url)),assets=new Map(manifest.files.map(asset=>[asset.path,asset])),origin="http://sites-reference.invalid";
  return {sourceHashes,close:()=>browser.close(),project:async(kind:"studio"|"dynamic",value:unknown,pageIndex=0,pages=1)=>{const page=await browser.newPage();await page.route("**/*",route=>route.abort());try{await page.setContent(`<html><body><script>${script.replace(/<\/script/gi,"<\\/script")}</script></body></html>`);return await page.evaluate(({kind,value,pageIndex,pages})=>(globalThis as typeof globalThis & {projectSourceFixture:(kind:string,value:unknown,page:number,pages:number)=>unknown}).projectSourceFixture(kind,value,pageIndex,pages),{kind,value,pageIndex,pages});}finally{await page.close();}},fixtures:async()=>{const page=await browser.newPage();await page.route("**/*",route=>route.abort());try{await page.setContent(`<!doctype html><html data-design-system="fieldflow"><head><style>${css}</style></head><body><script>${script.replace(/<\/script/gi,"<\\/script")}</script></body></html>`);return await page.evaluate(()=>{const clock=Date.now;Date.now=()=>Date.parse("2026-10-11T10:00:00Z");try{return (globalThis as typeof globalThis & {readSourceFixtures:()=>unknown}).readSourceFixtures();}finally{Date.now=clock;}});}finally{await page.close();}},capture:async(kind:"studio"|"tv"|"experience"|"static",props:unknown,width:number,height:number,onMeasure?:(value:unknown)=>void)=>{
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1}),errors:string[]=[];page.on("pageerror",error=>errors.push(error.name));
@@ -37,7 +37,7 @@ export async function createSitesSourceReference(sourceDirectory:string,executab
    await page.evaluate(()=>globalThis.document.getAnimations().forEach(animation=>{animation.pause();animation.currentTime=1200;}));
    const png=await captureSettledSitesRaster(page);
    if(errors.length)throw Error(`Reference failed: ${errors.join(",")}`);
-   if(onMeasure)onMeasure(await page.evaluate(()=>Array.from(globalThis.document.querySelectorAll("h2,p,span,strong,small,[data-fit-content]")).map(node=>{const style=getComputedStyle(node);return {tag:node.tagName,className:node.className,font:style.fontFamily,size:style.fontSize,weight:style.fontWeight,variation:style.fontVariationSettings,fit:style.getPropertyValue("--led-auto-fit"),letterSpacing:style.letterSpacing,width:node.clientWidth,height:node.clientHeight,transform:style.transform,bounds:node.getBoundingClientRect().toJSON(),smoothing:style.getPropertyValue("-webkit-font-smoothing"),rendering:style.textRendering};})));
+   if(onMeasure)onMeasure(await measureSitesCaptureRaster(page,png));
    return png;
   }finally{await page.close();}
  }};
