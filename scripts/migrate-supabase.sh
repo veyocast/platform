@@ -31,9 +31,14 @@ fi
 
 node scripts/check-migration-safety.mjs supabase/migrations
 
+# Alleen de acquisitiebegroting wordt aangevuld; URI-bytes en TLS-opties blijven
+# behouden. De private URL wordt uitsluitend in deze variabele opgevangen.
+database_cli_url=$(node scripts/database-cli-config.mjs --url)
+node scripts/database-cli-config.mjs --summary
+
 # De CLI vergelijkt lokale en remote migration history. Zonder --include-all
 # stopt hij bij remote-only en out-of-order versies in plaats van ze te forceren.
-if pnpm exec supabase migration list --db-url "${SUPABASE_DB_URL}" >/dev/null; then
+if pnpm exec supabase migration list --db-url "${database_cli_url}" >/dev/null; then
   :
 else
   migration_exit_code=$?
@@ -43,12 +48,12 @@ else
   exit "${migration_exit_code}"
 fi
 pnpm exec supabase db push \
-  --db-url "${SUPABASE_DB_URL}" \
+  --db-url "${database_cli_url}" \
   --dry-run \
   --yes
 
 if [[ ${mode} == "apply" ]]; then
   pnpm exec supabase db push \
-    --db-url "${SUPABASE_DB_URL}" \
+    --db-url "${database_cli_url}" \
     --yes
 fi

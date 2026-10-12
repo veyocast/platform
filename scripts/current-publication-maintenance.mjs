@@ -6,6 +6,7 @@ import { setTimeout } from "node:timers";
 import { URL } from "node:url";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { getDatabaseCliConfig } from "./database-cli-config.mjs";
 
 const env = process.env;
 const mode = env.PUBLICATION_OPERATION ?? "inventory";
@@ -22,11 +23,14 @@ if (!["inventory", "refresh", "cutover"].includes(mode) || !["staging", "product
     env.GITHUB_REF !== "refs/heads/main" || !env.SUPABASE_DB_URL ||
     (selectedPlaylist && !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(selectedPlaylist)) ||
     !Number.isInteger(observationSeconds) || observationSeconds < 0 || observationSeconds > 180) throw new Error("PUBLICATION_OPERATION_INVALID");
+const databaseCliConfig = getDatabaseCliConfig(env.SUPABASE_DB_URL, env.PGCONNECT_TIMEOUT);
+const databaseCommandTimeout = Math.min(130_000, Math.max(60_000, (databaseCliConfig.connectTimeoutSeconds + 10) * 1000));
+console.log(JSON.stringify({ event: "database_connection_budget", seconds: databaseCliConfig.connectTimeoutSeconds, source: databaseCliConfig.budgetSource }));
 const literal = (value) => `'${String(value).replaceAll("'", "''")}'`;
 function query(sql) {
   try {
-    const output = execFileSync("pnpm", ["exec", "supabase", "db", "query", "--db-url", env.SUPABASE_DB_URL, "--agent", "no", "--output-format", "json"],
-      { input: sql, encoding: "utf8", maxBuffer: 4 * 1024 * 1024, timeout: 60_000, stdio: ["pipe", "pipe", "pipe"] });
+    const output = execFileSync("pnpm", ["exec", "supabase", "db", "query", "--db-url", databaseCliConfig.databaseUrl, "--agent", "no", "--output-format", "json"],
+      { input: sql, encoding: "utf8", maxBuffer: 4 * 1024 * 1024, timeout: databaseCommandTimeout, stdio: ["pipe", "pipe", "pipe"] });
     const rows = JSON.parse(output);
     if (!Array.isArray(rows)) throw new Error("INVALID_QUERY_RESPONSE");
     return rows;
