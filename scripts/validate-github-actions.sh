@@ -97,7 +97,12 @@ tar --extract --gzip --file "${validation_root}/go.tar.gz" --directory "${valida
 )
 # Keep subprocess fan-out bounded on small CI/self-hosted runners. Validate every
 # workflow separately with the same parser and ShellCheck; no rule is omitted.
-mapfile -t workflow_paths < <(rg --files .github/workflows -g '*.yml' -g '*.yaml' | sort)
+shopt -s nullglob
+workflow_paths=(.github/workflows/*.yml .github/workflows/*.yaml)
+if (( ${#workflow_paths[@]} == 0 )); then
+  echo 'No GitHub Actions workflows found.' >&2
+  exit 1
+fi
 for workflow_path in "${workflow_paths[@]}"; do
   timeout 120s env GOMAXPROCS=2 "${validation_root}/actionlint" -color -shellcheck "$(command -v shellcheck)" "${workflow_path}"
 done

@@ -50,14 +50,50 @@ assertMatch(publicationProbeWorkflow, /^on:\n {2}workflow_dispatch:\n/m, "Public
 assertNotMatch(publicationProbeWorkflow, /^\s*(pull_request(?:_target)?|push|schedule|workflow_call):/m, "Geen indirecte of PR-trigger voor beschermde publicatiediagnose.");
 assertMatch(publicationProbeWorkflow, /^permissions:\n {2}contents: read\n/m, "Publicatiediagnose heeft alleen contents: read.");
 assertEqual([...publicationProbeWorkflow.matchAll(/^\s*permissions:/gm)].length, 1, "Geen aanvullende diagnosepermissions.");
-assertMatch(publicationProbeWorkflow, /if: github\.ref == 'refs\/heads\/main'/, "Diagnose draait uitsluitend trusted main.");
 assertMatch(publicationProbeWorkflow, /environment: \$\{\{ inputs\.target_environment \}\}/, "Diagnose gebruikt een beschermd Environment.");
 assertMatch(publicationProbeWorkflow, /timeout-minutes: 5/, "Diagnose heeft een begrensde jobduur.");
 assertMatch(publicationProbeWorkflow, /ref: \$\{\{ github\.sha \}\}\n {10}persist-credentials: false/, "Checkout moet dezelfde trusted workflow-SHA gebruiken zonder blijvende credentials.");
 assertEqual([...publicationProbeWorkflow.matchAll(/secrets\./g)].length, 1, "Diagnose krijgt uitsluitend de SQL-secret.");
 assertMatch(publicationProbeWorkflow, /SUPABASE_DB_URL: \$\{\{ secrets\.SUPABASE_DB_URL \}\}/, "Diagnose mist de beschermde SQL-binding.");
-assertMatch(publicationProbeWorkflow, /run: node scripts\/probe-publication-runtime\.mjs "\$TARGET_ENVIRONMENT" "\$EXPECTED_RUNTIME_SHA" "\$TENANT_ID"/, "Alle diagnoseargumenten blijven expliciet gequote.");
 assertNotMatch(publicationProbeWorkflow, /\$\{\{ inputs\.[^}]+\}\}[^\n]*\n?(?:[^\n]*run:)/, "Geen inputinterpolatie in shellcommando's.");
+
+const runtimeProbeWorkflow = await readFile(new URL("../.github/workflows/probe-runtime-database.yml", import.meta.url), "utf8");
+for (const [source, mode, entrypoint] of [
+  [publicationProbeWorkflow, "publication", "probe-publication-runtime"],
+  [runtimeProbeWorkflow, "runtime", "probe-runtime-database"]
+]) {
+  assertMatch(source, /^on:\n {2}workflow_dispatch:\n/m, "De begrensde diagnose heeft uitsluitend een handmatige trigger.");
+  assertNotMatch(source, /^\s*(pull_request(?:_target)?|push|schedule|workflow_call):/m, "Diagnose mag niet indirect starten.");
+  assertMatch(source, /^jobs:\n {2}probe:\n/m, "De vaste diagnose heeft één expliciet probejob.");
+  const probeJob = source.match(/^jobs:\n {2}probe:\n([\s\S]*)/m)?.[1] ?? "";
+  assertNotMatch(probeJob, /^ {0,2}[^\s#]/m, "Er zijn geen aanvullende diagnosejobs of root-overrides.");
+  assertMatch(probeJob, /^ {4}if: \$\{\{ always\(\) && github\.ref == 'refs\/heads\/main' && \(inputs\.quiesce_worker \|\| !cancelled\(\)\) \}\}$/m, "Het probejob zelf bewaart trusted main en de expliciete cancellationgrens.");
+  assertNotMatch(source, /^\s*(?:continue-on-error|shell):/m, "Diagnose staat geen failureomzetting of shelloverride toe.");
+  const quiesceInput = source.match(/^ {6}quiesce_worker:\n(?: {8}[^\n]*\n)*/m)?.[0] ?? "";
+  assertMatch(quiesceInput, /^ {8}type: boolean\n {8}default: false$/m, "Workerquiescence is uitsluitend expliciet en standaard uit in zijn eigen inputblok.");
+  assertMatch(source, /^ {2}group: \$\{\{ inputs\.quiesce_worker && 'deploy-veyocast-main' \|\| format\('[^']+', inputs\.target_environment, inputs\.tenant_id\) \}\}\n {2}cancel-in-progress: false$/m, "Quiescence deelt het exclusieve deploymentownership zonder cancellation.");
+  const fixedDispatch = [
+    '          case "$QUIESCE_WORKER" in',
+    `            true) exec bash scripts/probe-with-quiesced-worker.sh ${mode} "$TARGET_ENVIRONMENT" "$EXPECTED_RUNTIME_SHA" "$TENANT_ID" ;;`,
+    `            false) exec node scripts/${entrypoint}.mjs "$TARGET_ENVIRONMENT" "$EXPECTED_RUNTIME_SHA" "$TENANT_ID" ;;`,
+    "            *) echo 'PROBE_SCOPE_INVALID' >&2; exit 64 ;;",
+    "          esac"
+  ].join("\n");
+  assertEqual(source.split(fixedDispatch).length - 1, 1, "Alleen de twee vaste execbranches met expliciet gequote argumenten zijn toegestaan.");
+  const probeSteps = readStepBlocks(source);
+  const criticalSteps = probeSteps.filter((step) => step.includes("scripts/probe-with-quiesced-worker.sh"));
+  assertEqual(criticalSteps.length, 1, "Precies één vaste critical step bezit de workerquiescence.");
+  const criticalStep = criticalSteps[0];
+  assertEqual(readRunScript(criticalStep), fixedDispatch.split("\n").map((line) => line.slice(10)).join("\n"), "De volledige critical scriptbody bevat uitsluitend de vaste dispatch.");
+  assertMatch(criticalStep, /^ {8}if: \$\{\{ always\(\) && steps\.install_client\.outcome == 'success' && \(inputs\.quiesce_worker \|\| !cancelled\(\)\) \}\}$/m, "De critical step zelf vereist installsuccess en bewaart het herstel bij cancellation.");
+  const installStep = probeSteps[probeSteps.indexOf(criticalStep) - 1] ?? "";
+  assertMatch(installStep, /^ {6}- name: Install pinned diagnostic client\n {8}if: \$\{\{ success\(\) && !cancelled\(\) \}\}\n {8}id: install_client$/m, "De voorafgaande install bezit het expliciete annuleerbare armingpoint.");
+  assertEqual(readRunScript(installStep), "pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1", "De arminginstall gebruikt uitsluitend de vaste gepinde client.");
+  assertEqual(probeSteps.filter((step) => /^ {8}id: install_client$/m.test(step)).length, 1, "Het installarmingpoint is uniek.");
+  const cancellationStep = probeSteps.find((step) => step.startsWith("      - name: Preserve ordinary workflow cancellation\n")) ?? "";
+  assertMatch(cancellationStep, /^ {8}if: \$\{\{ cancelled\(\) && inputs\.quiesce_worker \}\}\n {8}run: \|\n {10}echo '\{"event":"quiesced_worker_probe","phase":"workflow","code":"PROBE_WORKFLOW_CANCELLED"\}' >&2\n {10}exit 1$/m, "Workflowcancellation blijft een failure in zijn eigen markerstep na workerherstel.");
+  assertNotMatch(source, /\bset\s+-[A-Za-z]*x[A-Za-z]*(?:\s|$)|\bset\s+-o\s+xtrace\b/, "De diagnose mag geen shelltracing activeren.");
+}
 
 const steps = readStepBlocks(workflow);
 for (const step of steps) {
@@ -219,7 +255,7 @@ for (const step of remoteGitSteps) {
 
 assertNotMatch(
   workflow,
-  /\bset\s+-[^\n]*x\b/,
+  /\bset\s+-[^\n]*x\b|\bset\s+-[A-Za-z]*x[A-Za-z]*(?:\s|$)|\bset\s+-o\s+xtrace\b/,
   "Shell tracing mag secrets niet loggen."
 );
 assertNotMatch(
@@ -300,10 +336,12 @@ function readRunScript(step) {
   const declaration = lines[runIndex]?.slice("        run: ".length) ?? "";
   if (declaration !== "|") return declaration;
 
-  return lines
-    .slice(runIndex + 1)
-    .map((line) => (line.startsWith("          ") ? line.slice(10) : line))
-    .join("\n");
+  const scriptLines = [];
+  for (const line of lines.slice(runIndex + 1)) {
+    if (line.trim() && !line.startsWith("          ")) break;
+    scriptLines.push(line.startsWith("          ") ? line.slice(10) : line);
+  }
+  return scriptLines.join("\n").trimEnd();
 }
 
 function assertMatch(value, pattern, message) {
