@@ -237,7 +237,7 @@ for (const platform of ["browser", "static-lg"] as const) {
 }
 
 for (const platform of ["browser", "static-lg"] as const) {
-  test(`${platform}: a late obsolete download cannot replace the ready newest target`, async ({ page }) => {
+  test(`${platform}: a late obsolete download cannot replace the ready newest target`, async ({ page,context }) => {
     const { createHash } = await import("node:crypto");
     const baseline = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json() as PlayerManifestEnvelope;
     const releases = [1, 2, 4].map((revision) => {
@@ -252,8 +252,9 @@ for (const platform of ["browser", "static-lg"] as const) {
     let current = releases[0]!.envelope;
     let delayed: (() => Promise<void>) | undefined;
     const shown: string[] = [];
-    await page.route("**/s185-2.svg", (route) => { delayed = () => route.fulfill({ body: releases[1]!.svg, contentType: "image/svg+xml" }).catch(() => undefined); });
-    await page.route("**/s185-4.svg", (route) => route.fulfill({ body: releases[2]!.svg, contentType: "image/svg+xml" }));
+    // Keep the real service worker active; its own fetches also need the controlled fixture.
+    await context.route("**/s185-2.svg", (route) => { delayed = () => route.fulfill({ body: releases[1]!.svg, contentType: "image/svg+xml" }).catch(() => undefined); });
+    await context.route("**/s185-4.svg", (route) => route.fulfill({ body: releases[2]!.svg, contentType: "image/svg+xml" }));
     await page.route("**/api/player/manifest*", (route) => route.fulfill({ json: current }));
     await page.route("**/api/player/installation", (route) => route.fulfill({ json: { ok: true, bound: true, installationCredential: "i".repeat(48) } }));
     await page.route("**/api/player/realtime", (route) => route.fulfill({ status: 204 }));

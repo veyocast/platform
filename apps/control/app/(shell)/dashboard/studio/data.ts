@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   safeParseStudioDocument,
+  studioDocumentAssetIds,
   studioRenderOutputTypes,
   studioRenderStatuses,
   type StudioRenderOutputType,
@@ -21,7 +22,8 @@ import type {
   StudioProjectStatus,
   StudioProjectSummary,
   StudioRenderJob,
-  StudioRevision
+  StudioRevision,
+  StudioSeriesDetail
 } from "./types";
 
 type UnknownRow = Record<string, unknown>;
@@ -259,7 +261,7 @@ export async function loadStudioProject(
   const assetData = await loadStudioMediaAssets(
     supabase,
     tenantId,
-    logoMediaAssetId ? [logoMediaAssetId] : []
+    [...studioDocumentAssetIds(project.document),...(logoMediaAssetId?[logoMediaAssetId]:[])]
   );
   const revisionRows = (revisionsResult.data ?? []) as UnknownRow[];
   const creatorIds = [
@@ -409,7 +411,7 @@ async function loadStudioMediaAssets(
   }
   const variantsResult = await supabase
     .from("media_variants")
-    .select("asset_id, variant_type, storage_path, width, height, mime_type")
+    .select("asset_id, variant_type, storage_path, width, height, mime_type, checksum_sha256")
     .eq("tenant_id", tenantId)
     .in("asset_id", assetIds)
     .in("variant_type", ["thumbnail", "original", "player_1080p"]);
@@ -443,7 +445,7 @@ async function loadStudioMediaAssets(
       const sourceVariant = asset.kind === "video"
         ? variants.find((variant) => variant.variant_type === "player_1080p") ??
           variants.find((variant) => variant.variant_type === "original")
-        : previewVariant;
+        : variants.find((variant)=>variant.variant_type==="original");
       let previewUrl: string | null = null;
       if (previewVariant && typeof previewVariant.storage_path === "string") {
         const signed = await supabase.storage
@@ -459,6 +461,7 @@ async function loadStudioMediaAssets(
         sourceUrl = signed.data?.signedUrl ?? null;
       }
       return {
+        checksumSha256:typeof sourceVariant?.checksum_sha256==="string"?sourceVariant.checksum_sha256:null,
         height: finiteNumberOrNull(sourceVariant?.height ?? previewVariant?.height),
         id: asset.id,
         kind: asset.kind,
@@ -718,3 +721,20 @@ function escapeLike(value: string) {
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const hexColorPattern = /^#[0-9A-F]{6}$/i;
+
+/** Every relation is tenant-filtered and still subject to authenticated RLS. */
+export async function loadStudioSeries(tenantId:string|null,isLive:boolean,identity:string):Promise<StudioSeriesDetail|null>{
+ if(!isLive||!tenantId||!uuidPattern.test(identity))return null;
+ const supabase=await createControlSupabaseClient();if(!supabase)return null;
+ const membership=await supabase.from("studio_series_items").select("series_id").eq("tenant_id",tenantId).eq("project_id",identity).limit(1).maybeSingle();
+ const seriesId=typeof membership.data?.series_id==="string"?membership.data.series_id:identity;
+ const series=await supabase.from("studio_series").select("id,name,revision").eq("tenant_id",tenantId).eq("id",seriesId).eq("status","active").maybeSingle();
+ if(series.error||!series.data)return null;
+ const membershipRows=await supabase.from("studio_series_items").select("project_id,sort_order").eq("tenant_id",tenantId).eq("series_id",seriesId).order("sort_order").limit(20);
+ const rows=(membershipRows.data??[]) as Array<{project_id:string;sort_order:number}>;if(membershipRows.error||!rows.length)return null;
+ const ids=rows.map(row=>row.project_id);const [projects,drafts]=await Promise.all([supabase.from("studio_projects").select("id,name").eq("tenant_id",tenantId).in("id",ids).eq("status","active"),supabase.from("studio_project_drafts").select("project_id,draft_revision,document_json").eq("tenant_id",tenantId).in("project_id",ids)]);
+ if(projects.error||drafts.error)return null;
+ const items=rows.flatMap(row=>{const project=projects.data?.find(candidate=>candidate.id===row.project_id);const draft=drafts.data?.find(candidate=>candidate.project_id===row.project_id);const document=safeParseStudioDocument(draft?.document_json);return project&&draft&&document.success?[{id:project.id,name:project.name,order:row.sort_order,draftRevision:draft.draft_revision,document:document.data}]:[];});
+ if(items.length!==rows.length)return null;
+ return {id:series.data.id,name:series.data.name,revision:series.data.revision,items};
+}

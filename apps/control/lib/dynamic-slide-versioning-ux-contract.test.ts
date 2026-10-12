@@ -14,12 +14,13 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
       source("app/(shell)/dashboard/slides/_components/sportlink-match-location-field.tsx")
     ]);
 
-    expect(wizard).toContain('"Inhoud kiezen"');
-    expect(wizard).toContain('"Teams selecteren"');
-    expect(wizard).toContain('"Competitie instellen"');
-    expect(wizard).toContain('"Stijl en weergave"');
-    expect(wizard).toContain('"Controleren"');
-    expect(wizard).toContain("<strong>{drafts.length}</strong>");
+    const stepDefinitions = wizard.match(/const steps = \[([\s\S]*?)\] as const;/u)?.[1];
+    expect(stepDefinitions?.match(/"[^"\n]+"/gu)).toEqual([
+      '"Inhoud kiezen"', '"Teams & gegevens"', '"Vormgeving"', '"Schermen"', '"Controleren"'
+    ]);
+    expect(wizard).toContain("<strong>{drafts.length} {drafts.length === 1");
+    expect(wizard).toContain("step === 1 && selectedTeams.length");
+    expect(wizard).toContain("<CompetitionStep");
     expect(wizard).toContain("<MultiSelectDropdown");
     expect(wizard).toContain("updateRegularSelection");
     expect(wizard).toContain("Alle teams (ook toekomstige)");
@@ -54,24 +55,36 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(wizard).toContain("Er is nog niets aangemaakt.");
     expect(wizard).toContain("creationResult.slides.map");
     expect(wizard).toContain('href="/dashboard/slides"');
-    expect(action).toContain('"create_sportlink_slide_batch_v6"');
+    expect(wizard).toContain('submitter.dataset.createSportlinkBatch !== "true"');
+    expect(wizard).toContain("step !== 4");
+    expect(wizard).toContain("isCreating ||");
+    expect(wizard).toContain("const [idempotencyKey] = useState(() => crypto.randomUUID())");
+    expect(action).toContain('"create_sportlink_slide_batch_v7"');
+    expect(action).toContain("p_idempotency_key: parsed.data.idempotencyKey");
     expect(action).toContain("parseBatchResult");
     expect(action).not.toContain("redirect(");
   });
 
   it("toont een sticky desktoppreview en een bruikbare mobiele kaartflow", async () => {
-    const [wizard, css, multiSelect] = await Promise.all([
+    const [wizard, css, preview, previewData, multiSelect] = await Promise.all([
       source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
-      source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.module.css"),
+      source("app/(shell)/dashboard/studio/sportlink/new/sites-source-wizard.module.css"),
+      source("app/(shell)/dashboard/studio/sportlink/new/sites-sportlink-preview.tsx"),
+      source("app/(shell)/dashboard/studio/sportlink/new/sites-sportlink-preview-data.ts"),
       readFile(new URL("../../../packages/ui/src/components/multi-select-dropdown.tsx", import.meta.url), "utf8")
     ]);
 
-    expect(wizard).toContain("Live stijlpreview");
-    expect(wizard).toContain("className={styles.preview}");
-    expect(css).toMatch(/\.wizard :global\(\.vc-journey-shell__aside\)\s*\{[\s\S]*?position:\s*sticky;/u);
-    expect(css).toContain("@media (max-width: 640px)");
-    expect(css).toContain(".teamSelectors");
-    expect(css).not.toContain(".matrixHead");
+    expect(wizard).toContain("<SitesSportlinkDraftPreview draft={previewDraft} sourceId={sourceId}");
+    expect(wizard).toContain("sites.previewPanel");
+    expect(wizard).toContain("Schermvoorbeeld");
+    expect(wizard).toContain("sites.mobileHidden");
+    expect(css).toMatch(/\.previewPanel\{[^}]*position:sticky;/u);
+    expect(css).toContain("@media(max-width:800px)");
+    expect(css).toContain(".mobileHidden{display:none!important}");
+    expect(preview).toContain("buildSitesPresentationFromDynamicPayload(result.payload, draft.sitesConfiguration)");
+    expect(previewData).toContain('supabase.rpc("preview_dynamic_slide_v1"');
+    expect(previewData).toContain('requireTenantControlSession("tenant.dynamic_slide.write")');
+    expect(previewData).not.toMatch(/(?:supabase|admin)\.from\([^;\n]+\.(?:insert|update|delete)\(/u);
     expect(multiSelect).toContain("searchable?: boolean");
     expect(multiSelect).toContain("selectionNoun");
     expect(multiSelect).toContain('type="hidden"');
@@ -108,7 +121,8 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
       composer,
       menu,
       wizard,
-      styleStep
+      styleStep,
+      sitesDesign
     ] = await Promise.all([
       source("app/(shell)/dashboard/settings/page.tsx"),
       source("app/(shell)/dashboard/settings/settings-category-workspace.tsx"),
@@ -118,12 +132,15 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
       source("app/(shell)/dashboard/slides/new/slide-composer-form.tsx"),
       source("app/(shell)/dashboard/slides/menu-studio/menu-studio-editor.tsx"),
       source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
-      source("app/(shell)/dashboard/slides/_components/fieldflow-style-step.tsx")
+      source("app/(shell)/dashboard/slides/_components/fieldflow-style-step.tsx"),
+      source("app/(shell)/dashboard/studio/sportlink/new/sites-source-design-controls.tsx")
     ]);
 
     expect(settings).not.toContain("<TenantThemeEditor");
     expect(settings).not.toContain("tenant_theme_profiles");
-    expect(settingsCategories).not.toContain('{ id: "huisstijl"');
+    expect(settingsCategories).toContain('{ id: "huisstijl", label: "Huisstijl"');
+    expect(settings).toContain('id="huisstijl"');
+    expect(settings).toContain('href="/dashboard/themes/fieldflow"');
     expect(themes).toContain('title="Thema\'s"');
     expect(themes).toContain('href="/dashboard/themes/fieldflow"');
     expect(themes).toContain("Kleuren, typografie en logo-oppervlakken horen bij het theme");
@@ -140,6 +157,10 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(composer).not.toContain("<EditorialThemeEditor");
     expect(composer).not.toContain("editorialThemeJson");
     expect(menu).toContain("<TenantStyleSummary");
+    expect(wizard).toContain("<SitesSourceDesignControls");
+    expect(sitesDesign).toContain("<SitesSourceThemePicker value={design.themeId}");
+    expect(sitesDesign).toContain('id: "fieldflow" as const');
+    expect(sitesDesign).toContain('id: "onzetrots-tv" as const');
     expect(wizard).toContain("<FieldFlowStyleStep");
     expect(wizard).toContain("Competities per team");
     expect(wizard).toContain('aria-label="Weergavekeuzes"');

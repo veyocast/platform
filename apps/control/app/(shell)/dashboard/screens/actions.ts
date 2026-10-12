@@ -23,7 +23,7 @@ export async function createScreen(formData: FormData) {
 
 export async function createScreenOnboarding(formData: FormData) {
   const context = await requireScreenManagement("mutate");
-  const screenId = await runCreateScreen(context, formData);
+  const screenId = await runCreateScreen(context, formData, true);
   const pairingCode = normalizePairingCode(String(formData.get("pairingCode") ?? ""));
   complete(
     `/dashboard/screens/new?screen=${screenId}${pairingCode.length === 6 ? `&code=${encodeURIComponent(pairingCode)}` : ""}`,
@@ -337,6 +337,7 @@ export async function addBulkScreensToGroup(formData: FormData) {
     .from("screen_groups")
     .select("revision")
     .eq("tenant_id", session.tenantId)
+    .eq("is_internal", false)
     .eq("id", groupId)
     .eq("status", "active")
     .maybeSingle();
@@ -449,10 +450,17 @@ export async function assignBulkScreenRelease(formData: FormData) {
   ));
 }
 
-async function runCreateScreen(context: ScreenCommandContext, formData: FormData) {
+async function runCreateScreen(context: ScreenCommandContext, formData: FormData, onboarding = false) {
   const input = screenInput(formData);
+  if (onboarding) {
+    for (const name of ["initialReleaseId", "groupId"]) {
+      const value = String(formData.get(name) ?? "").trim();
+      if (value && !isUuid(value)) fail("/dashboard/screens/new", "De gekozen content of schermgroep is ongeldig. Vernieuw de keuze en probeer opnieuw.");
+    }
+  }
   const initialReleaseId = optionalUuid(formData, "initialReleaseId");
-  const { data, error } = await context.supabase.rpc("create_screen_from_current_release_v1", {
+  const { data, error } = await context.supabase.rpc(onboarding ? "create_screen_onboarding_v2" : "create_screen_from_current_release_v1", {
+    ...(onboarding ? { p_group_id: optionalUuid(formData, "groupId"), p_idempotency_key: requiredUuid(formData, "idempotencyKey") } : {}),
     p_initial_release_id: initialReleaseId,
     p_location: input.location,
     p_name: input.name,
@@ -461,7 +469,7 @@ async function runCreateScreen(context: ScreenCommandContext, formData: FormData
     p_resolution_width: input.resolutionWidth,
     p_tenant_id: context.session.tenantId
   });
-  if (error || typeof data !== "string") {
+  if (error || typeof data !== "string" || !isUuid(data)) {
     fail("/dashboard/screens/new", screenMutationFailure(error?.code));
   }
   return data;

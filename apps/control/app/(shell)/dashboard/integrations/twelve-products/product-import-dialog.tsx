@@ -49,13 +49,13 @@ export function ProductImportDialog({ disabled = false }: { disabled?: boolean }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={disabled}>Excel importeren</Button>
+        <Button disabled={disabled}>CSV of Excel importeren</Button>
       </DialogTrigger>
       <DialogContent aria-describedby="product-import-description">
         <DialogHeader>
           <DialogTitle>Producten uit Twelve importeren</DialogTitle>
           <DialogDescription id="product-import-description">
-            VeyoCast leest een normale .xlsx-export. Het bestand wordt niet als
+            VeyoCast leest een UTF-8 CSV of normale .xlsx-export. Controleer de kolommen en productregels voordat je de import toepast. Het bestand wordt niet als
             live Twelve-koppeling bewaard en formules worden nooit uitgevoerd.
           </DialogDescription>
         </DialogHeader>
@@ -67,9 +67,9 @@ export function ProductImportDialog({ disabled = false }: { disabled?: boolean }
             ref={formRef}
           >
             <div className="field">
-              <label htmlFor="product-workbook">Excel-bestand</label>
+              <label htmlFor="product-workbook">CSV- of Excel-bestand</label>
               <input
-                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 disabled={disabled || pending}
                 id="product-workbook"
                 name="file"
@@ -77,7 +77,7 @@ export function ProductImportDialog({ disabled = false }: { disabled?: boolean }
                 type="file"
               />
               <p className="work-panel__meta">
-                Maximaal 8 MB, 10.000 regels en 75 kolommen. Macrobestanden en
+                CSV maximaal 2 MB, Excel maximaal 8 MB; beide maximaal 10.000 regels en 75 kolommen. Macrobestanden en
                 oude .xls-bestanden worden geweigerd.
               </p>
             </div>
@@ -88,7 +88,7 @@ export function ProductImportDialog({ disabled = false }: { disabled?: boolean }
             ) : null}
             <DialogFooter>
               <Button disabled={disabled || pending} type="submit">
-                {pending ? "Werkmap controleren…" : "Werkmap controleren"}
+                {pending ? "Bestand controleren…" : "Bestand controleren"}
               </Button>
             </DialogFooter>
           </form>

@@ -1,4 +1,4 @@
-import type { MobilePlaylistMutationRequest } from "@veyocast/contracts";
+import type { MobilePlaylistMutationRequest,PlaylistBatchCommand,PlaylistBatchOperation } from "@veyocast/contracts";
 import {
   AppShell,
   AppText,
@@ -22,7 +22,6 @@ import {
   ArrowUp,
   Check,
   GripVertical,
-  ImagePlus,
   Send,
   Trash2
 } from "lucide-react-native";
@@ -42,6 +41,9 @@ import Animated, {
   withSpring
 } from "react-native-reanimated";
 
+import {SitesLibraryPicker} from "../../../../src/sites/library-picker";
+import {SitesItemEditor} from "../../../../src/sites/item-editor";
+import {mobilePlaylistMutationToV2} from "../../../../src/playlists/v2-commands";
 import { mobileApi } from "../../../../src/api/mobile-api";
 import { AppError } from "../../../../src/components/app-error";
 import {
@@ -58,6 +60,7 @@ export default function PlaylistDetailScreen() {
   const { activeTenant } = useTenant();
   const queryClient = useQueryClient();
   const theme = useMobileTheme();
+  const [pendingBatch,setPendingBatch]=useState<{command:PlaylistBatchCommand;conflict:boolean}|null>(null);
   const [selectedScreens, setSelectedScreens] = useState<string[]>([]);
   const [releaseNotes, setReleaseNotes] = useState("");
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -68,7 +71,7 @@ export default function PlaylistDetailScreen() {
     enabled: Boolean(activeTenant && playlistId),
     queryFn: () => {
       if (!activeTenant || !playlistId) throw new Error("Playlist ontbreekt.");
-      return mobileApi.playlist(activeTenant.id, playlistId);
+      return mobileApi.playlistV2(activeTenant.id, playlistId);
     },
     queryKey: ["playlist", activeTenant?.id, playlistId]
   });
@@ -86,16 +89,16 @@ export default function PlaylistDetailScreen() {
     setBusyKey(input.operation);
     setError(null);
     try {
-      const result = await mobileApi.mutatePlaylist(
-        activeTenant.id,
-        playlistId,
-        input
-      );
+      if(!playlist)throw Error("Laad de playlist opnieuw.");
+      const command=mobilePlaylistMutationToV2(playlist,input);setPendingBatch({command,conflict:false});
+      const result = await mobileApi.mutatePlaylistBatchV2(activeTenant.id,command);
       if (result.outcome === "conflict") {
+        setPendingBatch(current=>current?{...current,conflict:true}:null);
         throw new Error(
           "De playlist is elders gewijzigd. De nieuwste versie wordt geladen."
         );
       }
+      setPendingBatch(null);
       await Promise.all([
         query.refetch(),
         queryClient.invalidateQueries({
@@ -108,6 +111,13 @@ export default function PlaylistDetailScreen() {
     } finally {
       setBusyKey(null);
     }
+  }
+
+  async function applyOperations(operations:PlaylistBatchOperation[],retryCommand?:PlaylistBatchCommand){
+    if(!activeTenant||!playlist)throw Error("Laad eerst een playlist.");
+    const command=retryCommand??{playlistId:playlist.id,expectedRevision:playlist.revision,idempotencyKey:Crypto.randomUUID(),operations};
+    setBusyKey("batch");setError(null);setPendingBatch({command,conflict:false});
+    try{const result=await mobileApi.mutatePlaylistBatchV2(activeTenant.id,command);if(result.outcome==="conflict"){setPendingBatch({command,conflict:true});throw Error("De playlist is intussen gewijzigd. Je wijzigingen blijven beschikbaar; laad de nieuwste versie voordat je ze opnieuw toepast.");}setPendingBatch(null);await query.refetch();await queryClient.invalidateQueries({queryKey:["content",activeTenant.id]});}catch(value){setError(value);throw value;}finally{setBusyKey(null);}
   }
 
   function confirmPublish() {
@@ -416,6 +426,8 @@ export default function PlaylistDetailScreen() {
                       Verwijder
                     </Button>
                   </View>
+                  <SitesItemEditor item={item} playlistId={playlistId} busy={busyKey!==null} onSave={operations=>applyOperations(operations)}/>
+                  <Button variant="secondary" disabled={busyKey!==null} onPress={()=>void applyOperations([{operation:"duplicate",itemId:item.id,clientId:Crypto.randomUUID()}]).catch(()=>undefined)}>Item dupliceren</Button>
                   </SurfaceCard>
                 )}
               </DraggablePlaylistItem>
@@ -429,34 +441,10 @@ export default function PlaylistDetailScreen() {
           )}
         </View>
 
-        <SectionHeader title="Media toevoegen" />
-        <View style={styles.list}>
-          {playlist.readyMedia.map((asset) => (
-            <SurfaceCard key={asset.id} style={styles.compactRow}>
-              <View style={styles.itemCopy}>
-                <AppText variant="cardTitle">{asset.name}</AppText>
-                <AppText muted variant="caption">
-                  {asset.mimeType}
-                </AppText>
-              </View>
-              <Button
-                icon={<ImagePlus color="#0A0A0A" size={18} />}
-                loading={busyKey === `add-${asset.id}`}
-                onPress={() => {
-                  setBusyKey(`add-${asset.id}`);
-                  void mutate({
-                    expectedRevision: playlist.revision,
-                    idempotencyKey: Crypto.randomUUID(),
-                    mediaAssetId: asset.id,
-                    operation: "add_item"
-                  });
-                }}
-              >
-                Voeg toe
-              </Button>
-            </SurfaceCard>
-          ))}
-        </View>
+        <SitesLibraryPicker busy={busyKey!==null} onAdd={operations=>applyOperations(operations)}/>
+        {playlist.sections.length?<SurfaceCard><AppText variant="section">Secties</AppText>{playlist.sections.map(section=><AppText key={section.id}>{section.name}</AppText>)}</SurfaceCard>:null}
+        {pendingBatch?<InlineAlert title={pendingBatch.conflict?"Wijzigingen vragen vergelijking":"Opslag nog niet bevestigd"} description="Je opslaghandeling blijft beschikbaar. Publiceer pas nadat de server deze heeft bevestigd." tone="warning"/>:null}
+        {pendingBatch?<Button variant="secondary" disabled={busyKey!==null} onPress={()=>{if(pendingBatch.conflict)void query.refetch().then(result=>{if(!result.data)return;void applyOperations(pendingBatch.command.operations,{...pendingBatch.command,expectedRevision:result.data.revision,idempotencyKey:Crypto.randomUUID()}).catch(()=>undefined);});else void applyOperations(pendingBatch.command.operations,pendingBatch.command).catch(()=>undefined);}}>{pendingBatch.conflict?"Nieuwste laden en wijzigingen opnieuw toepassen":"Dezelfde opslag opnieuw proberen"}</Button>:null}
 
         <SectionHeader
           description="Players wisselen pas na volledige download en verificatie."
@@ -524,7 +512,7 @@ export default function PlaylistDetailScreen() {
         />
         {error ? <AppError error={error} /> : null}
         <Button
-          disabled={!playlist.items.length || !selectedScreens.length}
+          disabled={!playlist.items.length || !selectedScreens.length || Boolean(pendingBatch) || busyKey!==null}
           icon={<Send color="#0A0A0A" size={20} />}
           loading={busyKey === "publish"}
           onPress={confirmPublish}

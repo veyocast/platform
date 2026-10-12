@@ -1,0 +1,43 @@
+{
+  "originalMedia": {
+    "tags": [],
+    "bytes": [
+      {
+        "path": "tenants/10000000-0000-4000-8000-000000000101/assets/d2aeb731-4e08-4889-8f8f-72755baa97a0/original/eerste.png",
+        "size": 91,
+        "sha256": "197f81aa5aa5b26398eb25fa041a3ebb33c8ef3d89778023f6ca3bf18f8985b7"
+      },
+      {
+        "path": "tenants/10000000-0000-4000-8000-000000000101/assets/d2aeb731-4e08-4889-8f8f-72755baa97a0/thumbnail/thumbnail.webp",
+        "size": 44,
+        "sha256": "dc95008d41285ea3fdabb451c8be8bd7078c0033bb8bd098cb0316cd71b070f2"
+      }
+    ],
+    "favorite": false,
+    "updatedAt": "2026-10-11T22:15:25.907978+00:00",
+    "collections": []
+  },
+  "savedMedia": {
+    "tags": [
+      "club",
+      "publisher-proof"
+    ],
+    "bytes": [
+      {
+        "path": "tenants/10000000-0000-4000-8000-000000000101/assets/d2aeb731-4e08-4889-8f8f-72755baa97a0/original/eerste.png",
+        "size": 91,
+        "sha256": "197f81aa5aa5b26398eb25fa041a3ebb33c8ef3d89778023f6ca3bf18f8985b7"
+      },
+      {
+        "path": "tenants/10000000-0000-4000-8000-000000000101/assets/d2aeb731-4e08-4889-8f8f-72755baa97a0/thumbnail/thumbnail.webp",
+        "size": 44,
+        "sha256": "dc95008d41285ea3fdabb451c8be8bd7078c0033bb8bd098cb0316cd71b070f2"
+      }
+    ],
+    "favorite": true,
+    "updatedAt": "2026-10-11T22:15:29.109286+00:00",
+    "collections": [
+      "Publisher proof"
+    ]
+  }
+}

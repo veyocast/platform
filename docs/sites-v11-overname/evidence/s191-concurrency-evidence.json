@@ -1,0 +1,9 @@
+{
+  "independentSessions": 2,
+  "firstSessionRowLocked": true,
+  "secondSessionWaitedOnLock": true,
+  "firstOutcome": "applied",
+  "secondOutcome": "conflict",
+  "actualRevision": 1,
+  "finalName": "Winning first session"
+}

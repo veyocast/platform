@@ -7,9 +7,12 @@ import type {
   StudioMediaAsset,
   StudioProjectDetail,
   StudioRenderJob,
-  StudioRevision
+  StudioRevision,
+  StudioSeriesDetail
 } from "../types";
-import styles from "../studio.module.css";
+import {StudioLoadingState} from "../studio-route-states";
+
+const SitesStudioEditor=dynamic(()=>import("./sites-studio-editor").then(module=>module.SitesStudioEditor),{ssr:false,loading:()=> <StudioLoadingState/>});
 
 const StudioEditorWorkspace = dynamic(
   () =>
@@ -17,18 +20,13 @@ const StudioEditorWorkspace = dynamic(
       (module) => module.StudioEditorWorkspace
     ),
   {
-    loading: () => (
-      <div aria-busy="true" className={styles.editorLoading}>
-        <span />
-        <strong>Studio voorbereiden</strong>
-        <p>Canvas, lettertypen en veilige ontwerptools worden geladen.</p>
-      </div>
-    ),
+    loading:()=> <StudioLoadingState/>,
     ssr: false
   }
 );
 
 export function StudioEditorLoader(props: {
+  series?:StudioSeriesDetail|null;
   assets: StudioMediaAsset[];
   error: string | null;
   initialRenderId: string | null;
@@ -44,5 +42,5 @@ export function StudioEditorLoader(props: {
   } | null;
   tenantId: string;
 }) {
-  return <StudioEditorWorkspace {...props} />;
+  return props.project.document.sitesPresentation?<SitesStudioEditor key={`${props.project.id}:${props.project.draftRevision}`} {...props}/>:<StudioEditorWorkspace {...props} />;
 }

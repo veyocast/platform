@@ -41,6 +41,7 @@ type PublishJourneyProps = {
     pageCount: number;
   }>;
   canPublish: boolean;
+  initialScreenIds?:string[];
   idempotencyKey: string;
   playlist: { id: string; name: string; revision: number };
   preflightError: string | null;
@@ -49,6 +50,7 @@ type PublishJourneyProps = {
   previewItems: PlaylistPreviewItem[];
   readiness: {
     canPublish: boolean;
+  initialScreenIds?:string[];
     itemCount: number;
     reasons: string[];
     totalBytes: number;
@@ -60,6 +62,7 @@ type PublishJourneyProps = {
 export function PublishJourney({
   birthdayTimingChecks,
   canPublish,
+  initialScreenIds=[],
   idempotencyKey,
   playlist,
   preflightError,
@@ -71,7 +74,7 @@ export function PublishJourney({
 }: PublishJourneyProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [screenQuery, setScreenQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>(initialScreenIds);
   const selectableStates = useMemo(
     () => preflightStates.filter((state) => state.screen.status !== "disabled"),
     [preflightStates]

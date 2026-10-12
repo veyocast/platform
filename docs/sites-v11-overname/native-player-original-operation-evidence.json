@@ -1,0 +1,1565 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "implementationBaseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "capturedAt": "2026-10-11T21:55:38.799Z",
+  "browser": "Chromium1228 / Linux / DPR1",
+  "localOnly": true,
+  "physicalHardwareClaim": false,
+  "providerSuccessClaim": false,
+  "sourceGoldenCompared": false,
+  "scope": "Actual production modern Player with controlled immutable QA device manifests, real byte/SHA-verified locked assets, actual CacheStorage/IndexedDB/service worker, visible first frames, natural boundaries and network loss. No physical hardware or live provider success claim.",
+  "results": [
+    {
+      "caseId": "DEVICE-0004",
+      "status": "PASS",
+      "model": "Linux headless Chromium software runtime",
+      "os": "Linux",
+      "browserVersion": "149.0.7827.55",
+      "releaseId": "19180400-0000-4000-8000-000000000010",
+      "manifestHash": "c258388f85a732764df721ce7d53258c55a02b0910c9366eea5b7c238c21f79b",
+      "snapshotHashes": [
+        "76ca1ca3efa17768a2f0693c3b841734d875f14d5e0266c49769347eb16f2206",
+        "30644f7bfca96bce7da259af9c4fcd85603a4fa4d1b21f4038f12c6e687bf994"
+      ],
+      "assets": [
+        {
+          "path": "/brand/veyocast-apple-touch-icon-180.png",
+          "bytes": 2611,
+          "sha256": "92d341ccd6841af42e018336491ec5b3ba77d2728f516a45033483c80b68b662",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-16.png",
+          "bytes": 344,
+          "sha256": "a1ab273d453a1953b89524e82139166a570a97546d92eb4fbbba8c15bc85f067",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-32.png",
+          "bytes": 615,
+          "sha256": "8c9f636fd7bdcc632f5bcc793eb5c122d7a8bf4499859bf83452b15bfc702fd3",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-48.png",
+          "bytes": 842,
+          "sha256": "6888982869a0cdcde101721d20bc1596bdd1b96d53250e86fa46c119089fd80c",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon.ico",
+          "bytes": 1855,
+          "sha256": "026d2adb445f61cc401cacb06b19a1496cc63fe55a12c16c7dcc8583c7453162",
+          "mimeType": "image/x-icon"
+        },
+        {
+          "path": "/brand/veyocast-favicon.svg",
+          "bytes": 955,
+          "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-icon-192.png",
+          "bytes": 3093,
+          "sha256": "4d4c596252167fc51c2d8056447a63156561754f3d017e36356770e410708bba",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-512.png",
+          "bytes": 11090,
+          "sha256": "666c6f7beea3512e354c0de4fc2b9a9379b2aa9cad20e11f1f17e55356eb1530",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-1024.png",
+          "bytes": 35308,
+          "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-192.png",
+          "bytes": 2797,
+          "sha256": "f368eb013ed35b7d274c0426a1f50c6b90b9b4d15de3aa6bfe5cdc64bc6ba9f4",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-256.png",
+          "bytes": 4148,
+          "sha256": "6fd104c3bc45cf10ccebdfd9d97ebb80a56b76abd085a3c37f26807771aa16f8",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-384.png",
+          "bytes": 7562,
+          "sha256": "9d04b525d6279452b1f830f902faac74116c827668b983fb8fd37b56d6508806",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-512.png",
+          "bytes": 11777,
+          "sha256": "bedcc9c8da7296d0133ae82cd1c964a8c7537b4d2afacf739bf5dee248f3060f",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable.svg",
+          "bytes": 942,
+          "sha256": "848bc4e2be047906fac9444bedda97e70999a358ee349d82b02fbfebc074ebc5",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-icon-primary.svg",
+          "bytes": 955,
+          "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-inverse.svg",
+          "bytes": 3910,
+          "sha256": "ebeba6d04108bf04fa2d85cf655d4f68689165da151c970ddb8e30c7ec3e1d1a",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-monochrome-black.svg",
+          "bytes": 3955,
+          "sha256": "4d06227db59cc810ba8067fd685a976785fb371d7207b9b3302311cdcb11b0e6",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-monochrome-white.svg",
+          "bytes": 3955,
+          "sha256": "d487489cad2d15e40fb62b2fe24fab26bca04c200cdb562e1b8bc3b0c6be596b",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-primary.svg",
+          "bytes": 3955,
+          "sha256": "0b9720fd6eb70b402ff39072ce3985d1478888434065d6abfb1867b5ac11dd01",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-social-avatar-1024.png",
+          "bytes": 35308,
+          "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/favicon.svg",
+          "bytes": 712,
+          "sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp",
+          "bytes": 137240,
+          "sha256": "5115506847b4e78a4ea51618be9fd1c04202ced1564b00a47961e56a6941fe1a",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+          "bytes": 118058,
+          "sha256": "b7fce5339c8c865ee5ae86693c349d5f3a724b5235c9c7b80dcea2d688dfecb0",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp",
+          "bytes": 89984,
+          "sha256": "cc94973585c9248d11b9b4bb871416ab49a413904e7bd928132cd0e9a3d1d2ef",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+          "bytes": 168136,
+          "sha256": "03dc11dbd5daa87e84d6e8f21b8ec51b54f271537fd24af57dbf4ea9911a254c",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/file.svg",
+          "bytes": 392,
+          "sha256": "1e0ae4d1a1ddfa36752988647b731e4abf150c414d069ec83c96fb0aaeff0307",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/fonts/inter.woff2",
+          "bytes": 48256,
+          "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+          "mimeType": "font/woff2"
+        },
+        {
+          "path": "/fonts/manrope.woff2",
+          "bytes": 24836,
+          "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+          "mimeType": "font/woff2"
+        },
+        {
+          "path": "/fonts/onzetrots-brush-Apache-2.0.txt",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "mimeType": "text/plain; charset=UTF-8"
+        },
+        {
+          "path": "/fonts/onzetrots-brush.ttf",
+          "bytes": 73276,
+          "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/fonts/onzetrots-display.ttf",
+          "bytes": 88228,
+          "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/fonts/onzetrots-licenses.txt",
+          "bytes": 238,
+          "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081",
+          "mimeType": "text/plain; charset=UTF-8"
+        },
+        {
+          "path": "/globe.svg",
+          "bytes": 1036,
+          "sha256": "d051a8c47936990a9085693d307bb7cea1bc1b6d7ed956bcbaacf674f4ec96b9",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/brush-frame.png",
+          "bytes": 1743290,
+          "sha256": "4b002d67496adcc267160f002cedd117c8f1b13d619de0404f026647bfd7b9f7",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/brush/clubhuis.svg",
+          "bytes": 2846314,
+          "sha256": "8bb77aef3580efc3883cd43c2b10c42c85be0b7a1230a773a72dc377382f5f3b",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/duindorp-luchtfoto.svg",
+          "bytes": 2743679,
+          "sha256": "f4c08b3cb5e713d1e317e5e62e1b1ddb3265d5c3442cedab0dc814b07d536e50",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/havenlicht.svg",
+          "bytes": 2506195,
+          "sha256": "de9b50862e815400d9544b373fd59d19d844a8e6f635b27fa13109ba6de1f394",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/historische-poort.svg",
+          "bytes": 2802083,
+          "sha256": "b6a6b3f19b27270ae610bf383ae79d177ea09f2faa146a0c8419a5e745fb280a",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/kerk.svg",
+          "bytes": 2754901,
+          "sha256": "6e7531ea29a64f99b8c2da53f0209ceeb5bef43546246ecc55728379ca01ddf8",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/sources.json",
+          "bytes": 1808,
+          "sha256": "b26efd467ae96c24ee3e325dfccc3ce34dede7574f860f29cf02056ccce845a0",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/duindorp-logo.png",
+          "bytes": 69175,
+          "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/houtrust-brush.webp",
+          "bytes": 596258,
+          "sha256": "4e654df31f432c922a44b1670f6bf8d64af3361d40645f410de0a4d696d46171",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots/originals/clubhuis.jpg",
+          "bytes": 390077,
+          "sha256": "59f2c6f69fe0550cb261fe9fb67a46d08038dce890a3d03681d6a8121aec0b1c",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/duindorp-luchtfoto.jpg",
+          "bytes": 313095,
+          "sha256": "c4f9b1a26cff9cc9517cb5392ec684378914c6561d4b1fcb32c23bd107dd23e2",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/havenlicht.jpg",
+          "bytes": 134853,
+          "sha256": "70794084caa404e23e8215e4a33783e094e4210911d49553eeeca45a40945cd8",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/historische-poort.jpg",
+          "bytes": 356883,
+          "sha256": "5065f77c59a6b57dadf458bbc11674bece0cb4563ae65979139ec9b91c2f854c",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/kerk.jpg",
+          "bytes": 321494,
+          "sha256": "36c51d7c7dec84a79336fb176d37ed7fdbb6eadcc7854b5eccf351f4fbcdcbe7",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/sources.json",
+          "bytes": 1763,
+          "sha256": "c46199f75e2a1eea0921ac656c2eccaf4300365c579c00d6293f6db5d07aae3e",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/paint-wall.webp",
+          "bytes": 642098,
+          "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots/premium/clubhuis.png",
+          "bytes": 3557785,
+          "sha256": "7942a36dd34c06c4b576e122d52acc8f970e9a10af78d2e15861d0893da63efd",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/duindorp-luchtfoto.png",
+          "bytes": 3569369,
+          "sha256": "a11606f1cc19a5f5885c506b265d654ac888d449afba1099ebb34a8f59695c60",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/havenlicht.png",
+          "bytes": 3501140,
+          "sha256": "0a1009d093fce5d96f8e697624f2509e779acb0b7c36f3f7fac366333dc6db3e",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/historische-poort.png",
+          "bytes": 3552880,
+          "sha256": "1776fefafb9f4845c67f1148c7971682b58be68c0f9f2ff2b4545355eac2d5d7",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/kerk.png",
+          "bytes": 3624327,
+          "sha256": "0a2b23aaa9a3caddb6b7a6f36f5bfc2ed83c2f64ba32438a63023905d62ee7ec",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/sources.json",
+          "bytes": 15625,
+          "sha256": "2cb61c2f5f61fea1d4da7bdedf096b1719e1859b02715eaafdef01e7e7c2501d",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/readability-brush.svg",
+          "bytes": 1143,
+          "sha256": "f42dba3e394f6c87a1381a55214c6998ba8e80ee17709702ab537e969a17dfbb",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/type-distress.svg",
+          "bytes": 495,
+          "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-lettering.webp",
+          "bytes": 428940,
+          "sha256": "c4bf31d7c6331f76f6e4db9bbac59052a01ad9c6f6ae3abe497925f90e15bf32",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-players/trio-1280.webp",
+          "bytes": 244872,
+          "sha256": "543bb88be5c642cac8ed64c3f0f1f8e38608d8640fe5f41623a6477d62b89291",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v14/05-juichen-1280.webp",
+          "bytes": 252048,
+          "sha256": "a7519a49d43abe4e0bdc786780ad7d377528114085801c5de2592c38140a3dbb",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v14/07-walking-1280.webp",
+          "bytes": 282362,
+          "sha256": "6e5926d26fbf048d3a5e0ef091de8dc3b895df12ebd11e4e2a42c53a53907bfc",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v17/10-strijd-1280.webp",
+          "bytes": 286764,
+          "sha256": "16a4d2f6e372ec0deccd0f435506c15351fd54033d486b9b28c44b0cd557d433",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-wall.webp",
+          "bytes": 642098,
+          "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/logo.png",
+          "bytes": 69175,
+          "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/bnu.svg",
+          "bytes": 9817,
+          "sha256": "44f2ccd12438bcfb292e1283ecac9ef7f5758d4cb77b14e65835260181285504",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/deelman-daktechniek.svg",
+          "bytes": 64066,
+          "sha256": "555ca80ae9e1b9e60cf9179092ac0201e4adaf4032b0d53be979dc6d328e23b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/dg-webservices.svg",
+          "bytes": 9286,
+          "sha256": "dbe2716900d7137fe74250b2ef0708d668fdc8596161c07474006aed56d1c031",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/kwaliteit-kozijnen-holland.svg",
+          "bytes": 46866,
+          "sha256": "9eac38ab31bae0373a516e88724a246841c14a3efa5bfc61ca40b2537b224f68",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/proto-tegelzetbedrijf.svg",
+          "bytes": 30279,
+          "sha256": "337a0308cef2a2b7b68d89d0f2afcb789467aaaaf7651803e92e8a4e04321d01",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/rw-repair.png",
+          "bytes": 30510,
+          "sha256": "2698a951c6f595bdc3b08cd0ec891575b3122d891cd0b783a8e22515080f866d",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots-tv/assets/type-distress.svg",
+          "bytes": 495,
+          "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-0.ttf",
+          "bytes": 86636,
+          "sha256": "0d85af813fc3ed87db0c6265515689b2eef5cbaf7aab17922528dfc95a2cd73f",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-1.ttf",
+          "bytes": 87120,
+          "sha256": "7dde307fa887fc65ff5830cfada77a7decc5dae8d3c816c9d39ba3f1af1c4ed7",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-2.ttf",
+          "bytes": 87556,
+          "sha256": "73bc9e17231e9073780d3c81574c7253cecd5645c93544df1a935054b39a364f",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-3.ttf",
+          "bytes": 88228,
+          "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-4.ttf",
+          "bytes": 94972,
+          "sha256": "a13d9b41b0a471ce58f0e46d377fa3cc76615e4632c3b15eb397caadf7a13f0a",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-5.ttf",
+          "bytes": 95060,
+          "sha256": "f433e5d333be1128d8ec8a28b8aadd0314d10e14e4105406076666bc830fc15d",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-6.ttf",
+          "bytes": 95096,
+          "sha256": "6bad1a774228464cc88b8b0271555b266f7a3c64a7bedf15e165fdab4f6ac0ce",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-7.ttf",
+          "bytes": 94928,
+          "sha256": "b9584e099e0e7f1e1e914c3037aabb9010c50346a3ce8df5eeeeecc0563044d8",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-8.ttf",
+          "bytes": 95688,
+          "sha256": "b8f802f05b322a7345805f5b89f8bb976604cc719a91530918d5ce3c47160950",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-9.ttf",
+          "bytes": 73276,
+          "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/window.svg",
+          "bytes": 386,
+          "sha256": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66",
+          "mimeType": "image/svg+xml"
+        }
+      ],
+      "fonts": {
+        "inter": true,
+        "tvDisplay": true,
+        "tvBody": true
+      },
+      "firstAt": 1791751906511,
+      "nextAt": 1791751912367,
+      "naturalTransitionElapsedMs": 5856,
+      "screenshotSha256": "716345ee00d74554641216236c6e8b0648d4c7d70c34def4c447488f313482d3"
+    },
+    {
+      "caseId": "DEVICE-0005",
+      "status": "PASS",
+      "model": "Linux headless Chromium software runtime",
+      "os": "Linux",
+      "browserVersion": "149.0.7827.55",
+      "releaseId": "19180400-0000-4000-8000-000000000010",
+      "manifestSha256": "04c49d9f49aa41e28c7a3ab800573f3beeec21bdac658a6c062661994652eb38",
+      "rejectedReleaseId": "19180400-0000-4000-8000-000000000011",
+      "corruptChecksumRejected": true,
+      "networkLost": true,
+      "restartedOfflineThroughRealServiceWorker": true,
+      "visibleLkgAfterRestart": true,
+      "assets": [
+        {
+          "path": "/brand/veyocast-apple-touch-icon-180.png",
+          "bytes": 2611,
+          "sha256": "92d341ccd6841af42e018336491ec5b3ba77d2728f516a45033483c80b68b662",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-16.png",
+          "bytes": 344,
+          "sha256": "a1ab273d453a1953b89524e82139166a570a97546d92eb4fbbba8c15bc85f067",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-32.png",
+          "bytes": 615,
+          "sha256": "8c9f636fd7bdcc632f5bcc793eb5c122d7a8bf4499859bf83452b15bfc702fd3",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-48.png",
+          "bytes": 842,
+          "sha256": "6888982869a0cdcde101721d20bc1596bdd1b96d53250e86fa46c119089fd80c",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon.ico",
+          "bytes": 1855,
+          "sha256": "026d2adb445f61cc401cacb06b19a1496cc63fe55a12c16c7dcc8583c7453162",
+          "mimeType": "image/x-icon"
+        },
+        {
+          "path": "/brand/veyocast-favicon.svg",
+          "bytes": 955,
+          "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-icon-192.png",
+          "bytes": 3093,
+          "sha256": "4d4c596252167fc51c2d8056447a63156561754f3d017e36356770e410708bba",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-512.png",
+          "bytes": 11090,
+          "sha256": "666c6f7beea3512e354c0de4fc2b9a9379b2aa9cad20e11f1f17e55356eb1530",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-1024.png",
+          "bytes": 35308,
+          "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-192.png",
+          "bytes": 2797,
+          "sha256": "f368eb013ed35b7d274c0426a1f50c6b90b9b4d15de3aa6bfe5cdc64bc6ba9f4",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-256.png",
+          "bytes": 4148,
+          "sha256": "6fd104c3bc45cf10ccebdfd9d97ebb80a56b76abd085a3c37f26807771aa16f8",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-384.png",
+          "bytes": 7562,
+          "sha256": "9d04b525d6279452b1f830f902faac74116c827668b983fb8fd37b56d6508806",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-512.png",
+          "bytes": 11777,
+          "sha256": "bedcc9c8da7296d0133ae82cd1c964a8c7537b4d2afacf739bf5dee248f3060f",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable.svg",
+          "bytes": 942,
+          "sha256": "848bc4e2be047906fac9444bedda97e70999a358ee349d82b02fbfebc074ebc5",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-icon-primary.svg",
+          "bytes": 955,
+          "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-inverse.svg",
+          "bytes": 3910,
+          "sha256": "ebeba6d04108bf04fa2d85cf655d4f68689165da151c970ddb8e30c7ec3e1d1a",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-monochrome-black.svg",
+          "bytes": 3955,
+          "sha256": "4d06227db59cc810ba8067fd685a976785fb371d7207b9b3302311cdcb11b0e6",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-monochrome-white.svg",
+          "bytes": 3955,
+          "sha256": "d487489cad2d15e40fb62b2fe24fab26bca04c200cdb562e1b8bc3b0c6be596b",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-primary.svg",
+          "bytes": 3955,
+          "sha256": "0b9720fd6eb70b402ff39072ce3985d1478888434065d6abfb1867b5ac11dd01",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-social-avatar-1024.png",
+          "bytes": 35308,
+          "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/favicon.svg",
+          "bytes": 712,
+          "sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp",
+          "bytes": 137240,
+          "sha256": "5115506847b4e78a4ea51618be9fd1c04202ced1564b00a47961e56a6941fe1a",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+          "bytes": 118058,
+          "sha256": "b7fce5339c8c865ee5ae86693c349d5f3a724b5235c9c7b80dcea2d688dfecb0",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp",
+          "bytes": 89984,
+          "sha256": "cc94973585c9248d11b9b4bb871416ab49a413904e7bd928132cd0e9a3d1d2ef",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+          "bytes": 168136,
+          "sha256": "03dc11dbd5daa87e84d6e8f21b8ec51b54f271537fd24af57dbf4ea9911a254c",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/file.svg",
+          "bytes": 392,
+          "sha256": "1e0ae4d1a1ddfa36752988647b731e4abf150c414d069ec83c96fb0aaeff0307",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/fonts/inter.woff2",
+          "bytes": 48256,
+          "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+          "mimeType": "font/woff2"
+        },
+        {
+          "path": "/fonts/manrope.woff2",
+          "bytes": 24836,
+          "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+          "mimeType": "font/woff2"
+        },
+        {
+          "path": "/fonts/onzetrots-brush-Apache-2.0.txt",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "mimeType": "text/plain; charset=UTF-8"
+        },
+        {
+          "path": "/fonts/onzetrots-brush.ttf",
+          "bytes": 73276,
+          "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/fonts/onzetrots-display.ttf",
+          "bytes": 88228,
+          "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/fonts/onzetrots-licenses.txt",
+          "bytes": 238,
+          "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081",
+          "mimeType": "text/plain; charset=UTF-8"
+        },
+        {
+          "path": "/globe.svg",
+          "bytes": 1036,
+          "sha256": "d051a8c47936990a9085693d307bb7cea1bc1b6d7ed956bcbaacf674f4ec96b9",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/brush-frame.png",
+          "bytes": 1743290,
+          "sha256": "4b002d67496adcc267160f002cedd117c8f1b13d619de0404f026647bfd7b9f7",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/brush/clubhuis.svg",
+          "bytes": 2846314,
+          "sha256": "8bb77aef3580efc3883cd43c2b10c42c85be0b7a1230a773a72dc377382f5f3b",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/duindorp-luchtfoto.svg",
+          "bytes": 2743679,
+          "sha256": "f4c08b3cb5e713d1e317e5e62e1b1ddb3265d5c3442cedab0dc814b07d536e50",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/havenlicht.svg",
+          "bytes": 2506195,
+          "sha256": "de9b50862e815400d9544b373fd59d19d844a8e6f635b27fa13109ba6de1f394",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/historische-poort.svg",
+          "bytes": 2802083,
+          "sha256": "b6a6b3f19b27270ae610bf383ae79d177ea09f2faa146a0c8419a5e745fb280a",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/kerk.svg",
+          "bytes": 2754901,
+          "sha256": "6e7531ea29a64f99b8c2da53f0209ceeb5bef43546246ecc55728379ca01ddf8",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/sources.json",
+          "bytes": 1808,
+          "sha256": "b26efd467ae96c24ee3e325dfccc3ce34dede7574f860f29cf02056ccce845a0",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/duindorp-logo.png",
+          "bytes": 69175,
+          "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/houtrust-brush.webp",
+          "bytes": 596258,
+          "sha256": "4e654df31f432c922a44b1670f6bf8d64af3361d40645f410de0a4d696d46171",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots/originals/clubhuis.jpg",
+          "bytes": 390077,
+          "sha256": "59f2c6f69fe0550cb261fe9fb67a46d08038dce890a3d03681d6a8121aec0b1c",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/duindorp-luchtfoto.jpg",
+          "bytes": 313095,
+          "sha256": "c4f9b1a26cff9cc9517cb5392ec684378914c6561d4b1fcb32c23bd107dd23e2",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/havenlicht.jpg",
+          "bytes": 134853,
+          "sha256": "70794084caa404e23e8215e4a33783e094e4210911d49553eeeca45a40945cd8",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/historische-poort.jpg",
+          "bytes": 356883,
+          "sha256": "5065f77c59a6b57dadf458bbc11674bece0cb4563ae65979139ec9b91c2f854c",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/kerk.jpg",
+          "bytes": 321494,
+          "sha256": "36c51d7c7dec84a79336fb176d37ed7fdbb6eadcc7854b5eccf351f4fbcdcbe7",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/sources.json",
+          "bytes": 1763,
+          "sha256": "c46199f75e2a1eea0921ac656c2eccaf4300365c579c00d6293f6db5d07aae3e",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/paint-wall.webp",
+          "bytes": 642098,
+          "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots/premium/clubhuis.png",
+          "bytes": 3557785,
+          "sha256": "7942a36dd34c06c4b576e122d52acc8f970e9a10af78d2e15861d0893da63efd",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/duindorp-luchtfoto.png",
+          "bytes": 3569369,
+          "sha256": "a11606f1cc19a5f5885c506b265d654ac888d449afba1099ebb34a8f59695c60",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/havenlicht.png",
+          "bytes": 3501140,
+          "sha256": "0a1009d093fce5d96f8e697624f2509e779acb0b7c36f3f7fac366333dc6db3e",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/historische-poort.png",
+          "bytes": 3552880,
+          "sha256": "1776fefafb9f4845c67f1148c7971682b58be68c0f9f2ff2b4545355eac2d5d7",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/kerk.png",
+          "bytes": 3624327,
+          "sha256": "0a2b23aaa9a3caddb6b7a6f36f5bfc2ed83c2f64ba32438a63023905d62ee7ec",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/sources.json",
+          "bytes": 15625,
+          "sha256": "2cb61c2f5f61fea1d4da7bdedf096b1719e1859b02715eaafdef01e7e7c2501d",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/readability-brush.svg",
+          "bytes": 1143,
+          "sha256": "f42dba3e394f6c87a1381a55214c6998ba8e80ee17709702ab537e969a17dfbb",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/type-distress.svg",
+          "bytes": 495,
+          "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-lettering.webp",
+          "bytes": 428940,
+          "sha256": "c4bf31d7c6331f76f6e4db9bbac59052a01ad9c6f6ae3abe497925f90e15bf32",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-players/trio-1280.webp",
+          "bytes": 244872,
+          "sha256": "543bb88be5c642cac8ed64c3f0f1f8e38608d8640fe5f41623a6477d62b89291",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v14/05-juichen-1280.webp",
+          "bytes": 252048,
+          "sha256": "a7519a49d43abe4e0bdc786780ad7d377528114085801c5de2592c38140a3dbb",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v14/07-walking-1280.webp",
+          "bytes": 282362,
+          "sha256": "6e5926d26fbf048d3a5e0ef091de8dc3b895df12ebd11e4e2a42c53a53907bfc",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v17/10-strijd-1280.webp",
+          "bytes": 286764,
+          "sha256": "16a4d2f6e372ec0deccd0f435506c15351fd54033d486b9b28c44b0cd557d433",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-wall.webp",
+          "bytes": 642098,
+          "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/logo.png",
+          "bytes": 69175,
+          "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/bnu.svg",
+          "bytes": 9817,
+          "sha256": "44f2ccd12438bcfb292e1283ecac9ef7f5758d4cb77b14e65835260181285504",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/deelman-daktechniek.svg",
+          "bytes": 64066,
+          "sha256": "555ca80ae9e1b9e60cf9179092ac0201e4adaf4032b0d53be979dc6d328e23b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/dg-webservices.svg",
+          "bytes": 9286,
+          "sha256": "dbe2716900d7137fe74250b2ef0708d668fdc8596161c07474006aed56d1c031",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/kwaliteit-kozijnen-holland.svg",
+          "bytes": 46866,
+          "sha256": "9eac38ab31bae0373a516e88724a246841c14a3efa5bfc61ca40b2537b224f68",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/proto-tegelzetbedrijf.svg",
+          "bytes": 30279,
+          "sha256": "337a0308cef2a2b7b68d89d0f2afcb789467aaaaf7651803e92e8a4e04321d01",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/rw-repair.png",
+          "bytes": 30510,
+          "sha256": "2698a951c6f595bdc3b08cd0ec891575b3122d891cd0b783a8e22515080f866d",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots-tv/assets/type-distress.svg",
+          "bytes": 495,
+          "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-0.ttf",
+          "bytes": 86636,
+          "sha256": "0d85af813fc3ed87db0c6265515689b2eef5cbaf7aab17922528dfc95a2cd73f",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-1.ttf",
+          "bytes": 87120,
+          "sha256": "7dde307fa887fc65ff5830cfada77a7decc5dae8d3c816c9d39ba3f1af1c4ed7",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-2.ttf",
+          "bytes": 87556,
+          "sha256": "73bc9e17231e9073780d3c81574c7253cecd5645c93544df1a935054b39a364f",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-3.ttf",
+          "bytes": 88228,
+          "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-4.ttf",
+          "bytes": 94972,
+          "sha256": "a13d9b41b0a471ce58f0e46d377fa3cc76615e4632c3b15eb397caadf7a13f0a",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-5.ttf",
+          "bytes": 95060,
+          "sha256": "f433e5d333be1128d8ec8a28b8aadd0314d10e14e4105406076666bc830fc15d",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-6.ttf",
+          "bytes": 95096,
+          "sha256": "6bad1a774228464cc88b8b0271555b266f7a3c64a7bedf15e165fdab4f6ac0ce",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-7.ttf",
+          "bytes": 94928,
+          "sha256": "b9584e099e0e7f1e1e914c3037aabb9010c50346a3ce8df5eeeeecc0563044d8",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-8.ttf",
+          "bytes": 95688,
+          "sha256": "b8f802f05b322a7345805f5b89f8bb976604cc719a91530918d5ce3c47160950",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-9.ttf",
+          "bytes": 73276,
+          "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/window.svg",
+          "bytes": 386,
+          "sha256": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66",
+          "mimeType": "image/svg+xml"
+        }
+      ],
+      "screenshotSha256": "9afb699c4d5161fc4860a3a6b90e373c7ef36e971440120e2ea12356278eb85a",
+      "scope": "Actual visible cached Sites content survives corrupt pending release and offline browser reload; physical panel black-frame capture remains separate."
+    },
+    {
+      "caseId": "DEVICE-0008",
+      "status": "PASS",
+      "model": "Linux headless Chromium software runtime",
+      "os": "Linux",
+      "browserVersion": "149.0.7827.55",
+      "databaseProofSha256": "09008f4934411cd7c65669f3fa63ec5bafb29b4e5c5f0c0c435d7d1cba781194",
+      "databaseAssertions": {
+        "pauseAndRestore": 58,
+        "existingManagedRollout": 67
+      },
+      "originalReleaseId": "19180400-0000-4000-8000-000000000010",
+      "originalManifestSha256": "a527be684b2b17a0d1f7e8fdce278feee725fc6049e86f1d22edeefe7de86a2e",
+      "originalSitesSnapshotSha256": "76ca1ca3efa17768a2f0693c3b841734d875f14d5e0266c49769347eb16f2206",
+      "rollbackReleaseId": "19180400-0000-4000-8000-000000000012",
+      "rollbackManifestHash": "ca875f4b52f4a0b44349d5646b207d1bbe4092879361ba96ad436c5739411a89",
+      "compatibleLegacyDecoderVisible": true,
+      "completeVerifiedRollbackAcknowledged": true,
+      "oldImmutableContentUnchanged": true,
+      "assets": [
+        {
+          "path": "/brand/veyocast-apple-touch-icon-180.png",
+          "bytes": 2611,
+          "sha256": "92d341ccd6841af42e018336491ec5b3ba77d2728f516a45033483c80b68b662",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-16.png",
+          "bytes": 344,
+          "sha256": "a1ab273d453a1953b89524e82139166a570a97546d92eb4fbbba8c15bc85f067",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-32.png",
+          "bytes": 615,
+          "sha256": "8c9f636fd7bdcc632f5bcc793eb5c122d7a8bf4499859bf83452b15bfc702fd3",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon-48.png",
+          "bytes": 842,
+          "sha256": "6888982869a0cdcde101721d20bc1596bdd1b96d53250e86fa46c119089fd80c",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-favicon.ico",
+          "bytes": 1855,
+          "sha256": "026d2adb445f61cc401cacb06b19a1496cc63fe55a12c16c7dcc8583c7453162",
+          "mimeType": "image/x-icon"
+        },
+        {
+          "path": "/brand/veyocast-favicon.svg",
+          "bytes": 955,
+          "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-icon-192.png",
+          "bytes": 3093,
+          "sha256": "4d4c596252167fc51c2d8056447a63156561754f3d017e36356770e410708bba",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-512.png",
+          "bytes": 11090,
+          "sha256": "666c6f7beea3512e354c0de4fc2b9a9379b2aa9cad20e11f1f17e55356eb1530",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-1024.png",
+          "bytes": 35308,
+          "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-192.png",
+          "bytes": 2797,
+          "sha256": "f368eb013ed35b7d274c0426a1f50c6b90b9b4d15de3aa6bfe5cdc64bc6ba9f4",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-256.png",
+          "bytes": 4148,
+          "sha256": "6fd104c3bc45cf10ccebdfd9d97ebb80a56b76abd085a3c37f26807771aa16f8",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-384.png",
+          "bytes": 7562,
+          "sha256": "9d04b525d6279452b1f830f902faac74116c827668b983fb8fd37b56d6508806",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable-512.png",
+          "bytes": 11777,
+          "sha256": "bedcc9c8da7296d0133ae82cd1c964a8c7537b4d2afacf739bf5dee248f3060f",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/brand/veyocast-icon-maskable.svg",
+          "bytes": 942,
+          "sha256": "848bc4e2be047906fac9444bedda97e70999a358ee349d82b02fbfebc074ebc5",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-icon-primary.svg",
+          "bytes": 955,
+          "sha256": "7da5a32e11304981b6567a8300ada116925a24f3dc5396a7546d812ad2eba9b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-inverse.svg",
+          "bytes": 3910,
+          "sha256": "ebeba6d04108bf04fa2d85cf655d4f68689165da151c970ddb8e30c7ec3e1d1a",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-monochrome-black.svg",
+          "bytes": 3955,
+          "sha256": "4d06227db59cc810ba8067fd685a976785fb371d7207b9b3302311cdcb11b0e6",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-monochrome-white.svg",
+          "bytes": 3955,
+          "sha256": "d487489cad2d15e40fb62b2fe24fab26bca04c200cdb562e1b8bc3b0c6be596b",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-logo-primary.svg",
+          "bytes": 3955,
+          "sha256": "0b9720fd6eb70b402ff39072ce3985d1478888434065d6abfb1867b5ac11dd01",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/brand/veyocast-social-avatar-1024.png",
+          "bytes": 35308,
+          "sha256": "f9e62c8cf2ab009271307968375412c496bf7cf94ae9f0e09bed606d32012f10",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/favicon.svg",
+          "bytes": 712,
+          "sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp",
+          "bytes": 137240,
+          "sha256": "5115506847b4e78a4ea51618be9fd1c04202ced1564b00a47961e56a6941fe1a",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+          "bytes": 118058,
+          "sha256": "b7fce5339c8c865ee5ae86693c349d5f3a724b5235c9c7b80dcea2d688dfecb0",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp",
+          "bytes": 89984,
+          "sha256": "cc94973585c9248d11b9b4bb871416ab49a413904e7bd928132cd0e9a3d1d2ef",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+          "bytes": 168136,
+          "sha256": "03dc11dbd5daa87e84d6e8f21b8ec51b54f271537fd24af57dbf4ea9911a254c",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/file.svg",
+          "bytes": 392,
+          "sha256": "1e0ae4d1a1ddfa36752988647b731e4abf150c414d069ec83c96fb0aaeff0307",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/fonts/inter.woff2",
+          "bytes": 48256,
+          "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+          "mimeType": "font/woff2"
+        },
+        {
+          "path": "/fonts/manrope.woff2",
+          "bytes": 24836,
+          "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+          "mimeType": "font/woff2"
+        },
+        {
+          "path": "/fonts/onzetrots-brush-Apache-2.0.txt",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "mimeType": "text/plain; charset=UTF-8"
+        },
+        {
+          "path": "/fonts/onzetrots-brush.ttf",
+          "bytes": 73276,
+          "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/fonts/onzetrots-display.ttf",
+          "bytes": 88228,
+          "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/fonts/onzetrots-licenses.txt",
+          "bytes": 238,
+          "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081",
+          "mimeType": "text/plain; charset=UTF-8"
+        },
+        {
+          "path": "/globe.svg",
+          "bytes": 1036,
+          "sha256": "d051a8c47936990a9085693d307bb7cea1bc1b6d7ed956bcbaacf674f4ec96b9",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/brush-frame.png",
+          "bytes": 1743290,
+          "sha256": "4b002d67496adcc267160f002cedd117c8f1b13d619de0404f026647bfd7b9f7",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/brush/clubhuis.svg",
+          "bytes": 2846314,
+          "sha256": "8bb77aef3580efc3883cd43c2b10c42c85be0b7a1230a773a72dc377382f5f3b",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/duindorp-luchtfoto.svg",
+          "bytes": 2743679,
+          "sha256": "f4c08b3cb5e713d1e317e5e62e1b1ddb3265d5c3442cedab0dc814b07d536e50",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/havenlicht.svg",
+          "bytes": 2506195,
+          "sha256": "de9b50862e815400d9544b373fd59d19d844a8e6f635b27fa13109ba6de1f394",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/historische-poort.svg",
+          "bytes": 2802083,
+          "sha256": "b6a6b3f19b27270ae610bf383ae79d177ea09f2faa146a0c8419a5e745fb280a",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/kerk.svg",
+          "bytes": 2754901,
+          "sha256": "6e7531ea29a64f99b8c2da53f0209ceeb5bef43546246ecc55728379ca01ddf8",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/brush/sources.json",
+          "bytes": 1808,
+          "sha256": "b26efd467ae96c24ee3e325dfccc3ce34dede7574f860f29cf02056ccce845a0",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/duindorp-logo.png",
+          "bytes": 69175,
+          "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/houtrust-brush.webp",
+          "bytes": 596258,
+          "sha256": "4e654df31f432c922a44b1670f6bf8d64af3361d40645f410de0a4d696d46171",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots/originals/clubhuis.jpg",
+          "bytes": 390077,
+          "sha256": "59f2c6f69fe0550cb261fe9fb67a46d08038dce890a3d03681d6a8121aec0b1c",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/duindorp-luchtfoto.jpg",
+          "bytes": 313095,
+          "sha256": "c4f9b1a26cff9cc9517cb5392ec684378914c6561d4b1fcb32c23bd107dd23e2",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/havenlicht.jpg",
+          "bytes": 134853,
+          "sha256": "70794084caa404e23e8215e4a33783e094e4210911d49553eeeca45a40945cd8",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/historische-poort.jpg",
+          "bytes": 356883,
+          "sha256": "5065f77c59a6b57dadf458bbc11674bece0cb4563ae65979139ec9b91c2f854c",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/kerk.jpg",
+          "bytes": 321494,
+          "sha256": "36c51d7c7dec84a79336fb176d37ed7fdbb6eadcc7854b5eccf351f4fbcdcbe7",
+          "mimeType": "image/jpeg"
+        },
+        {
+          "path": "/onzetrots/originals/sources.json",
+          "bytes": 1763,
+          "sha256": "c46199f75e2a1eea0921ac656c2eccaf4300365c579c00d6293f6db5d07aae3e",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/paint-wall.webp",
+          "bytes": 642098,
+          "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots/premium/clubhuis.png",
+          "bytes": 3557785,
+          "sha256": "7942a36dd34c06c4b576e122d52acc8f970e9a10af78d2e15861d0893da63efd",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/duindorp-luchtfoto.png",
+          "bytes": 3569369,
+          "sha256": "a11606f1cc19a5f5885c506b265d654ac888d449afba1099ebb34a8f59695c60",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/havenlicht.png",
+          "bytes": 3501140,
+          "sha256": "0a1009d093fce5d96f8e697624f2509e779acb0b7c36f3f7fac366333dc6db3e",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/historische-poort.png",
+          "bytes": 3552880,
+          "sha256": "1776fefafb9f4845c67f1148c7971682b58be68c0f9f2ff2b4545355eac2d5d7",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/kerk.png",
+          "bytes": 3624327,
+          "sha256": "0a2b23aaa9a3caddb6b7a6f36f5bfc2ed83c2f64ba32438a63023905d62ee7ec",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots/premium/sources.json",
+          "bytes": 15625,
+          "sha256": "2cb61c2f5f61fea1d4da7bdedf096b1719e1859b02715eaafdef01e7e7c2501d",
+          "mimeType": "application/json; charset=UTF-8"
+        },
+        {
+          "path": "/onzetrots/readability-brush.svg",
+          "bytes": 1143,
+          "sha256": "f42dba3e394f6c87a1381a55214c6998ba8e80ee17709702ab537e969a17dfbb",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots/type-distress.svg",
+          "bytes": 495,
+          "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-lettering.webp",
+          "bytes": 428940,
+          "sha256": "c4bf31d7c6331f76f6e4db9bbac59052a01ad9c6f6ae3abe497925f90e15bf32",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-players/trio-1280.webp",
+          "bytes": 244872,
+          "sha256": "543bb88be5c642cac8ed64c3f0f1f8e38608d8640fe5f41623a6477d62b89291",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v14/05-juichen-1280.webp",
+          "bytes": 252048,
+          "sha256": "a7519a49d43abe4e0bdc786780ad7d377528114085801c5de2592c38140a3dbb",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v14/07-walking-1280.webp",
+          "bytes": 282362,
+          "sha256": "6e5926d26fbf048d3a5e0ef091de8dc3b895df12ebd11e4e2a42c53a53907bfc",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-portraits-v17/10-strijd-1280.webp",
+          "bytes": 286764,
+          "sha256": "16a4d2f6e372ec0deccd0f435506c15351fd54033d486b9b28c44b0cd557d433",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/clubmuur-wall.webp",
+          "bytes": 642098,
+          "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+          "mimeType": "image/webp"
+        },
+        {
+          "path": "/onzetrots-tv/assets/logo.png",
+          "bytes": 69175,
+          "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/bnu.svg",
+          "bytes": 9817,
+          "sha256": "44f2ccd12438bcfb292e1283ecac9ef7f5758d4cb77b14e65835260181285504",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/deelman-daktechniek.svg",
+          "bytes": 64066,
+          "sha256": "555ca80ae9e1b9e60cf9179092ac0201e4adaf4032b0d53be979dc6d328e23b1",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/dg-webservices.svg",
+          "bytes": 9286,
+          "sha256": "dbe2716900d7137fe74250b2ef0708d668fdc8596161c07474006aed56d1c031",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/kwaliteit-kozijnen-holland.svg",
+          "bytes": 46866,
+          "sha256": "9eac38ab31bae0373a516e88724a246841c14a3efa5bfc61ca40b2537b224f68",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/proto-tegelzetbedrijf.svg",
+          "bytes": 30279,
+          "sha256": "337a0308cef2a2b7b68d89d0f2afcb789467aaaaf7651803e92e8a4e04321d01",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/assets/sponsors/rw-repair.png",
+          "bytes": 30510,
+          "sha256": "2698a951c6f595bdc3b08cd0ec891575b3122d891cd0b783a8e22515080f866d",
+          "mimeType": "image/png"
+        },
+        {
+          "path": "/onzetrots-tv/assets/type-distress.svg",
+          "bytes": 495,
+          "sha256": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
+          "mimeType": "image/svg+xml"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-0.ttf",
+          "bytes": 86636,
+          "sha256": "0d85af813fc3ed87db0c6265515689b2eef5cbaf7aab17922528dfc95a2cd73f",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-1.ttf",
+          "bytes": 87120,
+          "sha256": "7dde307fa887fc65ff5830cfada77a7decc5dae8d3c816c9d39ba3f1af1c4ed7",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-2.ttf",
+          "bytes": 87556,
+          "sha256": "73bc9e17231e9073780d3c81574c7253cecd5645c93544df1a935054b39a364f",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-3.ttf",
+          "bytes": 88228,
+          "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-4.ttf",
+          "bytes": 94972,
+          "sha256": "a13d9b41b0a471ce58f0e46d377fa3cc76615e4632c3b15eb397caadf7a13f0a",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-5.ttf",
+          "bytes": 95060,
+          "sha256": "f433e5d333be1128d8ec8a28b8aadd0314d10e14e4105406076666bc830fc15d",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-6.ttf",
+          "bytes": 95096,
+          "sha256": "6bad1a774228464cc88b8b0271555b266f7a3c64a7bedf15e165fdab4f6ac0ce",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-7.ttf",
+          "bytes": 94928,
+          "sha256": "b9584e099e0e7f1e1e914c3037aabb9010c50346a3ce8df5eeeeecc0563044d8",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-8.ttf",
+          "bytes": 95688,
+          "sha256": "b8f802f05b322a7345805f5b89f8bb976604cc719a91530918d5ce3c47160950",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/onzetrots-tv/fonts/club-font-9.ttf",
+          "bytes": 73276,
+          "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+          "mimeType": "font/ttf"
+        },
+        {
+          "path": "/window.svg",
+          "bytes": 386,
+          "sha256": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66",
+          "mimeType": "image/svg+xml"
+        }
+      ],
+      "screenshotSha256": "d2efe99c2e97b2028d8d4542d4f0ff6d34a7ef37d107508d9572f95a9e75812d",
+      "scope": "Two explicit local software stages: actual isolated PostgreSQL managed pause/immutable restore gate, followed by the production modern Player using controlled immutable QA envelopes and real checksum-verified assets. The Player manifest transport is a controlled fixture; this is not an end-to-end production database-to-device deployment or physical hardware claim."
+    }
+  ],
+  "implementationFiles": {
+    "supabase/migrations/20261011360000_s191_sites_authoring_pause.sql": "9dfe29b58a1503cb2dd747bf683812981c765a071389d2cd9cfa1725040c46bc",
+    "supabase/tests/s191_sites_authoring_pause.sql": "5cd36b9b9c53fbc0dd875bc56e6f8031b83e2931afc96b85d2318ca773eae2bd",
+    "tests/player/sites-original-operations.spec.ts": "9b61f9753af06cc2589ed6072c071b159e765772c7c05b06fae0be1e7c3d8729",
+    "apps/control/lib/sites-authoring-state.ts": "163e04267e7d02ed1358084b2c90d21304e72147c41621a75749e1518ca5f54a",
+    "apps/control/lib/mobile/studio-v2.ts": "182c23c9401f9fc2ea22100f7543e2f73f0da1d2112a60b27482536184e997d7"
+  },
+  "databaseCompanionProof": "native-proof/sites-authoring-pause-pgtap.log",
+  "databaseCompanionScope": "Actual isolated PostgreSQL guard/restore assertions, completed and rolled back before the production Player browser stage. The browser uses controlled immutable manifests, not a direct production database-to-device transport."
+}

@@ -1,4 +1,5 @@
 export type ContentScheduleListItem = {
+  calendarTone?: "green" | "blue" | "orange" | "petrol";
   enabled: boolean;
   endsAt: string | null;
   id: string;

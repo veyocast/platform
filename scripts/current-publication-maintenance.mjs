@@ -1,4 +1,9 @@
 import { execFileSync } from "node:child_process";
+import console from "node:console";
+import { performance } from "node:perf_hooks";
+import process from "node:process";
+import { setTimeout } from "node:timers";
+import { URL } from "node:url";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -25,7 +30,17 @@ function query(sql) {
     const rows = JSON.parse(output);
     if (!Array.isArray(rows)) throw new Error("INVALID_QUERY_RESPONSE");
     return rows;
-  } catch { throw new Error("PUBLICATION_DATABASE_OPERATION_FAILED: inspect protected database logs; no credentials or raw database errors are printed"); }
+  } catch (error) {
+    // The CLI wraps driver details. Retain only its reviewed failure stage;
+    // stdout/message can contain connection strings and must never be logged.
+    let code = "PUBLICATION_DATABASE_OPERATION_FAILED";
+    try {
+      const failure = JSON.parse(String(error?.stdout ?? ""));
+      if (failure?.error?.code === "LegacyDbConnectError") code = "PUBLICATION_DATABASE_CONNECT_FAILED";
+      if (failure?.error?.code === "LegacyDbQueryExecError") code = "PUBLICATION_DATABASE_QUERY_FAILED";
+    } catch { /* Unrecognized process output retains the generic safe code. */ }
+    throw new Error(code);
+  }
 }
 const tenants = query(`select id,name,status from public.tenants where name=${literal(tenantName)};`);
 if (tenants.length !== 1 || tenants[0].status !== "active") throw new Error("EXACT_ACTIVE_TENANT_REQUIRED");
@@ -48,7 +63,7 @@ const changes = [];
 if (mode !== "inventory") {
   const prefix = targetEnvironment === "staging" ? "staging-" : "";
   for (const [app, path] of [["control", "/api/health"], ["player", "/healthz"]]) {
-    const response = await fetch(`https://${prefix}${app}.veyocast.nl${path}`, { signal: AbortSignal.timeout(10_000) });
+    const response = await globalThis.fetch(`https://${prefix}${app}.veyocast.nl${path}`, { signal: globalThis.AbortSignal.timeout(10_000) });
     const health = await response.json();
     if (!response.ok || health.revision !== sha) throw new Error(`DEPLOYED_${app.toUpperCase()}_SHA_MISMATCH`);
   }

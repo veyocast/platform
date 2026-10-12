@@ -20,6 +20,11 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": []
+    },
+    "@veyocast/testkit#test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": false
     }
   }
 }

@@ -8,6 +8,8 @@ import {
   Eye,
   FileWarning,
   Image as ImageIcon,
+  MoreHorizontal,
+  Star,
   ListPlus,
   Pencil,
   Trash2,
@@ -33,18 +35,25 @@ import {
 } from "@veyocast/ui";
 
 import { addPlaylistItem } from "../playlists/actions";
-import { bulkOrganizeMediaAssets } from "./actions";
+import { bulkOrganizeMediaAssets, bulkOrganizeMediaAssetsAndRedirect } from "./actions";
 import {
   archiveMediaResources,
   type MediaArchiveState
 } from "./media-resource-actions";
 import styles from "./media-resource.module.css";
+import sites from "./sites-media.module.css";
+import { SitesMediaEditor } from "./sites-media-editor";
 
 export type MediaLibraryAsset = {
   createdLabel: string;
   details: string;
   draftCount: number;
   fileName: string;
+  folderName: string;
+  folderId?: string | null;
+  collectionLabels?: readonly string[];
+  updatedAt?: string;
+  tagLabels: readonly string[];
   id: string;
   isFavorite: boolean;
   kind: "image" | "video";
@@ -83,6 +92,7 @@ export function MediaLibraryWorkspace({
   view: "grid" | "list";
 }) {
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const [editing, setEditing] = useState<MediaLibraryAsset | null>(null);
   const selectedAssets = useMemo(
     () => assets.filter((asset) => selected.has(asset.id)),
     [assets, selected]
@@ -91,9 +101,7 @@ export function MediaLibraryWorkspace({
 
   if (!assets.length) {
     return (
-      <div className="notice" role="status">
-        <strong>Geen passende media.</strong> Pas de filters aan of upload een afbeelding of video.
-      </div>
+      <div className={sites.empty} role="status"><h3>Geen beelden gevonden</h3><p>Pas je zoekopdracht aan of voeg een nieuw clubbeeld toe.</p></div>
     );
   }
 
@@ -121,44 +129,38 @@ export function MediaLibraryWorkspace({
   return (
     <>
       {canBulk ? (
-        <div className={styles.selectionRow}>
-          <label className="check-row">
+        <div className={sites.selectionBar}>
+          <label>
             <input
               checked={allSelected}
               onChange={() => setSelected(allSelected ? new Set() : new Set(assets.map((asset) => asset.id)))}
               type="checkbox"
             />
-            <span>Alles op deze pagina selecteren</span>
+            <span>Zichtbare beelden selecteren</span>
           </label>
           <span aria-live="polite">{selectedAssets.length} geselecteerd</span>
         </div>
       ) : null}
 
-      {view === "grid" ? (
-        <div className="media-library-grid">
-          {assets.map((asset) => (
-            <article className="media-library-card" data-selected={selected.has(asset.id)} key={asset.id}>
-              <div className="media-card-selection">{selectionControl(asset)}</div>
-              <LibraryPreview asset={asset} />
-              <div className="media-library-card__body">
-                <div className="work-panel__header">
-                  <div><h3>{asset.title}</h3><p className="work-panel__meta">{asset.fileName}</p></div>
-                  <MediaStatus asset={asset} />
-                </div>
-                <p className="work-panel__meta">{asset.isFavorite ? "Favoriet · " : ""}{asset.details} · {asset.usage}</p>
-                <MediaActions
-                  asset={asset}
-                  canAddToPlaylist={canAddToPlaylist}
-                  canArchive={canBulk}
-                  canWrite={canBulk}
-                  onArchived={() => setSelected((current) => withoutId(current, asset.id))}
-                  playlists={playlists}
-                />
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
+      <div className={view === "grid" ? sites.mediaGrid : sites.mediaList}>
+        {assets.map((asset) => (
+          <article className={`${sites.mediaCard} ${sites.organizedMedia}`} data-selected={selected.has(asset.id)} key={asset.id}>
+            <div className={sites.mediaControls}>
+              <input aria-label={`${asset.title} selecteren`} checked={selected.has(asset.id)} disabled={!canBulk} onChange={() => toggle(asset.id)} type="checkbox" />
+              <form action={bulkOrganizeMediaAssetsAndRedirect}><input name="assetIds" type="hidden" value={JSON.stringify([asset.id])} /><input name="bulkCommand" type="hidden" value={asset.isFavorite ? "unfavorite" : "favorite"} /><button aria-label={`${asset.title} ${asset.isFavorite ? "uit favorieten verwijderen" : "favoriet maken"}`} aria-pressed={asset.isFavorite} disabled={!canBulk} type="submit"><Star aria-hidden="true" fill={asset.isFavorite ? "currentColor" : "none"} size={17} /></button></form>
+            </div>
+            <button className={sites.mediaOpen} onClick={() => setEditing(asset)} type="button">
+              <div className={sites.mediaImage}><LibraryPreview asset={asset} /><span><Eye aria-hidden="true" size={17} />Bekijken</span></div>
+              <div className={sites.mediaInfo}><span className={sites.smallIcon}>{asset.kind === "video" ? <Video aria-hidden="true" size={17} /> : <ImageIcon aria-hidden="true" size={17} />}</span><div><strong>{asset.title}</strong><small>{asset.folderName} · {asset.usage}</small></div><MoreHorizontal aria-hidden="true" size={19} /></div>
+            </button>
+            {asset.tagLabels.length ? <div className={sites.tags}>{asset.tagLabels.slice(0,3).map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
+            {asset.status !== "ready" ? <div className={sites.stateLabel}><MediaStatus asset={asset} /></div> : null}
+          </article>
+        ))}
+      </div>
+      {editing ? <SitesMediaEditor asset={editing} canWrite={canBulk && editing.status !== "archived"} folders={folders} onClose={() => setEditing(null)} addAction={pending => <AddMediaToPlaylistDialog asset={editing} disabled={pending || !canAddToPlaylist || editing.status !== "ready" || !playlists.length} label="Aan playlist toevoegen" playlists={playlists} />} archiveAction={pending => <MediaArchiveDialog assets={[editing]} disabled={pending || !canBulk} label={editing.title} onSuccess={() => { setSelected(current => withoutId(current, editing.id)); setEditing(null); }} trigger={<button className={sites.dangerLink} disabled={pending || !canBulk} type="button"><Archive aria-hidden="true" size={15} />{editing.kind === "image" ? "Afbeelding archiveren" : "Video archiveren"}</button>} />} /> : null}
+      {view === "list" ? (
+        <details className={sites.tableOptions}><summary>Uitgebreide tabel en media-acties</summary>
         <DataTable caption="Media binnen de actieve vereniging." tableKey="media">
           <thead>
             <tr>
@@ -198,10 +200,12 @@ export function MediaLibraryWorkspace({
             ))}
           </tbody>
         </DataTable>
-      )}
+        </details>
+      ) : null}
 
       {canBulk && selectedAssets.length ? (
         <BulkActionBar
+          className={sites.bulkBar}
           actions={(
             <>
               <form
@@ -305,7 +309,7 @@ function MediaPreviewDialog({ asset }: { asset: MediaLibraryAsset }) {
       <DialogTrigger asChild>
         <IconButton aria-label={`${asset.title} tonen`} title="Tonen"><Eye aria-hidden="true" /></IconButton>
       </DialogTrigger>
-      <DialogContent closeLabel="Mediavoorbeeld sluiten">
+      <DialogContent closeLabel="Mediavoorbeeld sluiten" size="wide">
         <DialogHeader>
           <DialogTitle>{asset.title}</DialogTitle>
           <DialogDescription>{asset.fileName}</DialogDescription>
@@ -434,12 +438,14 @@ function ArchiveInputs({ assets, override = false }: { assets: readonly MediaLib
   );
 }
 
-function AddMediaToPlaylistDialog({
+export function AddMediaToPlaylistDialog({
   asset,
   disabled,
-  playlists
+  playlists,
+  label
 }: {
-  asset: MediaLibraryAsset;
+  asset: Pick<MediaLibraryAsset, "id" | "title">;
+  label?: string;
   disabled: boolean;
   playlists: readonly PlaylistOption[];
 }) {
@@ -448,13 +454,7 @@ function AddMediaToPlaylistDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <IconButton
-          aria-label={`${asset.title} aan playlist toevoegen`}
-          disabled={disabled}
-          title={disabled ? "Alleen gereedstaande media kan worden toegevoegd" : "Aan playlist toevoegen"}
-        >
-          <ListPlus aria-hidden="true" />
-        </IconButton>
+        <Button aria-label={`${asset.title} aan playlist toevoegen`} disabled={disabled} title={disabled ? "Alleen gereedstaande media kan worden toegevoegd" : "Aan playlist toevoegen"} variant="secondary"><ListPlus aria-hidden="true" />{label ?? "Aan playlist toevoegen"}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -481,9 +481,9 @@ function AddMediaToPlaylistDialog({
 }
 
 function LibraryPreview({ asset }: { asset: MediaLibraryAsset }) {
-  if (!asset.previewUrl) return <div className="media-card__preview" data-kind={asset.kind}>{asset.statusLabel}</div>;
-  if (asset.kind === "video") return <div className="media-card__preview" data-kind="video"><Video aria-hidden="true" /><span>Video</span></div>;
-  return <img alt={`Voorbeeld van ${asset.title}`} className="media-card__preview" src={asset.previewUrl} />;
+  if (!asset.previewUrl) return <FileWarning aria-hidden="true" />;
+  if (asset.kind === "video") return <Video aria-hidden="true" />;
+  return <img alt={`Voorbeeld van ${asset.title}`} src={asset.previewUrl} />;
 }
 
 function MediaPreview({ asset }: { asset: MediaLibraryAsset }) {

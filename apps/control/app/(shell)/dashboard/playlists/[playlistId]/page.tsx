@@ -1,3 +1,4 @@
+import {getSupabasePublicConfig}from"../../../../../lib/supabase/config";
 import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
@@ -5,6 +6,8 @@ import type { PlayerPlaybackItem } from "@veyocast/contracts";
 
 import { requireControlSession } from "../../../../../lib/control-session";
 import { PublisherStudioWorkspace } from "../_components/publisher-studio-workspace";
+import {SitesPlaylistWorkspace}from"../_components/sites/sites-playlist-workspace";
+import {loadSitesPlaylistEditor}from"../sites-editor-data";
 import { loadPlaylistStudio } from "../data";
 import type { PlaylistPreviewItem } from "../playlist-preview";
 import { getReadinessCopy } from "../readiness-copy";
@@ -12,6 +15,8 @@ import { getReadinessCopy } from "../readiness-copy";
 type PlaylistStudioPageProps = {
   params: Promise<{ playlistId: string }>;
   searchParams: Promise<{
+    advanced?: string;
+    add?: string;
     actual?: string;
     conflict?: string;
     expected?: string;
@@ -46,6 +51,7 @@ export default async function PlaylistStudioPage({
         };
   if (session.isLive && !data.playlist && !data.error) notFound();
 
+  const publicConfig=getSupabasePublicConfig();
   const playlist = data.playlist;
   const tenantIsMutable =
     session.isLive &&
@@ -59,6 +65,9 @@ export default async function PlaylistStudioPage({
     tenantIsMutable &&
       hasCapability(session.capabilities, "tenant.playlist.archive")
   );
+  let sitesData:Awaited<ReturnType<typeof loadSitesPlaylistEditor>>|null=null;
+  let sitesError:string|null=null;
+  if(playlist&&query.advanced!=='1'&&session.tenantId){try{sitesData=await loadSitesPlaylistEditor(session.tenantId,data,{media:hasCapability(session.capabilities,'tenant.media.read'),studio:hasCapability(session.capabilities,'tenant.studio.read'),dynamic:hasCapability(session.capabilities,'tenant.dynamic_slide.read')});}catch{sitesError='De vernieuwde inhoudkiezer kon niet volledig worden geladen. Gebruik de uitgebreide editor om je bestaande concept te beheren, of vernieuw de pagina.';}}
   const sectionById = new Map(
     data.sections.map((section) => [section.id, section])
   );
@@ -154,7 +163,8 @@ export default async function PlaylistStudioPage({
         />
       ) : null}
 
-      {playlist ? (
+      {sitesError?<p className="notice notice--critical"role="alert">{sitesError}</p>:null}
+      {sitesData?<>{sitesData.warnings.map((warning,index)=><p key={index}className="notice notice--warning"role="status">{warning}</p>)}<SitesPlaylistWorkspace tenantName={session.tenant} initial={sitesData.playlist}revision={sitesData.revision}inventory={sitesData.inventory}groups={sitesData.groups}media={sitesData.media}designs={sitesData.designs}projects={sitesData.projects}canWrite={canWrite}canPublish={tenantIsMutable&&hasCapability(session.capabilities,'tenant.playlist.publish')}startAdding={query.add==='1'}videoUploadConfig={publicConfig&&hasCapability(session.capabilities,'tenant.media.write')?{anonKey:publicConfig.anonKey,supabaseUrl:publicConfig.url}:undefined}/></>:playlist ? (
         <PublisherStudioWorkspace
           assets={data.assets}
           canManage={canManage}

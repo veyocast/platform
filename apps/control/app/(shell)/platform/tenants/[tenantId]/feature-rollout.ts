@@ -1,5 +1,11 @@
 export const platformTenantFeatureDefinitions = [
   {
+    description: "Pauzeert nieuwe Sites-ontwerpen en wijzigingen. Bestaande immutable releases, datarefresh en herstel blijven beschikbaar; deze flag verleent geen rechten.",
+    key: "sites_authoring_paused",
+    label: "Sites-authoring pauzeren",
+    status: "BEHEERDE NOODSTOP"
+  },
+  {
     description:
       "Semantische Fieldflow-tokens, rustige geometrie en consistente light/dark componenttaal.",
     key: "vector_v2_design_system",

@@ -25,6 +25,7 @@ import {
   royalCurrentDefaultStyle,
   royalCurrentPalettePresets,
   themeCatalog,
+  themeCatalogOptions,
   themeManifest
 } from "@veyocast/content-templates";
 import { Button } from "@veyocast/ui";
@@ -179,8 +180,8 @@ export function EditorialThemeEditor({
       ...next,
       ref: {
         catalog: "v2",
-        id: "fieldflow",
-        version: themeCatalog.fieldflow.version
+        id: next.ref.catalog === "v2" && next.ref.id === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow",
+        version: next.ref.catalog === "v2" && next.ref.id === "onzetrots-tv" ? themeCatalog["onzetrots-tv"].version : themeCatalog.fieldflow.version
       }
     };
     const mode = activeMode(fieldflowSelection, theme.mode);
@@ -201,6 +202,7 @@ export function EditorialThemeEditor({
       themeCatalog.fieldflow.version,
       mode
     );
+    nextSelection.ref = selection.ref;
     nextSelection.categoryOverrides = selection.categoryOverrides;
     nextSelection.modePolicy = selection.modePolicy;
     const nextTheme = createRoyalCurrentTheme(style, mode);
@@ -272,7 +274,7 @@ export function EditorialThemeEditor({
     <div className={styles.editorialThemeEditor}>
       <header className={styles.editorialThemeHeader}>
         <div>
-          <span className={styles.editorialThemeEyebrow}>Royal Current v8</span>
+          <span className={styles.editorialThemeEyebrow}>{selection.ref.catalog === "v2" ? themeCatalog[selection.ref.id].name : "FieldFlow"}</span>
           <h3>Slidehuisstijl</h3>
           <p>
             Primaire clubkleur en Tweede decoratieve accentkleur maken samen
@@ -296,6 +298,7 @@ export function EditorialThemeEditor({
             </div>
           </header>
           <div className={styles.fieldGrid}>
+            <label className={styles.field}><span>Thema</span><select disabled={disabled} onChange={(event) => { const id = event.currentTarget.value === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow"; updateSelection({ ...selection, ref: { catalog: "v2", id, version: themeCatalog[id].version } }); }} value={selection.ref.catalog === "v2" ? selection.ref.id : "fieldflow"}>{themeCatalogOptions.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>
             <label className={styles.field}>
               <span>Omschakelen</span>
               <select
@@ -689,7 +692,8 @@ export function EditorialThemeEditor({
         type="hidden"
         value={selection.accent ?? ""}
       />
-      <input name="themeId" type="hidden" value="fieldflow" />
+      <input name="themeId" type="hidden" value={selection.ref.catalog === "v2" ? selection.ref.id : "fieldflow"} />
+      <input name="themeVersion" type="hidden" value={selection.ref.version} />
       <input
         name="themeSupport"
         type="hidden"

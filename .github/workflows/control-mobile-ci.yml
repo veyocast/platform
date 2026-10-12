@@ -56,6 +56,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          # The action already installs command-line tools; "tools" is retired.
+          packages: platform-tools
 
       - name: Reclaim runner disk for native Android compilation
         run: |
@@ -140,6 +143,8 @@ jobs:
           :app:testReleaseUnitTest
           :app:bundleRelease
           -PndkVersion=28.0.13004108
+          "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
+          --max-workers=2
           -x :react-native-reanimated:lintAnalyzeRelease
           -x :react-native-worklets:lintAnalyzeRelease
           --no-daemon

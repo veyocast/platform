@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sitesPresentationSchema } from "@veyocast/contracts";
 
 import {
   studioAnimationPresets,
@@ -231,10 +232,11 @@ export const studioDocumentSchema = z.object({
     enabled: z.boolean(),
     durationMs: z.number().int()
       .min(studioLimits.minDocumentDurationMs)
-      .max(studioLimits.maxDocumentDurationMs),
+      .max(120_000),
     fps: z.literal(studioFps)
   }),
   elements: z.array(studioElementSchema).max(studioLimits.maxElements),
+  sitesPresentation: sitesPresentationSchema.optional(),
   metadata: z.object({
     templateId: z.string().trim().max(120).optional(),
     createdFromRevisionId: uuidSchema.optional(),
@@ -242,6 +244,11 @@ export const studioDocumentSchema = z.object({
     tenantBrandApplied: z.boolean().default(false)
   })
 }).superRefine((document, context) => {
+  if(document.sitesPresentation){
+    const presentation=document.sitesPresentation;
+    if(presentation.kind!=="studio"||presentation.slide.orientation!==document.artboard.orientation||document.elements.length!==0)context.addIssue({code:"custom",path:["sitesPresentation"],message:"Sites documents require their own matching artboard and no free layers."});
+  }
+  if(!document.sitesPresentation&&document.motion.durationMs>studioLimits.maxDocumentDurationMs)context.addIssue({code:"custom",path:["motion","durationMs"],message:"Vrije documenten behouden maximaal 30 seconden."});
   const ids = new Set<string>();
   for (const [index, element] of document.elements.entries()) {
     if (ids.has(element.id)) {

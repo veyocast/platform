@@ -1,0 +1,524 @@
+{
+  "scope": "Verified actual local log markers and validator exit codes; independent Source comparisons are SHA-verified aggregates, not a single full rerun; no deployment or hardware claim.",
+  "recordedAt": "2026-10-12T02:45:52.584187+00:00",
+  "gates": {
+    "lint": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
+      "logSHA256": "7f28087db3247fcdaea6eb4f95af1646b3ce6f268440e1d631b38bb3af622063",
+      "supersedesLocalLogSHA256": "567c9e9d573b148d76d20609c4e38056cecf450cb385f2eba081368675d60892",
+      "scope": "Actual full workspace gate after font-before-mount and bounded capture-stage diagnostics; unchanged tasks may use cache, cross-repository testkit runs uncached."
+    },
+    "typecheck": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
+      "logSHA256": "79b4b8690a066d3783d18e500a75b180f3d8820c43cea4f63a814d9f89e07ccc",
+      "supersedesLocalLogSHA256": "2a4bc7b81f90784d821e6f3006bcad2f20e5ec06b7b4b48b0a79c29b8daca8ca",
+      "scope": "Actual full workspace gate after font-before-mount and bounded capture-stage diagnostics; unchanged tasks may use cache, cross-repository testkit runs uncached."
+    },
+    "unit": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
+      "logSHA256": "24e43692a574bce9c2b71eb420fdf341ff41a9a6a96098d081a3d2892faf35d4",
+      "scope": "Actual full workspace gate after font-before-mount and bounded capture-stage diagnostics; unchanged tasks may use cache, cross-repository testkit runs uncached.",
+      "supersedesLocalLogSHA256": "fdf9873d27673343e6ff8f52286431642db43d002397129d8c4f10e870a8e892",
+      "crossRepositoryTestkitCacheBypassed": true
+    },
+    "databaseReset": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Finished supabase db reset",
+      "logSHA256": "60fda0b826d16893e91e2b16ae15b45945646a7a96fddd3acd90e8d7f904c2ce"
+    },
+    "rls": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "All tests successful\\.[\\s\\S]*Files=102, Tests=2886[\\s\\S]*Result: PASS",
+      "logSHA256": "6c0b40bf5e7ad655c73626a36b6988741ebb302fbc3edb2da0c2e7732893022d",
+      "files": 102,
+      "assertions": 2886
+    },
+    "workflows": {
+      "status": "PASS",
+      "actualExitCode": 0,
+      "logSHA256": "d79b1f87464a8f8f0064bd183620482a4b43b2d71e48dc900faf41776291fcb2"
+    },
+    "vps": {
+      "status": "PASS",
+      "actualExitCode": 0,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "missingMarketingConfigurationRejected": true
+    },
+    "runnerLint": {
+      "status": "PASS",
+      "actualExitCode": 0,
+      "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Tasks:\\s+18 successful, 18 total",
+      "logSHA256": "737b5c2fda6611fcb4d848f11b68d63f59ce32dd60cceb573e390b1033324acc",
+      "cachedUnchangedTasks": 13,
+      "rebuiltApplications": [
+        "control",
+        "marketing",
+        "player",
+        "control-mobile",
+        "media-worker"
+      ],
+      "duration": "1m0.758s",
+      "scope": "Actual full workspace build after font-before-mount and bounded capture-stage diagnostics; no simultaneous browser captures.",
+      "supersedesLocalLogSHA256": "45073eac5ff95308d218ea4a0eda07689840fadc15302aee956bb46fb172deb1"
+    },
+    "originalCaseClosure": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "pass 9[\\s\\S]*fail 0",
+      "logSHA256": "33d0bc07fca6c5be25ca6f0729b0554790c75c4267365e08fd975380a0190de9"
+    },
+    "originalRendererClosure": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Verified complete actual Source readbacks: templates-and-tv",
+      "logSHA256": "f245f054b366357e00eeeb7e7e1d9352c62b17ab62da61b3aadece8184023063",
+      "originalCases": 548,
+      "actualShaVerifiedFrames": 644
+    },
+    "supplementalRendererClosure": {
+      "status": "PASS",
+      "verifiedSuccessMarker": "Verified complete actual Source readbacks: literal-starters",
+      "logSHA256": "2da04827db986fdee6e4b713abab8454572780feba1ae5a7db5d75ce4f10a4e4",
+      "literalVariants": 76,
+      "menuCategoryOffCases": 12,
+      "containedBackgroundCases": 16
+    },
+    "verifiedVideoDuration": {
+      "status": "PASS",
+      "actualUnitRegressions": 7,
+      "realTUSWorkerAndPublication": "evidence/media-workflow-live-readback.json"
+    },
+    "originalResponsiveClosure": {
+      "status": "PASS",
+      "originalCases": 66,
+      "actualCurrentFullRun": true,
+      "evidence": "evidence/responsive-source-comparison.json",
+      "guard": "verify-sites-comparison.mjs responsive"
+    }
+  },
+  "ciBoundaryRecovery": {
+    "initialHead": "9f6562286c8306a13b5e111c742809c4f83fa336",
+    "initialRun": "https://github.com/veyocast/platform/actions/runs/38184749691",
+    "actualFailedJob": "Foundation gates",
+    "cause": [
+      "Studio contract dependency absent in outdated architecture rule",
+      "Erased type imports incorrectly traversed as runtime server edges",
+      "Repository-wide scanner could reuse cache after application edits"
+    ],
+    "recovery": {
+      "runtimeParser": "TypeScript AST; runtime server edges remain denied; declaration-level erased imports only",
+      "actualUncachedTests": 29,
+      "securityParserRegressions": 14,
+      "testkitLint": "PASS",
+      "testkitTypecheck": "PASS",
+      "turboCache": "explicitly bypassed for cross-repository testkit task",
+      "logSHA256": {
+        "tests": "8dbca1afbb24153029e7ee5d734d5820c47a8f5c2281ee25a1d799deb7134f8f",
+        "lint": "b543827ce56a63357c629028555ecec2cc964dda33dbbf2a9a2872b1a2ab20f8",
+        "typecheck": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+        "turboBypass": "fc411fc226deab40eb1358cbcdc887bbeb3d45ceb0f10d805f8f3304f136d0f0"
+      }
+    }
+  },
+  "androidSdkRecovery": {
+    "actualFailedRun": "https://github.com/veyocast/platform/actions/runs/38184749729",
+    "cause": "Pinned Android setup action default includes retired tools package",
+    "explicitPlatformToolsDeclarations": 5,
+    "negativeRegressions": 5,
+    "actionlintShellcheck": "PASS",
+    "logSHA256": "d79b1f87464a8f8f0064bd183620482a4b43b2d71e48dc900faf41776291fcb2"
+  },
+  "ciBrowserRecovery": {
+    "failedRun": "https://github.com/veyocast/platform/actions/runs/38184749691",
+    "control": {
+      "actualTargetedCases": 4,
+      "passed": 4,
+      "actualStrictMainViewports": 2,
+      "actualWorkspaceRoutesPerViewport": 15,
+      "unchangedAxeAssertions": true,
+      "logSHA256": "880abc422e4761cab8121fe9f6aaa609975031ef6491e0ea5f31f454beaf1a51"
+    },
+    "player": {
+      "actualTargetedCases": 2,
+      "passed": 2,
+      "stallFixture": "Waits until the actual decoder clock stops; pending progress must settle before sending the stalled signal",
+      "browserProcessLifetime": "Every discovered Player spec runs once in ordered cohorts of at most 12 files; no automatic retry or omitted tests",
+      "logSHA256": "13232c20be41e9647e070b5c5160d5e08c31a1e3172a29a711d445d833b54e25"
+    }
+  },
+  "ciRasterRecovery": {
+    "failedRun": "https://github.com/veyocast/platform/actions/runs/38184749859",
+    "actualOriginalCases": 8,
+    "actualFrames": 14,
+    "changedPixels": 0,
+    "evidenceScope": "Targeted actual verification; the next complete CI run is still required. Specific compositor resampling cause is an inference, not locally reproduced.",
+    "guard": "Both screenshot transports require 1200 ms elapsed settling and at least three identical PNGs spanning 350 ms; immutable source content, fixtures, zero-pixel assertions and requested animation times are preserved.",
+    "workerLaterVideoFrames": "Page settling runs only for a newly captured page",
+    "actualChromiumSecurityCases": 7,
+    "comparisonSHA256": "833ce848ec59be4cc8759b65ecdf5d1eb3ef9b0833b2aaabcad207846256b2f6",
+    "ledComparisonSHA256": "e8e1b44868ee93e9d7661245ea3395096e2a5aa017ae210431b37611e301f371",
+    "logSHA256": "7056bffa96a8f12514a0deffebf5002c316c5ce43bfc2fa982be125683339af5",
+    "ledLogSHA256": "dbdf3a70b73b277db369d4b493d67e41221fcb96c998bedf6ea6debda88b4036",
+    "securityLogSHA256": "752fee31e12901a54bf3c4f014df775b8c1c83a7b4b971b627a3b60ae9e9ddfb",
+    "completeCiFollowup": {
+      "head": "6d54bd6bfa3b77fa52f18d624214e9d1131c9f48",
+      "run": "https://github.com/veyocast/platform/actions/runs/38186123151",
+      "sportlink": {
+        "passed": 69,
+        "failed": 3
+      },
+      "templatesAndTv": {
+        "passed": 168,
+        "failed": 4
+      },
+      "status": "FAIL",
+      "finding": "Elapsed raster settling is insufficient. Every observed difference is confined to small club logos. A local Source PNG exactly matches the CI Source bytes; worker raster drift remains under investigation. Original zero-pixel assertions remain unchanged.",
+      "led": {
+        "passed": 288,
+        "failed": 0
+      }
+    },
+    "concurrencyReproduction": "evidence/raster-concurrency-readback.json",
+    "sharedPolicy": "Both launchers explicitly use one raster task thread; original Source content, assets, frame clocks and strict zero-pixel assertions remain unchanged.",
+    "actualRepositoryCaptureSecurityAfterThreadChange": {
+      "passed": 7,
+      "logSHA256": "56ab29e43a569cbdea3926582625730a138fb7a91fb0dbe3e2a8b60a3b1d0de2"
+    },
+    "actualRepositoryVerification": {
+      "cases": 8,
+      "frames": 13,
+      "changedPixels": 0,
+      "rawSourceProductionPixelsEqual": true,
+      "comparisonSHA256": "2e94eae67f8635a384baf211806a1ee679aa128d167afb48996d8e8443b8908e",
+      "logSHA256": "483a74c3263a7d8ceca44d3987b12c3fbce2e6d1343bc29bbbe57283fb6fc172",
+      "fullCiPending": true
+    }
+  },
+  "nativeHeapRecovery": {
+    "failedRun": "https://github.com/veyocast/platform/actions/runs/38186123173",
+    "failedTask": ":expo-modules-core:lintAnalyzeRelease",
+    "actualCause": "OutOfMemoryError while Android lint ApiDatabase.writeDatabase allocates SDK API lookup database",
+    "logSHA256": "61d5724cd80f03688350878226c46c095ad3fbd8448fc6aaf8044a77a5e1a428",
+    "configuredHeap": "4g",
+    "configuredMetaspace": "1g",
+    "maximumWorkers": 2,
+    "verification": "Actual third CI native AAB build passed in 27m12s; bundletool and 16-KiB alignment gates passed. No additional lint exclusion added.",
+    "configurationReference": "https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties"
+  },
+  "freshCiWebDatabase": {
+    "head": "6d54bd6bfa3b77fa52f18d624214e9d1131c9f48",
+    "foundation": "PASS",
+    "databaseAndRls": "PASS",
+    "marketing": "PASS",
+    "cross": "PASS",
+    "control": {
+      "passed": 298,
+      "skipped": 562
+    },
+    "player": {
+      "passed": 235,
+      "skipped": 15
+    },
+    "originalResponsiveCases": 66,
+    "originalMenuYouTube": "PASS",
+    "androidPlayer": "PASS",
+    "lgHostedValidation": "PASS",
+    "scope": "Actual GitHub checks; conditional skips are not counted as executed acceptance."
+  },
+  "productionBeforeDeployment": {
+    "workerProbeRun": 38186528458,
+    "workerRuntime": "healthy",
+    "diagnosticStatus": "FAIL",
+    "inventoryRun": 38188214556,
+    "inventoryStatus": "FAIL",
+    "scope": "Both read-only old c3ef6b release checks failed without usable fresh DB counters. Initial inventory tenant SELECT failed before any mutation; underlying remote connection cause is not established. Local CLI TLS failure is expected because isolated Supabase has no TLS and is not proof of the production cause.",
+    "workerDiagnosticCode": "PROBE_DIAGNOSTIC_READ_FAILED",
+    "inventoryCode": "PUBLICATION_DATABASE_OPERATION_FAILED"
+  },
+  "safeOperatorDiagnostics": {
+    "cliFailureCodes": [
+      "LegacyDbConnectError",
+      "LegacyDbQueryExecError"
+    ],
+    "localSqlExecutionFailureTag": "LegacyDbQueryExecError",
+    "providerRpcCodePolicy": "Explicit known SQLSTATE/PGRST allowlist only; no raw response message, detail, hint, connection URL or credentials.",
+    "scope": "Diagnostic-only; unknown remote baseline cause is preserved as unknown.",
+    "privacyChecks": 3,
+    "status": "PASS",
+    "privacyEvidenceSHA256": "50a5009a4251ac8e2e5894b8c84f363c2fc0c4bc53544550b972a71ace54f4c2"
+  },
+  "thirdFullCi": {
+    "head": "292ddb1a48839d668d587e7014cf0b2b5f6151a1",
+    "database": {
+      "runId": 38189395279,
+      "jobId": 114618683227,
+      "status": "SUCCESS",
+      "rlsFiles": 102,
+      "rlsAssertions": 2886,
+      "actualBrowserFlows": 2,
+      "actualReadyPrivateUploads": 240,
+      "mediaWorkflowReadbackSHA256": "14d82836fbf3cd657c33a82e067717779381543f643e884a6000828bc24851ea",
+      "firstFrameAcknowledgementSHA256": "9425917a9a445727a8076096782f5a0fbe88336465eb1cecc1c4a9cca1798682"
+    },
+    "actualCompletedScopes": {
+      "head": "292ddb1a48839d668d587e7014cf0b2b5f6151a1",
+      "ciCheckoutMergeSha": "0966b8e5f9a4ae19a6f6386c67a43e6568f31ae2",
+      "sportlink": {
+        "cases": 72,
+        "verifiedCompleteReadbacks": true,
+        "artifactId": 11720837297
+      },
+      "responsive": {
+        "cases": 66,
+        "artifactId": 11719914794
+      },
+      "menuYouTube": {
+        "originalCases": 16,
+        "categoryFreeCases": 12,
+        "artifactId": 11721780010
+      },
+      "controlBrowser": {
+        "passed": 298,
+        "conditionallySkipped": 562
+      },
+      "playerBrowser": {
+        "passed": 235,
+        "conditionallySkipped": 15
+      },
+      "nativeBuild": {
+        "status": "SUCCESS",
+        "runId": 38189395249,
+        "aabAnd16KiBValidated": true,
+        "gradleDuration": "27m12s",
+        "artifactId": 11721708303
+      },
+      "led": {
+        "status": "FAIL",
+        "originalCases": 288,
+        "passed": 287,
+        "failed": 1,
+        "caseId": "LED-0219",
+        "changedPixels": 4358,
+        "maximumChannelDifference": 26,
+        "boundsInclusive": [
+          266,
+          549,
+          459,
+          769
+        ],
+        "rawBrowserDiffersBeforeSharp": true,
+        "all16DomMeasurementsEqual": true,
+        "artifactId": 11721293185,
+        "noToleranceOrMasks": true
+      },
+      "tvTemplates": {
+        "status": "SUCCESS",
+        "originalCases": 172,
+        "backgroundContainCases": 16,
+        "literalStarterVariants": 76,
+        "artifactId": 11720733818
+      }
+    },
+    "sourceRunId": 38189395240,
+    "allExceptOneLedCasePassed": true,
+    "nextAction": "Source-faithful client canvas initialization starts at width 0 and measures the actual host width, matching the frozen Source lifecycle. Local exact cohorts pass; complete fourth CI and live deployment proof remain required."
+  },
+  "clientCanvasLifecycleCorrection": {
+    "productionBefore": "orientation-based 1080/1920 before measuring actual host",
+    "sourceAndProductionAfter": "width 0, then useEffect measurement and ResizeObserver",
+    "staticServerMarkupUnchanged": true,
+    "fullCiResolutionClaim": false,
+    "localSoftwareOnly": true,
+    "cohorts": [
+      {
+        "scope": "failures",
+        "frames": 13,
+        "exactFrames": 13,
+        "comparisonSHA256": "8d1526c1e524e33845b27f2b022e4a3003dc1aaf55865b0cfd47ff0725d809e3",
+        "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc"
+      },
+      {
+        "scope": "neighbors",
+        "frames": 10,
+        "exactFrames": 10,
+        "comparisonSHA256": "f0e7269cca9c8e5c973c4831bc4ab07152bab82951fee2797c96ab5877bcda1f",
+        "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc"
+      }
+    ],
+    "actualClientReadiness": {
+      "actualSitesDynamicMediaReadyVisible": true,
+      "twoFollowingFramesVisible": true,
+      "warmRemountVisible": true,
+      "auditedImagesDecoded": true,
+      "fontsLoaded": true,
+      "readbackSHA256": "b929bc90bd70aef6e5a9b4c2cc14daa26743d7142bc3cfee7fa1f266f16572f0",
+      "resizeWidths": [
+        1920,
+        960,
+        1920
+      ],
+      "scope": "Controlled actual SitesDynamicMedia callback and two following animation frames, not physical hardware or provider proof. Existing outer scene and delivery guards remain unchanged."
+    },
+    "causalLimit": "The remaining 4358-pixel CI LED-0219 drift has not been reproduced locally. The correction restores an observed Source lifecycle mismatch; exact local cohorts alone do not prove full CI resolution.",
+    "captureSecurity": {
+      "passed": 7,
+      "logSHA256": "772bd3f1573bc75a3374aa81497fbc048f896a1c92b15b710ce733f2ea294a76",
+      "scope": "Actual exact full Chrome capture with audited font/image bytes, hostile text and external URLs blocked, missing assets fail closed."
+    }
+  },
+  "fourthFullCi": {
+    "head": "262125a616663d46b404335ddc46068f261bb858",
+    "sourceRunId": 38193163857,
+    "allOtherScopesPassed": true,
+    "nativeRunId": 38193163842,
+    "nativeActualDuration": "26m23s",
+    "nativeArtifactId": 11722884398,
+    "nativeAabAnd16KiBValidated": true,
+    "tvOriginalCases": 172,
+    "tvContainedBackgroundCases": 16,
+    "tvLiteralStarterVariants": 76,
+    "tvArtifactId": 11723530767,
+    "databaseRunId": 38193163836,
+    "databaseJobId": 114630058806,
+    "databaseRlsFiles": 102,
+    "databaseRlsAssertions": 2886,
+    "databaseActualBrowserFlows": 2,
+    "databaseArtifactId": 11722517701,
+    "controlBrowserPassed": 298,
+    "controlConditionallySkipped": 562,
+    "playerBrowserPassed": 235,
+    "playerConditionallySkipped": 15,
+    "ledPassed": 285,
+    "ledFailed": 3,
+    "ledArtifactId": 11723525319,
+    "priorLed0219": "PASS",
+    "ledGlyphFailures": [
+      {
+        "caseId": "LED-0005",
+        "changedPixels": 400,
+        "maximumChannelDifference": 80,
+        "boundsInclusive": [
+          655,
+          247,
+          707,
+          313
+        ]
+      },
+      {
+        "caseId": "LED-0024",
+        "changedPixels": 4,
+        "maximumChannelDifference": 1,
+        "boundsInclusive": [
+          532,
+          374,
+          737,
+          405
+        ]
+      },
+      {
+        "caseId": "LED-0076",
+        "changedPixels": 123,
+        "maximumChannelDifference": 60,
+        "boundsInclusive": [
+          886,
+          346,
+          900,
+          364
+        ]
+      }
+    ],
+    "rawBrowserDiffersBeforeSharp": true,
+    "actualCauseEvidence": "Each failed headline fit coefficient differs between Source and worker by ~6e-8 to1e-7; transformed bounds feed back into later fit measurements. Observed second/third local measurements exactly match the divergent CI coefficients."
+  },
+  "fontBeforeMountCorrection": {
+    "sharedTransport": "Both independent renderers load the same14 audited declared FontFaces before React mount; initial fitting uses loaded font metrics instead of fallback fonts. Original Source files, CSS, fixtures, fitting algorithm, clocks and strict pixel assertions are unchanged.",
+    "workerCspAndNonceUnchanged": true,
+    "hashAndRequestAndSessionLimitsUnchanged": true,
+    "staticMarkupUnchanged": true,
+    "playerReadinessAndLkgUnchanged": true,
+    "localThreeCases": {
+      "exactFrames": 3,
+      "comparisonSHA256": "8e67c937147839e60c2986b865bee5cba47afda0ddd197cb07dbc3a7f9a2e8e0",
+      "priorLocalPngsUnchanged": true
+    },
+    "instrumentation": {
+      "pages": 6,
+      "declaredFontFacesPerPage": 14,
+      "allFontsLoadedAtFirstFit": true,
+      "measurementsPerPage": 3,
+      "fitWritesPerPage": 12,
+      "fitRafCallbacksPerPage": 2,
+      "resizeObserverCallbacksPerPage": 1,
+      "sourceAndWorkerFitSequencesEqual": true,
+      "summarySHA256": "801ce8e47e8716b854b384e2d53d5c32a14ee7ac162d863565ce918d45a44e00",
+      "scope": "Observational local instrumentation can perturb timing; it is not a reproduction of the remote failed frame. Second/third pass coefficients match concrete fourth-CI differences."
+    },
+    "fullCiResolutionClaim": false,
+    "firstBroadenedAttempt": {
+      "status": "FAIL",
+      "passedTests": 10,
+      "failedTests": 1,
+      "exactCompletedFrames": 14,
+      "failedCaseId": "SPORTLINK-0035",
+      "failureStage": "unknown",
+      "underlyingCause": "unknown",
+      "scope": "Capture failed before a completed frame; concurrent build is observed but not established as the cause. No retry policy added."
+    },
+    "boundedStageDiagnostic": {
+      "status": "PASS",
+      "caseId": "SPORTLINK-0035",
+      "actualTests": 1,
+      "exactFrames": 2,
+      "comparisonSHA256": "8215ff69c0bd2b8d02386958a1915a3f75a710ab9de19e0954f012478633508e",
+      "scope": "Actual changed-code isolated diagnostic; success does not classify the preceding failure."
+    },
+    "actualChangedCodeCombinedGate": {
+      "status": "PASS",
+      "tests": 11,
+      "frames": 16,
+      "exactFrames": 16,
+      "captureFailures": [],
+      "durationSeconds": 102.64,
+      "comparisonSHA256": "fc19ef52aead2b4c041a12b0169f82e15faa6cbd2000cc322e1597bdf7298e00",
+      "controlComparisonSHA256": "d5209e82bc41aab7a71acdd91a2791a5c125f76febc5d0f6c2b2dff354bde5e0",
+      "priorControlPngsByteIdentical": 30,
+      "priorControlPngsTotal": 32,
+      "sharedLed0219LogoVariant": {
+        "sourceAndWorkerEqual": true,
+        "changedPixelsVersusPriorControl": 4358,
+        "maximumChannelDifference": 26,
+        "boundsInclusive": [
+          266,
+          549,
+          459,
+          769
+        ],
+        "changedPixelsOutsideActualClubLogo": 0,
+        "elementGeometryUnchanged": true
+      },
+      "scope": "Strict actual Source/worker comparisons; no masks, tolerance, automatic retries, GPU flags, Source component/CSS/fixture or frame-clock changes. Complete fifth CI remains required."
+    },
+    "actualCaptureSecurity": {
+      "status": "PASS",
+      "tests": 7,
+      "logSHA256": "66b4dc07c0b9f472ce512d1d371b65d236c06f7b490dde5711d90703f5c26b10",
+      "scope": "All actual full-Chrome tests executed, including missing audited fonts refusing partial output, fixed font_load stage and hostile URLs unable to fetch."
+    },
+    "boundedFailureDiagnostics": {
+      "fixedStageEnum": true,
+      "rawCauseOrUrlsStored": false,
+      "failedCaptureStillRethrown": true,
+      "scope": "Current execution phase only, not an underlying-cause classifier. Launch/setup and non-capture failures still fail Vitest outside captureFailures."
+    },
+    "independentReview": {
+      "reviewer": "deployment_live_review",
+      "blockers": 0,
+      "repositoryEdits": 0
+    }
+  }
+}

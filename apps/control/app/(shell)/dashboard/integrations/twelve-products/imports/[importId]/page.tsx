@@ -34,7 +34,7 @@ export default async function ProductImportPage({
           label: isDraft ? "Controle nodig" : data.status === "applied" ? "Toegepast" : "Geannuleerd",
           tone: isDraft ? "warning" : data.status === "applied" ? "success" : "neutral"
         }}
-        title="Excel-import controleren"
+        title={data.fileName.toLowerCase().endsWith(".csv") ? "CSV-import controleren" : "Excel-import controleren"}
       />
       {query.fout ? (
         <p className="notice notice--critical" role="alert">

@@ -1,5 +1,14 @@
 # VeyoCast MVP Plan
 
+S191 voert de volledige exacte Sites-v11-overdracht uit op de actuele
+productieruntime. De scope, gerichte canon-delta en alle oorspronkelijke
+matrixrecords staan in `docs/sites-v11-overname/`; de uitvoeringsopdracht staat
+in `prompts/sprints/S191-sites-exact-transfer.md`.
+De actuele lokale gates en oorspronkelijke acceptance zijn met concrete readbacks
+afgesloten; fysieke apparaatproeven en ontbrekende browser-IDB-input blijven
+expliciet afzonderlijk geregistreerd. De PR bewaart daarna de echte CI- en
+staging/productionpromotie van dezelfde immutable SHA.
+
 ## Werkmodus
 
 VeyoCast wordt lokaal gebouwd met Codex in geïsoleerde Git-worktrees. GitHub blijft de bron van waarheid. Elke taak krijgt:

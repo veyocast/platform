@@ -170,8 +170,8 @@ select throws_ok(
       '10000000-0000-4000-8000-000000001231', 'RLS-aanval',
       '00000000-0000-4000-8000-000000001233'
     )$$,
-  '42501', 'new row violates row-level security policy for table "media_collections"',
-  'direct cross-tenant collection insert fails RLS'
+  '42501', 'permission denied for table media_collections',
+  'direct collection writes require guarded commands'
 );
 
 reset role;

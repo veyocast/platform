@@ -1,0 +1,12 @@
+import {mobilePlacementThemeRequestV2Schema} from "@veyocast/contracts";
+import {getMobileRequestContext,requireMobileTenant,MobileApiContextError} from "../../../../../../../lib/mobile-api/context";
+import {mobileV2Data} from "../../../../../../../lib/mobile/v2-response";
+import {mobileV2Failure} from "../../../../../../../lib/mobile/v2-failure";
+import {mobileFailure} from "../../../../../../../lib/mobile-api/response";
+import {readMobileV2Body} from "../../../../../../../lib/mobile/read-v2-body";
+import {prepareMobilePlacementTheme,readMobilePlacementTheme} from "../../../../../../../lib/mobile/placement-theme-v2";
+type RouteContext={params:Promise<{playlistId:string}>};
+export async function POST(request:Request,route:RouteContext){try{
+ const context=await getMobileRequestContext(request);const tenant=requireMobileTenant(request,context,"tenant.playlist.write");requireMobileTenant(request,context,"tenant.studio.create");requireMobileTenant(request,context,"tenant.studio.render");const {playlistId}=await route.params;const playlist=await context.supabase.from("playlists").select("id").eq("tenant_id",tenant.id).eq("id",playlistId).neq("status","archived").maybeSingle();if(playlist.error)throw Error("MOBILE_PLACEMENT_PLAYLIST_UNAVAILABLE");if(!playlist.data)throw new MobileApiContextError(404,"NOT_FOUND","De playlist hoort niet bij de gekozen organisatie.","Open een playlist vanuit Content.",context.requestId);const input=mobilePlacementThemeRequestV2Schema.safeParse(await readMobileV2Body(request,16384));if(!input.success)return mobileFailure({code:"VALIDATION",message:"De plaatsing of het thema is ongeldig.",recovery:"Kies het item opnieuw. De playlist is niet gewijzigd.",requestId:context.requestId,status:422});return mobileV2Data(await prepareMobilePlacementTheme(context,tenant,playlistId,input.data),context.requestId);
+}catch(error){return mobileV2Failure(error);}}
+export async function GET(request:Request){try{const context=await getMobileRequestContext(request);const tenant=requireMobileTenant(request,context,"tenant.studio.read");const jobId=new URL(request.url).searchParams.get("jobId");if(!jobId||! /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(jobId))return mobileFailure({code:"VALIDATION",message:"De renderkeuze is ongeldig.",recovery:"Open de themakeuze opnieuw.",requestId:context.requestId,status:422});return mobileV2Data(await readMobilePlacementTheme(context,tenant,jobId),context.requestId);}catch(error){return mobileV2Failure(error);}}

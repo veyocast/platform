@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { randomUUID } from "node:crypto";
 
-import { Grid2X2, List, Star, Upload, Video } from "lucide-react";
+import { CloudUpload, Folder, Grid2X2, List, Plus, Search, Sparkles, Star, Video } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -10,7 +10,6 @@ import {
   Button,
   FilterBar,
   IconButton,
-  PageHeader,
   StatusPill,
   SummaryStrip,
   TablePreferences
@@ -41,7 +40,7 @@ import {
   MediaUploadDialog,
   SavedMediaViewsDialog
 } from "./media-overlays";
-import { MediaLibraryWorkspace } from "./media-library-workspace";
+import { AddMediaToPlaylistDialog, MediaLibraryWorkspace } from "./media-library-workspace";
 import {
   mediaViewHref,
   mediaViewStateFromSearch,
@@ -49,6 +48,8 @@ import {
   mediaViewStateKey,
   type MediaViewState
 } from "./saved-media-view";
+
+import styles from "./sites-media.module.css";
 
 const mediaPageSize = 48;
 
@@ -220,13 +221,13 @@ const pipelineSteps = [
 
 const mediaRules = [
   {
-    detail: "SVG blijft uitgeschakeld totdat sanitizing bewust en aantoonbaar veilig is toegevoegd.",
+    detail: "SVG wordt alleen na veilige normalisatie opgeslagen; actieve inhoud en externe verwijzingen worden geweigerd.",
     label: "Bestandstype",
     status: "Beleid",
     tone: "critical"
   },
   {
-    detail: "Deze live route accepteert JPEG, PNG en WebP tot maximaal 20 MB.",
+    detail: "JPEG, PNG, WebP en AVIF tot 25 MB; GIF tot 50 MB en SVG tot 2 MB. Bestandsinhoud wordt gecontroleerd.",
     label: "Afbeeldingslimiet",
     status: "Bewaakt",
     tone: "info"
@@ -251,7 +252,8 @@ const mediaColumns = [
 export default async function MediaPage({ searchParams }: MediaPageProps) {
   const session = await requireControlSession();
   const publicConfig = getSupabasePublicConfig();
-  const params = await searchParams;
+  const incomingParams = await searchParams;
+  const params = { ...incomingParams, view: incomingParams.view === "list" ? "list" : "grid" };
   const { fout, succes } = params;
   if (
     params.status === "archived" &&
@@ -337,21 +339,14 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
     processingCount > 0 || failedCount > 0 || storageNeedsAttention;
 
   return (
-    <>
-      <PageHeader
-        actions={canUpload ? (
-          <Button asChild>
-            <a href={mediaHref(params, { upload: "1" })}>
-              <Upload aria-hidden="true" />
-              Media uploaden
-            </a>
-          </Button>
-        ) : null}
-        description="Beheer afbeeldingen en video's voor je playlists."
-        eyebrow={session.tenant}
-        status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
-        title="Media"
-      />
+    <div className={`${styles.page} ${styles.mobileMedia}`}>
+      <div className={styles.heading}>
+        <div className={styles.headingCopy}><span className={styles.eyebrow}>Content / Bibliotheek</span><h1>Media</h1><p>Alle beelden voor jouw club.</p></div>
+        <div className={styles.headingActions}>
+          <Button asChild variant="secondary"><Link href="/dashboard/studio"><Sparkles aria-hidden="true" size={17} />Open Studio</Link></Button>
+          {canUpload ? <Button asChild><Link href={mediaHref(params, { upload: "1" })}><CloudUpload aria-hidden="true" size={18} />Media uploaden</Link></Button> : <Button disabled><CloudUpload aria-hidden="true" size={18} />Media uploaden</Button>}
+        </div>
+      </div>
 
       {fout ? (
         <p className="notice notice--critical" role="alert">
@@ -407,7 +402,78 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
         />
       ) : null}
 
-      <form method="get" role="search">
+      <div className={styles.mediaTop}>
+        <div className={styles.collectionBanner}><div><span className={styles.eyebrow}>Jouw beeldbank</span><h2>Maak ieder scherm<br />een beetje meer club.</h2><p>Bewaar je beelden, maak favorieten en voeg ze direct toe aan een playlist.</p><Button asChild variant="secondary"><Link aria-disabled={!canUpload} href={canUpload ? mediaHref(params, { upload: "1" }) : "#media-library-title"}><Plus aria-hidden="true" size={16} />Afbeelding toevoegen</Link></Button></div><img alt="Clubleden langs het voetbalveld" src="/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp" /></div>
+        <div className={styles.storageCard}><span className={styles.iconPlate}><Folder aria-hidden="true" size={23} /></span><h3>Ruimte voor je verhalen</h3><strong>{totalCount} <small>{mediaFilterCount(params) ? "passende bestanden" : "mediabestanden"}</small></strong><p>Je eigen beelden zijn ook beschikbaar als achtergrond in de Studio’s.</p><MediaOrganizationDialog canWrite={canUpload} folders={folders} triggerLabel="Map maken" /></div>
+      </div>
+
+      <div className={styles.workspace}>
+        <nav aria-label="Mediamappen" className={styles.folderTabs}>
+          <Link aria-current={!viewingArchive && params.favorite !== "true" && (!params.folder || params.folder === "all") ? "page" : undefined} className={!viewingArchive && params.favorite !== "true" && (!params.folder || params.folder === "all") ? styles.activeTab : undefined} href={mediaHref(params, { asset: undefined, favorite: undefined, folder: undefined, page: "1", status: undefined })}>Alle media</Link>
+          <Link aria-current={!viewingArchive && params.favorite === "true" ? "page" : undefined} className={!viewingArchive && params.favorite === "true" ? styles.activeTab : undefined} href={mediaHref(params, { asset: undefined, favorite: "true", folder: undefined, page: "1", status: undefined })}><Star aria-hidden="true" size={13} />Favorieten</Link>
+          {folders.map((folder) => <Link aria-current={!viewingArchive && params.folder === folder.id ? "page" : undefined} className={!viewingArchive && params.folder === folder.id ? styles.activeTab : undefined} href={mediaHref(params, { asset: undefined, favorite: undefined, folder: folder.id, page: "1", status: undefined })} key={folder.id}>{folder.name}</Link>)}
+          <Link aria-current={viewingArchive ? "page" : undefined} className={viewingArchive ? styles.activeTab : undefined} href={mediaHref(params, { asset: undefined, collection: undefined, favorite: undefined, folder: undefined, page: "1", status: "archived", usage: undefined })}>Archief</Link>
+        </nav>
+        <div className={styles.toolbar}>
+          <form className={styles.search} method="get" role="search"><Search aria-hidden="true" size={18} /><input aria-label="Zoeken in media" defaultValue={params.q} name="q" placeholder="Zoeken op naam, tag of collectie…" type="search" />{Object.entries(params).filter(([key, value]) => !["q", "asset", "page", "upload", "view", "fout", "succes"].includes(key) && value !== null && value !== undefined && value !== "").map(([key,value]) => <input key={key} name={key} type="hidden" value={String(value)} />)}<input name="view" type="hidden" value={params.view === "list" ? "list" : "grid"} /><button aria-label="Zoeken" type="submit"><Search aria-hidden="true" size={18} /></button></form>
+          <div className={styles.toolbarActions}><span className={styles.resultCount}>{totalCount} bestanden</span><div className={styles.viewToggle}><Link aria-current={params.view !== "list" ? "page" : undefined} aria-label="Media als raster tonen" href={mediaHref(params, { page: "1", view: "grid" })}><Grid2X2 aria-hidden="true" size={18} /></Link><Link aria-current={params.view === "list" ? "page" : undefined} aria-label="Media als lijst tonen" href={mediaHref(params, { page: "1", view: "list" })}><List aria-hidden="true" size={18} /></Link></div></div>
+        </div>
+
+
+      <section aria-labelledby="media-library-title">
+          <h2 className="sr-only" id="media-library-title">Mediabibliotheek</h2>
+          <MediaLibraryWorkspace
+            assets={visibleAssets.map((asset) => ({
+              createdLabel: formatDate(asset.createdAt),
+              updatedLabel: formatDateTime(asset.updatedAt),
+              details: mediaDetails(asset),
+              draftCount: asset.draftCount,
+              fileName: asset.fileName,
+              folderName: folders.find((folder) => folder.id === asset.folderId)?.name ?? "Hoofdniveau",
+              folderId: asset.folderId,
+              updatedAt: asset.updatedAt,
+              collectionLabels: asset.collectionIds.flatMap((id) => collections.find((collection) => collection.id === id)?.name ?? []),
+              tagLabels: asset.tagIds.flatMap((id) => tags.find((tag) => tag.id === id)?.name ?? []),
+              id: asset.id,
+              isFavorite: asset.isFavorite,
+              kind: asset.kind,
+              manageHref: mediaHref(params, { asset: asset.id }),
+              previewUrl: asset.previewUrl,
+              releaseCount: asset.releaseCount,
+              screenCount: asset.screenCount,
+              status: asset.status,
+              statusLabel: statusLabel(asset.status),
+              statusTone: mediaStatusTone(asset.status),
+              title: asset.title,
+              usage: usageSummary(asset)
+            }))}
+            canAddToPlaylist={canAddToPlaylist}
+            canBulk={canMutateSelected}
+            collections={collections}
+            folders={folders}
+            playlists={playlistOptions}
+            tags={tags}
+            view={params.view === "list" ? "list" : "grid"}
+          />
+          {totalCount > mediaPageSize ? (
+            <nav aria-label="Paginering mediabibliotheek" className="pagination">
+              <Button asChild size="sm" variant="secondary">
+                {page <= 1
+                  ? <button disabled type="button">Vorige</button>
+                  : <Link href={mediaHref(params, { page: String(page - 1) })}>Vorige</Link>}
+              </Button>
+              <span>Pagina {Math.min(page, pageCount)} van {pageCount}</span>
+              <Button asChild size="sm" variant="secondary">
+                {page >= pageCount
+                  ? <button disabled type="button">Volgende</button>
+                  : <Link href={mediaHref(params, { page: String(page + 1) })}>Volgende</Link>}
+              </Button>
+            </nav>
+          ) : null}
+      </section>
+      <details className={styles.advancedFilters}><summary>Aanvullende filters en opgeslagen weergaven{mediaFilterCount(params) ? ` · ${mediaFilterCount(params)} actief` : ""}</summary>
+      <Button asChild variant="secondary"><Link href="/dashboard/studio"><Sparkles aria-hidden="true" size={17} />Open Studio</Link></Button>
+      <form method="get">
         <FilterBar
           className="media-filter-bar"
           activeCount={mediaFilterCount(params)}
@@ -457,7 +523,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           defaultOpen={false}
           primary={(
             <input
-              aria-label="Zoeken in media"
+              aria-label="Zoeken in aanvullende mediafilters"
               className="toolbar-search"
               defaultValue={params.q}
               name="q"
@@ -527,63 +593,8 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
           </div>
         </FilterBar>
       </form>
-
-      <section className="workspace-section media-library-section" aria-labelledby="media-library-title">
-          <div className="workspace-section__header">
-            <div>
-              <h2 className="workspace-section__title" id="media-library-title">
-                Mediabibliotheek
-              </h2>
-              <p className="work-panel__meta">
-                Open een item om het te beheren of veilig uit Media te verwijderen.
-              </p>
-            </div>
-            <StatusPill label={`${totalCount} items`} tone="neutral" />
-          </div>
-          <MediaLibraryWorkspace
-            assets={visibleAssets.map((asset) => ({
-              createdLabel: formatDate(asset.createdAt),
-              updatedLabel: formatDateTime(asset.updatedAt),
-              details: mediaDetails(asset),
-              draftCount: asset.draftCount,
-              fileName: asset.fileName,
-              id: asset.id,
-              isFavorite: asset.isFavorite,
-              kind: asset.kind,
-              manageHref: mediaHref(params, { asset: asset.id }),
-              previewUrl: asset.previewUrl,
-              releaseCount: asset.releaseCount,
-              screenCount: asset.screenCount,
-              status: asset.status,
-              statusLabel: statusLabel(asset.status),
-              statusTone: mediaStatusTone(asset.status),
-              title: asset.title,
-              usage: usageSummary(asset)
-            }))}
-            canAddToPlaylist={canAddToPlaylist}
-            canBulk={canMutateSelected}
-            collections={collections}
-            folders={folders}
-            playlists={playlistOptions}
-            tags={tags}
-            view={params.view === "grid" ? "grid" : "list"}
-          />
-          {totalCount > mediaPageSize ? (
-            <nav aria-label="Paginering mediabibliotheek" className="pagination">
-              <Button asChild size="sm" variant="secondary">
-                {page <= 1
-                  ? <button disabled type="button">Vorige</button>
-                  : <Link href={mediaHref(params, { page: String(page - 1) })}>Vorige</Link>}
-              </Button>
-              <span>Pagina {Math.min(page, pageCount)} van {pageCount}</span>
-              <Button asChild size="sm" variant="secondary">
-                {page >= pageCount
-                  ? <button disabled type="button">Volgende</button>
-                  : <Link href={mediaHref(params, { page: String(page + 1) })}>Volgende</Link>}
-              </Button>
-            </nav>
-          ) : null}
-      </section>
+      </details>
+      </div>
 
       <details className="media-guidance">
         <summary>Upload- en verwerkingsregels</summary>
@@ -666,6 +677,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
               </p>
             ) : null}
           </section>
+          <AddMediaToPlaylistDialog asset={selectedAsset} disabled={!canAddToPlaylist || selectedAsset.status !== "ready" || !playlistOptions.length} label="Aan playlist toevoegen" playlists={playlistOptions} />
           <MediaPreview asset={selectedAsset} />
           <dl className="meta-list">
             <div><dt>Type</dt><dd>{mediaDetails(selectedAsset)}</dd></div>
@@ -874,7 +886,7 @@ export default async function MediaPage({ searchParams }: MediaPageProps) {
         open={params.upload === "1"}
         supabaseUrl={publicConfig?.url ?? ""}
       />
-    </>
+    </div>
   );
 }
 

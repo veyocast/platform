@@ -1,0 +1,1008 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "implementationBaseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "fixtureVersion": "S191-actual-no-credential-HTTP-guards-20261011",
+  "timezone": "Europe/Amsterdam",
+  "browser": "Chromium1228 / Linux / DPR1",
+  "localOnly": true,
+  "providerSuccessClaim": false,
+  "sourceGoldenCompared": false,
+  "scope": "54 actual HTTP endpoint readbacks without cookies, Authorization, provider tokens or successful mutation claims. POST invalid input/foreign Origin, public LG static/CSP responses, safe authentication redirects and health readiness are asserted individually. Sourcepixel and authenticated positive workflow semantics remain separate.",
+  "results": [
+    {
+      "caseId": "control-endpoint:/api/billing/mollie/webhook",
+      "route": "/api/billing/mollie/webhook",
+      "implementationPath": "apps/control/app/api/billing/mollie/webhook/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 400,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/engage/[publicId]",
+      "route": "/api/engage/[publicId]",
+      "implementationPath": "apps/control/app/api/engage/[publicId]/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 400,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/health",
+      "route": "/api/health",
+      "implementationPath": "apps/control/app/api/health/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 503,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/internal/billing/cycle",
+      "route": "/api/internal/billing/cycle",
+      "implementationPath": "apps/control/app/api/internal/billing/cycle/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/internal/billing/notifications",
+      "route": "/api/internal/billing/notifications",
+      "implementationPath": "apps/control/app/api/internal/billing/notifications/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/internal/billing/outbox",
+      "route": "/api/internal/billing/outbox",
+      "implementationPath": "apps/control/app/api/internal/billing/outbox/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/internal/billing/reconcile",
+      "route": "/api/internal/billing/reconcile",
+      "implementationPath": "apps/control/app/api/internal/billing/reconcile/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/labs/led-scores/live-image/[token]",
+      "route": "/api/labs/led-scores/live-image/[token]",
+      "implementationPath": "apps/control/app/api/labs/led-scores/live-image/[token]/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 404,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/media/images",
+      "route": "/api/media/images",
+      "implementationPath": "apps/control/app/api/media/images/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 403,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/account/deletion",
+      "route": "/api/mobile/v1/account/deletion",
+      "implementationPath": "apps/control/app/api/mobile/v1/account/deletion/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/cockpit",
+      "route": "/api/mobile/v1/cockpit",
+      "implementationPath": "apps/control/app/api/mobile/v1/cockpit/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/content",
+      "route": "/api/mobile/v1/content",
+      "implementationPath": "apps/control/app/api/mobile/v1/content/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/engage",
+      "route": "/api/mobile/v1/engage",
+      "implementationPath": "apps/control/app/api/mobile/v1/engage/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/media/images",
+      "route": "/api/mobile/v1/media/images",
+      "implementationPath": "apps/control/app/api/mobile/v1/media/images/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/notifications/device",
+      "route": "/api/mobile/v1/notifications/device",
+      "implementationPath": "apps/control/app/api/mobile/v1/notifications/device/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/notifications/preferences",
+      "route": "/api/mobile/v1/notifications/preferences",
+      "implementationPath": "apps/control/app/api/mobile/v1/notifications/preferences/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/pairing/claim",
+      "route": "/api/mobile/v1/pairing/claim",
+      "implementationPath": "apps/control/app/api/mobile/v1/pairing/claim/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/playlists",
+      "route": "/api/mobile/v1/playlists",
+      "implementationPath": "apps/control/app/api/mobile/v1/playlists/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/playlists/[playlistId]",
+      "route": "/api/mobile/v1/playlists/[playlistId]",
+      "implementationPath": "apps/control/app/api/mobile/v1/playlists/[playlistId]/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/playlists/[playlistId]/publish",
+      "route": "/api/mobile/v1/playlists/[playlistId]/publish",
+      "implementationPath": "apps/control/app/api/mobile/v1/playlists/[playlistId]/publish/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/screens",
+      "route": "/api/mobile/v1/screens",
+      "implementationPath": "apps/control/app/api/mobile/v1/screens/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/screens/commands",
+      "route": "/api/mobile/v1/screens/commands",
+      "implementationPath": "apps/control/app/api/mobile/v1/screens/commands/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/mobile/v1/session",
+      "route": "/api/mobile/v1/session",
+      "implementationPath": "apps/control/app/api/mobile/v1/session/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/products/import",
+      "route": "/api/products/import",
+      "implementationPath": "apps/control/app/api/products/import/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 403,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/products/logos",
+      "route": "/api/products/logos",
+      "implementationPath": "apps/control/app/api/products/logos/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 403,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/search",
+      "route": "/api/search",
+      "implementationPath": "apps/control/app/api/search/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/api/support-bundle",
+      "route": "/api/support-bundle",
+      "implementationPath": "apps/control/app/api/support-bundle/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "control-endpoint:/auth/confirm",
+      "route": "/auth/confirm",
+      "implementationPath": "apps/control/app/auth/confirm/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 307,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Public health/diagnostic or login redirect; no tenant write/device binding/provider success."
+    },
+    {
+      "caseId": "marketing-endpoint:/api/health",
+      "route": "/api/health",
+      "implementationPath": "apps/marketing/app/api/health/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 503,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "marketing-endpoint:/inloggen",
+      "route": "/inloggen",
+      "implementationPath": "apps/marketing/app/inloggen/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 307,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Public health/diagnostic or login redirect; no tenant write/device binding/provider success."
+    },
+    {
+      "caseId": "player-endpoint:/api/device-lab/runs",
+      "route": "/api/device-lab/runs",
+      "implementationPath": "apps/player/app/api/device-lab/runs/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/device-lab/session",
+      "route": "/api/device-lab/session",
+      "implementationPath": "apps/player/app/api/device-lab/session/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 404,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/health",
+      "route": "/api/health",
+      "implementationPath": "apps/player/app/api/health/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 503,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/commands",
+      "route": "/api/player/commands",
+      "implementationPath": "apps/player/app/api/player/commands/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/demo/manifest",
+      "route": "/api/player/demo/manifest",
+      "implementationPath": "apps/player/app/api/player/demo/manifest/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 404,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/demo/media",
+      "route": "/api/player/demo/media",
+      "implementationPath": "apps/player/app/api/player/demo/media/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 404,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/demo/session",
+      "route": "/api/player/demo/session",
+      "implementationPath": "apps/player/app/api/player/demo/session/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/engage/[publicId]",
+      "route": "/api/player/engage/[publicId]",
+      "implementationPath": "apps/player/app/api/player/engage/[publicId]/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 404,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/engage/[publicId]/qr",
+      "route": "/api/player/engage/[publicId]/qr",
+      "implementationPath": "apps/player/app/api/player/engage/[publicId]/qr/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 404,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/heartbeat",
+      "route": "/api/player/heartbeat",
+      "implementationPath": "apps/player/app/api/player/heartbeat/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/installation",
+      "route": "/api/player/installation",
+      "implementationPath": "apps/player/app/api/player/installation/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 400,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/manifest",
+      "route": "/api/player/manifest",
+      "implementationPath": "apps/player/app/api/player/manifest/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/pairing",
+      "route": "/api/player/pairing",
+      "implementationPath": "apps/player/app/api/player/pairing/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 200,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Explicit unconfigured Player mode: live=false and no device token; no installation/pairing/session RPC."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/pairing/qr",
+      "route": "/api/player/pairing/qr",
+      "implementationPath": "apps/player/app/api/player/pairing/qr/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 400,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/pairing/recover",
+      "route": "/api/player/pairing/recover",
+      "implementationPath": "apps/player/app/api/player/pairing/recover/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/pairing/unpair",
+      "route": "/api/player/pairing/unpair",
+      "implementationPath": "apps/player/app/api/player/pairing/unpair/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/realtime",
+      "route": "/api/player/realtime",
+      "implementationPath": "apps/player/app/api/player/realtime/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/realtime/ack",
+      "route": "/api/player/realtime/ack",
+      "implementationPath": "apps/player/app/api/player/realtime/ack/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/api/player/sponsor-events",
+      "route": "/api/player/sponsor-events",
+      "implementationPath": "apps/player/app/api/player/sponsor-events/route.ts",
+      "method": "POST",
+      "status": "PASS",
+      "httpStatus": 401,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/healthz",
+      "route": "/healthz",
+      "implementationPath": "apps/player/app/healthz/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 503,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Actual unauthenticated or invalid-input rejection; successful semantics remain separate."
+    },
+    {
+      "caseId": "player-endpoint:/lg/html-debug",
+      "route": "/lg/html-debug",
+      "implementationPath": "apps/player/app/lg/html-debug/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 200,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Public health/diagnostic or login redirect; no tenant write/device binding/provider success."
+    },
+    {
+      "caseId": "player-endpoint:/lg/legacy",
+      "route": "/lg/legacy",
+      "implementationPath": "apps/player/app/lg/legacy/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 200,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Public health/diagnostic or login redirect; no tenant write/device binding/provider success."
+    },
+    {
+      "caseId": "player-endpoint:/lg/probe",
+      "route": "/lg/probe",
+      "implementationPath": "apps/player/app/lg/probe/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 200,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Public health/diagnostic or login redirect; no tenant write/device binding/provider success."
+    },
+    {
+      "caseId": "player-endpoint:/lg/recover",
+      "route": "/lg/recover",
+      "implementationPath": "apps/player/app/lg/recover/route.ts",
+      "method": "GET",
+      "status": "PASS",
+      "httpStatus": 200,
+      "noCredentialSupplied": true,
+      "successfulMutationClaim": false,
+      "providerSuccessClaim": false,
+      "physicalHardwareClaim": false,
+      "boundary": "Public health/diagnostic or login redirect; no tenant write/device binding/provider success."
+    }
+  ],
+  "directUnits": [
+    {
+      "implementationPath": "apps/control/app/api/products/import/route.test.ts",
+      "tests": [
+        {
+          "assertion": "Echte CSV-upload bereidt uitsluitend een tenant-scoped review voor staged UTF-8 CSV met exact integergeld, werkelijk bestand/hash/bronwaarden zonder apply",
+          "status": "PASS"
+        },
+        {
+          "assertion": "Echte CSV-upload bereidt uitsluitend een tenant-scoped review voor houdt xlsx in de bestaande parser en daadwerkelijke reviewketen",
+          "status": "PASS"
+        },
+        {
+          "assertion": "Echte CSV-upload bereidt uitsluitend een tenant-scoped review voor weigert onjuist MIME en malformed CSV zonder gedeeltelijke review of cataloguswrites",
+          "status": "PASS"
+        },
+        {
+          "assertion": "Echte CSV-upload bereidt uitsluitend een tenant-scoped review voor handhaaft schrijfrol en actieve tenant vóór bestandverwerking",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/lg/html-debug/route.test.ts",
+      "tests": [
+        {
+          "assertion": "LG HTML/CSS-renderdiagnose is een zelfstandige statische route zonder Next-clientcode",
+          "status": "PASS"
+        },
+        {
+          "assertion": "LG HTML/CSS-renderdiagnose gebruikt de echte legacy renderer-CSS met een compatibele fullscreenfallback",
+          "status": "PASS"
+        },
+        {
+          "assertion": "LG HTML/CSS-renderdiagnose wijzigt geen koppeling, release of Player-cache en bewaart alleen een eigen rapport",
+          "status": "PASS"
+        },
+        {
+          "assertion": "LG HTML/CSS-renderdiagnose houdt de inline runtime compatibel met de legacy LG-browser",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/lg/legacy/route.test.ts",
+      "tests": [
+        {
+          "assertion": "zelfstandige LG Legacy Player rendert als no-store HTML zonder React, clientchunks of modules",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player speelt LG-video online en offline uit geverifieerde cachebytes",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player laat ongewijzigde releases en het huidige beeld onaangeraakt",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player rendert vertrouwde menu-, prijslijst-, nieuws- en sporttemplates zonder injecteerbare HTML",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player resolveert FieldFlow plus tien historische renderthema's in Legacy",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player deelt identiteit en API-contracten met de gewone Player",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player verwerkt remote commands op servertijd en hervat een ontbrekende completion",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player ontvangt Goal Alerts via geauthenticeerde XHR-SSE zonder de LKG-scene te wissen",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player ankert Legacy live match stale en wedstrijdklok op de gevalideerde SSE-servertijd",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player pauzeert en hervat de legacy-onderlaag met resterende itemtijd",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player rendert LED Scores wedstrijdmomenten en live slides met Legacy-LKG",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player rendert strikte S142-sceneparen met 24 assets en veilige webOS-fallback",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player houdt de inline runtime compatibel met oude webOS syntax",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player houdt Static LG gelijk aan de Match Centre theme- en layoutcontracten",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player rendert programma en uitslagen in de vaste S158-volgorde",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG Legacy Player projecteert displayfallbacks, appearance en alle 26 theme-kleurrollen",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/lg/probe/route.test.ts",
+      "tests": [
+        {
+          "assertion": "zelfstandige LG compatibiliteitsprobe rendert zonder React-hydration, Next-clientchunks of module-JavaScript",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG compatibiliteitsprobe levert een kleine, fast-start H.264 Baseline/AAC-LC-referentie vanaf dezelfde origin",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG compatibiliteitsprobe test de directe, Blob- en cachepaden zonder playerdata te verwijderen",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG compatibiliteitsprobe gebruikt conservatieve syntax en bewaart alleen een veilig rapport",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG compatibiliteitsprobe kan een afbeeldingsrelease niet als volledige videoplayback rapporteren",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/lg/recover/route.test.ts",
+      "tests": [
+        {
+          "assertion": "zelfstandige LG recoveryroute rendert zonder React-hydration of Next-clientchunks",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG recoveryroute bevat soft recovery, expliciet bevestigde hard recovery en begrensde redirect",
+          "status": "PASS"
+        },
+        {
+          "assertion": "zelfstandige LG recoveryroute gebruikt conservatieve functies in plaats van moderne modulechunks",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/commands/route.test.ts",
+      "tests": [
+        {
+          "assertion": "player command API stuurt canonieke commandtimestamps en een gezaghebbende servertijd",
+          "status": "PASS"
+        },
+        {
+          "assertion": "player command API levert een command met ongeldige timestamps niet aan een Player",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/heartbeat/route.test.ts",
+      "tests": [
+        {
+          "assertion": "player heartbeat API normaliseert een onbekende syncfase zodat een geldige heartbeat niet faalt",
+          "status": "PASS"
+        },
+        {
+          "assertion": "player heartbeat API verwijdert een geldige schermcredential niet bij een heartbeat-validatiefout",
+          "status": "PASS"
+        },
+        {
+          "assertion": "player heartbeat API blijft een werkelijk onbekende schermcredential definitief afwijzen",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/installation/route.test.ts",
+      "tests": [
+        {
+          "assertion": "player installation API rotates both credentials after authenticated Android reinstall recovery",
+          "status": "PASS"
+        },
+        {
+          "assertion": "player installation API does not treat a malformed cookie as a recovery credential",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/manifest/route.test.ts",
+      "tests": [
+        {
+          "assertion": "player manifest conditionele releasecheck levert een release-ETag bij het volledige manifest",
+          "status": "PASS"
+        },
+        {
+          "assertion": "player manifest conditionele releasecheck slaat manifest en signed URLs over wanneer de release ongewijzigd is",
+          "status": "PASS"
+        },
+        {
+          "assertion": "player manifest conditionele releasecheck levert het manifest wanneer de bekende release afwijkt",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/realtime/route.test.ts",
+      "tests": [
+        {
+          "assertion": "authorized publication invalidation stream works without goal configuration, coalesces relevant changes and removes every timer on cancellation",
+          "status": "PASS"
+        },
+        {
+          "assertion": "authorized publication invalidation stream closes a revoked stream without retaining subscriptions",
+          "status": "PASS"
+        },
+        {
+          "assertion": "authorized publication invalidation stream rejects inconsistent tenant authorization before opening a channel",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/pairing/qr/route.test.ts",
+      "tests": [
+        {
+          "assertion": "Player pairing QR contains only the temporary public code in the Control deeplink",
+          "status": "PASS"
+        },
+        {
+          "assertion": "Player pairing QR rejects malformed codes",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/pairing/recover/route.test.ts",
+      "tests": [
+        {
+          "assertion": "pairing recovery API accepteert de duurzame installatiecredential zonder pending token",
+          "status": "PASS"
+        },
+        {
+          "assertion": "pairing recovery API vertaalt een definitief ongeldige recoverycredential machineleesbaar",
+          "status": "PASS"
+        },
+        {
+          "assertion": "pairing recovery API weigert een niet-geauthenticeerde recoverymelding",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/realtime/ack/route.test.ts",
+      "tests": [
+        {
+          "assertion": "LED Scores acknowledgement API stuurt een begrensde acknowledgement met gehashte device credential",
+          "status": "PASS"
+        },
+        {
+          "assertion": "LED Scores acknowledgement API weigert ongeldige statussen voordat Supabase wordt aangeroepen",
+          "status": "PASS"
+        },
+        {
+          "assertion": "LED Scores acknowledgement API weigert oversized acknowledgements",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "implementationPath": "apps/player/app/api/player/engage/[publicId]/qr/route.test.ts",
+      "tests": [
+        {
+          "assertion": "Engage Player QR encodes the configured Control public journey in a local SVG",
+          "status": "PASS"
+        },
+        {
+          "assertion": "Engage Player QR rejects malformed public campaign identifiers",
+          "status": "PASS"
+        }
+      ]
+    }
+  ]
+}

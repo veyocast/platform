@@ -5,12 +5,11 @@ test("maakt Sportlink vindbaar vanuit databronnen", async ({
 }) => {
   await page.goto("/dashboard/data-sources", { waitUntil: "networkidle" });
 
-  await expect(
-    page.getByRole("link", { name: "Sportlink koppelen" })
-  ).toBeVisible();
-  await expect(
-    page.getByText("Maak hieronder een productbron, veilige RSS-feed of Sportlink-koppeling.")
-  ).toBeVisible();
+  const card=page.getByRole("article").filter({has:page.getByRole("heading",{name:"Sportlink",exact:true})});
+  await expect(card).toBeVisible();
+  await expect(card.locator('a[href="/dashboard/sources/sportlink"]')).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Clubinformatie die gezien mag worden."})).toBeVisible();
+  await expect(page.getByRole("textbox",{name:"Zoek een gegevensbron"})).toBeVisible();
 });
 
 test("stuurt de oude slideflow door naar de Unified Studio", async ({ page }) => {
@@ -70,15 +69,15 @@ test("houdt de dynamische-slide lege staat vrij van de containerrand", async ({
 test("toont de Sportlink-bulkwizard als Studio-familie", async ({ page }) => {
   await page.goto("/dashboard/studio/sportlink/new", { waitUntil: "networkidle" });
 
-  await expect(page.getByRole("heading", { level: 1, name: "Inhoud kiezen" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "De club, altijd in beeld." })).toBeVisible();
   for (const step of [
     "Inhoud kiezen",
-    "Teams selecteren",
-    "Competitie instellen",
-    "Stijl en weergave",
+    "Teams & gegevens",
+    "Vormgeving",
+    "Schermen",
     "Controleren"
   ]) {
-    await expect(page.getByLabel("Voortgang")).toContainText(step);
+    await expect(page.getByRole("navigation", {name:"Sportlink-wizardstappen"})).toContainText(step);
   }
   await expect(page.getByText("Koppel en synchroniseer eerst Sportlink via Databronnen.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Volgende" })).toBeDisabled();

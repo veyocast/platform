@@ -21,7 +21,7 @@ test("bouwt een volledig tenantpalet en blokkeert onveilig opslaan", async ({
   });
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "Royal Current · Navy Glass" })
+    page.getByRole("heading", { level: 1, name: "Huisstijl" })
   ).toBeVisible();
   await expect(page.getByText("Standaardpaletten")).toBeVisible();
   expect(unlockedProps.count).toBeGreaterThanOrEqual(2);
@@ -143,10 +143,10 @@ async function unlockDemoThemeEditor(page: Page) {
   await page.route("**/dashboard/themes/fieldflow*", async (route) => {
     const response = await route.fetch();
     const original = await response.text();
-    const matches = original.match(/disabled\\\":true/g) ?? [];
-    result.count += matches.length;
+    const encodedDisabledProp = 'disabled\\":true';
+    result.count += original.split(encodedDisabledProp).length - 1;
     await route.fulfill({
-      body: original.replaceAll('disabled\\":true', 'disabled\\":false'),
+      body: original.replaceAll(encodedDisabledProp, 'disabled\\":false'),
       response
     });
   });

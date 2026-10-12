@@ -2,16 +2,16 @@ import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { Database, Flag, LayoutTemplate } from "lucide-react";
 
-import { Button, JourneyShell } from "@veyocast/ui";
+import { Button } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
-import { loadTenantStyleData } from "../../../../../../lib/tenant-style-data";
 import {
   initialMenuDocument,
   loadMenuStudioOptions,
   menuStudioTemplateVersionIds
 } from "../data";
-import { MenuStudioEditor } from "../menu-studio-editor";
+import { loadSitesSourceDestinationOptions } from "../../../studio/sportlink/new/sites-source-destination-data";
+import { SitesMenuWizard } from "../sites-menu-wizard";
 import styles from "../menu-studio.module.css";
 
 type PageProps = {
@@ -21,26 +21,10 @@ type PageProps = {
 export default async function NewMenuStudioPage({ searchParams }: PageProps) {
   const session = await requireTenantControlSession("tenant.dynamic_slide.write");
   const query = await searchParams;
-  const [data, tenantStyle] = await Promise.all([
-    session.isLive && session.tenantId
-      ? loadMenuStudioOptions(session.tenantId, query.bron)
-      : null,
-    loadTenantStyleData(session.tenantId, session.isLive)
-  ]);
+  const data = session.isLive && session.tenantId ? await loadMenuStudioOptions(session.tenantId, query.bron) : null;
 
   return (
-    <JourneyShell
-      actions={<Button asChild variant="secondary"><Link href="/dashboard/studio/new">Annuleren</Link></Button>}
-      currentStep={data?.sources.length && data.source && data.templates.length ? "compose" : "source"}
-      description="Productdata blijft gekoppeld tijdens het ontwerpen. Publicatie bevriest daarna een veilige, immutable versie voor Player en offline fallback."
-      eyebrow={`${session.tenant} · Studio`}
-      steps={[
-        { id: "source", label: "Bron" },
-        { id: "compose", label: "Samenstellen" },
-        { id: "publish", label: "Voorbeeld & publiceren" }
-      ]}
-      title="Menu & prijzen"
-    >
+    <>
       {!data ? (
         <State icon={<Flag aria-hidden="true" />} title="Menu Studio niet beschikbaar">
           De tenantinstellingen konden niet veilig worden geladen. Bestaande slides en releases zijn niet gewijzigd.
@@ -70,7 +54,8 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
               ))}
             </nav>
           ) : null}
-          <MenuStudioEditor
+          <SitesMenuWizard
+            destinationOptions={await loadSitesSourceDestinationOptions()}
             initialOrientation={data.templates.some((template) => template.orientation === "landscape")
               ? "landscape"
               : "portrait"}
@@ -79,20 +64,14 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
               tenantId: session.tenantId!,
               theme: data.theme
             })}
-            linkedGroupsEnabled={data.flags.linkedGroups}
             media={data.media}
-            mediaEnabled={data.flags.media}
-            mode="create"
             products={data.products}
-            publishEnabled={data.flags.publish && data.flags.player}
             sourceId={data.source.id}
-            sourceName={data.source.name}
-            tenantStyle={tenantStyle}
             templateVersionIds={menuStudioTemplateVersionIds(data.templates)}
           />
         </>
       )}
-    </JourneyShell>
+    </>
   );
 }
 
@@ -105,5 +84,5 @@ function State({
   icon: React.ReactNode;
   title: string;
 }) {
-  return <section className={`empty-state ${styles.routeState}`}>{icon}<h2>{title}</h2><div>{children}</div></section>;
+  return <section className={`empty-state ${styles.routeState}`}><h1 className="sr-only">Menu Studio</h1>{icon}<h2>{title}</h2><div>{children}</div></section>;
 }

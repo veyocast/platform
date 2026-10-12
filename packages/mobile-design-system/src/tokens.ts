@@ -77,18 +77,18 @@ export const mobileType = {
   pageTitle: { fontSize: 24, lineHeight: 29, fontWeight: "700" },
   section: { fontSize: 18, lineHeight: 23, fontWeight: "600" },
   cardTitle: { fontSize: 15, lineHeight: 20, fontWeight: "600" },
-  body: { fontSize: 14, lineHeight: 20, fontWeight: "400" },
-  bodyStrong: { fontSize: 14, lineHeight: 20, fontWeight: "500" },
+  body: { fontSize: 15, lineHeight: 22, fontWeight: "400" },
+  bodyStrong: { fontSize: 15, lineHeight: 22, fontWeight: "500" },
   label: { fontSize: 12, lineHeight: 16, fontWeight: "500" },
   caption: { fontSize: 12, lineHeight: 16, fontWeight: "400" },
   micro: { fontSize: 11, lineHeight: 14, fontWeight: "500" }
 } as const;
 
 export const mobileFontFamily = {
-  regular: "Roboto_400Regular",
-  medium: "Roboto_500Medium",
-  semibold: "Roboto_600SemiBold",
-  bold: "Roboto_700Bold"
+  regular: "SitesInter_400Regular",
+  medium: "SitesInter_500Medium",
+  semibold: "SitesInter_600SemiBold",
+  bold: "SitesInter_700Bold"
 } as const;
 
 export function mobileFontFamilyForWeight(

@@ -1,0 +1,462 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "implementationBaseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "fixtureVersion": "QA-01-SCREENS-PLANNING-20261011-v1",
+  "fixedTime": "2026-10-11T10:00:00.000Z",
+  "timezone": "Europe/Amsterdam",
+  "browser": "Chromium1228 / Linux / DPR1",
+  "scope": "Actual production Source components; authenticated command/refresh transport controlled. Case-specific wizard controls/state/back/validation/preview assertions; actual atomic database commands tested separately. No inferred original-source pixel parity.",
+  "results": [
+    {
+      "caseId": "WIZARD-0047",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 1/3: Scherm.",
+      "state": "1-Scherm",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "561508fdab7b5ddf56e0ca58a63f7a3c553faa703006111abc324bf4fca307a7",
+      "status": "PASS",
+      "date": "2026-10-11T20:41:57.892Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 81.859375,
+        "bottom": 762.140625,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0047.png",
+      "screenshotSha256": "c76499f8cdb75ad8f19d844a7ee7ce32c8ffe22bff94f40e1ed9d1cb965d5876",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0048",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 1/3: Scherm.",
+      "state": "1-Scherm",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "561508fdab7b5ddf56e0ca58a63f7a3c553faa703006111abc324bf4fca307a7",
+      "status": "PASS",
+      "date": "2026-10-11T20:41:59.253Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 173.0546875,
+        "bottom": 726.9453125,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0048.png",
+      "screenshotSha256": "77bfcd542aa6de84159891992df70d1f901b4a853507f6fdb89c53ba6fb9e9be",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0049",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 2/3: Content.",
+      "state": "2-Content",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "561508fdab7b5ddf56e0ca58a63f7a3c553faa703006111abc324bf4fca307a7",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:00.485Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 96.8515625,
+        "bottom": 747.1484375,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0049.png",
+      "screenshotSha256": "31713e75b2640f40b875594a63b5caa1a0c4c6174d31d34c92186a6ef0a9b550",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0050",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 2/3: Content.",
+      "state": "2-Content",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "561508fdab7b5ddf56e0ca58a63f7a3c553faa703006111abc324bf4fca307a7",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:02.135Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 45,
+        "bottom": 855,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0050.png",
+      "screenshotSha256": "95b4fd983442def1834d2f1111bd6314a0e368948689420a88d9dadd4cd81161",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0051",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 3/3: Controleren.",
+      "state": "3-Controleren",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "561508fdab7b5ddf56e0ca58a63f7a3c553faa703006111abc324bf4fca307a7",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:03.458Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 122.125,
+        "bottom": 721.875,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0051.png",
+      "screenshotSha256": "28620ebd4648151814469f826024bb7fa81e1046b736521b1731845868a68839",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0052",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 3/3: Controleren.",
+      "state": "3-Controleren",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "561508fdab7b5ddf56e0ca58a63f7a3c553faa703006111abc324bf4fca307a7",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:05.171Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 179.40625,
+        "bottom": 720.59375,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0052.png",
+      "screenshotSha256": "1b78a6abc005defcbad8d98948c9cf7b50a840f1cd66d068a10601b72930bd4a",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0053",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 1/3: Indeling.",
+      "state": "1-Indeling",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "eda0d0efd8a26a61ede306032d7a44c680aa328fc5151b9c66a447a520779895",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:06.224Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 12,
+        "bottom": 832,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0053.png",
+      "screenshotSha256": "07647d2279d9d10e610b0101c78397cb196242c0967723db9005049bd30cc989",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0054",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 1/3: Indeling.",
+      "state": "1-Indeling",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "eda0d0efd8a26a61ede306032d7a44c680aa328fc5151b9c66a447a520779895",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:07.492Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 87.453125,
+        "bottom": 812.546875,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0054.png",
+      "screenshotSha256": "bf8e5059955d7cd0b1a1d038bc0903ea6f1776facb38a5ecbc3064eedc2a5288",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0055",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 2/3: Zonecontent.",
+      "state": "2-Zonecontent",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "eda0d0efd8a26a61ede306032d7a44c680aa328fc5151b9c66a447a520779895",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:08.892Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 12,
+        "bottom": 832,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0055.png",
+      "screenshotSha256": "d5e9bccbe346b0dd9b71d64d1ff222b7cdaf5b4c6afbdb35adad1056506fd408",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0056",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 2/3: Zonecontent.",
+      "state": "2-Zonecontent",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "eda0d0efd8a26a61ede306032d7a44c680aa328fc5151b9c66a447a520779895",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:10.628Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 45,
+        "bottom": 855,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0056.png",
+      "screenshotSha256": "f319f08f812299870bc0dd3ddaa050cc2eb2e3b259ea7e5503785ee85743345b",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0057",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 3/3: Controleren.",
+      "state": "3-Controleren",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "eda0d0efd8a26a61ede306032d7a44c680aa328fc5151b9c66a447a520779895",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:12.107Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 12,
+        "bottom": 832,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0057.png",
+      "screenshotSha256": "44ead793f150c3d5f9445923e974441a3194da958a769ae8a73f8b3fb6767d08",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0058",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 3/3: Controleren.",
+      "state": "3-Controleren",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "eda0d0efd8a26a61ede306032d7a44c680aa328fc5151b9c66a447a520779895",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:13.981Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 129.7890625,
+        "bottom": 770.2109375,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0058.png",
+      "screenshotSha256": "a7277617b148c6c9b5cb659da08147d78cd38d88c22609968b4c8f1acc7a7ab4",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0059",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 1/3: Content & schermen.",
+      "state": "1-Content & schermen",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "cf522cc78b656fdf83bc6485f9275a33eccdd95e4718e9fef8b9d85c14f315ef",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:15.106Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 34.2109375,
+        "bottom": 809.7890625,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0059.png",
+      "screenshotSha256": "4d7faf8a01745f6575c6b41b8409d8e296f283964916849e5d6ed390c3dd51ab",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0060",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 1/3: Content & schermen.",
+      "state": "1-Content & schermen",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "cf522cc78b656fdf83bc6485f9275a33eccdd95e4718e9fef8b9d85c14f315ef",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:16.476Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 103.2109375,
+        "bottom": 796.7890625,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0060.png",
+      "screenshotSha256": "7b49fd9d2e0183960ca95656507caa6d075227e81421db1c983e58deca0bcc4f",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0061",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 2/3: Wanneer.",
+      "state": "2-Wanneer",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "cf522cc78b656fdf83bc6485f9275a33eccdd95e4718e9fef8b9d85c14f315ef",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:17.846Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 12,
+        "bottom": 832,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0061.png",
+      "screenshotSha256": "8505af8ebfc8192fae4334955661a811a7a2a5438a9d0ad6d9ba147e44318e5f",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0062",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 2/3: Wanneer.",
+      "state": "2-Wanneer",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "cf522cc78b656fdf83bc6485f9275a33eccdd95e4718e9fef8b9d85c14f315ef",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:19.482Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 149.5546875,
+        "bottom": 750.4453125,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0062.png",
+      "screenshotSha256": "b9f0729f8fd574ae2f4729236b346348ce12a039d4f285f3e523e98b1bd73c6b",
+      "commandCount": 0
+    },
+    {
+      "caseId": "WIZARD-0063",
+      "viewport": "390x844",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 3/3: Controleren.",
+      "state": "3-Controleren",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "cf522cc78b656fdf83bc6485f9275a33eccdd95e4718e9fef8b9d85c14f315ef",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:20.899Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 17,
+        "right": 373,
+        "top": 12,
+        "bottom": 832,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0063.png",
+      "screenshotSha256": "4d21e3c42adfb7a21032e193fd3ce69cc357b97760e20c7cdd4aa9fd25a08e95",
+      "commandCount": 1
+    },
+    {
+      "caseId": "WIZARD-0064",
+      "viewport": "1440x900",
+      "setup": "Open bijbehorende nieuwe-itemwizard; voer QA-01 geldige gegevens in; ga naar stap 3/3: Controleren.",
+      "state": "3-Controleren",
+      "expected": "Stepper en actieve stap exact; velden in juiste volgorde; terug bewaart invoer; live voorbeeld op juiste plek; volgende/vorige en validatie blijven zichtbaar.",
+      "componentSha256": "cf522cc78b656fdf83bc6485f9275a33eccdd95e4718e9fef8b9d85c14f315ef",
+      "status": "PASS",
+      "date": "2026-10-11T20:42:22.786Z",
+      "actual": "Correct active step/order, back preserves entered values, invalid advancement blocked, required preview/controls visible, exact viewport contained, audited fonts and images loaded. No write or device acknowledgement inferred.",
+      "fonts": {
+        "inter": true,
+        "manrope": true
+      },
+      "geometry": {
+        "left": 195,
+        "right": 1245,
+        "top": 120.640625,
+        "bottom": 779.359375,
+        "overflow": false
+      },
+      "screenshot": "/dev/shm/veyocast-s191-screens-planning-case-evidence/WIZARD-0064.png",
+      "screenshotSha256": "452febe9229b4329dc7f8a3028329a653765d46d7f9dc7b7f7ba360654411cf0",
+      "commandCount": 1
+    }
+  ]
+}

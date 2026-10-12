@@ -1,0 +1,756 @@
+{
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "studio": [
+    {
+      "category": "Wedstrijddag",
+      "slide": {
+        "id": "template-match",
+        "name": "Wedstrijd van de dag",
+        "title": "WEDSTRIJD VANDAAG",
+        "time": "14:30",
+        "subtitle": "Heren 1 — S.V. Vooruit",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+        "duration": 10,
+        "color": "var(--ff-field, #159969)",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": true,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape"
+      }
+    },
+    {
+      "category": "Programma",
+      "slide": {
+        "id": "template-programme",
+        "name": "Weekendprogramma",
+        "title": "DIT WEEKEND OP DE CLUB",
+        "time": "Zaterdag",
+        "subtitle": "10:00 · Jeugdwedstrijden\n14:30 · Duindorp SV 1",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+        "duration": 10,
+        "color": "var(--ff-field, #159969)",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": true,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape"
+      }
+    },
+    {
+      "category": "Uitslagen",
+      "slide": {
+        "id": "template-result",
+        "name": "De eindstand",
+        "title": "DIT ZIJN DE EINDSTANDEN",
+        "time": "3 — 1",
+        "subtitle": "Duindorp SV 1 — SV Vooruit 1",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+        "duration": 10,
+        "color": "#ffffff",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "center",
+        "size": 58,
+        "context": true,
+        "showLocation": true,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "full"
+      }
+    },
+    {
+      "category": "Sponsoren",
+      "slide": {
+        "id": "template-sponsor",
+        "name": "Sponsor in de spotlight",
+        "title": "BEDANKT AAN ONZE PARTNERS",
+        "time": "Samen.",
+        "subtitle": "Samen maken we sport bij de club mogelijk",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp",
+        "duration": 10,
+        "color": "var(--ff-field, #159969)",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": true,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "image-left"
+      }
+    },
+    {
+      "category": "Kantine",
+      "slide": {
+        "id": "template-menu",
+        "name": "Kantinespecial",
+        "title": "VANDAAG AAN DE BAR",
+        "time": "€ 4,50",
+        "subtitle": "Broodje van de week · vers bereid",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp",
+        "duration": 10,
+        "color": "#ffffff",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": false,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "bottom"
+      }
+    },
+    {
+      "category": "Activiteiten",
+      "slide": {
+        "id": "template-event",
+        "name": "Clubavond",
+        "title": "BINNENKORT BIJ DE CLUB",
+        "time": "20:00",
+        "subtitle": "Vrijdag · Pubquiz in het clubhuis",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+        "duration": 10,
+        "color": "#ffffff",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": true,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "full"
+      }
+    },
+    {
+      "category": "Vrijwilligers",
+      "slide": {
+        "id": "template-volunteer",
+        "name": "Vrijwilligers gezocht",
+        "title": "EEN KLEINE BIJDRAGE, GROOT VERSCHIL",
+        "time": "Help mee",
+        "subtitle": "Een bardienst, fluiten of helpen langs de lijn. Meld je bij de club.",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+        "duration": 10,
+        "color": "#ffffff",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": true,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "bottom"
+      }
+    },
+    {
+      "category": "Welkom",
+      "slide": {
+        "id": "template-welcome",
+        "name": "Welkom bij de club",
+        "title": "FIJN DAT JULLIE ER ZIJN",
+        "time": "Welkom!",
+        "subtitle": "Bezoekende teams melden zich bij het wedstrijdsecretariaat",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp",
+        "duration": 10,
+        "color": "#ffffff",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": true,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "bottom"
+      }
+    },
+    {
+      "category": "Afgelastingen",
+      "slide": {
+        "id": "template-cancelled",
+        "name": "Wedstrijd afgelast",
+        "title": "BELANGRIJKE WEDSTRIJDUPDATE",
+        "time": "Afgelast",
+        "subtitle": "De wedstrijd van 14:30 gaat niet door. Bekijk het actuele programma.",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp",
+        "duration": 10,
+        "color": "#ffb262",
+        "background": "#543f2f",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": false,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape"
+      }
+    },
+    {
+      "category": "Social media",
+      "slide": {
+        "id": "template-social",
+        "name": "Volg onze club",
+        "title": "DEEL JOUW CLUBMOMENT",
+        "time": "@duindorpsv",
+        "subtitle": "Volg het laatste clubnieuws en tag ons in je foto’s",
+        "location": "Sportpark Houtrust",
+        "photo": "/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp",
+        "duration": 10,
+        "color": "#ffffff",
+        "background": "var(--ff-sidebar, #073e3c)",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": false,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "full"
+      }
+    },
+    {
+      "category": "Belangrijke melding",
+      "slide": {
+        "id": "template-alert",
+        "name": "Belangrijke mededeling",
+        "title": "BELANGRIJK VOOR ONZE BEZOEKERS",
+        "time": "Let op",
+        "subtitle": "Volg de aanwijzingen van de aanwezige organisatie",
+        "location": "Sportpark Houtrust",
+        "photo": "",
+        "duration": 10,
+        "color": "#ffffff",
+        "background": "#732c27",
+        "bold": true,
+        "italic": false,
+        "align": "left",
+        "size": 58,
+        "context": true,
+        "showLocation": false,
+        "animation": "Flow in",
+        "transition": "Rustig",
+        "orientation": "landscape",
+        "layout": "full"
+      }
+    }
+  ],
+  "tv": [
+    {
+      "category": "Wedstrijddag",
+      "name": "Onze wedstrijddag",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "wedstrijd",
+        "title": "DIT IS ONZE ZONDAG.",
+        "eyebrow": "SAMEN ACHTER ONS EERSTE",
+        "subtitle": "ZONDAG 11 OKTOBER",
+        "time": "14:30",
+        "location": "SPORTPARK HOUTRUST · VELD 1",
+        "heroImage": "/onzetrots-tv/assets/clubmuur-portraits-v17/10-strijd-1280.webp",
+        "match": {
+          "home": "Duindorp SV 1",
+          "away": "Scheveningen 2",
+          "homeLogo": "/onzetrots-tv/assets/logo.png",
+          "label": "VOLGENDE THUISWEDSTRIJD"
+        },
+        "values": [
+          "ONZE CLUB. ONZE WIJK. ONZE TROTS.",
+          "LAAT JE HOREN.",
+          "LANGS DE LIJN ZIJN WE ÉÉN."
+        ]
+      }
+    },
+    {
+      "category": "Programma",
+      "name": "Vandaag op het veld",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [
+          {
+            "id": "fixture-1",
+            "primary": "Duindorp SV JO11-1",
+            "home": "Duindorp SV JO11-1",
+            "away": "HVV JO11-2",
+            "time": "09:00",
+            "field": "Veld 2",
+            "tag": "JEUGD",
+            "secondary": "ZA 10 OKT"
+          },
+          {
+            "id": "fixture-2",
+            "primary": "Duindorp SV JO13-1",
+            "home": "Duindorp SV JO13-1",
+            "away": "Quick JO13-2",
+            "time": "10:15",
+            "field": "Veld 1",
+            "tag": "JEUGD",
+            "secondary": "ZA 10 OKT"
+          },
+          {
+            "id": "fixture-3",
+            "primary": "Duindorp SV JO15-1",
+            "home": "Duindorp SV JO15-1",
+            "away": "HBS JO15-3",
+            "time": "11:30",
+            "field": "Veld 2",
+            "tag": "JEUGD",
+            "secondary": "ZA 10 OKT"
+          },
+          {
+            "id": "fixture-4",
+            "primary": "Duindorp SV 2",
+            "home": "Duindorp SV 2",
+            "away": "WIK 2",
+            "time": "12:00",
+            "field": "Veld 1",
+            "tag": "SENIOREN",
+            "secondary": "ZA 10 OKT"
+          },
+          {
+            "id": "fixture-5",
+            "primary": "Duindorp SV 1",
+            "home": "Duindorp SV 1",
+            "away": "SVV Scheveningen 2",
+            "time": "14:30",
+            "field": "Veld 1",
+            "tag": "EERSTE ELFTAL",
+            "secondary": "ZO 11 OKT",
+            "own": true
+          }
+        ],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "programma",
+        "title": "HIER SPELEN WE VOOR.",
+        "eyebrow": "EEN WEEKEND VOL VOETBAL",
+        "subtitle": "Thuisprogramma · 10–11 oktober",
+        "heroImage": "/onzetrots-tv/assets/clubmuur-portraits-v14/05-juichen-1280.webp",
+        "values": [
+          "VAN DE EERSTE AFTRAP TOT HET LAATSTE FLUITSIGNAAL.",
+          "IEDER TEAM. ONZE TROTS.",
+          "THUIS OP HOUTRUST."
+        ]
+      }
+    },
+    {
+      "category": "Uitslagen",
+      "name": "Zo speelden we",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [
+          {
+            "id": "result-1",
+            "primary": "Duindorp SV 1",
+            "home": "Duindorp SV 1",
+            "away": "HBS 2",
+            "homeScore": "3",
+            "awayScore": "1",
+            "own": true
+          },
+          {
+            "id": "result-2",
+            "primary": "WIK 2",
+            "home": "WIK 2",
+            "away": "Duindorp SV 2",
+            "homeScore": "2",
+            "awayScore": "2"
+          },
+          {
+            "id": "result-3",
+            "primary": "Duindorp SV JO17-1",
+            "home": "Duindorp SV JO17-1",
+            "away": "HVV JO17-2",
+            "homeScore": "4",
+            "awayScore": "2"
+          },
+          {
+            "id": "result-4",
+            "primary": "Quick JO15-2",
+            "home": "Quick JO15-2",
+            "away": "Duindorp SV JO15-1",
+            "homeScore": "1",
+            "awayScore": "3"
+          },
+          {
+            "id": "result-5",
+            "primary": "Duindorp SV JO13-1",
+            "home": "Duindorp SV JO13-1",
+            "away": "HBS JO13-3",
+            "homeScore": "2",
+            "awayScore": "0"
+          }
+        ],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "uitslagen",
+        "title": "HET WEEKEND IN CIJFERS.",
+        "eyebrow": "ER IS WEER GESTREDEN",
+        "subtitle": "Uitslagen · 3–4 oktober",
+        "heroImage": "/onzetrots-tv/assets/clubmuur-portraits-v14/05-juichen-1280.webp",
+        "values": [
+          "HET EERSTE · THUISZEGE",
+          "DRIE PUNTEN. ÉÉN GEVOEL.",
+          "SAMEN WINNEN IS MOOIER."
+        ]
+      }
+    },
+    {
+      "category": "Stand",
+      "name": "De stand van zaken",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [
+          {
+            "id": "stand-1",
+            "rank": 3,
+            "primary": "HBS 2",
+            "played": "5",
+            "won": "3",
+            "drawn": "1",
+            "lost": "1",
+            "difference": "+7",
+            "points": "10",
+            "form": [
+              "W",
+              "W",
+              "G",
+              "V",
+              "W"
+            ]
+          },
+          {
+            "id": "stand-2",
+            "rank": 4,
+            "primary": "Quick 2",
+            "played": "5",
+            "won": "3",
+            "drawn": "0",
+            "lost": "2",
+            "difference": "+4",
+            "points": "9",
+            "form": [
+              "V",
+              "W",
+              "W",
+              "V",
+              "W"
+            ]
+          },
+          {
+            "id": "stand-3",
+            "rank": 5,
+            "primary": "Duindorp SV 1",
+            "played": "5",
+            "won": "2",
+            "drawn": "2",
+            "lost": "1",
+            "difference": "+3",
+            "points": "8",
+            "form": [
+              "W",
+              "G",
+              "V",
+              "G",
+              "W"
+            ],
+            "own": true
+          },
+          {
+            "id": "stand-4",
+            "rank": 6,
+            "primary": "WIK 1",
+            "played": "5",
+            "won": "2",
+            "drawn": "1",
+            "lost": "2",
+            "difference": "+1",
+            "points": "7",
+            "form": [
+              "G",
+              "W",
+              "V",
+              "W",
+              "V"
+            ]
+          },
+          {
+            "id": "stand-5",
+            "rank": 7,
+            "primary": "HVV 2",
+            "played": "5",
+            "won": "2",
+            "drawn": "0",
+            "lost": "3",
+            "difference": "−2",
+            "points": "6",
+            "form": [
+              "V",
+              "V",
+              "W",
+              "W",
+              "V"
+            ]
+          }
+        ],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "stand",
+        "title": "ONZE PLEK. ONZE AMBITIE.",
+        "eyebrow": "ELKE WEEK EEN STAP VOORUIT",
+        "subtitle": "Duindorp SV 1 · competitiestand"
+      }
+    },
+    {
+      "category": "Kantine",
+      "name": "Even naar de kantine",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [
+          {
+            "id": "menu-0",
+            "primary": "Koffie",
+            "value": "€ 2,20",
+            "tag": "Koffie & thee"
+          },
+          {
+            "id": "menu-1",
+            "primary": "Cappuccino",
+            "value": "€ 2,50",
+            "tag": "Koffie & thee"
+          },
+          {
+            "id": "menu-2",
+            "primary": "Thee",
+            "value": "€ 2,00",
+            "tag": "Koffie & thee"
+          },
+          {
+            "id": "menu-3",
+            "primary": "Warme chocolademelk",
+            "value": "€ 2,75",
+            "tag": "Koffie & thee"
+          },
+          {
+            "id": "menu-4",
+            "primary": "Frisdrank",
+            "value": "€ 2,50",
+            "tag": "Lekker fris"
+          },
+          {
+            "id": "menu-5",
+            "primary": "Water",
+            "value": "€ 2,00",
+            "tag": "Lekker fris"
+          },
+          {
+            "id": "menu-6",
+            "primary": "Sportdrank",
+            "value": "€ 2,75",
+            "tag": "Lekker fris"
+          },
+          {
+            "id": "menu-7",
+            "primary": "Vruchtensap",
+            "value": "€ 2,50",
+            "tag": "Lekker fris"
+          },
+          {
+            "id": "menu-8",
+            "primary": "Tosti kaas",
+            "value": "€ 3,00",
+            "tag": "De derde helft"
+          },
+          {
+            "id": "menu-9",
+            "primary": "Tosti ham-kaas",
+            "value": "€ 3,50",
+            "tag": "De derde helft"
+          },
+          {
+            "id": "menu-10",
+            "primary": "Broodje kroket",
+            "value": "€ 3,25",
+            "tag": "De derde helft"
+          },
+          {
+            "id": "menu-11",
+            "primary": "Portie patat",
+            "value": "€ 3,00",
+            "tag": "De derde helft"
+          }
+        ],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "kantine",
+        "title": "Onze kantine.",
+        "eyebrow": "HET HART VAN DE CLUB",
+        "subtitle": "Voorbeeldprijzen",
+        "combo": {
+          "name": "Koffie + tosti ham-kaas",
+          "price": "€ 5,00",
+          "note": "Gezellig aan tafel. Samen voor de club."
+        }
+      }
+    },
+    {
+      "category": "Clubnieuws",
+      "name": "Dit leeft op de club",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [
+          {
+            "id": "news-1",
+            "primary": "Voetbal blijft. Op jouw tempo.",
+            "secondary": "Walking Football. Samen bewegen, een balletje trappen en elkaar ontmoeten.",
+            "value": "27 OKTOBER 2026 · Eerste training",
+            "tag": "NIEUW BIJ DUINDORP SV"
+          },
+          {
+            "id": "news-2",
+            "primary": "Jouw club. Jouw bijdrage.",
+            "secondary": "Een uurtje helpen maakt al een wereld van verschil.",
+            "value": "Vraag naar de mogelijkheden bij de club.",
+            "tag": "01 / CLUBOPROEP"
+          },
+          {
+            "id": "news-3",
+            "primary": "Moedig aan. Geef energie.",
+            "secondary": "Onze jeugd verdient jouw positieve support.",
+            "tag": "02 / LANGS DE LIJN"
+          }
+        ],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "clubnieuws",
+        "title": "In onze club.",
+        "eyebrow": "ER GEBEURT IETS MOOIS",
+        "subtitle": "MEEDOEN · ONTMOETEN · BEWEGEN",
+        "heroImage": "/onzetrots-tv/assets/clubmuur-portraits-v14/07-walking-1280.webp"
+      }
+    },
+    {
+      "category": "Partners",
+      "name": "Samen maken we de club",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [
+          {
+            "id": "partner-0",
+            "primary": "BNU",
+            "image": "/onzetrots-tv/assets/sponsors/bnu.svg"
+          },
+          {
+            "id": "partner-1",
+            "primary": "Kwaliteit Kozijnen Holland",
+            "image": "/onzetrots-tv/assets/sponsors/kwaliteit-kozijnen-holland.svg"
+          },
+          {
+            "id": "partner-2",
+            "primary": "Proto Tegelzetbedrijf",
+            "image": "/onzetrots-tv/assets/sponsors/proto-tegelzetbedrijf.svg"
+          },
+          {
+            "id": "partner-3",
+            "primary": "Deelman Daktechniek",
+            "image": "/onzetrots-tv/assets/sponsors/deelman-daktechniek.svg"
+          },
+          {
+            "id": "partner-4",
+            "primary": "RW Repair",
+            "image": "/onzetrots-tv/assets/sponsors/rw-repair.png"
+          },
+          {
+            "id": "partner-5",
+            "primary": "DG Webservices",
+            "image": "/onzetrots-tv/assets/sponsors/dg-webservices.svg"
+          }
+        ],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "partners",
+        "title": "Samen maken we de club.",
+        "eyebrow": "ONZE PARTNERS · ONZE WAARDERING",
+        "subtitle": "Achter onze kleuren staan mensen die het verschil maken."
+      }
+    },
+    {
+      "category": "Welkom",
+      "name": "Dit is onze trots",
+      "content": {
+        "clubName": "Duindorp SV",
+        "logo": "/onzetrots-tv/assets/logo.png",
+        "footer": "SAMEN OP HET VELD. SAMEN OP DE CLUB.",
+        "rows": [],
+        "overlay": 20,
+        "scale": 100,
+        "kind": "welkom",
+        "title": "Dit is Duindorp. Dit zijn wij.",
+        "eyebrow": "WELKOM OP HOUTRUST",
+        "subtitle": "Speler. Supporter. Vrijwilliger. Buur. Wat je ook brengt, je hoort erbij.",
+        "heroImage": "/onzetrots-tv/assets/clubmuur-players/trio-1280.webp",
+        "values": [
+          "Respect voor elkaar.",
+          "Positief langs de lijn.",
+          "Samen houden we het mooi."
+        ]
+      }
+    }
+  ]
+}

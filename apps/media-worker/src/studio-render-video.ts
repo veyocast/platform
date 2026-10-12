@@ -143,6 +143,7 @@ export async function encodeStudioMp4({
   backgroundVideo,
   document,
   onFrame,
+  renderFrame,
   outputPath,
   renderer,
   signal,
@@ -153,6 +154,7 @@ export async function encodeStudioMp4({
   backgroundVideo?: StudioBackgroundVideo;
   document: StudioDocument;
   onFrame?: (frameIndex: number, frameCount: number) => Promise<void> | void;
+  renderFrame?: (timeMs: number) => Promise<Uint8Array>;
   outputPath: string;
   renderer: StudioExternalRenderer;
   signal?: AbortSignal;
@@ -181,13 +183,7 @@ export async function encodeStudioMp4({
       throwIfAborted(signal);
       await onFrame?.(frameIndex, frameCount);
       const timeMs = frameIndex * (1_000 / studioFps);
-      const svg = renderStudioSvg({ assetSources, document, timeMs });
-      const frame = Buffer.from(await renderer.renderRgba({
-        height,
-        signal,
-        svg,
-        width
-      }));
+      const frame = Buffer.from(renderFrame ? await renderFrame(timeMs) : await renderer.renderRgba({height,signal,svg:renderStudioSvg({assetSources,document,timeMs}),width}));
       if (frame.byteLength !== expectedFrameBytes) {
         throw new StudioVideoRenderError(
           "frame_invalid",

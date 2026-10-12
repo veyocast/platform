@@ -19,7 +19,7 @@ const providerCodes = new Set([
   "SPORTLINK_SERVER_ERROR", "SPORTLINK_RATE_LIMITED", "SPORTLINK_RESPONSE_TOO_LARGE"
 ]);
 class ProbeError extends Error {
-  constructor(readonly code: string) { super(code); }
+  constructor(readonly code: string, readonly databaseCode?: string) { super(code); }
 }
 const emit = (value: Record<string, unknown>) => console.info(JSON.stringify(value));
 
@@ -57,11 +57,16 @@ async function main() {
     }));
   } catch { throw new ProbeError("PROBE_WORKER_CONFIGURATION_INVALID"); }
   let diagnostic: unknown;
+  const diagnosticDatabaseCodes = new Set(["08001", "08006", "28P01", "42501", "57014", "PGRST001", "PGRST002", "PGRST003", "PGRST200", "PGRST202", "PGRST204"]);
   try {
     const response = await client.rpc("get_live_integration_diagnostics_v1", { p_tenant_id: tenantId }).abortSignal(deadline);
-    if (response.error) throw new ProbeError("PROBE_DIAGNOSTIC_READ_FAILED");
+    if (response.error) throw new ProbeError("PROBE_DIAGNOSTIC_READ_FAILED",
+      diagnosticDatabaseCodes.has(response.error.code) ? response.error.code : undefined);
     diagnostic = response.data;
-  } catch { throw new ProbeError("PROBE_DIAGNOSTIC_READ_FAILED"); }
+  } catch (error) {
+    if (error instanceof ProbeError) throw error;
+    throw new ProbeError("PROBE_DIAGNOSTIC_READ_FAILED");
+  }
   if (!diagnostic || typeof diagnostic !== "object" || Array.isArray(diagnostic) ||
     (diagnostic as Record<string, unknown>).schemaVersion !== 1 ||
     (diagnostic as Record<string, unknown>).tenantId !== tenantId) throw new ProbeError("PROBE_DIAGNOSTIC_INVALID");
@@ -129,6 +134,7 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  emit({ event: "live_integration_probe_failed", code: error instanceof ProbeError ? error.code : "PROBE_FAILED" });
+  emit({ event: "live_integration_probe_failed", code: error instanceof ProbeError ? error.code : "PROBE_FAILED",
+    ...(error instanceof ProbeError && error.databaseCode ? { databaseCode: error.databaseCode } : {}) });
   process.exitCode = 1;
 });

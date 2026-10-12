@@ -4,15 +4,27 @@
   "manifestVersion": "1.0.0",
   "status": "approved",
   "logicalCanvases": {
-    "landscape": { "width": 1920, "height": 1080 },
-    "portrait": { "width": 1080, "height": 1920 }
+    "landscape": {
+      "width": 1920,
+      "height": 1080
+    },
+    "portrait": {
+      "width": 1080,
+      "height": 1920
+    }
   },
   "shared": {
     "bodyFontRef": "vc-inter-v1",
     "baseDisplaySizeCqw": 4.75,
     "baseRadiusCqw": 2.1,
-    "safeAreaLandscape": { "inlinePercent": 4.5, "blockPercent": 5.2 },
-    "safeAreaPortrait": { "inlinePercent": 6.0, "blockPercent": 4.0 },
+    "safeAreaLandscape": {
+      "inlinePercent": 4.5,
+      "blockPercent": 5.2
+    },
+    "safeAreaPortrait": {
+      "inlinePercent": 6.0,
+      "blockPercent": 4.0
+    },
     "surfaceBorderCqw": 0.08,
     "motionFastMs": 200,
     "posterTimeMs": 900,
@@ -109,64 +121,241 @@
     }
   },
   "transitions": {
-    "instant-cut": { "durationMs": 0, "easing": "linear", "translatePercent": 0 },
-    "arena-dissolve": { "durationMs": 420, "easing": "cubic-bezier(.22,1,.36,1)", "translatePercent": 0 },
-    "editorial-shift": { "durationMs": 520, "easing": "cubic-bezier(.22,1,.36,1)", "translatePercent": 2.5 },
-    "panel-reveal": { "durationMs": 560, "easing": "cubic-bezier(.16,1,.3,1)", "translatePercent": 0 }
+    "instant-cut": {
+      "durationMs": 0,
+      "easing": "linear",
+      "translatePercent": 0
+    },
+    "arena-dissolve": {
+      "durationMs": 420,
+      "easing": "cubic-bezier(.22,1,.36,1)",
+      "translatePercent": 0
+    },
+    "editorial-shift": {
+      "durationMs": 520,
+      "easing": "cubic-bezier(.22,1,.36,1)",
+      "translatePercent": 2.5
+    },
+    "panel-reveal": {
+      "durationMs": 560,
+      "easing": "cubic-bezier(.16,1,.3,1)",
+      "translatePercent": 0
+    }
   },
   "decorationRecipes": {
     "fieldflow-pitch": {
-      "background": { "type": "linear-gradient", "angleDeg": 118, "accentStartPercent": 74, "accentMixLightPercent": 9, "accentMixDarkPercent": 13 },
-      "grid": { "sizeCqw": 6, "lineCqw": 0.06, "opacity": 0.22, "maxVisualProminencePercent": 12 },
-      "keyline": { "xCqw": 4.5, "widthCqw": 0.08 }
+      "background": {
+        "type": "linear-gradient",
+        "angleDeg": 118,
+        "accentStartPercent": 74,
+        "accentMixLightPercent": 9,
+        "accentMixDarkPercent": 13
+      },
+      "grid": {
+        "sizeCqw": 6,
+        "lineCqw": 0.06,
+        "opacity": 0.22,
+        "maxVisualProminencePercent": 12
+      },
+      "keyline": {
+        "xCqw": 4.5,
+        "widthCqw": 0.08
+      }
     },
     "editorial-rail": {
-      "background": { "type": "linear-gradient", "angleDeg": 112, "accentStartPercent": 68, "accentMixLightPercent": 12, "accentMixDarkPercent": 17 },
-      "keyline": { "xCqw": 4.4, "widthCqw": 0.08 }
+      "background": {
+        "type": "linear-gradient",
+        "angleDeg": 112,
+        "accentStartPercent": 68,
+        "accentMixLightPercent": 12,
+        "accentMixDarkPercent": 17
+      },
+      "keyline": {
+        "xCqw": 4.4,
+        "widthCqw": 0.08
+      }
     },
     "broadcast-grid-glass": {
-      "radial": { "centerPercent": [82, 15], "accentMixLightPercent": 22, "accentMixDarkPercent": 28, "fadeEndLightPercent": 31, "fadeEndDarkPercent": 32 },
-      "grid": { "sizeCqw": 5, "lineCqw": 0.08, "maskCenterPercent": [70, 50], "maskFadeEndPercent": 66 },
-      "surfaceSheen": { "angleDeg": 145, "alpha": 0.07, "fadeEndPercent": 38 }
+      "radial": {
+        "centerPercent": [
+          82,
+          15
+        ],
+        "accentMixLightPercent": 22,
+        "accentMixDarkPercent": 28,
+        "fadeEndLightPercent": 31,
+        "fadeEndDarkPercent": 32
+      },
+      "grid": {
+        "sizeCqw": 5,
+        "lineCqw": 0.08,
+        "maskCenterPercent": [
+          70,
+          50
+        ],
+        "maskFadeEndPercent": 66
+      },
+      "surfaceSheen": {
+        "angleDeg": 145,
+        "alpha": 0.07,
+        "fadeEndPercent": 38
+      }
     },
     "atelier-linen": {
-      "radial": { "centerPercent": [90, 100], "accentMixLightPercent": 14, "accentMixDarkPercent": 18, "fadeEndPercent": 38 },
-      "stripe": { "angleDeg": 90, "stepCqw": 1.8, "lineCqw": 0.08, "opacity": 0.12 }
+      "radial": {
+        "centerPercent": [
+          90,
+          100
+        ],
+        "accentMixLightPercent": 14,
+        "accentMixDarkPercent": 18,
+        "fadeEndPercent": 38
+      },
+      "stripe": {
+        "angleDeg": 90,
+        "stepCqw": 1.8,
+        "lineCqw": 0.08,
+        "opacity": 0.12
+      }
     },
     "velocity-lane": {
-      "background": { "type": "linear-gradient", "angleDeg": 118, "accentStartPercent": 64, "accentEndPercent": 72, "accentMixLightPercent": 13, "accentMixDarkPercent": 20 },
-      "lane": { "angleDeg": 118, "stepCqw": 8, "lineCqw": 0.15 },
+      "background": {
+        "type": "linear-gradient",
+        "angleDeg": 118,
+        "accentStartPercent": 64,
+        "accentEndPercent": 72,
+        "accentMixLightPercent": 13,
+        "accentMixDarkPercent": 20
+      },
+      "lane": {
+        "angleDeg": 118,
+        "stepCqw": 8,
+        "lineCqw": 0.15
+      },
       "titleSkewDeg": -5,
       "surfaceSkewDeg": -0.8
     },
     "heritage-pinstripe": {
-      "stripe": { "angleDeg": 90, "stepCqw": 5, "lineCqw": 0.1, "lightAlpha": 0.04, "darkAlpha": 0.035 },
-      "watermark": { "text": "1908", "rightCqw": 4.5, "bottomCqw": 2.8, "fontSizeCqw": 11, "fontWeight": 800, "lineHeight": 0.7 },
-      "surfaceInset": { "widthCqw": 0.25, "accentMixPercent": 7 }
+      "stripe": {
+        "angleDeg": 90,
+        "stepCqw": 5,
+        "lineCqw": 0.1,
+        "lightAlpha": 0.04,
+        "darkAlpha": 0.035
+      },
+      "watermark": {
+        "text": "1908",
+        "rightCqw": 4.5,
+        "bottomCqw": 2.8,
+        "fontSizeCqw": 11,
+        "fontWeight": 800,
+        "lineHeight": 0.7
+      },
+      "surfaceInset": {
+        "widthCqw": 0.25,
+        "accentMixPercent": 7
+      }
     },
     "stadium-halo": {
-      "primaryRadial": { "centerPercent": [75, 42], "accentMixLightPercent": 32, "accentMixDarkPercent": 38, "fadeEndLightPercent": 27, "fadeEndDarkPercent": 28 },
-      "supportRadial": { "centerPercent": [15, 90], "color": "#6960ff", "lightAlpha": 0.18, "darkAlpha": 0.24, "fadeEndLightPercent": 32, "fadeEndDarkPercent": 34 },
-      "ring": { "sizeCqw": 30, "rightCqw": 6, "topCqw": 11, "borderCqw": 0.12, "accentMixPercent": 42, "staticGlowCqw": 3 }
+      "primaryRadial": {
+        "centerPercent": [
+          75,
+          42
+        ],
+        "accentMixLightPercent": 32,
+        "accentMixDarkPercent": 38,
+        "fadeEndLightPercent": 27,
+        "fadeEndDarkPercent": 28
+      },
+      "supportRadial": {
+        "centerPercent": [
+          15,
+          90
+        ],
+        "color": "#6960ff",
+        "lightAlpha": 0.18,
+        "darkAlpha": 0.24,
+        "fadeEndLightPercent": 32,
+        "fadeEndDarkPercent": 34
+      },
+      "ring": {
+        "sizeCqw": 30,
+        "rightCqw": 6,
+        "topCqw": 11,
+        "borderCqw": 0.12,
+        "accentMixPercent": 42,
+        "staticGlowCqw": 3
+      }
     },
     "swiss-grid": {
-      "accentRail": { "side": "left", "widthCqw": 1.2 },
-      "gridColumnsPercent": [25, 50, 75],
+      "accentRail": {
+        "side": "left",
+        "widthCqw": 1.2
+      },
+      "gridColumnsPercent": [
+        25,
+        50,
+        75
+      ],
       "gridLineCqw": 0.1,
       "surfaceBlur": false
     },
     "pavilion-polish": {
-      "radial": { "centerPercent": [80, 10], "accentMixLightPercent": 22, "accentMixDarkPercent": 25, "fadeEndLightPercent": 34, "fadeEndDarkPercent": 35 },
-      "surfaceInsetHighlight": { "widthCqw": 0.08, "color": "rgba(255,255,255,.18)" }
+      "radial": {
+        "centerPercent": [
+          80,
+          10
+        ],
+        "accentMixLightPercent": 22,
+        "accentMixDarkPercent": 25,
+        "fadeEndLightPercent": 34,
+        "fadeEndDarkPercent": 35
+      },
+      "surfaceInsetHighlight": {
+        "widthCqw": 0.08,
+        "color": "rgba(255,255,255,.18)"
+      }
     },
     "tactical-coordinate-grid": {
-      "radial": { "centerPercent": [82, 50], "accentMixLightPercent": 21, "accentMixDarkPercent": 25, "fadeEndLightPercent": 35, "fadeEndDarkPercent": 36 },
-      "grid": { "sizeCqw": 4, "lineCqw": 0.08, "opacity": 0.58, "maxVisualProminencePercent": 20 },
-      "coordinateLabel": { "text": "+ 52.071° / 4.300°", "rightCqw": 4.5, "bottomCqw": 4, "fontSizeCqw": 0.65, "letterSpacingEm": 0.1 }
+      "radial": {
+        "centerPercent": [
+          82,
+          50
+        ],
+        "accentMixLightPercent": 21,
+        "accentMixDarkPercent": 25,
+        "fadeEndLightPercent": 35,
+        "fadeEndDarkPercent": 36
+      },
+      "grid": {
+        "sizeCqw": 4,
+        "lineCqw": 0.08,
+        "opacity": 0.58,
+        "maxVisualProminencePercent": 20
+      },
+      "coordinateLabel": {
+        "text": "+ 52.071° / 4.300°",
+        "rightCqw": 4.5,
+        "bottomCqw": 4,
+        "fontSizeCqw": 0.65,
+        "letterSpacingEm": 0.1
+      }
     },
     "terrace-poster-grain": {
-      "background": { "type": "linear-gradient", "angleDeg": 125, "accentStartPercent": 68, "accentEndPercent": 78, "accentMixLightPercent": 19, "accentMixDarkPercent": 24 },
-      "grain": { "dotCqw": 0.05, "stepCqw": 0.22, "opacity": 0.22, "forbiddenOnCriticalText": true },
+      "background": {
+        "type": "linear-gradient",
+        "angleDeg": 125,
+        "accentStartPercent": 68,
+        "accentEndPercent": 78,
+        "accentMixLightPercent": 19,
+        "accentMixDarkPercent": 24
+      },
+      "grain": {
+        "dotCqw": 0.05,
+        "stepCqw": 0.22,
+        "opacity": 0.22,
+        "forbiddenOnCriticalText": true
+      },
       "titleRotateDeg": -1,
       "alternateSurfaceRotateDeg": 0.35
     }
@@ -202,11 +391,22 @@
         "line": "rgba(244,247,244,.16)",
         "shadow": "0 2cqw 5cqw rgba(0,0,0,.34)"
       },
-      "decoration": { "id": "fieldflow-pitch", "intensity": 0.18, "dataDenseMultiplier": 0.52 },
-      "primitiveModifiers": ["fieldflow-pitch-grid", "fieldflow-keyline", "calm-broadcast-surface"],
+      "decoration": {
+        "id": "fieldflow-pitch",
+        "intensity": 0.18,
+        "dataDenseMultiplier": 0.52
+      },
+      "primitiveModifiers": [
+        "fieldflow-pitch-grid",
+        "fieldflow-keyline",
+        "calm-broadcast-surface"
+      ],
       "motion": {
         "default": "arena-dissolve",
-        "overrides": { "hero": "editorial-shift", "operational-live": "instant-cut" },
+        "overrides": {
+          "hero": "editorial-shift",
+          "operational-live": "instant-cut"
+        },
         "overrideUsageCapPercent": 24
       }
     },
@@ -240,11 +440,22 @@
         "line": "rgba(255,255,255,.13)",
         "shadow": "0 2cqw 5cqw rgba(0,0,0,.30)"
       },
-      "decoration": { "id": "editorial-rail", "intensity": 0.22, "dataDenseMultiplier": 0.55 },
-      "primitiveModifiers": ["editorial-title-serif", "asymmetric-media-frame", "left-keyline"],
+      "decoration": {
+        "id": "editorial-rail",
+        "intensity": 0.22,
+        "dataDenseMultiplier": 0.55
+      },
+      "primitiveModifiers": [
+        "editorial-title-serif",
+        "asymmetric-media-frame",
+        "left-keyline"
+      ],
       "motion": {
         "default": "arena-dissolve",
-        "overrides": { "news": "editorial-shift", "hero": "editorial-shift" },
+        "overrides": {
+          "news": "editorial-shift",
+          "hero": "editorial-shift"
+        },
         "overrideUsageCapPercent": 20
       }
     },
@@ -278,11 +489,22 @@
         "line": "rgba(255,255,255,.13)",
         "shadow": "0 2cqw 6cqw rgba(0,0,0,.50), inset 0 .08cqw 0 rgba(255,255,255,.06)"
       },
-      "decoration": { "id": "broadcast-grid-glass", "intensity": 0.24, "dataDenseMultiplier": 0.6 },
-      "primitiveModifiers": ["glass-surface-sheen", "broadcast-grid", "score-only-glow"],
+      "decoration": {
+        "id": "broadcast-grid-glass",
+        "intensity": 0.24,
+        "dataDenseMultiplier": 0.6
+      },
+      "primitiveModifiers": [
+        "glass-surface-sheen",
+        "broadcast-grid",
+        "score-only-glow"
+      ],
       "motion": {
         "default": "arena-dissolve",
-        "overrides": { "hero": "panel-reveal", "sponsor-fullscreen": "panel-reveal" },
+        "overrides": {
+          "hero": "panel-reveal",
+          "sponsor-fullscreen": "panel-reveal"
+        },
         "overrideUsageCapPercent": 25
       }
     },
@@ -316,9 +538,21 @@
         "line": "rgba(255,244,224,.13)",
         "shadow": "0 1.5cqw 4cqw rgba(0,0,0,.30)"
       },
-      "decoration": { "id": "atelier-linen", "intensity": 0.12, "dataDenseMultiplier": 0.45 },
-      "primitiveModifiers": ["soft-surface", "hospitality-spacing", "linen-keylines"],
-      "motion": { "default": "arena-dissolve", "overrides": {}, "overrideUsageCapPercent": 0 }
+      "decoration": {
+        "id": "atelier-linen",
+        "intensity": 0.12,
+        "dataDenseMultiplier": 0.45
+      },
+      "primitiveModifiers": [
+        "soft-surface",
+        "hospitality-spacing",
+        "linen-keylines"
+      ],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": {},
+        "overrideUsageCapPercent": 0
+      }
     },
     {
       "id": "velocity",
@@ -350,11 +584,22 @@
         "line": "rgba(255,255,255,.13)",
         "shadow": "0 2cqw 5cqw rgba(0,0,0,.38)"
       },
-      "decoration": { "id": "velocity-lane", "intensity": 0.2, "dataDenseMultiplier": 0.65 },
-      "primitiveModifiers": ["condensed-display", "single-direction-skew", "rhythmic-lanes"],
+      "decoration": {
+        "id": "velocity-lane",
+        "intensity": 0.2,
+        "dataDenseMultiplier": 0.65
+      },
+      "primitiveModifiers": [
+        "condensed-display",
+        "single-direction-skew",
+        "rhythmic-lanes"
+      ],
       "motion": {
         "default": "editorial-shift",
-        "overrides": { "standings": "arena-dissolve", "price-list": "arena-dissolve" },
+        "overrides": {
+          "standings": "arena-dissolve",
+          "price-list": "arena-dissolve"
+        },
         "overrideUsageCapPercent": 100
       }
     },
@@ -388,9 +633,21 @@
         "line": "rgba(242,233,215,.16)",
         "shadow": "0 1.5cqw 4cqw rgba(0,0,0,.28)"
       },
-      "decoration": { "id": "heritage-pinstripe", "intensity": 0.12, "dataDenseMultiplier": 0.55 },
-      "primitiveModifiers": ["serif-display", "double-keyline", "pinstripe-background"],
-      "motion": { "default": "arena-dissolve", "overrides": {}, "overrideUsageCapPercent": 0 }
+      "decoration": {
+        "id": "heritage-pinstripe",
+        "intensity": 0.12,
+        "dataDenseMultiplier": 0.55
+      },
+      "primitiveModifiers": [
+        "serif-display",
+        "double-keyline",
+        "pinstripe-background"
+      ],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": {},
+        "overrideUsageCapPercent": 0
+      }
     },
     {
       "id": "halo",
@@ -422,11 +679,23 @@
         "line": "rgba(255,255,255,.13)",
         "shadow": "0 2.2cqw 6cqw rgba(0,0,0,.42), 0 0 4cqw color-mix(in srgb, var(--vc-accent) 9%, transparent)"
       },
-      "decoration": { "id": "stadium-halo", "intensity": 0.28, "dataDenseMultiplier": 0.32 },
-      "primitiveModifiers": ["translucent-panel", "hero-light-field", "large-radius"],
+      "decoration": {
+        "id": "stadium-halo",
+        "intensity": 0.28,
+        "dataDenseMultiplier": 0.32
+      },
+      "primitiveModifiers": [
+        "translucent-panel",
+        "hero-light-field",
+        "large-radius"
+      ],
       "motion": {
         "default": "arena-dissolve",
-        "overrides": { "hero": "panel-reveal", "player-profile": "panel-reveal", "sponsor-fullscreen": "panel-reveal" },
+        "overrides": {
+          "hero": "panel-reveal",
+          "player-profile": "panel-reveal",
+          "sponsor-fullscreen": "panel-reveal"
+        },
         "overrideUsageCapPercent": 30
       }
     },
@@ -460,11 +729,21 @@
         "line": "rgba(255,255,255,.17)",
         "shadow": "0 .7cqw 0 rgba(255,255,255,.05)"
       },
-      "decoration": { "id": "swiss-grid", "intensity": 0.16, "dataDenseMultiplier": 0.8 },
-      "primitiveModifiers": ["uppercase-display", "strict-grid", "flat-surface"],
+      "decoration": {
+        "id": "swiss-grid",
+        "intensity": 0.16,
+        "dataDenseMultiplier": 0.8
+      },
+      "primitiveModifiers": [
+        "uppercase-display",
+        "strict-grid",
+        "flat-surface"
+      ],
       "motion": {
         "default": "arena-dissolve",
-        "overrides": { "operational-live": "instant-cut" },
+        "overrides": {
+          "operational-live": "instant-cut"
+        },
         "overrideUsageCapPercent": 100
       }
     },
@@ -498,11 +777,23 @@
         "line": "rgba(255,235,218,.15)",
         "shadow": "0 2cqw 5cqw rgba(0,0,0,.32)"
       },
-      "decoration": { "id": "pavilion-polish", "intensity": 0.18, "dataDenseMultiplier": 0.45 },
-      "primitiveModifiers": ["luxe-title-serif", "polished-panel", "metal-highlight-only"],
+      "decoration": {
+        "id": "pavilion-polish",
+        "intensity": 0.18,
+        "dataDenseMultiplier": 0.45
+      },
+      "primitiveModifiers": [
+        "luxe-title-serif",
+        "polished-panel",
+        "metal-highlight-only"
+      ],
       "motion": {
         "default": "arena-dissolve",
-        "overrides": { "hero": "panel-reveal", "hospitality": "panel-reveal", "sponsor-fullscreen": "panel-reveal" },
+        "overrides": {
+          "hero": "panel-reveal",
+          "hospitality": "panel-reveal",
+          "sponsor-fullscreen": "panel-reveal"
+        },
         "overrideUsageCapPercent": 35
       }
     },
@@ -536,11 +827,21 @@
         "line": "rgba(91,239,169,.17)",
         "shadow": "0 1.5cqw 4cqw rgba(0,0,0,.40)"
       },
-      "decoration": { "id": "tactical-coordinate-grid", "intensity": 0.18, "dataDenseMultiplier": 0.7 },
-      "primitiveModifiers": ["mono-labels", "coordinate-grid", "performance-status"],
+      "decoration": {
+        "id": "tactical-coordinate-grid",
+        "intensity": 0.18,
+        "dataDenseMultiplier": 0.7
+      },
+      "primitiveModifiers": [
+        "mono-labels",
+        "coordinate-grid",
+        "performance-status"
+      ],
       "motion": {
         "default": "arena-dissolve",
-        "overrides": { "operational-live": "instant-cut" },
+        "overrides": {
+          "operational-live": "instant-cut"
+        },
         "overrideUsageCapPercent": 100
       }
     },
@@ -574,22 +875,95 @@
         "line": "rgba(255,255,255,.16)",
         "shadow": ".8cqw .8cqw 0 color-mix(in srgb, var(--vc-accent) 30%, rgba(0,0,0,.40))"
       },
-      "decoration": { "id": "terrace-poster-grain", "intensity": 0.16, "dataDenseMultiplier": 0.3 },
-      "primitiveModifiers": ["poster-display", "controlled-sticker-layer", "quiet-data-surface"],
+      "decoration": {
+        "id": "terrace-poster-grain",
+        "intensity": 0.16,
+        "dataDenseMultiplier": 0.3
+      },
+      "primitiveModifiers": [
+        "poster-display",
+        "controlled-sticker-layer",
+        "quiet-data-surface"
+      ],
       "motion": {
         "default": "editorial-shift",
-        "overrides": { "standings": "arena-dissolve", "price-list": "arena-dissolve" },
+        "overrides": {
+          "standings": "arena-dissolve",
+          "price-list": "arena-dissolve"
+        },
         "overrideUsageCapPercent": 100
+      }
+    },
+    {
+      "id": "onzetrots-tv",
+      "name": "OnzeTrots TV",
+      "version": "11.0.0",
+      "accentDefault": "#03438A",
+      "supportDefault": "#B8D7F2",
+      "displayFontRef": "vc-manrope-v1",
+      "bodyFontRef": "vc-inter-v1",
+      "displayWeight": 750,
+      "displayLetterSpacingEm": -0.045,
+      "radiusCqw": 1.8,
+      "densityScale": 1.0,
+      "light": {
+        "canvas": "#f4f7f4",
+        "surface": "rgba(255,255,255,.94)",
+        "surfaceAlt": "#e5eee9",
+        "text": "#042f2d",
+        "muted": "#50706b",
+        "line": "rgba(6,63,59,.16)",
+        "shadow": "0 1.6cqw 4.4cqw rgba(4,47,45,.14)"
+      },
+      "dark": {
+        "canvas": "#042f2d",
+        "surface": "rgba(6,63,59,.94)",
+        "surfaceAlt": "#0c514b",
+        "text": "#f4f7f4",
+        "muted": "#b7ccc5",
+        "line": "rgba(244,247,244,.16)",
+        "shadow": "0 2cqw 5cqw rgba(0,0,0,.34)"
+      },
+      "decoration": {
+        "id": "fieldflow-pitch",
+        "intensity": 0.18,
+        "dataDenseMultiplier": 0.52
+      },
+      "primitiveModifiers": [
+        "fieldflow-pitch-grid",
+        "fieldflow-keyline",
+        "calm-broadcast-surface"
+      ],
+      "motion": {
+        "default": "arena-dissolve",
+        "overrides": {
+          "hero": "editorial-shift",
+          "operational-live": "instant-cut"
+        },
+        "overrideUsageCapPercent": 24
       }
     }
   ],
   "visualAcceptance": {
     "referencePlatform": "Pinned Chromium version in CI, Linux, deviceScaleFactor 1, bundled fonts loaded",
-    "goldenResolutions": ["1920x1080", "1080x1920"],
-    "requiredModes": ["light", "dark"],
+    "goldenResolutions": [
+      "1920x1080",
+      "1080x1920"
+    ],
+    "requiredModes": [
+      "light",
+      "dark"
+    ],
     "maxPerceptualDiffPercent": 0.15,
     "maxSingleChannelDelta": 12,
-    "zeroToleranceRegions": ["safe-area clipping", "critical text", "prices", "scores", "table columns", "QR quiet zone"],
+    "zeroToleranceRegions": [
+      "safe-area clipping",
+      "critical text",
+      "prices",
+      "scores",
+      "table columns",
+      "QR quiet zone"
+    ],
     "goldenUpdatePolicy": "Golden updates require named design approval and a manifest semver change; tests may not auto-accept diffs."
   }
 }

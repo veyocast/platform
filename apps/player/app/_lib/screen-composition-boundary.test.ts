@@ -1,0 +1,6 @@
+import {describe,expect,it,vi} from "vitest";
+import {ScreenCompositionBoundary} from "./screen-composition-boundary";
+describe("composition activation boundary",()=>{
+ it("waits for all healthy video zone boundaries while images hold their last frame",async()=>{const boundary=new ScreenCompositionBoundary();let finish!:()=>void;const imageResume=vi.fn();boundary.register("side",{holdAtBoundary:()=>new Promise<void>(resolve=>{finish=resolve;}),resume:vi.fn()});boundary.register("bottom",{holdAtBoundary:async()=>{},resume:imageResume});let completed=false;const result=boundary.holdAll(new AbortController().signal).then(value=>{completed=value;return value;});await Promise.resolve();expect(completed).toBe(false);finish();expect(await result).toBe(true);expect(imageResume).not.toHaveBeenCalled();boundary.resumeAll();expect(imageResume).toHaveBeenCalledOnce();});
+ it("cancels obsolete prepared targets and resumes existing healthy playback",async()=>{const boundary=new ScreenCompositionBoundary();const resume=vi.fn();boundary.register("side",{holdAtBoundary:()=>new Promise(()=>{}),resume});const signal=new AbortController();const result=boundary.holdAll(signal.signal);signal.abort();expect(await result).toBe(false);expect(resume).toHaveBeenCalledOnce();expect(await boundary.holdAll(signal.signal)).toBe(false);});
+});

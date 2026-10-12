@@ -1,6 +1,6 @@
 import sharp from "sharp";
 
-export type NormalizedRasterMimeType = "image/jpeg" | "image/png" | "image/webp";
+export type NormalizedRasterMimeType = "image/avif" | "image/jpeg" | "image/png" | "image/webp";
 export type ThumbnailSourceMimeType = NormalizedRasterMimeType | "image/svg+xml";
 
 export async function normalizeRasterImage(
@@ -11,7 +11,14 @@ export async function normalizeRasterImage(
     animated: false,
     failOn: "warning",
     limitInputPixels: 67_108_864
-  }).rotate();
+  }).rotate().timeout({ seconds: 15 });
+  if (mimeType === "image/avif") {
+    const metadata = await pipeline.metadata();
+    if (metadata.format !== "heif" || metadata.compression !== "av1"
+      || (metadata.pages ?? 1) !== 1) {
+      throw new Error("invalid_static_avif");
+    }
+  }
   if (mimeType === "image/jpeg") {
     return pipeline.jpeg({ mozjpeg: true, quality: 92 }).toBuffer();
   }

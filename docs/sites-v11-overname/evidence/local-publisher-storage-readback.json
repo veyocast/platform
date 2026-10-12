@@ -1,0 +1,37 @@
+{
+  "playlistId": "297579c2-029d-4002-8961-97484f438aaf",
+  "persisted": {
+    "name": "Sites 1791756924966 publicatie",
+    "items": [
+      {
+        "title": "Sites 1791756924966 eerste",
+        "verified": true
+      },
+      {
+        "title": "Sites 1791756924966 tweede",
+        "verified": true
+      }
+    ],
+    "revision": 6,
+    "releaseCount": 0,
+    "releaseItems": 0,
+    "assignedScreens": 0
+  },
+  "published": {
+    "name": "Sites 1791756924966 publicatie",
+    "items": [
+      {
+        "title": "Sites 1791756924966 eerste",
+        "verified": true
+      },
+      {
+        "title": "Sites 1791756924966 tweede",
+        "verified": true
+      }
+    ],
+    "revision": 6,
+    "releaseCount": 1,
+    "releaseItems": 2,
+    "assignedScreens": 1
+  }
+}

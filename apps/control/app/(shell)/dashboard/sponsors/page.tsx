@@ -17,6 +17,8 @@ import {
 } from "./actions";
 import { loadSponsorHub } from "./data";
 import styles from "./sponsor-hub.module.css";
+import sites from "./sites-sponsors.module.css";
+import {SitesSponsorsPrimary} from "./sites-sponsors-primary";
 
 const positionLabels: Record<string, string> = {
   corner: "Hoekpositie", footer: "Voetregel", fullscreen: "Volledig scherm",
@@ -37,12 +39,17 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
   const activeCampaigns = data.campaigns.filter((campaign) => ["approved", "published", "submitted"].includes(campaign.status));
   const totalPlayedMs = data.events.reduce((sum, event) => sum + Number(event.played_ms), 0);
 
-  return <div className={styles.shell}>
-    <header className={styles.hero}>
-      <p className={styles.eyebrow}>{session.tenant} · Sponsor operations</p>
-      <h1>Sponsor Hub</h1>
-      <p>Van relatie en campagne tot schermplaatsing, offline levering en controleerbaar bewijs van vertoning. Campagnes wisselen zonder de playlist te bewerken.</p>
-    </header>
+  const primaryCampaigns=data.campaigns.map(campaign=>({id:campaign.id,name:campaign.name,partner:data.sponsors.find(sponsor=>sponsor.id===campaign.sponsor_id)?.name??"Sponsor",status:campaign.status,endsAt:campaign.ends_at,positions:[...new Set(data.creatives.filter(creative=>creative.campaign_id===campaign.id).map(creative=>positionLabels[creative.position_key]??creative.position_key))],previewUrl:data.creatives.find(creative=>creative.campaign_id===campaign.id&&creative.preview_url)?.preview_url??null}));
+  const creationForm=data.sponsors.length?<form action={createCampaign} className={styles.form} style={{ marginTop: "1.25rem" }}><div className={styles.formGrid}>
+        <label className={styles.field}><span>Sponsor</span><select name="sponsorId" required>{data.sponsors.map((sponsor) => <option value={sponsor.id} key={sponsor.id}>{sponsor.name}</option>)}</select></label>
+        <label className={styles.field}><span>Campagnenaam</span><input name="name" required maxLength={180} /></label>
+        <label className={styles.field}><span>Start</span><input name="startsAt" type="datetime-local" required /></label>
+        <label className={styles.field}><span>Einde</span><input name="endsAt" type="datetime-local" required /></label>
+        <label className={styles.field}><span>Gewicht</span><input name="weight" type="number" min="0.1" max="1000" step="0.1" defaultValue="1" required /></label>
+      </div><Button type="submit" variant="primary">Campagne maken</Button></form>:<p>Voeg eerst een sponsor toe in het sponsorbeheer voordat je een campagne maakt.</p>;
+  return <div className={styles.shell}><h1 className="sr-only">Sponsor Hub</h1>
+    <SitesSponsorsPrimary campaigns={primaryCampaigns} canWrite={canWrite} creationForm={creationForm}/>
+    <details className={sites.advanced} id="sponsor-advanced"><summary>Sponsorbeheer, goedkeuring en levering</summary>
     <nav aria-label="Sponsor Hub onderdelen" className={styles.tabs}>
       {[["#actie","Actiecentrum"],["#sponsors","Sponsors"],["#campagnes","Campagnes"],["#media","Media"],["#kansen","Kansen"],["#schermen","Schermgroepen"],["#rapporten","Rapporten"],["#activiteit","Activiteit"]].map(([href,label]) => <a href={href} key={href}>{label}</a>)}
     </nav>
@@ -98,7 +105,7 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
 
     <section className={styles.panel} id="campagnes">
       <PanelHeader title="Campagnes en goedkeuring" description="Creatives vergroten nooit automatisch het sponsoraandeel; weging gebeurt op campagneniveau." />
-      <ul className={styles.list}>{data.campaigns.map((campaign) => <li key={campaign.id}><span><strong>{campaign.name}</strong><small>{formatDate(campaign.starts_at)} – {formatDate(campaign.ends_at)} · gewicht {campaign.weight}</small></span><div className={styles.actions}><StatusPill label={campaign.status} tone={campaignTone[campaign.status as keyof typeof campaignTone] ?? "neutral"} />{campaign.status === "draft" && canWrite ? <form action={submitCampaign}><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="secondary">Indienen</Button></form> : null}{campaign.status === "submitted" && canApprove ? <form action={approveCampaign}><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="primary">Goedkeuren</Button></form> : null}</div></li>)}</ul>
+      <ul className={styles.list}>{data.campaigns.map((campaign) => <li id={`sponsor-campaign-${campaign.id}`} key={campaign.id}><span><strong>{campaign.name}</strong><small>{formatDate(campaign.starts_at)} – {formatDate(campaign.ends_at)} · gewicht {campaign.weight}</small></span><div className={styles.actions}><StatusPill label={campaign.status} tone={campaignTone[campaign.status as keyof typeof campaignTone] ?? "neutral"} />{campaign.status === "draft" && canWrite ? <form action={submitCampaign}><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="secondary">Indienen</Button></form> : null}{campaign.status === "submitted" && canApprove ? <form action={approveCampaign}><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="primary">Goedkeuren</Button></form> : null}</div></li>)}</ul>
       {canWrite && data.sponsors.length ? <form action={createCampaign} className={styles.form} style={{ marginTop: "1.25rem" }}><div className={styles.formGrid}>
         <label className={styles.field}><span>Sponsor</span><select name="sponsorId" required>{data.sponsors.map((sponsor) => <option value={sponsor.id} key={sponsor.id}>{sponsor.name}</option>)}</select></label>
         <label className={styles.field}><span>Campagnenaam</span><input name="name" required maxLength={180} /></label>
@@ -130,6 +137,7 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
       <article className={styles.panel}><PanelHeader title="Proof of Play" description="Device-events zijn dedupliceerbaar op UUID en claimen geen publiek of bereik." /><ul className={styles.list}><li><span><strong>Geaccepteerde events</strong><small>Laatste 30 dagen</small></span><StatusPill label={String(data.events.length)} tone="info" /></li><li><span><strong>Gemiddelde speeltijd</strong><small>Op basis van technisch afgemelde plays</small></span><StatusPill label={data.events.length ? `${Math.round(totalPlayedMs / data.events.length / 1000)} sec` : "—"} tone="neutral" /></li></ul></article>
       <article className={styles.panel} id="activiteit"><PanelHeader title="Activiteit" description="Append-only sponsoracties voor controle en herstelonderzoek." /><ul className={styles.list}>{data.audit.slice(0,8).map((event) => <li key={event.id}><span><strong>{actionLabel(event.action)}</strong><small>{event.entity_type} · {formatDateTime(event.created_at)}</small></span></li>)}</ul>{!data.audit.length ? <p>Nog geen sponsoractiviteit.</p> : null}</article>
     </section>
+    </details>
   </div>;
 }
 

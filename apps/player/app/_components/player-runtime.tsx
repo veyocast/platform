@@ -2,6 +2,11 @@
 
 import { playerMediaTraffic } from "../_lib/media-traffic";
 
+import {screenCompositionGeometry} from "@veyocast/contracts";
+import {screenCompositionIdentity,screenCompositionDataIdentity} from "../_lib/player-screen-composition";
+import {ScreenCompositionBoundary} from "../_lib/screen-composition-boundary";
+import {ScreenCompositionZone} from "./screen-composition-zone";
+
 import { publicationTrace, type PublicationTrace } from "../_lib/publication-telemetry";
 
 import { LatestPlayerTarget, type PlayerTargetToken } from "../_lib/latest-player-target";
@@ -132,6 +137,7 @@ import {
   localStorageReloadTimestampsKey
 } from "../_lib/player-storage";
 import styles from "./player-playback.module.css";
+import {SitesDynamicMedia} from "./sites-dynamic-media";
 import { DynamicTemplateMedia } from "./dynamic-template-media";
 import { EngagePlaybackMedia } from "./engage-playback-media";
 import { YouTubePlaybackMedia } from "./youtube-playback-media";
@@ -223,6 +229,11 @@ export function PlayerRuntime() {
   const [pairingMachine, setPairingMachine] = useState<PairingMachineSnapshot>(
     () => createPairingMachineSnapshot()
   );
+  const compositionBoundaryRef=useRef(new ScreenCompositionBoundary());
+  const zoneFramesRef=useRef(new Map<string,string>());
+  const compositionAckRef=useRef<string|null>(null);
+  const compositionAckInFlightRef=useRef(false);
+  const [sponsorPaused,setSponsorPaused]=useState(false);
   const [durationOverrideMs, setDurationOverrideMs] = useState<number | null>(null);
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
   const [playbackReadyRevision, setPlaybackReadyRevision] = useState(0);
@@ -245,7 +256,9 @@ export function PlayerRuntime() {
   const pendingTargetRef = useRef<{ release: HydratedPlayerRelease; token: PlayerTargetToken } | null>(null);
   const presentedReleaseIdRef = useRef<string | null>(null);
   const goalPausedRef = useRef(false);
-  goalPausedRef.current = realtimeGoal.pauseUnderlay;
+  const screenGoalPaused=realtimeGoal.pauseUnderlay||Boolean(realtimeGoal.active&&isPlaybackRuntime(runtime)&&runtime.release.envelope.composition);
+  const screenUnderlayPaused=screenGoalPaused||sponsorPaused;
+  goalPausedRef.current = screenUnderlayPaused;
   const applicationReloadPendingRef = useRef(false);
   const consecutiveFailuresRef = useRef(0);
   const desiredReleaseIdRef = useRef<string | null>(null);
@@ -413,6 +426,7 @@ export function PlayerRuntime() {
             trace.boundaryAt = new Date().toISOString();
             boundaryMonotonicRef.current = performance.now();
           }
+          if(!(await compositionBoundaryRef.current.holdAll(pending.token.signal))||!pending.token.isCurrent()){retryBoundary=true;return;}
           let committed = false;
           try {
             await activateRelease({ assets: pending.release.assets, deviceToken,
@@ -453,6 +467,7 @@ export function PlayerRuntime() {
             syncMessage: recoveryMessage ?? value.syncMessage } : value);
     } finally {
       advancingRef.current = false;
+      compositionBoundaryRef.current.resumeAll();
       if (retryBoundary) void advancePlayback(itemId, recoveryMessage);
     }
   }, []);
@@ -516,6 +531,18 @@ export function PlayerRuntime() {
     window.location.reload();
   }, [enterReloadCooldown]);
 
+  const acknowledgeVisibleComposition=useCallback(async()=>{
+    const snapshot=runtimeRef.current;if(!isPlaybackRuntime(snapshot)||!playbackReadyRef.current)return;
+    const composition=snapshot.release.envelope.composition;if(!composition){presentedReleaseIdRef.current=snapshot.release.envelope.manifest.releaseId;return;}
+    if(Object.entries(composition.zones).some(([id,zone])=>zoneFramesRef.current.get(id)!==zone.manifest.releaseId))return;
+    presentedReleaseIdRef.current=snapshot.release.envelope.manifest.releaseId;
+    const trace=publicationTraceRef.current;if(trace?.releaseId===presentedReleaseIdRef.current&&!trace.firstFrameAt){trace.firstFrameAt=new Date().toISOString();if(boundaryMonotonicRef.current!==null)trace.frameAfterBoundaryMs=Math.round(performance.now()-boundaryMonotonicRef.current);sendHeartbeatRef.current?.();}
+    const revision=snapshot.release.envelope.target?.revision,token=readStoredDeviceToken();if(!revision||!token||compositionAckInFlightRef.current)return;
+    const key=`${composition.published.id}:${revision}`;if(compositionAckRef.current===key)return;
+    compositionAckInFlightRef.current=true;const controller=new AbortController();const timeout=window.setTimeout(()=>controller.abort(),8000);
+    try{const result=await fetchPlayerOrigin("/api/player/composition/ack",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({compositionId:composition.published.id,targetRevision:revision}),signal:controller.signal});if(result.ok&&isPlaybackRuntime(runtimeRef.current)&&runtimeRef.current.release.envelope.composition?.published.id===composition.published.id&&runtimeRef.current.release.envelope.target?.revision===revision)compositionAckRef.current=key;}catch{ /* Retry after the next actual-frame or heartbeat check. */ }finally{window.clearTimeout(timeout);compositionAckInFlightRef.current=false;}
+  },[]);
+  const handleZoneFrame=useCallback((zoneId:"side"|"bottom",releaseId:string)=>{zoneFramesRef.current.set(zoneId,releaseId);void acknowledgeVisibleComposition();},[acknowledgeVisibleComposition]);
   const handlePlaybackReady = useCallback((itemId: string) => {
     const currentRuntime = runtimeRef.current;
     if (!isPlaybackRuntime(currentRuntime)) return;
@@ -524,7 +551,8 @@ export function PlayerRuntime() {
     if (activeItem?.id !== itemId) return;
     if (!playbackReadyRef.current) setPlaybackReadyRevision((revision) => revision + 1);
     playbackReadyRef.current = true;
-    presentedReleaseIdRef.current = currentRuntime.release.envelope.manifest.releaseId;
+    if(!currentRuntime.release.envelope.composition)presentedReleaseIdRef.current = currentRuntime.release.envelope.manifest.releaseId;
+    void acknowledgeVisibleComposition();
     const trace = publicationTraceRef.current;
     if (trace?.releaseId === presentedReleaseIdRef.current && !trace.firstFrameAt) {
       trace.firstFrameAt = new Date().toISOString();
@@ -540,7 +568,7 @@ export function PlayerRuntime() {
       };
       sendHeartbeatRef.current?.();
     }
-  }, []);
+  }, [acknowledgeVisibleComposition]);
 
   const handlePlaybackBoundary = useCallback((itemId: string) => {
     if (pendingTargetRef.current?.token.isCurrent()) void advancePlayback(itemId);
@@ -1212,7 +1240,7 @@ export function PlayerRuntime() {
         const currentRuntime = runtimeRef.current;
         const releaseId = body.manifest.releaseId;
         const targetToken = latestTargetRef.current.observe(
-          `${body.device.screenId}:${body.target?.revision ?? releaseId}:${releaseId}:${body.manifest.sponsorPlan?.revisionId ?? ""}:${body.manifest.items.map((item) => item.dynamicTemplate?.snapshotHash ?? "").join(":")}`,
+          `${body.device.screenId}:${body.target?.revision ?? releaseId}:${releaseId}:${screenCompositionIdentity(body)}:${body.manifest.sponsorPlan?.revisionId ?? ""}:${screenCompositionDataIdentity(body)}`,
           body.device.screenId, body.target?.revision
         );
         if (!targetToken) { syncSucceeded = true; return; }
@@ -1228,6 +1256,7 @@ export function PlayerRuntime() {
         if (
           isPlaybackRuntime(currentRuntime) &&
           currentRuntime.release.envelope.manifest.releaseId === releaseId &&
+          screenCompositionIdentity(currentRuntime.release.envelope)===screenCompositionIdentity(body)&&
           currentRuntime.release.envelope.manifest.sponsorPlan?.revisionId ===
             body.manifest.sponsorPlan?.revisionId
         ) {
@@ -1235,7 +1264,7 @@ export function PlayerRuntime() {
             releaseHydratedReference(currentRuntime.pendingRelease);
           }
           const activeHashes = new Map(currentRuntime.release.envelope.manifest.items.map((item) => [item.id, item.dynamicTemplate?.snapshotHash]));
-          if (body.manifest.items.some((item) => activeHashes.get(item.id) !== item.dynamicTemplate?.snapshotHash)) {
+          if (screenCompositionDataIdentity(currentRuntime.release.envelope)!==screenCompositionDataIdentity(body)||body.manifest.items.some((item) => activeHashes.get(item.id) !== item.dynamicTemplate?.snapshotHash)) {
             const generation = ++dataGeneration;
             void refreshLiveData(body, targetToken, generation);
             syncSucceeded = true;
@@ -1774,7 +1803,7 @@ export function PlayerRuntime() {
 
   useEffect(() => {
     const playbackRuntime = runtimeRef.current;
-    if (!isPlaybackRuntime(playbackRuntime) || realtimeGoal.pauseUnderlay) return;
+    if (!isPlaybackRuntime(playbackRuntime) || screenUnderlayPaused) return;
 
     const now = Date.now();
     const items = playbackRuntime.release.envelope.manifest.items;
@@ -1806,7 +1835,7 @@ export function PlayerRuntime() {
       Math.min(2_147_000_000, Math.max(50, nextChangeDelayMs))
     );
     return () => window.clearTimeout(timer);
-  }, [realtimeGoal.pauseUnderlay, visibilityRevision, visibilityScheduleKey]);
+  }, [screenUnderlayPaused, visibilityRevision, visibilityScheduleKey]);
 
   useEffect(() => {
     const playbackRuntime = runtimeRef.current;
@@ -1823,7 +1852,7 @@ export function PlayerRuntime() {
     if (!isPlayerManifestItemPlayable(activeItem) || !playbackReadyRef.current) return;
     // A healthy decoder owns the natural video/trim boundary. Its progress
     // watchdog detects a stall; an unrelated wall timer must not cut it short.
-    if (activeItem.kind === "video" && !durationOverrideMs) return;
+    if (((activeItem.kind === "video"&&!activeItem.sitesStudioPresentation)||activeItem.onlinePlayback?.kind==="youtube") && !durationOverrideMs) return;
 
     const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackAttempt}`;
     const durationMs = getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs);
@@ -1835,7 +1864,7 @@ export function PlayerRuntime() {
       };
     }
     const timerState = playbackTimerStateRef.current;
-    if (realtimeGoal.pauseUnderlay) {
+    if (screenUnderlayPaused) {
       timerState.startedAt = null;
       return;
     }
@@ -1844,7 +1873,7 @@ export function PlayerRuntime() {
       if (playbackTimerStateRef.current?.key === timerKey) {
         playbackTimerStateRef.current = null;
       }
-      if (activeItem.kind === "video" && !playbackReadyRef.current) {
+      if (activeItem.kind === "video" && !activeItem.sitesStudioPresentation && !playbackReadyRef.current) {
         void handlePlaybackFailure(activeItem.id, "VIDEO_START_TIMEOUT");
         return;
       }
@@ -1869,7 +1898,7 @@ export function PlayerRuntime() {
     playbackAttempt,
     playbackReadyRevision,
     playbackScheduleKey,
-    realtimeGoal.pauseUnderlay
+    screenUnderlayPaused
   ]);
 
   useEffect(() => {
@@ -1912,6 +1941,8 @@ export function PlayerRuntime() {
         const response = await fetchPlayerOrigin("/api/player/heartbeat", {
           body: JSON.stringify({
             activeReleaseId: presentedReleaseIdRef.current,
+            activeCompositionId:compositionAckRef.current?.split(":")[0]??null,
+            desiredCompositionId:playbackRuntime?.release.envelope.composition?.published.id??null,
             runtimeVersion: currentPlayerApplicationVersion(),
             publicationTrace: publicationTraceRef.current,
             preparationError: preparationErrorRef.current,
@@ -1975,6 +2006,7 @@ export function PlayerRuntime() {
     }
 
     sendHeartbeatRef.current = () => {
+      void acknowledgeVisibleComposition();
       void sendHeartbeat();
     };
 
@@ -1982,6 +2014,7 @@ export function PlayerRuntime() {
       void sendHeartbeat();
     }, 1_000);
     const heartbeatTimer = window.setInterval(() => {
+      void acknowledgeVisibleComposition();
       void sendHeartbeat();
     }, 30_000);
 
@@ -1992,7 +2025,7 @@ export function PlayerRuntime() {
       if (recoveryHeartbeatTimer) window.clearTimeout(recoveryHeartbeatTimer);
       sendHeartbeatRef.current = null;
     };
-  }, []);
+  }, [acknowledgeVisibleComposition]);
 
   const recoveryMenu = recoveryMenuOpen ? (
     <PlayerRecoveryMenu
@@ -2023,8 +2056,13 @@ export function PlayerRuntime() {
   if (isPlaybackRuntime(runtime)) {
     playerView = (
       <PlaybackView
+        compositionBoundary={compositionBoundaryRef.current}
+        onZoneFrame={handleZoneFrame}
+        onSponsorPause={setSponsorPaused}
+        goalPaused={screenGoalPaused}
         goal={realtimeGoal.active}
         onGoalComplete={realtimeGoal.complete}
+        onGoalReady={realtimeGoal.rendered}
         liveMatchStates={realtimeGoal.matchStates}
         onFailure={handlePlaybackFailure}
         onBoundary={handlePlaybackBoundary}
@@ -2032,7 +2070,7 @@ export function PlayerRuntime() {
         onReady={handlePlaybackReady}
         playbackAttempt={playbackAttempt}
         runtime={runtime}
-        underlayPaused={realtimeGoal.pauseUnderlay}
+        underlayPaused={screenUnderlayPaused}
         watchdogTimeoutMs={watchdogTimeoutMs}
       />
     );
@@ -2083,8 +2121,9 @@ export function PlayerRuntime() {
 }
 
 function PlaybackView({
+  compositionBoundary,onZoneFrame,onSponsorPause,goalPaused,
   goal,
-  onGoalComplete,
+  onGoalComplete,onGoalReady,
   liveMatchStates,
   onFailure,
   onBoundary,
@@ -2095,8 +2134,10 @@ function PlaybackView({
   underlayPaused,
   watchdogTimeoutMs
 }: {
+  compositionBoundary:ScreenCompositionBoundary;onZoneFrame:(zone:"side"|"bottom",releaseId:string)=>void;onSponsorPause:(paused:boolean)=>void;goalPaused:boolean;
   goal: ActiveLedScoresOverlay | null;
   onGoalComplete: (deliveryId: string) => void;
+  onGoalReady: (deliveryId: string) => void;
   liveMatchStates: ReadonlyMap<string, LedScoresMatchState>;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onBoundary?: (itemId: string) => void;
@@ -2140,6 +2181,7 @@ function PlaybackView({
             : undefined
         }
       >
+        <div style={runtime.release.envelope.composition?{position:"absolute",...Object.fromEntries(Object.entries(screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).find(zone=>zone.id==="main")!).filter(([key])=>["left","top","width","height"].includes(key)).map(([key,value])=>[key,`${value}%`]))}:{position:"absolute",inset:0}}>
         <PlaybackScene onBoundary={onBoundary}
           item={activeItem}
           liveMatchStates={liveMatchStates}
@@ -2150,14 +2192,17 @@ function PlaybackView({
           paused={underlayPaused}
           watchdogTimeoutMs={watchdogTimeoutMs}
         />
+        </div>
+        {runtime.release.envelope.composition&&screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).filter(zone=>zone.id!=="main").map(zone=>{const envelope=runtime.release.envelope.composition!.zones[zone.id as "side"|"bottom"];return envelope?<div key={zone.id} style={{position:"absolute",left:`${zone.left}%`,top:`${zone.top}%`,width:`${zone.width}%`,height:`${zone.height}%`,overflow:"hidden"}}><ScreenCompositionZone key={`${zone.id}:${envelope.manifest.releaseId}`} zoneId={zone.id as "side"|"bottom"} envelope={envelope} paused={underlayPaused} boundary={compositionBoundary} onFrame={onZoneFrame} liveMatchStates={liveMatchStates} watchdogTimeoutMs={watchdogTimeoutMs}/></div>:null;})}
         <SponsorLayer
+          onFullscreenVisibility={onSponsorPause} paused={goalPaused}
           activeItemId={activeItem.id}
           plan={manifest.sponsorPlan}
           screenId={runtime.release.envelope.device.screenId}
           showFullscreen={activeItem.id === manifest.items[0]?.id}
           theme={activeTheme}
         />
-        <LedScoresExperienceOverlay overlay={goal} theme={activeTheme} onComplete={onGoalComplete} />
+        <LedScoresExperienceOverlay overlay={goal} theme={activeTheme} onComplete={onGoalComplete} onReady={onGoalReady} />
         <img
           alt=""
           aria-hidden="true"
@@ -2202,13 +2247,16 @@ export const sponsorPositions = [
   "match_ball_sponsor"
 ] as const satisfies readonly SponsorPositionKey[];
 
-function SponsorLayer({ activeItemId, plan, screenId, showFullscreen, theme }: {
+function SponsorLayer({ activeItemId, plan, screenId, showFullscreen, theme, paused, onFullscreenVisibility }: {
+  paused:boolean;onFullscreenVisibility:(visible:boolean)=>void;
   activeItemId: string;
   plan: PlayerManifestEnvelope["manifest"]["sponsorPlan"];
   screenId: string;
   showFullscreen: boolean;
   theme: FrozenPlayerTheme | null;
 }) {
+  const [fullscreenActive,setFullscreenActive]=useState(false);
+  const fullscreenVisibility=useCallback((visible:boolean)=>{setFullscreenActive(visible);onFullscreenVisibility(visible);},[onFullscreenVisibility]);
   if (!plan || Date.parse(plan.expiresAt) <= Date.now()) return null;
   const selections = sponsorPositions.flatMap((positionKey) => {
     if (positionKey === "fullscreen" && !showFullscreen) return [];
@@ -2237,21 +2285,32 @@ function SponsorLayer({ activeItemId, plan, screenId, showFullscreen, theme }: {
       positionKey={positionKey}
       selection={selection}
       theme={theme}
+      paused={paused||(positionKey!=="fullscreen"&&fullscreenActive)}
+      onVisibilityChange={positionKey === "fullscreen" ? fullscreenVisibility : undefined}
     />)}
   </div>;
 }
 
-export function SponsorPlacement({ planRevisionId, positionKey, selection, theme }: {
+export function SponsorPlacement({ planRevisionId, positionKey, selection, theme, paused=false,onVisibilityChange }: {
   planRevisionId: string;
   positionKey: SponsorPositionKey;
   selection: SponsorPlaybackSelection;
   theme: FrozenPlayerTheme | null;
+  paused?:boolean;
+  onVisibilityChange?:(visible:boolean)=>void;
 }) {
   const { creative, placement } = selection;
   const [visible, setVisible] = useState(true);
+  const [ready,setReady]=useState(false);
+  const remaining=useRef(creative.durationSeconds*1000);
+  const proofSent=useRef(false);
+  useEffect(()=>{onVisibilityChange?.(visible);return()=>onVisibilityChange?.(false);},[onVisibilityChange,visible]);
   useEffect(() => {
+    if(paused||!ready||!visible||proofSent.current)return;
+    const started=performance.now();
     const timeout = window.setTimeout(() => {
       if (positionKey === "fullscreen") setVisible(false);
+      proofSent.current=true;
       void queueAndFlushSponsorProof({
         campaignId: placement.campaignId,
         context: placement.context,
@@ -2263,9 +2322,9 @@ export function SponsorPlacement({ planRevisionId, positionKey, selection, theme
         positionId: placement.positionId,
         sponsorId: placement.sponsorId
       });
-    }, creative.durationSeconds * 1_000);
-    return () => window.clearTimeout(timeout);
-  }, [creative, placement, planRevisionId, positionKey]);
+    }, Math.max(1,remaining.current));
+    return () => {window.clearTimeout(timeout);remaining.current=Math.max(1,remaining.current-(performance.now()-started));};
+  }, [creative, paused, placement, planRevisionId, positionKey,ready,visible]);
 
   if (!visible) return null;
   return <figure
@@ -2277,7 +2336,7 @@ export function SponsorPlacement({ planRevisionId, positionKey, selection, theme
     data-theme-mode={theme?.mode ?? "dark"}
     style={theme?.style}
   >
-    <img alt={`${creative.sponsorName}, sponsor`} src={creative.url} />
+    <img alt={`${creative.sponsorName}, sponsor`} src={creative.url} onLoad={()=>setReady(true)} onError={()=>setVisible(false)} />
     {positionKey === "presented_by" ? <figcaption>Mede mogelijk gemaakt door</figcaption> : null}
   </figure>;
 }
@@ -2330,7 +2389,7 @@ type PlaybackSceneState = {
   transition: "cut" | "crossfade" | "wipe";
 };
 
-function PlaybackScene({
+export function PlaybackScene({
   item,
   liveMatchStates,
   onBoundary,
@@ -2515,12 +2574,24 @@ export function PlaybackMedia({
   paused?: boolean;
   watchdogTimeoutMs: number;
 }) {
+  const renderStudioFallback = item.sitesStudioPresentation
+    ? (ready: (itemId: string) => void) => <SitesDynamicMedia
+      item={item}
+      presentation={item.sitesStudioPresentation!}
+      fallback={<BinaryPlaybackMedia item={item} onEnded={onEnded} onFailure={onFailure} onPlaybackStateChange={onPlaybackStateChange} onReady={ready} passive={passive} paused={paused} watchdogTimeoutMs={watchdogTimeoutMs} />}
+      onReady={ready}
+      onBoundary={onBoundary}
+      passive={passive}
+      paused={paused}
+    />
+    : undefined;
   if (item.onlinePlayback?.kind === "engage") {
     return (
       <EngagePlaybackMedia
         item={item}
         onFailure={onFailure}
         onReady={onReady}
+        renderFallback={renderStudioFallback}
         passive={passive}
         paused={paused}
       />
@@ -2533,11 +2604,13 @@ export function PlaybackMedia({
         onEnded={onEnded}
         onFailure={onFailure}
         onReady={onReady}
+        renderFallback={renderStudioFallback}
         passive={passive}
         paused={paused}
       />
     );
   }
+  if (renderStudioFallback) return renderStudioFallback(onReady);
   if (item.dynamicTemplate) {
     return (
       <DynamicTemplateMedia onBoundary={onBoundary}

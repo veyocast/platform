@@ -66,6 +66,7 @@ export function MarketingHeader({ controlOrigin }: MarketingHeaderProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isHome = pathname === "/";
+  if (isHome) return null;
 
   const isCurrent = (href: string) => (
     href === "/" ? pathname === "/" : pathname.startsWith(href)

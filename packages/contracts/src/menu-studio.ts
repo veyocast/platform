@@ -1,6 +1,10 @@
 import { z } from "zod";
 
+import { sitesDynamicConfigurationSchema } from "./sites-presentation";
+
 import { selectableThemeIdSchema, themeModeSchema } from "./theme-engine";
+
+const menuSitesConfigurationSchema=sitesDynamicConfigurationSchema.refine(value=>value.provider==="menu",{message:"Menu configuration requires the Menu provider.",path:["provider"]});
 
 const menuIdPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
 const sha256Pattern = /^[a-f0-9]{64}$/;
@@ -377,6 +381,7 @@ export const menuPageSchema = z.object({
 }).strict();
 
 export const menuDocumentV2Schema = z.object({
+  sitesConfiguration: menuSitesConfigurationSchema.optional(),
   assets: z.array(menuAssetReferenceSchema).max(100),
   createdAt: dateTimeSchema,
   id: menuStudioIdSchema,
@@ -410,12 +415,14 @@ export const menuStudioCommandSchema = z.object({
   operationId: z.string().uuid(),
   operation: z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("set-title"), title: z.string().trim().max(120) }).strict(),
-    z.object({ kind: z.literal("set-theme"), theme: menuThemeSelectionSchema }).strict(),
+    z.object({ kind: z.literal("set-theme"), theme: menuThemeSelectionSchema, sitesConfiguration: menuSitesConfigurationSchema.optional() }).strict(),
+    z.object({ kind: z.literal("set-sites-configuration"), sitesConfiguration: menuSitesConfigurationSchema }).strict(),
     z.object({ asset: menuAssetReferenceSchema, kind: z.literal("attach-asset") }).strict(),
     z.object({ assetId: menuStudioIdSchema, kind: z.literal("detach-asset") }).strict(),
     z.object({
       assets: z.array(menuAssetReferenceSchema).max(100),
       kind: z.literal("restore-content"),
+      sitesConfiguration: menuSitesConfigurationSchema.optional(),
       pages: z.array(menuPageSchema).min(1).max(40),
       providerSnapshot: z.object({
         capturedAt: dateTimeSchema.optional(),

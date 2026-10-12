@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
 
+import {readControlSitesAuthoringPaused,sitesAuthoringPausedMessage} from "../../../../../lib/sites-authoring-state";
 import { requireTenantControlSession } from "../../../../../lib/control-session";
-import { loadStudioProject } from "../data";
+import { loadStudioProject, loadStudioSeries } from "../data";
 import { StudioEditorLoader } from "./studio-editor-loader";
 
 type StudioEditorPageProps = {
@@ -18,23 +19,25 @@ export default async function StudioEditorPage({
   const session = await requireTenantControlSession("tenant.studio.read");
   const { designId } = await params;
   const query = await searchParams;
+  const series = await loadStudioSeries(session.tenantId,session.isLive,designId);
   const data = await loadStudioProject(
     session.tenantId,
     session.isLive,
-    designId
+    series?.id===designId?series.items[0]!.id:designId
   );
   if (!data.project) notFound();
 
+  const authoringPaused=data.project.document.sitesPresentation?await readControlSitesAuthoringPaused(session.tenantId,session.isLive):false;
   const permissions = {
     canArchive: hasCapability(
       session.capabilities,
       "tenant.studio.archive"
     ),
-    canCreate: hasCapability(session.capabilities, "tenant.studio.create"),
-    canEdit:
+    canCreate: !authoringPaused && hasCapability(session.capabilities, "tenant.studio.create"),
+    canEdit: !authoringPaused && (
       hasCapability(session.capabilities, "tenant.studio.edit_all") ||
       (data.project.ownerUserId === session.userId &&
-        hasCapability(session.capabilities, "tenant.studio.edit_own")),
+        hasCapability(session.capabilities, "tenant.studio.edit_own"))),
     canManageBrand: hasCapability(
       session.capabilities,
       "tenant.settings.manage"
@@ -52,8 +55,9 @@ export default async function StudioEditorPage({
 
   return (
     <StudioEditorLoader
+      series={series}
       assets={data.assets}
-      error={data.error}
+      error={authoringPaused?sitesAuthoringPausedMessage:data.error}
       initialRenderId={query.render ?? null}
       isLive={session.isLive}
       permissions={permissions}

@@ -218,7 +218,7 @@ export const mobileCreatePlaylistRequestSchema = z
 
 export const mobilePlaylistItemSchema = z
   .object({
-    durationSeconds: z.number().int().min(5).max(3600),
+    durationSeconds: z.number().int().min(3).max(3600),
     fitMode: z.enum(["contain", "cover"]),
     id: uuid,
     mediaAssetId: uuid,
@@ -298,7 +298,7 @@ export const mobilePlaylistMutationRequestSchema = z.discriminatedUnion(
         itemId: uuid,
         muted: z.boolean(),
         operation: z.literal("update_item"),
-        durationSeconds: z.number().int().min(5).max(3600)
+        durationSeconds: z.number().int().min(3).max(3600)
       })
       .strict(),
     z

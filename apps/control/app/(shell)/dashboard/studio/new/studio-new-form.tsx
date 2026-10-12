@@ -13,6 +13,7 @@ import {
   Sparkles
 } from "lucide-react";
 
+import { SitesPresentationView } from "@veyocast/content-templates";
 import type {
   StudioDocument,
   StudioFormatId,
@@ -547,8 +548,7 @@ function TemplateChoice({
         type="radio"
       />
       <span className={styles.templateThumb} data-format={template.formatId}>
-        <LayoutTemplate aria-hidden="true" />
-        {templateHeadline(template)}
+        {template.document.sitesPresentation?<SitesPresentationView presentation={template.document.sitesPresentation} compact/>:<><LayoutTemplate aria-hidden="true" />{templateHeadline(template)}</>}
       </span>
       <strong>{template.name}</strong>
       <small>

@@ -51,6 +51,8 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     activeReleaseId?: string | null;
+    activeCompositionId?:unknown;
+    desiredCompositionId?:unknown;
     runtimeVersion?: unknown;
     publicationTrace?: unknown;
     preparationError?: unknown;
@@ -125,6 +127,8 @@ export async function POST(request: Request) {
     p_storage_used_bytes: safeNonNegativeInteger(body.storageUsedBytes),
     p_sync_detail: {
       currentItemId: safePlayerIdentifier(body.currentItemId),
+      activeCompositionId: safePlayerIdentifier(typeof body.activeCompositionId==="string"?body.activeCompositionId:null),
+      desiredCompositionId: safePlayerIdentifier(typeof body.desiredCompositionId==="string"?body.desiredCompositionId:null),
       deploymentSha:
         process.env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 120) ||
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||

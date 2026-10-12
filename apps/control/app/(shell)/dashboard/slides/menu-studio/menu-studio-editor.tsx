@@ -179,8 +179,8 @@ export function MenuStudioEditor({
       mode: mode === "create"
         ? tenantStyle.presentation.resolvedMode.mode
         : initialDocument.theme.mode,
-      themeId: "fieldflow",
-      themeVersion: tenantStyle.selection.ref.catalog === "v2"
+      themeId: mode === "create" ? "fieldflow" : initialDocument.theme.themeId,
+      themeVersion: mode === "edit" ? initialDocument.theme.themeVersion : tenantStyle.selection.ref.catalog === "v2"
         ? tenantStyle.selection.ref.version
         : initialDocument.theme.themeVersion
     }
@@ -322,6 +322,7 @@ export function MenuStudioEditor({
         kind: "restore-content",
         pages: target.pages,
         providerSnapshot: target.providerSnapshot ?? null,
+        sitesConfiguration: target.sitesConfiguration,
         theme: target.theme,
         title: target.title ?? null
       },
@@ -491,6 +492,7 @@ export function MenuStudioEditor({
       kind: "restore-content",
       pages: nextPages,
       providerSnapshot: current.providerSnapshot ?? null,
+      sitesConfiguration: current.sitesConfiguration,
       theme: current.theme,
       title: current.title ?? null
     });
@@ -782,6 +784,7 @@ export function MenuStudioEditor({
       kind: "restore-content",
       pages: nextPages,
       providerSnapshot: current.providerSnapshot ?? null,
+      sitesConfiguration: current.sitesConfiguration,
       theme: current.theme,
       title: current.title ?? null
     });
@@ -940,6 +943,7 @@ export function MenuStudioEditor({
       kind: "restore-content",
       pages,
       providerSnapshot: current.providerSnapshot ?? null,
+      sitesConfiguration: current.sitesConfiguration,
       theme: current.theme,
       title: current.title ?? null
     });

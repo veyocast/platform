@@ -24,7 +24,7 @@ export type PlaylistListFilter = {
   assignment?: "all" | "assigned" | "unassigned";
   page?: number;
   query?: string;
-  sort?: "name" | "updated";
+  sort?: "name" | "updated" | "items";
   status?: "all" | "archived" | "draft" | "published";
 };
 
@@ -237,7 +237,7 @@ export async function loadPlaylistStudio(
 
   const [playlistResult, itemsResult, sectionsResult, assetsResult, releasesResult, screensResult, devicesResult, dynamicSlidesResult, youtubeSourcesResult, engageCampaignsResult] = await Promise.all([
     supabase.from("playlists").select("id, tenant_id, name, description, status, revision, archived_at, updated_at, updated_by, default_image_duration_seconds, default_transition, default_fit_mode, default_background_color, default_video_muted, loop_enabled").eq("tenant_id", tenantId).eq("id", playlistId).maybeSingle(),
-    supabase.from("playlist_items").select("id, media_asset_id, section_id, sort_order, duration_seconds, fit_mode, muted, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, dynamic_slide_id, dynamic_snapshot_id").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
+    supabase.from("playlist_items").select("id, media_asset_id, section_id, sort_order, duration_seconds, fit_mode, muted, display_title, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, dynamic_slide_id, dynamic_snapshot_id, sites_configuration_json, youtube_source_id, engage_campaign_id").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("playlist_sections").select("id, name, position_key, enabled, default_duration_seconds, default_transition").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("position_key"),
     supabase.from("media_assets").select("id, tenant_id, title, kind, mime_type, status, deleted_at").eq("tenant_id", tenantId).eq("source_kind", "user").order("created_at", { ascending: false }),
     supabase.from("playlist_releases").select("id, version, item_count, total_duration_seconds, total_bytes, published_at, published_by").eq("tenant_id", tenantId).eq("playlist_id", playlistId).order("version", { ascending: false }).limit(1),
@@ -434,6 +434,9 @@ export async function loadPlaylistStudio(
     displayTitle: item.display_title,
     dynamicSlideId: item.dynamic_slide_id,
     dynamicSnapshotId: item.dynamic_snapshot_id,
+    sitesConfiguration: item.sites_configuration_json,
+    youtubeSourceId: item.youtube_source_id,
+    engageCampaignId: item.engage_campaign_id,
     durationSeconds: item.duration_seconds,
     enabled: item.enabled,
     fitMode: item.fit_mode,

@@ -29,7 +29,7 @@ test("fixed FieldFlow tenant navigation remains keyboard reachable", async ({ pa
   const sidebar = page.getByLabel("Control navigatie");
   const overview = sidebar.getByRole("link", { name: "Overzicht", exact: true });
   await expect(sidebar).toHaveCSS("width", "248px");
-  await expect(sidebar.locator(".control-brand__logo--inverse")).toBeVisible();
+  await expect(sidebar.locator(".vx-brand img")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
   ).toBeVisible();
@@ -57,7 +57,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
     if (width < 768) {
       await expect(
         page.getByRole("button", { name: "Navigatie openen" })
-      ).toHaveCount(0);
+      ).toBeVisible();
       const mobileNavigation = page.getByRole("navigation", {
         name: "Mobiele hoofdnavigatie"
       });
@@ -81,34 +81,16 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       const navigation = page.getByRole("navigation", {
         name: "Hoofdnavigatie"
       });
-      await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
+      await expect(page.getByLabel("Control navigatie").getByRole("link", { name: /Instellingen/ })).toBeVisible();
       await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
       await page.keyboard.press("Escape");
       await expect(moreButton).toHaveAttribute("aria-expanded", "false");
-    } else if (width < 1024) {
-      const menuButton = page.getByRole("button", { name: "Navigatie openen" });
-      const quickNavigation = page.getByRole("button", {
-        name: "Snel naar een onderdeel"
-      });
-
-      for (const control of [menuButton, quickNavigation]) {
-        await expect(control).toBeEnabled();
-        const box = await control.boundingBox();
-        expect(box?.height).toBeGreaterThanOrEqual(44);
-        expect(box?.width).toBeGreaterThanOrEqual(44);
-      }
-
-      await menuButton.click();
-      const navigation = page.getByRole("navigation", { name: "Hoofdnavigatie" });
-      await expect(navigation.getByRole("link", { name: "Studio", exact: true })).toBeVisible();
-      await expect(navigation.getByRole("link", { name: /Instellingen/ })).toBeVisible();
-      await expect(navigation.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
     } else {
       const sidebar = page.getByLabel("Control navigatie");
-      await expect(sidebar).toHaveCSS("width", "248px");
-      await expect(
-        page.getByRole("navigation", { name: "Hoofdnavigatie" })
-      ).toBeVisible();
+      await expect(sidebar).toHaveCSS("width", width <= 1100 ? "216px" : "248px");
+      await expect(page.getByRole("button", { name: "Navigatie openen" })).not.toBeVisible();
+      await expect(page.getByRole("navigation", { name: "Hoofdnavigatie" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Snel naar een onderdeel" })).toBeEnabled();
     }
   }
 });
@@ -124,7 +106,9 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
     name: "Mobiele hoofdnavigatie"
   });
   await expect(mobileNavigation).toBeVisible();
-  await expect(mobileNavigation.getByRole("link", { name: "Planning" })).toBeVisible();
+  await expect(mobileNavigation.getByRole("link", { name: "Playlists" })).toBeVisible();
+  await expect(mobileNavigation.getByRole("link", { name: "Planning" })).toHaveCount(0);
+  await expect(mobileNavigation.locator("a,button")).toHaveText(["Overzicht", "Playlists", "Studio", "Schermen", "Meer"]);
   await expect(mobileNavigation.getByRole("link", { name: "Klanten" })).toHaveCount(0);
 
   const platformPage = await page.context().newPage();
@@ -177,9 +161,14 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
     await page.setViewportSize({ height: 900, width });
 
     for (const route of routes) {
-      await page.goto("about:blank");
-      await page.goto(route, { waitUntil: "domcontentloaded" });
-      await expect(page.locator("#control-content")).toBeVisible();
+      await expect(async () => {
+        try {
+          await page.goto(route, { waitUntil: "domcontentloaded", timeout: 15_000 });
+        } catch (error) {
+          if (!(error instanceof Error) || !error.message.includes("ERR_ABORTED")) throw error;
+        }
+        await expect(page.locator("#control-content"), `${route} laadt na ontwikkelserverherstart op ${width}px`).toBeVisible();
+      }, `${route} heeft maximaal 90 seconden om na een ontwikkelserverherstart te laden op ${width}px`).toPass({ timeout: 90_000 });
       expect.soft(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
@@ -235,12 +224,21 @@ test("Bronnen exposes Twelve Producten as a responsive secondary journey", async
     await page.goto("/dashboard/sources");
 
     await expect(
-      page.getByRole("heading", { exact: true, level: 1, name: "Databronnen" })
+      page.getByRole("heading", { exact: true, level: 1, name: "Bronnen" })
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Twelve-import" })
+      page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) }).getByRole("link", { name: "Koppeling bekijken" })
     ).toBeVisible();
-    await expect(page.getByText("Nog geen databronnen")).toBeVisible();
+    const twelveCard = page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) });
+    const statusDetails = twelveCard.getByRole("button", { name: /^Twelve statusdetails/ });
+    await statusDetails.focus();
+    await page.keyboard.press("Enter");
+    const statusDialog = page.getByRole("dialog", { name: "Twelve statusdetails" });
+    await expect(statusDialog.getByText("0 opgeslagen koppelingen", { exact: true })).toBeVisible();
+    await expect(statusDialog).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(statusDialog).not.toBeVisible();
+    await expect(statusDetails).toBeFocused();
     await expect
       .poll(() =>
         page.evaluate(
@@ -253,7 +251,7 @@ test("Bronnen exposes Twelve Producten as a responsive secondary journey", async
 
     await expect(async () => {
       if (!/\/dashboard\/sources\/twelve\/products$/.test(page.url())) {
-        await page.getByRole("link", { name: "Twelve-import" }).click();
+        await page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) }).getByRole("link", { name: "Koppeling bekijken" }).click();
       }
       await expect(page).toHaveURL(/\/dashboard\/sources\/twelve\/products$/);
     }).toPass({ timeout: 20_000 });
@@ -261,11 +259,11 @@ test("Bronnen exposes Twelve Producten as a responsive secondary journey", async
       page.getByRole("heading", {
         exact: true,
         level: 1,
-        name: "Twelve Producten"
+        name: "Twelve producten"
       })
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Nog geen producten" })
+      page.getByText("Nog geen producten", { exact: true })
     ).toBeVisible();
     await expect
       .poll(() =>
@@ -304,28 +302,23 @@ test("screen workspace keeps its primary controls readable on desktop and mobile
   }
 });
 
-test("resource filters stay bundled through compact desktop", async ({ page }) => {
-  await page.setViewportSize({ height: 900, width: 1100 });
-  await page.goto("/dashboard/playlists");
-
-  const trigger = page.getByRole("button", { exact: true, name: "Filters" });
-  await expect(trigger).toBeVisible();
-  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
-  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).not.toBeVisible();
-  await expect(async () => {
-    if ((await trigger.getAttribute("data-state")) !== "open") {
-      await trigger.click();
-    }
-    await expect(trigger).toHaveAttribute("data-state", "open");
-  }).toPass();
-  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
-  await expect(page.getByLabel("Compact playlistoverzicht")).toBeVisible();
-
-  await page.setViewportSize({ height: 900, width: 1440 });
-  await page.reload();
-  await expect(trigger).not.toBeVisible();
-  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
-  await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
+test("Source resource filters remain keyboard reachable through compact desktop", async ({ page }) => {
+  for (const width of [1100, 1440]) {
+    await page.setViewportSize({ height: 900, width });
+    await page.goto("/dashboard/playlists");
+    const library = page.getByRole("region", { name: "Playlistbibliotheek" });
+    const trigger = library.getByRole("button", { exact: true, name: "Filters" });
+    await expect(library.getByLabel("Zoek een playlist")).toBeVisible();
+    await expect(trigger).toBeVisible();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(library.getByRole("combobox", { exact: true, name: "Status" })).not.toBeVisible();
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    await expect(library.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
+    await expect(library.getByRole("combobox", { exact: true, name: "Sorteren" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
 });
 
 test("activity workspace remains readable without fictional mobile rows", async ({ page }) => {
@@ -397,7 +390,12 @@ test("media route exposes upload intake labels and status landmarks", async ({
 
   await expect(page.getByRole("heading", { exact: true, name: "Media" })).toBeVisible();
   await expect(page.getByLabel("Samenvatting mediabibliotheek")).toHaveCount(0);
-  const mediaFilterTrigger = page.getByRole("button", {
+  const advancedFilters = page.locator("details").filter({ has: page.locator("summary").filter({ hasText: "Aanvullende filters en opgeslagen weergaven" }) });
+  const advancedSummary = advancedFilters.locator("summary");
+  await advancedSummary.focus();
+  await page.keyboard.press("Enter");
+  await expect(advancedFilters).toHaveAttribute("open", "");
+  const mediaFilterTrigger = advancedFilters.getByRole("button", {
     exact: true,
     name: "Filters"
   });
@@ -408,7 +406,7 @@ test("media route exposes upload intake labels and status landmarks", async ({
     await expect(mediaFilterTrigger).toHaveAttribute("data-state", "open");
   }).toPass();
   await expect(page.getByLabel("Filter media op gebruik")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Media als raster tonen" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Media als raster tonen" }).first()).toBeVisible();
   await page.getByText("Upload- en verwerkingsregels", { exact: true }).click();
   await expect(page.getByLabel("Media pipeline stappen")).toContainText(
     "Veilig activeren"
@@ -439,18 +437,23 @@ test("media route exposes upload intake labels and status landmarks", async ({
   await expect(uploadDialog.getByRole("button", { name: "Video uploaden" })).toBeDisabled();
   await uploadDialog.getByRole("button", { name: "Uploadvenster sluiten" }).click();
 
-  await page.getByRole("link", { name: "Media als raster tonen" }).click();
+  await page.getByRole("link", { name: "Media als raster tonen" }).first().click();
   await expect(page).toHaveURL(/view=grid/);
-  await expect(page.getByRole("link", { name: "Media als raster tonen" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "Media als raster tonen" }).first()).toHaveAttribute(
     "aria-current",
     "page"
   );
   await expect(page.getByRole("region", { name: "Mediabibliotheek" })).toBeVisible();
 
   await page.setViewportSize({ height: 844, width: 390 });
-  const mobileFilterTrigger = page.getByRole("button", { name: "Filters" });
+  if ((await advancedFilters.getAttribute("open")) === null) {
+    await advancedSummary.focus();
+    await page.keyboard.press("Enter");
+  }
+  await expect(advancedFilters).toHaveAttribute("open", "");
+  const mobileFilterTrigger = advancedFilters.getByRole("button", { name: "Filters", exact: true });
   await expect(mobileFilterTrigger).toBeVisible();
-  await mobileFilterTrigger.click();
+  if ((await mobileFilterTrigger.getAttribute("data-state")) !== "open") await mobileFilterTrigger.click();
   const fromDate = page.getByLabel("Vanaf");
   await expect(async () => {
     const fromDateBox = await fromDate.boundingBox();
@@ -469,17 +472,27 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await page.goto("/dashboard/playlists");
 
   await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
+    page.getByLabel("Control status").getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
-  await expect(async () => {
-    const trigger = page.getByRole("button", { exact: true, name: "Filters" });
-    if ((await trigger.getAttribute("data-state")) !== "open") await trigger.click();
-    await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
-    await expect(page.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
-  }).toPass();
-  await expect(page.getByRole("combobox", { exact: true, name: "Schermgebruik" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
+  const library = page.getByRole("region", { name: "Playlistbibliotheek" });
+  const trigger = library.getByRole("button", { exact: true, name: "Filters" });
+  await expect(library.getByLabel("Zoek een playlist")).toBeVisible();
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await expect(library.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
+  await expect(library.getByRole("combobox", { exact: true, name: "Sorteren" })).toBeVisible();
+  await expect(library.getByRole("heading", { name: "Je eerste playlist begint hier" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
+  await expect(library.getByRole("button", { name: "Nieuwe playlist" })).toBeDisabled();
+  await expect(library.getByRole("button", { name: "Playlist maken" })).toBeDisabled();
+  await page.getByRole("link", { name: "Uitgebreid overzicht met kolommen, schermfilters en verwijderen" }).click();
+  await expect(page).toHaveURL(/advanced=1/);
+  const extendedFilters = page.getByRole("button", { name: "Filters", exact: true });
+  await extendedFilters.click();
+  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Schermgebruik", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
 });
 
@@ -505,11 +518,12 @@ test("settings and theme routes expose real defaults with safe permission state"
 
   await expect(page.getByRole("heading", { exact: true, level: 1, name: "Instellingen" })).toBeVisible();
   await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
-  await expect(page.locator(".settings-category-workspace")).toHaveAttribute("data-hydrated", "true");
+  await expect(page.locator('[data-settings-workspace="true"]')).toHaveAttribute("data-hydrated", "true");
 
   await page.goto("/dashboard/themes/fieldflow");
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Royal Current · Navy Glass" })).toBeVisible();
-  const themePreview = page.getByLabel(/Live voorbeeld van het .* palet/);
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Huisstijl" })).toBeVisible();
+  const themePreview = page.getByLabel("Live voorbeeld van het lichte palet", { exact: true });
+  await expect(page.getByLabel("Navy Glass live kleurvoorbeeld (donker palet)", { exact: true })).toBeVisible();
   await expect(themePreview).toBeVisible();
   const previewCanvas = themePreview.locator('[data-theme-tokens~="canvas"]');
   const previewBox = await previewCanvas.boundingBox();
@@ -650,7 +664,7 @@ test("screens onboarding exposes labelled lifecycle and safely disabled creation
     } catch (error) {
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
-    await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
+    await expect(page.getByLabel("Scherminstelstappen")).toContainText("Controleren");
   }).toPass({ timeout: 20_000 });
   await expect(async () => {
     try {
@@ -659,17 +673,18 @@ test("screens onboarding exposes labelled lifecycle and safely disabled creation
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
     await expect(
-      page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
+      page.getByLabel("Control status", { exact: true }).getByRole("heading", { exact: true, level: 1, name: "Schermen" })
     ).toBeVisible();
   }).toPass({ timeout: 20_000 });
 
   await expect(page.getByRole("status").filter({ hasText: "geen fictieve schermen" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
   await page.goto("/dashboard/screens/new");
-  await expect(page.getByLabel("Onboardingstappen")).toContainText("Player koppelen");
+  await expect(page.getByLabel("Scherminstelstappen")).toContainText("Controleren");
   await expect(page.getByLabel("Schermnaam")).toBeVisible();
-  await expect(page.getByLabel("Eerste content (optioneel)")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Scherm maken en doorgaan" })).toBeDisabled();
+  await expect(page.getByLabel("Schermgroep", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Volgende", exact: true })).toBeDisabled();
+  await expect(page.getByRole("status").filter({ hasText: "Er wordt niets aangemaakt" })).toBeVisible();
 });
 
 test("pilot route exposes a sequential and fully labelled flow", async ({ page }) => {

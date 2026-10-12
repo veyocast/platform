@@ -1,5 +1,7 @@
 import {
   mobileApiErrorEnvelopeSchema,
+  mobilePlaylistDetailV2Schema,mobilePlaylistBatchResultV2Schema,mobilePlaylistLibraryV2Schema,mobileStudioWorkspaceV2Schema,mobileStudioResultV2Schema,mobileScreenCompositionWorkspaceV2Schema,mobileScreenCompositionResultV2Schema,
+  type PlaylistBatchCommand,type MobileStudioRequestV2,type MobilePlaylistLibraryV2,type MobileScreenCompositionRequestV2,type MobilePlacementThemeRequestV2,mobilePlacementThemeResultV2Schema,
   mobileCockpitEnvelopeSchema,
   mobileContentEnvelopeSchema,
   mobileDeletionRequestsEnvelopeSchema,
@@ -50,7 +52,18 @@ const dataEnvelope = <T extends z.ZodType>(schema: T) =>
     })
   });
 
+const dataEnvelopeV2 = <T extends z.ZodType>(schema: T) => z.object({data:schema,meta:z.object({requestId:z.string(),version:z.literal("2")})});
+
 export const mobileApi = {
+  preparePlacementThemeV2(tenantId:string,playlistId:string,input:MobilePlacementThemeRequestV2){return request(`/api/mobile/v2/playlists/${playlistId}/placement-theme`,dataEnvelopeV2(mobilePlacementThemeResultV2Schema),{tenantId,method:"POST",body:input}).then(value=>value.data);},
+  placementThemeStatusV2(tenantId:string,playlistId:string,jobId:string){return request(`/api/mobile/v2/playlists/${playlistId}/placement-theme?jobId=${jobId}`,dataEnvelopeV2(mobilePlacementThemeResultV2Schema),{tenantId}).then(value=>value.data);},
+  screenCompositionV2(tenantId:string,screenId:string){return request(`/api/mobile/v2/screens/${screenId}/composition`,dataEnvelopeV2(mobileScreenCompositionWorkspaceV2Schema),{tenantId}).then(value=>value.data);},
+  publishScreenCompositionV2(tenantId:string,screenId:string,input:MobileScreenCompositionRequestV2){return request(`/api/mobile/v2/screens/${screenId}/composition`,dataEnvelopeV2(mobileScreenCompositionResultV2Schema),{tenantId,method:"POST",body:input}).then(value=>value.data);},
+  playlistV2(tenantId:string,playlistId:string){return request(`/api/mobile/v2/playlists/${playlistId}`,dataEnvelopeV2(mobilePlaylistDetailV2Schema),{tenantId}).then(value=>value.data);},
+  mutatePlaylistBatchV2(tenantId:string,input:PlaylistBatchCommand){return request(`/api/mobile/v2/playlists/${input.playlistId}`,dataEnvelopeV2(mobilePlaylistBatchResultV2Schema),{tenantId,method:"POST",body:input}).then(value=>value.data);},
+  libraryV2(tenantId:string,tab:MobilePlaylistLibraryV2["tab"],offset=0,search=""){return request(`/api/mobile/v2/library?tab=${tab}&offset=${offset}&search=${encodeURIComponent(search)}`,dataEnvelopeV2(mobilePlaylistLibraryV2Schema),{tenantId}).then(value=>value.data);},
+  studioV2(tenantId:string,seriesId?:string,offset=0){return request(`/api/mobile/v2/studio?offset=${offset}${seriesId?`&seriesId=${encodeURIComponent(seriesId)}`:""}`,dataEnvelopeV2(mobileStudioWorkspaceV2Schema),{tenantId}).then(value=>value.data);},
+  mutateStudioV2(tenantId:string,input:MobileStudioRequestV2){return request("/api/mobile/v2/studio",dataEnvelopeV2(mobileStudioResultV2Schema),{tenantId,method:"POST",body:input}).then(value=>value.data);},
   cockpit(tenantId: string) {
     return request(
       "/api/mobile/v1/cockpit",
@@ -311,23 +324,44 @@ async function request<T>(
       401
     );
   }
-  const response = await fetch(`${runtime.config.controlOrigin}${path}`, {
-    ...(options.body === undefined
-      ? {}
-      : { body: JSON.stringify(options.body) }),
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${session.access_token}`,
-      ...(options.body === undefined
-        ? {}
-        : { "Content-Type": "application/json" }),
-      ...(options.tenantId
-        ? { "X-VeyoCast-Tenant-Id": options.tenantId }
-        : {})
-    },
-    method: options.method ?? "GET"
+  const controller = new AbortController();
+  let deadline: ReturnType<typeof setTimeout> | undefined;
+  const unavailable = () => new MobileApiError(
+    "NETWORK_UNAVAILABLE",
+    "De server kon de actie niet tijdig bevestigen.",
+    "Je lokale gegevens blijven behouden. Probeer dezelfde opslaghandeling opnieuw.",
+    null,
+    503
+  );
+  const timeout = new Promise<never>((_, reject) => {
+    deadline = setTimeout(() => { controller.abort(); reject(unavailable()); }, 30_000);
   });
-  const payload: unknown = await response.json().catch(() => null);
+  let response: Response;
+  let payload: unknown;
+  try {
+    ({ response, payload } = await Promise.race([
+      (async () => {
+        const response = await fetch(`${runtime.config.controlOrigin}${path}`, {
+          signal: controller.signal,
+          ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            ...(options.body === undefined ? {} : { "Content-Type": "application/json" }),
+            ...(options.tenantId ? { "X-VeyoCast-Tenant-Id": options.tenantId } : {})
+          },
+          method: options.method ?? "GET"
+        });
+        const payload: unknown = await response.json().catch(() => null);
+        return { response, payload };
+      })(),
+      timeout
+    ]));
+  } catch {
+    throw unavailable();
+  } finally {
+    clearTimeout(deadline);
+  }
   if (!response.ok) {
     const parsedError = mobileApiErrorEnvelopeSchema.safeParse(payload);
     if (parsedError.success) {

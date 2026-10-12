@@ -7,6 +7,7 @@ import { addTicketMessage, deleteSupportTicket, uploadTicketAttachment } from ".
 import { loadSupportTicket } from "../data";
 import { formatDate, relationName, statusLabel } from "../support-format";
 import styles from "../support.module.css";
+import sites from "../../settings/sites-settings.module.css";
 
 export default async function TicketPage({ params }: { params: Promise<{ ticketId: string }> }) {
   await requireTenantControlSession("tenant.ticket.read");
@@ -14,7 +15,7 @@ export default async function TicketPage({ params }: { params: Promise<{ ticketI
   const data = await loadSupportTicket(ticketId);
   if (!data) notFound();
   return (
-    <>
+    <div className={sites.page}>
       <PageHeader
         actions={<Link className="button-link button-link--secondary" href="/dashboard/support">Alle tickets</Link>}
         description={`${relationName(data.ticket.support_departments)} · aangemaakt ${formatDate(data.ticket.created_at)}`}
@@ -22,7 +23,7 @@ export default async function TicketPage({ params }: { params: Promise<{ ticketI
         status={{ label: statusLabel(data.ticket.status), tone: data.ticket.status === "closed" ? "success" : "info" }}
         title={data.ticket.subject}
       />
-      <section className="workspace-section">
+      <section className={`${sites.surface} workspace-section`}>
         <div className={styles.thread}>
           {data.messages.map((message) => (
             <article className={`${styles.message} ${message.author_scope === "platform" ? styles.platformMessage : ""}`} key={message.id}>
@@ -41,7 +42,7 @@ export default async function TicketPage({ params }: { params: Promise<{ ticketI
           </form>
         ) : null}
       </section>
-      <section className="workspace-section">
+      <section className={`${sites.surface} workspace-section`}>
         <div className="workspace-section__header"><div><h2 className="workspace-section__title">Bijlagen</h2><p className="work-panel__meta">JPG, PNG, PDF of tekst; maximaal 10 MB. Downloadlinks verlopen na vijf minuten.</p></div><StatusPill label={`${data.attachments.length} bestanden`} tone="neutral" /></div>
         <div className={styles.attachments}>{data.attachments.map((attachment) => attachment.url ? <a href={attachment.url} key={attachment.id}>{attachment.file_name}<span>{Math.ceil(attachment.file_size_bytes / 1024)} KB{attachment.sensitive ? " · gevoelig" : ""}</span></a> : null)}</div>
         <form action={uploadTicketAttachment} className={styles.reply}>
@@ -52,7 +53,7 @@ export default async function TicketPage({ params }: { params: Promise<{ ticketI
           <Button type="submit" variant="secondary">Bijlage uploaden</Button>
         </form>
       </section>
-      <section className="workspace-section">
+      <section className={`${sites.surface} workspace-section`}>
         <h2 className="workspace-section__title">Ticket verwijderen</h2>
         <p className="work-panel__meta">Het ticket verdwijnt voor gebruikers; de verwijderactie blijft als auditbewijs bestaan.</p>
         <form action={deleteSupportTicket}>
@@ -60,6 +61,6 @@ export default async function TicketPage({ params }: { params: Promise<{ ticketI
           <Button type="submit" variant="destructive">Ticket verwijderen</Button>
         </form>
       </section>
-    </>
+    </div>
   );
 }

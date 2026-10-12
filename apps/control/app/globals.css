@@ -5066,9 +5066,13 @@ body .vc-dialog__content {
   padding: var(--vc-space-8);
 }
 
-.media-upload-results li > span {
+.media-upload-results li > span:not(.vc-badge) {
   display: grid;
   min-width: 0;
+}
+
+.media-upload-results li > .vc-badge {
+  flex-shrink: 0;
 }
 
 .media-upload-results li strong,
@@ -5987,3 +5991,16 @@ body .vc-dialog__content {
     transition: none;
   }
 }
+
+/* Sites v11 local fonts; source bytes are verified by system-assets.json. */
+@font-face{font-family:'Inter Variable';src:url('/fonts/inter.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Manrope Variable';src:url('/fonts/manrope.woff2') format('woff2');font-weight:200 800;font-style:normal;font-display:swap}
+/* Routes without their own Sites counterpart retain the real authentication
+   flow and receive the source typography, form metrics and Surface treatment. */
+.auth-shell{background:var(--ff-canvas);font-family:'Inter Variable',var(--ff-font-body);min-height:100dvh;padding:24px}
+.auth-panel{background:var(--ff-surface);border-color:var(--ff-line);border-radius:17px;padding:30px;gap:22px;box-shadow:0 1px 3px color-mix(in srgb,var(--ff-brand-petrol) 3%,transparent)}
+.auth-title{font-family:'Manrope Variable',var(--ff-font-display);font-size:31px;line-height:1.1;letter-spacing:-1.1px;color:var(--ff-brand-petrol);font-weight:650}
+.auth-copy{font-size:14px;line-height:1.6;color:var(--ff-ink-muted)}
+.auth-panel .field input,.auth-panel .field select{min-height:45px;border-radius:9px;border-color:var(--ff-line);font-size:14px}
+.auth-panel .field label{font-size:13px;font-weight:600}.auth-panel .auth-button{min-height:45px;border-radius:9px;font-weight:650}
+@media(max-width:760px){.auth-shell{padding:16px}.auth-panel{padding:20px}.auth-panel .field input,.auth-panel .field select,.auth-panel .auth-button{min-height:48px}}

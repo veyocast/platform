@@ -31,6 +31,7 @@ import {
 import { isoToZonedDateTimeLocal } from "./planning/schedule-time";
 import styles from "./publisher-overview.module.css";
 import DashboardLoading from "./loading";
+import { countConfirmedActivePlaylists } from "./sites-active-playlists";
 import {
   createTodayVisualFixture,
   resolveTodayVisualState
@@ -178,7 +179,7 @@ function FieldFlowOverview({
 
       <section aria-label="Belangrijkste cijfers" className={styles.referenceMetrics}>
         <MetricCard
-          detail={data.screens.length ? "Alle locaties bereikbaar" : "Nog geen schermen gekoppeld"}
+          detail={screensKnown ? !data.screens.length ? "Nog geen schermen gekoppeld" : allScreensOnline ? "Alle locaties bereikbaar" : "Bekijk de schermstatus" : "Schermstatus nog niet beschikbaar"}
           href="/dashboard/screens"
           icon={<Monitor aria-hidden="true" />}
           label="Schermen online"
@@ -194,7 +195,7 @@ function FieldFlowOverview({
           label="Nu actief"
           tone="blue"
           value={data.availability.devices && data.availability.telemetry
-            ? operations.activePlaybackCount
+            ? countConfirmedActivePlaylists(data)
             : "—"}
         />
         <MetricCard
@@ -207,7 +208,7 @@ function FieldFlowOverview({
         />
         <MetricCard
           detail={latestRelease
-            ? `${playlistById.get(latestRelease.playlist_id)?.name ?? "Publicatie"} · zojuist`
+            ? `${playlistById.get(latestRelease.playlist_id)?.name ?? "Publicatie"} · ${new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", timeZone: tenantTimeZone }).format(new Date(latestRelease.published_at))}`
             : "Nog niets gepubliceerd"}
           href="/dashboard/publications"
           icon={<Clock3 aria-hidden="true" />}

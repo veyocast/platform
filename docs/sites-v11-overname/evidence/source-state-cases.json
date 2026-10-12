@@ -1,0 +1,109 @@
+{
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "bundleJsSha256": "c46c53671a3c4ec054c006ecdddd8bdc9b3635dcf62709b2b1c75f91b81b05e8",
+  "bundleCssSha256": "68a74a451a376be0d6322556ddf05a4a7ad501e89940b4f81d6a32dbbb7770b3",
+  "scope": "Actual guarded Sportlink Source connection and destination components; controlled server boundary, original STATE CSV expectations and 390x844. Pixel golden/provider/SSR/storage claims remain separate.",
+  "results": [
+    {
+      "case_id": "STATE-0005",
+      "state": "loading",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0005-390x844.png",
+      "screenshotSha256": "a399e3eef0e1cedb4150102d63d52bf59097b86af7d6385a4895745d1377366f"
+    },
+    {
+      "case_id": "STATE-0010",
+      "state": "empty",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0010-390x844.png",
+      "screenshotSha256": "916599a67d6125e822c2c9b0a918461a3c91ac6d32acae6cc25d3d1ff2de4f4e"
+    },
+    {
+      "case_id": "STATE-0015",
+      "state": "validation",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0015-390x844.png",
+      "screenshotSha256": "7d8fc404f3bf1a95020e6e4f3ec77abe892ae6ad2bb07774e02fd2aa1318aacf"
+    },
+    {
+      "case_id": "STATE-0020",
+      "state": "network-failure",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0020-390x844.png",
+      "screenshotSha256": "2ecebfe0de8186ff7b4fb2e3f5947ddfe850a20f845df3e984f130b225351553"
+    },
+    {
+      "case_id": "STATE-0025",
+      "state": "permission-readonly",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0025-390x844.png",
+      "screenshotSha256": "c2a2f08faa3cb1d20f8ecfc7fa1bbfacb45a78b7d71bb5d1d26ba5ec328f31c0"
+    },
+    {
+      "case_id": "STATE-0030",
+      "state": "revision-conflict",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0030-390x844.png",
+      "screenshotSha256": "ef7a8966b5d11b07a632e2882e8ae53833c45b5259b95b3f91757c0b5e26ff2f"
+    },
+    {
+      "case_id": "STATE-0035",
+      "state": "processing-media",
+      "viewport": "390x844",
+      "status": "PASS",
+      "scope": "Actual Sportlink design workflow: tenant background readiness changes after initial page read; canonical preview waits, rejects pending media, retains title/selected image, then recovers with ready background. No source, snapshot, playlist or publication write.",
+      "noFalseSuccess": true,
+      "recoveryVerified": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0035-390x844.png",
+      "screenshotSha256": "2ee88eb844b1671c98e8ac4adb8b27d5a3570ed1a3497f494f50e0aa667c7239"
+    },
+    {
+      "case_id": "STATE-0040",
+      "state": "publication-pending",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0040-390x844.png",
+      "screenshotSha256": "45eeb27dda279238feeb9214728d07cc3aa98f6abc5692db018c74ae01e74934"
+    },
+    {
+      "case_id": "STATE-0045",
+      "state": "offline-stale",
+      "viewport": "390x844",
+      "status": "PASS",
+      "recoveryVerified": true,
+      "noFalseSuccess": true,
+      "pixelGoldenCompared": false,
+      "screenshot": "/dev/shm/veyocast-s191-source-case-evidence/STATE-0045-390x844.png",
+      "screenshotSha256": "3d5a9ff9fb5d24a2576ccb05b07bbb27288162fc010eb96613f335cb04b74857"
+    }
+  ],
+  "artifactNotes": "Screenshots stay in the RAM test-artifact directory. These metadata are durable; individual PNG SHA256 values and bundle hashes identify the executed actual production components. Provider/SSR/storage/hardware and Source-golden pixel comparison are separate gates."
+}

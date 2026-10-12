@@ -6,13 +6,14 @@ import { createControlSupabaseClient } from "../../../../../lib/supabase/server"
 import { PageHeader } from "../../../_components/shell-primitives";
 import { createBillingAccount, startPaymentMethodSetup } from "./actions";
 import styles from "./billing.module.css";
+import routeStyles from "../../sites-secondary.module.css";
 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ fout?: string; succes?: string }> }) {
   const session = await requireTenantControlSession("tenant.billing.read");
   const params = await searchParams;
   const data = await loadBilling(session.tenantId, session.isLive);
   const canManage = session.isLive && hasCapability(session.capabilities,"tenant.billing.manage");
-  return <>
+  return <div className={routeStyles.page}>
     <PageHeader description="Transparante schermtelling, immutable facturen en een provider-hosted betaalmethode. Bestaande content blijft bij een betaalprobleem veilig bewaard." eyebrow={`${session.tenant} · Instellingen`} status={{ label: data.enabled ? "Gecontroleerde cohort" : "Nog niet geactiveerd", tone: data.enabled ? "info" : "neutral" }} title="Abonnement & facturatie" />
     <p><Link href="/dashboard/settings#abonnement">← Terug naar instellingen</Link></p>
     {params.fout?<p className="notice notice--critical" role="alert"><strong>Actie mislukt.</strong> {params.fout}</p>:null}
@@ -27,7 +28,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     <section className={styles.panel}><h2>Welke schermen tellen mee?</h2>{data.intervals.length?<ul className={styles.list}>{data.intervals.map((item)=><li key={item.id}><div><strong>{screenRelation(item.screens)?.name??"Scherm"}</strong><span>{screenRelation(item.screens)?.location??"Geen locatie"}</span></div><span>Billable sinds {formatDate(item.started_at)}</span></li>)}</ul>:<p>Nog geen billable scherminterval. Een draft of ongeclaimde koppelcode telt nooit mee.</p>}</section>
     {data.notifications.length?<section className={styles.panel}><h2>Betalingsmeldingen</h2><ul className={styles.list}>{data.notifications.map((notice)=><li key={notice.id}><div><strong>{notificationLabel(notice.stage)}</strong><span>{formatDate(notice.created_at)}</span></div><StatusPill label={notice.channel==="email"?(notice.state==="delivered"?"E-mail bezorgd":"E-mail gepland"):"In-app"} tone={notice.state==="failed"?"warning":"neutral"}/></li>)}</ul></section>:null}
     <section className={styles.panel}><h2>Facturen en betaalpogingen</h2>{data.invoices.length?<ul className={styles.list}>{data.invoices.map((invoice)=><li key={invoice.id}><div><strong>{invoice.invoice_number}</strong><span>{formatDate(invoice.period_start)} – {formatDate(invoice.period_end)}</span></div><span>{euro(Number(invoice.gross_cents))} · {invoice.status}</span></li>)}</ul>:<p>Er zijn nog geen facturen. Shadowberekeningen of drafts worden niet als echte schuld gepresenteerd.</p>}</section>
-  </>;
+  </div>;
 }
 
 async function loadBilling(tenantId:string|null,isLive:boolean){ if(!tenantId||!isLive)return {account:null,attempt:null,enabled:false,intervals:[],invoices:[],notifications:[],subscription:null}; const supabase=await createControlSupabaseClient(); if(!supabase)return {account:null,attempt:null,enabled:false,intervals:[],invoices:[],notifications:[],subscription:null}; const [flag,account,subscription,intervals,invoices,attempt,notifications]=await Promise.all([supabase.from("tenant_feature_flags").select("enabled").eq("tenant_id",tenantId).eq("flag_key","billing_engine_enabled").maybeSingle(),supabase.from("billing_accounts").select("id,provider_mode,mollie_customer_id,row_version,legal_name,invoice_email,credit_balance_cents").eq("tenant_id",tenantId).maybeSingle(),supabase.from("billing_subscriptions").select("status,trial_started_at,trial_ends_at,grace_ends_at,paid_through,current_period_start,current_period_end").eq("tenant_id",tenantId).neq("status","ended").maybeSingle(),supabase.from("screen_billing_intervals").select("id,started_at,ended_at,screens(name,location)").eq("tenant_id",tenantId).is("ended_at",null).order("started_at"),supabase.from("billing_invoices").select("id,invoice_number,period_start,period_end,gross_cents,status").eq("tenant_id",tenantId).order("period_start",{ascending:false}).limit(24),supabase.from("billing_payment_attempts").select("checkout_url,provider_status").eq("tenant_id",tenantId).eq("sequence_type","first").order("created_at",{ascending:false}).limit(1).maybeSingle(),supabase.from("billing_notifications").select("id,stage,channel,state,created_at").eq("tenant_id",tenantId).order("created_at",{ascending:false}).limit(8)]); return {account:account.data,attempt:attempt.data,enabled:Boolean(flag.data?.enabled),intervals:intervals.data??[],invoices:invoices.data??[],notifications:notifications.data??[],subscription:subscription.data}; }

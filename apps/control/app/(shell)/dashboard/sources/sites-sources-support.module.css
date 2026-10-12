@@ -1,0 +1,20 @@
+.detail{font-size:14px!important;line-height:1.6!important;min-height:0!important;margin-bottom:16px!important;color:var(--vc-text-secondary)!important}.support{display:grid;gap:18px;border:1px solid var(--vc-border);border-radius:16px;padding:24px;background:var(--vc-surface);font-size:14px}.support h2,.support h3,.support p{margin:0}.links{display:flex;flex-wrap:wrap;gap:12px}.forms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.form{display:grid;align-content:start;gap:14px}.field{display:grid;gap:7px}.field input,.field select{width:100%;min-height:44px;border:1px solid var(--vc-border);border-radius:8px;padding:10px 12px;background:var(--vc-surface);color:var(--vc-text)}.rows{display:grid;gap:15px}.row{display:grid;gap:10px;padding:18px 0;border-bottom:1px solid var(--vc-border)}.row>header{display:flex;align-items:center;justify-content:space-between;gap:12px}.row dl{display:flex;gap:24px;flex-wrap:wrap;margin:0}.row dl>div{display:grid;gap:5px}.row dt{color:var(--vc-text-secondary)}.row dd{margin:0;font-weight:600}.support summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}.support details[open]>summary{margin-bottom:18px}@media(max-width:700px){.forms{grid-template-columns:1fr}.support{padding:18px}.row>header{align-items:flex-start;flex-direction:column}}
+
+.statusTrigger{display:flex;align-items:center;justify-content:flex-end;min-height:44px;max-width:100%;padding:0;border:0;border-radius:8px;background:transparent;color:inherit;cursor:pointer}.statusTrigger:focus-visible{outline:2px solid var(--ff-focus, var(--vc-focus));outline-offset:4px}.statusBody{display:grid;justify-items:start;gap:16px}.statusBody p{margin:0;font-size:14px;line-height:1.6;color:var(--vc-text-secondary)}.buttons>a{width:100%;justify-content:flex-start!important}.buttons>a>svg:last-child:not(:first-child){margin-left:auto}
+
+.buttons>a{min-width:0;max-width:100%;box-sizing:border-box}.buttons>a :global(.vc-button__label){min-width:0}
+.buttons{gap:9px!important}
+@media(max-width:767px){.buttons{gap:9px!important}}
+
+.hero :global(.vc-badge){font-size:11px;font-weight:650;line-height:1.5;gap:6px;padding:6px 9px;width:121px;max-width:121px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 121px}
+
+
+
+.buttons>a,.buttons>a :global(.vc-button__label){white-space:normal!important}
+
+@media(min-width:768px){.buttons>a{min-height:42px!important}}
+
+.buttons>a{height:auto!important}
+
+.buttons>a:global(.vc-button--primary){min-height:44px!important}
+@media(min-width:900px){.buttons{gap:7px!important}}

@@ -1,4 +1,8 @@
 import "react-native-gesture-handler";
+import SitesInter_400Regular from "../assets/fonts/SitesInter-400.ttf";
+import SitesInter_500Medium from "../assets/fonts/SitesInter-500.ttf";
+import SitesInter_600SemiBold from "../assets/fonts/SitesInter-600.ttf";
+import SitesInter_700Bold from "../assets/fonts/SitesInter-700.ttf";
 
 import {
   AppShell,
@@ -7,10 +11,6 @@ import {
   ScreenScrollView,
   useMobileTheme
 } from "@veyocast/mobile-design-system";
-import { Roboto_400Regular } from "@expo-google-fonts/roboto/400Regular";
-import { Roboto_500Medium } from "@expo-google-fonts/roboto/500Medium";
-import { Roboto_600SemiBold } from "@expo-google-fonts/roboto/600SemiBold";
-import { Roboto_700Bold } from "@expo-google-fonts/roboto/700Bold";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { Stack, type ErrorBoundaryProps } from "expo-router";
@@ -45,10 +45,10 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Roboto_400Regular,
-    Roboto_500Medium,
-    Roboto_600SemiBold,
-    Roboto_700Bold
+    SitesInter_400Regular,
+    SitesInter_500Medium,
+    SitesInter_600SemiBold,
+    SitesInter_700Bold
   });
   const fontsReady = fontsLoaded || Boolean(fontError);
   return (
@@ -96,6 +96,8 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="studio/index" options={{title:"Studio"}}/>
+        <Stack.Screen name="studio/[seriesId]" options={{title:"Studio-reeks"}}/>
         <Stack.Screen name="screens/[screenId]" options={{ title: "Scherm" }} />
         <Stack.Screen name="screens/pair" options={{ title: "Scherm koppelen" }} />
         <Stack.Screen name="more/organizations" options={{ title: "Organisaties" }} />

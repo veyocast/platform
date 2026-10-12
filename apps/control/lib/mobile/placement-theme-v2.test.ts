@@ -1,0 +1,14 @@
+import {beforeEach,describe,expect,it} from "vitest";
+import {studioSitesSystemTemplates} from "@veyocast/studio";
+import type {MobileRequestContext,MobileTenantContext} from "../mobile-api/context";
+import {readMobilePlacementTheme} from "./placement-theme-v2";
+const tenantId="10000000-0000-4000-8000-000000191292",jobId="20000000-0000-4000-8000-000000191292",assetId="30000000-0000-4000-8000-000000191292";
+const state={checksum:"a".repeat(64),bytes:100,status:"completed",tenantFilters:[]as unknown[],selected:[]as string[]};
+const client={from:(table:string)=>{const builder={select:()=>{state.selected.push(table);return builder;},eq:(field:string,value:unknown)=>{if(field==="tenant_id")state.tenantFilters.push(value);return builder;},is:()=>builder,maybeSingle:async()=>({error:null,data:table==="studio_render_jobs"?{project_id:assetId,revision_id:assetId,status:state.status,output_kind:"png"}:table==="studio_exports"?{media_asset_id:assetId,checksum_sha256:"a".repeat(64)}:table==="media_assets"?{id:assetId}:table==="media_variants"?{file_size_bytes:state.bytes,checksum_sha256:state.checksum,mime_type:"image/png"}:table==="studio_revisions"?{document_json:studioSitesSystemTemplates[0]!.document}:null})};return builder;}};
+const context={supabase:client}as unknown as MobileRequestContext,tenant={id:tenantId}as MobileTenantContext;
+beforeEach(()=>{state.checksum="a".repeat(64);state.bytes=100;state.status="completed";state.selected=[];state.tenantFilters=[];});
+describe("mobile theme render readback",()=>{
+ it("does not acknowledge a completed job whose playback bytes disagree with the immutable export",async()=>{state.checksum="b".repeat(64);expect(await readMobilePlacementTheme(context,tenant,jobId)).toEqual({status:"failed",code:"render_unverified"});state.checksum="a".repeat(64);state.bytes=0;expect(await readMobilePlacementTheme(context,tenant,jobId)).toEqual({status:"failed",code:"render_unverified"});});
+ it("returns ready only for matching immutable export and ready playback variant with a typed frozen document",async()=>{const result=await readMobilePlacementTheme(context,tenant,jobId);expect(result).toMatchObject({status:"ready",mediaAssetId:assetId,checksumSha256:"a".repeat(64),presentation:{kind:"studio",rendererVersion:"sites-v11"}});expect(state.selected).toEqual(["studio_render_jobs","studio_exports","media_assets","media_variants","studio_revisions"]);expect(state.tenantFilters).toHaveLength(5);expect(state.tenantFilters.every(value=>value===tenantId)).toBe(true);});
+ it("reports the actual queued job without reading or manufacturing a completed export",async()=>{state.status="queued";expect(await readMobilePlacementTheme(context,tenant,jobId)).toEqual({status:"pending",projectId:assetId,jobId});expect(state.selected).toEqual(["studio_render_jobs"]);});
+});

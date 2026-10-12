@@ -1,4 +1,5 @@
 import { z } from "zod";
+import {sitesDynamicConfigurationSchema} from "./sites-presentation";
 
 export const ledScoresCanvasSchemaVersion = 1 as const;
 export const ledScoresCanvasMaximumLayers = 16;
@@ -181,8 +182,10 @@ const backgroundSchema = z.discriminatedUnion("kind", [
 export const ledScoresCanvasSceneSchema = z.strictObject({
   background: backgroundSchema,
   layers: z.array(ledScoresCanvasLayerSchema).max(ledScoresCanvasMaximumLayers),
-  orientation: z.enum(["landscape", "portrait"])
+  orientation: z.enum(["landscape", "portrait"]),
+  sitesConfiguration:sitesDynamicConfigurationSchema.optional()
 }).superRefine((scene, context) => {
+  if(scene.sitesConfiguration&&(scene.sitesConfiguration.provider!=="led-scores"||scene.sitesConfiguration.orientation!==scene.orientation))context.addIssue({code:"custom",path:["sitesConfiguration"],message:"The LED presentation must use its scene orientation and the LED Scores provider."});
   const ids = new Set<string>();
   const zIndexes = new Set<number>();
   const canvasWidth = scene.orientation === "landscape" ? 1_920 : 1_080;
@@ -322,6 +325,7 @@ export function ledScoresCanvasAssetIds(
   for (const key of ledScoresCanvasMomentKeys) {
     for (const orientation of ["landscape", "portrait"] as const) {
       const scene = experience.scenes[key][orientation];
+      if(scene.sitesConfiguration?.background?.kind==="tenant")ids.add(scene.sitesConfiguration.background.mediaAssetId);
       if (scene.background.kind === "media") {
         ids.add(scene.background.mediaAssetId);
       }

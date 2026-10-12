@@ -1,6 +1,8 @@
 import Link from "next/link";
+import routeStyles from "../sites-secondary.module.css";
 import { Palette } from "lucide-react";
 
+import { themeCatalogOptions } from "@veyocast/content-templates/theme-catalog";
 import { Button, StatusPill } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
@@ -11,7 +13,7 @@ export default async function ThemesPage() {
   const session = await requireControlSession();
   const profile = await loadProfile(session.tenantId, session.isLive);
   return (
-    <>
+    <div className={routeStyles.page}>
       <PageHeader
         description="Beheer de visuele systemen van dynamische slides per theme."
         eyebrow={session.tenant}
@@ -33,9 +35,9 @@ export default async function ThemesPage() {
             <thead><tr><th>Thema</th><th>Status</th><th>Versie</th><th>Bijgewerkt op</th><th><span className="sr-only">Acties</span></th></tr></thead>
             <tbody>
               <tr>
-                <td data-label="Thema"><span className="resource-name"><Palette aria-hidden="true" /><strong>Royal Current · Navy Glass</strong></span></td>
-                <td data-label="Status"><StatusPill label="Actief" tone="success" /></td>
-                <td data-label="Versie">1.0.0 · revisie {profile.revision}</td>
+                <td data-label="Thema"><span className="resource-name"><Palette aria-hidden="true" /><strong>FieldFlow / Onze Trots TV</strong></span></td>
+                <td data-label="Status"><StatusPill label="Beschikbaar" tone="info" /></td>
+                <td data-label="Versie">{themeCatalogOptions.map((theme) => `${theme.name} ${theme.version}`).join(" · ")} · revisie {profile.revision}</td>
                 <td data-label="Bijgewerkt op">{formatDate(profile.updatedAt)}</td>
                 <td data-label="Acties"><Button asChild size="sm" variant="secondary"><Link href="/dashboard/themes/fieldflow">Bewerken</Link></Button></td>
               </tr>
@@ -43,7 +45,7 @@ export default async function ThemesPage() {
           </table>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 

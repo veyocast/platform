@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "scope": "Disposable database concurrency; synthetic media metadata; no Storage/provider/visible-frame claim",
+  "observedConcurrentLockWait": true,
+  "publisherOutcome": "published",
+  "staleAcknowledgement": false,
+  "currentAcknowledgement": true,
+  "initialTargetRevision": 3,
+  "finalTargetRevision": 4,
+  "elapsedMs": 3276
+}

@@ -1,0 +1,20 @@
+{
+  "created_at_utc": "2026-10-11",
+  "purpose": "Read-only comparison and exact UI/UX transfer; no production or Sites changes",
+  "sites": {
+    "url": "https://veyocast-ui.dgwebserv.chatgpt.site",
+    "project_id": "appgprj_6ac9ab5e10ac8191a2436ee1ea895ece",
+    "version": 11,
+    "commit": "b1cae899af19fc39908217253094c5240d7359fc",
+    "deployment_status": "succeeded",
+    "version_id": "appgprj_6ac9ab5e10ac8191a2436ee1ea895ece~appgver_e53eb35b3af881919c7f0d14b57b3a2d"
+  },
+  "github": {
+    "url": "https://github.com/veyocast/platform",
+    "branch": "main",
+    "commit": "6fcc26f02c8050b7244e3660a93b85f02491e121",
+    "commit_time": "2026-09-27T02:09:17+02:00",
+    "deployed_production_commit": "not inspected; repository HEAD is not deployment evidence"
+  },
+  "reference_source_policy": "All git-tracked Sites source bytes copied unchanged except generated tsconfig.tsbuildinfo. No .git, credentials, node_modules or browser data."
+}

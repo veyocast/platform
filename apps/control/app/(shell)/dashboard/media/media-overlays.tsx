@@ -23,12 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
   Inspector,
-  Sheet,
-  SheetBody,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
   type StatusTone
 } from "@veyocast/ui";
 
@@ -42,6 +36,8 @@ import {
 } from "./actions";
 import { ImageUploadForm } from "./image-upload-form";
 import { VideoUploadForm } from "./video-upload-form";
+
+import sites from "./sites-media.module.css";
 
 type MediaUploadDialogProps = {
   anonKey: string;
@@ -169,7 +165,7 @@ export function MediaUploadDialog({
             >
               <div>
                 <h3 id="media-image-upload-title">Afbeelding</h3>
-                <p>JPEG, PNG of WebP · maximaal 20 MB.</p>
+                <p>JPEG, PNG, WebP of AVIF · maximaal 25 MB. Ook GIF tot 50 MB en veilige SVG tot 2 MB.</p>
               </div>
               <ImageUploadForm canUpload={canUpload} />
             </section>
@@ -226,7 +222,7 @@ export function MediaInspectorSheet({
   }, []);
 
   return (
-    <Sheet
+    <Dialog
       onOpenChange={(nextOpen) => {
         if (!sheetReadyRef.current && !nextOpen) return;
         setSheetOpen(nextOpen);
@@ -236,20 +232,20 @@ export function MediaInspectorSheet({
       }}
       open={sheetOpen}
     >
-      <SheetContent closeLabel="Mediadetails sluiten" side="right">
-        <SheetHeader>
-          <SheetTitle>Mediadetails</SheetTitle>
-          <SheetDescription>
+      <DialogContent className={sites.metadata} closeLabel="Mediadetails sluiten" size="wide">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
             Bekijk metadata, gebruik, verwerking en veilige beheeracties.
-          </SheetDescription>
-        </SheetHeader>
-        <SheetBody>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
           <Inspector description={description} status={status} title={title}>
             {children}
           </Inspector>
-        </SheetBody>
-      </SheetContent>
-    </Sheet>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -335,10 +331,12 @@ export function ArchiveMediaDialog({
 
 export function MediaOrganizationDialog({
   canWrite,
-  folders
+  folders,
+  triggerLabel = "Organiseren"
 }: {
   canWrite: boolean;
   folders: MediaFolderOption[];
+  triggerLabel?: string;
 }) {
   const folderKey = useRef<HTMLInputElement>(null);
   const collectionKey = useRef<HTMLInputElement>(null);
@@ -349,7 +347,7 @@ export function MediaOrganizationDialog({
       <DialogTrigger asChild>
         <Button disabled={!canWrite} variant="secondary">
           <FolderPlus aria-hidden="true" />
-          Organiseren
+          {triggerLabel}
         </Button>
       </DialogTrigger>
       <DialogContent>

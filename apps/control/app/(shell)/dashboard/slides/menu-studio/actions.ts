@@ -197,7 +197,7 @@ export async function publishMenuStudio(input: {
   | { ok: true; outcome: "already_applied" | "applied"; revision: number; snapshotId: string | null }
   | { code: string; message: string; ok: false }
 > {
-  await requireTenantControlSession("tenant.dynamic_slide.write");
+  const session = await requireTenantControlSession("tenant.dynamic_slide.write");
   const operationId = input.operationId ?? randomUUID();
   if (
     !uuidPattern.test(input.slideId) ||
@@ -208,14 +208,22 @@ export async function publishMenuStudio(input: {
     return failure("MENU_PUBLISH_INVALID", "De publicatieopdracht is ongeldig.");
   }
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return failure("MENU_STUDIO_UNAVAILABLE", "Menu Studio is momenteel niet beschikbaar.");
+  if (!supabase || !session.isLive || !session.tenantId) return failure("MENU_STUDIO_UNAVAILABLE", "Menu Studio is momenteel niet beschikbaar.");
   const slide = await supabase
     .from("dynamic_slides")
-    .select("active_draft_version_id")
+    .select("active_draft_version_id,status,current_snapshot_id,configuration_json")
+    .eq("tenant_id", session.tenantId)
     .eq("id", input.slideId)
     .maybeSingle();
-  if (slide.error || !slide.data?.active_draft_version_id) {
-    return failure("MENU_VERSION_NOT_FOUND", "Maak eerst een nieuwe conceptversie van dit menu.");
+  if (slide.error || !slide.data) return failure("MENU_VERSION_NOT_FOUND", "Dit menu is niet beschikbaar in je actieve vereniging.");
+  if (!slide.data.active_draft_version_id) {
+    // A successful publication may have completed after its HTTP response was lost.
+    // Only the actual ready snapshot with the same stored document revision is a receipt.
+    const document = menuDocumentV2Schema.safeParse(slide.data.configuration_json);
+    if (slide.data.status === "ready" && uuidPattern.test(slide.data.current_snapshot_id ?? "") && document.success && document.data.revision === input.expectedRevision) {
+      return { ok: true, outcome: "already_applied", revision: input.expectedRevision, snapshotId: slide.data.current_snapshot_id };
+    }
+    return failure("MENU_VERSION_NOT_FOUND", "De gekozen menuversie is nog niet gereed of intussen gewijzigd. Je concept blijft behouden; controleer de nieuwste versie.");
   }
   const result = await supabase.rpc("publish_dynamic_slide_version_v1", {
     p_expected_revision: input.expectedRevision,

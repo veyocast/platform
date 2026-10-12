@@ -46,6 +46,8 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {
       new RegExp(`${pathname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
     );
     await expect(page.locator("#control-content")).toBeVisible();
+    // Broadcast previews are images inside the workspace, not page landmarks.
+    await expect(page.getByRole("main")).toHaveCount(1);
     await expect(
       page.getByRole("main").getByRole("heading", { level: 1 }).first()
     ).toBeVisible();
@@ -53,9 +55,17 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {
 
   const metrics = await page.getByRole("main").evaluate((element) => {
     const content = element.querySelector<HTMLElement>("#control-content");
-    const pageContent = content?.lastElementChild as HTMLElement | null;
+    // RSC streaming can append a script after the final workspace. Measure
+    // actual visible content, so a zero-height transport node cannot make this
+    // reachability assertion pass without reaching the page itself.
+    const pageContent = content ? Array.from(content.children).filter(
+      (child): child is HTMLElement => child instanceof HTMLElement &&
+        !["SCRIPT", "STYLE"].includes(child.tagName) &&
+        child.getBoundingClientRect().height > 0 &&
+        getComputedStyle(child).visibility !== "hidden"
+    ).at(-1) ?? null : null;
     const mobileNavigation = document.querySelector<HTMLElement>(
-      ".control-mobile-nav"
+      ".vx-bottomnav"
     );
     if (!content || !pageContent) return null;
 

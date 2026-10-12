@@ -189,8 +189,8 @@ select set_config(
 
 select is(
   (select count(*) from public.tenant_theme_profiles),
-  1::bigint,
-  'tenant A sees exactly its own theme profile'
+  2::bigint,
+  'tenant A sees exactly its own two authorable theme profiles'
 );
 
 select is(
@@ -210,8 +210,8 @@ select set_config(
 );
 select is(
   (select count(*) from public.tenant_theme_profiles),
-  1::bigint,
-  'tenant B independently sees exactly its own theme profile'
+  2::bigint,
+  'tenant B independently sees exactly its own two authorable theme profiles'
 );
 
 select set_config(

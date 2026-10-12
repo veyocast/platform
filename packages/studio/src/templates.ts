@@ -1,3 +1,4 @@
+import { studioSitesSystemTemplates } from "./sites";
 import { createEmptyStudioDocument } from "./document";
 import { parseStudioDocument, type StudioDocument, type StudioElement } from "./schema";
 import {
@@ -150,7 +151,7 @@ export const studioSystemTemplates: readonly StudioSystemTemplate[] =
   );
 
 export function getStudioSystemTemplate(templateId: string) {
-  return studioSystemTemplates.find((template) => template.id === templateId);
+  return [...studioSitesSystemTemplates,...studioSystemTemplates].find((template) => template.id === templateId);
 }
 
 function createTemplateDocument(

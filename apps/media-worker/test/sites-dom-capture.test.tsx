@@ -1,0 +1,28 @@
+import {describe,expect,it} from "vitest";
+import {createSitesStudioDocument,studioSitesSystemTemplates} from "@veyocast/studio";
+import {buildSitesCaptureHtml,createSitesStudioCapture} from "../src/sites-dom-capture";
+import sharp from "sharp";
+import {createServer} from "node:http";
+import {sitesDynamicConfigurationSchema,sitesPresentationSchema} from "@veyocast/contracts";
+import {createSitesPresentationCapture} from "../src/sites-dom-capture";
+import {getSitesBrowserRenderBundle} from "../src/sites-dom-browser-bundle";
+function led(title="Live tussenstand"){
+ return sitesPresentationSchema.parse({kind:"dynamic",configuration:sitesDynamicConfigurationSchema.parse({schemaVersion:1,rendererVersion:"sites-v11",sourceRevision:"b1cae899af19fc39908217253094c5240d7359fc",provider:"led-scores",themeId:"fieldflow",orientation:"portrait",title,ledTheme:"blue"}),content:{kind:"score",title,rows:[],match:{home:"Club A",away:"Club B",homeScore:"2",awayScore:"1",clock:"67:24"}}});
+}
+function document(){const template=studioSitesSystemTemplates.find(template=>template.id==="sites-v11-tv-programma-landscape-hd")?.document.sitesPresentation;if(template?.kind!=="studio")throw Error("missing template");return createSitesStudioDocument({...template.slide,tv:{...template.slide.tv!,rows:Array.from({length:17},(_,index)=>({id:`match-${index}`,primary:`Team ${index}`,home:`Team ${index}`,away:`Opponent ${index}`,time:"14:00"}))}});}
+describe("trusted Sites DOM capture",()=>{
+ it("renders every canonical page with a network-denying document policy",()=>{const input=document().sitesPresentation!;const pages=[0,1,2].map(page=>buildSitesCaptureHtml(input,{},page));for(let index=0;index<17;index++)expect(pages.join("")).toContain(`Team ${index}<`);expect(pages[0]).not.toContain("Team 16<");expect(pages[2]).toContain("Team 16<");expect(pages[0]).toContain("script-src 'none'; connect-src 'none'");expect(pages[0]).not.toContain("<script");});
+ it("does not embed an unverified URL as a tenant image",()=>{const input=document().sitesPresentation!;if(input.kind!=="studio")throw Error("missing");input.slide.photo={kind:"tenant",mediaAssetId:"10000000-0000-4000-8000-000000191231",checksumSha256:"a".repeat(64)};const html=buildSitesCaptureHtml(input,{"10000000-0000-4000-8000-000000191231":"https://example.invalid/member.png"});expect(html).not.toContain("example.invalid");});
+ it("reuses one fixed browser bundle instead of compiling per frame or presentation",async()=>{const first=getSitesBrowserRenderBundle(),second=getSitesBrowserRenderBundle();expect(second).toBe(first);expect(Buffer.byteLength(await first)).toBeLessThan(2*1024*1024);expect(getSitesBrowserRenderBundle()).toBe(first);});
+});
+describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))("actual Chromium capture",()=>{
+ it("decodes real local fonts and art, then captures distinct first and last pages at full resolution",async()=>{const capture=await createSitesStudioCapture({document:document(),executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!});try{const first=await capture.renderPng(1200);const last=await capture.renderPng(31200);expect(first).not.toEqual(last);expect(await sharp(first).metadata()).toMatchObject({width:1920,height:1080,format:"png"});expect((await capture.renderRgba(31200)).byteLength).toBe(1920*1080*4);}finally{await capture.close();}},45000);
+ it("fails safely if an audited dependency is missing instead of producing a partial image",async()=>{const capture=await createSitesStudioCapture({document:document(),executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!,publicDirectory:"/tmp/s191-sites-missing-assets"});try{await expect(capture.renderPng(1200)).rejects.toMatchObject({code:"studio_sites_capture_failed",failureStage:"font_load"});}finally{await capture.close();}},45000);
+ it("runs the trusted LED lifecycle while hostile text and unverified URLs cannot execute or fetch",async()=>{
+  let requests=0;const server=createServer((_,response)=>{requests++;response.end("forbidden");});await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));
+  const address=server.address();if(!address||typeof address==="string")throw Error("missing fixture address");const url=`http://127.0.0.1:${address.port}/forbidden`;
+  const input=led(`<script>fetch('${url}')</script><img src='${url}' onerror=fetch('${url}')>`),capture=await createSitesPresentationCapture({presentation:input,assetSources:{"10000000-0000-4000-8000-000000191231":url},executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!});
+  try{expect(await sharp(await capture.renderPng(1200)).metadata()).toMatchObject({width:1080,height:1920});expect(requests).toBe(0);}finally{await capture.close();await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+ },45000);
+ it("retains the asset-integrity boundary on the React LED rendering path",async()=>{const capture=await createSitesPresentationCapture({presentation:led(),executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!,publicDirectory:"/tmp/s191-sites-missing-assets"});try{await expect(capture.renderPng(1200)).rejects.toMatchObject({code:"studio_sites_capture_failed",failureStage:"font_load"});}finally{await capture.close();}},45000);
+});

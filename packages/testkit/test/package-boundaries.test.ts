@@ -4,13 +4,18 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { explicitServerImports, findReachableServerFile, moduleReferences, resolveLocalSourceFile } from "./package-boundary-scanner";
+
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+
+// This suite reads other workspaces; its package-local Turbo input hash cannot
+// represent those inputs. @veyocast/testkit#test is therefore uncached in turbo.json.
 
 const packageRules = {
   auth: new Set(["@veyocast/domain"]),
   contracts: new Set(["zod"]),
   domain: new Set(["@veyocast/contracts"]),
-  studio: new Set(["zod"])
+  studio: new Set(["@veyocast/contracts", "zod"])
 } as const;
 
 const forbiddenRuntimeImports = ["next", "react", "@supabase/"] as const;
@@ -34,7 +39,7 @@ describe("application package boundaries", () => {
           violations.push(`${fileLabel}: framework directives are not allowed`);
         }
 
-        for (const specifier of importSpecifiers(source)) {
+        for (const specifier of moduleReferences(source).imports) {
           if (specifier.startsWith(".")) continue;
 
           if (forbiddenRuntimeImports.some((prefix) => specifier.startsWith(prefix))) {
@@ -65,25 +70,25 @@ describe("application package boundaries", () => {
     const roots = [join(repositoryRoot, "apps"), join(repositoryRoot, "packages")];
     const allSourceFiles = (await Promise.all(roots.map(sourceFilesBelow))).flat();
     const knownSourceFiles = new Set(allSourceFiles);
-    const sources = new Map(
+    const references = new Map(
       await Promise.all(
-        allSourceFiles.map(async (file) => [file, await readFile(file, "utf8")] as const)
+        allSourceFiles.map(async (file) => [file, moduleReferences(await readFile(file, "utf8"))] as const)
       )
     );
     const serverOnlyFiles = new Set(
       allSourceFiles.filter((file) =>
-        /^import ["']server-only["'];/mu.test(sources.get(file) ?? "")
+        references.get(file)?.runtimeImports.includes("server-only")
       )
     );
     const serverActionFiles = new Set(
       allSourceFiles.filter((file) =>
-        /^["']use server["'];/mu.test(sources.get(file) ?? "")
+        references.get(file)?.directives.has("use server")
       )
     );
     const localImports = new Map(
       allSourceFiles.map((file) => [
         file,
-        importSpecifiers(sources.get(file) ?? "")
+        (references.get(file)?.runtimeImports ?? [])
           .map((specifier) => resolveLocalSourceFile(file, specifier, knownSourceFiles))
           .filter((target): target is string => target !== null)
       ])
@@ -91,20 +96,13 @@ describe("application package boundaries", () => {
     const violations: string[] = [];
 
     for (const file of allSourceFiles) {
-      const source = sources.get(file) ?? "";
-      const directives = source.slice(0, 256);
-      if (!directives.includes('"use client"') && !directives.includes("'use client'")) {
+      const module = references.get(file);
+      if (!module?.directives.has("use client")) {
         continue;
       }
 
-      for (const specifier of importSpecifiers(source)) {
-        if (
-          specifier === "server-only" ||
-          specifier.endsWith("/server") ||
-          specifier.includes("/server/")
-        ) {
-          violations.push(`${relative(repositoryRoot, file)} -> ${specifier}`);
-        }
+      for (const specifier of explicitServerImports(module)) {
+        violations.push(`${relative(repositoryRoot, file)} -> ${specifier}`);
       }
 
       const reachableServerFile = findReachableServerFile(
@@ -162,7 +160,7 @@ describe("application package boundaries", () => {
       }
 
       for (const file of await sourceFilesBelow(appRoot)) {
-        for (const specifier of importSpecifiers(await readFile(file, "utf8"))) {
+        for (const specifier of moduleReferences(await readFile(file, "utf8")).imports) {
           const importedApp = appEntries.find((candidate) =>
             specifier === `@veyocast/${candidate}` ||
             specifier.startsWith(`@veyocast/${candidate}/`)
@@ -191,7 +189,7 @@ describe("application package boundaries", () => {
     const violations: string[] = [];
 
     for (const file of await sourceFilesBelow(controlRoot)) {
-      for (const specifier of importSpecifiers(await readFile(file, "utf8"))) {
+      for (const specifier of moduleReferences(await readFile(file, "utf8")).imports) {
         if (
           (specifier === "konva" || specifier === "react-konva") &&
           !relative(controlRoot, file).startsWith(
@@ -204,7 +202,7 @@ describe("application package boundaries", () => {
     }
 
     for (const file of await sourceFilesBelow(playerRoot)) {
-      for (const specifier of importSpecifiers(await readFile(file, "utf8"))) {
+      for (const specifier of moduleReferences(await readFile(file, "utf8")).imports) {
         if (specifier === "@veyocast/studio" || specifier.startsWith("@veyocast/studio/")) {
           violations.push(`${relative(repositoryRoot, file)} -> ${specifier}`);
         }
@@ -230,67 +228,4 @@ async function sourceFilesBelow(root: string): Promise<string[]> {
   }
 
   return files;
-}
-
-function importSpecifiers(source: string): string[] {
-  const specifiers = new Set<string>();
-  const patterns = [
-    /(?:import|export)\s+(?:type\s+)?(?:[^'";]*?\sfrom\s*)?["']([^"']+)["']/g,
-    /import\(\s*["']([^"']+)["']\s*\)/g
-  ];
-
-  for (const pattern of patterns) {
-    for (const match of source.matchAll(pattern)) {
-      if (match[1]) specifiers.add(match[1]);
-    }
-  }
-
-  return [...specifiers];
-}
-
-function resolveLocalSourceFile(
-  importer: string,
-  specifier: string,
-  knownSourceFiles: ReadonlySet<string>
-): string | null {
-  if (!specifier.startsWith(".")) return null;
-
-  const candidate = resolve(dirname(importer), specifier);
-  const candidates = [
-    candidate,
-    `${candidate}.ts`,
-    `${candidate}.tsx`,
-    `${candidate}.mts`,
-    `${candidate}.mjs`,
-    join(candidate, "index.ts"),
-    join(candidate, "index.tsx"),
-    join(candidate, "index.mts"),
-    join(candidate, "index.mjs")
-  ];
-
-  return candidates.find((path) => knownSourceFiles.has(path)) ?? null;
-}
-
-function findReachableServerFile(
-  entry: string,
-  localImports: ReadonlyMap<string, readonly string[]>,
-  serverOnlyFiles: ReadonlySet<string>,
-  serverActionFiles: ReadonlySet<string>
-): string | null {
-  const pending = [...(localImports.get(entry) ?? [])];
-  const visited = new Set<string>([entry]);
-
-  while (pending.length > 0) {
-    const file = pending.pop();
-    if (!file || visited.has(file)) continue;
-    if (serverOnlyFiles.has(file)) return file;
-    // Next turns a client import of a `use server` module into an RPC reference.
-    // Its own import graph remains on the server and is not part of the client bundle.
-    if (serverActionFiles.has(file)) continue;
-
-    visited.add(file);
-    pending.push(...(localImports.get(file) ?? []));
-  }
-
-  return null;
 }

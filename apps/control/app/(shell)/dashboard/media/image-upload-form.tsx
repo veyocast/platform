@@ -50,7 +50,7 @@ export function ImageUploadForm({
 
     const files = [...(fileInputRef.current?.files ?? [])];
     if (files.length === 0) {
-      setState(failureState("Geen bestand", "Kies minimaal één JPEG-, PNG- of WebP-bestand met inhoud."));
+      setState(failureState("Geen bestand", "Kies minimaal één ondersteund afbeeldingsbestand met inhoud."));
       return;
     }
     if (files.length > maxImageUploadBatchSize) {
@@ -67,11 +67,11 @@ export function ImageUploadForm({
       for (const file of files) {
         if (
           canvasCompatibleOnly &&
-          !["image/jpeg", "image/png", "image/webp"].includes(file.type)
+          !["image/avif", "image/jpeg", "image/png", "image/webp"].includes(file.type)
         ) {
           results.push({
             fileName: file.name,
-            message: "De live canvaseditor gebruikt JPEG, PNG of WebP. Zet dit bestand eerst om en probeer opnieuw.",
+            message: "De live canvaseditor gebruikt JPEG, PNG, WebP of AVIF. Zet dit bestand eerst om en probeer opnieuw.",
             status: "critical"
           });
           setState({ completedAt: null, results: [...results] });
@@ -176,8 +176,8 @@ export function ImageUploadForm({
         <label htmlFor="media-file">Afbeeldingen</label>
         <input
           accept={canvasCompatibleOnly
-            ? "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-            : "image/gif,image/jpeg,image/png,image/svg+xml,image/webp,.gif,.jpg,.jpeg,.png,.svg,.webp"}
+            ? "image/avif,image/jpeg,image/png,image/webp,.avif,.jpg,.jpeg,.png,.webp"
+            : "image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/webp,.avif,.gif,.jpg,.jpeg,.png,.svg,.webp"}
           disabled={!canUpload || pending}
           id="media-file"
           multiple

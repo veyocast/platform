@@ -139,7 +139,12 @@ function mutate(
     return null;
   }
   if (operation.kind === "set-theme") {
-    document.theme = operation.theme;
+    document.theme = clone(operation.theme);
+    if (operation.sitesConfiguration) document.sitesConfiguration = clone(operation.sitesConfiguration);
+    return null;
+  }
+  if (operation.kind === "set-sites-configuration") {
+    document.sitesConfiguration = clone(operation.sitesConfiguration);
     return null;
   }
   if (operation.kind === "attach-asset") {
@@ -167,6 +172,8 @@ function mutate(
     document.assets = clone(operation.assets);
     document.pages = clone(operation.pages);
     document.theme = clone(operation.theme);
+    if (operation.sitesConfiguration) document.sitesConfiguration = clone(operation.sitesConfiguration);
+    else delete document.sitesConfiguration;
     if (operation.providerSnapshot) {
       document.providerSnapshot = clone(operation.providerSnapshot);
     } else {

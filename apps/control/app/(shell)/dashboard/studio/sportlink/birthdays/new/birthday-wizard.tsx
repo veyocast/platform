@@ -103,33 +103,6 @@ type Template = { orientation: Orientation; versionId: string };
 type Team = { external_id: string; name: string };
 
 const steps = ["Periode", "Selectie en informatie", "Vormgeving", "Preview en publiceren"];
-const previewBirthdays: Birthday[] = [
-  {
-    age: 14,
-    day: new Date().getDate(),
-    displayName: "Sophie de Vries",
-    id: "31c3078d-8b3b-4cf5-a936-0a32894dc513",
-    matchStatus: "unmatched",
-    month: new Date().getMonth() + 1,
-    photoAvailable: false,
-    role: "Speler",
-    sourceFetchedAt: new Date().toISOString(),
-    teams: [{ externalId: "preview-team", name: "JO15-1" }]
-  },
-  {
-    age: null,
-    day: new Date(Date.now() + 86_400_000).getDate(),
-    displayName: "Milan van den Berg",
-    id: "4c3a44a0-b886-4c2a-af77-f915c36e9038",
-    matchStatus: "unmatched",
-    month: new Date(Date.now() + 86_400_000).getMonth() + 1,
-    photoAvailable: false,
-    role: "Trainer",
-    sourceFetchedAt: new Date().toISOString(),
-    teams: [{ externalId: "preview-team-2", name: "1e elftal" }]
-  }
-];
-
 export function BirthdayWizard({
   action,
   availability,
@@ -173,16 +146,7 @@ export function BirthdayWizard({
   const panelRef = useRef<HTMLElement>(null);
   const previousStep = useRef(step);
   const realBirthdays = availability.birthdaysLoaded && birthdays.length > 0;
-  const previewItems = useMemo(() => {
-    if (realBirthdays) return birthdays;
-
-    const selectedTeamId = configuration.selection.selectedTeamIds[0] ?? teams[0]?.external_id ?? "preview-team";
-    const selectedTeamName = teams.find((team) => team.external_id === selectedTeamId)?.name ?? "Voorbeeldteam";
-
-    return previewBirthdays.map((birthday, index) => index === 0
-      ? { ...birthday, teams: [{ externalId: selectedTeamId, name: selectedTeamName }] }
-      : { ...birthday, teams: [] });
-  }, [birthdays, configuration.selection.selectedTeamIds, realBirthdays, teams]);
+  const previewItems = useMemo(() => availability.birthdaysLoaded ? birthdays : [], [availability.birthdaysLoaded, birthdays]);
   const template = templates.find((candidate) => candidate.orientation === orientation);
   const previewPayloads = useMemo(() => ({
     landscape: birthdayPayload("landscape", configuration, previewItems, media, connection, status, themePresentation),
@@ -342,7 +306,7 @@ export function BirthdayWizard({
             type="button"
             variant="ghost"
           ><ChevronLeft /></Button>
-          <span>{realBirthdays ? "Actuele genormaliseerde data" : availability.birthdaysLoaded ? "Gemarkeerde previewdata" : "Previewdata · live data niet geladen"}</span>
+          <span>{realBirthdays ? "Actuele genormaliseerde data" : availability.birthdaysLoaded ? "Geen verjaardagen in deze periode" : "Brongegevens niet beschikbaar"}</span>
           <Button
             aria-label="Volgende previewpagina"
             disabled={activePageIndex >= previewPageCount - 1}
@@ -705,7 +669,7 @@ function ReviewStep({ birthdaysLoaded, configuration, orientation, pageCount, re
       title="Preview en publiceren"
     />
     {!birthdaysLoaded ? <p className="notice notice--warning"><strong>De actuele preview kon niet worden geladen.</strong> De server maakt de levende snapshot rechtstreeks uit de tenantdatabase; als de overige controles groen zijn, mag de slide veilig worden aangemaakt. Laad de pagina opnieuw om de actuele preview te zien.</p> : null}
-    {birthdaysLoaded && !realBirthdays ? <p className="notice"><strong>Voorbeeldweergave.</strong> De actuele synchronisatie bevat nu geen verjaardagen binnen 21 dagen. De levende slide mag wel worden aangemaakt en wordt automatisch zichtbaar zodra er geldige data is.</p> : null}
+    {birthdaysLoaded && !realBirthdays ? <p className="notice"><strong>Geen verjaardagen in deze periode.</strong> De laatst opgeslagen brongegevens bevatten nu geen passende verjaardagen. Het ontwerp toont pas inhoud zodra er geldige brongegevens zijn. Controleer de module of kies een andere periode.</p> : null}
     <OrientationPicker onChange={setOrientation} orientation={orientation} templates={templates} />
     <dl className={styles.reviewMetrics}>
       <div><dt>Interne pagina’s nu</dt><dd>{birthdaysLoaded ? pageCount : "Niet beschikbaar"}</dd></div>

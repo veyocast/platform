@@ -1,63 +1,21 @@
 import Link from "next/link";
+import {ArrowRight,Building2,Monitor,Play} from "lucide-react";
+import {Button,StatusPill} from "@veyocast/ui";
+import {requireControlCapability} from "../../../lib/control-session";
+import {loadPlatformOverview} from "../../../lib/control-overview";
+import s from "../dashboard/settings/sites-settings.module.css";
 
-import { Button, SummaryStrip } from "@veyocast/ui";
-
-import { requireControlCapability } from "../../../lib/control-session";
-import { loadPlatformOverview } from "../../../lib/control-overview";
-import { PageHeader, StatusPill } from "../_components/shell-primitives";
-
-export default async function PlatformPage() {
-  const session = await requireControlCapability("platform.system.read");
-
-  if (!session.isLive) return <DemoPlatformPage />;
-
-  const data = await loadPlatformOverview();
-  const activeTenants = data.tenants.filter((tenant) => tenant.status === "active").length;
-  const onlineDevices = data.devices.filter((device) => isRecentlyOnline(device.last_seen_at)).length;
-  const offlineDevices = data.devices.length - onlineDevices;
-
-  return (
-    <>
-      <PageHeader
-        actions={<Button asChild><Link href="/platform/tenants">Verenigingen bekijken</Link></Button>}
-        description="Platformstatus uit de stagingdatabase, zonder fictieve tenants of operationele claims."
-        eyebrow="Platform"
-        title="Platformoverzicht"
-      />
-      {data.error ? <p className="notice notice--critical" role="alert"><strong>Platformoverzicht niet beschikbaar.</strong> De gegevens konden niet veilig worden geladen. Vernieuw de pagina of log opnieuw in.</p> : null}
-      <SummaryStrip
-        aria-label="Platformoverzicht"
-        items={[
-          { detail: `${activeTenants} actief`, label: "Verenigingen", value: data.tenants.length },
-          { label: "Schermen", value: data.screens.length },
-          { detail: `${onlineDevices} recent online`, label: "Gekoppelde Players", value: data.devices.length },
-          {
-            detail: "Zonder recente heartbeat",
-            label: "Actie nodig",
-            tone: offlineDevices ? "warning" : "success",
-            value: offlineDevices
-          }
-        ]}
-      />
-      <section className="workspace-section" aria-labelledby="platform-status-title">
-        <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="platform-status-title">Operationele context</h2><p className="work-panel__meta">Alle waarden op deze pagina komen uit de live, RLS-beveiligde sessie.</p></div><StatusPill label="Server-side gecontroleerd" tone="success" /></div>
-        {!data.tenants.length && !data.error ? <p className="notice" role="status">Nog geen verenigingen. Bootstrap eerst een platformeigenaar en maak daarna de eerste vereniging aan via een gecontroleerde beheeractie.</p> : null}
-      </section>
-    </>
-  );
-}
-
-function DemoPlatformPage() {
-  return <>
-    <PageHeader description="Lokale ontwikkelpreview van de platformnavigatie." eyebrow="Platform" status={{ label: "Demodata", tone: "warning" }} title="Platformoverzicht" />
-    <p className="notice notice--warning" role="status">Deze gegevens zijn uitsluitend een lokale ontwikkelfixture en worden niet in staging of productie gebruikt.</p>
-    <section className="empty-dashboard" aria-labelledby="demo-platform-title">
-      <h2 id="demo-platform-title">Geen live platformgegevens</h2>
-      <p>Verbind de lokale Supabase-omgeving om verenigingen, schermen en Playergezondheid te bekijken.</p>
-    </section>
-  </>;
-}
-
-function isRecentlyOnline(value: string | null) {
-  return Boolean(value && Date.now() - new Date(value).getTime() < 5 * 60_000);
+export default async function PlatformPage(){
+ const session=await requireControlCapability("platform.system.read");
+ const data=session.isLive?await loadPlatformOverview():{tenants:[],screens:[],devices:[],error:false};
+ const active=data.tenants.filter(tenant=>tenant.status==="active").length;
+ const online=data.devices.filter(device=>Boolean(device.last_seen_at&&Date.now()-new Date(device.last_seen_at).getTime()<5*60_000)).length;
+ return <div className={s.page}>
+  <div className={s.heading}><div><h1>Platformbeheer</h1><p>Verenigingen, toegang en platformstatus op één plek.</p></div><Button asChild><Link href="/platform/tenants">Verenigingen beheren <ArrowRight aria-hidden="true" size={17}/></Link></Button></div>
+  {!session.isLive?<p className="notice notice--warning" role="status">Geen live platformgegevens. Verbind de lokale Supabase-omgeving om verenigingen en schermen te bekijken.</p>:null}
+  {data.error?<p className="notice notice--critical" role="alert"><strong>Platformoverzicht niet beschikbaar.</strong> De gegevens konden niet veilig worden geladen. Vernieuw de pagina of log opnieuw in.</p>:null}
+  <div className={s.metrics}><div><Building2 aria-hidden="true"/><small>Verenigingen</small><strong>{data.tenants.length}</strong><span>{active} actief</span></div><div><Monitor aria-hidden="true"/><small>Schermen</small><strong>{data.screens.length}</strong><span>Geregistreerde schermen</span></div><div><Play aria-hidden="true"/><small>Players</small><strong>{data.devices.length}</strong><span>{online} recent online</span></div></div>
+  <nav aria-label="Platformonderdelen" className={s.tabs}>{[["Verenigingen","/platform/tenants"],["Gebruikers","/platform/users"],["Systeem","/platform/system"]].map(([label,path])=><Link href={path!} key={path}>{label}</Link>)}</nav>
+  <section className={s.surface}><header><h2>Verenigingen</h2><p>De actuele omgevingen binnen het platform.</p></header><div className={s.tableScroll}><table className={s.table}><thead><tr><th scope="col">Vereniging</th><th scope="col">Schermen</th><th scope="col">Status</th><th scope="col">Actie</th></tr></thead><tbody>{data.tenants.map(tenant=><tr key={tenant.id}><td><strong>{tenant.name}</strong><small className={s.block}>{tenant.slug}</small></td><td>{data.screens.filter(screen=>screen.tenant_id===tenant.id).length} / {tenant.screen_limit}</td><td><StatusPill label={tenant.status==="active"?"Actief":tenant.status==="paused"?"Gepauzeerd":"Gearchiveerd"} tone={tenant.status==="active"?"success":"neutral"}/></td><td><Button asChild variant="secondary"><Link href={`/platform/tenants/${tenant.id}`}>Bekijken <ArrowRight aria-hidden="true" size={15}/></Link></Button></td></tr>)}</tbody></table></div>{!data.tenants.length&&!data.error?<p className={s.empty}>Nog geen verenigingen beschikbaar.</p>:null}</section>
+ </div>;
 }

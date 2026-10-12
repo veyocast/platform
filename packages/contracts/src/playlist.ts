@@ -74,7 +74,7 @@ export const playerPlaybackItemSchema = z
       .optional(),
     cropFocus: playlistCropFocusSchema.optional(),
     displayTitle: z.string().trim().min(1).max(240).optional(),
-    durationSeconds: z.number().int().min(5).max(3600),
+    durationSeconds: z.number().int().min(3).max(3600),
     enabled: z.boolean().optional(),
     fitMode: playlistFitModeSchema,
     id: z.string().uuid(),

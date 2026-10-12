@@ -19,7 +19,7 @@ export type ScheduleConflictInput = {
   scheduleKind: "custom" | "daily" | "once" | "weekly";
   startsAtIso: string;
   targetId: string;
-  targetKind: "screen" | "screen_group";
+  targetKind: "all" | "screen" | "screen_group";
   timezoneName: string;
 };
 
@@ -43,6 +43,8 @@ type ScheduleCommandResult = {
   actualRevision?: unknown;
   outcome?: unknown;
   scheduleId?: unknown;
+  scheduleIds?: unknown;
+  targetCount?: unknown;
 };
 
 type PlanningWriter = Awaited<ReturnType<typeof planningWriter>>;
@@ -68,6 +70,15 @@ export async function createContentSchedule(formData: FormData) {
 
 export async function updateContentSchedule(formData: FormData) {
   await saveContentSchedule(formData, "update");
+}
+
+export async function deleteContentSchedule(formData: FormData) {
+  const context = await planningWriter();
+  const {data,error} = await context.supabase.rpc("mutate_content_schedule_v2",{p_expected_revision:revisionValue(formData),p_idempotency_key:idempotencyValue(formData),p_operation:"delete",p_payload:{},p_schedule_id:requiredUuid(formData,"scheduleId"),p_tenant_id:context.session.tenantId});
+  if (error) fail(scheduleFailure(error.code));
+  const result = commandResult(data);
+  if (!result || result.outcome !== "deleted") fail(conflictMessage(result?.actualRevision));
+  complete("Het moment is verwijderd. De standaard content blijft beschikbaar buiten geplande momenten.");
 }
 
 export async function setContentScheduleEnabled(formData: FormData) {
@@ -96,7 +107,7 @@ export async function setContentScheduleEnabled(formData: FormData) {
     }
   }
 
-  const { data, error } = await context.supabase.rpc("mutate_content_schedule_v1", {
+  const { data, error } = await context.supabase.rpc("mutate_content_schedule_v2", {
     p_expected_revision: expectedRevision,
     p_idempotency_key: idempotencyValue(formData),
     p_operation: operation,
@@ -106,7 +117,7 @@ export async function setContentScheduleEnabled(formData: FormData) {
   });
   if (error) fail(scheduleFailure(error.code));
   const result = commandResult(data);
-  if (!result || result.outcome === "conflict") {
+  if (!result || result.outcome !== "applied") {
     fail(conflictMessage(result?.actualRevision));
   }
   complete(operation === "enable"
@@ -119,7 +130,7 @@ async function saveContentSchedule(formData: FormData, operation: "create" | "up
   const input = await scheduleInput(context, formData);
   const scheduleId = operation === "update" ? requiredUuid(formData, "scheduleId") : null;
   const expectedRevision = operation === "update" ? revisionValue(formData) : 0;
-  const conflicts = await runConflictCheck(context.supabase, context.session.tenantId, {
+  const conflicts = input.enabled ? await runConflictCheck(context.supabase, context.session.tenantId, {
     endsAtIso: input.endsAt,
     excludeScheduleId: scheduleId,
     recurrence: input.recurrence,
@@ -128,17 +139,18 @@ async function saveContentSchedule(formData: FormData, operation: "create" | "up
     targetId: input.targetId,
     targetKind: input.targetKind,
     timezoneName: input.timezoneName
-  });
+  }) : {conflicts:[],error:null};
   if (conflicts.error) fail(conflicts.error);
   if (conflicts.conflicts.length > 0 && formData.get("confirmConflicts") !== "yes") {
     fail("Deze periode overlapt bestaande planningen. Bekijk de conflictcontrole en bevestig de zichtbare prioriteit voordat je opslaat.");
   }
 
-  const { data, error } = await context.supabase.rpc("mutate_content_schedule_v1", {
+  const { data, error } = await context.supabase.rpc("mutate_content_schedule_v2", {
     p_expected_revision: expectedRevision,
     p_idempotency_key: idempotencyValue(formData),
-    p_operation: operation,
+    p_operation: operation === "create" && input.targetKind === "all" ? "create_all" : operation,
     p_payload: {
+      calendarTone: input.calendarTone,
       enabled: input.enabled,
       endsAt: input.endsAt,
       name: input.name,
@@ -157,9 +169,10 @@ async function saveContentSchedule(formData: FormData, operation: "create" | "up
   });
   if (error) fail(scheduleFailure(error.code));
   const result = commandResult(data);
-  if (!result || result.outcome === "conflict") {
+  if (!result || result.outcome !== "applied") {
     fail(conflictMessage(result?.actualRevision));
   }
+  if(input.targetKind === "all" && operation === "create" && (!Array.isArray(result.scheduleIds) || result.scheduleIds.length<1 || result.scheduleIds.length>100 || result.targetCount!==result.scheduleIds.length || new Set(result.scheduleIds).size!==result.scheduleIds.length || result.scheduleIds.some(id=>typeof id!=="string"||!uuidPattern.test(id)))) fail("De gezamenlijke planning kon niet volledig worden bevestigd. Vernieuw de pagina voordat je opnieuw opslaat.");
   complete(operation === "create"
     ? "De planning is opgeslagen met een immutable snapshot van de huidige doelschermen."
     : "De planning en doelschermsnapshot zijn veilig bijgewerkt.");
@@ -173,7 +186,7 @@ async function scheduleInput(context: PlanningWriter, formData: FormData) {
   const target = String(formData.get("target") ?? "").split(":");
   const targetKind = target[0];
   const targetId = target[1] ?? "";
-  if ((targetKind !== "screen" && targetKind !== "screen_group") || !uuidPattern.test(targetId)) {
+  if ((targetKind !== "all" && targetKind !== "screen" && targetKind !== "screen_group") || (targetKind !== "all" && !uuidPattern.test(targetId))) {
     fail("Kies een geldig scherm of een geldige schermgroep.");
   }
   const playlistId = requiredUuid(formData, "playlistId");
@@ -220,7 +233,10 @@ async function scheduleInput(context: PlanningWriter, formData: FormData) {
     fail("Kies een normale planning of een tijdelijke override.");
   }
 
+  const calendarTone = String(formData.get("calendarTone") ?? "green");
+  if (!["green", "blue", "orange", "petrol"].includes(calendarTone)) fail("Kies een geldige kalenderkleur.");
   return {
+    calendarTone,
     enabled: formData.get("enabled") !== "false",
     endsAt,
     name,
@@ -231,7 +247,7 @@ async function scheduleInput(context: PlanningWriter, formData: FormData) {
     source,
     startsAt,
     targetId,
-    targetKind: targetKind as "screen" | "screen_group",
+    targetKind: targetKind as "all" | "screen" | "screen_group",
     timezoneName
   };
 }
@@ -255,6 +271,16 @@ async function runConflictCheck(
   tenantId: string,
   input: ScheduleConflictInput
 ): Promise<ScheduleConflictCheck> {
+  if (input.targetKind === "all") {
+    const targets = await supabase.from("screens").select("id").eq("tenant_id",tenantId).is("deleted_at",null).eq("status","active").order("id").limit(101);
+    if (targets.error || !targets.data?.length || targets.data.length > 100) return {conflicts:[],error:"Selecteer één tot en met 100 actieve schermen. Er is niets opgeslagen."};
+    const conflicts: ScheduleConflict[] = [];
+    for (let offset=0;offset<targets.data.length;offset+=10) {
+      const results=await Promise.all(targets.data.slice(offset,offset+10).map(screen=>runConflictCheck(supabase,tenantId,{...input,targetKind:"screen",targetId:screen.id})));
+      for (const checked of results) { if (checked.error) return checked;conflicts.push(...checked.conflicts); }
+    }
+    return {conflicts,error:null};
+  }
   const { data, error } = await supabase.rpc("check_content_schedule_conflicts_v1", {
     p_ends_at: input.endsAtIso,
     p_exclude_schedule_id: input.excludeScheduleId ?? null,
@@ -278,6 +304,7 @@ async function runConflictCheck(
     ? await supabase
         .from("content_schedules")
         .select("id, name, starts_at, ends_at, schedule_kind, recurrence_json, timezone_name")
+        .is("deleted_at",null)
         .eq("tenant_id", tenantId)
         .in("id", scheduleIds)
     : { data: [], error: null };
@@ -354,13 +381,13 @@ async function runConflictCheck(
 
 function normalizeConflictInput(input: ScheduleConflictInput): ScheduleConflictInput | null {
   if (
-    (input.targetKind !== "screen" && input.targetKind !== "screen_group") ||
+    (input.targetKind !== "all" && input.targetKind !== "screen" && input.targetKind !== "screen_group") ||
     !["custom", "daily", "once", "weekly"].includes(input.scheduleKind) ||
     !input.recurrence ||
     typeof input.recurrence !== "object" ||
     Array.isArray(input.recurrence) ||
     !validTimeZone(input.timezoneName) ||
-    !uuidPattern.test(input.targetId) ||
+    (input.targetKind !== "all" && !uuidPattern.test(input.targetId)) ||
     (input.excludeScheduleId && !uuidPattern.test(input.excludeScheduleId)) ||
     !validIso(input.startsAtIso) ||
     (input.endsAtIso !== null && !validIso(input.endsAtIso)) ||
@@ -393,6 +420,7 @@ async function loadScheduleForCommand(context: PlanningWriter, scheduleId: strin
   const { data, error } = await context.supabase
     .from("content_schedules")
     .select("id, target_kind, target_screen_id, target_screen_group_id, starts_at, ends_at, schedule_kind, recurrence_json, timezone_name")
+    .is("deleted_at",null)
     .eq("tenant_id", context.session.tenantId)
     .eq("id", scheduleId)
     .single();

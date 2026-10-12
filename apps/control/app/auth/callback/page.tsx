@@ -13,26 +13,29 @@ export default async function AuthCallbackPage() {
   const runtimeMode = getControlRuntimeMode();
   const live = runtimeMode === "live";
   const session = live ? await getControlSession() : null;
+  const verified = live && session?.isLive && Boolean(session.userId);
 
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="callback-title">
         <AuthBrand />
         <div className="status-row">
-          <span className="status-pill status-pill--success">
+          <span className={`status-pill status-pill--${verified ? "success" : "warning"}`}>
             <span className="status-pill__dot" aria-hidden="true" />
-            Callback gereed
+            {verified ? "Callback gereed" : live ? "Sessie ontbreekt" : runtimeMode === "demo" ? "Callback voorbereid" : "Sessie niet beschikbaar"}
           </span>
         </div>
         <div>
           <p className="auth-kicker">Authenticatie</p>
           <h1 className="auth-title" id="callback-title">
-            {live ? "Sessie gecontroleerd" : runtimeMode === "demo" ? "Sessiecontrole voorbereid" : "Sessie niet beschikbaar"}
+            {verified ? "Sessie gecontroleerd" : live ? "Geen aangemelde sessie" : runtimeMode === "demo" ? "Sessiecontrole voorbereid" : "Sessie niet beschikbaar"}
           </h1>
         </div>
         <p className="auth-copy">
-          {live
+          {verified
             ? `Je bent aangemeld als ${session?.email ?? "VeyoCast-gebruiker"}. Rollen en tenantcontext worden op de server gecontroleerd.`
+            : live
+              ? "Er is geen aangemelde sessie gevonden. Er is geen toegang bevestigd. Log opnieuw in om je rollen en tenantcontext te laten controleren."
             : runtimeMode === "demo"
               ? "De callback-route is beschikbaar voor Supabase Auth. Deze ontwikkelserver gebruikt expliciete demorechten."
               : "De serverconfiguratie ontbreekt. Er is geen demosessie aangemaakt."}
@@ -45,8 +48,8 @@ export default async function AuthCallbackPage() {
           </div>
         ) : null}
         <div className="page-actions">
-          <Link className="button-link button-link--primary" href={session ? getControlLandingPath(session) : runtimeMode === "demo" ? "/dashboard" : "/login"}>
-            Naar dashboard
+          <Link className="button-link button-link--primary" href={verified && session ? getControlLandingPath(session) : runtimeMode === "demo" ? "/dashboard" : "/login"}>
+            {verified || runtimeMode === "demo" ? "Naar dashboard" : "Naar login"}
           </Link>
           <Link className="button-link button-link--secondary" href="/login">
             Terug naar login

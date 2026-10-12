@@ -6,6 +6,7 @@ import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 import {
   safeParseStudioDocument,
+  studioSitesAssetReferences,
   studioRenderRequestSchema,
   type StudioRenderRequest,
   type StudioRenderResult,
@@ -402,6 +403,12 @@ export function parseClaimedStudioRenderJob(
       }]
       : [];
   });
+  for(const ref of studioSitesAssetReferences(document)){
+    if(ref.kind!=="tenant")continue;
+    const asset=assetsById.get(ref.mediaAssetId);
+    if(!asset||asset.checksumSha256!==ref.checksumSha256||asset.mimeType==="video/mp4")throw invalidClaim();
+    assetManifest.push({checksumSha256:asset.checksumSha256,elementId:ref.mediaAssetId,mediaAssetId:asset.assetId,mimeType:asset.mimeType,storagePath:asset.path});
+  }
   const request = studioRenderRequestSchema.safeParse({
     assetManifest,
     designId: value.project_id,

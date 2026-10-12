@@ -1,0 +1,1741 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "implementationBaseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "componentSha256": "61b04bd6b5b1fbf699c31b9c4a9095cec19433b8b7f24ed33f230f060fbc172a",
+  "fixtureVersion": "QA-01-PLAYLIST-20261011-v1",
+  "fixedTime": "2026-10-11T10:00:00.000Z",
+  "timezone": "Europe/Amsterdam",
+  "browser": "Chromium1228 / Linux / DPR1",
+  "scope": "Actual production Source component; exact original four-item content, audited photos, stable UUIDs, three screens with overlapping group. Controlled HTTP storage boundary; actual authenticated storage/publication covered separately by sites-publisher-live.spec.ts. Screenshots/geometry are readback, not an unexecuted source pixel assertion.",
+  "results": [
+    {
+      "caseId": "PLAYLIST-0001",
+      "viewport": "360x800",
+      "setup": "Open Clubhuis — Vandaag; tab Inhoud",
+      "state": "editor-content",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:34.993Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0001.png",
+      "screenshotSha256": "c84953c1d28bda9df5c994ad4f42d6c0f09332618f4f17fe5654ac05d742dea4",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0002",
+      "viewport": "360x800",
+      "setup": "Open dezelfde playlist; tab Voorbeeld",
+      "state": "editor-preview",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:36.079Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0002.png",
+      "screenshotSha256": "1d00044dc72e07c3b5537c61e915cf1c87dcaf85cc133c04f56e77d52ac75dba",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0003",
+      "viewport": "360x800",
+      "setup": "Open dezelfde playlist; tab Details",
+      "state": "editor-details",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:37.018Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0003.png",
+      "screenshotSha256": "8985f287f1c8059d19487696eb64ec6cd33aa5606adb58304ceaeab62f21fe93",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0004",
+      "viewport": "360x800",
+      "setup": "Open instellingen eerste item; wijzig duur naar 15s",
+      "state": "item-expanded",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:38.055Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0004.png",
+      "screenshotSha256": "d71699406726bd6ac412a66bd26cbbcb1bb5d7923f644ea83ca5482f8a50a905",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0005",
+      "viewport": "360x800",
+      "setup": "Schakel Volgorde in; verplaats eerste item naar positie 2",
+      "state": "reorder",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:39.016Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0005.png",
+      "screenshotSha256": "f8c844ca0c83b59ee36d445ddf66b93e1e4269aae71d9fe00c220a70c5f80268",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0006",
+      "viewport": "360x800",
+      "setup": "Selecteer item 1 en 3; toon bulkduur/themakeuze",
+      "state": "bulk-select",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:40.137Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0006.png",
+      "screenshotSha256": "2ec1cf4cc8c55dc7a4f075e37bdad4b4ca4d85d51491c9fb318e6c1fe0b4ad8e",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0007",
+      "viewport": "360x800",
+      "setup": "Inhoud toevoegen → Media; geen filters",
+      "state": "picker-media",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:41.104Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0007.png",
+      "screenshotSha256": "acea5ceca9eafd15897acce24a78bc4bc6b6035ee13a13e3b22f9e8607852917",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0008",
+      "viewport": "360x800",
+      "setup": "Inhoud toevoegen → Studio",
+      "state": "picker-studio",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:42.046Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0008.png",
+      "screenshotSha256": "c98b796d8a08400993bfd5ac185219df1307dda216c4b21a332dcfd44c7ca6c9",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0009",
+      "viewport": "360x800",
+      "setup": "Inhoud toevoegen → Sportlink & LED",
+      "state": "picker-dynamic",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:43.043Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0009.png",
+      "screenshotSha256": "0ac55037b4f1567fdc053a8f3c89d037eda1addbe2cac2744bc72f62d2876bb7",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0010",
+      "viewport": "360x800",
+      "setup": "Selecteer twee items over twee tabs; open selectietray",
+      "state": "picker-selected",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:44.166Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0010.png",
+      "screenshotSha256": "2863f6df6ecff488c4a0aaf6213b3e0a04a6e3d835c1d22baff367ff7e212bd0",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0011",
+      "viewport": "360x800",
+      "setup": "Zoek exact: qa-geen-resultaat-xyz",
+      "state": "picker-search-empty",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:45.153Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0011.png",
+      "screenshotSha256": "a1b81aeed9fbf30e691acafb267c50de6ca95ecf7e837b50810e406ad3052138",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0012",
+      "viewport": "360x800",
+      "setup": "Upload fixture JPEG; toon lopende upload; daarna gereed",
+      "state": "picker-upload",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:46.212Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0012.png",
+      "screenshotSha256": "3a01951a5e31807366f3c9aa695f69cd21ee38debdcb7b3b6e1fb6fe94c53ad4",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0013",
+      "viewport": "360x800",
+      "setup": "Publiceren → selecteer twee schermen en één overlappende groep",
+      "state": "publish-targets",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:47.238Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0013.png",
+      "screenshotSha256": "8661aa675bfec00d51337cd8f70006a26d0e93e2c48c0366d4a2da5ff9bc2987",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0014",
+      "viewport": "360x800",
+      "setup": "Wijzig naam; druk Terug en toon bewaarkeuze",
+      "state": "dirty-close",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:48.286Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0014.png",
+      "screenshotSha256": "0f6dd4f56379540e7bff587edc95a18e66581813294c7b63219546322a192b23",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0015",
+      "viewport": "360x800",
+      "setup": "Verwijder tweede item; toon herstelmelding en herstel",
+      "state": "remove-undo",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:49.350Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0015.png",
+      "screenshotSha256": "d326ebf9c1fd82295cee3b496822e164d5f9fb52d47a5fca63699a6c23d6c521",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0016",
+      "viewport": "360x800",
+      "setup": "Pas OnzeTrots TV toe op geselecteerde items; andere items blijven intact",
+      "state": "theme-bulk",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:50.537Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0016.png",
+      "screenshotSha256": "4ad1fcc1c5023d203060e4425a98d82430c410a332e146328260e76a09bf8c78",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 1
+    },
+    {
+      "caseId": "PLAYLIST-0017",
+      "viewport": "390x844",
+      "setup": "Open Clubhuis — Vandaag; tab Inhoud",
+      "state": "editor-content",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:51.402Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0017.png",
+      "screenshotSha256": "e8ac0b55ca5a94b9ad157b3712a19ebf03add31889bb44f79279ca168d601598",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0018",
+      "viewport": "390x844",
+      "setup": "Open dezelfde playlist; tab Voorbeeld",
+      "state": "editor-preview",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:52.449Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0018.png",
+      "screenshotSha256": "0d19ac863859b6595f3248404985488cea50ba65b1d0c9cf691a1cca2eb08513",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0019",
+      "viewport": "390x844",
+      "setup": "Open dezelfde playlist; tab Details",
+      "state": "editor-details",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:53.389Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0019.png",
+      "screenshotSha256": "02a4e94d1ec4a33041f939a8896de47284449ebe91e1a2dc1eb086f3c79ee00f",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0020",
+      "viewport": "390x844",
+      "setup": "Open instellingen eerste item; wijzig duur naar 15s",
+      "state": "item-expanded",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:54.458Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0020.png",
+      "screenshotSha256": "acda1114b6fb661fb256b9f0fe453cc02c4ba461b071b6fb91dea9e016a1c274",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0021",
+      "viewport": "390x844",
+      "setup": "Schakel Volgorde in; verplaats eerste item naar positie 2",
+      "state": "reorder",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:55.459Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0021.png",
+      "screenshotSha256": "7925737bda954ca04f5f918033f5c4ffda4703369c2c453d74c0445bf678cc60",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0022",
+      "viewport": "390x844",
+      "setup": "Selecteer item 1 en 3; toon bulkduur/themakeuze",
+      "state": "bulk-select",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:56.540Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0022.png",
+      "screenshotSha256": "ed0db8e2e5e53f15bf5583295a70cd4daaf231ed6c84b4448395445b7e6fa898",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0023",
+      "viewport": "390x844",
+      "setup": "Inhoud toevoegen → Media; geen filters",
+      "state": "picker-media",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:57.513Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0023.png",
+      "screenshotSha256": "71e6528db23a9dd7a30222879935418bb066de21a7074dd120bb024d64d516d1",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0024",
+      "viewport": "390x844",
+      "setup": "Inhoud toevoegen → Studio",
+      "state": "picker-studio",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:58.496Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0024.png",
+      "screenshotSha256": "c985e3a410249540ecbffdac1168170f116eed2c15454af6ae90a9ba5a78ab60",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0025",
+      "viewport": "390x844",
+      "setup": "Inhoud toevoegen → Sportlink & LED",
+      "state": "picker-dynamic",
+      "status": "PASS",
+      "date": "2026-10-11T18:39:59.499Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0025.png",
+      "screenshotSha256": "2ed78e2a67aba8a7d05828c1eca2f81fd8c5be2a361b756fdf0f4507c3ff9c42",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0026",
+      "viewport": "390x844",
+      "setup": "Selecteer twee items over twee tabs; open selectietray",
+      "state": "picker-selected",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:00.654Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0026.png",
+      "screenshotSha256": "f74e74f50cefd9496c7233259455b41f52dc485cb3f3991d7e37f16586f804ec",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0027",
+      "viewport": "390x844",
+      "setup": "Zoek exact: qa-geen-resultaat-xyz",
+      "state": "picker-search-empty",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:01.648Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0027.png",
+      "screenshotSha256": "e3de8f41e4ca4c3d83fc8fe3d500dedeb176ef22930ca8c686bd8f59937a32a0",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0028",
+      "viewport": "390x844",
+      "setup": "Upload fixture JPEG; toon lopende upload; daarna gereed",
+      "state": "picker-upload",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:02.797Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0028.png",
+      "screenshotSha256": "64fabe7470b526aa30a2f5f69adcbdbe6b281481d559fc56c37e2855bc65596d",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0029",
+      "viewport": "390x844",
+      "setup": "Publiceren → selecteer twee schermen en één overlappende groep",
+      "state": "publish-targets",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:03.853Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0029.png",
+      "screenshotSha256": "73aed784a46bf45e6ffc8c372a6d417c072d52c72682a40b16b3d3c8870553ff",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0030",
+      "viewport": "390x844",
+      "setup": "Wijzig naam; druk Terug en toon bewaarkeuze",
+      "state": "dirty-close",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:04.922Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0030.png",
+      "screenshotSha256": "5c8dd22bc7cf235289cc58757a2e84338f56a96f788a677673db5d1a8f4940f7",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0031",
+      "viewport": "390x844",
+      "setup": "Verwijder tweede item; toon herstelmelding en herstel",
+      "state": "remove-undo",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:06.039Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0031.png",
+      "screenshotSha256": "0a38eb52aca40cf3b07abbab2fa95870f6a136c3b70193e6e702d6298db6db34",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0032",
+      "viewport": "390x844",
+      "setup": "Pas OnzeTrots TV toe op geselecteerde items; andere items blijven intact",
+      "state": "theme-bulk",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:07.260Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0032.png",
+      "screenshotSha256": "d2148c664765c9da58034cbccd4cd6860f32207a7f447e5f68892226c2bda4c5",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 1
+    },
+    {
+      "caseId": "PLAYLIST-0033",
+      "viewport": "412x915",
+      "setup": "Open Clubhuis — Vandaag; tab Inhoud",
+      "state": "editor-content",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:08.153Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0033.png",
+      "screenshotSha256": "1a5c9eb9db73b18d977eea46650739f3b66b67be2a3ce54b242c419e2744bfc4",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0034",
+      "viewport": "412x915",
+      "setup": "Open dezelfde playlist; tab Voorbeeld",
+      "state": "editor-preview",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:09.207Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0034.png",
+      "screenshotSha256": "6ece12623210ed2fc1d41261ca161a69aba0ff0a303b7b96862045fb32b708ea",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0035",
+      "viewport": "412x915",
+      "setup": "Open dezelfde playlist; tab Details",
+      "state": "editor-details",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:10.271Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0035.png",
+      "screenshotSha256": "634ca6f2cd5731ef6ac6211f52c8c5d3b4b3568a2a445cae47ee77daa0e4ae3c",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0036",
+      "viewport": "412x915",
+      "setup": "Open instellingen eerste item; wijzig duur naar 15s",
+      "state": "item-expanded",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:11.297Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0036.png",
+      "screenshotSha256": "6ca834b6ddcaa28f2d62923272a6d5b69e5a166b3c8ae86b95d67c26440d1180",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0037",
+      "viewport": "412x915",
+      "setup": "Schakel Volgorde in; verplaats eerste item naar positie 2",
+      "state": "reorder",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:12.381Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0037.png",
+      "screenshotSha256": "e0174870a3cd367c78178f146848539faa37fdc65fc0d0be6d09c3f0729c572e",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0038",
+      "viewport": "412x915",
+      "setup": "Selecteer item 1 en 3; toon bulkduur/themakeuze",
+      "state": "bulk-select",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:13.445Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0038.png",
+      "screenshotSha256": "023d9531c2a44ac86923a5832e4e814525bb3d26b7540774afa24679d67d9437",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0039",
+      "viewport": "412x915",
+      "setup": "Inhoud toevoegen → Media; geen filters",
+      "state": "picker-media",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:14.418Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0039.png",
+      "screenshotSha256": "dc1dcb40a9911022abcf9e866b2da11a70c3ada60ed52c6756857ccd60ff43b5",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0040",
+      "viewport": "412x915",
+      "setup": "Inhoud toevoegen → Studio",
+      "state": "picker-studio",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:15.385Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0040.png",
+      "screenshotSha256": "c1738ae85d6194950112dde2d7c903b2a4f8d50cbb81d34bc4312dd981585732",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0041",
+      "viewport": "412x915",
+      "setup": "Inhoud toevoegen → Sportlink & LED",
+      "state": "picker-dynamic",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:16.417Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0041.png",
+      "screenshotSha256": "85dddfbd57ba836ce3fb34e88a94ee215f51f7d7b683afcdaf2d77191c594142",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0042",
+      "viewport": "412x915",
+      "setup": "Selecteer twee items over twee tabs; open selectietray",
+      "state": "picker-selected",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:17.616Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0042.png",
+      "screenshotSha256": "fc1872f75bf807ce5a3477bf8f610c768849a976eee3ba9279ac1158398ad662",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0043",
+      "viewport": "412x915",
+      "setup": "Zoek exact: qa-geen-resultaat-xyz",
+      "state": "picker-search-empty",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:18.549Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0043.png",
+      "screenshotSha256": "65bfbd2c8d4d67698f02cf176baa14f8504e7857156fb7212c5524e5342669c2",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0044",
+      "viewport": "412x915",
+      "setup": "Upload fixture JPEG; toon lopende upload; daarna gereed",
+      "state": "picker-upload",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:19.694Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0044.png",
+      "screenshotSha256": "e019577e25583aa40d9398441e0bfbf275bd4d8391869c4784467817bcdf99d3",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0045",
+      "viewport": "412x915",
+      "setup": "Publiceren → selecteer twee schermen en één overlappende groep",
+      "state": "publish-targets",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:20.672Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0045.png",
+      "screenshotSha256": "2217a3fc812bee9f05bdef61e6de245a0ab5af3c8c3a607490c6da8c5a913b16",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0046",
+      "viewport": "412x915",
+      "setup": "Wijzig naam; druk Terug en toon bewaarkeuze",
+      "state": "dirty-close",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:21.707Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0046.png",
+      "screenshotSha256": "16835252e24de1450c4d95bed599fc21de456ea50f3d884ea7c8c1fb0754c930",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0047",
+      "viewport": "412x915",
+      "setup": "Verwijder tweede item; toon herstelmelding en herstel",
+      "state": "remove-undo",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:22.786Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0047.png",
+      "screenshotSha256": "627786ab4ef0319e9427053271fbf40182e4b59bc61892240c21827ddc73b861",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0048",
+      "viewport": "412x915",
+      "setup": "Pas OnzeTrots TV toe op geselecteerde items; andere items blijven intact",
+      "state": "theme-bulk",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:23.906Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0048.png",
+      "screenshotSha256": "cf1ba9882e848210bea92fa7e82d0db0f4c63b1578054421e7192e7441117f5e",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 1
+    },
+    {
+      "caseId": "PLAYLIST-0049",
+      "viewport": "768x1024",
+      "setup": "Open Clubhuis — Vandaag; tab Inhoud",
+      "state": "editor-content",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:24.854Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0049.png",
+      "screenshotSha256": "d8b250749b5772a0e31e5dcf51329dab765c3e396e644030d936f1505d54ee7c",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0050",
+      "viewport": "768x1024",
+      "setup": "Open dezelfde playlist; tab Voorbeeld",
+      "state": "editor-preview",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:25.942Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0050.png",
+      "screenshotSha256": "9ec728c97506a8b0a429855c85f631ef6392b0cd3cb0c18ab8b97ecf81574db6",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0051",
+      "viewport": "768x1024",
+      "setup": "Open dezelfde playlist; tab Details",
+      "state": "editor-details",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:26.980Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0051.png",
+      "screenshotSha256": "4e7c02afcdd72668db8c92229ee400d91849b218a7e1c2222a72eb802ad868e4",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0052",
+      "viewport": "768x1024",
+      "setup": "Open instellingen eerste item; wijzig duur naar 15s",
+      "state": "item-expanded",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:27.989Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0052.png",
+      "screenshotSha256": "8654bcdd309afbc2546bb37059ffff7499a9b80ed574f9691a9a3cbf3adf38b8",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0053",
+      "viewport": "768x1024",
+      "setup": "Schakel Volgorde in; verplaats eerste item naar positie 2",
+      "state": "reorder",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:28.996Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0053.png",
+      "screenshotSha256": "ecf8136af26609aa8d771358a50ed9230742d02bc5c2926cbe85605633001646",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0054",
+      "viewport": "768x1024",
+      "setup": "Selecteer item 1 en 3; toon bulkduur/themakeuze",
+      "state": "bulk-select",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:30.135Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0054.png",
+      "screenshotSha256": "cff373b3511dda81db579254aec1bc56f35e4d2701ad1a5ad432add6ba036f4f",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0055",
+      "viewport": "768x1024",
+      "setup": "Inhoud toevoegen → Media; geen filters",
+      "state": "picker-media",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:31.209Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0055.png",
+      "screenshotSha256": "619c0a1e269bc3fb68a15ca767e952c6b920724a86e34618a7b2b30d0b82014f",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0056",
+      "viewport": "768x1024",
+      "setup": "Inhoud toevoegen → Studio",
+      "state": "picker-studio",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:32.278Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0056.png",
+      "screenshotSha256": "29bc28871d4c7e418ee94c29bc873a1e6e58df1314614c0bc5c4a4f8356edf95",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0057",
+      "viewport": "768x1024",
+      "setup": "Inhoud toevoegen → Sportlink & LED",
+      "state": "picker-dynamic",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:33.455Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0057.png",
+      "screenshotSha256": "e16aebb6a6c32bf9f39d1ae2b00c60720ae6b814170116b725bba2a701de29e2",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0058",
+      "viewport": "768x1024",
+      "setup": "Selecteer twee items over twee tabs; open selectietray",
+      "state": "picker-selected",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:34.887Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0058.png",
+      "screenshotSha256": "25468c89971511fb502d88502188a0594b69338368242395145b3f566ee130a0",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0059",
+      "viewport": "768x1024",
+      "setup": "Zoek exact: qa-geen-resultaat-xyz",
+      "state": "picker-search-empty",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:35.983Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0059.png",
+      "screenshotSha256": "9fe21df8fa0b4290037e3ee7a7365b5d94b8f88ef9f04643c1b8abb29b754c13",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0060",
+      "viewport": "768x1024",
+      "setup": "Upload fixture JPEG; toon lopende upload; daarna gereed",
+      "state": "picker-upload",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:37.414Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0060.png",
+      "screenshotSha256": "35aab7ca14337529b18a4862497d97946ba9c69c86994e8b749ef3aa7fe98f52",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0061",
+      "viewport": "768x1024",
+      "setup": "Publiceren → selecteer twee schermen en één overlappende groep",
+      "state": "publish-targets",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:38.558Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0061.png",
+      "screenshotSha256": "09c4a073490a3ece4dfc6de738e6c817bf5fdeee05932f87b22a3d977f86b422",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0062",
+      "viewport": "768x1024",
+      "setup": "Wijzig naam; druk Terug en toon bewaarkeuze",
+      "state": "dirty-close",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:39.711Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0062.png",
+      "screenshotSha256": "f7ec4d3995d245cbfa7176c6fabe4754aaae3ec862429eb19a08d6b17d569e77",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0063",
+      "viewport": "768x1024",
+      "setup": "Verwijder tweede item; toon herstelmelding en herstel",
+      "state": "remove-undo",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:41.018Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0063.png",
+      "screenshotSha256": "4e0b5db8cd2bce32199ac4fcdc80a6e5d0304cbdddaf16c027005aad67aeafa3",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0064",
+      "viewport": "768x1024",
+      "setup": "Pas OnzeTrots TV toe op geselecteerde items; andere items blijven intact",
+      "state": "theme-bulk",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:42.311Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0064.png",
+      "screenshotSha256": "33b5054fcbe5bcd1dacdc5f9a06a68241cb77d161c3d3e691cc4eb3d78ee56fc",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 1
+    },
+    {
+      "caseId": "PLAYLIST-0065",
+      "viewport": "1440x900",
+      "setup": "Open Clubhuis — Vandaag; tab Inhoud",
+      "state": "editor-content",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:43.332Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0065.png",
+      "screenshotSha256": "64a766d94d3cca196751e9d7ff9a28aeba34bce19f12c39140f9bf15bedd28ec",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0066",
+      "viewport": "1440x900",
+      "setup": "Open dezelfde playlist; tab Voorbeeld",
+      "state": "editor-preview",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:44.558Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0066.png",
+      "screenshotSha256": "ce5cbdfaed67b759be87c75ea87e29dcd0c2ee079cc37da916cbcad00fee5f8a",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0067",
+      "viewport": "1440x900",
+      "setup": "Open dezelfde playlist; tab Details",
+      "state": "editor-details",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:45.681Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0067.png",
+      "screenshotSha256": "72e9f2fe9133b06c067b26b69c07211e688c0b07b034db78578a2d96ad549cc0",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0068",
+      "viewport": "1440x900",
+      "setup": "Open instellingen eerste item; wijzig duur naar 15s",
+      "state": "item-expanded",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:46.859Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0068.png",
+      "screenshotSha256": "6b978e72a6098665120906a4522641fbd98e7e20e68914c85d13296ae2de755f",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0069",
+      "viewport": "1440x900",
+      "setup": "Schakel Volgorde in; verplaats eerste item naar positie 2",
+      "state": "reorder",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:48.125Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0069.png",
+      "screenshotSha256": "2d55d4f6a58f08bb0843e73f7f1d45b406a8c0e7313d731d0d329d28e838197e",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0070",
+      "viewport": "1440x900",
+      "setup": "Selecteer item 1 en 3; toon bulkduur/themakeuze",
+      "state": "bulk-select",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:49.475Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0070.png",
+      "screenshotSha256": "980e087653c9a7c93deb759ed892db733b5b6d86884408e13624faccdd9f21b9",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0071",
+      "viewport": "1440x900",
+      "setup": "Inhoud toevoegen → Media; geen filters",
+      "state": "picker-media",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:50.634Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0071.png",
+      "screenshotSha256": "f79cfdbcda3c4aab1568ca78659c4c0129ab1e3ed3d7d780c6b2ccc077363f7c",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0072",
+      "viewport": "1440x900",
+      "setup": "Inhoud toevoegen → Studio",
+      "state": "picker-studio",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:51.886Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0072.png",
+      "screenshotSha256": "3aa0a077a35ab3b039eb699f574f87a1ab00c397897e1c1b35b5ef74503a50fb",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0073",
+      "viewport": "1440x900",
+      "setup": "Inhoud toevoegen → Sportlink & LED",
+      "state": "picker-dynamic",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:53.161Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0073.png",
+      "screenshotSha256": "146b530c657f5936efef6053aa4c54eb102df0e334602b6e345b8f2228cd72ba",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0074",
+      "viewport": "1440x900",
+      "setup": "Selecteer twee items over twee tabs; open selectietray",
+      "state": "picker-selected",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:54.736Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0074.png",
+      "screenshotSha256": "d3d21ffa51ee59753595818d3f3ad4464f3a2228c237d0a29039a8c9fc1551e1",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0075",
+      "viewport": "1440x900",
+      "setup": "Zoek exact: qa-geen-resultaat-xyz",
+      "state": "picker-search-empty",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:55.931Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0075.png",
+      "screenshotSha256": "56bc3b214702fb9e28c840edebcee19182dc1a6b90ace9e7e0a0021be5974a5b",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0076",
+      "viewport": "1440x900",
+      "setup": "Upload fixture JPEG; toon lopende upload; daarna gereed",
+      "state": "picker-upload",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:57.211Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0076.png",
+      "screenshotSha256": "0b689cdd96377ea5ef82092b4f871091a349fb506d3fda38083ae1c0a9e32b6f",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0077",
+      "viewport": "1440x900",
+      "setup": "Publiceren → selecteer twee schermen en één overlappende groep",
+      "state": "publish-targets",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:58.432Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0077.png",
+      "screenshotSha256": "a9d169b63792714804538d96b33b10adce8978e3e6ca348dc0b19db0450a9e59",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0078",
+      "viewport": "1440x900",
+      "setup": "Wijzig naam; druk Terug en toon bewaarkeuze",
+      "state": "dirty-close",
+      "status": "PASS",
+      "date": "2026-10-11T18:40:59.673Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0078.png",
+      "screenshotSha256": "6e758eb8e868f93fccdeaf9d702f1fb604e6a8fa87110e66f1c6890bc2743343",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0079",
+      "viewport": "1440x900",
+      "setup": "Verwijder tweede item; toon herstelmelding en herstel",
+      "state": "remove-undo",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:01.099Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0079.png",
+      "screenshotSha256": "ff824a4cfcb0b67e12fc5715c857a30be603a4a4ba56e7d6839095480076ac73",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0080",
+      "viewport": "1440x900",
+      "setup": "Pas OnzeTrots TV toe op geselecteerde items; andere items blijven intact",
+      "state": "theme-bulk",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:02.687Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0080.png",
+      "screenshotSha256": "15c9126c5bdf16447564c11365dae9fd40271e06ba7260c7eef8ca8c97babfce",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 1
+    },
+    {
+      "caseId": "PLAYLIST-0081",
+      "viewport": "844x390",
+      "setup": "Open Clubhuis — Vandaag; tab Inhoud",
+      "state": "editor-content",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:03.615Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0081.png",
+      "screenshotSha256": "cf6ba0ececfb55d15e58c65d244ae32371e2fd705189ce85ad81708420f66d35",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0082",
+      "viewport": "844x390",
+      "setup": "Open dezelfde playlist; tab Voorbeeld",
+      "state": "editor-preview",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:04.552Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0082.png",
+      "screenshotSha256": "37a87ae96d4ad026fd3efd27cebac70f414018c78a93ba5c85377dc8b47db614",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0083",
+      "viewport": "844x390",
+      "setup": "Open dezelfde playlist; tab Details",
+      "state": "editor-details",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:05.555Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0083.png",
+      "screenshotSha256": "28de53949589f725f00506aa96d184529cc0f7b2a7faa0dcc7e7ffaca08fc12a",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0084",
+      "viewport": "844x390",
+      "setup": "Open instellingen eerste item; wijzig duur naar 15s",
+      "state": "item-expanded",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:06.518Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0084.png",
+      "screenshotSha256": "cbf0ced66b56ed87f625bb829b4f912b11c6eb19b778a93bef44ec9d74c026ad",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0085",
+      "viewport": "844x390",
+      "setup": "Schakel Volgorde in; verplaats eerste item naar positie 2",
+      "state": "reorder",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:07.555Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0085.png",
+      "screenshotSha256": "5f553372b2d1905b90bc9a486cddbc83e91426b2c41294b1cdb0308c6c482fc8",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0086",
+      "viewport": "844x390",
+      "setup": "Selecteer item 1 en 3; toon bulkduur/themakeuze",
+      "state": "bulk-select",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:08.612Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0086.png",
+      "screenshotSha256": "912f41a4508c46e6ff0faf663cee0befce8c31243fef39829a467a6aa1c75733",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0087",
+      "viewport": "844x390",
+      "setup": "Inhoud toevoegen → Media; geen filters",
+      "state": "picker-media",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:09.607Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0087.png",
+      "screenshotSha256": "cc3b64189ed7c66ce04b7174ec66aa8e185345fc25b0354739aa12534a26de7e",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0088",
+      "viewport": "844x390",
+      "setup": "Inhoud toevoegen → Studio",
+      "state": "picker-studio",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:10.657Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0088.png",
+      "screenshotSha256": "c3d5b8a3ab4332d046c71d28a23c834a6b490cea4a89aef6e24d253e386787b3",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0089",
+      "viewport": "844x390",
+      "setup": "Inhoud toevoegen → Sportlink & LED",
+      "state": "picker-dynamic",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:11.883Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0089.png",
+      "screenshotSha256": "8206df8db04fe86c91c0d113db04a1a972cfe2ffe82e27aa4c1197aa3a80799f",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0090",
+      "viewport": "844x390",
+      "setup": "Selecteer twee items over twee tabs; open selectietray",
+      "state": "picker-selected",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:13.162Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0090.png",
+      "screenshotSha256": "14c57e7d763572cc8c94dae76d86b075349d8bb43547e3b3bd63a46068ec747f",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0091",
+      "viewport": "844x390",
+      "setup": "Zoek exact: qa-geen-resultaat-xyz",
+      "state": "picker-search-empty",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:14.123Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0091.png",
+      "screenshotSha256": "5acacef4db982e31dc681670b246103609f093de1256b3552541da340f66fd15",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0092",
+      "viewport": "844x390",
+      "setup": "Upload fixture JPEG; toon lopende upload; daarna gereed",
+      "state": "picker-upload",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:15.240Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0092.png",
+      "screenshotSha256": "818f5b6d76a1754f4997500ec6cf34d511366be3cf6cd7a62983eeb7ccb1710a",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0093",
+      "viewport": "844x390",
+      "setup": "Publiceren → selecteer twee schermen en één overlappende groep",
+      "state": "publish-targets",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:16.320Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0093.png",
+      "screenshotSha256": "13954e62e05b3e98e174e56e67887582f15a4cc1a37a65f42fe0adfecdffd4ed",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0094",
+      "viewport": "844x390",
+      "setup": "Wijzig naam; druk Terug en toon bewaarkeuze",
+      "state": "dirty-close",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:17.343Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0094.png",
+      "screenshotSha256": "7ad363bafc7d55d966a2c699921bcda8238d843d3826fb593251e6d946488da4",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0095",
+      "viewport": "844x390",
+      "setup": "Verwijder tweede item; toon herstelmelding en herstel",
+      "state": "remove-undo",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:18.476Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0095.png",
+      "screenshotSha256": "6c839c886d69b6d4ece66b4aa4df7e42a63fd39497b8e87e5772036b10cc1171",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 0
+    },
+    {
+      "caseId": "PLAYLIST-0096",
+      "viewport": "844x390",
+      "setup": "Pas OnzeTrots TV toe op geselecteerde items; andere items blijven intact",
+      "state": "theme-bulk",
+      "status": "PASS",
+      "date": "2026-10-11T18:41:19.626Z",
+      "expected": "Zelfde zichtbare flow en controls; fixed footer bereikbaar; juiste selectie/volgorde; terug sluit één niveau; originele inhoud blijft behouden; productie-opslag/publicatie pas succes na serverbevestiging.",
+      "actual": "Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",
+      "screenshot": "/dev/shm/veyocast-s191-playlist-case-evidence/PLAYLIST-0096.png",
+      "screenshotSha256": "708f759fe13e7360b2462f5988ea22e2c86f631c81749bafc473a24b57a16959",
+      "fonts": {
+        "inter": true,
+        "manrope": true,
+        "computed": "\"Inter Variable\", Inter, ui-sans-serif, system-ui, sans-serif"
+      },
+      "acknowledgedSaveCount": 1
+    }
+  ]
+}

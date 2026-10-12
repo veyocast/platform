@@ -30,7 +30,13 @@ describe("mediaresource-overzicht", () => {
     expect(workspace).toContain("MediaArchiveDialog");
     expect(workspace).toContain("AddMediaToPlaylistDialog");
     expect(workspace).toContain("addPlaylistItem");
-    expect(workspace).toContain("Alles op deze pagina selecteren");
+    expect(workspace).toContain("Zichtbare beelden selecteren");
+    expect(workspace).toContain('aria-label={`${asset.title} selecteren`}');
+    expect(workspace).toContain("checked={selected.has(asset.id)}");
+    expect(workspace).toContain("checked={allSelected}");
+    expect(workspace).toContain("allSelected ? new Set() : new Set(assets.map((asset) => asset.id))");
+    expect(workspace).toContain('aria-live="polite"');
+    expect(workspace).toContain("{selectedAssets.length} geselecteerd");
     expect(workspace).toContain("disabled={!canBulk}");
     expect(workspace).toContain("canBulk && selectedAssets.length");
     expect(workspace).toContain("canWrite={canBulk}");

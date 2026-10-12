@@ -19,6 +19,8 @@ import {
   setSportlinkBirthdays,
   updateSportlinkPolicy
 } from "./actions";
+import { SitesSportlinkSourceHealth } from "./sites-sportlink-source-health";
+import { SitesSportlinkConnectionWizard } from "./sites-sportlink-connection-wizard";
 import { BirthdayIntegrationPanel } from "./birthday-integration-panel";
 import { SportlinkSyncRefresh } from "./sportlink-sync-refresh";
 import {
@@ -63,6 +65,8 @@ export default async function SportlinkPage({ searchParams }: Props) {
       <strong>Verbinding niet bijgewerkt.</strong> {errorCopy(params.fout)}
     </p> : null}
     {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
+    <SitesSportlinkConnectionWizard canManage={canManage} birthdaysAvailable={data?.birthdayStatus.featureEnabled ?? false} initial={connection ? { id: connection.id, clubName: connection.detected_club_name ?? "", revision: connection.authoring_revision, teamCodes: connection.selected_team_codes, birthdaysEnabled: connection.privacy_birthdays_enabled } : null} />
+    <SitesSportlinkSourceHealth connection={connection} policies={policies} now={now} unavailable={data?.policiesUnavailable} />
     <SummaryStrip items={[
       { label: "Status", value: connectionHealth.label, tone: connectionHealth.tone },
       { label: "Club", value: connection?.detected_club_name ?? "Nog onbekend" },
@@ -115,7 +119,7 @@ export default async function SportlinkPage({ searchParams }: Props) {
         status={data?.birthdayStatus ?? emptyBirthdayStatus()}
         syncAction={requestBirthdaySync}
       />
-      <div className={styles.grid}>
+      <div className={styles.grid} id="datasetstatus">
         {policies.map((policy) => (
           <form action={updateSportlinkPolicy} className={styles.card} key={policy.id}>
             <div className={styles.cardBody}>
@@ -204,7 +208,7 @@ async function loadConnection(tenantId: string) {
   const supabase = await createControlSupabaseClient();
   if (!supabase) return null;
   const result = await supabase.from("sportlink_connections")
-    .select("id,status,detected_club_name,client_id_suffix,last_tested_at,last_success_at,last_error_code,privacy_birthdays_enabled")
+    .select("id,status,detected_club_name,client_id_suffix,last_tested_at,last_success_at,last_error_code,privacy_birthdays_enabled,authoring_revision,selected_team_codes")
     .eq("tenant_id", tenantId).neq("status", "revoked").maybeSingle();
   if (!result.data) return null;
   const [policiesResult, birthdayStatusResult, birthdayConflictsResult, birthdayMembersResult, birthdayImportsResult] = await Promise.all([

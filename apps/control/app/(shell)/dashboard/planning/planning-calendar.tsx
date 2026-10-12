@@ -8,6 +8,8 @@ import {
   ChevronRight,
   Clock3,
   Grid2X2,
+  Plus,
+  Repeat2,
   Layers3,
   RefreshCw
 } from "lucide-react";
@@ -18,6 +20,7 @@ import {
 } from "react";
 
 import { Button } from "@veyocast/ui";
+import { useRouter } from "next/navigation";
 
 import { isoToZonedDateTimeLocal } from "./schedule-time";
 import {
@@ -68,6 +71,7 @@ export function PlanningWorkspaceToolbar({
   view: PlanningView;
   visual?: string;
 }) {
+  const router = useRouter();
   function submitFilter(event: ChangeEvent<HTMLFormElement>) {
     if (event.target instanceof HTMLSelectElement) {
       event.currentTarget.requestSubmit();
@@ -155,10 +159,10 @@ export function PlanningWorkspaceToolbar({
           <button className="sr-only" type="submit">Filters toepassen</button>
         </form>
 
-        <p className={styles.updatedAt}>
+        <button className={styles.updatedAt} onClick={() => router.refresh()} type="button">
           <RefreshCw aria-hidden="true" />
           Laatst bijgewerkt om {formatClock(updatedAt, timeZone)}
-        </p>
+        </button>
       </div>
     </section>
   );
@@ -178,7 +182,7 @@ export function PlanningCalendarNavigation({
       <Button aria-label="Vorige periode" asChild size="sm" variant="secondary">
         <Link href={previousHref}><ChevronLeft aria-hidden="true" /></Link>
       </Button>
-      <strong>{label}</strong>
+      <strong className={styles.dateLabel}>{label}</strong>
       <Button aria-label="Volgende periode" asChild size="sm" variant="secondary">
         <Link href={nextHref}><ChevronRight aria-hidden="true" /></Link>
       </Button>
@@ -231,7 +235,7 @@ function WeekTimeline({
   const nowLocal = isoToZonedDateTimeLocal(currentTimeIso, timeZone);
   const nowDayIndex = days.findIndex((day) => day.date === nowLocal.slice(0, 10));
   const nowMinute = clockMinutes(nowLocal.slice(11, 16));
-  const showNow = nowDayIndex >= 0 && nowMinute >= 8 * 60 && nowMinute <= 20 * 60;
+  const showNow = nowDayIndex >= 0 && nowMinute >= 8 * 60 && nowMinute <= 22 * 60;
 
   return (
     <section aria-label="Weekplanning" className={styles.weekCalendar}>
@@ -253,6 +257,7 @@ function WeekTimeline({
           </div>
           <div className={styles.weekCanvas}>
             <div aria-hidden="true" className={styles.timeGrid} />
+            <div className={styles.dayClickTargets}>{days.map(day=><Link aria-label={`Moment toevoegen op ${formatCalendarDayLabel(day.date,true)}`} key={day.date} href={`/dashboard/planning?view=week&date=${day.date}&nieuw=1`}/>)}</div>
             {showNow ? (
               <div
                 aria-label={`Huidige tijd ${formatClock(currentTimeIso, timeZone)}`}
@@ -272,33 +277,24 @@ function WeekTimeline({
               />
             ))}
             {!occurrences.length ? (
-              <p className={styles.weekEmpty}>Er staat in deze week nog niets gepland.</p>
+              <div className={styles.weekEmpty}><div className="demo-empty"><h3>Deze week is nog vrij</h3><p>Klik op een dag om je eerste moment in te plannen.</p></div></div>
             ) : null}
           </div>
         </div>
       </div>
 
-      <ol className={styles.mobileAgenda}>
-        {days.map((day) => (
-          <li data-empty={!day.occurrences.length} key={day.date}>
-            <header>
-              <time dateTime={day.date}>{formatCalendarDayLabel(day.date, true)}</time>
-              {day.isToday ? <span>Vandaag</span> : null}
-            </header>
-            {day.occurrences.length ? <ul>
-              {day.occurrences.map((occurrence) => (
-                <li data-tone={eventTone(occurrence, 0)} key={`${occurrence.scheduleId}-${occurrence.startsAt}`}>
-                  <strong>{occurrence.name}</strong>
-                  <span>{occurrence.targetName}</span>
-                  <time dateTime={occurrence.startsAt}>{formatOccurrenceTime(occurrence, timeZone)}</time>
-                </li>
-              ))}
-            </ul> : <p>Geen momenten</p>}
-          </li>
-        ))}
-      </ol>
+      <div className={styles.mobileWeek}><PlanningAgenda days={days} timeZone={timeZone}/></div>
     </section>
   );
+}
+
+export function PlanningAgenda({ days, timeZone }: { days: CalendarDay[]; timeZone: string }) {
+  return <div className={styles.agendaList}>{days.map(day => <section className={styles.agendaDay} key={day.date}>
+    <header><CalendarDays aria-hidden="true" size={17}/><strong><time dateTime={day.date}>{formatCalendarDayLabel(day.date,true)}</time></strong>{day.isToday ? <span className={styles.todayBadge}>Vandaag</span> : null}<Link aria-label={`Moment toevoegen op ${formatCalendarDayLabel(day.date,true)}`} href={`/dashboard/planning?view=agenda&date=${day.date}&nieuw=1`}><Plus aria-hidden="true" size={17}/></Link></header>
+    {day.occurrences.length ? day.occurrences.map((occurrence,index) => <Link className={styles.agendaEvent} data-tone={eventTone(occurrence,index)} href={`/dashboard/planning?view=agenda&date=${day.date}&edit=${occurrence.scheduleId}`} key={`${occurrence.scheduleId}-${occurrence.startsAt}`}>
+      <time dateTime={occurrence.startsAt}>{formatClock(occurrence.startsAt,timeZone)}{occurrence.endsAt ? <span>{formatClock(occurrence.endsAt,timeZone)}</span> : null}</time><div><strong>{occurrence.name}</strong><span>{occurrence.targetName} · {occurrence.playlistName}{!occurrence.enabled ? " · Gepauzeerd" : ""}</span></div>{occurrence.isRecurring ? <Repeat2 aria-label="Terugkerend" size={16}/> : null}<ChevronRight aria-hidden="true" size={17}/>
+    </Link>) : <p className={styles.noEvents}>Geen momenten gepland</p>}
+  </section>)}</div>;
 }
 
 function WeekEvent({
@@ -330,7 +326,7 @@ function WeekEvent({
   } as CSSProperties;
 
   return (
-    <article
+    <Link href={`/dashboard/planning?view=week&date=${occurrence.startsAt.slice(0,10)}&edit=${occurrence.scheduleId}`}
       className={styles.weekEvent}
       data-disabled={!occurrence.enabled}
       data-reference={isReference}
@@ -341,7 +337,7 @@ function WeekEvent({
       <span>
         {occurrence.targetName} · {referencePresentation?.time ?? formatOccurrenceTime(occurrence, timeZone)}
       </span>
-    </article>
+    </Link>
   );
 }
 
@@ -360,12 +356,12 @@ function MonthCalendar({ days, timeZone }: { days: CalendarDay[]; timeZone: stri
             data-today={day.isToday}
             key={day.date}
           >
-            <header><time dateTime={day.date}>{day.date.slice(8, 10).replace(/^0/, "")}</time></header>
+            <header><time dateTime={day.date}>{day.date.slice(8, 10).replace(/^0/, "")}</time><Link aria-label={`Moment toevoegen op ${formatCalendarDayLabel(day.date,true)}`} className={styles.addDay} href={`/dashboard/planning?view=month&date=${day.date}&nieuw=1`}><Plus aria-hidden="true" size={14}/></Link></header>
             {day.occurrences.length ? <ol>
               {day.occurrences.map((occurrence, index) => (
                 <li data-tone={eventTone(occurrence, index)} key={`${occurrence.scheduleId}-${occurrence.startsAt}`}>
-                  <strong>{occurrence.name}</strong>
-                  <time dateTime={occurrence.startsAt}>{formatOccurrenceTime(occurrence, timeZone)}</time>
+                  <Link className={styles.monthEvent} href={`/dashboard/planning?view=month&date=${day.date}&edit=${occurrence.scheduleId}`}><strong>{occurrence.name}</strong>
+                  <time dateTime={occurrence.startsAt}>{formatOccurrenceTime(occurrence, timeZone)}</time></Link>
                 </li>
               ))}
             </ol> : null}
@@ -398,7 +394,7 @@ function occurrencePosition(
   const dayIndex = days.findIndex((day) => day.date === localStart.slice(0, 10));
   if (dayIndex < 0) return null;
   const startMinute = clockMinutes(localStart.slice(11, 16));
-  if (startMinute > 20 * 60) return null;
+  if (startMinute > 22 * 60) return null;
   const localEnd = occurrence.endsAt
     ? isoToZonedDateTimeLocal(occurrence.endsAt, timeZone)
     : null;
@@ -406,7 +402,7 @@ function occurrencePosition(
     ? clockMinutes(localEnd.slice(11, 16))
     : startMinute + 75;
   const visibleStart = Math.max(8 * 60, startMinute);
-  const visibleEnd = Math.min(20 * 60, Math.max(visibleStart + 60, endMinute));
+  const visibleEnd = Math.min(22 * 60, Math.max(visibleStart + 60, endMinute));
   return {
     height: Math.max(48, Math.min(112, ((visibleEnd - visibleStart) / 60) * 41)),
     left: ((dayIndex + .15) / 7) * 100,
@@ -436,6 +432,7 @@ function referenceEventPresentation(scheduleId: string) {
 }
 
 function eventTone(occurrence: CalendarOccurrence, index: number) {
+  if (occurrence.calendarTone) return occurrence.calendarTone;
   if (occurrence.source === "override") return "orange";
   if (occurrence.source === "fallback") return "petrol";
   if (occurrence.source === "info") return "blue";
@@ -472,11 +469,11 @@ function clockMinutes(value: string) {
 }
 
 function minutePercentage(value: number) {
-  return ((Math.min(20 * 60, Math.max(8 * 60, value)) - 8 * 60) / (12 * 60)) * 100;
+  return ((Math.min(22 * 60, Math.max(8 * 60, value)) - 8 * 60) / (14 * 60)) * 100;
 }
 
 function viewLabel(view: PlanningView) {
   if (view === "week") return "Week";
   if (view === "month") return "Maand";
-  return "Dag";
+  return "Agenda";
 }

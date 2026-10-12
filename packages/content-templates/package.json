@@ -23,6 +23,34 @@
     "./theme-catalog": {
       "types": "./dist/theme-catalog.d.ts",
       "default": "./src/theme-catalog.ts"
+    },
+    "./sites-presentation": {
+      "types": "./dist/sites-presentation.d.ts",
+      "default": "./src/sites-presentation.tsx"
+    },
+    "./sites-styles": {
+      "types": "./dist/sites-styles.d.ts",
+      "default": "./src/sites-styles.ts"
+    },
+    "./sites-media": {
+      "types": "./dist/sites-media.d.ts",
+      "default": "./src/sites-media.tsx"
+    },
+    "./sites-screen-themes": {
+      "types": "./dist/sites-screen-themes.d.ts",
+      "default": "./src/sites-screen-themes.ts"
+    },
+    "./sites-dynamic-projector": {
+      "types": "./dist/sites-dynamic-projector.d.ts",
+      "default": "./src/sites-dynamic-projector.ts"
+    },
+    "./sites-static-view": {
+      "types": "./dist/sites-static-view.d.ts",
+      "default": "./src/sites-static-view.tsx"
+    },
+    "./sites-presentation-model": {
+      "types": "./dist/sites-presentation-model.d.ts",
+      "default": "./src/sites-presentation-model.ts"
     }
   },
   "scripts": {
@@ -36,7 +64,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.1.8",
-    "react": "19.2.3",
+    "react": "19.2.7",
     "react-dom": "19.2.7"
   },
   "peerDependencies": {

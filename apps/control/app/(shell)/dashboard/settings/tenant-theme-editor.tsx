@@ -35,13 +35,15 @@ export function TenantThemeEditor({
   disabled,
   initialAppearance,
   initialSelection,
-  initialTheme
+  initialTheme,
+  profileRevisions
 }: {
   defaults: EditorialThemeConfig;
   disabled: boolean;
   initialAppearance: ThemeAppearanceSettings;
   initialSelection: ThemeSelection;
   initialTheme: EditorialThemeConfig;
+  profileRevisions?: Partial<Record<"fieldflow" | "onzetrots-tv", number>>;
 }) {
   const resolvedInitialAppearance = (
     initialAppearance.schemaVersion === 2
@@ -272,6 +274,7 @@ export function TenantThemeEditor({
           </button>
         </div>
       </section>
+      {profileRevisions ? <input name="themeSettingsRevision" type="hidden" value={profileRevisions[selection.ref.catalog === "v2" && selection.ref.id === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow"] ?? 0} /> : null}
       <input name="themeAppearanceJson" type="hidden" value={JSON.stringify(appearance)} />
     </div>
   );

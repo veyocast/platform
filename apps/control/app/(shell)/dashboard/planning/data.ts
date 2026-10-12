@@ -11,7 +11,8 @@ export async function loadContentSchedules(tenantId: string) {
   const [schedules, screens, groups, memberships, playlists, releases, settings] = await Promise.all([
     supabase
       .from("content_schedules")
-      .select("id, name, target_kind, target_screen_id, target_screen_group_id, playlist_id, release_id, timezone_name, schedule_kind, starts_at, ends_at, recurrence_json, priority, source, enabled, revision")
+      .select("id, name, target_kind, target_screen_id, target_screen_group_id, playlist_id, release_id, timezone_name, schedule_kind, starts_at, ends_at, recurrence_json, priority, source, enabled, revision, calendar_tone")
+      .is("deleted_at", null)
       .eq("tenant_id", tenantId)
       .order("starts_at"),
     supabase
@@ -24,6 +25,7 @@ export async function loadContentSchedules(tenantId: string) {
       .from("screen_groups")
       .select("id, name")
       .eq("tenant_id", tenantId)
+      .eq("is_internal", false)
       .eq("status", "active")
       .order("name"),
     supabase
@@ -79,6 +81,7 @@ export async function loadContentSchedules(tenantId: string) {
     schedules: (schedules.data ?? []).map((schedule): ContentScheduleListItem => {
       const release = releaseById.get(schedule.release_id);
       return {
+        calendarTone: schedule.calendar_tone,
         enabled: schedule.enabled,
         endsAt: schedule.ends_at,
         id: schedule.id,

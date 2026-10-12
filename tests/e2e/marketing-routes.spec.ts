@@ -65,9 +65,20 @@ test("mobile menu opens, traps interaction and resolves a product route", async 
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Menu sluiten" })).toBeFocused();
 
-  await dialog.getByRole("link", { name: "Mogelijkheden" }).click();
-  await expect(page).toHaveURL(/\/functies$/);
+  const last = dialog.getByRole("button", { name: "Open beheeromgeving" });
+  await last.focus();
+  await page.keyboard.press("Tab");
+  await expect(dialog.getByRole("button", { name: "VeyoCast startpagina" })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(last).toBeFocused();
+  await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+  await expect(page.getByRole("button", { name: "Menu openen" })).toBeFocused();
+  await page.getByRole("button", { name: "Menu openen" }).click();
+  await dialog.getByRole("button", { name: "Mogelijkheden", exact: true }).click();
+  await expect(page).toHaveURL(/#mogelijkheden$/);
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Direct zien wat er speelt." })).toBeVisible();
 });
 
 test("FAQ accordion works with keyboard input", async ({ page }) => {

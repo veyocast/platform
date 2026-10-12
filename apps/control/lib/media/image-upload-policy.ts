@@ -1,4 +1,5 @@
 export const allowedImageUploadMimeTypes = [
+  "image/avif",
   "image/gif",
   "image/jpeg",
   "image/png",
@@ -45,5 +46,5 @@ export function imageUploadPolicyMessage(failure: ImageUploadPolicyFailure) {
   if (failure === "file_too_large") {
     return "Het bestand overschrijdt de veilige limiet: 25 MB voor afbeeldingen, 50 MB voor GIF en 2 MB voor SVG. Verklein het bestand en probeer opnieuw.";
   }
-  return "Dit bestandstype is niet toegestaan. Gebruik JPEG, PNG, WebP, GIF of een veilig SVG-bestand.";
+  return "Dit bestandstype is niet toegestaan. Gebruik JPEG, PNG, WebP, AVIF, GIF of een veilig SVG-bestand.";
 }

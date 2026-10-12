@@ -7,6 +7,7 @@ import {
   invitationDeliveryLabel,
   invitationDeliveryRecovery
 } from "../../../../../lib/invitation-delivery";
+import {readControlSitesAuthoringPaused} from "../../../../../lib/sites-authoring-state";
 import { loadPlatformTenantDetail } from "../../../../../lib/platform-management";
 import { switchTenantContext } from "../../../context/actions";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -54,6 +55,7 @@ export default async function PlatformTenantDetailPage({
   }
 
   const tenant = data.tenant;
+  const sitesAuthoringPaused=await readControlSitesAuthoringPaused(tenant.id,session.isLive);
   const canManage = hasCapability(session.capabilities, "platform.tenant.lifecycle");
   const aal2Ready = !session.isLive || session.assuranceLevel === "aal2";
   const canMutate = canManage && aal2Ready;
@@ -144,7 +146,7 @@ export default async function PlatformTenantDetailPage({
             const revision = isLedScores
               ? data.ledScoresEffectiveState.revision
               : stored?.revision ?? 0;
-            const display = isLedScores
+            const display = definition.key === "sites_authoring_paused" ? {detail: "Bestaande releases, datarefresh en immutable herstel blijven beschikbaar.", label:sitesAuthoringPaused?"Authoring gepauzeerd":"Authoring beschikbaar",tone:sitesAuthoringPaused?"warning" as const:"success" as const}:isLedScores
               ? deriveTenantFeatureRolloutDisplay({
                   definitionAvailable:
                     data.ledScoresEffectiveState.definitionAvailable,

@@ -1,0 +1,64 @@
+{
+  "scope": "Actual authenticated-role guarded SQL/RPC on isolated seeded pilot tenant with test AAL2 claims, own ephemeral group/screen/disabled future schedule; no UI, browser-session, provider or physical-device claim. Entire test rolls back.",
+  "before": {
+    "groupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc",
+    "screenId": "115d3ab3-0079-4b63-82b9-7211af4b5783",
+    "releaseId": "b45d1f65-3327-44ea-b3a9-25ccf352f163",
+    "scheduleId": "9cd62c8f-4393-4eb2-ad59-d1953808b2d3",
+    "targetGroupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc"
+  },
+  "status": "PASS",
+  "actorId": "00000000-0000-4000-8000-000000000101",
+  "groupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc",
+  "renamed": {
+    "groupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc",
+    "screenId": "115d3ab3-0079-4b63-82b9-7211af4b5783",
+    "releaseId": "b45d1f65-3327-44ea-b3a9-25ccf352f163",
+    "scheduleId": "9cd62c8f-4393-4eb2-ad59-d1953808b2d3",
+    "targetGroupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc"
+  },
+  "restored": {
+    "groupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc",
+    "screenId": "115d3ab3-0079-4b63-82b9-7211af4b5783",
+    "releaseId": "b45d1f65-3327-44ea-b3a9-25ccf352f163",
+    "scheduleId": "9cd62c8f-4393-4eb2-ad59-d1953808b2d3",
+    "targetGroupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc"
+  },
+  "screenId": "115d3ab3-0079-4b63-82b9-7211af4b5783",
+  "tenantId": "10000000-0000-4000-8000-000000000101",
+  "assertions": {
+    "sameUuid": true,
+    "actualRename": true,
+    "tenantScoped": true,
+    "revisionAdvanced": true,
+    "authenticatedRole": true,
+    "guardedRestoration": true,
+    "guardedGroupCreation": true,
+    "sameTargetReferences": true,
+    "guardedScreenMembership": true,
+    "actualDisabledScheduleTarget": true,
+    "sameImmutableReleaseReference": true
+  },
+  "scheduleId": "9cd62c8f-4393-4eb2-ad59-d1953808b2d3",
+  "workflowId": "WF21",
+  "renameReceipt": {
+    "groupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc",
+    "outcome": "applied",
+    "actualRevision": 2
+  },
+  "beforeRevision": 1,
+  "restoreReceipt": {
+    "groupId": "e95eef6b-46ac-4770-8ba6-ed80d77507dc",
+    "outcome": "applied",
+    "actualRevision": 3
+  },
+  "renamedRevision": 2,
+  "rollbackCleanup": true,
+  "executionProvenance": {
+    "testQuerySha256": "dd44728ba147edb078a8d4fba78422c4a16bb522ec0a601548901c0bec914302",
+    "log": "/tmp/s191-screen-group-rename-proof.log",
+    "database": "isolated local56522",
+    "cleanup": "Entire successful transaction ROLLBACK; no remaining ephemeral group/screen/schedule or modified existing resources.",
+    "testQuery": "docs/sites-v11-overname/evidence/screen-group-rename-proof.sql"
+  }
+}

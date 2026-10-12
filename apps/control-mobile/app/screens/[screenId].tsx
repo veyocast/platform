@@ -28,6 +28,7 @@ import {
 import { AppError } from "../../src/components/app-error";
 import { useMobileScreens } from "../../src/query/use-mobile-data";
 import { useTenant } from "../../src/tenant/tenant-provider";
+import {NativeScreenCompositionEditor} from "../../src/sites/screen-composition-editor";
 
 type Command =
   | "CLEAR_PLAYER_CACHE"
@@ -180,6 +181,7 @@ export default function ScreenDetailScreen() {
           />
         ) : null}
         {error ? <AppError error={error} /> : null}
+        <NativeScreenCompositionEditor key={`${activeTenant?.id}:${screen.id}`} screenId={screen.id}/>
         <View style={styles.section}>
           <View style={styles.copy}>
             <AppText accessibilityRole="header" variant="section">

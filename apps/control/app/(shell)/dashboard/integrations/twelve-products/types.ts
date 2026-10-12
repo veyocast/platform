@@ -1,5 +1,6 @@
 export type ProductView = Readonly<{
   active: boolean;
+  dataSourceId?: string | null;
   barcode: string | null;
   category: string | null;
   customFields: Readonly<Record<string, unknown>>;

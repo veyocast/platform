@@ -2943,6 +2943,18 @@
 }
 
 @media (max-width: 860px) {
+  /* Mobile authoring controls meet the locked 44px touch target. */
+  .editorShell .editorIdentity > :global(.vc-button),
+  .editorShell .editorHeaderActions > :global(.vc-button) {
+    height: 44px;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .editorShell .editorIdentity > :global(.vc-button) {
+    width: 44px;
+  }
+
   .queue {
     grid-template-columns: 1fr;
   }

@@ -9,6 +9,7 @@ import {
   themeAppearanceSettingsSchema,
   themeModePolicySchema
 } from "@veyocast/contracts";
+import { themeCatalog } from "@veyocast/content-templates/theme-catalog";
 import { editorialThemeHasValidContrast } from "@veyocast/content-templates/editorial-arena-theme";
 
 import { requireTenantCapability } from "../../../../../lib/control-session";
@@ -115,7 +116,7 @@ export async function updateTenantTheme(formData: FormData) {
     p_support: support,
     p_tenant_id: session.tenantId,
     p_theme_id: themeId.data,
-    p_theme_version: "1.0.0"
+    p_theme_version: themeCatalog[themeId.data].version
   });
   if (error) {
     console.error("Theme-instellingen opslaan mislukt", error);

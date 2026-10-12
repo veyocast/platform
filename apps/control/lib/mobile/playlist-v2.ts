@@ -1,0 +1,22 @@
+import "server-only";
+import {mobilePlaylistDetailV2Schema,sitesPresentationSchema} from "@veyocast/contracts";
+import type {MobileRequestContext,MobileTenantContext} from "../mobile-api/context";
+import {projectMobilePlaylistItemV2} from "./playlist-v2-projection";
+const chunks=(ids:string[])=>Array.from({length:Math.ceil(ids.length/40)},(_,i)=>ids.slice(i*40,i*40+40));
+export async function loadMobilePlaylistV2(context:MobileRequestContext,tenant:MobileTenantContext,playlistId:string){
+ const client=context.supabase;
+ const [playlist,items,sections,media,screens,devices]=await Promise.all([
+  client.from("playlists").select("id,name,description,status,revision").eq("tenant_id",tenant.id).eq("id",playlistId).maybeSingle(),
+  client.from("playlist_items").select("id,media_asset_id,dynamic_slide_id,dynamic_snapshot_id,youtube_source_id,engage_campaign_id,section_id,sort_order,duration_seconds,fit_mode,muted,display_title,accessibility_name,enabled,transition,crop_focus_x,crop_focus_y,background_color,volume_percent,trim_start_seconds,trim_end_seconds,visible_from,visible_until,sites_configuration_json").eq("tenant_id",tenant.id).eq("playlist_id",playlistId).order("sort_order").limit(1001),
+  client.from("playlist_sections").select("id,name,position_key").eq("tenant_id",tenant.id).eq("playlist_id",playlistId).order("position_key").limit(201),
+  client.from("media_assets").select("id,title,mime_type,created_at,file_size_bytes").eq("tenant_id",tenant.id).eq("status","ready").is("deleted_at",null).order("created_at",{ascending:false}).limit(48),
+  client.from("screens").select("id,name,status").eq("tenant_id",tenant.id).is("deleted_at",null).order("name").limit(200),
+  client.from("player_devices").select("screen_id,last_seen_at,status").eq("tenant_id",tenant.id).eq("status","paired").order("last_seen_at",{ascending:false}).limit(200)
+ ]);
+ if([playlist,items,sections,media,screens,devices].some(value=>value.error))throw Error("MOBILE_PLAYLIST_READ_UNAVAILABLE");if(!playlist.data)return null;
+ if((items.data?.length??0)>1000||(sections.data?.length??0)>200)throw Error("MOBILE_PLAYLIST_LIMIT");
+ const ids=[...new Set((items.data??[]).map(item=>item.media_asset_id as string))];const assets=new Map((media.data??[]).map(asset=>[asset.id,asset]));const frozen=new Map<string,unknown>();
+ for(const page of chunks(ids)){const [missing,exports]=await Promise.all([client.from("media_assets").select("id,title,mime_type,created_at,file_size_bytes").eq("tenant_id",tenant.id).in("id",page),client.from("studio_exports").select("media_asset_id,revision_id").eq("tenant_id",tenant.id).in("media_asset_id",page)]);if(missing.error||exports.error)throw Error("MOBILE_PLAYLIST_SOURCE_UNAVAILABLE");missing.data?.forEach(asset=>assets.set(asset.id,asset));const revisionIds=[...new Set((exports.data??[]).map(value=>value.revision_id as string))];if(!revisionIds.length)continue;const revisions=await client.from("studio_revisions").select("id,document_json").eq("tenant_id",tenant.id).in("id",revisionIds);if(revisions.error)throw Error("MOBILE_STUDIO_READ_UNAVAILABLE");for(const exported of exports.data??[]){const doc=revisions.data?.find(value=>value.id===exported.revision_id)?.document_json as {sitesPresentation?:unknown}|undefined;const parsed=sitesPresentationSchema.safeParse(doc?.sitesPresentation);if(parsed.success&&parsed.data.kind==="studio")frozen.set(exported.media_asset_id,parsed.data);}}
+ const latestDevice=new Map<string,{last_seen_at:string|null}>();for(const device of devices.data??[])if(!latestDevice.has(device.screen_id))latestDevice.set(device.screen_id,device);
+ return mobilePlaylistDetailV2Schema.parse({...playlist.data,schemaVersion:2,revision:Number(playlist.data.revision),items:(items.data??[]).map(item=>projectMobilePlaylistItemV2(item,assets.get(item.media_asset_id),frozen.get(item.media_asset_id)??null)),sections:(sections.data??[]).map(section=>({id:section.id,name:section.name,positionKey:String(section.position_key)})),readyMedia:(media.data??[]).map(asset=>({id:asset.id,name:asset.title,mimeType:asset.mime_type,createdAt:asset.created_at,processingStatus:"ready",sizeBytes:Number(asset.file_size_bytes),thumbnailUrl:null})),publishTargets:(screens.data??[]).map(screen=>{const lastSeenAt=latestDevice.get(screen.id)?.last_seen_at??null;return{id:screen.id,name:screen.name,lastSeenAt,status:screen.status!=="active"?"blocked":lastSeenAt&&Date.now()-Date.parse(lastSeenAt)<=300000?"ready":"warning"};})});
+}

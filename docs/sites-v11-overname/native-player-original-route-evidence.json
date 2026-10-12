@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc",
+  "implementationBaseSha": "c3ef6b504dcd534b1988e2a96df102be08ce1118",
+  "capturedAt": "2026-10-11T19:48:36.942Z",
+  "browser": "Chromium1228 / Linux / DPR1",
+  "localOnly": true,
+  "sourceGoldenCompared": false,
+  "physicalHardwareClaim": false,
+  "providerSuccessClaim": false,
+  "scope": "Original Player routes and viewports on the actual production Next build. Default setup, device transport, review-session and diagnostic guards, thumbnail input boundary, visible titles and overflow. Pairing responses are controlled device-only fixtures. Playback/LKG/rollback acceptance remains separate.",
+  "results": [
+    {
+      "caseId": "ROUTE-0177",
+      "status": "PASS",
+      "route": "/demo",
+      "finalPath": "/",
+      "viewport": "1920x1080",
+      "responseStatus": 200,
+      "boundary": "Default review route requires its separate review session and redirects to device setup; review media remains hidden.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player",
+        "visibleText": " Klaar om te koppelenKoppel dit scherm aan VeyoCastOpen Schermen in VeyoCast Control, kies Scherm koppelen en voer deze code in.KoppelcodeQA1 234De code is tijdelijk en alleen bruikbaar voor dit scherm.Scan met VeyoCast ControlSchermstatusWachten op VeyoCast ControlZodra de code is bevestigd, haalt "
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "42e7569cc06f776a800150719547c551b25ca09074bb19b00ede4fb995801bc4",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0178",
+      "status": "PASS",
+      "route": "/demo",
+      "finalPath": "/",
+      "viewport": "1080x1920",
+      "responseStatus": 200,
+      "boundary": "Default review route requires its separate review session and redirects to device setup; review media remains hidden.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player",
+        "visibleText": " Klaar om te koppelenKoppel dit scherm aan VeyoCastOpen Schermen in VeyoCast Control, kies Scherm koppelen en voer deze code in.KoppelcodeQA1 234De code is tijdelijk en alleen bruikbaar voor dit scherm.Scan met VeyoCast ControlSchermstatusWachten op VeyoCast ControlZodra de code is bevestigd, haalt "
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "ec372246cfc4a508a0253b77d66a9498c720403553602ef3f764a870589dae56",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0179",
+      "status": "PASS",
+      "route": "/device-lab",
+      "finalPath": "/device-lab",
+      "viewport": "1920x1080",
+      "responseStatus": 404,
+      "boundary": "Default diagnostic route remains hidden without its HttpOnly device-lab session; unprivileged result write denied.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "404: This page could not be found.",
+        "visibleText": ""
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "b9e3acf78ca01ce181253fa38652a29f8c2fbc0a33ed21f737852bfd46d3b935",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0180",
+      "status": "PASS",
+      "route": "/device-lab",
+      "finalPath": "/device-lab",
+      "viewport": "1080x1920",
+      "responseStatus": 404,
+      "boundary": "Default diagnostic route remains hidden without its HttpOnly device-lab session; unprivileged result write denied.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "404: This page could not be found.",
+        "visibleText": ""
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "ff8e927547b1a2c35674d39561f3f84b6e08af08e9fd662ef394b745887c3ae8",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0181",
+      "status": "PASS",
+      "route": "/lg",
+      "finalPath": "/lg",
+      "viewport": "1920x1080",
+      "responseStatus": 200,
+      "boundary": "Default runtime uses device-only installation/pairing transport and retains the pairing screen.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player voor LG webOS Signage",
+        "visibleText": " Klaar om te koppelenKoppel dit scherm aan VeyoCastOpen Schermen in VeyoCast Control, kies Scherm koppelen en voer deze code in.KoppelcodeQA1 234De code is tijdelijk en alleen bruikbaar voor dit scherm.Scan met VeyoCast ControlSchermstatusWachten op VeyoCast ControlZodra de code is bevestigd, haalt "
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "740e8946da30450674d1babb69c595854244cfe6f9c9cf88aee1b14b29acb44c",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0182",
+      "status": "PASS",
+      "route": "/lg",
+      "finalPath": "/lg",
+      "viewport": "1080x1920",
+      "responseStatus": 200,
+      "boundary": "Default runtime uses device-only installation/pairing transport and retains the pairing screen.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player voor LG webOS Signage",
+        "visibleText": " Klaar om te koppelenKoppel dit scherm aan VeyoCastOpen Schermen in VeyoCast Control, kies Scherm koppelen en voer deze code in.KoppelcodeQA1 234De code is tijdelijk en alleen bruikbaar voor dit scherm.Scan met VeyoCast ControlSchermstatusWachten op VeyoCast ControlZodra de code is bevestigd, haalt "
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "1d3fc0ae30b05c8751936d3ce5f54d4f477455e03cb3ea3c6d087d34720bf8f3",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0183",
+      "status": "PASS",
+      "route": "/",
+      "finalPath": "/",
+      "viewport": "1920x1080",
+      "responseStatus": 200,
+      "boundary": "Default runtime uses device-only installation/pairing transport and retains the pairing screen.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player",
+        "visibleText": " Klaar om te koppelenKoppel dit scherm aan VeyoCastOpen Schermen in VeyoCast Control, kies Scherm koppelen en voer deze code in.KoppelcodeQA1 234De code is tijdelijk en alleen bruikbaar voor dit scherm.Scan met VeyoCast ControlSchermstatusWachten op VeyoCast ControlZodra de code is bevestigd, haalt "
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "e4a767d220e4eb94bfa49b389d8ad8a449aac0e9e6892d3c896570364af7373b",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0184",
+      "status": "PASS",
+      "route": "/",
+      "finalPath": "/",
+      "viewport": "1080x1920",
+      "responseStatus": 200,
+      "boundary": "Default runtime uses device-only installation/pairing transport and retains the pairing screen.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player",
+        "visibleText": " Klaar om te koppelenKoppel dit scherm aan VeyoCastOpen Schermen in VeyoCast Control, kies Scherm koppelen en voer deze code in.KoppelcodeQA1 234De code is tijdelijk en alleen bruikbaar voor dit scherm.Scan met VeyoCast ControlSchermstatusWachten op VeyoCast ControlZodra de code is bevestigd, haalt "
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "ec372246cfc4a508a0253b77d66a9498c720403553602ef3f764a870589dae56",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0185",
+      "status": "PASS",
+      "route": "/thumbnail",
+      "finalPath": "/thumbnail",
+      "viewport": "1920x1080",
+      "responseStatus": 200,
+      "boundary": "Default missing payload fails closed and never signals thumbnail readiness.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player",
+        "visibleText": "Ongeldige thumbnailpayload"
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "a48833c0c7c659ffd2185379fce7d8e0dc29aea81169de2081212a50be58bbef",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    },
+    {
+      "caseId": "ROUTE-0186",
+      "status": "PASS",
+      "route": "/thumbnail",
+      "finalPath": "/thumbnail",
+      "viewport": "1080x1920",
+      "responseStatus": 200,
+      "boundary": "Default missing payload fails closed and never signals thumbnail readiness.",
+      "geometry": {
+        "horizontalOverflow": false,
+        "verticalOverflow": false,
+        "title": "VeyoCast Player",
+        "visibleText": "Ongeldige thumbnailpayload"
+      },
+      "humanAuthRequests": 0,
+      "screenshotSha256": "115bc4f016203b557fbe8a6a6eb44ee80e4d2952e9ec4ebee76341e993f7a1fc",
+      "scope": "Default route and preservation guard acceptance; no independent Source-golden or operational playback claim."
+    }
+  ]
+}

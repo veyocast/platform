@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  type ReactNode,
   type CSSProperties
 } from "react";
 
@@ -21,12 +22,14 @@ import {
 export function EngagePlaybackMedia({
   item,
   onReady,
+  renderFallback,
   passive,
   paused = false
 }: {
   item: PlayerManifestItem;
   onFailure: (itemId: string, code: "VIDEO_ERROR") => void;
   onReady: (itemId: string) => void;
+  renderFallback?: (onReady: (itemId: string) => void) => ReactNode;
   passive: boolean;
   paused?: boolean;
 }) {
@@ -68,6 +71,7 @@ export function EngagePlaybackMedia({
   }, [binding, item.id, onReady, passive, paused]);
 
   if (!campaign || !binding) {
+    if (renderFallback) return renderFallback(onReady);
     // The immutable release poster remains the authority while live data is
     // unavailable. No score or percentage is manufactured in the Player.
     // eslint-disable-next-line @next/next/no-img-element
