@@ -33,7 +33,15 @@ node scripts/check-migration-safety.mjs supabase/migrations
 
 # De CLI vergelijkt lokale en remote migration history. Zonder --include-all
 # stopt hij bij remote-only en out-of-order versies in plaats van ze te forceren.
-pnpm exec supabase migration list --db-url "${SUPABASE_DB_URL}" >/dev/null
+if pnpm exec supabase migration list --db-url "${SUPABASE_DB_URL}" >/dev/null; then
+  :
+else
+  migration_exit_code=$?
+  # De normale client/TLS blijft leidend. Deze begrensde read-only diagnose
+  # authenticeert nooit en geeft uitsluitend vaste transportstatussen terug.
+  node scripts/probe-database-transport.mjs || true
+  exit "${migration_exit_code}"
+fi
 pnpm exec supabase db push \
   --db-url "${SUPABASE_DB_URL}" \
   --dry-run \

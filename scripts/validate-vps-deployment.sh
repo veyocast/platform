@@ -107,6 +107,8 @@ if grep --line-number --extended-regexp '(^|[[:space:]])build:' infra/vps/compos
 fi
 
 bash -n scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
+pnpm exec eslint scripts/probe-database-transport.mjs scripts/probe-database-transport.test.mjs scripts/test-deployment-lifecycle.test.mjs --max-warnings=0
+node --test scripts/test-deployment-lifecycle.test.mjs scripts/probe-database-transport.test.mjs
 
 node scripts/check-migration-safety.mjs supabase/migrations
 
