@@ -9,9 +9,12 @@ environment=${1:-}
 action=${2:-deploy}
 deployment_mode=${DEPLOYMENT_MODE:-release}
 mutation_started=false
+quiesced_worker_id=""
+recovery_failed=false
 candidate_env_file=""
 temporary_marketing_container=""
 previous_env_snapshot=""
+previous_state_directory=""
 rendered_compose_file=""
 rendered_worker_compose_file=""
 
@@ -71,8 +74,11 @@ cleanup() {
   if [[ -n ${candidate_env_file} && -f ${candidate_env_file} ]]; then
     rm -f -- "${candidate_env_file}"
   fi
-  if [[ -n ${previous_env_snapshot} && -f ${previous_env_snapshot} ]]; then
+  if [[ ${recovery_failed} != true && -n ${previous_env_snapshot} && -f ${previous_env_snapshot} ]]; then
     rm -f -- "${previous_env_snapshot}"
+  fi
+  if [[ ${recovery_failed} != true && -n ${previous_state_directory} && -d ${previous_state_directory} ]]; then
+    rm -rf -- "${previous_state_directory}"
   fi
   if [[ -n ${rendered_compose_file} && -f ${rendered_compose_file} ]]; then
     rm -f -- "${rendered_compose_file}"
@@ -176,6 +182,9 @@ restore_previous_release() {
 
   local -a args=(docker compose -p "${compose_project}" --env-file "${previous_env_snapshot}" --file "${compose_file}")
   local -a worker_args=(docker compose -p "${WORKER_COMPOSE_PROJECT_NAME}" --env-file "${previous_env_snapshot}" --file "${worker_compose_file}")
+  # Workerreadiness moet de bewaarde oude configuratie gebruiken; de candidate
+  # kan tijdens een gedeeltelijke statuscommit al naar .env.runtime zijn verplaatst.
+  local -a WORKER_COMPOSE_ARGS=("${worker_args[@]}")
   if [[ ${environment} == production ]]; then
     args+=(--profile production)
   fi
@@ -184,7 +193,10 @@ restore_previous_release() {
     return 1
   fi
   if [[ ${restore_worker} == true ]]; then
-    "${worker_args[@]}" up -d --no-build --remove-orphans >/dev/null 2>&1
+    if ! "${worker_args[@]}" up -d --no-build --remove-orphans >/dev/null 2>&1; then
+      echo "Automatische workerrollback faalde; handmatige incidentactie is vereist." >&2
+      return 1
+    fi
   else
     "${worker_args[@]}" down --remove-orphans >/dev/null 2>&1 || true
   fi
@@ -203,22 +215,136 @@ restore_previous_release() {
   release_metadata=${saved_metadata}
   release_key_fingerprint=${saved_fingerprint}
   NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${saved_key}
+  if ! restore_runtime_state; then
+    echo "Herstel van de opgeslagen releasestatus faalde; de vorige configuratie blijft behouden." >&2
+    return 1
+  fi
+  mutation_started=false
+  quiesced_worker_id=""
   echo "De vorige applicatierelease is opnieuw gezond geactiveerd." >&2
+}
+
+snapshot_runtime_state() {
+  local name
+  previous_state_directory=$(mktemp -d "${runtime_directory}/.runtime-state.previous.XXXXXX") || return 1
+  for name in .env.runtime REVISION PREVIOUS_REVISION RELEASE_MANIFEST; do
+    if [[ -e ${runtime_directory}/${name} ]]; then
+      if [[ ! -f ${runtime_directory}/${name} || -L ${runtime_directory}/${name} ]]; then
+        echo "Runtimebestanden zijn ongeldig voor veilig deploymentherstel." >&2
+        return 1
+      fi
+      install -m 0600 "${runtime_directory}/${name}" "${previous_state_directory}/${name}" || return 1
+    fi
+  done
+}
+
+restore_runtime_state() {
+  [[ -n ${previous_state_directory} && -d ${previous_state_directory} ]] || return 1
+  local name temporary
+  for name in .env.runtime REVISION PREVIOUS_REVISION RELEASE_MANIFEST; do
+    if [[ -f ${previous_state_directory}/${name} ]]; then
+      temporary=$(mktemp "${runtime_directory}/.runtime-state.restore.XXXXXX") || return 1
+      install -m 0600 "${previous_state_directory}/${name}" "${temporary}" || return 1
+      mv -f -- "${temporary}" "${runtime_directory}/${name}" || return 1
+    else
+      rm -f -- "${runtime_directory}/${name}" || return 1
+    fi
+  done
+}
+
+quiesce_previous_worker() {
+  [[ -s ${previous_env_snapshot} ]] || return 0
+  local previous_sha expected_image container_id actual_image running identity
+  previous_sha=$(sed -n 's/^DEPLOYMENT_SHA=//p' "${previous_env_snapshot}")
+  [[ ${previous_sha} =~ ^[0-9a-f]{40}$ ]] || return 1
+  container_id=$(docker ps --quiet --no-trunc \
+    --filter "label=com.docker.compose.project=${WORKER_COMPOSE_PROJECT_NAME}" \
+    --filter 'label=com.docker.compose.service=media-worker') || return 1
+  [[ -n ${container_id} ]] || return 0
+  if [[ ! ${container_id} =~ ^[0-9a-f]{64}$ ]]; then
+    echo "Migratievoorbereiding weigert een onduidelijke workeridentiteit." >&2
+    return 1
+  fi
+  expected_image=$(node -e '
+    const fs = require("node:fs");
+    const [file, revision] = process.argv.slice(1);
+    const metadata = JSON.parse(fs.readFileSync(file, "utf8"));
+    if (metadata.revision !== revision || !/^sha256:[0-9a-f]{64}$/.test(metadata.images?.["media-worker"]?.digest)) process.exit(1);
+    process.stdout.write(metadata.images["media-worker"].digest);
+  ' "${release_root}/${previous_sha}/RELEASE_METADATA" "${previous_sha}") || return 1
+  actual_image=$(docker inspect --format '{{.Image}}' "${container_id}") || return 1
+  running=$(docker inspect --format '{{.State.Running}}' "${container_id}") || return 1
+  identity=$(docker inspect --format '{{json .Config.Env}}' "${container_id}" \
+    | EXPECTED_ENVIRONMENT="${environment}" EXPECTED_REVISION="${previous_sha}" node -e '
+      let input = "";
+      process.stdin.setEncoding("utf8");
+      process.stdin.on("data", chunk => { input += chunk; });
+      process.stdin.on("end", () => {
+        try {
+          const values = JSON.parse(input);
+          const valid = values.includes("VEYOCAST_ENVIRONMENT=" + process.env.EXPECTED_ENVIRONMENT)
+            && values.includes("DEPLOYMENT_SHA=" + process.env.EXPECTED_REVISION);
+          process.stdout.write(valid ? "exact" : "invalid");
+        } catch { process.exitCode = 1; }
+      });
+    ') || return 1
+  if [[ ${actual_image} != "${expected_image}" || ${running} != true || ${identity} != exact ]]; then
+    echo "Migratievoorbereiding weigert een worker buiten de vorige gevalideerde release." >&2
+    return 1
+  fi
+  # Arm herstel vóór Docker stop: ook een onderbroken stop kan de worker stoppen.
+  quiesced_worker_id=${container_id}
+  echo "De vorige synchronisatieworker wordt tijdelijk gestopt voor de databasecontrole."
+  docker stop --time 70 "${quiesced_worker_id}" >/dev/null
+}
+
+recover_interrupted_deployment() {
+  if [[ ${mutation_started} == true ]]; then
+    restore_previous_release || return 1
+  elif [[ -n ${quiesced_worker_id} ]]; then
+    # Een onderbroken Docker stop kan een nog draaiend maar uitdrainend proces
+    # achterlaten. Voltooi stop vóór start; start op een running container is noop.
+    if ! docker stop --time 70 "${quiesced_worker_id}" >/dev/null 2>&1; then
+      echo "Stop van de vorige synchronisatieworker kon voor herstel niet worden voltooid." >&2
+      return 1
+    fi
+    if ! docker start "${quiesced_worker_id}" >/dev/null 2>&1; then
+      echo "Herstart van de vorige synchronisatieworker faalde; de herstelconfiguratie blijft behouden." >&2
+      return 1
+    fi
+    local running
+    running=$(docker inspect --format '{{.State.Running}}' "${quiesced_worker_id}") || return 1
+    [[ ${running} == true ]] || return 1
+    quiesced_worker_id=""
+    echo "De vorige synchronisatieworker is opnieuw gestart." >&2
+  fi
+}
+
+on_exit() {
+  local exit_code=$?
+  trap - ERR EXIT
+  # Een tweede normaal afbreeksignaal mag het lopende herstel niet onderbreken.
+  trap '' INT TERM
+  if ! recover_interrupted_deployment; then
+    recovery_failed=true
+    echo "Automatisch herstel kon niet worden bevestigd; de vorige runtimeconfiguratie blijft behouden." >&2
+    (( exit_code != 0 )) || exit_code=1
+  fi
+  cleanup
+  exit "${exit_code}"
 }
 
 on_error() {
   local exit_code=$?
   trap - ERR
   show_sanitized_logs "${candidate_env_file}"
-  if ! restore_previous_release; then
-    echo "Automatisch herstel kon niet worden bevestigd." >&2
-  fi
-  cleanup
   exit "${exit_code}"
 }
 
 trap on_error ERR
-trap cleanup EXIT INT TERM
+trap on_exit EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 require_rootless_docker() {
   local security_options socket_path socket_owner current_uid
@@ -557,20 +683,21 @@ check_health_url() {
 
 verify_health_matrix() {
   local require_worker=${1:-true}
-  check_health_url control "http://127.0.0.1:${CONTROL_BIND_PORT}/api/health"
-  check_health_url player "http://127.0.0.1:${PLAYER_BIND_PORT}/healthz"
+  check_health_url control "http://127.0.0.1:${CONTROL_BIND_PORT}/api/health" || return 1
+  check_health_url player "http://127.0.0.1:${PLAYER_BIND_PORT}/healthz" || return 1
   if [[ ${environment} == production ]]; then
-    check_health_url marketing "http://127.0.0.1:${MARKETING_BIND_PORT}/api/health"
+    check_health_url marketing "http://127.0.0.1:${MARKETING_BIND_PORT}/api/health" || return 1
   fi
 
-  check_health_url control "https://${CONTROL_HOST}/api/health"
-  check_health_url player "https://${PLAYER_HOST}/healthz"
+  check_health_url control "https://${CONTROL_HOST}/api/health" || return 1
+  check_health_url player "https://${PLAYER_HOST}/healthz" || return 1
   if [[ ${environment} == production ]]; then
-    check_health_url marketing "https://${MARKETING_HOST}/api/health"
+    check_health_url marketing "https://${MARKETING_HOST}/api/health" || return 1
   fi
   if [[ ${require_worker} == true ]]; then
-    check_worker_readiness
+    check_worker_readiness || return 1
   fi
+  return 0
 }
 
 check_worker_readiness() {
@@ -744,9 +871,11 @@ deploy_release() {
   fi
   compose_arguments
   validate_compose
+  snapshot_runtime_state
 
   cd "${repository_root}"
   if [[ ${deployment_mode} == release ]]; then
+    quiesce_previous_worker
     SUPABASE_DB_URL=${SUPABASE_DB_URL} \
     SUPABASE_PROJECT_REF=${SUPABASE_PROJECT_REF} \
     GITHUB_SHA=${DEPLOYMENT_SHA} \
@@ -765,6 +894,7 @@ deploy_release() {
   verify_health_matrix
   commit_release_state
   mutation_started=false
+  quiesced_worker_id=""
   cleanup_old_images
 }
 
