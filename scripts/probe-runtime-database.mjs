@@ -12,7 +12,7 @@ import { getDatabaseCliConfig } from "./database-cli-config.mjs";
 const MAX_BODY = 65_536;
 const ENDPOINT_QUERY_KEYS = new Set(["host", "hostaddr", "port", "user", "dbname", "database", "service", "servicefile", "reference"]);
 const ENDPOINT_ENV_KEYS = ["PGHOST", "PGHOSTADDR", "PGPORT", "PGUSER", "PGDATABASE", "PGSERVICE", "PGSERVICEFILE"];
-const PG_CODES = new Set(["08001", "08006", "28P01", "28000", "42501", "57014", "53300", "57P01", "57P02", "57P03", "3D000", "42P01"]);
+const PG_CODES = new Set(["08001", "08006", "28P01", "28000", "42501", "57014", "53300", "57P01", "57P02", "57P03", "3D000", "42P01", "PGRST000", "PGRST001", "PGRST002", "PGRST003"]);
 // CLI 2.109.1 interpolates SqlError.toString(), which retains the reviewed
 // reason message but erases its driver cause. Exact matches identify that
 // client stage only; they cannot establish a network, TLS or server cause.
