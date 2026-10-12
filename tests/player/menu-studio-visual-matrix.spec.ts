@@ -298,6 +298,87 @@ test("Menu Studio-video bewaakt poster, muted autoplay en het ingestelde fragmen
   expect(currentTime).toBeLessThan(0.85);
 });
 
+test("Menu Studio bewaakt het videofragment zonder periodieke timeupdate en stopt framecallbacks bij pauze", async ({ page }) => {
+  await page.addInitScript(() => {
+    const pending = new Set<number>();
+    const requestFrame = window.requestAnimationFrame.bind(window);
+    const cancelFrame = window.cancelAnimationFrame.bind(window);
+    const updatePending = () => {
+      document.documentElement.dataset.testPendingFrames = String(pending.size);
+    };
+    window.requestAnimationFrame = (callback) => {
+      const frame = requestFrame((at) => {
+        pending.delete(frame);
+        updatePending();
+        callback(at);
+      });
+      pending.add(frame);
+      updatePending();
+      return frame;
+    };
+    window.cancelAnimationFrame = (frame) => {
+      pending.delete(frame);
+      updatePending();
+      cancelFrame(frame);
+    };
+    window.addEventListener("timeupdate", (event) => {
+      if (!(event.target instanceof HTMLVideoElement)) return;
+      document.documentElement.dataset.testSuppressedTimeUpdates = String(
+        Number(document.documentElement.dataset.testSuppressedTimeUpdates ?? 0) + 1
+      );
+      event.stopImmediatePropagation();
+    }, true);
+  });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(buildPayload("editorial", "light", "landscape"))}`);
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.thumbnailReady === "true")).toBe(true);
+  const video = page.locator("video[data-has-poster='true']");
+  await expect(video).toBeVisible();
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
+  const fragment = await video.evaluate(async (element: HTMLVideoElement) => {
+    const finishAt = performance.now() + 1_600;
+    let minimum = Infinity, maximum = 0, previous = element.currentTime, wraps = 0;
+    await new Promise<void>((resolve) => {
+      const sample = () => {
+        const current = element.currentTime;
+        minimum = Math.min(minimum, current);
+        maximum = Math.max(maximum, current);
+        if (current < previous - 0.1) wraps += 1;
+        previous = current;
+        if (performance.now() >= finishAt) resolve();
+        else requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    return { maximum, minimum, wraps };
+  });
+  expect(fragment.minimum).toBeGreaterThanOrEqual(0.2);
+  expect(fragment.maximum).toBeLessThan(0.85);
+  expect(fragment.wraps).toBeGreaterThanOrEqual(2);
+  expect(await page.evaluate(() => Number(document.documentElement.dataset.testSuppressedTimeUpdates ?? 0))).toBeGreaterThan(0);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  await expect.poll(() => page.evaluate(() => Number(document.documentElement.dataset.testPendingFrames ?? 0))).toBe(0);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
+  await expect.poll(() => page.evaluate(() => Number(document.documentElement.dataset.testPendingFrames ?? 0))).toBeGreaterThan(0);
+  await page.evaluate(() => {
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  await expect.poll(() => page.evaluate(() => Number(document.documentElement.dataset.testPendingFrames ?? 0))).toBe(0);
+  await page.evaluate(() => {
+    Reflect.deleteProperty(document, "hidden");
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
+  await expect.poll(() => page.evaluate(() => Number(document.documentElement.dataset.testPendingFrames ?? 0))).toBeGreaterThan(0);
+  await video.evaluate((element: HTMLVideoElement) => element.pause());
+  await expect.poll(() => page.evaluate(() => Number(document.documentElement.dataset.testPendingFrames ?? 0))).toBe(0);
+});
+
 test("Menu Studio vult een gelijk georiënteerde viewport zonder letterboxing", async ({ page }) => {
   for (const candidate of [
     { orientation: "landscape" as const, viewport: { height: 1200, width: 1920 } },

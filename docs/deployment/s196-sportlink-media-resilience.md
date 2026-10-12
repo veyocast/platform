@@ -33,3 +33,14 @@ een logo-correctie of groene unit-test bewijst geen herstel daarvan.
 Nieuwe ontwerp-/playlistversies zijn niet nodig voor deze synchronisatie. De
 database en durable published-dataqueue blijven de bron voor slides. Lokale gates,
 werkelijke CI, staging-/production-SHA en gewone nacontrolecycli volgen na tests.
+
+De eerste echte CI op48952676 heeft groene Foundation/Control/Marketing/Cross.
+Player faalt op de al bevestigde oude clipbewaking: currentTime0.925321 tegenover
+de bestaande <0.85-assertie,208PASS/1FAIL en de vierde batch niet uitgevoerd.
+Geen native browsercrash; de eerste log blijft privé bewaard met SHA256
+99a74f940e8dc54f45cc83d5d5008d83744a39207e965da633099fb718829cc2.
+S195 herstelt dit met echte regressies; parentcd25bec5 wordt met een gewone merge
+opgenomen zonder rebase/force. Alleen de ledgerconflict is door root opgelost:
+nieuwste S195-bewijs en de bestaande S196-rij blijven behouden. Workspace lint,
+typecheck en test na samenvoeging slagen opnieuw elk30/30. Nieuwe exacte-head CI
+blijft vereist vóór merge en promotie.

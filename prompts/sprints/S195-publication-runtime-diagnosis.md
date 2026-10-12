@@ -29,3 +29,24 @@ RLS indien database daadwerkelijk wijzigt. Geen gates afzwakken; eerste failures
 Na merge exacte staging/productionpromotie, veilige readbacks en twee gewone cycli.
 Immutable actieve/desired/default/offline-LKG-releases blijven beschermd. Hardware en
 ontbrekende browser-IDB-blobs blijven externe beperkingen; geen fake sluiting.
+
+## Vereiste Player-gatecorrectie
+
+De eerste echte CI-poging faalt bij een videofragmentpositie; de ene gerichte
+herhaling faalt bij offline diagnostics terwijl LKG-inhoud blijft spelen. Dit zijn
+afzonderlijke applicationasserties, geen browsercrash en geen bewezen identieke
+oorzaak. Root rapporteert de scope-uitbreiding vóór wijzigingen: herstel alleen
+de concrete ontbrekende in-flight-annulering bij offline-event en nauwkeurige
+video-fragmentbewaking, onder behoud van originbewijs/webOS-hintbeleid, LKG,
+zichtbaarheid/reduced-motion en bestaande strikte assertions.
+
+De aangewezen Player-agent bezit aanvullend uitsluitend
+apps/player/app/_components/player-runtime.tsx,
+packages/content-templates/src/menu-scene.tsx,
+tests/player/connectivity.spec.ts en tests/player/menu-studio-visual-matrix.spec.ts.
+Andere files eerst stoppen/melden. Reproduceer de offline-situatie met een echte
+vastgehouden manifestaanvraag, en videofragmentbewaking met echte media onder
+uitblijvende periodieke timeupdate. Behoud fallbacks voor oudere runtimes en
+ruim nieuwe callbacks volledig op. Geen thresholdverruiming, extra retries/skips,
+CSS-/Sourcebytewijziging of offlineversimpeling. Eerste CI-failures blijven bewijs;
+na deze echte codecorrectie volgen nieuwe exacte-SHA-gates en uitrol.
