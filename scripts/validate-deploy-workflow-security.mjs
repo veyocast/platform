@@ -1,4 +1,6 @@
 import { spawnSync } from "node:child_process";
+import console from "node:console";
+import process from "node:process";
 import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath, URL } from "node:url";
 import { validateRunnerToolchains } from "./runner-toolchain-policy.mjs";
@@ -14,7 +16,7 @@ validateRunnerToolchains(allWorkflows);
 
 assertMatch(
   workflow,
-  /^permissions:\n  contents: read\n/m,
+  /^permissions:\n {2}contents: read\n/m,
   "De deployworkflow moet uitsluitend contents: read gebruiken."
 );
 assertEqual(
@@ -24,7 +26,7 @@ assertEqual(
 );
 assertMatch(
   workflow,
-  /^on:\n  push:\n    branches:\n      - main\n  workflow_dispatch:/m,
+  /^on:\n {2}push:\n {4}branches:\n {6}- main\n {2}workflow_dispatch:/m,
   "Alleen push naar main en workflow_dispatch mogen de deployworkflow starten."
 );
 assertNotMatch(
@@ -34,14 +36,28 @@ assertNotMatch(
 );
 assertMatch(
   workflow,
-  /workflow_dispatch:\n    inputs:\n      deploy_target:[\s\S]*?options:\n          - staging\n          - production\n/,
+  /workflow_dispatch:\n {4}inputs:\n {6}deploy_target:[\s\S]*?options:\n {10}- staging\n {10}- production\n/,
   "Een handmatige deployment moet expliciet staging of production kiezen."
 );
 assertMatch(
   workflow,
-  /deploy-production:\n    name: Deploy production \(explicit dispatch\)\n    needs: deploy-staging\n    if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.deploy_target == 'production' \}\}/,
+  /deploy-production:\n {4}name: Deploy production \(explicit dispatch\)\n {4}needs: deploy-staging\n {4}if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.deploy_target == 'production' \}\}/,
   "Production mag uitsluitend na een expliciete production-dispatch starten."
 );
+
+const publicationProbeWorkflow = await readFile(new URL("../.github/workflows/probe-publication-runtime.yml", import.meta.url), "utf8");
+assertMatch(publicationProbeWorkflow, /^on:\n {2}workflow_dispatch:\n/m, "Publicatiediagnose mag uitsluitend handmatig starten.");
+assertNotMatch(publicationProbeWorkflow, /^\s*(pull_request(?:_target)?|push|schedule|workflow_call):/m, "Geen indirecte of PR-trigger voor beschermde publicatiediagnose.");
+assertMatch(publicationProbeWorkflow, /^permissions:\n {2}contents: read\n/m, "Publicatiediagnose heeft alleen contents: read.");
+assertEqual([...publicationProbeWorkflow.matchAll(/^\s*permissions:/gm)].length, 1, "Geen aanvullende diagnosepermissions.");
+assertMatch(publicationProbeWorkflow, /if: github\.ref == 'refs\/heads\/main'/, "Diagnose draait uitsluitend trusted main.");
+assertMatch(publicationProbeWorkflow, /environment: \$\{\{ inputs\.target_environment \}\}/, "Diagnose gebruikt een beschermd Environment.");
+assertMatch(publicationProbeWorkflow, /timeout-minutes: 5/, "Diagnose heeft een begrensde jobduur.");
+assertMatch(publicationProbeWorkflow, /ref: \$\{\{ github\.sha \}\}\n {10}persist-credentials: false/, "Checkout moet dezelfde trusted workflow-SHA gebruiken zonder blijvende credentials.");
+assertEqual([...publicationProbeWorkflow.matchAll(/secrets\./g)].length, 1, "Diagnose krijgt uitsluitend de SQL-secret.");
+assertMatch(publicationProbeWorkflow, /SUPABASE_DB_URL: \$\{\{ secrets\.SUPABASE_DB_URL \}\}/, "Diagnose mist de beschermde SQL-binding.");
+assertMatch(publicationProbeWorkflow, /run: node scripts\/probe-publication-runtime\.mjs "\$TARGET_ENVIRONMENT" "\$EXPECTED_RUNTIME_SHA" "\$TENANT_ID"/, "Alle diagnoseargumenten blijven expliciet gequote.");
+assertNotMatch(publicationProbeWorkflow, /\$\{\{ inputs\.[^}]+\}\}[^\n]*\n?(?:[^\n]*run:)/, "Geen inputinterpolatie in shellcommando's.");
 
 const steps = readStepBlocks(workflow);
 for (const step of steps) {
@@ -53,7 +69,7 @@ for (const step of steps) {
     input: script
   });
   if (result.status !== 0) {
-    const name = step.match(/^      - name: ([^\n]+)/m)?.[1] ?? "onbekend";
+    const name = step.match(/^ {6}- name: ([^\n]+)/m)?.[1] ?? "onbekend";
     fail(`Inline Bash-syntax is ongeldig in stap: ${name}.`);
   }
 }
@@ -69,18 +85,18 @@ assertEqual(
 for (const step of checkoutSteps) {
   assertMatch(
     step,
-    /\n          fetch-depth: 0\n/,
+    /\n {10}fetch-depth: 0\n/,
     "Checkout moet de volledige historie ophalen."
   );
   assertMatch(
     step,
-    /\n          persist-credentials: false\n/,
+    /\n {10}persist-credentials: false\n/,
     "Checkoutcredentials mogen niet persistent blijven."
   );
 }
 assertMatch(
   checkoutSteps[0] ?? "",
-  /\n          ref: main\n/,
+  /\n {10}ref: main\n/,
   "Preflight moet de vertrouwde main-workflow uitchecken."
 );
 
@@ -91,7 +107,7 @@ assertEqual(cleanupSteps.length, 4, "Iedere checkout moet direct worden opgescho
 for (const step of cleanupSteps) {
   assertMatch(
     step,
-    /\n        run: git clean -ffdx\n*$/,
+    /\n {8}run: git clean -ffdx\n*$/,
     "Cleanup moet beperkt blijven tot git clean."
   );
   assertNotMatch(
@@ -128,7 +144,7 @@ for (let index = 0; index < nodeSetupPositions.length; index += 1) {
 for (const position of pnpmSetupPositions) {
   assertMatch(
     steps[position] ?? "",
-    /\n          cache: true\n/,
+    /\n {10}cache: true\n/,
     "pnpm/action-setup moet de pnpm-store veilig cachen."
   );
 }
@@ -167,7 +183,7 @@ assertEqual(
 for (const step of remoteGitSteps) {
   assertMatch(
     step,
-    /\n          GH_TOKEN: \$\{\{ github\.token \}\}\n/,
+    /\n {10}GH_TOKEN: \$\{\{ github\.token \}\}\n/,
     "Iedere remote Git-stap moet het job-scoped github.token gebruiken."
   );
   assertMatch(
@@ -187,7 +203,7 @@ for (const step of remoteGitSteps) {
   );
   assertMatch(
     step,
-    /\n          unset auth_header\n/,
+    /\n {10}unset auth_header\n/,
     "De tijdelijke headervariabele moet direct worden gewist."
   );
   const loggingSurface = step.replace(
@@ -271,7 +287,7 @@ assertMatch(
 function readStepBlocks(source) {
   return [
     ...source.matchAll(
-      /^      - name: [^\n]+\n[\s\S]*?(?=^      - name: |(?![\s\S]))/gm
+      /^ {6}- name: [^\n]+\n[\s\S]*?(?=^ {6}- name: |(?![\s\S]))/gm
     )
   ].map((match) => match[0]);
 }

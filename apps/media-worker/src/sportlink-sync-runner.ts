@@ -65,7 +65,7 @@ type RpcClient = {
   rpc(
     functionName: string,
     parameters: Record<string, unknown>
-  ): Promise<{ data: unknown; error: { code?: string } | null }>;
+  ): Promise<{ data: unknown; error: { code?: string } | null; status?: number }>;
   storage?: {
     from(bucket: string): {
       upload(
@@ -76,6 +76,32 @@ type RpcClient = {
     };
   };
 };
+
+// Only reviewed upstream codes may become a persisted diagnostic. Never carry
+// an arbitrary SDK message, detail, hint or cause into the run or its logs.
+const completionDatabaseCodes = new Set([
+  "08001", "08006", "22023", "22P02", "23502", "23503", "23505", "23514",
+  "28000", "28P01", "40001", "40P01", "42501", "42703", "42883", "42P01",
+  "53300", "53400", "54000", "55000", "55P03", "57014", "57P01", "57P02",
+  "57P03", "P0001", "P0002", "XX000"
+]);
+const completionPostgrestCodes = new Set([
+  "PGRST000", "PGRST001", "PGRST002", "PGRST003", "PGRST100", "PGRST102",
+  "PGRST103", "PGRST200", "PGRST201", "PGRST202", "PGRST203", "PGRST204",
+  "PGRST205", "PGRST300", "PGRST301", "PGRST302", "PGRST303", "PGRSTX00"
+]);
+
+function completionFailureCode(result: Awaited<ReturnType<RpcClient["rpc"]>>) {
+  if (!result.error) return "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT";
+  // The SDK uses status 0 for a fetch rejection, including aborts, without an
+  // HTTP response. It does not establish the underlying network/timeout cause.
+  if (result.status === 0) return "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED";
+  const code = result.error.code;
+  if (code && (completionDatabaseCodes.has(code) || completionPostgrestCodes.has(code))) {
+    return `SPORTLINK_SYNC_COMPLETE_${code}`;
+  }
+  return "SPORTLINK_SYNC_COMPLETE_RPC_FAILED";
+}
 
 type NormalizedSportlinkBatch = {
   activities: SportActivity[];
@@ -206,16 +232,17 @@ export class SupabaseSportlinkSyncBackend {
       p_worker_id: workerId
     });
     if (result.error || !isRecord(result.data)) {
-      const sqlState = result.error?.code && /^[A-Z0-9]{5}$/.test(result.error.code)
-        ? result.error.code : "INVALID_RESULT";
       throw new SportlinkWorkerError(
-        `SPORTLINK_SYNC_COMPLETE_${sqlState}`,
+        completionFailureCode(result),
         "Sportlink-gegevens zijn opgehaald maar konden niet worden verwerkt. De bestaande gegevens blijven behouden; controleer de synchronisatiediagnose."
       );
     }
     const readCount = Number(result.data.readCount ?? 0);
     if (!Number.isSafeInteger(readCount) || readCount < 0) {
-      throw new Error("sportlink_sync_complete_invalid");
+      throw new SportlinkWorkerError(
+        "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT",
+        "Sportlink gaf een onbruikbare synchronisatie-uitkomst terug. De bestaande gegevens blijven behouden; controleer de synchronisatiediagnose."
+      );
     }
     // The committed source revision queues published-data refresh, including
     // clock-based windows. No fallible rendering RPC follows successful ingest.

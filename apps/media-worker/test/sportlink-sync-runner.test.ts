@@ -891,7 +891,11 @@ describe("Sportlink sync worker", () => {
   it.each([
     ["23505", "SPORTLINK_SYNC_COMPLETE_23505"],
     ["57014", "SPORTLINK_SYNC_COMPLETE_57014"],
-    ["unexpected\nprivate details", "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT"]
+    ["PGRST003", "SPORTLINK_SYNC_COMPLETE_PGRST003"],
+    ["PGRST202", "SPORTLINK_SYNC_COMPLETE_PGRST202"],
+    ["PGRST301", "SPORTLINK_SYNC_COMPLETE_PGRST301"],
+    ["KEY12", "SPORTLINK_SYNC_COMPLETE_RPC_FAILED"],
+    ["unexpected\nprivate details", "SPORTLINK_SYNC_COMPLETE_RPC_FAILED"]
   ])("retains a bounded completion diagnostic for %s without raw errors", async (code, expectedCode) => {
     const rpc = vi.fn().mockResolvedValue({ data: null, error: { code } });
     const backend = new SupabaseSportlinkSyncBackend("https://project.supabase.co", "test-only", { rpc });
@@ -905,6 +909,103 @@ describe("Sportlink sync worker", () => {
     })).rejects.toMatchObject({
       code: expectedCode,
       message: "Sportlink-gegevens zijn opgehaald maar konden niet worden verwerkt. De bestaande gegevens blijven behouden; controleer de synchronisatiediagnose."
+    });
+  });
+
+  describe("completion diagnostics through the real PostgREST client", () => {
+    const job = {
+      connectionId: "connection", dataSourceId: "source", datasetGroup: "matches",
+      encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+      runId: "run", tenantId: "tenant", timezone: "Europe/Amsterdam"
+    };
+    const batch = {
+      activities: [], birthdayFetchedAt: null, birthdays: [], club: null, clubLogo: null,
+      matches: [], personPhotos: [], standings: [], teamMembers: [], teamLogos: [], teams: []
+    };
+
+    it("reports a fetch deadline as transport failure rather than an invalid success body", async () => {
+      let requestSignal: AbortSignal | null | undefined;
+      const fetchMock = vi.fn((_input: unknown, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+        requestSignal = init?.signal;
+        requestSignal?.addEventListener("abort", () => reject(new DOMException("PRIVATE_PROVIDER_TOKEN", "TimeoutError")), { once: true });
+      }));
+      vi.stubGlobal("fetch", fetchMock);
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", undefined, 10);
+      await expect(backend.complete(job, "worker:test", batch)).rejects.toMatchObject({
+        code: "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED"
+      });
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(requestSignal?.aborted).toBe(true);
+    });
+
+    it("records a safe failed run when the SDK turns a network rejection into status zero", async () => {
+      const fetchMock = vi.fn().mockRejectedValue(Object.assign(new TypeError("PRIVATE_PROVIDER_URL"), {
+        cause: { code: "PRIVATE_TOKEN", message: "PRIVATE_CONNECTION_STRING" }
+      }));
+      vi.stubGlobal("fetch", fetchMock);
+      const completion = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      const fail = vi.fn();
+      const result = await runSportlinkSyncOnce({
+        backend: {
+          claim: vi.fn().mockResolvedValue(job),
+          complete: completion.complete.bind(completion),
+          fail,
+          renew: vi.fn().mockResolvedValue(true)
+        },
+        encryptionKey: "x".repeat(32), executeDataset: async () => batch,
+        lockTimeoutSeconds: 900, workerId: "worker:test"
+      });
+      expect(result).toEqual({
+        status: "failed", datasetGroup: "matches", runId: "run",
+        errorCode: "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED"
+      });
+      expect(fail).toHaveBeenCalledWith(job, "worker:test", "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED", expect.any(String));
+      expect(JSON.stringify([result, fail.mock.calls])).not.toContain("PRIVATE_");
+      expect(fetchMock).toHaveBeenCalledOnce();
+    });
+
+    it.each([
+      [504, "PGRST003", "SPORTLINK_SYNC_COMPLETE_PGRST003"],
+      [404, "PGRST202", "SPORTLINK_SYNC_COMPLETE_PGRST202"],
+      [500, "57014", "SPORTLINK_SYNC_COMPLETE_57014"],
+      [500, "KEY12", "SPORTLINK_SYNC_COMPLETE_RPC_FAILED"]
+    ])("keeps reviewed upstream codes from an actual HTTP %s response", async (status, code, expectedCode) => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+        code, message: "PRIVATE_CONNECTION_STRING", details: "PRIVATE_PROVIDER_PAYLOAD", hint: "PRIVATE_TOKEN"
+      }), { status, headers: { "Content-Type": "application/json" } })));
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      const failure = await backend.complete(job, "worker:test", batch).catch((error: unknown) => error);
+      expect(failure).toMatchObject({ code: expectedCode });
+      expect(JSON.stringify(failure)).not.toContain("PRIVATE_");
+    });
+
+    it.each([null, [], "PRIVATE_PAYLOAD", 5])("rejects a malformed successful response without calling it a transport failure (%j)", async (body) => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), {
+        status: 200, headers: { "Content-Type": "application/json" }
+      })));
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      await expect(backend.complete(job, "worker:test", batch)).rejects.toMatchObject({
+        code: "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT"
+      });
+    });
+
+    it("rejects an invalid successful read count with the safe response diagnostic", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ readCount: "PRIVATE_PAYLOAD" }), {
+        status: 200, headers: { "Content-Type": "application/json" }
+      })));
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      await expect(backend.complete(job, "worker:test", batch)).rejects.toMatchObject({
+        code: "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT"
+      });
+    });
+
+    it("ignores a fabricated status and sensitive error code", async () => {
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", {
+        rpc: vi.fn().mockResolvedValue({ data: null, error: { code: "PRIVATE_TOKEN" }, status: "0\nPRIVATE_TOKEN" })
+      });
+      const failure = await backend.complete(job, "worker:test", batch).catch((error: unknown) => error);
+      expect(failure).toMatchObject({ code: "SPORTLINK_SYNC_COMPLETE_RPC_FAILED" });
+      expect(JSON.stringify(failure)).not.toContain("PRIVATE_");
     });
   });
 
