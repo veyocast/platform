@@ -74,7 +74,7 @@ type RpcClient = {
   rpc(
     functionName: string,
     parameters: Record<string, unknown>
-  ): Promise<{ data: unknown; error: { code?: string } | null; status?: number }>;
+  ): Promise<{ data: unknown; error: { code?: string; message?: string } | null; status?: number }>;
   from?(table: "provider_asset_cache"): { select(columns: string): ProviderCacheQuery };
   storage?: {
     from(bucket: string): {
@@ -107,6 +107,16 @@ function completionFailureCode(result: Awaited<ReturnType<RpcClient["rpc"]>>) {
   // HTTP response. It does not establish the underlying network/timeout cause.
   if (result.status === 0) return "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED";
   const code = result.error.code;
+  // These exact PostgreSQL messages distinguish two cancellation mechanisms.
+  // A matching SQLSTATE alone, localized message or added detail proves neither.
+  if (code === "57014") {
+    if (result.error.message === "canceling statement due to statement timeout") {
+      return "SPORTLINK_SYNC_COMPLETE_57014_STATEMENT_TIMEOUT";
+    }
+    if (result.error.message === "canceling statement due to user request") {
+      return "SPORTLINK_SYNC_COMPLETE_57014_USER_REQUEST";
+    }
+  }
   if (code && (completionDatabaseCodes.has(code) || completionPostgrestCodes.has(code))) {
     return `SPORTLINK_SYNC_COMPLETE_${code}`;
   }

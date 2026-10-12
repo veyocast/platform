@@ -59,3 +59,15 @@ publisher-presentation en alle player-offline-tests. SHA256 van de private log:
 416895a64b34285d33f9a7da90bd892e40492109754a73a85b5fae00406f1c7a.
 Nieuwe exacte-head CI blijft vereist vóór merge; gegenereerde screenshot is
 privé bewaard en de ongerelateerde tracked wijziging hersteld vóór commit.
+
+De finale exacte headcd25bec5 slaagt in PR38277557026 en Sites38277557046 op
+alle vijf jobs: workspace30/30, build18/18, Player238PASS/15 bestaandeSKIP,
+Control298PASS/562 conditioneleSKIP, Marketing16PASS, Cross4PASS/2SKIP; alle
+548 oorspronkelijke cases/644frames en652 strikte cases/760frames nulverschil,
+66responsive. PR220 is als0f017060 gemerged met exact dezelfde geteste boom.
+Staging38281248728 SUCCESS op0f017060, inclusief health/pairing/LG-smoke.
+Productie blijft bij deze waarneming gezond op3dfa75ca. De protected probe
+38281293442 leest tenant en statistiek binnen het normale budget; zeven enabled
+Sportlinkpolicies hebben laatst SUCCESS, maar dit is geen bewijs voor twee
+finale gewone cycli. EXPLAIN faalt binnen1.552s op SQL_OUTPUT_TOO_LARGE.
+Dezelfde vaste query wordt inS197 compacter gelezen binnen dezelfde grenzen.

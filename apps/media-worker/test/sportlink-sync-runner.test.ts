@@ -980,6 +980,45 @@ describe("Sportlink sync worker", () => {
       expect(JSON.stringify(failure)).not.toContain("PRIVATE_");
     });
 
+    it.each([
+      ["57014", "canceling statement due to statement timeout", "SPORTLINK_SYNC_COMPLETE_57014_STATEMENT_TIMEOUT"],
+      ["57014", "canceling statement due to user request", "SPORTLINK_SYNC_COMPLETE_57014_USER_REQUEST"],
+      ["57014", "canceling statement due to statement timeout PRIVATE_TOKEN", "SPORTLINK_SYNC_COMPLETE_57014"],
+      ["57014", "PRIVATE_CONNECTION_STRING", "SPORTLINK_SYNC_COMPLETE_57014"],
+      ["42501", "canceling statement due to statement timeout", "SPORTLINK_SYNC_COMPLETE_42501"],
+      ["KEY12", "canceling statement due to user request", "SPORTLINK_SYNC_COMPLETE_RPC_FAILED"]
+    ])("persists only the exact reviewed cancellation reason for %s / %s", async (code, message, expectedCode) => {
+      const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+        code, message, details: "PRIVATE_PROVIDER_PAYLOAD", hint: "PRIVATE_CONNECTION_STRING"
+      }), { status: 500, headers: { "Content-Type": "application/json" } }));
+      vi.stubGlobal("fetch", fetchMock);
+      const completion = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      const fail = vi.fn();
+      const result = await runSportlinkSyncOnce({
+        backend: {
+          claim: vi.fn().mockResolvedValue(job), complete: completion.complete.bind(completion),
+          fail, renew: vi.fn().mockResolvedValue(true)
+        },
+        encryptionKey: "x".repeat(32), executeDataset: async () => batch,
+        lockTimeoutSeconds: 900, workerId: "worker:test"
+      });
+      expect(result).toEqual({ status: "failed", datasetGroup: "matches", runId: "run", errorCode: expectedCode });
+      expect(fail).toHaveBeenCalledWith(job, "worker:test", expectedCode, expect.any(String));
+      expect(JSON.stringify([result, fail.mock.calls])).not.toContain("PRIVATE_");
+      expect(fetchMock).toHaveBeenCalledOnce();
+    });
+
+    it("keeps a status-zero cancellation-shaped SDK error classified as transport failure", async () => {
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", {
+        rpc: vi.fn().mockResolvedValue({ data: null, error: {
+          code: "57014", message: "canceling statement due to statement timeout"
+        }, status: 0 })
+      });
+      await expect(backend.complete(job, "worker:test", batch)).rejects.toMatchObject({
+        code: "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED"
+      });
+    });
+
     it.each([null, [], "PRIVATE_PAYLOAD", 5])("rejects a malformed successful response without calling it a transport failure (%j)", async (body) => {
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), {
         status: 200, headers: { "Content-Type": "application/json" }

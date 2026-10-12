@@ -8,6 +8,7 @@ import process from "node:process";
 import { clearTimeout, setTimeout } from "node:timers";
 import { pathToFileURL, URL } from "node:url";
 import { createSqlAdapter, diagnosticDatabaseConfig, tenantReadSql } from "./probe-runtime-database.mjs";
+import { runtimeMetadataSql, sanitizeRuntimeMetadata } from "./publication-runtime-metadata.mjs";
 
 const MAX_BODY = 65_536;
 const SQL_DEADLINE = 52_000;
@@ -49,6 +50,8 @@ const COMPLETION_CODES = new Set([
   "08001", "08006", "22023", "22P02", "23502", "23503", "23505", "23514", "28000", "28P01", "40001", "40P01", "42501", "42703", "42883", "42P01", "53300", "53400", "54000", "55000", "55P03", "57014", "57P01", "57P02", "57P03", "P0001", "P0002", "XX000",
   "PGRST000", "PGRST001", "PGRST002", "PGRST003", "PGRST100", "PGRST102", "PGRST103", "PGRST200", "PGRST201", "PGRST202", "PGRST203", "PGRST204", "PGRST205", "PGRST300", "PGRST301", "PGRST302", "PGRST303", "PGRSTX00", "TRANSPORT_FAILED", "RPC_FAILED", "INVALID_RESULT"
 ].map((code) => `SPORTLINK_SYNC_COMPLETE_${code}`));
+COMPLETION_CODES.add("SPORTLINK_SYNC_COMPLETE_57014_STATEMENT_TIMEOUT");
+COMPLETION_CODES.add("SPORTLINK_SYNC_COMPLETE_57014_USER_REQUEST");
 const ACTIVITY_STATES = new Set(["active", "idle", "idle in transaction", "idle in transaction (aborted)", "fastpath function call", "disabled", "unknown"]);
 const WORKLOADS = new Set(["prune", "sportlink_completion", "published_projection", "inventory", "other"]);
 const WAIT_TYPES = new Set(["Activity", "BufferPin", "Client", "Extension", "InjectionPoint", "IO", "IPC", "Lock", "LWLock", "Timeout", "none", "unknown"]);
@@ -64,7 +67,8 @@ function tenantLiteral(tenantId) {
 }
 
 export function inventoryExplainSql(tenantId) {
-  return `EXPLAIN (FORMAT JSON, COSTS TRUE, VERBOSE FALSE, SUMMARY FALSE, SETTINGS FALSE)\n${template.replaceAll("__TENANT_ID__", tenantLiteral(tenantId))}`;
+  // SUMMARY provides a plan-end marker without executing the inventory SELECT.
+  return `EXPLAIN (FORMAT TEXT, COSTS TRUE, VERBOSE FALSE, SUMMARY TRUE, SETTINGS FALSE)\n${template.replaceAll("__TENANT_ID__", tenantLiteral(tenantId))}`;
 }
 
 /** Fixed metadata and small indexed tenant counts; no activity query text or IDs. */
@@ -131,6 +135,82 @@ export function sanitizeInventoryPlan(value) {
   };
   visit(value[0].Plan, 0);
   return { queryTemplateSha256: inventoryTemplateSha256, nodeCount: nodes.length, nodes };
+}
+
+const PLAN_LINE = /^( *)(-> {2})?(.+?) {2}\(cost=([0-9]+(?:\.[0-9]+)?)\.\.([0-9]+(?:\.[0-9]+)?) rows=([0-9]+) width=([0-9]+)\)$/;
+const PLAN_DETAILS = /^(?:Filter|Index Cond|Recheck Cond|Hash Cond|Join Filter|Merge Cond|One-Time Filter|Sort Key|Group Key|Presorted Key|Cache Key|Cache Mode|Workers Planned|Planned Partitions|Partitions|Run Condition): /;
+const PLAN_WRAPPER = /^(?:CTE [^\r\n]+|(?:InitPlan|SubPlan) [0-9]+(?: \([^\r\n]+\))?)$/;
+const IDENTIFIER = '(?:"(?:[^"\\r\\n]|"")*"|[A-Za-z_][A-Za-z0-9_$]*)(?:\\.(?:"(?:[^"\\r\\n]|"")*"|[A-Za-z_][A-Za-z0-9_$]*))?';
+const PLAN_ON = new RegExp(` on (${IDENTIFIER})(?: |$)`);
+const PLAN_USING = new RegExp(` using (${IDENTIFIER})(?: |$)`);
+const RELATION_SCANS = new Set(["Seq Scan", "Index Scan", "Index Only Scan", "Bitmap Heap Scan", "Tid Scan", "Tid Range Scan", "Foreign Scan"]);
+function textNodeType(label) {
+  let type = label.split(/ (?:using|on) /)[0];
+  type = type.replace(/^(?:Parallel |Partial |Finalize )/, "").replace(/ Backward$/, "");
+  if (["HashAggregate", "GroupAggregate", "MixedAggregate"].includes(type)) type = "Aggregate";
+  type = type.replace(/^(Hash|Merge) (?:Left|Right|Full|Anti|Semi) Join$/, "$1 Join")
+    .replace(/^Nested Loop (?:Left|Right|Full|Anti|Semi) Join$/, "Nested Loop")
+    .replace(/^(?:Hash)?SetOp (?:Except|Intersect)$/, "SetOp");
+  return NODE_TYPES.has(type) ? type : "unreviewed";
+}
+function reviewedIdentifier(value, allowed) {
+  // Qualified public names and quoted identifiers must still match exactly.
+  const name = value?.replace(/^public\./, "");
+  const unquoted = /^"(?:[^"\r\n]|"")*"$/.test(name ?? "") ? name.slice(1, -1).replaceAll('""', '"') : name;
+  return allowed.has(unquoted) ? unquoted : "unreviewed";
+}
+
+/** TEXT rows are compact, but raw labels/filters never leave this projection. */
+function sanitizeTextPlan(rows) {
+  if (!Array.isArray(rows) || rows.length < 2 || rows.length > 2048 || Buffer.byteLength(JSON.stringify(rows)) > MAX_BODY) throw new ProbeFault("PLAN_SHAPE_INVALID");
+  const lines = rows.map((row) => {
+    if (!exactKeys(row, ["QUERY PLAN"]) || typeof row["QUERY PLAN"] !== "string" || /[\r\n\t\0]/.test(row["QUERY PLAN"])) throw new ProbeFault("PLAN_SHAPE_INVALID");
+    return row["QUERY PLAN"];
+  });
+  const summaryAt = lines.findIndex((line) => /^Planning Time: [0-9]+(?:\.[0-9]+)? ms$/.test(line));
+  if (summaryAt < 1 || !numeric(Number(lines[summaryAt].slice(15, -3)))) throw new ProbeFault("PLAN_SHAPE_INVALID");
+  const footer = lines.slice(summaryAt + 1);
+  // PostgreSQL emits JIT after Planning Time. Accept the complete fixed footer,
+  // never its partial prefix or any ANALYZE execution statistics.
+  if (footer.length && (footer.length !== 3 || footer[0] !== "JIT:" || !/^ {2}Functions: [0-9]+$/.test(footer[1])
+    || !count(Number(footer[1].slice(13))) || !/^ {2}Options: Inlining (?:true|false), Optimization (?:true|false), Expressions (?:true|false), Deforming (?:true|false)$/.test(footer[2]))) throw new ProbeFault("PLAN_SHAPE_INVALID");
+  const nodes = [], ancestors = [];
+  let pendingWrapper;
+  for (const line of lines.slice(0, summaryAt)) {
+    const match = PLAN_LINE.exec(line);
+    const indent = line.match(/^ */)[0].length;
+    if (match) {
+      if (nodes.length >= 256 || (nodes.length === 0 ? indent !== 0 || match[2] !== undefined : !match[2] || indent === 0)
+        || (pendingWrapper !== undefined && indent <= pendingWrapper)) throw new ProbeFault("PLAN_SHAPE_INVALID");
+      while (ancestors.length && ancestors.at(-1) >= indent) ancestors.pop();
+      const depth = ancestors.length, startupCost = Number(match[4]), totalCost = Number(match[5]), estimatedRows = Number(match[6]);
+      if (depth > 32 || !numeric(startupCost) || !numeric(totalCost) || !count(estimatedRows) || !count(Number(match[7])) || totalCost < startupCost) throw new ProbeFault("PLAN_SHAPE_INVALID");
+      const label = match[3].trim(), nodeType = textNodeType(label), item = { nodeType, depth, estimatedRows, startupCost, totalCost };
+      const on = PLAN_ON.exec(label)?.[1], using = PLAN_USING.exec(label)?.[1];
+      if (RELATION_SCANS.has(nodeType)) {
+        if (!on) throw new ProbeFault("PLAN_SHAPE_INVALID");
+        item.relation = reviewedIdentifier(on, RELATIONS);
+      }
+      if (["Index Scan", "Index Only Scan", "Bitmap Index Scan"].includes(nodeType)) {
+        const index = nodeType === "Bitmap Index Scan" ? on : using;
+        if (!index) throw new ProbeFault("PLAN_SHAPE_INVALID");
+        item.index = reviewedIdentifier(index, INDEXES);
+      }
+      nodes.push(item); ancestors.push(indent); pendingWrapper = undefined;
+    } else {
+      const detail = line.slice(indent);
+      while (ancestors.length && ancestors.at(-1) >= indent) ancestors.pop();
+      if (!nodes.length || pendingWrapper !== undefined || !ancestors.length) throw new ProbeFault("PLAN_SHAPE_INVALID");
+      if (PLAN_WRAPPER.test(detail)) pendingWrapper = indent;
+      else if (!PLAN_DETAILS.test(detail)) throw new ProbeFault("PLAN_SHAPE_INVALID");
+    }
+  }
+  if (!nodes.length || pendingWrapper !== undefined) throw new ProbeFault("PLAN_SHAPE_INVALID");
+  return { queryTemplateSha256: inventoryTemplateSha256, format: "text", planComplete: true, nodeCount: nodes.length, nodes };
+}
+export function sanitizeInventoryTextPlan(rows) {
+  try { return sanitizeTextPlan(rows); }
+  catch { throw new ProbeFault("PLAN_SHAPE_INVALID"); }
 }
 
 function timestamp(value) {
@@ -229,7 +309,7 @@ async function limitedJson(response) {
   } catch (error) { await reader.cancel().catch(() => {}); throw error; }
   finally { reader.releaseLock(); }
 }
-function sqlRows(result) {
+function sqlRows(result, planRows = false) {
   if (result?.tooLarge || Buffer.byteLength(result?.stdout ?? "") > MAX_BODY) throw new ProbeFault("SQL_OUTPUT_TOO_LARGE");
   if (result?.timedOut) throw new ProbeFault("SQL_TIMEOUT");
   let data;
@@ -241,14 +321,14 @@ function sqlRows(result) {
     throw fault;
   }
   if (!result?.ok) throw new ProbeFault("SQL_EXEC_FAILED");
-  if (!Array.isArray(data) || data.length !== 1) throw new ProbeFault("SQL_OUTPUT_INVALID");
+  if (!Array.isArray(data) || (planRows ? data.length < 2 || data.length > 2048 : data.length !== 1)) throw new ProbeFault("SQL_OUTPUT_INVALID");
   return data;
 }
-async function sqlStage(stage, sql, config, executeSql, deadline, sanitize, operationSignal) {
+async function sqlStage(stage, sql, config, executeSql, deadline, sanitize, operationSignal, planRows = false) {
   const started = performance.now();
   try {
-    const rows = sqlRows(await bounded((signal) => executeSql({ databaseUrl: config.databaseUrl, sql, signal }), deadline, "SQL_TIMEOUT", operationSignal));
-    return { stage, status: "passed", elapsedMs: elapsed(started), ...sanitize(rows[0]) };
+    const rows = sqlRows(await bounded((signal) => executeSql({ databaseUrl: config.databaseUrl, sql, signal }), deadline, "SQL_TIMEOUT", operationSignal), planRows);
+    return { stage, status: "passed", elapsedMs: elapsed(started), ...sanitize(planRows ? rows : rows[0]) };
   } catch (error) {
     const known = error instanceof ProbeFault;
     return { stage, status: "failed", code: known ? error.code : "SQL_EXEC_FAILED", elapsedMs: elapsed(started),
@@ -265,6 +345,7 @@ export async function probePublicationRuntime({ environment = process.env, targe
   const started = performance.now(); let scope;
   const report = (code, details = {}, exitCode = 1) => ({ exitCode, report: {
     schemaVersion: 1, event: "publication_runtime_probe", mode: "read_only_inventory_plan_and_metadata",
+    completionScope: "requested_queries_observed_and_sanitized_not_recovery_or_effective_timeout_proof",
     observedAt: now().toISOString(), verdict: code === "DIAGNOSTIC_COMPLETE" ? "DIAGNOSTIC_COMPLETE" : "UNPROVEN", code, queryTemplateSha256: inventoryTemplateSha256,
     ...(scope ? { scope } : {}), elapsedMs: elapsed(started), ...details
   } });
@@ -315,13 +396,18 @@ export async function probePublicationRuntime({ environment = process.env, targe
     }, operationSignal);
     if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health, budget, tenant, stats });
     // Metadata failure remains useful evidence and does not suppress EXPLAIN.
-    const plan = await sqlStage("inventory_explain", inventoryExplainSql(tenantId), config, executeSql, sqlDeadlineMs, (row) => {
-      if (!exactKeys(row, ["QUERY PLAN"])) throw new ProbeFault("PLAN_SHAPE_INVALID");
-      return sanitizeInventoryPlan(row["QUERY PLAN"]);
-    }, operationSignal);
+    const plan = await sqlStage("inventory_explain", inventoryExplainSql(tenantId), config, executeSql, sqlDeadlineMs, sanitizeInventoryTextPlan, operationSignal, true);
     if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health, budget, tenant, stats, plan });
-    const complete = stats.status === "passed" && !stats.sportlink.connectionsTruncated && !stats.activityTruncated && plan.status === "passed";
-    return report(complete ? "DIAGNOSTIC_COMPLETE" : "DIAGNOSTIC_UNPROVEN", { health, budget, tenant, stats, plan }, complete ? 0 : 1);
+    const runtimeMetadata = await sqlStage("runtime_catalog_metadata", runtimeMetadataSql(tenantId), config, executeSql, sqlDeadlineMs, (row) => {
+      if (!exactKeys(row, ["report"])) throw new ProbeFault("RUNTIME_METADATA_SHAPE_INVALID");
+      try { return sanitizeRuntimeMetadata(row.report); }
+      catch (error) { throw new ProbeFault(error?.code === "RUNTIME_METADATA_SCOPE_INVALID" ? "RUNTIME_METADATA_SCOPE_INVALID" : "RUNTIME_METADATA_SHAPE_INVALID"); }
+    }, operationSignal);
+    if (operationSignal?.aborted) return report("PROBE_CANCELLED", { health, budget, tenant, stats, plan, runtimeMetadata });
+    const complete = stats.status === "passed" && !stats.sportlink.connectionsTruncated && !stats.activityTruncated
+      && plan.status === "passed" && runtimeMetadata.status === "passed"
+      && runtimeMetadata.tables.every((table) => table.indexes.every((index) => !index.columnsTruncated));
+    return report(complete ? "DIAGNOSTIC_COMPLETE" : "DIAGNOSTIC_UNPROVEN", { health, budget, tenant, stats, plan, runtimeMetadata }, complete ? 0 : 1);
   } catch { return report(operationSignal?.aborted ? "PROBE_CANCELLED" : "PROBE_FAILED"); }
 }
 
