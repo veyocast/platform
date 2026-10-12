@@ -9,7 +9,8 @@ import { delimiter, join } from "node:path";
 import { ReadableStream } from "node:stream/web";
 import { test } from "node:test";
 import { fileURLToPath, pathToFileURL, URL } from "node:url";
-import { inventoryExplainSql, inventoryTemplateSha256, probePublicationRuntime, publicationProbeCli, publicationStatsSql, sanitizeInventoryPlan, sanitizePublicationStats, writePublicationProbeArtifact } from "./probe-publication-runtime.mjs";
+import { inventoryExplainSql, inventoryTemplateSha256, probePublicationRuntime, publicationProbeCli, publicationStatsSql, sanitizeInventoryPlan, sanitizeInventoryTextPlan, sanitizePublicationStats, writePublicationProbeArtifact } from "./probe-publication-runtime.mjs";
+import { runtimeMetadataSql } from "./publication-runtime-metadata.mjs";
 
 // Synthetic transports exercise authorization, bounds and redaction, not live latency.
 const sha = "a".repeat(40), tenant = "11111111-1111-1111-1111-111111111111", project = "abcdefghijklmnopqrst";
@@ -18,6 +19,7 @@ const environment = () => ({ GITHUB_REF: "refs/heads/main", SUPABASE_PROJECT_REF
 const input = (env = environment()) => ({ environment: env, targetEnvironment: "production", expectedRuntimeSha: sha, tenantId: tenant });
 const node = (extra = {}) => ({ "Node Type": "Seq Scan", "Relation Name": "player_heartbeats", "Startup Cost": 0, "Total Cost": 100, "Plan Rows": 2000, ...extra });
 const plan = () => [{ Plan: node() }];
+const textPlan = (lines = ["Seq Scan on player_heartbeats  (cost=0.00..100.00 rows=2000 width=8)", "Planning Time: 1.000 ms"]) => lines.map((line) => ({ "QUERY PLAN": line }));
 const run = (extra = {}) => ({ connectionId: tenant, datasetGroup: "matches", enabled: true, frequency: "five_minutes",
   nextSyncAt: "2026-10-12T15:05:00+00:00", lastSuccessAt: "2026-10-12T14:50:00.123456+00:00", status: "failed",
   startedAt: "2026-10-12T15:00:00Z", finishedAt: "2026-10-12T15:01:00Z", errorCode: "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED", readCount: 0, changedCount: 0, skippedCount: 0, ...extra });
@@ -25,6 +27,42 @@ const stats = () => ({ tenantCounts: { snapshots: 21909, releases: 1218, publish
   tableEstimates: ["dynamic_slide_snapshots", "dynamic_slide_versions", "playlist_releases", "published_dynamic_data", "player_heartbeats", "player_sync_events", "publisher_target_snapshots", "playlist_release_authoring_snapshots"].map((relation) => ({ relation, estimatedRows: 2000 })),
   activity: [{ state: "active", waitType: "Lock", workload: "inventory", count: 2, maxQueryAgeMs: 62000 }], activityTruncated: false,
   sportlink: { retainedConnections: 1, connectionsTruncated: false, datasets: [run()] } });
+// Synthetic catalog observations test the integration's scope and shape checks.
+function runtimeCatalog() {
+  const timeoutKeys = ["statement_timeout", "lock_timeout", "idle_in_transaction_session_timeout", "idle_session_timeout", "transaction_timeout"];
+  const timeouts = () => timeoutKeys.map((key) => ({ key, status: "unset", milliseconds: null }));
+  const functions = [
+    ["public", "complete_sportlink_sync_v4"], ["public", "complete_sportlink_sync_v1"],
+    ["public", "complete_sportlink_sync_before_standing_history_v1"], ["public", "record_sportlink_sync_v1"], ["public", "record_sportlink_sync_pre_context_v1"],
+    ["private", "deduplicate_sportlink_source_revision_v1"], ["private", "refresh_sportlink_source_after_dataset_sync"],
+    ["private", "refresh_published_data_after_source_v1"], ["private", "refresh_published_data_v1"], ["public", "prune_queued_publication_versions_v1"]
+  ];
+  const indexes = {
+    sports_clubs: ["sports_clubs_pkey", "sports_clubs_tenant_id_id_key", "sports_clubs_tenant_id_source_connection_id_external_id_key", "sports_clubs_provider_logo_version_idx"],
+    sports_teams: ["sports_teams_pkey", "sports_teams_tenant_id_id_key", "sports_teams_tenant_id_source_connection_id_external_id_key", "sports_teams_tenant_idx"],
+    sports_matches: ["sports_matches_pkey", "sports_matches_tenant_id_id_key", "sports_matches_tenant_id_source_connection_id_external_id_key", "sports_matches_start_idx"],
+    sports_standings: ["sports_standings_pkey", "sports_standings_tenant_id_id_key", "sports_standings_source_external_season_key", "sports_standings_context_idx"],
+    sports_activities: ["sports_activities_pkey", "sports_activities_tenant_id_id_key", "sports_activities_tenant_id_source_connection_id_external_i_key", "sports_activities_start_idx"],
+    sports_public_people: ["sports_public_people_pkey", "sports_public_people_tenant_id_id_key", "sports_public_people_tenant_id_source_connection_id_externa_key"],
+    sportlink_team_members: ["sportlink_team_members_pkey", "sportlink_team_members_tenant_id_id_key", "sportlink_team_members_tenant_id_connection_id_identity_key_key", "sportlink_team_members_match_idx", "sportlink_team_members_code_idx"],
+    sportlink_birthdays: ["sportlink_birthdays_pkey", "sportlink_birthdays_tenant_id_id_key", "sportlink_birthdays_tenant_id_connection_id_external_id_key", "sportlink_birthdays_window_idx", "sportlink_birthdays_conflicts_idx"],
+    player_heartbeats: ["player_heartbeats_pkey", "player_heartbeats_tenant_device_created_idx", "player_heartbeats_tenant_screen_created_idx"]
+  };
+  return {
+    scopeReady: true,
+    timeoutProfiles: ["global_all_roles", "current_database_all_roles"].map((scope) => ({ scope, role: null, present: true, overridesPresent: false, timeouts: timeouts() })).concat(
+      ["authenticator", "service_role", "postgres"].flatMap((role) => ["global_role", "current_database_role"].map((scope) => ({ scope, role, present: true, overridesPresent: false, timeouts: timeouts() })))),
+    functions: functions.map(([schema, name]) => ({ schema, name, overloads: 1, timeouts: timeouts() })),
+    tables: Object.entries(indexes).map(([relation, names]) => ({ relation, present: true, estimatedRows: 10, statsKnown: true, liveRowsEstimate: 12, deadRowsEstimate: 1,
+      lastAnalyzeAt: "2026-10-12T10:00:00Z", lastAutoAnalyzeAt: null, unreviewedIndexCount: 0,
+      indexes: names.map((name) => ({ name, present: true, valid: true, ready: true, columnCount: 1, keyColumnCount: 1, columnsTruncated: false,
+        partial: false, hasExpressions: false, columns: ["id"] })) })),
+    statementStatistics: { installed: true, schema: "extensions", viewPresent: true, tracking: [
+      { key: "pg_stat_statements.track", status: "set", value: "top" }, { key: "pg_stat_statements.track_planning", status: "set", value: "off" },
+      { key: "track_activities", status: "set", value: "on" }, { key: "track_functions", status: "set", value: "none" }
+    ] }
+  };
+}
 function healthFetch(capture = []) {
   return async (url, options) => {
     capture.push({ url, options });
@@ -37,7 +75,8 @@ function sqlAdapter(capture = [], overrides = {}) {
   return async (request) => {
     capture.push(request);
     if (request.sql.startsWith("SELECT 1")) return overrides.tenant ?? rows([{ database_ready: 1, tenant_active: true }]);
-    if (request.sql.startsWith("EXPLAIN")) return overrides.plan ?? rows([{ "QUERY PLAN": plan() }]);
+    if (request.sql.startsWith("EXPLAIN")) return overrides.plan ?? rows(textPlan());
+    if (request.sql.startsWith("WITH expected_roles")) return overrides.runtimeMetadata ?? rows([{ report: runtimeCatalog() }]);
     return overrides.stats ?? rows([{ report: stats() }]);
   };
 }
@@ -46,17 +85,20 @@ function privateOutput(result) {
   for (const value of [privateValue, project, "private-user", "p%2B%24", "ca.pem", "RAW_FILTER", "RAW_SQL", "PRIVATE_INDEX", "PRIVATE_RELATION"]) assert.equal(text.includes(value), false, value);
 }
 
-test("exact healthy scope precedes three fixed read-only SQL stages and diagnostic completion is not inventory success", async () => {
+test("exact healthy scope precedes four fixed read-only SQL stages and diagnostic completion is not inventory success", async () => {
   const health = [], sql = [];
   const result = await probePublicationRuntime(input(), { fetchImpl: healthFetch(health), executeSql: sqlAdapter(sql) });
   assert.equal(result.exitCode, 0); assert.equal(result.report.verdict, "DIAGNOSTIC_COMPLETE");
   assert.equal(result.report.mode, "read_only_inventory_plan_and_metadata"); assert.equal(result.report.plan.nodeCount, 1);
   assert.equal(result.report.stats.sportlink.datasets[0].errorCode, "SPORTLINK_SYNC_COMPLETE_TRANSPORT_FAILED");
-  assert.equal(result.report.queryTemplateSha256, inventoryTemplateSha256); assert.equal(sql.length, 3); assert.equal(health.length, 2);
+  assert.equal(result.report.queryTemplateSha256, inventoryTemplateSha256); assert.equal(sql.length, 4); assert.equal(health.length, 2);
+  assert.equal(result.report.runtimeMetadata.stage, "runtime_catalog_metadata"); assert.equal(result.report.runtimeMetadata.metadataComplete, true);
+  assert.equal(result.report.completionScope, "requested_queries_observed_and_sanitized_not_recovery_or_effective_timeout_proof");
   for (const request of health) { assert.equal(request.options.headers, undefined); assert.equal(request.options.redirect, "error"); }
   for (const request of sql) { assert.equal(request.databaseUrl, uri + "&connect_timeout=45"); assert.ok(request.signal instanceof globalThis.AbortSignal); }
   assert.equal(sql[1].sql, publicationStatsSql(tenant)); assert.equal(sql[2].sql, inventoryExplainSql(tenant));
-  assert.match(sql[2].sql, /^EXPLAIN \(FORMAT JSON, COSTS TRUE, VERBOSE FALSE, SUMMARY FALSE, SETTINGS FALSE\)/);
+  assert.equal(sql[3].sql, runtimeMetadataSql(tenant));
+  assert.match(sql[2].sql, /^EXPLAIN \(FORMAT TEXT, COSTS TRUE, VERBOSE FALSE, SUMMARY TRUE, SETTINGS FALSE\)/);
   assert.doesNotMatch(sql[2].sql, /\bANALYZE\b/i); assert.doesNotMatch(sql[1].sql, /\b(?:insert|update|delete|alter|drop|create)\b/i);
   privateOutput(result);
 });
@@ -144,7 +186,7 @@ test("metadata timeout remains failed, aborts owned adapter and still performs b
     return native(request);
   } });
   assert.equal(result.report.stats.code, "SQL_TIMEOUT"); assert.equal(result.report.stats.stage, "inventory_metadata"); assert.equal(result.report.plan.status, "passed");
-  assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(aborted, true); assert.equal(calls, 3); privateOutput(result);
+  assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(aborted, true); assert.equal(calls, 4); privateOutput(result);
 });
 
 test("SQL output cap and raw adapter exception never expose partial plan/error text", async () => {
@@ -170,6 +212,140 @@ test("malformed/nonfinite/unbounded/deep plans fail closed without claiming comp
   assert.throws(() => sanitizeInventoryPlan([{ Plan: node({ Plans: Array.from({ length: 256 }, () => node()) }) }]), /PLAN_SHAPE_INVALID/);
 });
 
+test("compact plan preserves nodes, costs, rows and CTE/subplan depth while dropping private details", () => {
+  const compact = textPlan([
+    "Result  (cost=0.00..300.00 rows=1 width=32)",
+    "  CTE PRIVATE_RELATION",
+    "    ->  HashAggregate  (cost=1.00..100.00 rows=2000 width=8)",
+    "          Group Key: RAW_SQL",
+    "          ->  Seq Scan on player_heartbeats PRIVATE_PROVIDER_PERSON_OR_SECRET  (cost=0.00..50.00 rows=2000 width=8)",
+    "                Filter: RAW_FILTER",
+    "  InitPlan 1 (returns $0)",
+    "    ->  Hash Left Join  (cost=1.00..100.00 rows=2000 width=16)",
+    "          Hash Cond: RAW_FILTER",
+    "          ->  Index Scan Backward using player_sync_events_pkey on player_sync_events PRIVATE_PROVIDER_PERSON_OR_SECRET  (cost=1.00..50.00 rows=1000 width=8)",
+    "                Index Cond: RAW_FILTER",
+    "          ->  Parallel Seq Scan on player_heartbeats  (cost=0.00..50.00 rows=2000 width=8)",
+    "Planning Time: 1.000 ms"
+  ]);
+  const legacy = sanitizeInventoryPlan([{ Plan: node({ "Node Type": "Result", "Relation Name": undefined, "Total Cost": 300, "Plan Rows": 1, Plans: [
+    node({ "Node Type": "Aggregate", "Relation Name": undefined, "Startup Cost": 1, Plans: [node({ "Total Cost": 50 })] }),
+    node({ "Node Type": "Hash Join", "Relation Name": undefined, "Startup Cost": 1, Plans: [
+      node({ "Node Type": "Index Scan", "Relation Name": "player_sync_events", "Index Name": "player_sync_events_pkey", "Startup Cost": 1, "Total Cost": 50, "Plan Rows": 1000 }),
+      node({ "Total Cost": 50 })
+    ] })
+  ] }) }]);
+  const result = sanitizeInventoryTextPlan(compact);
+  assert.deepEqual(result.nodes, legacy.nodes); assert.equal(result.format, "text"); assert.equal(result.planComplete, true); assert.equal(result.nodeCount, 6);
+  privateOutput(result);
+});
+
+test("compact plan redacts quoted/unreviewed names and only emits reviewed index and relation fields", () => {
+  const result = sanitizeInventoryTextPlan(textPlan([
+    'Index Scan using "PRIVATE_INDEX" on "PRIVATE_RELATION" PRIVATE_PROVIDER_PERSON_OR_SECRET  (cost=1.00..100.00 rows=2000 width=8)',
+    "  Filter: RAW_FILTER",
+    "  InitPlan 1 (returns $0)",
+    '    ->  Bitmap Index Scan on public."player_heartbeats_pkey"  (cost=0.00..50.00 rows=1000 width=0)',
+    "  SubPlan 2",
+    "    ->  PRIVATE_PROVIDER_PERSON_OR_SECRET  (cost=0.00..20.00 rows=100 width=8)",
+    "Planning Time: 1.000 ms"
+  ]));
+  assert.equal(result.nodes[0].index, "unreviewed"); assert.equal(result.nodes[0].relation, "unreviewed");
+  assert.equal(result.nodes[1].index, "player_heartbeats_pkey"); assert.equal(result.nodes[1].relation, undefined);
+  assert.equal(result.nodes[2].nodeType, "unreviewed"); privateOutput(result);
+});
+
+test("compact plan requires its completion summary and accepts only a complete optional non-ANALYZE JIT footer", () => {
+  const prefix = ["Seq Scan on player_heartbeats  (cost=0.00..100.00 rows=2000 width=8)", "Planning Time: 1.000 ms"];
+  const jit = ["JIT:", "  Functions: 7", "  Options: Inlining false, Optimization false, Expressions true, Deforming true"];
+  assert.equal(sanitizeInventoryTextPlan(textPlan([...prefix, ...jit])).nodeCount, 1);
+  for (const lines of [prefix.slice(0, -1), [...prefix, jit[0]], [...prefix, ...jit.slice(0, 2)], [...prefix, "Execution Time: 1.000 ms"],
+    [...prefix, "Planning Time: 1.000 ms"], [...prefix, "RAW_SQL"], [...prefix, ...jit, "  Timing: RAW_SQL"],
+    [prefix[0], "Planning Time: NaN ms"], [prefix[0], "  InitPlan 1 (returns $0)", prefix[1]]]) {
+    assert.throws(() => sanitizeInventoryTextPlan(textPlan(lines)), /PLAN_SHAPE_INVALID/);
+  }
+});
+
+test("compact plan rejects malformed, multiple-root, oversized and excessively deep or numerous nodes", () => {
+  const first = "Seq Scan on player_heartbeats  (cost=0.00..100.00 rows=2000 width=8)", last = "Planning Time: 1.000 ms";
+  for (const value of [[], textPlan([last]), textPlan([first, first, last]), textPlan(["    ->  " + first, last]),
+    textPlan([first.replace("100.00", "-1"), last]), textPlan([first.replace("100.00", "NaN"), last]),
+    textPlan([first.replace("rows=2000", "rows=9007199254740992"), last]), textPlan([first.replace("width=8", "width=9007199254740992"), last]),
+    textPlan([first, "    ->  RAW_SQL (cost=0.00..1.00 rows=1 width=8)", last]),
+    textPlan([first, "  RAW_SQL", last]), textPlan([first + "\nRAW_SQL", last]), [{ "QUERY PLAN": first, payload: privateValue }, { "QUERY PLAN": last }],
+    [{ "QUERY PLAN": plan() }, { "QUERY PLAN": last }], textPlan([first.replace("on player_heartbeats", ""), last])]) {
+    assert.throws(() => sanitizeInventoryTextPlan(value), /PLAN_SHAPE_INVALID/);
+  }
+  const child = "Result  (cost=0.00..1.00 rows=1 width=8)";
+  assert.throws(() => sanitizeInventoryTextPlan(textPlan([child, ...Array.from({ length: 34 }, (_, i) => " ".repeat((i + 1) * 4) + "->  " + child), last])), /PLAN_SHAPE_INVALID/);
+  assert.throws(() => sanitizeInventoryTextPlan(textPlan([child, ...Array.from({ length: 256 }, () => "    ->  " + child), last])), /PLAN_SHAPE_INVALID/);
+  assert.throws(() => sanitizeInventoryTextPlan(textPlan(Array.from({ length: 2049 }, () => first))), /PLAN_SHAPE_INVALID/);
+});
+
+test("valid JSON containing a partial TEXT plan remains unproven and never exposes partial nodes", async () => {
+  for (const lines of [["Seq Scan on player_heartbeats  (cost=0.00..100.00 rows=2000 width=8)", "  Filter: RAW_FILTER"],
+    ["Seq Scan on player_heartbeats  (cost=0.00..100.00 rows=2000 width=8)", "Planning Time: 1.000 ms", "JIT:"]]) {
+    const result = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), executeSql: sqlAdapter([], { plan: rows(textPlan(lines)) }) });
+    assert.equal(result.report.plan.code, "PLAN_SHAPE_INVALID"); assert.equal(result.report.plan.nodes, undefined);
+    assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(result.exitCode, 1); privateOutput(result);
+  }
+});
+
+test("compact plan oversized data and hostile getters throw only a fixed shape error", () => {
+  const oversized = textPlan(["Result  (cost=0.00..1.00 rows=1 width=8)", "  Filter: " + privateValue.repeat(3000), "Planning Time: 1.000 ms"]);
+  const hostile = textPlan();
+  Object.defineProperty(hostile[0], "QUERY PLAN", { enumerable: true, get() { throw new Error(uri + privateValue); } });
+  for (const value of [oversized, hostile]) assert.throws(() => sanitizeInventoryTextPlan(value), (error) => {
+    assert.equal(error.code, "PLAN_SHAPE_INVALID"); assert.equal(error.message, "PLAN_SHAPE_INVALID"); assert.equal(error.cause, undefined); privateOutput(error); return true;
+  });
+});
+
+test("separate runtime catalogs retain declared unknowns without claiming effective timeout or incomplete plan", async () => {
+  for (const change of [
+    (value) => { value.tables[0].estimatedRows = null; },
+    (value) => { value.functions[0].overloads = 0; value.functions[0].timeouts.forEach((item) => { item.status = "unknown"; }); },
+    (value) => { value.functions[0].timeouts[0].status = "invalid"; },
+    (value) => { value.statementStatistics.installed = false; value.statementStatistics.schema = "absent"; value.statementStatistics.viewPresent = false; }
+  ]) {
+    const value = runtimeCatalog(); change(value);
+    const result = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), executeSql: sqlAdapter([], { runtimeMetadata: rows([{ report: value }]) }) });
+    assert.equal(result.report.runtimeMetadata.metadataComplete, false); assert.equal(result.report.runtimeMetadata.status, "passed");
+    assert.equal(result.report.runtimeMetadata.timeoutScope, "declared_catalog_configuration_not_effective_postgrest_timeout");
+    assert.equal(result.report.plan.planComplete, true); assert.equal(result.report.code, "DIAGNOSTIC_COMPLETE"); assert.equal(result.exitCode, 0); privateOutput(result);
+  }
+});
+
+test("catalog scope/shape failures and multiple-row responses remain fixed failures with an independently complete plan", async () => {
+  const inactive = runtimeCatalog(); inactive.scopeReady = false;
+  for (const [data, code] of [
+    [[{ report: inactive }], "RUNTIME_METADATA_SCOPE_INVALID"],
+    [[{ report: { ...runtimeCatalog(), rawConfig: privateValue } }], "RUNTIME_METADATA_SHAPE_INVALID"],
+    [[{ report: runtimeCatalog(), payload: privateValue }], "RUNTIME_METADATA_SHAPE_INVALID"],
+    [[{ report: runtimeCatalog() }, { report: runtimeCatalog() }], "SQL_OUTPUT_INVALID"]
+  ]) {
+    const result = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), executeSql: sqlAdapter([], { runtimeMetadata: rows(data) }) });
+    assert.equal(result.report.runtimeMetadata.code, code); assert.equal(result.report.runtimeMetadata.timeoutProfiles, undefined);
+    assert.equal(result.report.plan.planComplete, true); assert.equal(result.report.verdict, "UNPROVEN"); assert.equal(result.exitCode, 1); privateOutput(result);
+  }
+});
+
+test("catalog truncation, output cap and deadline cannot produce overall diagnostic completion", async () => {
+  const value = runtimeCatalog(), index = value.tables[0].indexes[0];
+  index.columnCount = 9; index.keyColumnCount = 9; index.columnsTruncated = true; index.columns = Array(8).fill("id");
+  const truncated = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), executeSql: sqlAdapter([], { runtimeMetadata: rows([{ report: value }]) }) });
+  assert.equal(truncated.report.runtimeMetadata.status, "passed");
+  assert.equal(truncated.report.runtimeMetadata.tables.find((table) => table.relation === value.tables[0].relation).indexes.find((item) => item.name === index.name).columnsTruncated, true);
+  assert.equal(truncated.report.runtimeMetadata.metadataComplete, false); assert.equal(truncated.report.verdict, "UNPROVEN"); assert.equal(truncated.report.plan.planComplete, true);
+  const capped = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), executeSql: sqlAdapter([], { runtimeMetadata: { tooLarge: true, stdout: privateValue, ok: false } }) });
+  assert.equal(capped.report.runtimeMetadata.code, "SQL_OUTPUT_TOO_LARGE"); assert.equal(capped.report.verdict, "UNPROVEN"); privateOutput(capped);
+  const native = sqlAdapter(); let aborted = false;
+  const timed = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), sqlDeadlineMs: 10, executeSql: (request) => {
+    if (request.sql.startsWith("WITH expected_roles")) { request.signal.addEventListener("abort", () => { aborted = true; }); return new Promise(() => {}); }
+    return native(request);
+  } });
+  assert.equal(aborted, true); assert.equal(timed.report.runtimeMetadata.code, "SQL_TIMEOUT"); assert.equal(timed.report.verdict, "UNPROVEN"); privateOutput(timed);
+});
+
 test("metadata preserves bounded numeric workload ages and maps private enum strings without leaks", () => {
   const value = stats(); value.activity.push({ state: privateValue, waitType: privateValue, workload: privateValue, count: 3, maxQueryAgeMs: 500 });
   const result = sanitizePublicationStats(value);
@@ -179,7 +355,7 @@ test("metadata preserves bounded numeric workload ages and maps private enum str
 });
 
 test("all new Sportlink completion categories are fixed codes; private/old unreviewed codes redact", () => {
-  for (const suffix of ["TRANSPORT_FAILED", "RPC_FAILED", "INVALID_RESULT", "57014", "PGRST003", "XX000"]) {
+  for (const suffix of ["TRANSPORT_FAILED", "RPC_FAILED", "INVALID_RESULT", "57014", "57014_STATEMENT_TIMEOUT", "57014_USER_REQUEST", "PGRST003", "XX000"]) {
     const value = stats(); value.sportlink.datasets[0].errorCode = "SPORTLINK_SYNC_COMPLETE_" + suffix;
     assert.equal(sanitizePublicationStats(value).sportlink.datasets[0].errorCode, "SPORTLINK_SYNC_COMPLETE_" + suffix);
   }
@@ -210,7 +386,7 @@ test("truncated connection or activity metadata cannot claim diagnostic completi
 });
 
 test("malformed plan response does not produce an inventory pass or leak the original row", async () => {
-  const result = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), executeSql: sqlAdapter([], { plan: rows([{ "QUERY PLAN": plan(), payload: privateValue }]) }) });
+  const result = await probePublicationRuntime(input(), { fetchImpl: healthFetch(), executeSql: sqlAdapter([], { plan: rows([{ "QUERY PLAN": textPlan()[0]["QUERY PLAN"], payload: privateValue }, textPlan()[1]]) }) });
   assert.equal(result.report.plan.code, "PLAN_SHAPE_INVALID"); assert.equal(result.report.plan.nodes, undefined); assert.equal(result.report.queryTemplateSha256, inventoryTemplateSha256); privateOutput(result);
 });
 
@@ -261,7 +437,7 @@ test("operation cancellation aborts active metadata and prevents EXPLAIN regardl
   assert.equal(result.report.stats.code, "PROBE_CANCELLED"); assert.equal(result.report.plan, undefined); privateOutput(result);
 });
 
-for (const [phase, signal, exitCode] of [["inventory_metadata", "SIGTERM", 143], ["inventory_explain", "SIGINT", 130]]) {
+for (const [phase, signal, exitCode] of [["inventory_metadata", "SIGTERM", 143], ["inventory_explain", "SIGINT", 130], ["runtime_catalog_metadata", "SIGTERM", 143]]) {
   test(`actual Linux CLI ${signal} cancellation in ${phase} stops owned wrapper and descendant`, { skip: process.platform !== "linux", timeout: 20_000 }, async () => {
     const directory = await mkdtemp(join(tmpdir(), "publication-cli-cancel-"));
     let child, wrapperPid, descendantPid;
@@ -275,16 +451,18 @@ for (const [phase, signal, exitCode] of [["inventory_metadata", "SIGTERM", 143],
       await writeFile(binary, `#!/usr/bin/env node
 const fs=require('node:fs');const{spawn}=require('node:child_process');let sql='';
 process.stdin.setEncoding('utf8');process.stdin.on('data',part=>{sql+=part});process.stdin.on('end',()=>{
- const stage=sql.startsWith('SELECT 1')?'tenant_lookup':sql.startsWith('EXPLAIN')?'inventory_explain':'inventory_metadata';
+ const stage=sql.startsWith('SELECT 1')?'tenant_lookup':sql.startsWith('EXPLAIN')?'inventory_explain':sql.startsWith('WITH expected_roles')?'runtime_catalog_metadata':'inventory_metadata';
  fs.appendFileSync(process.env.PROBE_TEST_STAGES,stage+'\\n',{mode:0o600});
  if(stage==='tenant_lookup'){process.stdout.write('[{"database_ready":1,"tenant_active":true}]',()=>process.exit(0));return;}
  if(stage===process.env.PROBE_TEST_CANCEL_PHASE){const descendant=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});fs.writeFileSync(process.env.PROBE_TEST_PIDS,JSON.stringify({wrapper:process.pid,descendant:descendant.pid}),{mode:0o600});setInterval(()=>{},1000);return;}
+ if(stage==='inventory_explain'){process.stdout.write(process.env.PROBE_TEST_TEXT_PLAN,()=>process.exit(0));return;}
  process.stdout.write(JSON.stringify([{report:JSON.parse(process.env.PROBE_TEST_STATS)}]),()=>process.exit(0));
 });\n`, { mode: 0o700 });
       await chmod(binary, 0o700);
       child = spawn(process.execPath, [fileURLToPath(new URL("./probe-publication-runtime.mjs", import.meta.url)), "production", sha, tenant], {
         env: { ...process.env, ...environment(), PATH: `${directory}${delimiter}${process.env.PATH}`, NODE_OPTIONS: `--import=${pathToFileURL(hook).href}`,
-          RUNNER_TEMP: directory, PROBE_TEST_CANCEL_PHASE: phase, PROBE_TEST_PIDS: marker, PROBE_TEST_STAGES: stages, PROBE_TEST_STATS: JSON.stringify(stats()) },
+          RUNNER_TEMP: directory, PROBE_TEST_CANCEL_PHASE: phase, PROBE_TEST_PIDS: marker, PROBE_TEST_STAGES: stages, PROBE_TEST_STATS: JSON.stringify(stats()),
+          PROBE_TEST_TEXT_PLAN: JSON.stringify(textPlan()) },
         stdio: ["ignore", "pipe", "pipe"]
       });
       let stdout = ""; child.stdout.on("data", (part) => { stdout += part; }); child.stderr.resume();
@@ -302,7 +480,8 @@ process.stdin.setEncoding('utf8');process.stdin.on('data',part=>{sql+=part});pro
       assert.equal(await alive(wrapperPid), false); assert.equal(await alive(descendantPid), false);
       const report = JSON.parse(stdout); assert.equal(report.code, "PROBE_CANCELLED"); assert.equal(report.verdict, "UNPROVEN"); privateOutput(report);
       const observedStages = (await readFile(stages, "utf8")).trim().split("\n");
-      assert.deepEqual(observedStages, phase === "inventory_metadata" ? ["tenant_lookup", "inventory_metadata"] : ["tenant_lookup", "inventory_metadata", "inventory_explain"]);
+      const expectedStages = ["tenant_lookup", "inventory_metadata", "inventory_explain", "runtime_catalog_metadata"];
+      assert.deepEqual(observedStages, expectedStages.slice(0, expectedStages.indexOf(phase) + 1));
     } finally {
       if (child?.exitCode === null && child.signalCode === null) child.kill("SIGTERM");
       if (Number.isInteger(wrapperPid)) { try { process.kill(-wrapperPid, "SIGKILL"); } catch { /* Test-owned group already stopped. */ } }

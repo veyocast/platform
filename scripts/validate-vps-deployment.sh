@@ -107,8 +107,8 @@ if grep --line-number --extended-regexp '(^|[[:space:]])build:' infra/vps/compos
 fi
 
 bash -n scripts/deploy-vps.sh scripts/migrate-supabase.sh scripts/validate-vps-deployment.sh
-pnpm exec eslint scripts/database-cli-config.mjs scripts/database-cli-config.test.mjs scripts/current-publication-maintenance.mjs scripts/publication-database-query.mjs scripts/publication-database-query.test.mjs scripts/probe-publication-runtime.mjs scripts/probe-publication-runtime.test.mjs scripts/probe-database-transport.mjs scripts/probe-database-transport.test.mjs scripts/probe-runtime-database.mjs scripts/probe-runtime-database.test.mjs scripts/test-deployment-lifecycle.test.mjs --max-warnings=0
-node --test scripts/publication-database-query.test.mjs scripts/probe-publication-runtime.test.mjs scripts/database-cli-config.test.mjs scripts/test-deployment-lifecycle.test.mjs scripts/probe-database-transport.test.mjs scripts/probe-runtime-database.test.mjs
+pnpm exec eslint scripts/publication-runtime-metadata.mjs scripts/database-cli-config.mjs scripts/database-cli-config.test.mjs scripts/current-publication-maintenance.mjs scripts/publication-database-query.mjs scripts/publication-database-query.test.mjs scripts/probe-publication-runtime.mjs scripts/probe-publication-runtime.test.mjs scripts/publication-runtime-metadata.test.mjs scripts/probe-database-transport.mjs scripts/probe-database-transport.test.mjs scripts/probe-runtime-database.mjs scripts/probe-runtime-database.test.mjs scripts/test-deployment-lifecycle.test.mjs --max-warnings=0
+node --test scripts/publication-database-query.test.mjs scripts/probe-publication-runtime.test.mjs scripts/publication-runtime-metadata.test.mjs scripts/database-cli-config.test.mjs scripts/test-deployment-lifecycle.test.mjs scripts/probe-database-transport.test.mjs scripts/probe-runtime-database.test.mjs
 
 node scripts/check-migration-safety.mjs supabase/migrations
 

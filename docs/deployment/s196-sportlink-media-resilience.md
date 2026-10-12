@@ -44,3 +44,12 @@ opgenomen zonder rebase/force. Alleen de ledgerconflict is door root opgelost:
 nieuwste S195-bewijs en de bestaande S196-rij blijven behouden. Workspace lint,
 typecheck en test na samenvoeging slagen opnieuw elk30/30. Nieuwe exacte-head CI
 blijft vereist vóór merge en promotie.
+
+De finale head491a834b slaagt volledig in PR38277707375 en Sites38277707370:
+workspace lint/type/unit30/30, build18/18; Player238PASS/15 bestaandeSKIP,
+Control298PASS/562 conditioneleSKIP, Marketing16PASS, Cross4PASS/2SKIP; alle
+548 oorspronkelijke cases/644frames en652 strikte cases/760frames nulverschil,
+66responsive. Root controleert de echte logs en checkoutboom onafhankelijk.
+Retarget naar main0f017060 behoudt de geteste head en tree44ed0d2e; PR221
+is als18e53d89 gemerged met precies die boom. Stagingbuild wordt automatisch
+uitgevoerd; productiepromotie en gewone livecycli zijn nog vereist.
