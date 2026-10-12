@@ -16,10 +16,11 @@ import type { StudioSvgAssetSources } from "./studio-render-svg";
 import {getSitesBrowserRenderBundle} from "./sites-dom-browser-bundle";
 import type {SitesBrowserRenderInput} from "./sites-dom-browser-renderer";
 
+export type SitesCaptureFailureStage="unknown"|"document_load"|"font_load"|"render_commit"|"dependency_decode"|"asset_integrity"|"layout_settle"|"raster_capture"|"png_encode";
 export class SitesDomCaptureError extends Error {
  readonly code="studio_sites_capture_failed";
  readonly retryable=true;
- constructor(){super("Het gecontroleerde schermvoorbeeld kon niet binnen de renderlimiet worden gemaakt.");this.name="SitesDomCaptureError";}
+ constructor(readonly failureStage:SitesCaptureFailureStage="unknown"){super("Het gecontroleerde schermvoorbeeld kon niet binnen de renderlimiet worden gemaakt.");this.name="SitesDomCaptureError";}
 }
 export interface SitesStudioCapture {
  renderPng(timeMs:number):Promise<Uint8Array>;
@@ -35,6 +36,12 @@ const maximumSessionBytes=96*1024*1024;
  * raster workers. Use the same deterministic transport for Source and output.
  */
 export const sitesCaptureBrowserArgs:readonly string[]=["--disable-dev-shm-usage","--no-sandbox","--num-raster-threads=1"];
+/** Fit effects must first measure the audited fonts, rather than a fallback
+ * whose later load can race the initial ResizeObserver callback.
+ */
+export async function loadSitesCaptureFonts(page:Page):Promise<void>{
+ await page.evaluate(async()=>{await Promise.all(Array.from(document.fonts,face=>face.load()));await document.fonts.ready;});
+}
 /** Decode and equal adjacent frames can precede a later compositor repaint.
  * Require an elapsed settling period and a continuous exact raster window.
  * Call once per page, after pausing animations at the requested frame.
@@ -119,7 +126,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
    try{let bytes=cache.get(asset.path);if(!bytes){bytes=await readFile(resolve(publicDirectory,asset.path.slice(1)));if(bytes.byteLength!==asset.bytes||createHash("sha256").update(bytes).digest("hex")!==asset.sha256)throw new SitesDomCaptureError();sessionBytes+=bytes.byteLength;if(sessionBytes>maximumSessionBytes)throw new SitesDomCaptureError();cache.set(asset.path,bytes);}await route.fulfill({body:bytes,contentType:asset.mimeType,status:200});}catch{assetFailed=true;await route.abort();}
   });
   page.on("pageerror",()=>{assetFailed=true;});
-  let currentPage=-1;let animationEndTime=0;let capturedKey="";let capturedPng:Buffer|undefined;let rgbaKey="";let capturedRgba:Buffer|undefined;
+  let currentPage=-1;let animationEndTime=0;let capturedKey="";let capturedPng:Buffer|undefined;let rgbaKey="";let capturedRgba:Buffer|undefined;let failureStage:SitesCaptureFailureStage="document_load";
   const capture=async(timeMs:number)=>{
    if(signal?.aborted)throw new SitesDomCaptureError();
    const pageSeconds=input.kind==="studio"?input.slide.duration:input.configuration.seconds;
@@ -128,16 +135,21 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
     // A nonce-bearing document is initialized once. Repeated document.write()
     // retains earlier meta-CSP policies and would reject the next trusted nonce.
     // Subsequent data pages update the same fixed React root instead.
+    failureStage="document_load";
     if(!trustedBundle||currentPage===-1)await page.setContent(trustedBundle?buildSitesCaptureFrame(input,"",trustedBundle):buildSitesCaptureHtml(input,assetSources,targetPage,motionEnabled),{timeout:15000,waitUntil:"domcontentloaded"});
     if(trustedBundle){
+     failureStage="font_load";
+     await loadSitesCaptureFonts(page);
      const renderInput:SitesBrowserRenderInput={presentation:input,page:targetPage,active:motionEnabled,tenantAssetSources};
+     failureStage="render_commit";
      await page.evaluate(value=>(globalThis as typeof globalThis & {startSitesRender:(input:SitesBrowserRenderInput)=>void}).startSitesRender(value),renderInput);
      await page.waitForFunction(expected=>document.getElementById("sites-capture")!.dataset.sitesPage===String(expected),targetPage,{timeout:10000});
     }
+    failureStage="dependency_decode";
     await page.evaluate(async()=>{await globalThis.document.fonts.ready;await Promise.all(Array.from(globalThis.document.images).map(img=>img.decode()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
     currentPage=targetPage;animationEndTime=await page.evaluate(()=>Math.max(0,...globalThis.document.getAnimations().map(animation=>Number(animation.effect?.getComputedTiming().endTime??0))));
    }
-   if(assetFailed)throw new SitesDomCaptureError();
+   if(assetFailed)throw new SitesDomCaptureError("asset_integrity");
    const localTime=Math.min(timeMs%(pageSeconds*1000),animationEndTime);
    const key=`${targetPage}:${localTime}`;if(capturedPng&&capturedKey===key)return capturedPng;
    await page.evaluate(({frameTime,browserLifecycle})=>{globalThis.document.getAnimations().forEach(animation=>{animation.pause();animation.currentTime=frameTime;});
@@ -150,6 +162,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
      inner.style.setProperty('--led-auto-fit',String(Math.max(.01,Math.min(1,box.clientWidth/(width*1.035),box.clientHeight/(height*1.08)))));
     });},{frameTime:localTime,browserLifecycle});
 
+   failureStage="layout_settle";
    if(browserLifecycle&&capturedKey.split(":")[0]!==String(targetPage))await page.evaluate(async()=>{
     // The commit marker proves the requested page exists. Source components
     // can still commit font/ResizeObserver-based fit updates afterwards.
@@ -171,12 +184,14 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
    await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
    // Initial pages need an elapsed quiet raster window. Later video frames
    // retain their explicit timeline and do not repeat the page settling wait.
+   failureStage="raster_capture";
    const png=capturedKey.split(":")[0]!==String(targetPage)
     ?await captureSettledSitesRaster(page):await page.screenshot({type:"png",timeout:15000});
-   if(assetFailed)throw new SitesDomCaptureError();
+   if(assetFailed)throw new SitesDomCaptureError("asset_integrity");
    if(onMeasure)onMeasure(await measureSitesCaptureRaster(page,png));
    capturedPng=png;capturedKey=key;return capturedPng;
   };
-  return {renderPng:async time=>{try{return await sharp(await capture(time)).toColourspace("srgb").withIccProfile("srgb").png().toBuffer();}catch{throw new SitesDomCaptureError();}},renderRgba:async time=>{try{const png=await capture(time);if(capturedRgba&&rgbaKey===capturedKey)return capturedRgba;capturedRgba=await sharp(png).ensureAlpha().raw().toBuffer();rgbaKey=capturedKey;return capturedRgba;}catch{throw new SitesDomCaptureError();}},close:async()=>{clearTimeout(deadline);signal?.removeEventListener("abort",onAbort);await close();}};
+  const safeFailure=(error:unknown)=>error instanceof SitesDomCaptureError&&error.failureStage!=="unknown"?error:new SitesDomCaptureError(failureStage);
+  return {renderPng:async time=>{try{const png=await capture(time);failureStage="png_encode";return await sharp(png).toColourspace("srgb").withIccProfile("srgb").png().toBuffer();}catch(error){throw safeFailure(error);}},renderRgba:async time=>{try{const png=await capture(time);if(capturedRgba&&rgbaKey===capturedKey)return capturedRgba;failureStage="png_encode";capturedRgba=await sharp(png).ensureAlpha().raw().toBuffer();rgbaKey=capturedKey;return capturedRgba;}catch(error){throw safeFailure(error);}},close:async()=>{clearTimeout(deadline);signal?.removeEventListener("abort",onAbort);await close();}};
  }catch{clearTimeout(deadline);signal?.removeEventListener("abort",onAbort);await close();throw new SitesDomCaptureError();}
 }

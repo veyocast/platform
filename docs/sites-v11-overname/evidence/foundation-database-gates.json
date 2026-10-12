@@ -1,27 +1,27 @@
 {
   "scope": "Verified actual local log markers and validator exit codes; independent Source comparisons are SHA-verified aggregates, not a single full rerun; no deployment or hardware claim.",
-  "recordedAt": "2026-10-12T01:45:27.469262+00:00",
+  "recordedAt": "2026-10-12T02:45:52.584187+00:00",
   "gates": {
     "lint": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "567c9e9d573b148d76d20609c4e38056cecf450cb385f2eba081368675d60892",
-      "supersedesLocalLogSHA256": "3d932d04556a87e569ee553ab4e520cbf97942fa15bea421021ae1f1c4a66fcd",
-      "scope": "Actual full workspace gate after Source-faithful client canvas initialization correction."
+      "logSHA256": "7f28087db3247fcdaea6eb4f95af1646b3ce6f268440e1d631b38bb3af622063",
+      "supersedesLocalLogSHA256": "567c9e9d573b148d76d20609c4e38056cecf450cb385f2eba081368675d60892",
+      "scope": "Actual full workspace gate after font-before-mount and bounded capture-stage diagnostics; unchanged tasks may use cache, cross-repository testkit runs uncached."
     },
     "typecheck": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "2a4bc7b81f90784d821e6f3006bcad2f20e5ec06b7b4b48b0a79c29b8daca8ca",
-      "supersedesLocalLogSHA256": "07dc439bd5b4bdecefc4a61657d942a50768f03299aab28ba910b952539fc2ce",
-      "scope": "Actual full workspace gate after Source-faithful client canvas initialization correction."
+      "logSHA256": "79b4b8690a066d3783d18e500a75b180f3d8820c43cea4f63a814d9f89e07ccc",
+      "supersedesLocalLogSHA256": "2a4bc7b81f90784d821e6f3006bcad2f20e5ec06b7b4b48b0a79c29b8daca8ca",
+      "scope": "Actual full workspace gate after font-before-mount and bounded capture-stage diagnostics; unchanged tasks may use cache, cross-repository testkit runs uncached."
     },
     "unit": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "fdf9873d27673343e6ff8f52286431642db43d002397129d8c4f10e870a8e892",
-      "scope": "Actual full workspace gate after Source-faithful client canvas initialization correction.",
-      "supersedesLocalLogSHA256": "07c979d37e5a4a8e209101e6c6f6f9044d6b0517db7d0cba61e3b94c7e653ab1",
+      "logSHA256": "24e43692a574bce9c2b71eb420fdf341ff41a9a6a96098d081a3d2892faf35d4",
+      "scope": "Actual full workspace gate after font-before-mount and bounded capture-stage diagnostics; unchanged tasks may use cache, cross-repository testkit runs uncached.",
+      "supersedesLocalLogSHA256": "fdf9873d27673343e6ff8f52286431642db43d002397129d8c4f10e870a8e892",
       "crossRepositoryTestkitCacheBypassed": true
     },
     "databaseReset": {
@@ -55,7 +55,7 @@
     "build": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+18 successful, 18 total",
-      "logSHA256": "45073eac5ff95308d218ea4a0eda07689840fadc15302aee956bb46fb172deb1",
+      "logSHA256": "737b5c2fda6611fcb4d848f11b68d63f59ce32dd60cceb573e390b1033324acc",
       "cachedUnchangedTasks": 13,
       "rebuiltApplications": [
         "control",
@@ -64,9 +64,9 @@
         "control-mobile",
         "media-worker"
       ],
-      "duration": "2m21.657s",
-      "scope": "Actual full workspace build after shared raster/native/diagnostics changes on 292ddb, before the one-line client canvas initialization correction; corrected-client CI builds remain required.",
-      "supersedesLocalLogSHA256": "9a946dab6b37672ab0efd6800a25ace1c7e30c5773644852720dca508427a896"
+      "duration": "1m0.758s",
+      "scope": "Actual full workspace build after font-before-mount and bounded capture-stage diagnostics; no simultaneous browser captures.",
+      "supersedesLocalLogSHA256": "45073eac5ff95308d218ea4a0eda07689840fadc15302aee956bb46fb172deb1"
     },
     "originalCaseClosure": {
       "status": "PASS",
@@ -369,6 +369,156 @@
       "passed": 7,
       "logSHA256": "772bd3f1573bc75a3374aa81497fbc048f896a1c92b15b710ce733f2ea294a76",
       "scope": "Actual exact full Chrome capture with audited font/image bytes, hostile text and external URLs blocked, missing assets fail closed."
+    }
+  },
+  "fourthFullCi": {
+    "head": "262125a616663d46b404335ddc46068f261bb858",
+    "sourceRunId": 38193163857,
+    "allOtherScopesPassed": true,
+    "nativeRunId": 38193163842,
+    "nativeActualDuration": "26m23s",
+    "nativeArtifactId": 11722884398,
+    "nativeAabAnd16KiBValidated": true,
+    "tvOriginalCases": 172,
+    "tvContainedBackgroundCases": 16,
+    "tvLiteralStarterVariants": 76,
+    "tvArtifactId": 11723530767,
+    "databaseRunId": 38193163836,
+    "databaseJobId": 114630058806,
+    "databaseRlsFiles": 102,
+    "databaseRlsAssertions": 2886,
+    "databaseActualBrowserFlows": 2,
+    "databaseArtifactId": 11722517701,
+    "controlBrowserPassed": 298,
+    "controlConditionallySkipped": 562,
+    "playerBrowserPassed": 235,
+    "playerConditionallySkipped": 15,
+    "ledPassed": 285,
+    "ledFailed": 3,
+    "ledArtifactId": 11723525319,
+    "priorLed0219": "PASS",
+    "ledGlyphFailures": [
+      {
+        "caseId": "LED-0005",
+        "changedPixels": 400,
+        "maximumChannelDifference": 80,
+        "boundsInclusive": [
+          655,
+          247,
+          707,
+          313
+        ]
+      },
+      {
+        "caseId": "LED-0024",
+        "changedPixels": 4,
+        "maximumChannelDifference": 1,
+        "boundsInclusive": [
+          532,
+          374,
+          737,
+          405
+        ]
+      },
+      {
+        "caseId": "LED-0076",
+        "changedPixels": 123,
+        "maximumChannelDifference": 60,
+        "boundsInclusive": [
+          886,
+          346,
+          900,
+          364
+        ]
+      }
+    ],
+    "rawBrowserDiffersBeforeSharp": true,
+    "actualCauseEvidence": "Each failed headline fit coefficient differs between Source and worker by ~6e-8 to1e-7; transformed bounds feed back into later fit measurements. Observed second/third local measurements exactly match the divergent CI coefficients."
+  },
+  "fontBeforeMountCorrection": {
+    "sharedTransport": "Both independent renderers load the same14 audited declared FontFaces before React mount; initial fitting uses loaded font metrics instead of fallback fonts. Original Source files, CSS, fixtures, fitting algorithm, clocks and strict pixel assertions are unchanged.",
+    "workerCspAndNonceUnchanged": true,
+    "hashAndRequestAndSessionLimitsUnchanged": true,
+    "staticMarkupUnchanged": true,
+    "playerReadinessAndLkgUnchanged": true,
+    "localThreeCases": {
+      "exactFrames": 3,
+      "comparisonSHA256": "8e67c937147839e60c2986b865bee5cba47afda0ddd197cb07dbc3a7f9a2e8e0",
+      "priorLocalPngsUnchanged": true
+    },
+    "instrumentation": {
+      "pages": 6,
+      "declaredFontFacesPerPage": 14,
+      "allFontsLoadedAtFirstFit": true,
+      "measurementsPerPage": 3,
+      "fitWritesPerPage": 12,
+      "fitRafCallbacksPerPage": 2,
+      "resizeObserverCallbacksPerPage": 1,
+      "sourceAndWorkerFitSequencesEqual": true,
+      "summarySHA256": "801ce8e47e8716b854b384e2d53d5c32a14ee7ac162d863565ce918d45a44e00",
+      "scope": "Observational local instrumentation can perturb timing; it is not a reproduction of the remote failed frame. Second/third pass coefficients match concrete fourth-CI differences."
+    },
+    "fullCiResolutionClaim": false,
+    "firstBroadenedAttempt": {
+      "status": "FAIL",
+      "passedTests": 10,
+      "failedTests": 1,
+      "exactCompletedFrames": 14,
+      "failedCaseId": "SPORTLINK-0035",
+      "failureStage": "unknown",
+      "underlyingCause": "unknown",
+      "scope": "Capture failed before a completed frame; concurrent build is observed but not established as the cause. No retry policy added."
+    },
+    "boundedStageDiagnostic": {
+      "status": "PASS",
+      "caseId": "SPORTLINK-0035",
+      "actualTests": 1,
+      "exactFrames": 2,
+      "comparisonSHA256": "8215ff69c0bd2b8d02386958a1915a3f75a710ab9de19e0954f012478633508e",
+      "scope": "Actual changed-code isolated diagnostic; success does not classify the preceding failure."
+    },
+    "actualChangedCodeCombinedGate": {
+      "status": "PASS",
+      "tests": 11,
+      "frames": 16,
+      "exactFrames": 16,
+      "captureFailures": [],
+      "durationSeconds": 102.64,
+      "comparisonSHA256": "fc19ef52aead2b4c041a12b0169f82e15faa6cbd2000cc322e1597bdf7298e00",
+      "controlComparisonSHA256": "d5209e82bc41aab7a71acdd91a2791a5c125f76febc5d0f6c2b2dff354bde5e0",
+      "priorControlPngsByteIdentical": 30,
+      "priorControlPngsTotal": 32,
+      "sharedLed0219LogoVariant": {
+        "sourceAndWorkerEqual": true,
+        "changedPixelsVersusPriorControl": 4358,
+        "maximumChannelDifference": 26,
+        "boundsInclusive": [
+          266,
+          549,
+          459,
+          769
+        ],
+        "changedPixelsOutsideActualClubLogo": 0,
+        "elementGeometryUnchanged": true
+      },
+      "scope": "Strict actual Source/worker comparisons; no masks, tolerance, automatic retries, GPU flags, Source component/CSS/fixture or frame-clock changes. Complete fifth CI remains required."
+    },
+    "actualCaptureSecurity": {
+      "status": "PASS",
+      "tests": 7,
+      "logSHA256": "66b4dc07c0b9f472ce512d1d371b65d236c06f7b490dde5711d90703f5c26b10",
+      "scope": "All actual full-Chrome tests executed, including missing audited fonts refusing partial output, fixed font_load stage and hostile URLs unable to fetch."
+    },
+    "boundedFailureDiagnostics": {
+      "fixedStageEnum": true,
+      "rawCauseOrUrlsStored": false,
+      "failedCaptureStillRethrown": true,
+      "scope": "Current execution phase only, not an underlying-cause classifier. Launch/setup and non-capture failures still fail Vitest outside captureFailures."
+    },
+    "independentReview": {
+      "reviewer": "deployment_live_review",
+      "blockers": 0,
+      "repositoryEdits": 0
     }
   }
 }

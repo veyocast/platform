@@ -4,7 +4,7 @@ import {readFile} from "node:fs/promises";
 import {dirname,join,resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {chromium,type Browser} from "playwright-core";
-import {captureSettledSitesRaster,measureSitesCaptureRaster,sitesCaptureBrowserArgs} from "../../src/sites-dom-capture";
+import {captureSettledSitesRaster,loadSitesCaptureFonts,measureSitesCaptureRaster,sitesCaptureBrowserArgs} from "../../src/sites-dom-capture";
 import manifest from "../../../../packages/content-templates/src/sites-system-assets.json";
 interface BundleFile {path:string;text:string}
 interface SourcePlugin {name:string;setup(build:{onLoad(options:{filter:RegExp},callback:(args:{path:string})=>Promise<{contents:string;loader:"tsx"}>):void}):void}
@@ -30,8 +30,11 @@ export async function createSitesSourceReference(sourceDirectory:string,executab
   await page.route("**/*",async route=>{const url=new URL(route.request().url()),asset=assets.get(url.pathname);if(url.origin!==origin||!asset||url.search){errors.push("Unapproved reference request");await route.abort();return;}const bytes=await readFile(resolve(publicDirectory,asset.path.slice(1)));if(bytes.byteLength!==asset.bytes||sourceComparisonHash(bytes)!==asset.sha256){errors.push("Reference asset integrity");await route.abort();return;}await route.fulfill({status:200,contentType:asset.mimeType,body:bytes});});
   try{
    const frameCss=kind==="studio"?"":"#root>div{max-width:none!important;width:100%!important;border-radius:0!important;box-shadow:none!important}";
-   const json=JSON.stringify(props).replace(/</g,"\\u003c");
-   await page.setContent(kind==="static"?String(props).replaceAll("http://sites-render.invalid",origin):`<!doctype html><html lang="nl" data-design-system="fieldflow"><head><base href="${origin}/"><style>${css}</style><style>html,body,#root{margin:0;width:${width}px;height:${height}px;overflow:hidden}#root{container-type:inline-size}${frameCss}</style></head><body><div id="root"></div><script>${script.replace(/<\/script/gi,"<\\/script")};renderSource('${kind}',${json});</script></body></html>`,{waitUntil:"load",timeout:15000});
+   await page.setContent(kind==="static"?String(props).replaceAll("http://sites-render.invalid",origin):`<!doctype html><html lang="nl" data-design-system="fieldflow"><head><base href="${origin}/"><style>${css}</style><style>html,body,#root{margin:0;width:${width}px;height:${height}px;overflow:hidden}#root{container-type:inline-size}${frameCss}</style></head><body><div id="root"></div><script>${script.replace(/<\/script/gi,"<\\/script")}</script></body></html>`,{waitUntil:"load",timeout:15000});
+   if(kind!=="static"){
+    await loadSitesCaptureFonts(page);
+    await page.evaluate(({kind,props})=>(globalThis as typeof globalThis & {renderSource:(kind:string,props:unknown)=>void}).renderSource(kind,props),{kind,props});
+   }
    await page.waitForFunction(()=>globalThis.document.querySelector("#root,#sites-capture")!.childElementCount>0,{timeout:10000});
    await page.evaluate(async()=>{await globalThis.document.fonts.ready;await Promise.all(Array.from(globalThis.document.images).map(image=>image.decode()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
    await page.evaluate(()=>globalThis.document.getAnimations().forEach(animation=>{animation.pause();animation.currentTime=1200;}));
