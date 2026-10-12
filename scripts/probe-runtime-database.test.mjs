@@ -47,6 +47,17 @@ test("synthetic scoped SQL and REST both pass; only fixed scope/results emitted"
   assert.equal(capture[3].options.redirect, "error"); privateOutput(result);
 });
 
+test("fixed PostgREST startup codes survive sanitization without private messages", async () => {
+  for (const code of ["PGRST000", "PGRST001", "PGRST002", "PGRST003"]) {
+    const capture = [];
+    const result = await probeRuntimeDatabase(input(), { fetchImpl: fixtureFetch({ code, message: "PRIVATE_RAW_MESSAGE", details: "PRIVATE_RAW_DETAILS" }, 503, capture),
+      executeSql: async () => sqlPass() });
+    assert.equal(result.exitCode, 1); assert.equal(result.report.rest.httpStatus, 503);
+    assert.equal(result.report.rest.databaseCode, code); privateOutput(result);
+    assert.doesNotMatch(JSON.stringify(result), /PRIVATE_RAW_MESSAGE|PRIVATE_RAW_DETAILS/);
+  }
+});
+
 test("diagnostic overrides only connect_timeout bytes; preserves TLS/credentials/options/query order", () => {
   const original = uri + "&&connect%5Ftimeout=0009&sslcert=%2Fa%2Bb.pem&sslkey=%2Fa%2Fb.key&";
   const result = diagnosticDatabaseConfig(original, "120");
