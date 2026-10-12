@@ -1,27 +1,27 @@
 {
   "scope": "Verified actual local log markers and validator exit codes; independent Source comparisons are SHA-verified aggregates, not a single full rerun; no deployment or hardware claim.",
-  "recordedAt": "2026-10-12T00:47:56.767242+00:00",
+  "recordedAt": "2026-10-12T01:45:27.469262+00:00",
   "gates": {
     "lint": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "3d932d04556a87e569ee553ab4e520cbf97942fa15bea421021ae1f1c4a66fcd",
-      "supersedesLocalLogSHA256": "260123d43a1f6505264c434a80d6cf525a545318428e4f7ebb15ea337b0081a9",
-      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes."
+      "logSHA256": "567c9e9d573b148d76d20609c4e38056cecf450cb385f2eba081368675d60892",
+      "supersedesLocalLogSHA256": "3d932d04556a87e569ee553ab4e520cbf97942fa15bea421021ae1f1c4a66fcd",
+      "scope": "Actual full workspace gate after Source-faithful client canvas initialization correction."
     },
     "typecheck": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "07dc439bd5b4bdecefc4a61657d942a50768f03299aab28ba910b952539fc2ce",
-      "supersedesLocalLogSHA256": "24d330330aad856cb9f0c84374b27680389d29e006df6c1391d77f0a9cb75edb",
-      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes."
+      "logSHA256": "2a4bc7b81f90784d821e6f3006bcad2f20e5ec06b7b4b48b0a79c29b8daca8ca",
+      "supersedesLocalLogSHA256": "07dc439bd5b4bdecefc4a61657d942a50768f03299aab28ba910b952539fc2ce",
+      "scope": "Actual full workspace gate after Source-faithful client canvas initialization correction."
     },
     "unit": {
       "status": "PASS",
       "verifiedSuccessMarker": "Tasks:\\s+30 successful, 30 total",
-      "logSHA256": "07c979d37e5a4a8e209101e6c6f6f9044d6b0517db7d0cba61e3b94c7e653ab1",
-      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes.",
-      "supersedesLocalLogSHA256": "3e05bea9d8ad2f0e1c0488dba561d3a4d75e826e19c055e2d16bebd57e53852b",
+      "logSHA256": "fdf9873d27673343e6ff8f52286431642db43d002397129d8c4f10e870a8e892",
+      "scope": "Actual full workspace gate after Source-faithful client canvas initialization correction.",
+      "supersedesLocalLogSHA256": "07c979d37e5a4a8e209101e6c6f6f9044d6b0517db7d0cba61e3b94c7e653ab1",
       "crossRepositoryTestkitCacheBypassed": true
     },
     "databaseReset": {
@@ -65,7 +65,7 @@
         "media-worker"
       ],
       "duration": "2m21.657s",
-      "scope": "Actual final local full workspace gate after shared raster policy, native CI memory and safe operator diagnostics changes.",
+      "scope": "Actual full workspace build after shared raster/native/diagnostics changes on 292ddb, before the one-line client canvas initialization correction; corrected-client CI builds remain required.",
       "supersedesLocalLogSHA256": "9a946dab6b37672ab0efd6800a25ace1c7e30c5773644852720dca508427a896"
     },
     "originalCaseClosure": {
@@ -207,7 +207,7 @@
     "configuredHeap": "4g",
     "configuredMetaspace": "1g",
     "maximumWorkers": 2,
-    "verification": "Workflow syntax and ShellCheck passed; actual native AAB rerun is still required. No additional lint exclusion added.",
+    "verification": "Actual third CI native AAB build passed in 27m12s; bundletool and 16-KiB alignment gates passed. No additional lint exclusion added.",
     "configurationReference": "https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties"
   },
   "freshCiWebDatabase": {
@@ -234,10 +234,11 @@
     "workerProbeRun": 38186528458,
     "workerRuntime": "healthy",
     "diagnosticStatus": "FAIL",
-    "code": "PUBLICATION_DATABASE_OPERATION_FAILED",
     "inventoryRun": 38188214556,
     "inventoryStatus": "FAIL",
-    "scope": "Both read-only old c3ef6b release checks failed without usable fresh DB counters. Initial inventory tenant SELECT failed before any mutation; underlying remote connection cause is not established. Local CLI TLS failure is expected because isolated Supabase has no TLS and is not proof of the production cause."
+    "scope": "Both read-only old c3ef6b release checks failed without usable fresh DB counters. Initial inventory tenant SELECT failed before any mutation; underlying remote connection cause is not established. Local CLI TLS failure is expected because isolated Supabase has no TLS and is not proof of the production cause.",
+    "workerDiagnosticCode": "PROBE_DIAGNOSTIC_READ_FAILED",
+    "inventoryCode": "PUBLICATION_DATABASE_OPERATION_FAILED"
   },
   "safeOperatorDiagnostics": {
     "cliFailureCodes": [
@@ -250,5 +251,124 @@
     "privacyChecks": 3,
     "status": "PASS",
     "privacyEvidenceSHA256": "50a5009a4251ac8e2e5894b8c84f363c2fc0c4bc53544550b972a71ace54f4c2"
+  },
+  "thirdFullCi": {
+    "head": "292ddb1a48839d668d587e7014cf0b2b5f6151a1",
+    "database": {
+      "runId": 38189395279,
+      "jobId": 114618683227,
+      "status": "SUCCESS",
+      "rlsFiles": 102,
+      "rlsAssertions": 2886,
+      "actualBrowserFlows": 2,
+      "actualReadyPrivateUploads": 240,
+      "mediaWorkflowReadbackSHA256": "14d82836fbf3cd657c33a82e067717779381543f643e884a6000828bc24851ea",
+      "firstFrameAcknowledgementSHA256": "9425917a9a445727a8076096782f5a0fbe88336465eb1cecc1c4a9cca1798682"
+    },
+    "actualCompletedScopes": {
+      "head": "292ddb1a48839d668d587e7014cf0b2b5f6151a1",
+      "ciCheckoutMergeSha": "0966b8e5f9a4ae19a6f6386c67a43e6568f31ae2",
+      "sportlink": {
+        "cases": 72,
+        "verifiedCompleteReadbacks": true,
+        "artifactId": 11720837297
+      },
+      "responsive": {
+        "cases": 66,
+        "artifactId": 11719914794
+      },
+      "menuYouTube": {
+        "originalCases": 16,
+        "categoryFreeCases": 12,
+        "artifactId": 11721780010
+      },
+      "controlBrowser": {
+        "passed": 298,
+        "conditionallySkipped": 562
+      },
+      "playerBrowser": {
+        "passed": 235,
+        "conditionallySkipped": 15
+      },
+      "nativeBuild": {
+        "status": "SUCCESS",
+        "runId": 38189395249,
+        "aabAnd16KiBValidated": true,
+        "gradleDuration": "27m12s",
+        "artifactId": 11721708303
+      },
+      "led": {
+        "status": "FAIL",
+        "originalCases": 288,
+        "passed": 287,
+        "failed": 1,
+        "caseId": "LED-0219",
+        "changedPixels": 4358,
+        "maximumChannelDifference": 26,
+        "boundsInclusive": [
+          266,
+          549,
+          459,
+          769
+        ],
+        "rawBrowserDiffersBeforeSharp": true,
+        "all16DomMeasurementsEqual": true,
+        "artifactId": 11721293185,
+        "noToleranceOrMasks": true
+      },
+      "tvTemplates": {
+        "status": "SUCCESS",
+        "originalCases": 172,
+        "backgroundContainCases": 16,
+        "literalStarterVariants": 76,
+        "artifactId": 11720733818
+      }
+    },
+    "sourceRunId": 38189395240,
+    "allExceptOneLedCasePassed": true,
+    "nextAction": "Source-faithful client canvas initialization starts at width 0 and measures the actual host width, matching the frozen Source lifecycle. Local exact cohorts pass; complete fourth CI and live deployment proof remain required."
+  },
+  "clientCanvasLifecycleCorrection": {
+    "productionBefore": "orientation-based 1080/1920 before measuring actual host",
+    "sourceAndProductionAfter": "width 0, then useEffect measurement and ResizeObserver",
+    "staticServerMarkupUnchanged": true,
+    "fullCiResolutionClaim": false,
+    "localSoftwareOnly": true,
+    "cohorts": [
+      {
+        "scope": "failures",
+        "frames": 13,
+        "exactFrames": 13,
+        "comparisonSHA256": "8d1526c1e524e33845b27f2b022e4a3003dc1aaf55865b0cfd47ff0725d809e3",
+        "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc"
+      },
+      {
+        "scope": "neighbors",
+        "frames": 10,
+        "exactFrames": 10,
+        "comparisonSHA256": "f0e7269cca9c8e5c973c4831bc4ab07152bab82951fee2797c96ab5877bcda1f",
+        "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc"
+      }
+    ],
+    "actualClientReadiness": {
+      "actualSitesDynamicMediaReadyVisible": true,
+      "twoFollowingFramesVisible": true,
+      "warmRemountVisible": true,
+      "auditedImagesDecoded": true,
+      "fontsLoaded": true,
+      "readbackSHA256": "b929bc90bd70aef6e5a9b4c2cc14daa26743d7142bc3cfee7fa1f266f16572f0",
+      "resizeWidths": [
+        1920,
+        960,
+        1920
+      ],
+      "scope": "Controlled actual SitesDynamicMedia callback and two following animation frames, not physical hardware or provider proof. Existing outer scene and delivery guards remain unchanged."
+    },
+    "causalLimit": "The remaining 4358-pixel CI LED-0219 drift has not been reproduced locally. The correction restores an observed Source lifecycle mismatch; exact local cohorts alone do not prove full CI resolution.",
+    "captureSecurity": {
+      "passed": 7,
+      "logSHA256": "772bd3f1573bc75a3374aa81497fbc048f896a1c92b15b710ce733f2ea294a76",
+      "scope": "Actual exact full Chrome capture with audited font/image bytes, hostile text and external URLs blocked, missing assets fail closed."
+    }
   }
 }

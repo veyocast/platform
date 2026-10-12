@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from "react";
 import {OnzeTrotsTvMarkup,type SitesTvPreviewProps} from "./sites-onzetrots-tv-markup";
 export function OnzeTrotsTvPreview({content,orientation,active=false,compact=false}:SitesTvPreviewProps){
- const ref=useRef<HTMLDivElement>(null);const [width,setWidth]=useState(orientation==='portrait'?1080:1920);const portrait=orientation==='portrait';
+ const ref=useRef<HTMLDivElement>(null);const [width,setWidth]=useState(0);const portrait=orientation==='portrait';
  useEffect(()=>{const node=ref.current;if(!node)return;const measure=()=>setWidth(node.clientWidth);measure();const observer=new ResizeObserver(measure);observer.observe(node);return()=>observer.disconnect()},[]);
  useEffect(()=>{
   let disposed=false;const node=ref.current;if(!node)return;
