@@ -18,6 +18,27 @@ const COMMANDS = ["CREATE INDEX", "CREATE INDEX CONCURRENTLY", "REINDEX", "REIND
 const PHASES = ["initializing", "waiting for writers before build", "building index", "waiting for writers before validation", "index validation: scanning index", "index validation: sorting tuples", "index validation: scanning table", "waiting for old snapshots", "waiting for readers before marking dead", "waiting for readers before dropping", "OTHER"];
 const ACTIVITY_COUNTS = ["sessions", "active", "idle", "idleTransaction", "otherState", "lockWait", "ioWait", "clientWait", "otherWait", "noWait"];
 const INDEX_FIELDS = ["onExpectedTable", "valid", "ready", "btree", "nonUnique", "columnsExact", "predicateExact", "defaultOptionsExact"];
+const LOCK_RELATIONS = [
+  ["public", "tenants", "TENANTS"], ["public", "player_heartbeats", "HEARTBEATS"],
+  ["private", "publication_version_prune_queue", "PRUNE_QUEUE"], ["private", "published_data_refresh_queue", "REFRESH_QUEUE"],
+  ["public", "published_dynamic_data", "PUBLISHED_BINDINGS"], ["public", "dynamic_data_sources", "DATA_SOURCES"],
+  ["public", "sportlink_sync_runs", "SPORTLINK_RUNS"], ["public", "provider_asset_cache", "PROVIDER_CACHE"],
+  ["public", "provider_asset_versions", "PROVIDER_VERSIONS"], ["public", "sports_standings", "SPORTS_STANDINGS"],
+  ["public", "sports_matches", "SPORTS_MATCHES"], ["public", "sports_teams", "SPORTS_TEAMS"],
+  ["public", "sports_clubs", "SPORTS_CLUBS"], ["public", "sportlink_birthdays", "SPORTLINK_BIRTHDAYS"],
+  ["public", "dynamic_slide_snapshots", "SNAPSHOTS"], ["public", "dynamic_slide_versions", "SLIDE_VERSIONS"],
+  ["public", "playlist_releases", "RELEASES"], ["public", "screen_compositions", "COMPOSITIONS"],
+  ["storage", "objects", "STORAGE_OBJECTS"]
+];
+const WORKLOAD_HINTS = [
+  ["prune_queued_publication_versions_v1", "PRUNE"],
+  ["complete_sportlink_sync_v4", "SPORTLINK_COMPLETION"],
+  ["complete_published_data_refresh_v1", "PUBLISHED_REFRESH_COMPLETION"]
+];
+const CLASSIFIED_WORKLOADS = WORKLOAD_HINTS.map(row => row[1]);
+const classifiedWorkloadsSql = CLASSIFIED_WORKLOADS.map(value => `'${value}'`).join(",");
+const WORKLOADS = [...CLASSIFIED_WORKLOADS, "MULTIPLE_HINTS", "UNCLASSIFIED", "UNKNOWN"];
+const LOCK_CLASSES = ["TRANSACTION", "TUPLE", "RELATION", "OTHER", "UNKNOWN"];
 const LIMITATIONS = [
   "one_bounded_database_wide_metadata_observation_not_tenant_row_counts",
   "baseline_public_health_precedes_metadata_and_does_not_prove_runtime_unchanged",
@@ -28,17 +49,65 @@ const LIMITATIONS = [
   "table_progress_does_not_uniquely_identify_the_expected_index_build",
   "catalog_and_dead_live_tuple_values_are_estimates_not_measured_bloat_cpu_memory_or_physical_io",
   "missing_visibility_cap_or_shape_evidence_is_unknown_not_zero_or_recovery",
-  "migration_history_presence_and_catalog_shape_do_not_prove_ddl_history_atomicity"
+  "migration_history_presence_and_catalog_shape_do_not_prove_ddl_history_atomicity",
+  "relation_oid_mapping_is_current_catalog_not_historical_table_identity",
+  "bounded_blocker_edges_are_current_context_not_full_chains_or_deadlock_proof",
+  "query_tokens_are_last_statement_hints_not_proof_of_active_rpc",
+  "prepared_external_masked_or_unclassified_blockers_are_unknown",
+  "parallel_blocker_pids_are_deduplicated_per_waiter_not_global_session_counts"
 ];
 const values = rows => rows.map(value => `('${value}')`).join(",");
+const roleListSql = ROLES.map(role => `'${role}'`).join(",");
 const safeNumberSql = value => `CASE WHEN ${value} BETWEEN 0 AND 9007199254740991 THEN ${value} END`;
+const workloadSql = query => {
+  const hints = WORKLOAD_HINTS.map(([token, workload]) => ({
+    match: `${query} ~* '(^|[^a-z0-9_])${token}([^a-z0-9_]|$)'`, workload
+  }));
+  return `CASE WHEN ${query} IS NULL OR ${query} IN ('','<insufficient privilege>') THEN 'UNKNOWN'
+  WHEN (${hints.map(hint => `CASE WHEN ${hint.match} THEN 1 ELSE 0 END`).join(" + ")})>1 THEN 'MULTIPLE_HINTS'
+  ${hints.map(hint => `WHEN ${hint.match} THEN '${hint.workload}'`).join("\n  ")}
+  ELSE 'UNCLASSIFIED' END`;
+};
 
 /** One fixed SELECT. Names, queries, PIDs and predicate text never leave SQL. */
 export function dataApiResourcesSql() {
   return `WITH visibility AS (
     SELECT coalesce((SELECT rolsuper FROM pg_catalog.pg_roles WHERE rolname=current_user),false)
       OR pg_catalog.pg_has_role(current_user,'pg_read_all_stats','USAGE') AS all_stats
-  ), heartbeat AS (SELECT c.oid FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+  ), database_scope AS (SELECT oid,oid=5 AS matches FROM pg_catalog.pg_database WHERE datname=current_database()),
+  expected_lock_relations(schema_name,relation_name,class) AS (VALUES ${LOCK_RELATIONS.map(row => `(${row.map(value => `'${value}'`).join(",")})`).join(",")}),
+  lock_relations AS MATERIALIZED (SELECT e.class,c.oid FROM expected_lock_relations e
+    JOIN pg_catalog.pg_namespace n ON n.nspname=e.schema_name
+    JOIN pg_catalog.pg_class c ON c.relnamespace=n.oid AND c.relname=e.relation_name AND c.relkind IN ('r','p')),
+  relation_profile AS (SELECT matches AS database_matches,
+    CASE WHEN NOT matches THEN 'INCOMPARABLE'
+      WHEN NOT EXISTS(SELECT 1 FROM pg_catalog.pg_class WHERE oid=20982) THEN 'ABSENT'
+      WHEN EXISTS(SELECT 1 FROM lock_relations WHERE oid=20982) THEN 'MATCHED' ELSE 'UNREVIEWED' END AS state,
+    CASE WHEN matches THEN (SELECT class FROM lock_relations WHERE oid=20982) END AS class FROM database_scope),
+  lock_activity AS MATERIALIZED (SELECT pid,usename,query,wait_event_type,${workloadSql("query")} AS workload
+    FROM pg_catalog.pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid()),
+  eligible_waiters AS MATERIALIZED (SELECT a.pid,a.usename AS role,a.workload,
+    (SELECT CASE WHEN count(DISTINCT locktype)<>1 THEN 'UNKNOWN' ELSE CASE min(locktype)
+      WHEN 'transactionid' THEN 'TRANSACTION' WHEN 'tuple' THEN 'TUPLE' WHEN 'relation' THEN 'RELATION' ELSE 'OTHER' END END
+      FROM pg_catalog.pg_locks WHERE pid=a.pid AND NOT granted) AS lock_class
+    FROM lock_activity a CROSS JOIN visibility v WHERE v.all_stats AND a.usename IN (${roleListSql})
+      AND a.wait_event_type='Lock' AND (a.workload IN (${classifiedWorkloadsSql},'MULTIPLE_HINTS')
+        OR EXISTS(SELECT 1 FROM pg_catalog.pg_locks l WHERE l.pid=a.pid
+          AND l.database=(SELECT oid FROM database_scope) AND l.relation IN (SELECT oid FROM lock_relations)))
+    ORDER BY a.pid LIMIT 17),
+  kept_waiters AS MATERIALIZED (SELECT * FROM eligible_waiters ORDER BY pid LIMIT 16),
+  blocker_sample AS MATERIALIZED (SELECT w.pid AS waiter_pid,b.blocker_pid,
+    row_number() OVER(PARTITION BY w.pid ORDER BY b.blocker_pid) AS position FROM kept_waiters w
+    CROSS JOIN LATERAL (SELECT DISTINCT blocker_pid FROM unnest(pg_catalog.pg_blocking_pids(w.pid)) blocker_pid ORDER BY blocker_pid LIMIT 17) b),
+  kept_blockers AS MATERIALIZED (SELECT s.waiter_pid,
+    CASE WHEN a.usename IN (${roleListSql}) THEN a.usename ELSE 'UNKNOWN' END AS role,
+    coalesce(a.workload,'UNKNOWN') AS workload,
+    CASE WHEN s.blocker_pid=0 THEN 'prepared'
+      WHEN a.usename IN (${roleListSql}) AND a.workload IN (${classifiedWorkloadsSql}) THEN 'classified'
+      ELSE 'unknown' END AS category
+    FROM blocker_sample s LEFT JOIN lock_activity a ON a.pid=s.blocker_pid WHERE s.position<=16),
+  blocker_groups AS (SELECT waiter_pid,role,workload,category,count(*) AS n FROM kept_blockers GROUP BY waiter_pid,role,workload,category),
+  heartbeat AS (SELECT c.oid FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
     WHERE n.nspname='public' AND c.relname='player_heartbeats' AND c.relkind IN ('r','p')),
   roles(role) AS (VALUES ${values(ROLES)}), activity AS (
     SELECT r.role,p.oid IS NOT NULL AS present,(v.all_stats OR r.role=current_user) AS visible,a.*
@@ -108,7 +177,17 @@ export function dataApiResourcesSql() {
         AND NOT EXISTS(SELECT 1 FROM unnest(indcollation) WITH ORDINALITY col(collation_oid,position)
           LEFT JOIN LATERAL (SELECT attnum FROM unnest(indkey) WITH ORDINALITY k(attnum,position) WHERE k.position=col.position) k ON true
           LEFT JOIN pg_catalog.pg_attribute a ON a.attrelid=indrelid AND a.attnum=k.attnum WHERE col.collation_oid IS DISTINCT FROM a.attcollation) FROM index_profile)),
-    'heartbeatMigration',jsonb_build_object('versionPresent',EXISTS(SELECT 1 FROM supabase_migrations.schema_migrations WHERE version='20261012190000'))
+    'heartbeatMigration',jsonb_build_object('versionPresent',EXISTS(SELECT 1 FROM supabase_migrations.schema_migrations WHERE version='20261012190000')),
+    'lockDiagnosis',jsonb_build_object('databaseMatches',(SELECT database_matches FROM relation_profile),
+      'relationState',(SELECT state FROM relation_profile),'relationClass',(SELECT class FROM relation_profile),
+      'visibilityKnown',(SELECT all_stats FROM visibility),
+      'waitersSampled',CASE WHEN (SELECT all_stats FROM visibility) THEN (SELECT count(*) FROM eligible_waiters) END,
+      'waitersTruncated',(SELECT all_stats FROM visibility) AND (SELECT count(*)>16 FROM eligible_waiters),
+      'waiters',coalesce((SELECT jsonb_agg(jsonb_build_object('role',w.role,'workload',w.workload,'lockClass',w.lock_class,
+        'blockersSampled',(SELECT count(*) FROM blocker_sample s WHERE s.waiter_pid=w.pid),
+        'blockersTruncated',(SELECT count(*)>16 FROM blocker_sample s WHERE s.waiter_pid=w.pid),
+        'blockerGroups',coalesce((SELECT jsonb_agg(jsonb_build_object('role',b.role,'workload',b.workload,'category',b.category,'count',b.n)
+          ORDER BY b.role,b.workload,b.category) FROM blocker_groups b WHERE b.waiter_pid=w.pid),'[]'::jsonb)) ORDER BY w.pid) FROM kept_waiters w),'[]'::jsonb))
   ) AS report;\n`;
 }
 
@@ -122,9 +201,47 @@ function fixedRows(rows, names, key, check) {
   return rows.map(row => { if (!names.includes(row?.[key])) invalid(); return check(row); }).sort((a, b) => a[key].localeCompare(b[key]));
 }
 
+function sanitizeLockDiagnosis(value, allStatsVisible) {
+  if (!exact(value, ["databaseMatches", "relationState", "relationClass", "visibilityKnown", "waitersSampled", "waitersTruncated", "waiters"])
+    || ![value.databaseMatches, value.visibilityKnown, value.waitersTruncated].every(field => typeof field === "boolean")
+    || value.visibilityKnown !== allStatsVisible || !["INCOMPARABLE", "ABSENT", "UNREVIEWED", "MATCHED"].includes(value.relationState)
+    || (value.relationState === "INCOMPARABLE") !== !value.databaseMatches
+    || (value.relationState === "MATCHED" ? !LOCK_RELATIONS.some(row => row[2] === value.relationClass) : value.relationClass !== null)
+    || !Array.isArray(value.waiters) || value.waiters.length > 16
+    || (value.visibilityKnown ? !count(value.waitersSampled) || value.waitersSampled > 17
+      || value.waitersTruncated !== (value.waitersSampled > 16) || value.waiters.length !== Math.min(value.waitersSampled, 16)
+      : value.waitersSampled !== null || value.waitersTruncated || value.waiters.length !== 0)) invalid();
+  const waiters = value.waiters.map(row => {
+    if (!exact(row, ["role", "workload", "lockClass", "blockersSampled", "blockersTruncated", "blockerGroups"])
+      || !ROLES.includes(row.role) || !WORKLOADS.includes(row.workload) || !LOCK_CLASSES.includes(row.lockClass)
+      || !count(row.blockersSampled) || row.blockersSampled > 17 || typeof row.blockersTruncated !== "boolean"
+      || row.blockersTruncated !== (row.blockersSampled > 16) || !Array.isArray(row.blockerGroups) || row.blockerGroups.length > 16) invalid();
+    const seen = new Set();
+    const blockerGroups = row.blockerGroups.map(group => {
+      if (!exact(group, ["role", "workload", "category", "count"]) || ![...ROLES, "UNKNOWN"].includes(group.role)
+        || !WORKLOADS.includes(group.workload) || !["classified", "unknown", "prepared"].includes(group.category)
+        || !count(group.count) || group.count < 1 || group.count > 16
+        || (group.category === "classified") !== (ROLES.includes(group.role) && CLASSIFIED_WORKLOADS.includes(group.workload))
+        || group.category === "prepared" && (group.role !== "UNKNOWN" || group.workload !== "UNKNOWN" || group.count !== 1)) invalid();
+      const key = [group.role, group.workload, group.category].join(":");
+      if (seen.has(key)) invalid(); seen.add(key);
+      return { ...group };
+    });
+    if (blockerGroups.reduce((total, group) => total + group.count, 0) !== Math.min(row.blockersSampled, 16)) invalid();
+    return { ...row, blockerGroups };
+  });
+  const unknownWaiters = value.visibilityKnown ? waiters.filter(row => !CLASSIFIED_WORKLOADS.includes(row.workload) || ["OTHER", "UNKNOWN"].includes(row.lockClass)).length : null;
+  const unknownBlockerEdges = value.visibilityKnown ? waiters.reduce((total, row) => total + row.blockerGroups.filter(group => group.category !== "classified").reduce((n, group) => n + group.count, 0), 0) : null;
+  const preparedBlockerEdges = value.visibilityKnown ? waiters.reduce((total, row) => total + row.blockerGroups.filter(group => group.category === "prepared").reduce((n, group) => n + group.count, 0), 0) : null;
+  const waitersWithoutBlockers = value.visibilityKnown ? waiters.filter(row => row.blockersSampled === 0).length : null;
+  const complete = value.databaseMatches && value.relationState === "MATCHED" && value.visibilityKnown && !value.waitersTruncated
+    && unknownWaiters === 0 && unknownBlockerEdges === 0 && waitersWithoutBlockers === 0 && waiters.every(row => !row.blockersTruncated);
+  return { ...value, waiters, unknownWaiters, unknownBlockerEdges, preparedBlockerEdges, waitersWithoutBlockers, complete };
+}
+
 export function sanitizeDataApiResources(value) {
   try {
-    if (!exact(value, ["scopeReady", "observedAt", "allStatsVisible", "roles", "heartbeatLocks", "heartbeatProgress", "tables", "heartbeatIndex", "heartbeatMigration"])
+    if (!exact(value, ["scopeReady", "observedAt", "allStatsVisible", "roles", "heartbeatLocks", "heartbeatProgress", "tables", "heartbeatIndex", "heartbeatMigration", "lockDiagnosis"])
       || value.scopeReady !== true || typeof value.allStatsVisible !== "boolean"
       || typeof value.observedAt !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value.observedAt)
       || !Number.isFinite(Date.parse(value.observedAt))) invalid();
@@ -169,7 +286,8 @@ export function sanitizeDataApiResources(value) {
       || INDEX_FIELDS.some(key => index[key] !== null && typeof index[key] !== "boolean")
       || !index.namePresent && INDEX_FIELDS.some(key => index[key] !== null)) invalid();
     if (!exact(value.heartbeatMigration, ["versionPresent"]) || typeof value.heartbeatMigration.versionPresent !== "boolean") invalid();
-    const contextComplete = value.allStatsVisible && roles.every(row => row.present && row.visibilityKnown && !row.truncated && row.otherState === 0)
+    const lockDiagnosis = sanitizeLockDiagnosis(value.lockDiagnosis, value.allStatsVisible);
+    const contextComplete = lockDiagnosis.complete && value.allStatsVisible && roles.every(row => row.present && row.visibilityKnown && !row.truncated && row.otherState === 0)
       && locks.tablePresent && !locks.truncated && locks.unreviewedModes === 0 && progress.tablePresent && progress.visibilityKnown && !progress.truncated
       && rows.every(row => row.command !== "OTHER" && row.phase !== "OTHER" && Object.values(row).every(field => field !== null))
       && tables.every(row => row.present && row.statsKnown && row.estimatedRows !== null && row.liveRowsEstimate !== null && row.deadRowsEstimate !== null)
@@ -177,7 +295,7 @@ export function sanitizeDataApiResources(value) {
     return { observedAt: new Date(value.observedAt).toISOString(), allStatsVisible: value.allStatsVisible, roles,
       heartbeatLocks: { ...locks, modes }, heartbeatProgress: { ...progress, rows }, tables,
       heartbeatIndex: { ...index, exactDefinition: index.namePresent && ["onExpectedTable", "btree", "nonUnique", "columnsExact", "predicateExact", "defaultOptionsExact"].every(key => index[key] === true) },
-      heartbeatMigration: { versionPresent: value.heartbeatMigration.versionPresent }, contextComplete };
+      heartbeatMigration: { versionPresent: value.heartbeatMigration.versionPresent }, lockDiagnosis, contextComplete };
   } catch { throw new Error("RESOURCE_METADATA_INVALID"); }
 }
 
