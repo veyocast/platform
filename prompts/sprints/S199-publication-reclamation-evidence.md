@@ -28,6 +28,27 @@ all commit ordering or no transient create/delete; report interpretationlimits.
 No files outside ownership, no dependencies/lockfile/generatedtypes/migrations.
 Read required canons in userorder; original fulltaskcanons already remain binding.
 
+Root ownership is expliciet uitgebreid na stop-and-report op de echte rode
+Controlgate: alleen de shellheadingassertie voor Playlists in
+tests/e2e/control-shell.spec.ts. Run38296862148/job114969918486 bewijst twee
+bedoelde H1-owners (Control status en control-content); de globale query is
+ambigu. Scope de eerste visibilityassertie naar Control status, behoud de
+afzonderlijke contentassertie, wijzig geen applicatie-UI en verlaag geen gate.
+Bewaar de oorspronkelijke fout/loghash en verifieer de correcte scope met een
+echte Chromium-regressie plus de volledige nieuwe exacte CI.
+De echte volledige lokale testcase passeerde daarna Playlists, maar vond dezelfde
+twee owners bij Schermen (line128). Ownership omvat daarom ook uitsluitend die
+shellheadingassertie in dezelfde testcase; de bestaande onafhankelijke
+Schermenregion-, status-, demo- en setupcontroles blijven behouden.
+
+Na de afzonderlijke Playerfailure in dezelfde run is root ownership ook beperkt
+uitgebreid naar tests/player/watchdog-recovery.spec.ts, alleen de wachtvoorwaarde
+voor het decode-recoveryrapport. Job114969918455 ontving uitsluitend eerdere
+normale heartbeats bij de snapshotassertie. Poll de bestaande exacte
+SKIP_ITEM/VIDEO_/invalid-video/recoveredAt-matcher binnen dezelfde5s grens;
+behoud de daaropvolgende geordende heartbeat-nullclearcontrole. Geen runtime-,
+offline-, dependency- of timeoutwijziging en geen retries/skip. Bewaar de fout.
+
 Worktree /tmp/veyocast-s199-publication-reclamation-evidence branch
 veyocast/s199-publication-reclamation-evidence basedeff2466e S198. De S199-PR
 mag tegen de S198-branch worden voorbereid zodat de onafhankelijke volledige CI

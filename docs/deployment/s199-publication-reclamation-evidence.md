@@ -74,3 +74,35 @@ De uiteindelijke modulehash is
 `60f54b0eacd31829a738d2204dd9d9708934f78b975ee9acaa8102b38ddbc25a`;
 de woordelijke beperking over VOLATILE is na deze SQL-fixtures verduidelijkt,
 zonder wijziging aan SQL of de uitvoervelden.
+
+De eerste exacte PR-run38296862148 faalde in Controljob114969918486 op de
+globale Playlists-H1-query: beide bedoelde owners (shellstatus en pagina-inhoud)
+zijn aanwezig en maken die query ambigu. De oorspronkelijke fout blijft
+bewaard (log-SHA256 `16ad09cf7e997118fbeea24e86f865263f68f4dab76f01aec6b319b708254923`).
+Alle applicatie-/UI-bestanden zijn gelijk aan de volledig groene S198-code.
+Alleen de eerste testassertie is nu expliciet aan `Control status` gebonden;
+de afzonderlijke contentheadingassertie blijft bestaan. Er is geen aangepaste
+applicatie-UI, locator `.first()`, tolerantie of overgeslagen controle toegevoegd.
+De nieuwe exacte volledige CI moet opnieuw slagen vóór merge.
+
+Dezelfde oorspronkelijke run faalde ook in Playerjob114969918455: de test voor
+decodeherstel wachtte alleen op een willekeurige heartbeat en las daarna een
+eenmalige snapshot zonder herstelbericht. Deze fout is afzonderlijk bewaard
+(log-SHA256 `ee42d1c188ca0364a3fed7e1f154f51065393d184f1252951f2aea449f40bfee`).
+De test wacht nu binnen zijn bestaande vijfsecondenbudget op dezelfde exacte
+SKIP_ITEM/VIDEO_/invalid-video/recoveredAt-matcher; de latere geordende
+nullclearassertie blijft bestaan. De Player-runtime is ongewijzigd.
+
+De eerste echte lokale Controlcase passeerde de herstelde Playlists-controle,
+maar faalde daarna op dezelfde globale Schermen-H1-query met twee bedoelde
+owners. Ook die shellassertie is nu aan `Control status` gebonden; de aparte
+Schermenregion-, status-, demo- en setupcontroles zijn ongewijzigd. Eerdere lokale
+selectie-/ontbrekende-browserfouten zijn bewaard en gelden niet als applicatietest.
+
+De uiteindelijke echte lokale Chromiumcases slagen zonder retries: volledige
+Controlnavigatie1/1 (21s testcase,27.1s run) en decodeherstel/heartbeat1/1
+(2.7s testcase,8s run). De testcorrecties zijn onafhankelijk beoordeeld op de
+beide headerowners, de ongewijzigde bodychecks en de exacte5s herstelmatcher.
+Workspace lint/typecheck/test zijn opnieuw ieder30/30 groen; scopeESLint en
+diffcheck slagen. Dit vervangt het oorspronkelijke rode CI-bewijs niet:
+de nieuwe volledige exacte CI blijft vóór merge verplicht.
