@@ -186,12 +186,10 @@ test("retries a decode failure once, skips it and reports recovery in heartbeat"
   await expect(page.getByLabel("Player diagnostics")).toContainText(
     "niet-speelbaar item is overgeslagen"
   );
-  await expect.poll(() => heartbeatBodies.length, { timeout: 5_000 }).toBeGreaterThan(0);
-
-  const reportedErrors = heartbeatBodies
+  await expect.poll(() => heartbeatBodies
     .map((body) => body.lastPlaybackError)
-    .filter(Boolean) as Array<{ action?: string; code?: string; itemId?: string; recoveredAt?: string }>;
-  expect(reportedErrors).toContainEqual(
+    .filter(Boolean) as Array<{ action?: string; code?: string; itemId?: string; recoveredAt?: string }>,
+  { timeout: 5_000 }).toContainEqual(
     expect.objectContaining({
       action: "SKIP_ITEM",
       code: expect.stringMatching(/^VIDEO_/),

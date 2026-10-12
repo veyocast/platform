@@ -82,7 +82,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
 
   await openFromCommand(page, "Playlists", /\/dashboard\/playlists$/);
   await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Playlists" })
+    page.getByLabel("Control status").getByRole("heading", { exact: true, level: 1, name: "Playlists" })
   ).toBeVisible();
   await expect(
     page.getByLabel("Control status").getByText("Demomodus", { exact: true })
@@ -125,7 +125,7 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
     /\/dashboard\/screens$/
   );
   await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Schermen" })
+    page.getByLabel("Control status").getByRole("heading", { exact: true, level: 1, name: "Schermen" })
   ).toBeVisible();
   await expect(
     page.getByLabel("Control status").getByText("Demomodus", { exact: true })

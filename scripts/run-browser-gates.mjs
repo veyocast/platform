@@ -28,9 +28,10 @@ if (!selected.length || selected.some(group => !Object.hasOwn(groups, group))) {
 const results = process.env.PLAYWRIGHT_GATE_OUTPUT ?? join(process.env.RUNNER_TEMP ?? "/tmp", "veyocast-browser-gates");
 for (const group of selected) {
   // The full Player gate includes native media decoders across 47 specs. Bound
-  // each browser process lifetime instead of retrying or skipping a crashed
-  // test. Each fresh process still executes every selected assertion once.
-  const batchSize = group === "player" ? 12 : groups[group].length;
+  // each browser process to one spec, so native decoder state cannot survive
+  // into another spec. Each fresh process executes every selected assertion
+  // once; failures are still fatal and never retried or skipped.
+  const batchSize = group === "player" ? 1 : groups[group].length;
   const batches = [];
   for (let offset = 0; offset < groups[group].length; offset += batchSize) {
     batches.push(groups[group].slice(offset, offset + batchSize));

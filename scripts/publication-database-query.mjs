@@ -5,7 +5,7 @@ import process from "node:process";
 import { clearTimeout, setTimeout } from "node:timers";
 import { fileURLToPath, URL } from "node:url";
 
-const PHASES = new Set(["tenant_lookup", "schema_presence", "inventory_report", "refresh_command", "cutover_command"]);
+const PHASES = new Set(["tenant_lookup", "schema_presence", "inventory_report", "refresh_command", "cutover_command", "reclamation_evidence"]);
 const MAX_STDOUT = 4 * 1024 * 1024;
 const MAX_STDERR = 65_536;
 const SIGNALS = new Set(["SIGABRT", "SIGALRM", "SIGBUS", "SIGFPE", "SIGHUP", "SIGILL", "SIGINT", "SIGKILL", "SIGPIPE", "SIGQUIT", "SIGSEGV", "SIGTERM", "SIGTRAP", "SIGXCPU", "SIGXFSZ"]);
