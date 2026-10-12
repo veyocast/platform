@@ -135,6 +135,9 @@ bestaande shelltraceguard is ook versterkt voor gecombineerde -Eeuxo-flags.
 Een begrensde tweede mutantset vindt nog continue-on-error op install/critical
 steps en een main-guard in een buurjob. De validator verbiedt failureomzetting/
 shelloverride en vereist het enige expliciete probejob met zijn eigen guard.
+De uiteindelijke echte validatorbaseline slaagt en alle46 onveilige mutanten
+worden afgewezen. Enumeration zonderrg valideert beide extensies/een spatiefilename
+en faalt op een werkelijk ongeldige workflow en een lege workflowmap.
 Er zijn geen workflow-, ShellCheck- of beveiligingsgates verwijderd.
 
 ## Validatie en resterende acceptatie
