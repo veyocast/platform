@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mapSportlinkMatches, SportlinkClient } from "@veyocast/integrations/server";
 import sharp from "sharp";
+import type { SportlinkTeamLogoArtifact } from "../src/sportlink-media";
 
 import {
   collectSportlinkPoolContexts,
@@ -1006,6 +1007,345 @@ describe("Sportlink sync worker", () => {
       const failure = await backend.complete(job, "worker:test", batch).catch((error: unknown) => error);
       expect(failure).toMatchObject({ code: "SPORTLINK_SYNC_COMPLETE_RPC_FAILED" });
       expect(JSON.stringify(failure)).not.toContain("PRIVATE_");
+    });
+  });
+
+  describe("optional media resilience through the real Supabase client", () => {
+    type Batch = Parameters<SupabaseSportlinkSyncBackend["complete"]>[2];
+    const job = {
+      connectionId: "20000000-0000-4000-8000-000000000001",
+      dataSourceId: "30000000-0000-4000-8000-000000000001",
+      datasetGroup: "competitions", encryptedClientId: "unused",
+      encryptionIv: "unused", encryptionTag: "unused",
+      runId: "40000000-0000-4000-8000-000000000001",
+      tenantId: "10000000-0000-4000-8000-000000000001", timezone: "Europe/Amsterdam"
+    };
+    const logo = (externalId: string, number: number): SportlinkTeamLogoArtifact => ({
+      assetId: `50000000-0000-5000-8000-${String(number).padStart(12, "0")}`,
+      bytes: new Uint8Array([1, 2, 3]), checksumSha256: "a".repeat(64),
+      externalId, fileSizeBytes: 3, height: 64, mimeType: "image/webp",
+      role: "team_logo", sourceUrl: "https://provider.test/PRIVATE_SOURCE",
+      storagePath: `providers/sportlink/team_logo/${"a".repeat(64)}.webp`,
+      title: "PRIVATE_TEAM_NAME", width: 64
+    });
+    const batch = (count = 3): Batch => ({
+      activities: [{
+        allDay: false, calendarName: null, endsAt: null, externalId: "activity-1",
+        location: null, name: "Training", startsAt: "2026-10-12T18:00:00Z", url: null
+      }], birthdayFetchedAt: null, birthdays: [], club: null, clubLogo: null,
+      matches: mapSportlinkMatches([{
+        wedstrijdcode: "match-1", wedstrijddatum: "2026-10-12T15:00:00Z",
+        thuisteam: "Thuis", thuisteamid: "team-1", uitteam: "Uit", uitteamid: "team-2"
+      }]), personPhotos: [], standings: [{
+        competition: null, externalId: "standing-1", periodNumber: null,
+        pool: { competitionExternalId: null, externalId: "pool-1", name: "Poule 1" },
+        rows: Array.from({ length: count }, (_, index) => ({
+          drawn: 1, externalId: `team-${index + 1}`, form: ["win", "draw", "loss"],
+          goalsAgainst: 3, goalsFor: 6, lost: 1, played: 4, points: 7,
+          position: index + 1, teamName: `Ploeg ${index + 1}`, won: 2
+        })), scoresPublished: true
+      }], teamMembers: [],
+      teamLogos: Array.from({ length: count }, (_, index) => logo(`team-${index + 1}`, index + 1)),
+      teams: []
+    });
+    const cached = (externalId: string, number: number) => {
+      const id = `60000000-0000-5000-8000-${String(number).padStart(12, "0")}`;
+      const cacheId = `70000000-0000-4000-8000-${String(number).padStart(12, "0")}`;
+      return {
+        id: cacheId, provider: "sportlink", entity_type: "team", external_entity_id: externalId,
+        asset_role: "team_logo", current_version_id: id,
+        version: {
+          id, cache_id: cacheId, checksum_sha256: "f".repeat(64), storage_bucket: "provider-assets",
+          storage_path: `providers/sportlink/team_logo/${"f".repeat(64)}.webp`,
+          mime_type: "image/webp", file_size_bytes: 3, width: 64, height: 64
+        }
+      };
+    };
+    const warnings = () => {
+      const lines: string[] = [];
+      vi.spyOn(process.stdout, "write").mockImplementation((line) => {
+        lines.push(String(line));
+        return true;
+      });
+      return () => lines.map((line) => JSON.parse(line) as Record<string, unknown>);
+    };
+    const storageFailure = () => Response.json({
+      statusCode: "503", error: "PRIVATE_TOKEN", message: "PRIVATE_STORAGE_PATH"
+    }, { status: 503 });
+    const awaitAbort = (signal: AbortSignal | null | undefined) => new Promise<Response>((_resolve, reject) => {
+      const rejectAbort = () => reject(new DOMException("PRIVATE_PROVIDER_TOKEN", "TimeoutError"));
+      if (signal?.aborted) rejectAbort();
+      else signal?.addEventListener("abort", rejectAbort, { once: true });
+    });
+
+    afterEach(() => { vi.restoreAllMocks(); });
+
+    it("commits current data, reuses validated team versions and stops later uploads after one failure", async () => {
+      const readWarnings = warnings();
+      const current = batch();
+      expect(current.matches).toHaveLength(1);
+      Object.assign(current.standings[0]!.rows[2]!, { logoMediaAssetId: current.teamLogos[2]!.assetId });
+      const payloads: Record<string, unknown>[] = [];
+      const requests: URL[] = [];
+      const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        requests.push(url);
+        if (url.pathname.startsWith("/storage/v1/object/")) return storageFailure();
+        if (url.pathname === "/rest/v1/provider_asset_cache") {
+          expect(url.searchParams.get("provider")).toBe("eq.sportlink");
+          expect(url.searchParams.get("entity_type")).toBe("eq.team");
+          expect(url.searchParams.get("asset_role")).toBe("eq.team_logo");
+          expect(url.searchParams.get("external_entity_id")).toBe("in.(team-1,team-2,team-3)");
+          expect(url.searchParams.get("limit")).toBe("100");
+          expect(url.searchParams.get("select")).toContain("provider_asset_versions!provider_asset_cache_current_version_fk");
+          return Response.json([cached("team-1", 1), cached("team-2", 2)]);
+        }
+        expect(url.pathname).toBe("/rest/v1/rpc/complete_sportlink_sync_v4");
+        payloads.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+        return Response.json({ readCount: 5 });
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      await expect(backend.complete(job, "worker:test", current)).resolves.toBe(5);
+      expect(requests.map((url) => url.pathname)).toEqual([
+        `/storage/v1/object/provider-assets/${current.teamLogos[0]!.storagePath}`,
+        "/rest/v1/provider_asset_cache", "/rest/v1/rpc/complete_sportlink_sync_v4"
+      ]);
+      expect(payloads[0]).toMatchObject({
+        p_activities: current.activities, p_matches: current.matches, p_club_logo: {}, p_team_logos: [],
+        p_run_id: job.runId, p_worker_id: "worker:test"
+      });
+      const rows = (payloads[0]!.p_standings as Array<{ rows: Record<string, unknown>[] }>)[0]!.rows;
+      expect(rows.map((row) => row.logoMediaAssetId)).toEqual([
+        cached("team-1", 1).version.id, cached("team-2", 2).version.id, undefined
+      ]);
+      expect(rows.map((row) => [row.points, row.form])).toEqual(current.standings[0]!.rows.map((row) => [row.points, row.form]));
+      expect(readWarnings()).toEqual([expect.objectContaining({
+        event: "sportlink.sync.completed", level: "warn", fields: {
+          outcome: "completed_with_optional_media_warning", errorCode: "SPORTLINK_MEDIA_PARTIAL",
+          failedLogos: 1, skippedLogos: 2, reusedTeamLogos: 2, cacheLookupFailed: false
+        }
+      })]);
+      expect(JSON.stringify(readWarnings())).not.toMatch(/PRIVATE_|providers\/|team-[123]/);
+    });
+
+    it.each(["transport", "deadline"])("bounds a %s storage failure to one upload even with 100 optional logos", async (failure) => {
+      const readWarnings = warnings();
+      const current = batch(100);
+      let uploads = 0;
+      let uploadSignal: AbortSignal | null | undefined;
+      const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname.startsWith("/storage/v1/object/")) {
+          uploads++;
+          uploadSignal = init?.signal;
+          if (failure === "deadline") return awaitAbort(uploadSignal);
+          throw new TypeError("PRIVATE_CONNECTION_STRING");
+        }
+        if (url.pathname === "/rest/v1/provider_asset_cache") return Response.json([]);
+        expect(url.pathname).toBe("/rest/v1/rpc/complete_sportlink_sync_v4");
+        const payload = JSON.parse(String(init?.body));
+        expect(payload.p_team_logos).toEqual([]);
+        expect(payload.p_standings[0].rows).toHaveLength(100);
+        return Response.json({ readCount: 100 });
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", undefined, 10);
+      await expect(backend.complete(job, "worker:test", current)).resolves.toBe(100);
+      expect(uploads).toBe(1);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      if (failure === "deadline") expect(uploadSignal?.aborted).toBe(true);
+      expect(readWarnings()[0]).toMatchObject({ fields: { failedLogos: 1, skippedLogos: 99 } });
+      expect(JSON.stringify(readWarnings())).not.toContain("PRIVATE_");
+    });
+
+    it("submits successfully stored logos while omitting later failed and skipped new versions", async () => {
+      const readWarnings = warnings();
+      const current = batch();
+      let uploads = 0;
+      let payload: Record<string, unknown> | undefined;
+      vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname.startsWith("/storage/v1/object/")) {
+          return ++uploads === 1 ? Response.json({ Id: "stored", Key: "stored" }) : storageFailure();
+        }
+        if (url.pathname === "/rest/v1/provider_asset_cache") {
+          expect(url.searchParams.get("external_entity_id")).toBe("in.(team-2,team-3)");
+          return Response.json([cached("team-2", 2)]);
+        }
+        payload = JSON.parse(String(init?.body));
+        return Response.json({ readCount: 3 });
+      }));
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      await expect(backend.complete(job, "worker:test", current)).resolves.toBe(3);
+      expect(uploads).toBe(2);
+      expect(payload?.p_team_logos).toEqual([expect.objectContaining({ assetId: current.teamLogos[0]!.assetId })]);
+      expect(JSON.stringify(payload)).not.toContain(current.teamLogos[1]!.assetId);
+      expect(JSON.stringify(payload)).not.toContain(current.teamLogos[2]!.assetId);
+      expect(readWarnings()[0]).toMatchObject({ fields: { failedLogos: 1, skippedLogos: 1, reusedTeamLogos: 1 } });
+    });
+
+    it("retains club data without replacing its existing logo when the optional upload fails", async () => {
+      const readWarnings = warnings();
+      const current = batch(0);
+      current.club = {
+        city: "Den Haag", clubCode: "CLUB", colors: { primary: null, secondary: null, text: null },
+        externalId: "club-1", foundedOn: null, information: null, logoUrl: null,
+        name: "Testclub", websiteUrl: null
+      };
+      current.clubLogo = {
+        ...logo("club-1", 1), role: "club_logo",
+        storagePath: `providers/sportlink/club_logo/${"a".repeat(64)}.webp`
+      };
+      const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname.startsWith("/storage/v1/object/")) return storageFailure();
+        expect(url.pathname).toBe("/rest/v1/rpc/complete_sportlink_sync_v4");
+        expect(JSON.parse(String(init?.body))).toMatchObject({ p_club: current.club, p_club_logo: {}, p_team_logos: [] });
+        return Response.json({ readCount: 1 });
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      await expect(backend.complete({ ...job, datasetGroup: "club_profile" }, "worker:test", current)).resolves.toBe(1);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(readWarnings()[0]).toMatchObject({ fields: { failedLogos: 1, skippedLogos: 0 } });
+    });
+
+    it.each(["wrong_role", "foreign_identity", "wrong_cache", "dangling_version", "invalid_path", "duplicate"])("falls back safely for a %s canonical cache response", async (invalid) => {
+      const readWarnings = warnings();
+      const current = batch();
+      const entry = cached("team-1", 1);
+      const bad = invalid === "wrong_role" ? { ...entry, asset_role: "person_photo" }
+        : invalid === "foreign_identity" ? { ...entry, external_entity_id: "other-team" }
+          : invalid === "wrong_cache" ? { ...entry, version: { ...entry.version, cache_id: "70000000-0000-4000-8000-000000000009" } }
+            : invalid === "dangling_version" ? { ...entry, current_version_id: "70000000-0000-5000-8000-000000000001" }
+              : invalid === "invalid_path" ? { ...entry, version: { ...entry.version, storage_path: "tenants/PRIVATE_TENANT/photo.webp" } }
+                : entry;
+      vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname.startsWith("/storage/v1/object/")) return storageFailure();
+        if (url.pathname === "/rest/v1/provider_asset_cache") return Response.json(invalid === "duplicate" ? [bad, bad] : [bad]);
+        const payload = JSON.parse(String(init?.body));
+        expect(payload.p_standings[0].rows.every((row: Record<string, unknown>) => !row.logoMediaAssetId)).toBe(true);
+        expect(payload.p_team_logos).toEqual([]);
+        return Response.json({ readCount: 3 });
+      }));
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      await expect(backend.complete(job, "worker:test", current)).resolves.toBe(3);
+      expect(readWarnings()[0]).toMatchObject({ fields: { reusedTeamLogos: 0, cacheLookupFailed: true } });
+      expect(JSON.stringify(readWarnings())).not.toContain("PRIVATE_");
+    });
+
+    it("bounds a failed cache lookup and still completes with the initials fallback", async () => {
+      const readWarnings = warnings();
+      let cacheSignal: AbortSignal | null | undefined;
+      const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname.startsWith("/storage/v1/object/")) return storageFailure();
+        if (url.pathname === "/rest/v1/provider_asset_cache") {
+          cacheSignal = init?.signal;
+          return awaitAbort(cacheSignal);
+        }
+        expect(JSON.parse(String(init?.body)).p_team_logos).toEqual([]);
+        return Response.json({ readCount: 3 });
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", undefined, 10);
+      await expect(backend.complete(job, "worker:test", batch())).resolves.toBe(3);
+      expect(cacheSignal?.aborted).toBe(true);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(readWarnings()[0]).toMatchObject({ fields: { cacheLookupFailed: true, reusedTeamLogos: 0 } });
+    });
+
+    it.each(["57014", "55000"])("keeps a genuine ingest/ownership failure %s failed and emits no committed-media warning", async (code) => {
+      const readWarnings = warnings();
+      const current = batch();
+      vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.pathname.startsWith("/storage/v1/object/")) return storageFailure();
+        if (url.pathname === "/rest/v1/provider_asset_cache") return Response.json([]);
+        return Response.json({ code, message: "PRIVATE_SQL_MESSAGE" }, { status: 500 });
+      }));
+      const completion = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      const fail = vi.fn();
+      await expect(runSportlinkSyncOnce({
+        backend: {
+          claim: vi.fn().mockResolvedValue(job), complete: completion.complete.bind(completion),
+          fail, renew: vi.fn().mockResolvedValue(true)
+        }, encryptionKey: "x".repeat(32), executeDataset: async () => current,
+        lockTimeoutSeconds: 900, workerId: "worker:test"
+      })).resolves.toEqual({ status: "failed", datasetGroup: "competitions", runId: job.runId, errorCode: `SPORTLINK_SYNC_COMPLETE_${code}` });
+      expect(fail).toHaveBeenCalledWith(job, "worker:test", `SPORTLINK_SYNC_COMPLETE_${code}`, expect.any(String));
+      expect(readWarnings()).toEqual([]);
+      expect(JSON.stringify(fail.mock.calls)).not.toContain("PRIVATE_");
+    });
+
+    it("does not start uploads or ingest after losing its lease during the provider observation", async () => {
+      vi.useFakeTimers();
+      const readWarnings = warnings();
+      let finishObservation: ((value: Batch) => void) | undefined;
+      const fetchMock = vi.fn();
+      vi.stubGlobal("fetch", fetchMock);
+      const completion = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      const fail = vi.fn();
+      const execution = runSportlinkSyncOnce({
+        backend: {
+          claim: vi.fn().mockResolvedValue(job), complete: completion.complete.bind(completion),
+          fail, renew: vi.fn().mockResolvedValue(false)
+        }, encryptionKey: "x".repeat(32),
+        executeDataset: () => new Promise<Batch>((resolve) => { finishObservation = resolve; }),
+        lockTimeoutSeconds: 900, workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(60_000);
+      finishObservation!(batch());
+      await expect(execution).resolves.toEqual({
+        status: "failed", datasetGroup: "competitions", runId: job.runId, errorCode: "SPORTLINK_WORKER_LEASE_LOST"
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(readWarnings()).toEqual([]);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it.each([false, true])("keeps person-photo storage fail-closed and submits pointers only after successful upload (%s)", async (succeeds) => {
+      const readWarnings = warnings();
+      const current = batch(0);
+      current.personPhotos = [{
+        ...logo("b".repeat(64), 1), role: "person_photo",
+        storagePath: `providers/sportlink/person_photo/${"a".repeat(64)}.webp`
+      }];
+      current.teamMembers = [{ identityKey: "b".repeat(64), photoProviderAssetVersionId: current.personPhotos[0]!.assetId }];
+      const requests: string[] = [];
+      vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        requests.push(url.pathname);
+        if (url.pathname.startsWith("/storage/v1/object/")) return succeeds ? Response.json({ Id: "stored", Key: "stored" }) : storageFailure();
+        expect(url.pathname).toBe("/rest/v1/rpc/complete_sportlink_birthdays_v1");
+        expect(JSON.parse(String(init?.body))).toMatchObject({
+          p_person_photos: [expect.objectContaining({ assetId: current.personPhotos[0]!.assetId, role: "person_photo" })],
+          p_team_members: current.teamMembers
+        });
+        return Response.json({ readCount: 1 });
+      }));
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only");
+      const completion = backend.complete({ ...job, datasetGroup: "public_people" }, "worker:test", current);
+      if (succeeds) await expect(completion).resolves.toBe(1);
+      else await expect(completion).rejects.toHaveProperty("code", "SPORTLINK_MEDIA_UPLOAD_FAILED");
+      expect(requests).toHaveLength(succeeds ? 2 : 1);
+      expect(readWarnings()).toEqual([]);
+    });
+
+    it("cannot retroactively fail a committed ingest when warning output fails", async () => {
+      vi.spyOn(process.stdout, "write").mockImplementation(() => { throw new Error("PRIVATE_LOGGER_FAILURE"); });
+      const current = batch(0);
+      current.clubLogo = {
+        ...logo("club-1", 1), role: "club_logo",
+        storagePath: `providers/sportlink/club_logo/${"a".repeat(64)}.webp`
+      };
+      const rpc = vi.fn().mockResolvedValue({ data: { readCount: 1 }, error: null });
+      const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", { rpc });
+      await expect(backend.complete(job, "worker:test", current)).resolves.toBe(1);
+      expect(rpc).toHaveBeenCalledOnce();
+      expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v4", expect.objectContaining({ p_club_logo: {} }));
     });
   });
 

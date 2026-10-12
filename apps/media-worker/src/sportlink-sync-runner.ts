@@ -23,6 +23,7 @@ import {
   stableSportlinkExternalId
 } from "@veyocast/integrations/server";
 import { createClient } from "@supabase/supabase-js";
+import { createStructuredLogger } from "@veyocast/observability";
 
 import {
   prepareSportlinkClubLogo,
@@ -61,11 +62,20 @@ export type SportlinkSyncRunResult =
       status: "completed" | "failed";
     };
 
+type ProviderCacheQuery = PromiseLike<{ data: unknown; error: unknown }> & {
+  eq(column: string, value: string): ProviderCacheQuery;
+  in(column: string, values: string[]): ProviderCacheQuery;
+  limit(count: number): ProviderCacheQuery;
+  abortSignal(signal: AbortSignal): ProviderCacheQuery;
+  retry(enabled: boolean): ProviderCacheQuery;
+};
+
 type RpcClient = {
   rpc(
     functionName: string,
     parameters: Record<string, unknown>
   ): Promise<{ data: unknown; error: { code?: string } | null; status?: number }>;
+  from?(table: "provider_asset_cache"): { select(columns: string): ProviderCacheQuery };
   storage?: {
     from(bucket: string): {
       upload(
@@ -152,6 +162,7 @@ const emptyBatch = (): NormalizedSportlinkBatch => ({
 
 export class SupabaseSportlinkSyncBackend {
   private readonly client: RpcClient;
+  private readonly requestTimeoutMs: number;
 
   constructor(
     supabaseUrl: string,
@@ -160,6 +171,7 @@ export class SupabaseSportlinkSyncBackend {
     requestTimeoutMs = 30_000
   ) {
     const timeoutMs = Number.isFinite(requestTimeoutMs) ? Math.min(30_000, Math.max(1, requestTimeoutMs)) : 30_000;
+    this.requestTimeoutMs = timeoutMs;
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
       global: {
         fetch(input, init) {
@@ -189,15 +201,42 @@ export class SupabaseSportlinkSyncBackend {
     workerId: string,
     batch: NormalizedSportlinkBatch
   ) {
-    const media = [batch.clubLogo, ...batch.teamLogos, ...batch.personPhotos]
+    const optionalLogos = [batch.clubLogo, ...batch.teamLogos]
       .filter(
         (artifact): artifact is SportlinkMediaArtifact => Boolean(artifact)
       );
-    if (media.length) {
+    const persistedLogos = new Set<SportlinkMediaArtifact>();
+    const unpersistedTeams = new Set<string>();
+    let failedLogos = 0;
+    let skippedLogos = 0;
+    for (const artifact of optionalLogos) {
+      if (failedLogos) {
+        // One storage failure opens the circuit for the remaining optional
+        // images: an outage must not cost 100 sequential request deadlines.
+        skippedLogos++;
+      } else {
+        try {
+          if (!this.client.storage) throw new Error("storage_unavailable");
+          const upload = await this.client.storage.from("provider-assets")
+            .upload(artifact.storagePath, artifact.bytes, {
+              cacheControl: "31536000", contentType: artifact.mimeType, upsert: true
+            });
+          if (upload.error) throw new Error("optional_logo_upload_failed");
+          persistedLogos.add(artifact);
+          continue;
+        } catch {
+          failedLogos++;
+        }
+      }
+      if (artifact.role === "team_logo") unpersistedTeams.add(artifact.externalId);
+    }
+    // Person photos remain fail-closed. Their already assigned member pointers
+    // must never reach the birthday RPC unless their upload succeeds.
+    if (batch.personPhotos.length) {
       if (!this.client.storage) {
         throw new Error("sportlink_media_storage_unavailable");
       }
-      for (const artifact of media) {
+      for (const artifact of batch.personPhotos) {
         const upload = await this.client.storage
           .from("provider-assets")
           .upload(artifact.storagePath, artifact.bytes, {
@@ -211,6 +250,21 @@ export class SupabaseSportlinkSyncBackend {
         );
       }
     }
+    const previous = await this.previousTeamLogos([...unpersistedTeams]);
+    const reusedTeamLogos = new Set<string>();
+    const standings = batch.standings.map((standing) => ({
+      ...standing,
+      rows: standing.rows.map((row) => {
+        const safeRow = { ...row } as typeof row & { logoMediaAssetId?: string };
+        delete safeRow.logoMediaAssetId;
+        const versionId = previous.versions.get(row.externalId);
+        if (versionId) {
+          safeRow.logoMediaAssetId = versionId;
+          reusedTeamLogos.add(row.externalId);
+        }
+        return safeRow;
+      })
+    }));
     const result = job.datasetGroup === "public_people"
       ? await this.client.rpc("complete_sportlink_birthdays_v1", {
         p_birthdays: batch.birthdays,
@@ -223,11 +277,11 @@ export class SupabaseSportlinkSyncBackend {
       : await this.client.rpc("complete_sportlink_sync_v4", {
       p_activities: batch.activities,
       p_club: batch.club ?? {},
-      p_club_logo: batch.clubLogo ? toMediaPayload(batch.clubLogo) : {},
+      p_club_logo: batch.clubLogo && persistedLogos.has(batch.clubLogo) ? toMediaPayload(batch.clubLogo) : {},
       p_matches: batch.matches,
       p_run_id: job.runId,
-      p_standings: batch.standings,
-      p_team_logos: batch.teamLogos.map(toMediaPayload),
+      p_standings: standings,
+      p_team_logos: batch.teamLogos.filter((artifact) => persistedLogos.has(artifact)).map(toMediaPayload),
       p_teams: batch.teams,
       p_worker_id: workerId
     });
@@ -246,7 +300,53 @@ export class SupabaseSportlinkSyncBackend {
     }
     // The committed source revision queues published-data refresh, including
     // clock-based windows. No fallible rendering RPC follows successful ingest.
+    if (failedLogos) {
+      try {
+        createStructuredLogger({
+          correlationId: job.runId, environment: process.env.VEYOCAST_ENVIRONMENT ?? "development",
+          revision: process.env.DEPLOYMENT_SHA ?? "development", service: "media-worker"
+        }).warn("sportlink.sync.completed", {
+          outcome: "completed_with_optional_media_warning", errorCode: "SPORTLINK_MEDIA_PARTIAL",
+          failedLogos: Math.min(101, failedLogos), skippedLogos: Math.min(101, skippedLogos),
+          reusedTeamLogos: reusedTeamLogos.size, cacheLookupFailed: previous.failed
+        });
+      } catch { /* Logging failure cannot turn an already committed ingest into a failed run. */ }
+    }
     return readCount;
+  }
+
+  private async previousTeamLogos(externalIds: string[]) {
+    const versions = new Map<string, string>();
+    if (!externalIds.length) return { versions, failed: false };
+    if (!this.client.from || externalIds.length > 100
+      || externalIds.some((id) => !/^[a-zA-Z0-9._:-]{1,128}$/.test(id))) return { versions, failed: true };
+    try {
+      const result = await this.client.from("provider_asset_cache").select(
+        "id,provider,entity_type,external_entity_id,asset_role,current_version_id,version:provider_asset_versions!provider_asset_cache_current_version_fk(id,cache_id,checksum_sha256,storage_bucket,storage_path,mime_type,file_size_bytes,width,height)"
+      ).eq("provider", "sportlink").eq("entity_type", "team").eq("asset_role", "team_logo")
+        .in("external_entity_id", externalIds).limit(100).retry(false)
+        .abortSignal(AbortSignal.timeout(this.requestTimeoutMs));
+      if (result.error || !Array.isArray(result.data) || result.data.length > externalIds.length) return { versions, failed: true };
+      const seen = new Set<string>();
+      for (const item of result.data) {
+        if (!isRecord(item) || item.provider !== "sportlink" || item.entity_type !== "team" || item.asset_role !== "team_logo"
+          || typeof item.id !== "string" || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(item.id)
+          || typeof item.external_entity_id !== "string" || !externalIds.includes(item.external_entity_id)
+          || seen.has(item.external_entity_id)) return { versions: new Map<string, string>(), failed: true };
+        seen.add(item.external_entity_id);
+        if (item.current_version_id === null && item.version === null) continue;
+        const version = item.version;
+        if (!isRecord(version) || typeof version.id !== "string" || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(version.id)
+          || version.cache_id !== item.id || item.current_version_id !== version.id
+          || typeof version.checksum_sha256 !== "string" || !/^[a-f0-9]{64}$/.test(version.checksum_sha256)
+          || version.storage_bucket !== "provider-assets" || version.storage_path !== `providers/sportlink/team_logo/${version.checksum_sha256}.webp`
+          || version.mime_type !== "image/webp" || !Number.isSafeInteger(version.file_size_bytes) || Number(version.file_size_bytes) < 1 || Number(version.file_size_bytes) > 2_000_000
+          || !Number.isInteger(version.width) || Number(version.width) < 1 || Number(version.width) > 512
+          || !Number.isInteger(version.height) || Number(version.height) < 1 || Number(version.height) > 512) return { versions: new Map<string, string>(), failed: true };
+        versions.set(item.external_entity_id, version.id);
+      }
+      return { versions, failed: false };
+    } catch { return { versions: new Map<string, string>(), failed: true }; }
   }
 
   async fail(
