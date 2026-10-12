@@ -1526,6 +1526,11 @@ export function PlayerRuntime() {
       // navigator.onLine is only a hint on embedded webOS. An immediate,
       // bounded origin request provides the actual connectivity evidence.
       if (syncTimer) window.clearTimeout(syncTimer);
+      if (syncInFlight) {
+        invalidatedDuringFetch = true;
+        manifestController?.abort();
+        return;
+      }
       void syncOnlineManifest();
     }
 
