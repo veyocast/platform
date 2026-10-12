@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process";
+import { spawn } from "node:child_process";
 import { Buffer } from "node:buffer";
 import { constants } from "node:fs";
 import { open } from "node:fs/promises";
@@ -10,6 +10,8 @@ import { fileURLToPath, pathToFileURL, URL, URLSearchParams } from "node:url";
 import { getDatabaseCliConfig } from "./database-cli-config.mjs";
 
 const MAX_BODY = 65_536;
+const ENDPOINT_QUERY_KEYS = new Set(["host", "hostaddr", "port", "user", "dbname", "database", "service", "servicefile", "reference"]);
+const ENDPOINT_ENV_KEYS = ["PGHOST", "PGHOSTADDR", "PGPORT", "PGUSER", "PGDATABASE", "PGSERVICE", "PGSERVICEFILE"];
 const PG_CODES = new Set(["08001", "08006", "28P01", "28000", "42501", "57014", "53300", "57P01", "57P02", "57P03", "3D000", "42P01"]);
 class ProbeFault extends Error { constructor(code) { super(code); this.code = code; } }
 const elapsed = (start) => Math.max(0, Math.round(performance.now() - start));
@@ -18,11 +20,29 @@ const exactKeys = (value, keys) => value && typeof value === "object" && !Array.
   && Object.keys(value).sort().join(",") === keys.sort().join(",");
 
 /** Preserve every URI byte except the explicit acquisition-budget value. */
-export function diagnosticDatabaseConfig(databaseUrl, pgConnectTimeout) {
+export function diagnosticDatabaseConfig(databaseUrl, pgConnectTimeout, expectedProjectRef, environment = {}) {
   if (typeof databaseUrl !== "string" || databaseUrl.length > 16_384 || unsafeCharacters(databaseUrl) || databaseUrl.includes("#")) throw new ProbeFault("SECRET_CONFIG_INVALID");
   let parsed;
   try { parsed = new URL(databaseUrl); } catch { throw new ProbeFault("SECRET_CONFIG_INVALID"); }
-  if (!["postgres:", "postgresql:"].includes(parsed.protocol) || !parsed.hostname) throw new ProbeFault("SECRET_CONFIG_INVALID");
+  if (!["postgres:", "postgresql:"].includes(parsed.protocol) || !/^[a-z0-9]{20}$/.test(expectedProjectRef ?? "")
+    || ENDPOINT_ENV_KEYS.some((key) => environment[key])
+    || [...parsed.searchParams.keys()].some((key) => ENDPOINT_QUERY_KEYS.has(key.toLowerCase()))) throw new ProbeFault("SECRET_CONFIG_INVALID");
+  let user, database;
+  try { user = decodeURIComponent(parsed.username); database = decodeURIComponent(parsed.pathname.slice(1)); }
+  catch { throw new ProbeFault("SECRET_CONFIG_INVALID"); }
+  const port = parsed.port || "5432";
+  const direct = parsed.hostname === `db.${expectedProjectRef}.supabase.co` && port === "5432" && user.length > 0;
+  const pooler = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.pooler\.supabase\.com$/.test(parsed.hostname)
+    && ["5432", "6543"].includes(port) && user === `postgres.${expectedProjectRef}`;
+  if ((!direct && !pooler) || database !== "postgres") throw new ProbeFault("SECRET_CONFIG_INVALID");
+  // Supavisor's options can route by project reference. Keep other options
+  // byte-identical, but never accept a different or ambiguous reference.
+  const routingOptions = parsed.searchParams.has("options") ? parsed.searchParams.getAll("options") : environment.PGOPTIONS ? [environment.PGOPTIONS] : [];
+  for (const options of routingOptions) {
+    for (const option of options.split(",")) {
+      if (/reference\s*=/i.test(option) && option !== `reference=${expectedProjectRef}`) throw new ProbeFault("SECRET_CONFIG_INVALID");
+    }
+  }
   let normal;
   try { normal = getDatabaseCliConfig(databaseUrl, pgConnectTimeout); } catch { throw new ProbeFault("SECRET_CONFIG_INVALID"); }
   let prepared = normal.databaseUrl;
@@ -43,25 +63,48 @@ export function tenantReadSql(tenantId) {
   return `SELECT 1 AS database_ready, EXISTS (SELECT 1 FROM public.tenants WHERE id = '${tenantId}'::uuid AND status = 'active') AS tenant_active;\n`;
 }
 
-export function createSqlAdapter(execFileImpl = execFile) {
+export function createSqlAdapter(spawnImpl = spawn, killImpl = process.kill.bind(process)) {
   return ({ databaseUrl, sql, signal }) => new Promise((resolve) => {
-    let child;
-    const aborted = () => { child?.kill("SIGKILL"); };
+    let child, timer, groupStopped = false, done = false, timedOut = false, tooLarge = false;
+    let stdoutSize = 0, stderrSize = 0;
+    const chunks = [];
+    const stopGroup = () => {
+      if (!groupStopped && Number.isInteger(child?.pid) && child.pid > 0) {
+        groupStopped = true;
+        try { killImpl(-child.pid, "SIGKILL"); } catch { /* Owned group already ended; never print OS errors. */ }
+      }
+    };
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      signal.removeEventListener("abort", aborted);
+      stopGroup();
+      resolve({ ok: ok && !timedOut && !tooLarge, stdout: Buffer.concat(chunks).toString("utf8"), timedOut, tooLarge });
+    };
+    const aborted = () => { timedOut = true; stopGroup(); };
     try {
-      child = execFileImpl("pnpm", ["exec", "supabase", "db", "query", "--db-url", databaseUrl,
+      child = spawnImpl("pnpm", ["exec", "supabase", "db", "query", "--db-url", databaseUrl,
         "--dns-resolver", "native", "--agent", "no", "--output-format", "json"],
-      { cwd: fileURLToPath(new URL("..", import.meta.url)), timeout: 52_000, maxBuffer: MAX_BODY, encoding: "utf8", killSignal: "SIGKILL" },
-      (error, stdout) => {
-        signal.removeEventListener("abort", aborted);
-        resolve({ ok: !error, stdout: typeof stdout === "string" ? stdout : "",
-          timedOut: signal.aborted || error?.killed === true,
-          tooLarge: error?.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" });
+      { cwd: fileURLToPath(new URL("..", import.meta.url)), detached: true, stdio: ["pipe", "pipe", "pipe"] });
+      child.on("error", () => finish(false));
+      child.on("close", (code) => finish(code === 0));
+      child.stdout.on("data", (chunk) => {
+        stdoutSize += chunk.length;
+        if (stdoutSize > MAX_BODY) { tooLarge = true; stopGroup(); }
+        else chunks.push(Buffer.from(chunk));
       });
+      // stderr is counted and discarded; no raw error is retained or emitted.
+      child.stderr.on("data", (chunk) => {
+        stderrSize += chunk.length;
+        if (stderrSize > MAX_BODY) { tooLarge = true; stopGroup(); }
+      });
+      for (const stream of [child.stdin, child.stdout, child.stderr]) stream.on("error", () => finish(false));
+      timer = setTimeout(() => { timedOut = true; stopGroup(); }, 52_000);
       signal.addEventListener("abort", aborted, { once: true });
       if (signal.aborted) aborted();
-      child.stdin.on("error", () => {});
       child.stdin.end(sql);
-    } catch { signal.removeEventListener("abort", aborted); child?.kill("SIGKILL"); resolve({ ok: false, stdout: "" }); }
+    } catch { finish(false); }
   });
 }
 
@@ -158,7 +201,7 @@ export async function probeRuntimeDatabase({ environment = process.env, targetEn
     // No credential property is accessed until both public release checks pass.
     let config, serviceKey;
     try {
-      config = diagnosticDatabaseConfig(environment.SUPABASE_DB_URL, environment.PGCONNECT_TIMEOUT);
+      config = diagnosticDatabaseConfig(environment.SUPABASE_DB_URL, environment.PGCONNECT_TIMEOUT, environment.SUPABASE_PROJECT_REF, environment);
       serviceKey = environment.SUPABASE_SERVICE_ROLE_KEY;
       if (typeof serviceKey !== "string" || !serviceKey || serviceKey.length > 16_384 || unsafeCharacters(serviceKey)) throw new ProbeFault("SECRET_CONFIG_INVALID");
     } catch { return report("SECRET_CONFIG_INVALID", { health }, 2); }

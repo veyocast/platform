@@ -1,15 +1,20 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
+import { spawn } from "node:child_process";
+import process from "node:process";
+import { setTimeout as delay } from "node:timers/promises";
 import { EventEmitter } from "node:events";
 import { mkdtemp, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ReadableStream } from "node:stream/web";
 import { test } from "node:test";
-import { createSqlAdapter, diagnosticDatabaseConfig, probeRuntimeDatabase, runtimeProbeCli, tenantReadSql, writeProbeArtifact } from "./probe-runtime-database.mjs";
+import { createSqlAdapter, diagnosticDatabaseConfig as scopedDatabaseConfig, probeRuntimeDatabase, runtimeProbeCli, tenantReadSql, writeProbeArtifact } from "./probe-runtime-database.mjs";
 
 // Synthetic adapters verify contracts/privacy, not production CLI reachability.
 const sha = "a".repeat(40), tenant = "11111111-1111-1111-1111-111111111111", project = "abcdefghijklmnopqrst";
-const secret = "PRIVATE_SERVICE_KEY_DO_NOT_EMIT", uri = "postgresql://private-user:p%2B%24%40%26%2F@db.private.invalid:5432/postgres?sslmode=verify-full&sslrootcert=%2Fprivate%2Fca.pem&options=-c%20statement_timeout%3D60000";
+const secret = "PRIVATE_SERVICE_KEY_DO_NOT_EMIT", uri = `postgresql://private-user:p%2B%24%40%26%2F@db.${project}.supabase.co:5432/postgres?sslmode=verify-full&sslrootcert=%2Fprivate%2Fca.pem&options=-c%20statement_timeout%3D60000`;
+const diagnosticDatabaseConfig = (url, timeout) => scopedDatabaseConfig(url, timeout, project);
 const env = () => ({ GITHUB_REF: "refs/heads/main", SUPABASE_PROJECT_REF: project, NEXT_PUBLIC_SUPABASE_URL: `https://${project}.supabase.co/`, SUPABASE_DB_URL: uri, SUPABASE_SERVICE_ROLE_KEY: secret });
 const input = (environment = env()) => ({ environment, targetEnvironment: "production", expectedRuntimeSha: sha, tenantId: tenant });
 const sqlPass = async () => ({ ok: true, stdout: '[{"database_ready":1,"tenant_active":true}]' });
@@ -23,7 +28,7 @@ function fixtureFetch(rest = [{ id: tenant, status: "active" }], status = 200, c
 }
 function privateOutput(value) {
   const serialized = JSON.stringify(value);
-  for (const forbidden of [secret, "private-user", "p%2B%24", "db.private.invalid", project, "ca.pem", "RAW_PRIVATE_ERROR"]) assert.equal(serialized.includes(forbidden), false);
+  for (const forbidden of [secret, "private-user", "p%2B%24", "db." + project + ".supabase.co", project, "ca.pem", "RAW_PRIVATE_ERROR"]) assert.equal(serialized.includes(forbidden), false);
 }
 
 test("synthetic scoped SQL and REST both pass; only fixed scope/results emitted", async () => {
@@ -127,17 +132,32 @@ test("REST deadline aborts request after successful SQL and preserves UNPROVEN v
   assert.equal(result.report.rest.code, "REST_TIMEOUT"); assert.equal(aborted, true); assert.equal(result.exitCode, 1);
 });
 
-test("native adapter supplies exact pinned CLI flags/stdin, 52s kill bound and 64KiB stdout/stderr cap", async () => {
+test("native spawn adapter supplies exact pinned CLI flags/stdin and abort kills owned group", async () => {
   let captured, killed, written;
   const controller = new globalThis.AbortController();
-  const adapter = createSqlAdapter((file, args, options, callback) => {
-    captured = { file, args, options }; const child = new EventEmitter(); child.stdin = new EventEmitter();
-    child.stdin.end = (sql) => { written = sql; }; child.kill = (signal) => { killed = signal; callback(Object.assign(new Error(secret), { killed: true }), secret, secret); };
-    return child;
-  });
+  const adapter = createSqlAdapter((file, args, options) => {
+    captured = { file, args, options }; const child = new EventEmitter(); child.pid = 123;
+    for (const key of ["stdin", "stdout", "stderr"]) child[key] = new EventEmitter();
+    child.stdin.end = (sql) => { written = sql; };
+    captured.child = child; return child;
+  }, (pid, signal) => { killed = { pid, signal }; captured.child.emit("close", null); });
   const pending = adapter({ databaseUrl: uri, sql: tenantReadSql(tenant), signal: controller.signal }); controller.abort(); const result = await pending;
   assert.equal(captured.file, "pnpm"); assert.deepEqual(captured.args, ["exec", "supabase", "db", "query", "--db-url", uri, "--dns-resolver", "native", "--agent", "no", "--output-format", "json"]);
-  assert.equal(captured.options.timeout, 52_000); assert.equal(captured.options.maxBuffer, 65_536); assert.equal(captured.options.killSignal, "SIGKILL"); assert.equal(written, tenantReadSql(tenant)); assert.equal(killed, "SIGKILL"); assert.equal(result.timedOut, true);
+  assert.equal(captured.options.detached, true); assert.deepEqual(captured.options.stdio, ["pipe", "pipe", "pipe"]); assert.equal(written, tenantReadSql(tenant)); assert.deepEqual(killed, { pid: -123, signal: "SIGKILL" }); assert.equal(result.timedOut, true);
+});
+
+test("native adapter enforces separate 64KiB stdout and discarded stderr bounds", async () => {
+  for (const stream of ["stdout", "stderr"]) {
+    let child, killed;
+    const adapter = createSqlAdapter(() => {
+      child = new EventEmitter(); child.pid = 123;
+      for (const key of ["stdin", "stdout", "stderr"]) child[key] = new EventEmitter();
+      child.stdin.end = () => {}; return child;
+    }, (pid) => { killed = pid; child.emit("close", null); });
+    const pending = adapter({ databaseUrl: uri, sql: tenantReadSql(tenant), signal: new globalThis.AbortController().signal });
+    child[stream].emit("data", Buffer.alloc(65_537)); const result = await pending;
+    assert.equal(result.tooLarge, true); assert.equal(result.ok, false); assert.equal(killed, -123); assert.equal(result.stdout, "");
+  }
 });
 
 test("artifact is chmod600 including preexisting broad permissions and refuses symlink", async () => {
@@ -154,4 +174,54 @@ test("CLI writes one safe JSON, returns invalid-scope2 and handles artifact fail
   assert.equal(invalid, 2); assert.equal(lines.length, 1); privateOutput(JSON.parse(lines[0]));
   const failedOutput = []; const result = await runtimeProbeCli({ argv: ["production", sha, tenant], environment: { ...env(), RUNNER_TEMP: "/missing/RAW_PRIVATE_ERROR" }, stdout: { write: (line) => failedOutput.push(line) }, fetchImpl: fixtureFetch(), executeSql: sqlPass });
   assert.equal(result, 1); assert.equal(failedOutput.length, 1); const report = JSON.parse(failedOutput[0]); assert.equal(report.code, "OUTPUT_WRITE_FAILED"); assert.equal(report.verdict, "UNPROVEN"); privateOutput(report);
+});
+
+test("SQL URI accepts only the confirmed project's direct host or postgres.project official pooler", () => {
+  const pooler = uri.replace("private-user:", `postgres%2E${project}:`).replace(`db.${project}.supabase.co:5432`, "aws-0-eu-west-1.pooler.supabase.com:6543");
+  assert.equal(diagnosticDatabaseConfig(pooler).databaseUrl, pooler + "&connect_timeout=45");
+  assert.equal(diagnosticDatabaseConfig(uri + `&options=reference%3D${project}`).databaseUrl, uri + `&options=reference%3D${project}&connect_timeout=45`);
+  for (const invalid of [uri.replace(`db.${project}`, "db." + "z".repeat(20)), pooler.replace(`postgres%2E${project}`, "postgres%2E" + "z".repeat(20)), pooler.replace("pooler.supabase.com", "pooler.supabase.com.evil.invalid"), uri.replace(":5432", ":6543"), uri.replace("/postgres?", "/other?"), uri.replace("private-user:", ":")]) assert.throws(() => diagnosticDatabaseConfig(invalid), /SECRET_CONFIG_INVALID/);
+});
+
+test("wrong SQL project, decoded endpoint/query/options overrides and inherited service fail before authenticated checks", async () => {
+  const withoutOptions = uri.slice(0, uri.indexOf("&options=")) + "&connect_timeout=045";
+  const invalidUris = [uri.replace(`db.${project}`, "db." + "z".repeat(20)), ...["host=other", "h%6Fst=other", "hostaddr=127.0.0.1", "port=6543", "user=postgres.other", "dbname=other", "database=other", "service=other", "servicefile=%2Fprivate", "reference=other", "options=reference%3Dother", "options=reference%3Dother%2Creference%3D" + project].map(q => uri + "&" + q)];
+  for (const environment of [...invalidUris.map(SUPABASE_DB_URL => ({ ...env(), SUPABASE_DB_URL })), { ...env(), PGSERVICE: "private" }, { ...env(), PGHOSTADDR: "127.0.0.1" }, { ...env(), SUPABASE_DB_URL: withoutOptions, PGOPTIONS: "reference=other" }]) {
+    let sqlCalls = 0; const capture = [];
+    const result = await probeRuntimeDatabase(input(environment), { fetchImpl: fixtureFetch(undefined, 200, capture), executeSql: async () => { sqlCalls++; return sqlPass(); } });
+    assert.equal(result.exitCode, 2); assert.equal(result.report.code, "SECRET_CONFIG_INVALID"); assert.equal(sqlCalls, 0); assert.equal(capture.length, 2); assert.equal(capture.some(r => r.options.headers), false); privateOutput(result);
+  }
+  let acceptedUri;
+  const accepted = await probeRuntimeDatabase(input({ ...env(), SUPABASE_DB_URL: withoutOptions, PGOPTIONS: `reference=${project}` }), {
+    fetchImpl: fixtureFetch(), executeSql: async ({ databaseUrl }) => { acceptedUri = databaseUrl; return sqlPass(); }
+  });
+  assert.equal(accepted.report.verdict, "DATABASE_READY"); assert.equal(acceptedUri, withoutOptions); privateOutput(accepted);
+});
+
+test("actual Linux detached group abort terminates both wrapper and a real descendant without networking", { skip: process.platform !== "linux" }, async () => {
+  const directory = await mkdtemp(join(tmpdir(), "veyocast-probe-group-test-"));
+  let wrapperPid, descendantPid;
+  const alive = async (pid) => {
+    try { const value = await readFile(`/proc/${pid}/stat`, "utf8"); return value.slice(value.lastIndexOf(")") + 2).split(" ")[0] !== "Z"; }
+    catch { return false; }
+  };
+  try {
+    const pidPath = join(directory, "descendant.json");
+    const fixture = `const{spawn}=require('node:child_process');const fs=require('node:fs');const c=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});fs.writeFileSync(process.argv[1],JSON.stringify({pid:c.pid}));setInterval(()=>{},1000);`;
+    const adapter = createSqlAdapter((_file, _args, options) => {
+      const child = spawn(process.execPath, ["-e", fixture, pidPath], options); wrapperPid = child.pid; return child;
+    });
+    const controller = new globalThis.AbortController();
+    const pending = adapter({ databaseUrl: uri, sql: tenantReadSql(tenant), signal: controller.signal });
+    for (let poll = 0; poll < 100; poll++) {
+      try { descendantPid = JSON.parse(await readFile(pidPath, "utf8")).pid; break; } catch { await delay(10); }
+    }
+    assert.equal(Number.isInteger(descendantPid), true); assert.equal(await alive(descendantPid), true);
+    controller.abort(); const result = await pending; assert.equal(result.timedOut, true);
+    for (let poll = 0; poll < 100 && await alive(descendantPid); poll++) await delay(10);
+    assert.equal(await alive(wrapperPid), false); assert.equal(await alive(descendantPid), false);
+  } finally {
+    if (Number.isInteger(wrapperPid)) { try { process.kill(-wrapperPid, "SIGKILL"); } catch { /* Fixture group already ended. */ } }
+    await rm(directory, { recursive: true, force: true });
+  }
 });

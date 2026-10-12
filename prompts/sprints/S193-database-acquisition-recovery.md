@@ -24,7 +24,10 @@ connect_timeout een begrensde standaard van 45 seconden; respecteer expliciete
 URI-/environmentwaarden. Behoud alle overige URI-bytes. Configuratiefouten
 tonen alleen vaste codes. De beschermde read-only diagnose controleert eerst
 de bekende runtime-SHA en daarna één vaste tenantgebonden SQL-query en één
-kleine Data API-query. Alleen deze diagnose test expliciet 45 seconden;
+kleine Data API-query. SQL en API worden aan hetzelfde bevestigde project
+gebonden; endpointoverschrijvingen worden geweigerd. De eigen Linux-CLI-
+procesgroep wordt bij afbreken gestopt, inclusief onderliggende client.
+Alleen deze diagnose test expliciet 45 seconden;
 geen retries, providercommando's, migraties of database-/runtime-mutaties.
 Secrets, DSN's, hosts/IP's, ruwe errors en gegevenspayloads blijven uit logs.
 

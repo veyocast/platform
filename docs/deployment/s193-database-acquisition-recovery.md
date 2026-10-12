@@ -20,7 +20,10 @@ Voordat credentials worden gebruikt, controleert de diagnose de publieke
 Control- en Player-health op exact die runtime. Eén vaste SELECT met het
 bevestigde tenant-ID test dezelfde CLI met expliciet 45 seconden budget.
 Eén kleine Data API-GET controleert onafhankelijk exact die actieve tenant.
-Beide paden hebben harde deadlines en begrensde responsegrootte. Er zijn geen
+Beide paden hebben harde deadlines en begrensde responsegrootte.
+De Linux-diagnose stopt de eigen CLI-procesgroep bij afbreken, inclusief
+de onderliggende Supabaseclient. Een echte subprocess-regressie controleert
+dit afzonderlijk van synthetische response-/scopetests. Er zijn geen
 herhalingen of mutaties. Alleen vaste codes, looptijden en veilige
 scope-/statusvelden worden opgeslagen; geen DSN, host, IP, key of gegevenspayload.
 
@@ -38,8 +41,11 @@ S191-grenzen. Een stille change-driven LED-feed mag na een opgeslagen eerste
 momentopname verbonden blijven zonder dat lastValidMessageAt bij iedere
 leaseverlenging stijgt.
 
-Lokale verificatie: 75/75 regressies (12 budget, 36 lifecycle, 11 transport,
-16 runtimeprobe), scriptlint en workflow-/VPS-validators groen. Workspace
+Finale lokale verificatie: 79/79 regressies groen (12 budget, 36 lifecycle,
+11 transport, 20 runtimeprobe), plus scriptlint en workflow-/VPS-validators.
+De projectbinding en echte wrapper-/descendantafbreking zijn afzonderlijk
+getest. Niet-lopende zombies tellen als beëindigd; orphan reaping wordt niet
+geclaimd. Onafhankelijke review vond geen resterende afbrekingsblokkade. Workspace
 lint, typecheck en tests voltooiden elk 30/30; lint/typecheck gebruikten
 volledig de bestaande cache, tests gebruikten 29/30 cachetaken. Dit is geen live databasebewijs. De finale
 Foundation CI controleert deze commit afzonderlijk vóór merge.
