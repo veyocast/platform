@@ -1,11 +1,16 @@
 import { spawnSync } from "node:child_process";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import { readFile, readdir } from "node:fs/promises";
+import { fileURLToPath, URL } from "node:url";
+import { validateRunnerToolchains } from "./runner-toolchain-policy.mjs";
 
 const workflowPath = fileURLToPath(
   new URL("../.github/workflows/deploy.yml", import.meta.url)
 );
 const workflow = await readFile(workflowPath, "utf8");
+const workflowDirectory = new URL("../.github/workflows/", import.meta.url);
+const workflowNames = (await readdir(workflowDirectory)).filter((name) => /\.ya?ml$/.test(name));
+const allWorkflows = await Promise.all(workflowNames.map((name) => readFile(new URL(name, workflowDirectory), "utf8")));
+validateRunnerToolchains(allWorkflows);
 
 assertMatch(
   workflow,

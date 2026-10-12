@@ -40,7 +40,7 @@ jobs:
         run: pnpm lint
 
       - name: Lint bounded acceptance runners
-        run: pnpm exec eslint scripts/current-publication-maintenance.mjs scripts/run-browser-gates.mjs scripts/run-local-publisher-gate.mjs scripts/verify-composition-concurrency.mjs scripts/verify-media-metadata-concurrency.mjs scripts/verify-sites-reference.mjs scripts/verify-sites-comparison.mjs scripts/sites-case-inventory.mjs scripts/sites-case-inventory.test.mjs scripts/validate-compose-config.mjs tests/e2e/sites-media-workflows-live.spec.ts playwright.config.ts --max-warnings=0
+        run: pnpm exec eslint scripts/current-publication-maintenance.mjs scripts/run-browser-gates.mjs scripts/run-local-publisher-gate.mjs scripts/verify-composition-concurrency.mjs scripts/verify-media-metadata-concurrency.mjs scripts/verify-sites-reference.mjs scripts/verify-sites-comparison.mjs scripts/sites-case-inventory.mjs scripts/sites-case-inventory.test.mjs scripts/validate-compose-config.mjs scripts/runner-toolchain-policy.mjs scripts/runner-toolchain-policy.test.mjs tests/e2e/sites-media-workflows-live.spec.ts playwright.config.ts --max-warnings=0
 
       - name: Typecheck
         run: pnpm typecheck
@@ -53,6 +53,9 @@ jobs:
 
       - name: Preserve the complete original Sites case set
         run: node --test scripts/sites-case-inventory.test.mjs
+
+      - name: Preserve independent self-hosted runner toolchains
+        run: node --test scripts/runner-toolchain-policy.test.mjs
 
       - name: Validate GitHub Actions workflows
         run: bash scripts/validate-github-actions.sh
