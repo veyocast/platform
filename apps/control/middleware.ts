@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabasePublicConfig } from "./lib/supabase/config";
 import { resolveFieldflowRedirect } from "./lib/fieldflow-redirects";
+import { createRequestDeadline, controlMiddlewareBudgetMs } from "./lib/supabase/request-deadline";
 
 export async function middleware(request: NextRequest) {
   const fieldflowTarget = resolveFieldflowRedirect(request.nextUrl.pathname);
@@ -23,22 +24,33 @@ export async function middleware(request: NextRequest) {
   }
 
   let response = NextResponse.next({ request });
-  const supabase = createServerClient(config.url, config.anonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  const deadline = createRequestDeadline(controlMiddlewareBudgetMs, { signal: request.signal });
+  try {
+    const supabase = createServerClient(config.url, config.anonKey, {
+      global: {
+        fetch: (input, init) => deadline.fetch(input, { ...init, cache: "no-store" }, `${config.url.replace(/\/$/, "")}/auth/v1`)
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, options, value }) => {
-          response.cookies.set(name, value, options);
-        });
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          if (deadline.signal.aborted) return;
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, options, value }) => {
+            response.cookies.set(name, value, options);
+          });
+        }
       }
-    }
-  });
-
-  await supabase.auth.getUser();
+    });
+    await deadline.run(() => supabase.auth.getUser());
+  } catch {
+    // Middleware refresh is best effort. Protected server routes independently
+    // verify Auth and roles and never use this as authorization evidence.
+  } finally {
+    deadline.dispose();
+  }
   return response;
 }
 

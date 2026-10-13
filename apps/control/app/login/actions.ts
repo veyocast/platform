@@ -2,12 +2,10 @@
 
 import { redirect } from "next/navigation";
 
-import {
-  getControlLandingPath,
-  getControlSession
-} from "../../lib/control-session";
 import { getControlRuntimeMode } from "../../lib/supabase/config";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
+import { createRequestDeadline } from "../../lib/supabase/request-deadline";
+import { runControlLogin } from "./login-flow";
 
 export async function signIn(formData: FormData) {
   const runtimeMode = getControlRuntimeMode();
@@ -22,28 +20,21 @@ export async function signIn(formData: FormData) {
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const supabase = await createControlSupabaseClient();
-
-  if (!supabase || !email || !password) {
+  if (!email || !password) {
     redirect("/login?fout=gegevens");
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    redirect("/login?fout=inloggen");
+  const deadline = createRequestDeadline();
+  let outcome;
+  try {
+    const supabase = await createControlSupabaseClient({ deadline });
+    outcome = supabase
+      ? await runControlLogin(supabase, { email, password }, deadline)
+      : { kind: "unavailable" as const };
+  } finally {
+    deadline.dispose();
   }
-
-  // Reuse the client that performed the login. Creating a second SSR client in
-  // the same server action can observe an intermediate cookie-chunk state.
-  const session = await getControlSession(supabase);
-
-  if (!session) {
-    await supabase.auth.signOut();
-    redirect("/login?fout=inloggen");
-  }
-
-  redirect(getControlLandingPath(session));
+  redirect(outcome.kind === "success" ? outcome.path : `/login?fout=${outcome.kind === "invalid_credentials" ? "inloggen" : "dienst"}`);
 }
 
 export async function signOut() {
