@@ -333,4 +333,12 @@ S185 vervangt de dynamische publicatieproducent door gepubliceerde databindings,
 operationele cutover staan in `docs/s185-current-publication.md`; fysieke
 activering en deployment worden afzonderlijk bewezen.
 
+S210 begrenst de productiebelasting vóór een bewuste schone Supabase-cutover.
+De ontbrekende schermhistorie-index, dubbele LED-leaseclaims, vluchtige
+sync-eventhistorie en late autovacuumrespons worden forward-only hersteld. Het
+nieuwe project wordt uit de repositorymigraties opgebouwd en neemt uitsluitend
+de actuele pilotconfiguratie en gerefereerde media mee; testhistorie, queues,
+providercache en telemetrybloat blijven achter. Zie
+`docs/deployment/s210-clean-database-cutover.md`.
+
 Zie `docs/sub-agent-orchestration.md`.

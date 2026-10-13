@@ -103,7 +103,12 @@ type DecodedLedScoresMessage =
   | { error: unknown; ok: false };
 
 export interface LedScoresConnectorBackend {
-  claim(workerId: string, leaseSeconds: number, limit: number): Promise<ClaimedLedScoresConnection[]>;
+  claim(
+    workerId: string,
+    leaseSeconds: number,
+    limit: number,
+    excludedConnectionIds?: readonly string[]
+  ): Promise<ClaimedLedScoresConnection[]>;
   cleanup?(): Promise<void>;
   syncCatalog?(connection: ClaimedLedScoresConnection, workerId: string, catalog: LedScoresClubCatalog): Promise<LedScoresTeamMapping[]>;
   dispatch(connection: ClaimedLedScoresConnection, workerId: string, goal: LedScoresGoal): Promise<number>;
@@ -208,8 +213,14 @@ export class SupabaseLedScoresConnectorBackend implements LedScoresConnectorBack
       : playerAssetImporter;
   }
 
-  async claim(workerId: string, leaseSeconds: number, limit: number) {
-    const result = await this.client.rpc("claim_ledscores_connections_v1", {
+  async claim(
+    workerId: string,
+    leaseSeconds: number,
+    limit: number,
+    excludedConnectionIds: readonly string[] = []
+  ) {
+    const result = await this.client.rpc("claim_ledscores_connections_v2", {
+      p_exclude_connection_ids: [...excludedConnectionIds],
       p_lease_seconds: leaseSeconds,
       p_limit: limit,
       p_worker_id: workerId
@@ -488,7 +499,12 @@ export async function runLedScoresConnectorLoop({
     try {
       const capacity = Math.max(0, maxConnections - active.size);
       if (capacity > 0) {
-        const claims = await backend.claim(workerId, leaseSeconds, capacity);
+        const claims = await backend.claim(
+          workerId,
+          leaseSeconds,
+          capacity,
+          [...active.keys()]
+        );
         for (const connection of claims) {
           if (signal.aborted || active.has(connection.connectionId)) continue;
           const task = runClaimedConnection({
