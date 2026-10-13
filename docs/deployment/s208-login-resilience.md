@@ -38,4 +38,8 @@ Een echte Chromiumproef gebruikt een private kopie van de huidige Control-app en
 
 Deze branch bouwt op S206. Bij een PR naar main omvat hij ook de eerder afzonderlijk geteste forwardmigratie die één redundante volledige projectorcall verwijdert. De oorspronkelijke S206 Source-run blijft als rode run bewaard: één glyph met 625 afwijkende pixels; een afzonderlijke originele lokale capture heeft nul verschil. De nieuwe inhoudelijke head moet alle ongewijzigde PR-, database- en Source-gates doorlopen. Geen screenshotreferenties, assertions, browsers of drempels worden aangepast.
 
+## Gezamenlijke herstelrelease
+
+Root integreert de exacte S209-commit 67a3c29115fb0bda583f369219c9ce83c3164e1c via een gewone merge in de S208-branch. De twaalf Auth-bronbestanden en zes logo-/SQL-bestanden blijven byte-identiek aan hun afzonderlijk geteste en gereviewde versies. Alleen de twee task-ledgerregels conflicteerden; beide zijn behouden. Geen migratieconflict, force-push, rebase of amend. PR234 bevat hierdoor de login, het hergebruik van logo-objecten en de actuele providerlogo-prioriteit als één uiteindelijke herstelrelease. S209-specificaties en native bewijs staan in de afzonderlijke deploymentdoc. Root heeft vóór de mergecommit alle achttien bronhashes en opnieuw workspace lint/typecheck/test gecontroleerd: elk exit0. De gecombineerde head vereist eigen volledige ongewijzigde CI. Afzonderlijke eerdere runs blijven bewaard; pending of door concurrency geannuleerde runs zijn geen groene acceptatie.
+
 Auth- en databasestoring blijven actueel te onderzoeken. Geen gemeten CPU/RAM/disk-I/O of historische hoofdoorzaak. Productionlogin, finale deployment, providerdata, opruiming en twee gewone succesvolle synccycli zijn nog niet aangetoond.

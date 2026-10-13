@@ -1,0 +1,24 @@
+# S209 — alleen gewijzigde providerlogo's opslaan en clublogo vernieuwen
+
+## Opdracht
+
+De gebruiker vraagt expliciet een subagent te onderzoeken en herstellen waarom Sportlink herhaaldelijk dezelfde logo's POST en waarom het eigen nieuwe clublogo niet wordt opgepakt. Diagnose omvat bronnormalisatie, checksum/objectidentiteit, provider_asset_cache/currentversion, dagelijkse broncontrole, DB-completion en de canonieke slidebrandprojectie. Een succesvolle200 upload kan bestaande bytes overschrijven; dat is geen bewijs van een nieuw logo. De actuele infrastructuurstoring blijft afzonderlijk en dit herstel mag niet als gemeten oorzaak ervan worden gepresenteerd.
+
+## Ownership
+
+Writer-agent uitsluitend apps/media-worker/src/sportlink-sync-runner.ts, apps/media-worker/src/sportlink-media.ts, apps/media-worker/src/ledscores-player-assets.ts, bijbehorende bestaande Sportlink-/LED-assets-testfiles onder apps/media-worker/test/, packages/integrations/src/sportlink-mappers.ts en bijbehorende bestaande mappertests onder packages/integrations/test/, supabase/migrations/20261013040000_s209_provider_logo_refresh.sql en supabase/tests/s209_provider_logo_refresh.sql. De forward-SQLscope is de concrete providerclublogo/expliciete-customlogo-prioriteit in canonieke brand- en Menu-v2-projectie; eventuele revisionvolgordefix eerst met minimale concrete expressie/callvolgorde melden. Nieuwe helpers/testfiles eerst met concrete noodzaak/pathnamen aan root melden. Root bezit dit prompt, docs/deployment/s209-provider-logo-refresh.md en TASK_LEDGER.md. Geen wijzigingen in een andere actieve worktree; S205/S206 files zijn bevroren.
+
+## Vereisten
+
+- Traceer eerst exact werkelijke paden en rapporteer de onderscheiden oorzaken vóór wijzigingen: onvoorwaardelijke upsert naar contentaddressedpad, duplicaten binnen batch, ongewijzigde bytes tussen runs, actualclublogo pickup, en eventuele tenantcustombrandoverride. Geen aannames dat providerbytes gewijzigd zijn of huidige bron logo correct is zonder bewijs.
+- Bron wordt server-side gecontroleerd en opgeslagen; slides blijven DB/snapshot lezen. Detecteer ook gewijzigde bytes op dezelfde bron-URL. Behoud afgesproken dagelijkse eigen clubprofiel/logo-controle en publicPeopleprivacydefaults.
+- Upload uitsluitend nieuwe/genormaliseerd gewijzigde objectbytes of aantoonbaar ontbrekende objecten. Ongewijzigde bestaande gedeelde logo-objecten worden veilig hergebruikt binnen en tussen runs; alle aparte externe teamidentiteiten/currentpointers blijven correct, ook wanneer meerdere teams exact hetzelfde plaatje delen. Geen ongevalideerd storage-path of onbewezen partial/failed upload als succesvolle cache. Objectidentiteit omvat minstens bucket/role/pad/checksum/bytes/afmetingen/MIME; UUID perentiteit blijft uniek.
+- Bestaande gevalideerde currentversion kan uploadoverslaan alleen wanneer verwijzing/objectintegriteit voldoende bewezen is. Race/duplicate object moet veilig zijn. Cacheleesfout mag noodzakelijke brondata niet blokkeren of verkeerde pointers schrijven; behoud bestaande optionele-logocircuit en LKG. Personphotos blijven fail-closed en tenant/privacycorrect; geen nieuwe persoonlijke foto-cache.
+- Nieuw clublogo moet na succesvolle bronopslag daadwerkelijk de juiste DB-pointer/canonieke brandoutput vernieuwen, met behoud van expliciete tenantcustombranding. Als de bron zelf nog oude bytes geeft, rapporteer dat eerlijk; geen externe account/configuratie-/logo-reconstructie.
+- Behoud SSRF/allowlist, pinnedDNS, grootte-/normalisatiegrenzen, lifecycleabort en lease/ack semantics. Geen extra onbegrensde uploads, retries, achtergrondtaak of infrastructurele capacitymutatie.
+- Geen extra authoringversies/playlistversies voor datawijziging; immutable releases, protectedreferences en Player-LKG/offline blijven intact.
+- Meaningful tests: twee verschillende teamIDs met één identiek genormaliseerd object→één upload, volgende sync met dezelfde bytes→geen upload, dezelfde URL met veranderde bytes→exactéén nieuwobject en gewijzigde juiste pointers, nieuw eigenclublogo→canonieke output vernieuwt zonder customoverridevervangen; opslag/lookupfout/race en abort behouden bestaande data en privacy. Gebruik echte bestaande code, geen alleen mockvoorbeelden van alternatieve flow.
+
+## Gates en oplevering
+
+Lees canon volgens AGENTS.md en dit prompt. Gerichte worker/integrationslint/type/tests, workspace lint/typecheck/test en bestaande volledige PR/Sites-gates. Databasewijziging uitsluitend nieuwe forwardmigratie na rootownership, eigen geïsoleerde dbreset/RLS/tenantguards. Geen dependencies/lockfile/workflow/timeout-/leasewijziging en geen oude migraties herschrijven. Geen commit/push/remoteacties door writer-agent. Root reviewt, commit/push/deploy blijven geautoriseerd. Productielogoacceptatie vereist opgeslagen nieuwebytes/pointer/projectie-evidence en twee gewone synccycli zodra de infrastructuur weer werkt.

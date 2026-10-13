@@ -20,4 +20,6 @@ Implementatieagent: uitsluitend apps/control/app/login/{actions.ts,page.tsx,logi
 
 ## Gates en vervolg
 
+Rootintegratie: combineer de twaalf bevroren Auth-paths met de zes afzonderlijk toegestane en gevalideerde S209 logo-/SQL-paths via een normale siblingmerge; behoud beide taakrecords en alle bronhashes. Alleen root bezit deze integratie en eventuele documentaire conflictresolutie. De implementatieagenten krijgen hierdoor geen bredere editownership. Het gezamenlijke PR234 is de finale herstelrelease; eigen workspace- en volledige CI-gates blijven verplicht, historische failures blijven bewaard.
+
 Lees de canon volgens AGENTS.md en dit prompt. Gerichte regressies, scopedlint/type en workspace lint/typecheck/test; relevante bestaande Control-a11y/Chromium en volledige bestaande PR/Sites-gates behouden. Geen dependency-/lockfile-/workflow-/database-/migrationwijzigingen. Geen commit/push/remote-mutatie door implementatieagent. Root reviewt en integreert na concrete terminalbewijzen. Finale staging/production, loginwerkzaamheid, providerdata, opruiming en twee gewone synccycli blijven vereist.
