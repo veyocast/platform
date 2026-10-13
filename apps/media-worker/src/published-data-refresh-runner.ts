@@ -29,21 +29,19 @@ export class PublishedDataRefreshRunner {
     let job: ClaimedRefresh | null = null;
     let errorCode = "published_data_refresh_claim_failed";
     try {
-      const claim = await this.client.rpc("claim_published_data_refresh_v1", {
+      const claimRequest = this.client.rpc("claim_published_data_refresh_v1", {
         p_lease_seconds: this.options.leaseSeconds ?? 60,
         p_worker_id: this.options.workerId
       });
+      const claim = await (signal ? claimRequest.abortSignal(signal) : claimRequest);
+      if (signal?.aborted) return { status: "idle" };
       if (claim.error) throw new Error(errorCode);
       if (claim.data === null) return { status: "idle" };
       errorCode = "published_data_refresh_claim_invalid";
       job = parseClaim(claim.data);
-      if (signal?.aborted) {
-        errorCode = "published_data_refresh_cancelled";
-        throw new Error(errorCode);
-      }
-
       errorCode = "published_data_refresh_complete_failed";
-      const complete = await this.client.rpc("complete_published_data_refresh_v1", leaseParameters(job));
+      const completeRequest = this.client.rpc("complete_published_data_refresh_v1", leaseParameters(job));
+      const complete = await (signal ? completeRequest.abortSignal(signal) : completeRequest);
       if (complete.error) throw new Error(errorCode);
       errorCode = "published_data_refresh_completion_invalid";
       if (!isRecord(complete.data) || (complete.data.status !== "completed" && complete.data.status !== "retry")) {
@@ -55,17 +53,22 @@ export class PublishedDataRefreshRunner {
         tenantId: job.tenantId
       };
     } catch {
+      // Shutdown is not a failed refresh. Leave the durable lease to expire;
+      // the client abort does not establish whether the server already committed.
+      if (signal?.aborted) return { status: "idle" };
       if (job) {
         try {
-          await this.client.rpc("fail_published_data_refresh_v1", {
+          const failRequest = this.client.rpc("fail_published_data_refresh_v1", {
             ...leaseParameters(job),
             p_error_code: errorCode
           });
+          await (signal ? failRequest.abortSignal(signal) : failRequest);
         } catch {
           // If failure recording also loses the database, the durable queue
           // remains recoverable when its existing lease expires.
         }
       }
+      if (signal?.aborted) return { status: "idle" };
       // Never copy database messages, details or credentials into diagnostics.
       return {
         errorCode,
@@ -100,6 +103,7 @@ export class PublishedDataRefreshRunner {
       }
       if (signal.aborted) break;
       const result = await this.runOnce(signal);
+      if (signal.aborted) break;
       onSettled(result);
       if (result.status !== "completed" && (!waitForWork || result.status === "failed")) {
         await queueDelay(delayMs, signal);

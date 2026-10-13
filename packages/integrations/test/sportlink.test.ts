@@ -1,4 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import { createServer } from "node:http";
+import { once } from "node:events";
+import { setTimeout as delay } from "node:timers/promises";
 
 import {
   SportlinkClient,
@@ -12,6 +15,76 @@ import {
   stableSportlinkExternalId
 } from "../src/server";
 import { parseSportlinkArguments } from "../src/sportlink-registry";
+
+describe("Sportlink operation cancellation", () => {
+  it("does no provider I/O for pre-abort or abort before the queued fetch", async () => {
+    for (const preAbort of [true, false]) {
+      const controller = new AbortController(); const fetchImpl = vi.fn();
+      if (preAbort) controller.abort(new Error("PRIVATE_REASON"));
+      const pending = new SportlinkClient("PRIVATE_CLIENT", { fetchImpl, operationSignal: controller.signal }).fetchArticle("teams");
+      if (!preAbort) controller.abort(new Error("PRIVATE_REASON"));
+      const error = await pending.catch(error => error);
+      expect(error).toMatchObject({ code: "SPORTLINK_ABORTED", retryable: false });
+      expect(String(error)).not.toMatch(/PRIVATE_/); expect(fetchImpl).not.toHaveBeenCalled();
+    }
+  });
+
+  it.each(["headers", "body"])("stops a real native HTTP %s request without retry", async stage => {
+    let received!: () => void, closed!: () => void, count = 0;
+    const started = new Promise<void>(resolve => { received = resolve; });
+    const socketClosed = new Promise<void>(resolve => { closed = resolve; });
+    const server = createServer((request, response) => {
+      count++; request.socket.once("close", closed);
+      if (stage === "body") { response.writeHead(200, { "content-type": "application/json" }); response.write("["); }
+      received();
+    });
+    server.listen(0, "127.0.0.1"); await once(server, "listening");
+    const address = server.address(); if (!address || typeof address === "string") throw new Error("LOCAL_FIXTURE_INVALID");
+    const controller = new AbortController();
+    try {
+      const client = new SportlinkClient("PRIVATE_CLIENT", { operationSignal: controller.signal, fetchImpl: (url, options) => {
+        expect(String(url)).toMatch(/^https:\/\/data\.sportlink\.com\/teams\?/);
+        return fetch(`http://127.0.0.1:${address.port}/`, options);
+      } });
+      const pending = client.fetchArticle("teams"); const rejection = pending.catch(error => error);
+      await started; await delay(20); controller.abort(new Error("PRIVATE_REASON"));
+      const error = await rejection;
+      expect(error).toMatchObject({ code: "SPORTLINK_ABORTED", retryable: false }); expect(String(error)).not.toMatch(/PRIVATE_/);
+      await Promise.race([socketClosed, delay(1000).then(() => { throw new Error("LOCAL_SOCKET_NOT_CLOSED"); })]);
+      expect(count).toBe(1);
+    } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
+  });
+
+  it("cancels and clears an ordinary transient retry delay without issuing the retry", async () => {
+    const controller = new AbortController();
+    const fetchImpl = vi.fn(async () => new Response("{}", { status: 503, headers: { "content-type": "application/json" } }));
+    const pending = new SportlinkClient("PRIVATE_CLIENT", { fetchImpl, operationSignal: controller.signal }).fetchArticle("teams");
+    const rejection = pending.catch(error => error);
+    await delay(20); controller.abort(new Error("PRIVATE_REASON"));
+    expect(await rejection).toMatchObject({ code: "SPORTLINK_ABORTED", retryable: false });
+    await delay(350); expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("retains retryable ordinary body timeout and cancels its native stream", async () => {
+    let canceled = false;
+    const stream = new ReadableStream<Uint8Array>({ pull() { return new Promise(() => {}); }, cancel() { canceled = true; } });
+    const fetchImpl = vi.fn(async () => new Response(stream, { headers: { "content-type": "application/json" } }));
+    const pending = new SportlinkClient("PRIVATE_CLIENT", { fetchImpl, timeoutMs: 1000, maxAttempts: 1 }).fetchArticle("teams");
+    await expect(pending).rejects.toMatchObject({ code: "SPORTLINK_TIMEOUT", retryable: true });
+    expect(canceled).toBe(true); expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancels a pending binary club logo instead of returning partial media", async () => {
+    const controller = new AbortController(); let started!: () => void, canceled = false;
+    const began = new Promise<void>(resolve => { started = resolve; });
+    const body = new ReadableStream<Uint8Array>({ pull() { started(); return new Promise(() => {}); }, cancel() { canceled = true; } });
+    const client = new SportlinkClient("PRIVATE_CLIENT", { operationSignal: controller.signal,
+      fetchImpl: vi.fn(async () => new Response(body, { headers: { "content-type": "image/png" } })) });
+    const pending = client.fetchClubLogo(); const rejection = pending.catch(error => error);
+    await began; await delay(20); controller.abort(new Error("PRIVATE_REASON"));
+    expect(await rejection).toMatchObject({ code: "SPORTLINK_ABORTED", retryable: false }); expect(canceled).toBe(true);
+  });
+});
 
 describe("Sportlink server-only adapter", () => {
   it("allowlists and bounds query parameters", () => {

@@ -1,3 +1,5 @@
+import { createServer } from "node:http";
+import { createClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -18,7 +20,11 @@ const leaseArgs = {
 };
 
 function createRunner(rpc: unknown, leaseSeconds?: number) {
-  return new PublishedDataRefreshRunner({ rpc } as PublishedDataRefreshClient, {
+  const client = { rpc: (...args: unknown[]) => {
+    const request = (rpc as (...parameters: unknown[]) => Promise<unknown>)(...args);
+    return Object.assign(request, { abortSignal: () => request });
+  } } as unknown as PublishedDataRefreshClient;
+  return new PublishedDataRefreshRunner(client, {
     leaseSeconds,
     workerId: "worker:test"
   });
@@ -150,7 +156,7 @@ describe("database-only published data refresh runner", () => {
     expect(await runner.runOnce()).toMatchObject({ status: "completed" });
   });
 
-  it("does not claim during shutdown and records cancellation if shutdown follows the claim", async () => {
+  it("does not claim during shutdown or record failure when shutdown follows the claim", async () => {
     const controller = new AbortController();
     const rpc = vi.fn().mockResolvedValue({ data: job, error: null });
     controller.abort();
@@ -162,12 +168,50 @@ describe("database-only published data refresh runner", () => {
       duringClaim.abort();
       return { data: job, error: null };
     }).mockResolvedValueOnce({ data: true, error: null });
-    expect(await createRunner(rpc).runOnce(duringClaim.signal)).toMatchObject({
-      errorCode: "published_data_refresh_cancelled", status: "failed"
+    expect(await createRunner(rpc).runOnce(duringClaim.signal)).toEqual({ status: "idle" });
+    expect(rpc).toHaveBeenCalledOnce();
+  });
+
+  it.each(["claim", "complete", "fail"])("cancels a real native SDK %s request without a later RPC or shutdown accounting", async (stage) => {
+    const paths: string[] = []; let began!: () => void, closed!: () => void;
+    const active = new Promise<void>((resolve) => { began = resolve; });
+    const disconnected = new Promise<void>((resolve) => { closed = resolve; });
+    const server = createServer((request, response) => {
+      const path = request.url ?? ""; paths.push(path); request.resume();
+      if (path === `/rest/v1/rpc/${stage}_published_data_refresh_v1`) {
+        response.on("close", closed); began(); return;
+      }
+      response.setHeader("Content-Type", "application/json");
+      if (path.includes("claim_")) response.end(JSON.stringify(job));
+      else { response.statusCode = 500; response.end(JSON.stringify({ code: "57014", message: "PRIVATE_ERROR" })); }
     });
-    expect(rpc).toHaveBeenNthCalledWith(2, "fail_published_data_refresh_v1", {
-      ...leaseArgs, p_error_code: "published_data_refresh_cancelled"
-    });
+    await new Promise<void>((resolve) => { server.listen(0, "127.0.0.1", resolve); });
+    const address = server.address(); if (!address || typeof address === "string") throw new Error("fixture_address_invalid");
+    const controller = new AbortController(); const settled = vi.fn();
+    const runner = new PublishedDataRefreshRunner(createClient(`http://127.0.0.1:${address.port}`, "fixture-only", {
+      auth: { persistSession: false, autoRefreshToken: false }
+    }), { workerId: "worker:test" });
+    let execution: Promise<void> | undefined;
+    try {
+      execution = runner.loop({ signal: controller.signal, onSettled: settled });
+      await active; controller.abort("PRIVATE_ABORT_REASON");
+      await execution; await disconnected;
+      expect(paths).toEqual(["claim", ...(stage !== "claim" ? ["complete"] : []), ...(stage === "fail" ? ["fail"] : [])]
+        .map((name) => `/rest/v1/rpc/${name}_published_data_refresh_v1`));
+      expect(settled).not.toHaveBeenCalled();
+    } finally {
+      controller.abort(); server.closeAllConnections();
+      await new Promise<void>((resolve) => { server.close(() => resolve()); });
+      await execution;
+    }
+  });
+
+  it("keeps an acknowledged completion even if shutdown arrives with its response", async () => {
+    const controller = new AbortController();
+    const rpc = vi.fn().mockResolvedValueOnce({ data: job, error: null })
+      .mockImplementationOnce(async () => { controller.abort(); return { data: { status: "completed" }, error: null }; });
+    expect(await createRunner(rpc).runOnce(controller.signal)).toMatchObject({ status: "completed" });
+    expect(rpc).toHaveBeenCalledTimes(2);
   });
 
   it("keeps the loop running after wait and RPC outages with bounded retries", async () => {
