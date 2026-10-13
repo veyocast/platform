@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -29,7 +30,9 @@ function fixture() {
     heartbeatProgress: { tablePresent: true, visibilityKnown: true, truncated: false, rows: [] },
     tables: tables.map(relation => ({ relation, present: true, statsKnown: true, estimatedRows: 10, liveRowsEstimate: 10, deadRowsEstimate: 2 })),
     heartbeatIndex: { namePresent: true, onExpectedTable: true, valid: true, ready: true, btree: true, nonUnique: true, columnsExact: true, predicateExact: true, defaultOptionsExact: true },
-    heartbeatMigration: { versionPresent: true } };
+    heartbeatMigration: { versionPresent: true },
+    lockDiagnosis: { databaseMatches: true, relationState: "MATCHED", relationClass: "TENANTS", visibilityKnown: true,
+      waitersSampled: 0, waitersTruncated: false, waiters: [] } };
 }
 const response = (value = fixture()) => ({ ok: true, stdout: JSON.stringify([{ report: value }]) });
 const privateOutput = value => assert.doesNotMatch(JSON.stringify(value), /PRIVATE_|postgres:\/\/|RAW_ERROR|pg_stat_activity|pg_get_expr/);
@@ -82,6 +85,9 @@ test("fixed SQL contains exact scope, history, index and caps and no mutating co
   assert.match(sql, /amname='btree'/); assert.match(sql, /pg_get_expr\(indpred,indrelid,false\) IN/);
   assert.match(sql, /NOT \(indisunique OR indisprimary OR indisexclusion\)/); assert.match(sql, /pid<>pg_backend_pid\(\)/);
   assert.match(sql, /LIMIT 257/); assert.match(sql, /LIMIT 17/); assert.match(sql, /pg_read_all_stats','USAGE'/);
+  assert.match(sql, /oid=5 AS matches/); assert.match(sql, /oid=20982/);
+  assert.match(sql, /SELECT DISTINCT blocker_pid FROM unnest\(pg_catalog\.pg_blocking_pids\(w\.pid\)\)/);
+  assert.match(sql, /SELECT \* FROM eligible_waiters ORDER BY pid LIMIT 16/); assert.match(sql, /WHERE s\.position<=16/);
   assert.doesNotMatch(sql, /\b(?:insert|update|delete|truncate|alter|drop|grant|notify|pg_notify|analyze|pg_sleep|pg_cancel_backend|pg_terminate_backend)\b/i);
 });
 
@@ -113,6 +119,7 @@ test("invalid, truncated, duplicate-key, multirow and oversized wire output are 
 
 test("masked stats/missing roles, tables, estimates and absent index stay explicitly incomplete", () => {
   const value = fixture(); value.allStatsVisible = false; value.heartbeatProgress.visibilityKnown = false;
+  Object.assign(value.lockDiagnosis, { visibilityKnown: false, waitersSampled: null });
   for (const row of value.roles) { row.visibilityKnown = false; for (const key of ["sessions", "active", "idle", "idleTransaction", "otherState", "lockWait", "ioWait", "clientWait", "otherWait", "noWait"]) row[key] = null; }
   value.roles[0].present = false;
   Object.assign(value.tables[0], { present: false, statsKnown: false, estimatedRows: null, liveRowsEstimate: null, deadRowsEstimate: null });
@@ -146,6 +153,155 @@ test("unreviewed progress phase, unknown counters and lock modes cannot imply co
   value.heartbeatLocks.unreviewedModes = 1; value.heartbeatLocks.sampledLocks = 1;
   assert.equal(sanitizeDataApiResources(value).contextComplete, false);
   value.heartbeatProgress.rows[0].phase = "PRIVATE_PHASE"; assert.throws(() => sanitizeDataApiResources(value), /RESOURCE_METADATA_INVALID/);
+});
+
+function blockedWaiter(patch = {}) {
+  return { role: "authenticator", workload: "PRUNE", lockClass: "TRANSACTION", blockersSampled: 1, blockersTruncated: false,
+    blockerGroups: [{ role: "authenticator", workload: "SPORTLINK_COMPLETION", category: "classified", count: 1 }], ...patch };
+}
+function blockedFixture(waiters = [blockedWaiter()]) {
+  const value = fixture(); value.lockDiagnosis.waiters = waiters; value.lockDiagnosis.waitersSampled = waiters.length; return value;
+}
+
+test("production OID mapping distinguishes incomparable, absent and unreviewed from a known current table", () => {
+  for (const state of ["INCOMPARABLE", "ABSENT", "UNREVIEWED"]) {
+    const value = fixture(); Object.assign(value.lockDiagnosis, { databaseMatches: state !== "INCOMPARABLE", relationState: state, relationClass: null });
+    const result = sanitizeDataApiResources(value);
+    assert.equal(result.lockDiagnosis.relationState, state); assert.equal(result.lockDiagnosis.relationClass, null);
+    assert.equal(result.lockDiagnosis.complete, false); assert.equal(result.contextComplete, false); privateOutput(result);
+  }
+  const value = fixture(); value.lockDiagnosis.relationClass = "REFRESH_QUEUE";
+  assert.equal(sanitizeDataApiResources(value).lockDiagnosis.relationClass, "REFRESH_QUEUE");
+  for (const patch of [{ databaseMatches: false }, { relationClass: "PRIVATE_TABLE" }, { relationState: "ABSENT" }]) {
+    const invalid = fixture(); Object.assign(invalid.lockDiagnosis, patch); assert.throws(() => sanitizeDataApiResources(invalid), /RESOURCE_METADATA_INVALID/);
+  }
+});
+
+test("bounded blocker class edges retain prune/completion intersection as current hints only", async () => {
+  const value = blockedFixture([blockedWaiter({ blockersSampled: 2,
+    blockerGroups: [{ role: "authenticator", workload: "SPORTLINK_COMPLETION", category: "classified", count: 2 }] })]);
+  const result = await probeDataApiResources(input(), dependencies({ executeSql: async () => response(value) }));
+  assert.equal(result.exitCode, 0); assert.equal(result.report.code, "RESOURCE_CONTEXT_OBSERVED"); assert.equal(result.report.verdict, "UNPROVEN");
+  assert.deepEqual(result.report.metadata.lockDiagnosis.waiters, value.lockDiagnosis.waiters);
+  assert.equal(result.report.metadata.lockDiagnosis.unknownBlockerEdges, 0); assert.equal(result.report.metadata.lockDiagnosis.complete, true);
+  assert.ok(result.report.limitations.includes("query_tokens_are_last_statement_hints_not_proof_of_active_rpc"));
+  assert.ok(result.report.limitations.includes("bounded_blocker_edges_are_current_context_not_full_chains_or_deadlock_proof")); privateOutput(result);
+});
+
+test("observed storage table and published refresh completion remain fixed current classes", async () => {
+  const value = blockedFixture([blockedWaiter({ workload: "PUBLISHED_REFRESH_COMPLETION",
+    blockerGroups: [{ role: "authenticator", workload: "PUBLISHED_REFRESH_COMPLETION", category: "classified", count: 1 }] })]);
+  value.lockDiagnosis.relationClass = "STORAGE_OBJECTS";
+  const result = await probeDataApiResources(input(), dependencies({ executeSql: async () => response(value) }));
+  assert.equal(result.report.code, "RESOURCE_CONTEXT_OBSERVED"); assert.equal(result.report.verdict, "UNPROVEN");
+  assert.equal(result.report.metadata.lockDiagnosis.relationClass, "STORAGE_OBJECTS");
+  assert.equal(result.report.metadata.lockDiagnosis.waiters[0].workload, "PUBLISHED_REFRESH_COMPLETION");
+  assert.equal(result.report.metadata.lockDiagnosis.unknownBlockerEdges, 0); privateOutput(result);
+  for (const mutate of [r => { r.lockDiagnosis.relationClass = "STORAGE_BUCKETS"; },
+    r => { r.lockDiagnosis.waiters[0].role = "supabase_storage_admin"; },
+    r => { r.lockDiagnosis.waiters[0].workload = "STORAGE_UPSERT"; },
+    r => { r.lockDiagnosis.waiters[0].blockerGroups[0].workload = "PUBLISHED_REFRESH_COMPLETION_V2"; },
+    r => { r.lockDiagnosis.waiters[0].blockerGroups[0].query = "PRIVATE_STORAGE_PARAMETER"; }]) {
+    const invalid = globalThis.structuredClone(value); mutate(invalid);
+    assert.throws(() => sanitizeDataApiResources(invalid), /RESOURCE_METADATA_INVALID/);
+  }
+});
+
+test("fixed three-token hints reject prefixes and alternate versions while mixed hints stay ambiguous", () => {
+  const sql = dataApiResourcesSql();
+  assert.match(sql, /\('storage','objects','STORAGE_OBJECTS'\)/); assert.doesNotMatch(sql, /\('storage','buckets'/);
+  assert.match(sql, /a\.workload IN \('PRUNE','SPORTLINK_COMPLETION','PUBLISHED_REFRESH_COMPLETION','MULTIPLE_HINTS'\)/);
+  assert.match(sql, /a\.workload IN \('PRUNE','SPORTLINK_COMPLETION','PUBLISHED_REFRESH_COMPLETION'\) THEN 'classified'/);
+  const expected = [
+    ["prune_queued_publication_versions_v1", "PRUNE"], ["complete_sportlink_sync_v4", "SPORTLINK_COMPLETION"],
+    ["complete_published_data_refresh_v1", "PUBLISHED_REFRESH_COMPLETION"]
+  ];
+  const hints = [...sql.matchAll(/WHEN query ~\* '([^']+)' THEN '([A-Z_]+)'/g)];
+  assert.equal(hints.length, expected.length);
+  for (let index = 0; index < hints.length; index++) {
+    const [token, workload] = expected[index], pattern = new RegExp(hints[index][1], "i");
+    assert.equal(hints[index][2], workload);
+    for (const text of [token, `SELECT public.${token}($1)`, token.toUpperCase()]) assert.equal(pattern.test(text), true);
+    for (const text of [`prefix_${token}`, `${token}_suffix`, `${token}0`, token.replace(/v\d+$/, "v99")]) assert.equal(pattern.test(text), false);
+  }
+  const multiple = sql.match(/WHEN \((.+)\)>1 THEN 'MULTIPLE_HINTS'/);
+  assert.ok(multiple); assert.equal((multiple[1].match(/CASE WHEN query ~\*/g) ?? []).length, 3);
+  for (const workload of ["PRUNE", "SPORTLINK_COMPLETION", "PUBLISHED_REFRESH_COMPLETION"]) {
+    const ambiguous = blockedFixture([blockedWaiter({ workload: "MULTIPLE_HINTS", blockerGroups: [
+      { role: "authenticator", workload, category: "classified", count: 1 }
+    ] })]);
+    assert.equal(sanitizeDataApiResources(ambiguous).lockDiagnosis.complete, false);
+  }
+});
+
+test("masked visibility reports unknown counts rather than no current blockers", () => {
+  const value = fixture(); value.allStatsVisible = false; value.heartbeatProgress.visibilityKnown = false;
+  Object.assign(value.lockDiagnosis, { visibilityKnown: false, waitersSampled: null });
+  const result = sanitizeDataApiResources(value); assert.equal(result.lockDiagnosis.unknownWaiters, null);
+  assert.equal(result.lockDiagnosis.unknownBlockerEdges, null); assert.equal(result.lockDiagnosis.preparedBlockerEdges, null);
+  assert.equal(result.lockDiagnosis.waitersWithoutBlockers, null); assert.equal(result.lockDiagnosis.complete, false);
+  for (const patch of [{ waitersSampled: 0 }, { waitersTruncated: true }, { waiters: [blockedWaiter()] }, { visibilityKnown: true }]) {
+    const invalid = globalThis.structuredClone(value); Object.assign(invalid.lockDiagnosis, patch);
+    assert.throws(() => sanitizeDataApiResources(invalid), /RESOURCE_METADATA_INVALID/);
+  }
+});
+
+test("prepared, outside, masked and unclassified blocker edges remain unknown", () => {
+  for (const group of [{ role: "UNKNOWN", workload: "UNKNOWN", category: "prepared", count: 1 },
+    { role: "UNKNOWN", workload: "PRUNE", category: "unknown", count: 1 },
+    { role: "authenticator", workload: "UNKNOWN", category: "unknown", count: 1 },
+    { role: "postgres", workload: "UNCLASSIFIED", category: "unknown", count: 1 },
+    { role: "authenticator", workload: "MULTIPLE_HINTS", category: "unknown", count: 1 }]) {
+    const value = blockedFixture([blockedWaiter({ blockerGroups: [group] })]); const result = sanitizeDataApiResources(value);
+    assert.equal(result.lockDiagnosis.unknownBlockerEdges, 1); assert.equal(result.lockDiagnosis.preparedBlockerEdges, group.category === "prepared" ? 1 : 0);
+    assert.equal(result.contextComplete, false); assert.equal(result.lockDiagnosis.complete, false); privateOutput(result);
+  }
+});
+
+test("unclassified waiters, missing lock class and vanished blocker edges cannot manufacture completeness", () => {
+  for (const patch of [{ workload: "UNKNOWN" }, { workload: "UNCLASSIFIED" }, { workload: "MULTIPLE_HINTS" }, { lockClass: "OTHER" },
+    { lockClass: "UNKNOWN" }, { blockersSampled: 0, blockerGroups: [] }]) {
+    const result = sanitizeDataApiResources(blockedFixture([blockedWaiter(patch)]));
+    assert.equal(result.lockDiagnosis.complete, false); assert.equal(result.contextComplete, false);
+    assert.equal(result.lockDiagnosis.waitersWithoutBlockers, patch.blockersSampled === 0 ? 1 : 0);
+  }
+});
+
+test("waiter and distinct blocker sentinel caps preserve bounded partial observations", () => {
+  const value = blockedFixture(Array.from({ length: 16 }, () => blockedWaiter()));
+  value.lockDiagnosis.waitersSampled = 17; value.lockDiagnosis.waitersTruncated = true;
+  const waiterCapped = sanitizeDataApiResources(value); assert.equal(waiterCapped.lockDiagnosis.waiters.length, 16);
+  assert.equal(waiterCapped.lockDiagnosis.waitersSampled, 17); assert.equal(waiterCapped.lockDiagnosis.complete, false);
+  const blockerCapped = sanitizeDataApiResources(blockedFixture([blockedWaiter({ blockersSampled: 17, blockersTruncated: true,
+    blockerGroups: [{ role: "authenticator", workload: "SPORTLINK_COMPLETION", category: "classified", count: 16 }] })]));
+  assert.equal(blockerCapped.lockDiagnosis.waiters[0].blockersSampled, 17); assert.equal(blockerCapped.lockDiagnosis.complete, false);
+});
+
+test("blocker wire rejects private identifiers, inconsistent caps, duplicate groups and forged completeness", async () => {
+  for (const mutate of [r => { r.lockDiagnosis.pid = 42; }, r => { r.lockDiagnosis.relationOid = 20982; },
+    r => { r.lockDiagnosis.complete = true; }, r => { r.lockDiagnosis.waiters[0].query = "PRIVATE_QUERY"; },
+    r => { r.lockDiagnosis.waiters[0].transactionId = "PRIVATE_TRANSACTION"; }, r => { r.lockDiagnosis.waiters[0].role = "PRIVATE_ROLE"; },
+    r => { r.lockDiagnosis.waiters[0].workload = "PRIVATE_WORKLOAD"; }, r => { r.lockDiagnosis.waiters[0].lockClass = "PRIVATE_LOCK"; },
+    r => { r.lockDiagnosis.waitersSampled = 17; }, r => { r.lockDiagnosis.waitersSampled = 18; },
+    r => { r.lockDiagnosis.waiters[0].blockersSampled = 17; }, r => { r.lockDiagnosis.waiters[0].blockersSampled = 18; },
+    r => { r.lockDiagnosis.waiters[0].blockerGroups[0].count = 2; }, r => { r.lockDiagnosis.waiters[0].blockerGroups[0].count = true; },
+    r => { r.lockDiagnosis.waiters[0].blockerGroups[0].category = "prepared"; },
+    r => { r.lockDiagnosis.waiters[0].blockerGroups[0].role = "UNKNOWN"; },
+    r => { r.lockDiagnosis.waiters[0].blockerGroups[0].workload = "UNCLASSIFIED"; },
+    r => { const w = r.lockDiagnosis.waiters[0]; w.blockersSampled = 2; w.blockerGroups.push({ ...w.blockerGroups[0] }); }]) {
+    const value = blockedFixture(); mutate(value);
+    const result = await probeDataApiResources(input(), dependencies({ executeSql: async () => response(value) }));
+    assert.equal(result.report.code, "RESOURCE_CONTEXT_UNPROVEN"); assert.equal(result.exitCode, 1); privateOutput(result);
+  }
+});
+
+test("full retained blocker-class payload including refresh hints stays below the existing64KiB wire cap", () => {
+  const groups = roles.flatMap(role => ["PRUNE", "SPORTLINK_COMPLETION", "PUBLISHED_REFRESH_COMPLETION"].map(workload => ({ role, workload, category: "classified", count: 1 })));
+  groups.push({ role: "UNKNOWN", workload: "UNKNOWN", category: "prepared", count: 1 });
+  const value = blockedFixture(Array.from({ length: 16 }, () => blockedWaiter({ blockersSampled: 17, blockersTruncated: true, blockerGroups: groups })));
+  value.lockDiagnosis.waitersSampled = 17; value.lockDiagnosis.waitersTruncated = true;
+  assert.ok(Buffer.byteLength(response(value).stdout) < 65_536);
+  assert.equal(sanitizeDataApiResources(value).lockDiagnosis.unknownBlockerEdges, 16); privateOutput(sanitizeDataApiResources(value));
 });
 
 test("preabort, mid-baseline and active metadata abort stay fatal and prevent later requests", async () => {

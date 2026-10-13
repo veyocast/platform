@@ -261,3 +261,5 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 ## Statuswaarden
 
 `todo`, `in_progress`, `blocked`, `review`, `done`, `superseded`.
+
+| S203 | in_progress | veyocast/s203-data-api-lock-diagnosis | root + scoped agent + read-only reviewer | Vaste huidige relationmapping en begrensde blockercontext voor de onbeschikbare productie-API | Bestaande Data API-contextmodule/tests; prompt, deploymentdoc en ledger |27gerichteNodechecksPASS0SKIP; scopeESLint/diffcheck/gepinde workflowvalidatiePASS; workspace lint/typecheck/test elk30/30 met30/30/29 cachehergebruik; daadwerkelijke eigen read-only PostgreSQL-query14895B en advisory-blockerfixturePASS, rollback/eigenlockabsence0; afwezige tenant weigert sanitizer; onafhankelijke finalediffACK; volledige exacte PR-gates/livecontext volgen | Productie38322013412 faalt opnieuw op S198 CREATE INDEX/57014; oude18e-runtime hersteld, publieke health200 bewijst geen websiteherstel. Nieuwe ochtendexport bevat202timeouts/uur plus trage storage/refreshqueries, zonder timeoutSQL/OIDmapping. Geen uitrolherhaling, timeoutverruiming, migration-historyrepair of provider-/releasewijziging. |
