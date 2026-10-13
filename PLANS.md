@@ -1,6 +1,13 @@
 # VeyoCast MVP Plan
 
-S211 voert de goedgekeurde schone Supabase-productiecutover uit. Alleen de
+S212 herstelt de laatste Sportlink-live-datasets na de schone productiecutover.
+Sportlink geeft voor een deel van de artikelen geldige JSON terug met een
+ontbrekende of onjuiste media-typeheader. De serverclient leest de al begrensde
+response daarom eerst en accepteert haar uitsluitend wanneer JSON-parsing
+slaagt; werkelijke HTML en corrupte JSON blijven gesloten. Zie
+`prompts/sprints/S212-sportlink-provider-media-type.md`.
+
+S211 voerde de goedgekeurde schone Supabase-productiecutover uit. Alleen de
 minimale tenant-, beheer-, scherm- en integratieconfiguratie wordt opnieuw
 opgebouwd; playlists, releases, dynamische slides, Studio-ontwerpen, media en
 Storage-objecten gaan niet mee. Players worden opnieuw gekoppeld. De bestaande

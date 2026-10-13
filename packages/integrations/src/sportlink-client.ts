@@ -85,16 +85,18 @@ export class SportlinkClient {
 
   private async request(key: SportlinkArticleKey, args: Record<string, unknown>, id: string) {
     const response = await this.doFetch(key, args, id);
-    if (!(response.headers.get("content-type") ?? "").toLowerCase().includes("json")) {
-      cancelBody(response);
-      throw new SportlinkClientError("SPORTLINK_CONTENT_TYPE_INVALID",
-        "Sportlink gaf geen JSON terug.", transient.has(response.status), response.status);
-    }
+    const type = (response.headers.get("content-type") ?? "").toLowerCase();
     const bytes = await this.readLimitedBody(response, maxBytes);
     let payload: unknown;
     try { payload = JSON.parse(new TextDecoder().decode(bytes)); }
-    catch { throw new SportlinkClientError("SPORTLINK_RESPONSE_INVALID",
-      "Sportlink gaf ongeldige JSON terug.", transient.has(response.status), response.status); }
+    catch {
+      const declaredJson = type.includes("json");
+      throw new SportlinkClientError(
+        declaredJson ? "SPORTLINK_RESPONSE_INVALID" : "SPORTLINK_CONTENT_TYPE_INVALID",
+        declaredJson ? "Sportlink gaf ongeldige JSON terug." : "Sportlink gaf geen JSON terug.",
+        transient.has(response.status), response.status
+      );
+    }
     const providerCode = readErrorCode(payload);
     if (!response.ok || providerCode) throw mapError(providerCode, response.status);
     return payload;
