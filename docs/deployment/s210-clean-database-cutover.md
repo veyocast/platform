@@ -76,21 +76,50 @@ devices, één Sportlinkverbinding en één LED Scores-verbinding. Storage bevat
 drie buckets en naar schatting 26.718 actieve objectrecords. Dit is pilot- en
 testdata; er zijn geen echte klanten.
 
-De schone cutover neemt uitsluitend mee of bouwt opnieuw op:
+De op 13 oktober 2026 bevestigde schone cutover neemt uitsluitend mee of bouwt
+opnieuw op:
 
 1. de Duindorp-tenant, actieve memberships, tenantinstellingen en het huidige
    thema;
-2. actuele schermdefinities, zonder devicecredentials; de acht Players worden
-   na cutover opnieuw gekoppeld;
-3. actuele authoringconfiguratie en één gevalideerde huidige publicatie;
-4. alleen media die vanuit die huidige authoring/publicatie wordt gerefereerd;
-5. één opnieuw gevalideerde Sportlinkverbinding en één LED Scores-verbinding;
-6. nieuwe uitnodigingen voor de drie beheerders.
+2. nieuwe schermdefinities voor de gewenste fysieke Players, zonder
+   devicecredentials; iedere Player wordt na cutover opnieuw gekoppeld;
+3. één opnieuw gevalideerde Sportlinkverbinding en één LED Scores-verbinding,
+   met providerdata en providerassets die opnieuw vanaf de bron worden gevuld;
+4. nieuwe uitnodigingen voor de beheerders.
 
 Niet meenemen: heartbeats, sync-events, connector-events, sync-runhistorie,
 workerqueues, renderjobs, audit-/testfixtures, providercache, oude snapshots,
-superseded releases, verwijderde media en niet-gerefereerde Storage-objecten.
-Providerlogo's en sportdata worden na cutover opnieuw vanaf de provider gevuld.
+playlists, playlistitems, playlistreleases, publicatie- en planningsrecords,
+dynamische slides en hun versies/snapshots, Studio-ontwerpen, mediarecords,
+Storage-objecten, superseded releases en verwijderde media. Playlists, slides en
+media worden bewust opnieuw opgebouwd in het nieuwe project. Er wordt dus geen
+contentrelease uit het oude project aan een nieuw scherm toegewezen.
+
+## Automatische versieretentie
+
+De runtime bewaart één logische actuele publicatie per playlist en ruimt oudere
+serverversies asynchroon op. Een nieuwe publicatie of gepubliceerde slideversie
+zet tenantgebonden opruimwerk klaar. De mediaworker verwerkt dit in batches van
+maximaal 25 records en controleert vóór iedere verwijdering alle actuele
+referenties opnieuw. Een release blijft zolang een scherm, Player, planning,
+sponsorplan of lopende thema-uitrol haar nog nodig heeft. Een actieve of desired
+Playerrelease wordt daarom nooit tijdens playback verwijderd. Wanneer de Player
+naar de nieuwe release omschakelt, wordt opnieuw opruimwerk gestart; daarnaast
+wordt een rustige tenant iedere tien minuten opnieuw gecontroleerd.
+
+Dezelfde opruimgrens verwijdert niet meer bereikbare oude dynamische
+slideversies en snapshots. De huidige gepubliceerde versie, actieve draft,
+lopende render, actuele fallback en gepubliceerde live binding blijven bestaan.
+Mediaobjecten worden door deze taak niet verwijderd, omdat gedeelde bestanden
+een eigen referentie- en verwijderflow hebben.
+
+Sportlink- en RSS-observaties maken geen nieuwe authoringversie of
+playlistrelease. Zij verversen `published_dynamic_data` voor de bestaande
+gepubliceerde snapshot. Gelijke inhoud verandert de datarevisie niet; veel
+snelle bronwijzigingen worden per binding samengevoegd. Alleen een bewuste
+ontwerp- of publicatiewijziging maakt een nieuwe immutable configuratie, waarna
+de vorige onbereikbare serverversie via bovenstaande referentiecontrole wordt
+opgeruimd.
 
 ## Uitvoering
 
@@ -102,8 +131,10 @@ Providerlogo's en sportdata worden na cutover opnieuw vanaf de provider gevuld.
 4. Configureer Auth redirect-URL's, SMTP/templates, MFA, Storage-buckets,
    Realtime-publicaties en overige projectinstellingen gelijk aan productie.
 5. Maak de pilottenant opnieuw aan via de bestaande provisioninggrens, nodig de
-   drie gebruikers opnieuw uit en voer de beperkte actuele configuratie/media
-   in. Providerdata wordt opnieuw gesynchroniseerd.
+   beheerders opnieuw uit en maak de schermdefinities opnieuw aan. Configureer
+   Sportlink en LED Scores opnieuw en synchroniseer providerdata vanaf de bron.
+   Maak geen playlists, slides, releases, planningen, mediarecords of
+   Storage-objecten over.
 6. Bewijs vóór cutover: security-advisor, RLS-suite, login, tenantcontext,
    Sportlink-sync, LED Scores WebSocket→database→slide, Storage-deduplicatie,
    publicatie, manifest, heartbeat en Player last-known-good.
@@ -115,7 +146,7 @@ Providerlogo's en sportdata worden na cutover opnieuw vanaf de provider gevuld.
 8. Deploy exact één immutable SHA naar stagingvalidatie en daarna productie.
    Stop de oude worker vóór de omzetting; start de nieuwe worker pas nadat de
    database- en Auth-smokes groen zijn.
-9. Koppel de acht Players opnieuw en controleer dat nieuwe heartbeats en
+9. Koppel de gewenste Players opnieuw en controleer dat nieuwe heartbeats en
    providerdata uitsluitend in het nieuwe project verschijnen.
 10. Houd het oude project minimaal zeven dagen read-only. Terugval bestaat uit
     het herstellen van de vijf environmentwaarden en de vorige immutable

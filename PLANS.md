@@ -1,5 +1,14 @@
 # VeyoCast MVP Plan
 
+S211 voert de goedgekeurde schone Supabase-productiecutover uit. Alleen de
+minimale tenant-, beheer-, scherm- en integratieconfiguratie wordt opnieuw
+opgebouwd; playlists, releases, dynamische slides, Studio-ontwerpen, media en
+Storage-objecten gaan niet mee. Players worden opnieuw gekoppeld. De bestaande
+referentieveilige versiepruner en de live-datagrens voorkomen dat nieuwe
+publicaties of slideversies zich door Sportlink/RSS-refreshes opstapelen. Zie
+`prompts/sprints/S211-clean-database-cutover.md` en
+`docs/deployment/s210-clean-database-cutover.md`.
+
 S191 voert de volledige exacte Sites-v11-overdracht uit op de actuele
 productieruntime. De scope, gerichte canon-delta en alle oorspronkelijke
 matrixrecords staan in `docs/sites-v11-overname/`; de uitvoeringsopdracht staat
