@@ -460,6 +460,46 @@ describe("Sportlink server-only adapter", () => {
     });
   });
 
+  it.each(["text/plain", null])(
+    "accepts bounded valid JSON when Sportlink labels it as %s",
+    async contentType => {
+      const headers = contentType ? { "content-type": contentType } : undefined;
+      const body = new TextEncoder().encode(JSON.stringify([
+        { teamcode: 31260, teamnaam: "Duindorp sv 1" }
+      ]));
+      const fetchImpl = vi.fn(async () => new Response(body, { headers, status: 200 }));
+
+      const response = await new SportlinkClient("test-client", {
+        fetchImpl, maxAttempts: 1
+      }).fetchArticle("teams");
+
+      expect(response.recordCount).toBe(1);
+      expect(response.payload).toEqual([
+        { teamcode: 31260, teamnaam: "Duindorp sv 1" }
+      ]);
+    }
+  );
+
+  it("rejects non-JSON bodies according to the declared media type", async () => {
+    const htmlFetch = vi.fn(async () => new Response("<html>storing</html>", {
+      headers: { "content-type": "text/html" }, status: 200
+    }));
+    await expect(new SportlinkClient("test-client", {
+      fetchImpl: htmlFetch, maxAttempts: 1
+    }).fetchArticle("teams")).rejects.toMatchObject({
+      code: "SPORTLINK_CONTENT_TYPE_INVALID", retryable: false, status: 200
+    });
+
+    const malformedJsonFetch = vi.fn(async () => new Response("[", {
+      headers: { "content-type": "application/json" }, status: 200
+    }));
+    await expect(new SportlinkClient("test-client", {
+      fetchImpl: malformedJsonFetch, maxAttempts: 1
+    }).fetchArticle("teams")).rejects.toMatchObject({
+      code: "SPORTLINK_RESPONSE_INVALID", retryable: false, status: 200
+    });
+  });
+
   it("stops reading a streamed provider response at the payload limit", async () => {
     const oversizedFetch = vi.fn(async () => new Response(
       new Uint8Array(2_000_001),
