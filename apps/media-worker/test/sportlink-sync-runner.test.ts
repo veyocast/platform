@@ -21,6 +21,112 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe("Sportlink worker lifecycle cancellation", () => {
+  const job = {
+    connectionId: "20000000-0000-4000-8000-000000000001", dataSourceId: "30000000-0000-4000-8000-000000000001",
+    datasetGroup: "competitions", encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+    runId: "40000000-0000-4000-8000-000000000001", tenantId: "10000000-0000-4000-8000-000000000001", timezone: "Europe/Amsterdam"
+  };
+  const claimRow = { connection_id: job.connectionId, data_source_id: job.dataSourceId, dataset_group: job.datasetGroup,
+    encrypted_client_id: job.encryptedClientId, encryption_iv: job.encryptionIv, encryption_tag: job.encryptionTag,
+    run_id: job.runId, tenant_id: job.tenantId, timezone: job.timezone };
+  type Batch = Parameters<SupabaseSportlinkSyncBackend["complete"]>[2];
+  const batch = (): Batch => ({ activities: [], birthdayFetchedAt: null, birthdays: [], club: null, clubLogo: null,
+    matches: [], personPhotos: [], standings: [], teamMembers: [], teamLogos: [], teams: [] });
+  const logos = (): Batch["teamLogos"] => [1, 2].map((number) => ({
+    assetId: `50000000-0000-5000-8000-${String(number).padStart(12, "0")}`, bytes: new Uint8Array([1, 2, 3]),
+    checksumSha256: "a".repeat(64), externalId: `team-${number}`, fileSizeBytes: 3, height: 64,
+    mimeType: "image/webp", role: "team_logo", sourceUrl: "https://provider.test/PRIVATE_SOURCE",
+    storagePath: `providers/sportlink/team_logo/${"a".repeat(64)}.webp`, title: "PRIVATE_TEAM", width: 64
+  }));
+
+  it("binds exactly one lifecycle signal and rejects rebinding before any I/O", async () => {
+    const rpc = vi.fn(); const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "fixture-only", { rpc });
+    const controller = new AbortController(); backend.bindOperationSignal(controller.signal); backend.bindOperationSignal(controller.signal);
+    expect(() => backend.bindOperationSignal(new AbortController().signal)).toThrow("sportlink_operation_signal_already_bound");
+    controller.abort("PRIVATE_REASON");
+    const executeDataset = vi.fn();
+    expect(await runSportlinkSyncOnce({ backend, encryptionKey: "fixture-only", executeDataset,
+      lockTimeoutSeconds: 60, signal: controller.signal, workerId: "worker:test" })).toEqual({ status: "idle" });
+    await expect(backend.claim("worker:test", 60)).rejects.toHaveProperty("code", "SPORTLINK_WORKER_CANCELLED");
+    await expect(backend.complete(job, "worker:test", batch())).rejects.toHaveProperty("code", "SPORTLINK_WORKER_CANCELLED");
+    await expect(backend.fail(job, "worker:test", "code", "detail")).rejects.toHaveProperty("code", "SPORTLINK_WORKER_CANCELLED");
+    await expect(backend.renew(job, "worker:test")).rejects.toHaveProperty("code", "SPORTLINK_WORKER_CANCELLED");
+    expect(rpc).not.toHaveBeenCalled();
+    expect(executeDataset).not.toHaveBeenCalled();
+  });
+
+  it.each(["claim", "upload", "complete", "fail", "cache"])("aborts a held native SDK %s and starts no later request", async (stage) => {
+    const paths: string[] = []; let began!: () => void, closed!: () => void;
+    const active = new Promise<void>((resolve) => { began = resolve; });
+    const disconnected = new Promise<void>((resolve) => { closed = resolve; });
+    const held = (path: string) => stage === "claim" ? path.includes("claim_due_") : stage === "upload" ? path.startsWith("/storage/")
+      : stage === "cache" ? path.startsWith("/rest/v1/provider_asset_cache") : path.includes(`${stage}_sportlink_sync_`);
+    const server = createServer((request, response) => {
+      const path = request.url ?? ""; paths.push(path); request.resume();
+      if (held(path)) { response.on("close", closed); began(); return; }
+      response.setHeader("Content-Type", "application/json");
+      if (path.includes("claim_due_")) response.end(JSON.stringify([claimRow]));
+      else if (path.startsWith("/storage/")) { response.statusCode = 503; response.end(JSON.stringify({ message: "PRIVATE_ERROR" })); }
+      else if (stage === "fail") { response.statusCode = 500; response.end(JSON.stringify({ code: "57014", message: "PRIVATE_ERROR" })); }
+      else response.end(JSON.stringify({ readCount: 0 }));
+    });
+    await new Promise<void>((resolve) => { server.listen(0, "127.0.0.1", resolve); });
+    const address = server.address(); if (!address || typeof address === "string") throw new Error("fixture_address_invalid");
+    const backend = new SupabaseSportlinkSyncBackend(`http://127.0.0.1:${address.port}`, "fixture-only");
+    const controller = new AbortController(); let execution: ReturnType<typeof runSportlinkSyncOnce> | undefined;
+    try {
+      execution = runSportlinkSyncOnce({ backend, encryptionKey: "fixture-only", lockTimeoutSeconds: 60, signal: controller.signal,
+        executeDataset: async (_job, _key, signal) => { expect(signal).toBe(controller.signal); const current = batch();
+          if (stage === "upload" || stage === "cache") current.teamLogos = logos(); return current; }, workerId: "worker:test" });
+      await active; controller.abort("PRIVATE_ABORT_REASON");
+      const result = await execution; await disconnected;
+      expect(result).toEqual({ status: "idle" }); expect(JSON.stringify(result)).not.toContain("PRIVATE_");
+      expect(paths.filter((path) => path.startsWith("/storage/"))).toHaveLength(stage === "upload" || stage === "cache" ? 1 : 0);
+      expect(paths.filter((path) => path.includes("complete_sportlink_sync_"))).toHaveLength(stage === "complete" || stage === "fail" ? 1 : 0);
+      expect(paths.filter((path) => path.includes("fail_sportlink_sync_"))).toHaveLength(stage === "fail" ? 1 : 0);
+    } finally {
+      controller.abort(); server.closeAllConnections();
+      await new Promise<void>((resolve) => { server.close(() => resolve()); }); await execution;
+    }
+  });
+
+  it("disarms heartbeat and cancels a native renewal while provider work is pending", async () => {
+    vi.useFakeTimers(); let began!: () => void, closed!: () => void, providerBegan!: () => void;
+    const active = new Promise<void>((resolve) => { began = resolve; });
+    const disconnected = new Promise<void>((resolve) => { closed = resolve; });
+    const fetching = new Promise<void>((resolve) => { providerBegan = resolve; });
+    const paths: string[] = [];
+    const server = createServer((request, response) => {
+      const path = request.url ?? ""; paths.push(path); request.resume();
+      if (path.includes("claim_due_")) { response.setHeader("Content-Type", "application/json"); response.end(JSON.stringify([claimRow])); }
+      else { response.on("close", closed); began(); }
+    });
+    await new Promise<void>((resolve) => { server.listen(0, "127.0.0.1", resolve); });
+    const address = server.address(); if (!address || typeof address === "string") throw new Error("fixture_address_invalid");
+    const backend = new SupabaseSportlinkSyncBackend(`http://127.0.0.1:${address.port}`, "fixture-only"); const controller = new AbortController();
+    const execution = runSportlinkSyncOnce({ backend, encryptionKey: "fixture-only", executeDataset: async () => {
+      providerBegan(); return new Promise(() => {}); }, lockTimeoutSeconds: 60, signal: controller.signal, workerId: "worker:test" });
+    try {
+      await fetching; await vi.advanceTimersByTimeAsync(20_000); await active;
+      controller.abort("PRIVATE_REASON"); expect(await execution).toEqual({ status: "idle" }); await disconnected;
+      await vi.advanceTimersByTimeAsync(120_000);
+      expect(paths).toEqual(["/rest/v1/rpc/claim_due_sportlink_sync_v2", "/rest/v1/rpc/renew_sportlink_sync_lease_v1"]);
+    } finally {
+      controller.abort(); server.closeAllConnections(); await new Promise<void>((resolve) => { server.close(() => resolve()); });
+      await execution;
+    }
+  });
+
+  it("suppresses loop accounting during a stopped claim and makes no second claim", async () => {
+    const controller = new AbortController(); const onResult = vi.fn();
+    const claim = vi.fn(async () => { controller.abort("PRIVATE_REASON"); return null; });
+    await runSportlinkSyncLoop({ backend: { claim, complete: vi.fn(), fail: vi.fn(), renew: vi.fn() }, encryptionKey: null,
+      intervalMs: 1000, lockTimeoutSeconds: 60, signal: controller.signal, onResult, workerId: "worker:test" });
+    expect(claim).toHaveBeenCalledOnce(); expect(onResult).not.toHaveBeenCalled();
+  });
+});
+
 describe("Sportlink sync worker", () => {
   it("fetches the tenant logo with the daily club profile observation", async () => {
     const logo = await sharp({
@@ -1606,3 +1712,4 @@ describe("Sportlink sync worker", () => {
     });
   });
 });
+import { createServer } from "node:http";

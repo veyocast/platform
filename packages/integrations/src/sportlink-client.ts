@@ -23,6 +23,7 @@ export class SportlinkClient {
     private readonly clientId: string,
     private readonly options: {
       fetchImpl?: typeof fetch; maxAttempts?: number; timeoutMs?: number;
+      operationSignal?: AbortSignal;
     } = {}
   ) {
     if (!clientId.trim() || clientId.length > 512) {
@@ -32,6 +33,7 @@ export class SportlinkClient {
   }
 
   async fetchArticle(key: SportlinkArticleKey, rawArguments: unknown = {}) {
+    throwIfOperationAborted(this.options.operationSignal);
     if (!isSportlinkArticleKey(key)) {
       throw new SportlinkClientError("SPORTLINK_ARTICLE_NOT_ALLOWED",
         "Dit Sportlink-artikel is niet toegestaan.", false);
@@ -48,16 +50,18 @@ export class SportlinkClient {
     const attempts = Math.min(3, Math.max(1, this.options.maxAttempts ?? 3));
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
       try {
+        throwIfOperationAborted(this.options.operationSignal);
         const payload = await this.request(key, args, correlationId);
+        throwIfOperationAborted(this.options.operationSignal);
         return { articleKey: key, correlationId, durationMs: Date.now() - started,
           payload, recordCount: extractSportlinkRecords(payload).length };
       } catch (error) {
+        throwIfOperationAborted(this.options.operationSignal);
         const failure = error instanceof SportlinkClientError ? error
           : new SportlinkClientError("SPORTLINK_NETWORK_ERROR",
             "Sportlink is tijdelijk niet bereikbaar.", true);
         if (!failure.retryable || attempt === attempts) throw failure;
-        await new Promise((resolve) =>
-          setTimeout(resolve, 200 * 2 ** (attempt - 1) + Math.floor(Math.random() * 101)));
+        await retryDelay(200 * 2 ** (attempt - 1) + Math.floor(Math.random() * 101), this.options.operationSignal);
       }
     }
     throw new SportlinkClientError("SPORTLINK_NETWORK_ERROR",
@@ -65,11 +69,13 @@ export class SportlinkClient {
   }
 
   async testConnection() {
+    throwIfOperationAborted(this.options.operationSignal);
     const started = Date.now();
     const [club, logo, teams] = await Promise.all([
       this.fetchArticle("clubgegevens"), this.fetchClubLogo(),
       this.fetchArticle("teams")
     ]);
+    throwIfOperationAborted(this.options.operationSignal);
     return { club, logo, teams, responseTimeMs: Date.now() - started };
   }
 
@@ -80,6 +86,7 @@ export class SportlinkClient {
   private async request(key: SportlinkArticleKey, args: Record<string, unknown>, id: string) {
     const response = await this.doFetch(key, args, id);
     if (!(response.headers.get("content-type") ?? "").toLowerCase().includes("json")) {
+      cancelBody(response);
       throw new SportlinkClientError("SPORTLINK_CONTENT_TYPE_INVALID",
         "Sportlink gaf geen JSON terug.", transient.has(response.status), response.status);
     }
@@ -108,38 +115,54 @@ export class SportlinkClient {
   }
 
   private async doFetch(key: string, args: Record<string, unknown>, id: string) {
+    throwIfOperationAborted(this.options.operationSignal);
     const url = new URL(`${SPORTLINK_BASE_URL}/${key}`);
     url.searchParams.set("client_id", this.clientId);
     for (const [name, value] of Object.entries(args)) {
       if (value !== undefined && value !== null && value !== "") url.searchParams.set(name, String(value));
     }
     const controller = new AbortController();
+    const operationSignal = this.options.operationSignal;
+    const abort = () => controller.abort();
+    operationSignal?.addEventListener("abort", abort, { once: true });
     const timer = setTimeout(() => controller.abort(),
       Math.min(30_000, Math.max(1_000, this.options.timeoutMs ?? 8_000)));
     try {
-      const response = await (this.options.fetchImpl ?? fetch)(url, {
-        headers: { accept: "*/*", "x-request-id": id },
-        redirect: "error", signal: controller.signal
-      });
+      const response = await awaitSignal(Promise.resolve().then(() => {
+        throwIfOperationAborted(operationSignal);
+        return (this.options.fetchImpl ?? fetch)(url, {
+          headers: { accept: "*/*", "x-request-id": id },
+          redirect: "error", signal: controller.signal
+        }).then(response => {
+          if (controller.signal.aborted) { cancelBody(response); throw operationSignal?.aborted ? operationAborted() : requestTimeout(); }
+          return response;
+        });
+      }), controller.signal, () => operationSignal?.aborted ? operationAborted() : requestTimeout());
+      throwIfOperationAborted(operationSignal);
       const length = Number(response.headers.get("content-length"));
-      if (Number.isFinite(length) && length > maxBytes) throw tooLarge(response.status);
+      if (Number.isFinite(length) && length > maxBytes) { cancelBody(response); throw tooLarge(response.status); }
       return response;
     } catch (error) {
+      throwIfOperationAborted(operationSignal);
       if (error instanceof SportlinkClientError) throw error;
       throw new SportlinkClientError(controller.signal.aborted
         ? "SPORTLINK_TIMEOUT" : "SPORTLINK_NETWORK_ERROR",
       controller.signal.aborted ? "Sportlink reageerde niet op tijd."
         : "Sportlink is tijdelijk niet bereikbaar.", true);
-    } finally { clearTimeout(timer); }
+    } finally { clearTimeout(timer); operationSignal?.removeEventListener("abort", abort); }
   }
 
   private async readLimitedBody(response: Response, maximum: number) {
+    if (this.options.operationSignal?.aborted) cancelBody(response);
+    throwIfOperationAborted(this.options.operationSignal);
     const declaredLength = Number(response.headers.get("content-length"));
     if (Number.isFinite(declaredLength) && declaredLength > maximum) {
+      cancelBody(response);
       throw tooLarge(response.status);
     }
     if (!response.body) {
-      const bytes = new Uint8Array(await response.arrayBuffer());
+      const bytes = new Uint8Array(await awaitSignal(response.arrayBuffer(), this.options.operationSignal, operationAborted));
+      throwIfOperationAborted(this.options.operationSignal);
       if (bytes.byteLength > maximum) throw tooLarge(response.status);
       return bytes;
     }
@@ -151,19 +174,21 @@ export class SportlinkClient {
       while (true) {
         const result = await readBodyChunk(
           reader,
-          Math.min(30_000, Math.max(1_000, this.options.timeoutMs ?? 8_000))
+          Math.min(30_000, Math.max(1_000, this.options.timeoutMs ?? 8_000)),
+          this.options.operationSignal
         );
         if (result.done) break;
         byteLength += result.value.byteLength;
         if (byteLength > maximum) {
-          await reader.cancel();
           throw tooLarge(response.status);
         }
         chunks.push(result.value);
       }
     } finally {
-      reader.releaseLock();
+      const release = () => { try { reader.releaseLock(); } catch { /* Already released or cancellation pending. */ } };
+      try { void reader.cancel().catch(() => {}).finally(release); } catch { release(); }
     }
+    throwIfOperationAborted(this.options.operationSignal);
     const bytes = new Uint8Array(byteLength);
     let offset = 0;
     for (const chunk of chunks) {
@@ -220,24 +245,52 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 async function readBodyChunk(
   reader: ReadableStreamDefaultReader<Uint8Array>,
-  timeoutMs: number
+  timeoutMs: number,
+  signal?: AbortSignal
 ) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    return await Promise.race([
+    throwIfOperationAborted(signal);
+    return await awaitSignal(Promise.race([
       reader.read(),
       new Promise<never>((_resolve, reject) => {
         timer = setTimeout(() => {
-          void reader.cancel();
-          reject(new SportlinkClientError(
-            "SPORTLINK_TIMEOUT",
-            "Sportlink reageerde niet op tijd.",
-            true
-          ));
+          reject(requestTimeout());
         }, timeoutMs);
       })
-    ]);
+    ]), signal, operationAborted);
   } finally {
     if (timer) clearTimeout(timer);
   }
+}
+
+function operationAborted() {
+  return new SportlinkClientError("SPORTLINK_ABORTED", "De Sportlink-aanvraag is gestopt.", false);
+}
+function throwIfOperationAborted(signal?: AbortSignal) { if (signal?.aborted) throw operationAborted(); }
+function requestTimeout() {
+  return new SportlinkClientError("SPORTLINK_TIMEOUT", "Sportlink reageerde niet op tijd.", true);
+}
+function cancelBody(response: Response) {
+  try { void response.body?.cancel().catch(() => {}); } catch { /* Never expose raw cleanup errors. */ }
+}
+async function awaitSignal<T>(promise: Promise<T>, signal: AbortSignal | undefined, error: () => SportlinkClientError): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) throw error();
+  let abort: (() => void) | undefined;
+  try {
+    return await Promise.race([promise, new Promise<never>((_, reject) => {
+      abort = () => reject(error()); signal.addEventListener("abort", abort, { once: true });
+    })]);
+  } catch (failure) {
+    if (signal.aborted) throw error();
+    throw failure;
+  } finally { if (abort) signal.removeEventListener("abort", abort); }
+}
+async function retryDelay(ms: number, signal?: AbortSignal) {
+  throwIfOperationAborted(signal);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { await awaitSignal(new Promise<void>(resolve => { timer = setTimeout(resolve, ms); }), signal, operationAborted); }
+  finally { if (timer) clearTimeout(timer); }
+  throwIfOperationAborted(signal);
 }

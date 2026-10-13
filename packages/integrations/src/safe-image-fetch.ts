@@ -1,5 +1,5 @@
 import { lookup } from "node:dns/promises";
-import { request as httpRequest } from "node:http";
+import { request as httpRequest, type ClientRequest, type IncomingMessage } from "node:http";
 import { request as httpsRequest } from "node:https";
 
 import { createPinnedLookup, isPublicIp } from "./safe-rss-fetch";
@@ -15,7 +15,8 @@ export class SafeImageFetchError extends Error {
       | "rss_media_http_error"
       | "rss_media_invalid_content"
       | "rss_media_too_large"
-      | "rss_media_unavailable",
+      | "rss_media_unavailable"
+      | "rss_media_aborted",
     message: string
   ) {
     super(message);
@@ -25,14 +26,17 @@ export class SafeImageFetchError extends Error {
 
 export async function fetchSafeRssImage(
   rawUrl: string,
-  redirectCount = 0
+  redirectCount = 0,
+  options: { signal?: AbortSignal } = {}
 ): Promise<{
   body: Uint8Array;
   contentType: "image/jpeg" | "image/png" | "image/webp";
   finalUrl: string;
 }> {
+  throwIfAborted(options.signal);
   const url = parseSafeImageUrl(rawUrl);
-  const addresses = await resolvePublicAddresses(url.hostname);
+  const addresses = await resolvePublicAddresses(url.hostname, options.signal);
+  throwIfAborted(options.signal);
   const pinnedAddress = addresses[0];
   if (!pinnedAddress) {
     throw new SafeImageFetchError(
@@ -43,8 +47,10 @@ export async function fetchSafeRssImage(
   const response = await requestPinned(
     url,
     pinnedAddress.address,
-    pinnedAddress.family
+    pinnedAddress.family,
+    options.signal
   );
+  throwIfAborted(options.signal);
   if (
     response.statusCode >= 300 &&
     response.statusCode < 400 &&
@@ -56,9 +62,13 @@ export async function fetchSafeRssImage(
         "De RSS-afbeelding gebruikt te veel redirects."
       );
     }
+    let redirected: URL;
+    try { redirected = new URL(response.location, url); }
+    catch { throw new SafeImageFetchError("rss_media_blocked", "De RSS-afbeelding gebruikt een ongeldige redirect."); }
     return fetchSafeRssImage(
-      new URL(response.location, url).toString(),
-      redirectCount + 1
+      redirected.toString(),
+      redirectCount + 1,
+      options
     );
   }
   if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -107,19 +117,22 @@ function parseSafeImageUrl(rawUrl: string): URL {
   return url;
 }
 
-async function resolvePublicAddresses(hostname: string) {
+async function resolvePublicAddresses(hostname: string, signal?: AbortSignal) {
   let addresses: Array<{ address: string; family: number }>;
   try {
-    addresses = await lookup(hostname, {
+    throwIfAborted(signal);
+    addresses = await awaitAbort(lookup(hostname, {
       all: true,
       verbatim: true
-    }) as Array<{ address: string; family: number }>;
+    }), signal) as Array<{ address: string; family: number }>;
   } catch {
+    throwIfAborted(signal);
     throw new SafeImageFetchError(
       "rss_media_unavailable",
       "De afbeeldingshost kon niet veilig worden gevonden."
     );
   }
+  throwIfAborted(signal);
   if (!addresses.length || addresses.some(({ address }) => !isPublicIp(address))) {
     throw new SafeImageFetchError(
       "rss_media_blocked",
@@ -132,7 +145,8 @@ async function resolvePublicAddresses(hostname: string) {
 function requestPinned(
   url: URL,
   address: string,
-  family: number
+  family: number,
+  signal?: AbortSignal
 ): Promise<{
   body: Uint8Array;
   contentType: string;
@@ -140,7 +154,17 @@ function requestPinned(
   statusCode: number;
 }> {
   return new Promise((resolve, reject) => {
-    const request = (url.protocol === "https:" ? httpsRequest : httpRequest)(
+    try { throwIfAborted(signal); } catch (error) { reject(error); return; }
+    let settled = false;
+    let activeResponse: IncomingMessage | undefined;
+    let request: ClientRequest;
+    const cleanup = () => { signal?.removeEventListener("abort", abort); };
+    const fail = (error: SafeImageFetchError) => {
+      if (settled) return; settled = true; cleanup();
+      activeResponse?.destroy(); request.destroy(); reject(error);
+    };
+    const abort = () => fail(imageAborted());
+    try { request = (url.protocol === "https:" ? httpsRequest : httpRequest)(
       url,
       {
         headers: {
@@ -149,15 +173,18 @@ function requestPinned(
         },
         lookup: createPinnedLookup(address, family),
         servername: url.hostname,
+        signal,
         timeout: rssImageFetchTimeoutMs
       },
       (response) => {
+        activeResponse = response;
+        if (signal?.aborted) { fail(imageAborted()); return; }
         const declaredLength = Number(response.headers["content-length"] ?? 0);
         if (
           Number.isFinite(declaredLength) &&
           declaredLength > rssImageMaximumBytes
         ) {
-          request.destroy(new SafeImageFetchError(
+          fail(new SafeImageFetchError(
             "rss_media_too_large",
             "De RSS-afbeelding is groter dan de veilige limiet van 8 MB."
           ));
@@ -166,9 +193,10 @@ function requestPinned(
         const chunks: Buffer[] = [];
         let byteLength = 0;
         response.on("data", (chunk: Buffer) => {
+          if (settled) return;
           byteLength += chunk.byteLength;
           if (byteLength > rssImageMaximumBytes) {
-            request.destroy(new SafeImageFetchError(
+            fail(new SafeImageFetchError(
               "rss_media_too_large",
               "De RSS-afbeelding is groter dan de veilige limiet van 8 MB."
             ));
@@ -177,6 +205,9 @@ function requestPinned(
           chunks.push(chunk);
         });
         response.on("end", () => {
+          if (settled) return;
+          if (signal?.aborted) { fail(imageAborted()); return; }
+          settled = true; cleanup();
           resolve({
             body: Buffer.concat(chunks),
             contentType: String(response.headers["content-type"] ?? ""),
@@ -184,21 +215,34 @@ function requestPinned(
             statusCode: response.statusCode ?? 0
           });
         });
+        response.on("error", () => fail(signal?.aborted ? imageAborted() : unavailableImage()));
+        response.on("aborted", () => fail(signal?.aborted ? imageAborted() : unavailableImage()));
       }
-    );
-    request.on("timeout", () => request.destroy());
+    ); } catch { settled = true; cleanup(); reject(signal?.aborted ? imageAborted() : unavailableImage()); return; }
+    request.on("timeout", () => fail(unavailableImage()));
     request.on("error", (error) => {
-      reject(
-        error instanceof SafeImageFetchError
+      fail(signal?.aborted ? imageAborted() : error instanceof SafeImageFetchError
           ? error
-          : new SafeImageFetchError(
-              "rss_media_unavailable",
-              "De RSS-afbeelding was tijdelijk niet bereikbaar."
-            )
-      );
+          : unavailableImage());
     });
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) { abort(); return; }
     request.end();
   });
+}
+
+function imageAborted() { return new SafeImageFetchError("rss_media_aborted", "De RSS-afbeeldingsaanvraag is gestopt."); }
+function unavailableImage() { return new SafeImageFetchError("rss_media_unavailable", "De RSS-afbeelding was tijdelijk niet bereikbaar."); }
+function throwIfAborted(signal?: AbortSignal) { if (signal?.aborted) throw imageAborted(); }
+async function awaitAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  throwIfAborted(signal);
+  let abort: (() => void) | undefined;
+  try {
+    return await Promise.race([promise, new Promise<never>((_, reject) => {
+      abort = () => reject(imageAborted()); signal.addEventListener("abort", abort, { once: true });
+    })]);
+  } finally { if (abort) signal.removeEventListener("abort", abort); }
 }
 
 function normalizeImageContentType(

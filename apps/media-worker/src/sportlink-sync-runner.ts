@@ -138,6 +138,7 @@ type NormalizedSportlinkBatch = {
 };
 
 type SportlinkSyncBackend = {
+  bindOperationSignal?(signal: AbortSignal): void;
   claim(
     workerId: string,
     lockTimeoutSeconds: number
@@ -173,6 +174,15 @@ const emptyBatch = (): NormalizedSportlinkBatch => ({
 export class SupabaseSportlinkSyncBackend {
   private readonly client: RpcClient;
   private readonly requestTimeoutMs: number;
+  private operationSignal?: AbortSignal;
+
+  bindOperationSignal(signal: AbortSignal) {
+    if (!(signal instanceof AbortSignal)) throw new Error("sportlink_operation_signal_invalid");
+    if (this.operationSignal && this.operationSignal !== signal) {
+      throw new Error("sportlink_operation_signal_already_bound");
+    }
+    this.operationSignal = signal;
+  }
 
   constructor(
     supabaseUrl: string,
@@ -184,11 +194,15 @@ export class SupabaseSportlinkSyncBackend {
     this.requestTimeoutMs = timeoutMs;
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
       global: {
-        fetch(input, init) {
+        fetch: (input, init) => {
+          assertOperationActive(this.operationSignal);
           const deadline = AbortSignal.timeout(timeoutMs);
+          const requestSignal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+          const signals = [deadline, requestSignal, this.operationSignal]
+            .filter((signal): signal is AbortSignal => Boolean(signal));
           return fetch(input, {
             ...init,
-            signal: init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline
+            signal: AbortSignal.any(signals)
           });
         }
       },
@@ -197,10 +211,11 @@ export class SupabaseSportlinkSyncBackend {
   }
 
   async claim(workerId: string, lockTimeoutSeconds: number) {
-    const result = await this.client.rpc("claim_due_sportlink_sync_v2", {
+    const result = await operationWait(() => this.client.rpc("claim_due_sportlink_sync_v2", {
       p_lock_timeout_seconds: lockTimeoutSeconds,
       p_worker_id: workerId
-    });
+    }), this.operationSignal);
+    assertOperationActive(this.operationSignal);
     if (result.error) throw new Error("sportlink_sync_claim_failed");
     if (!Array.isArray(result.data) || !result.data.length) return null;
     return parseClaim(result.data[0]);
@@ -211,6 +226,7 @@ export class SupabaseSportlinkSyncBackend {
     workerId: string,
     batch: NormalizedSportlinkBatch
   ) {
+    assertOperationActive(this.operationSignal);
     const optionalLogos = [batch.clubLogo, ...batch.teamLogos]
       .filter(
         (artifact): artifact is SportlinkMediaArtifact => Boolean(artifact)
@@ -220,6 +236,7 @@ export class SupabaseSportlinkSyncBackend {
     let failedLogos = 0;
     let skippedLogos = 0;
     for (const artifact of optionalLogos) {
+      assertOperationActive(this.operationSignal);
       if (failedLogos) {
         // One storage failure opens the circuit for the remaining optional
         // images: an outage must not cost 100 sequential request deadlines.
@@ -227,14 +244,16 @@ export class SupabaseSportlinkSyncBackend {
       } else {
         try {
           if (!this.client.storage) throw new Error("storage_unavailable");
-          const upload = await this.client.storage.from("provider-assets")
+          const upload = await operationWait(() => this.client.storage!.from("provider-assets")
             .upload(artifact.storagePath, artifact.bytes, {
               cacheControl: "31536000", contentType: artifact.mimeType, upsert: true
-            });
+            }), this.operationSignal);
+          assertOperationActive(this.operationSignal);
           if (upload.error) throw new Error("optional_logo_upload_failed");
           persistedLogos.add(artifact);
           continue;
         } catch {
+          assertOperationActive(this.operationSignal);
           failedLogos++;
         }
       }
@@ -247,13 +266,14 @@ export class SupabaseSportlinkSyncBackend {
         throw new Error("sportlink_media_storage_unavailable");
       }
       for (const artifact of batch.personPhotos) {
-        const upload = await this.client.storage
+        const upload = await operationWait(() => this.client.storage!
           .from("provider-assets")
           .upload(artifact.storagePath, artifact.bytes, {
             cacheControl: "31536000",
             contentType: artifact.mimeType,
             upsert: true
-          });
+          }), this.operationSignal);
+        assertOperationActive(this.operationSignal);
         if (upload.error) throw new SportlinkWorkerError(
           "SPORTLINK_MEDIA_UPLOAD_FAILED",
           "Een Sportlink-logo kon niet worden opgeslagen. De bestaande gegevens blijven behouden; controleer de provideropslag."
@@ -261,6 +281,7 @@ export class SupabaseSportlinkSyncBackend {
       }
     }
     const previous = await this.previousTeamLogos([...unpersistedTeams]);
+    assertOperationActive(this.operationSignal);
     const reusedTeamLogos = new Set<string>();
     const standings = batch.standings.map((standing) => ({
       ...standing,
@@ -275,8 +296,8 @@ export class SupabaseSportlinkSyncBackend {
         return safeRow;
       })
     }));
-    const result = job.datasetGroup === "public_people"
-      ? await this.client.rpc("complete_sportlink_birthdays_v1", {
+    const result = await operationWait(() => job.datasetGroup === "public_people"
+      ? this.client.rpc("complete_sportlink_birthdays_v1", {
         p_birthdays: batch.birthdays,
         p_fetched_at: batch.birthdayFetchedAt,
         p_person_photos: batch.personPhotos.map(toMediaPayload),
@@ -284,7 +305,7 @@ export class SupabaseSportlinkSyncBackend {
         p_team_members: batch.teamMembers,
         p_worker_id: workerId
       })
-      : await this.client.rpc("complete_sportlink_sync_v4", {
+      : this.client.rpc("complete_sportlink_sync_v4", {
       p_activities: batch.activities,
       p_club: batch.club ?? {},
       p_club_logo: batch.clubLogo && persistedLogos.has(batch.clubLogo) ? toMediaPayload(batch.clubLogo) : {},
@@ -294,8 +315,9 @@ export class SupabaseSportlinkSyncBackend {
       p_team_logos: batch.teamLogos.filter((artifact) => persistedLogos.has(artifact)).map(toMediaPayload),
       p_teams: batch.teams,
       p_worker_id: workerId
-    });
+    }), this.operationSignal);
     if (result.error || !isRecord(result.data)) {
+      assertOperationActive(this.operationSignal);
       throw new SportlinkWorkerError(
         completionFailureCode(result),
         "Sportlink-gegevens zijn opgehaald maar konden niet worden verwerkt. De bestaande gegevens blijven behouden; controleer de synchronisatiediagnose."
@@ -310,7 +332,7 @@ export class SupabaseSportlinkSyncBackend {
     }
     // The committed source revision queues published-data refresh, including
     // clock-based windows. No fallible rendering RPC follows successful ingest.
-    if (failedLogos) {
+    if (failedLogos && !this.operationSignal?.aborted) {
       try {
         createStructuredLogger({
           correlationId: job.runId, environment: process.env.VEYOCAST_ENVIRONMENT ?? "development",
@@ -326,16 +348,19 @@ export class SupabaseSportlinkSyncBackend {
   }
 
   private async previousTeamLogos(externalIds: string[]) {
+    assertOperationActive(this.operationSignal);
     const versions = new Map<string, string>();
     if (!externalIds.length) return { versions, failed: false };
     if (!this.client.from || externalIds.length > 100
       || externalIds.some((id) => !/^[a-zA-Z0-9._:-]{1,128}$/.test(id))) return { versions, failed: true };
     try {
-      const result = await this.client.from("provider_asset_cache").select(
+      const result = await operationWait(async () => this.client.from!("provider_asset_cache").select(
         "id,provider,entity_type,external_entity_id,asset_role,current_version_id,version:provider_asset_versions!provider_asset_cache_current_version_fk(id,cache_id,checksum_sha256,storage_bucket,storage_path,mime_type,file_size_bytes,width,height)"
       ).eq("provider", "sportlink").eq("entity_type", "team").eq("asset_role", "team_logo")
         .in("external_entity_id", externalIds).limit(100).retry(false)
-        .abortSignal(AbortSignal.timeout(this.requestTimeoutMs));
+        .abortSignal(this.operationSignal ? AbortSignal.any([this.operationSignal, AbortSignal.timeout(this.requestTimeoutMs)])
+          : AbortSignal.timeout(this.requestTimeoutMs)), this.operationSignal);
+      assertOperationActive(this.operationSignal);
       if (result.error || !Array.isArray(result.data) || result.data.length > externalIds.length) return { versions, failed: true };
       const seen = new Set<string>();
       for (const item of result.data) {
@@ -356,7 +381,10 @@ export class SupabaseSportlinkSyncBackend {
         versions.set(item.external_entity_id, version.id);
       }
       return { versions, failed: false };
-    } catch { return { versions: new Map<string, string>(), failed: true }; }
+    } catch {
+      assertOperationActive(this.operationSignal);
+      return { versions: new Map<string, string>(), failed: true };
+    }
   }
 
   async fail(
@@ -365,20 +393,22 @@ export class SupabaseSportlinkSyncBackend {
     code: string,
     message: string
   ) {
-    const result = await this.client.rpc("fail_sportlink_sync_v1", {
+    const result = await operationWait(() => this.client.rpc("fail_sportlink_sync_v1", {
       p_error_code: code.slice(0, 80),
       p_error_detail: message.replace(/[\r\n]+/g, " ").slice(0, 500),
       p_run_id: job.runId,
       p_worker_id: workerId
-    });
+    }), this.operationSignal);
+    assertOperationActive(this.operationSignal);
     if (result.error) throw new Error("sportlink_sync_failure_report_failed");
   }
 
   async renew(job: ClaimedSportlinkSync, workerId: string) {
-    const result = await this.client.rpc("renew_sportlink_sync_lease_v1", {
+    const result = await operationWait(() => this.client.rpc("renew_sportlink_sync_lease_v1", {
       p_run_id: job.runId,
       p_worker_id: workerId
-    });
+    }), this.operationSignal);
+    assertOperationActive(this.operationSignal);
     if (result.error) throw new Error("sportlink_sync_lease_renew_failed");
     return result.data === true;
   }
@@ -389,26 +419,32 @@ export async function runSportlinkSyncOnce({
   encryptionKey,
   executeDataset = executeSportlinkDataset,
   lockTimeoutSeconds,
+  signal,
   workerId
 }: {
   backend: SportlinkSyncBackend;
   encryptionKey: string | null;
   executeDataset?: (
     job: ClaimedSportlinkSync,
-    encryptionKey: string
+    encryptionKey: string,
+    signal?: AbortSignal
   ) => Promise<NormalizedSportlinkBatch>;
   lockTimeoutSeconds: number;
+  signal?: AbortSignal;
   workerId: string;
 }): Promise<SportlinkSyncRunResult> {
+  if (signal) backend.bindOperationSignal?.(signal);
+  if (signal?.aborted) return { status: "idle" };
   let job: ClaimedSportlinkSync | null;
   try {
-    job = await backend.claim(workerId, lockTimeoutSeconds);
+    job = await operationWait(() => backend.claim(workerId, lockTimeoutSeconds), signal);
   } catch {
+    if (signal?.aborted) return { status: "idle" };
     // A queue/database outage has no owned job to fail. Keep the dispatcher
     // alive without exposing raw RPC errors or inventing a run identity.
     return { errorCode: "SPORTLINK_SYNC_CLAIM_FAILED", status: "failed" };
   }
-  if (!job) return { status: "idle" };
+  if (!job || signal?.aborted) return { status: "idle" };
 
   let lease: ReturnType<typeof startLeaseHeartbeat> | null = null;
   try {
@@ -423,11 +459,13 @@ export async function runSportlinkSyncOnce({
       intervalMs: leaseRenewIntervalMs(lockTimeoutSeconds),
       job,
       lockTimeoutSeconds,
+      signal,
       workerId
     });
-    const batch = await executeDataset(job, encryptionKey);
+    const batch = await operationWait(() => executeDataset(job, encryptionKey, signal), signal);
+    assertOperationActive(signal);
     lease.assertOwned();
-    const readCount = await backend.complete(job, workerId, batch);
+    const readCount = await operationWait(() => backend.complete(job, workerId, batch), signal);
     return {
       datasetGroup: job.datasetGroup,
       readCount,
@@ -435,13 +473,15 @@ export async function runSportlinkSyncOnce({
       status: "completed"
     };
   } catch (error) {
+    if (signal?.aborted) return { status: "idle" };
     const failure = classifySportlinkSyncFailure(error);
     try {
-      await backend.fail(job, workerId, failure.code, failure.message);
+      await operationWait(() => backend.fail(job, workerId, failure.code, failure.message), signal);
     } catch {
       // A run may already have been reclaimed after an actual worker outage.
       // Reporting that stale failure must not terminate the dispatcher loop.
     }
+    if (signal?.aborted) return { status: "idle" };
     return {
       datasetGroup: job.datasetGroup,
       errorCode: failure.code,
@@ -470,6 +510,7 @@ export async function runSportlinkSyncLoop({
   signal: AbortSignal;
   workerId: string;
 }) {
+  backend.bindOperationSignal?.(signal);
   const baseDelay = Number.isFinite(intervalMs) ? Math.min(60_000, Math.max(1_000, intervalMs)) : 15_000;
   let failures = 0;
   while (!signal.aborted) {
@@ -477,8 +518,10 @@ export async function runSportlinkSyncLoop({
       backend,
       encryptionKey,
       lockTimeoutSeconds,
+      signal,
       workerId
     });
+    if (signal.aborted) break;
     onResult(result);
     failures = result.status === "failed" ? Math.min(7, failures + 1) : 0;
     if (result.status === "failed" || result.status === "idle") {
@@ -489,8 +532,10 @@ export async function runSportlinkSyncLoop({
 
 async function executeSportlinkDataset(
   job: ClaimedSportlinkSync,
-  encryptionKey: string
+  encryptionKey: string,
+  signal?: AbortSignal
 ) {
+  assertOperationActive(signal);
   const clientId = decryptSportlinkClientId({
     ciphertext: job.encryptedClientId,
     iv: job.encryptionIv,
@@ -498,16 +543,19 @@ async function executeSportlinkDataset(
   }, encryptionKey);
   return fetchSportlinkDataset(
     job.datasetGroup,
-    new SportlinkClient(clientId),
-    job
+    new SportlinkClient(clientId, { operationSignal: signal }),
+    job,
+    signal
   );
 }
 
 export async function fetchSportlinkDataset(
   datasetGroup: string,
   client: SportlinkClient,
-  job: ClaimedSportlinkSync
+  job: ClaimedSportlinkSync,
+  signal?: AbortSignal
 ): Promise<NormalizedSportlinkBatch> {
+  assertOperationActive(signal);
   const batch = emptyBatch();
 
   if (datasetGroup === "club_profile") {
@@ -582,7 +630,7 @@ export async function fetchSportlinkDataset(
       ...ownResults,
       ...mapSportlinkMatches(cancellations.payload, "cancellations")
     ]);
-    batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches);
+    batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches, signal);
     return batch;
   }
 
@@ -621,7 +669,7 @@ export async function fetchSportlinkDataset(
         ? { ...detail, isHomeMatch: match.isHomeMatch }
         : match;
     });
-    batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches);
+    batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches, signal);
     return batch;
   }
 
@@ -634,11 +682,11 @@ export async function fetchSportlinkDataset(
   }
 
   if (datasetGroup === "public_people") {
-    return fetchSportlinkBirthdays(client, job, batch);
+    return fetchSportlinkBirthdays(client, job, batch, signal);
   }
 
   if (datasetGroup === "competitions") {
-    const result = await fetchStandings(client, job);
+    const result = await fetchStandings(client, job, signal);
     batch.standings = result.standings;
     batch.teamLogos = result.teamLogos;
     return batch;
@@ -653,7 +701,8 @@ export async function fetchSportlinkDataset(
 async function fetchSportlinkBirthdays(
   client: SportlinkClient,
   job: ClaimedSportlinkSync,
-  batch: NormalizedSportlinkBatch
+  batch: NormalizedSportlinkBatch,
+  signal?: AbortSignal
 ) {
   const fetchedAt = new Date();
   const [birthdayResponse, teamResponse] = await Promise.all([
@@ -749,7 +798,9 @@ async function fetchSportlinkBirthdays(
     (candidate) => candidate.photoUrl
   ).slice(0, 40)) {
     try {
-      const image = await fetchSafeRssImage(member.photoUrl!);
+      assertOperationActive(signal);
+      const image = await fetchSafeRssImage(member.photoUrl!, 0, { signal });
+      assertOperationActive(signal);
       const artifact = await prepareSportlinkPersonPhoto(
         job,
         member.identityKey,
@@ -759,6 +810,7 @@ async function fetchSportlinkBirthdays(
       batch.personPhotos.push(artifact);
       member.photoProviderAssetVersionId = artifact.assetId;
     } catch {
+      assertOperationActive(signal);
       // A remote photo is optional. Identity data remains usable without it.
     }
   }
@@ -821,12 +873,14 @@ function startLeaseHeartbeat({
   intervalMs,
   job,
   lockTimeoutSeconds,
+  signal,
   workerId
 }: {
   backend: SportlinkSyncBackend;
   intervalMs: number;
   job: ClaimedSportlinkSync;
   lockTimeoutSeconds: number;
+  signal?: AbortSignal;
   workerId: string;
 }) {
   let stopped = false;
@@ -837,7 +891,7 @@ function startLeaseHeartbeat({
   const renewalBudgetMs = Math.max(1_000, lockTimeoutSeconds * 1_000 * 0.8);
 
   const schedule = () => {
-    if (stopped || lost) return;
+    if (stopped || lost || signal?.aborted) return;
     timer = setTimeout(() => {
       pending = renew().finally(() => {
         pending = null;
@@ -848,7 +902,7 @@ function startLeaseHeartbeat({
 
   const renew = async () => {
     try {
-      if (await backend.renew(job, workerId)) {
+      if (await operationWait(() => backend.renew(job, workerId), signal)) {
         lastRenewedAt = Date.now();
         return;
       }
@@ -860,10 +914,16 @@ function startLeaseHeartbeat({
     }
   };
 
+  const disarm = () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+  };
+  signal?.addEventListener("abort", disarm, { once: true });
   schedule();
 
   return {
     assertOwned() {
+      assertOperationActive(signal);
       if (lost) {
         throw new SportlinkWorkerError(
           "SPORTLINK_WORKER_LEASE_LOST",
@@ -872,8 +932,8 @@ function startLeaseHeartbeat({
       }
     },
     async stop() {
-      stopped = true;
-      if (timer) clearTimeout(timer);
+      disarm();
+      signal?.removeEventListener("abort", disarm);
       await pending;
     }
   };
@@ -881,7 +941,8 @@ function startLeaseHeartbeat({
 
 async function fetchStandings(
   client: SportlinkClient,
-  job: ClaimedSportlinkSync
+  job: ClaimedSportlinkSync,
+  signal?: AbortSignal
 ) {
   const teams = await client.fetchArticle("teams");
   const pools = await client.fetchArticle("poulelijst");
@@ -943,13 +1004,14 @@ async function fetchStandings(
   }
   return {
     standings,
-    teamLogos: await fetchStandingTeamLogos(job, standings)
+    teamLogos: await fetchStandingTeamLogos(job, standings, signal)
   };
 }
 
 async function fetchStandingTeamLogos(
   job: ClaimedSportlinkSync,
-  standings: SportStanding[]
+  standings: SportStanding[],
+  signal?: AbortSignal
 ) {
   const unique = new Map<string, { externalId: string; teamName: string }>();
   for (const standing of standings) {
@@ -964,14 +1026,15 @@ async function fetchStandingTeamLogos(
     }
     if (unique.size >= 100) break;
   }
-  return fetchTeamLogos(job, unique);
+  return fetchTeamLogos(job, unique, signal);
 }
 
 async function fetchMatchTeamLogos(
   job: ClaimedSportlinkSync,
-  matches: SportMatch[]
+  matches: SportMatch[],
+  signal?: AbortSignal
 ) {
-  return fetchTeamLogos(job, collectSportlinkMatchLogoCandidates(matches));
+  return fetchTeamLogos(job, collectSportlinkMatchLogoCandidates(matches), signal);
 }
 
 export function collectSportlinkMatchLogoCandidates(matches: SportMatch[]) {
@@ -993,16 +1056,20 @@ export function collectSportlinkMatchLogoCandidates(matches: SportMatch[]) {
 
 async function fetchTeamLogos(
   job: ClaimedSportlinkSync,
-  unique: Map<string, { externalId: string; teamName: string }>
+  unique: Map<string, { externalId: string; teamName: string }>,
+  signal?: AbortSignal
 ) {
   const entries = [...unique];
   const artifacts: SportlinkTeamLogoArtifact[] = [];
   for (let offset = 0; offset < entries.length; offset += 6) {
+    assertOperationActive(signal);
     const chunk = entries.slice(offset, offset + 6);
     const imported = await Promise.all(
       chunk.map(async ([sourceUrl, team]) => {
         try {
-          const image = await fetchSafeRssImage(sourceUrl);
+          assertOperationActive(signal);
+          const image = await fetchSafeRssImage(sourceUrl, 0, { signal });
+          assertOperationActive(signal);
           return await prepareSportlinkTeamLogo(
             job,
             team.externalId,
@@ -1011,6 +1078,7 @@ async function fetchTeamLogos(
             image.body
           );
         } catch {
+          assertOperationActive(signal);
           // A temporarily unavailable provider image must not invalidate the
           // dataset. The initials fallback remains deterministic.
           return null;
@@ -1296,6 +1364,33 @@ class SportlinkWorkerError extends Error {
   constructor(readonly code: string, message: string) {
     super(message);
     this.name = "SportlinkWorkerError";
+  }
+}
+
+function assertOperationActive(signal?: AbortSignal) {
+  if (signal?.aborted) throw new SportlinkWorkerError(
+    "SPORTLINK_WORKER_CANCELLED", "De worker wordt gestopt."
+  );
+}
+
+/** Stops owned waiting even for an injected backend. The real SDK fetch also
+ * receives the same signal; this does not promise hosted transaction rollback.
+ */
+async function operationWait<T>(operation: () => PromiseLike<T>, signal?: AbortSignal): Promise<T> {
+  assertOperationActive(signal);
+  if (!signal) return await operation();
+  let abort: (() => void) | undefined;
+  try {
+    const cancelled = new Promise<never>((_resolve, reject) => {
+      abort = () => reject(new SportlinkWorkerError("SPORTLINK_WORKER_CANCELLED", "De worker wordt gestopt."));
+      signal.addEventListener("abort", abort, { once: true });
+    });
+    return await Promise.race([cancelled, Promise.resolve().then(() => {
+      assertOperationActive(signal);
+      return operation();
+    })]);
+  } finally {
+    if (abort) signal.removeEventListener("abort", abort);
   }
 }
 
