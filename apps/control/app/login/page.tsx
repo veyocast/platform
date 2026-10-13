@@ -8,6 +8,7 @@ import {
 } from "../../lib/supabase/config";
 import { signIn } from "./actions";
 import { RecoveryFragmentBridge } from "./recovery-fragment-bridge";
+import { LoginSubmit } from "./login-submit";
 
 type LoginPageProps = {
   searchParams: Promise<{ fout?: string; reden?: string }>;
@@ -91,9 +92,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             />
             <p>Laat leeg voor platformrollen.</p>
           </div>}
-          <button className="auth-button" type="submit">
+          {live ? <LoginSubmit /> : <button className="auth-button" type="submit">
             Doorgaan
-          </button>
+          </button>}
         </form> : (
           <div className="notice notice--critical" role="alert">
             De dienst weigert toegang totdat de serverconfiguratie is hersteld. Probeer later opnieuw.
@@ -124,6 +125,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 }
 
 const loginErrors: Record<string, string> = {
+  dienst: "De aanmelddienst antwoordt niet op tijd of je toegang kon niet worden gecontroleerd. Je bent niet doorgestuurd. Probeer opnieuw; blijft dit gebeuren, neem dan contact op met een beheerder.",
   gegevens: "Vul je e-mailadres en wachtwoord in.",
   herstel: "De wachtwoordlink is ongeldig of verlopen. Vraag een nieuwe herstelmail aan.",
   inloggen: "Inloggen is mislukt. Controleer je gegevens en probeer opnieuw."

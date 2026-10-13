@@ -4,8 +4,19 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import * as React from "react";
+import type * as ReactDOM from "react-dom";
+import { renderToStaticMarkup } from "react-dom/server";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { LoginSubmit } from "../app/login/login-submit";
+import ControlError from "../app/error";
+
+const formState = vi.hoisted(() => ({ pending: false }));
+vi.mock("react-dom", async (importOriginal) => ({
+  ...await importOriginal<typeof ReactDOM>(),
+  useFormStatus: () => ({ pending: formState.pending })
+}));
 
 const execFileAsync = promisify(execFile);
 const scanner = fileURLToPath(
@@ -13,7 +24,11 @@ const scanner = fileURLToPath(
 );
 const temporaryDirectories: string[] = [];
 
+beforeEach(() => vi.stubGlobal("React", React));
+
 afterEach(async () => {
+  formState.pending = false;
+  vi.unstubAllGlobals();
   await Promise.all(
     temporaryDirectories.splice(0).map((directory) =>
       rm(directory, { force: true, recursive: true })
@@ -47,6 +62,27 @@ describe("generated Control auth boundary", () => {
     const loginPage = await readRepositoryFile("app/login/page.tsx");
     expect(loginPage).not.toContain("getLocalUrl");
     expect(loginPage).not.toContain("http://localhost:3000");
+  });
+
+  it("disables the actual login submit during pending and exposes an accessible status", () => {
+    const idle = renderToStaticMarkup(React.createElement(LoginSubmit));
+    expect(idle).toContain("Doorgaan");
+    expect(idle).not.toContain('disabled=""');
+    formState.pending = true;
+    const pending = renderToStaticMarkup(React.createElement(LoginSubmit));
+    expect(pending).toContain('disabled=""');
+    expect(pending).toContain('aria-busy="true"');
+    expect(pending).toContain('role="status"');
+    expect(pending).toContain("Aanmelden");
+  });
+
+  it("renders a safe manual recovery boundary without displaying the caught error", () => {
+    const html = renderToStaticMarkup(React.createElement(ControlError, {
+      error: new Error("PRIVATE_BACKEND_TOKEN"), reset: () => undefined
+    }));
+    expect(html).toContain("Je toegang kon niet worden gecontroleerd");
+    expect(html).toContain("Opnieuw proberen");
+    expect(html).not.toContain("PRIVATE_BACKEND_TOKEN");
   });
 
 });

@@ -30,6 +30,7 @@ import {
 } from "./tenant-context";
 import { getControlRuntimeMode } from "./supabase/config";
 import { createControlSupabaseClient } from "./supabase/server";
+import { createRequestDeadline, type RequestDeadline } from "./supabase/request-deadline";
 import {
   defaultTenantTimeZone,
   normalizeTenantTimeZone
@@ -70,7 +71,8 @@ type ControlSupabaseClient = NonNullable<
 >;
 
 async function resolveControlSession(
-  authenticatedClient?: ControlSupabaseClient
+  authenticatedClient?: ControlSupabaseClient,
+  deadline?: RequestDeadline
 ): Promise<ControlSession | null> {
   const runtimeMode = getControlRuntimeMode();
 
@@ -82,34 +84,56 @@ async function resolveControlSession(
     return null;
   }
 
-  const supabase = authenticatedClient ?? await createControlSupabaseClient();
-
-  if (!supabase) {
-    return null;
+  if (authenticatedClient) return resolveLiveControlSession(authenticatedClient, deadline);
+  // This read-only client never escapes the resolver. Mutation clients keep
+  // their existing configuration and are not given a disposed login budget.
+  const ownedDeadline = createRequestDeadline();
+  try {
+    const client = await createControlSupabaseClient({ deadline: ownedDeadline });
+    return client
+      ? await ownedDeadline.run(() => resolveLiveControlSession(client, ownedDeadline))
+      : null;
+  } finally {
+    ownedDeadline.dispose();
   }
+}
+
+function sessionRequest<T extends { retry(enabled: boolean): T; abortSignal(signal: AbortSignal): T }>(
+  request: T,
+  deadline?: RequestDeadline
+): T {
+  return deadline ? request.retry(false).abortSignal(deadline.signal) : request;
+}
+
+async function resolveLiveControlSession(
+  supabase: ControlSupabaseClient,
+  deadline?: RequestDeadline
+): Promise<ControlSession | null> {
 
   const {
     data: { user },
     error: userError
   } = await supabase.auth.getUser();
+  deadline?.assertActive();
 
   if (userError || !user) {
     return null;
   }
 
   const [profileResult, tenantResult, platformResult, assuranceResult] = await Promise.all([
-    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    supabase
+    sessionRequest(supabase.from("profiles").select("display_name").eq("id", user.id), deadline).maybeSingle(),
+    sessionRequest(supabase
       .from("tenant_memberships")
       .select("tenant_id, role, custom_role_id, tenants!inner(id, name, slug, status)")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: true }),
-    supabase
+      .order("created_at", { ascending: true }), deadline),
+    sessionRequest(supabase
       .from("platform_memberships")
       .select("role")
-      .eq("user_id", user.id),
+      .eq("user_id", user.id), deadline),
     supabase.auth.mfa.getAuthenticatorAssuranceLevel()
   ]);
+  deadline?.assertActive();
 
   if (tenantResult.error || platformResult.error || assuranceResult.error) {
     console.error("Control session role loading failed", {
@@ -127,10 +151,10 @@ async function resolveControlSession(
     ))
   ];
   const customRolesResult = customRoleIds.length
-    ? await supabase
+    ? await sessionRequest(supabase
         .from("tenant_custom_roles")
         .select("id, name")
-        .in("id", customRoleIds)
+        .in("id", customRoleIds), deadline)
     : { data: [], error: null };
   if (customRolesResult.error) {
     throw new Error("De custom rollen voor deze sessie konden niet worden geladen.");
@@ -163,11 +187,10 @@ async function resolveControlSession(
   );
   const activeMembership = tenantResolution.context;
   const tenantSettingsResult = activeMembership?.id
-    ? await supabase
+    ? await sessionRequest(supabase
         .from("tenant_settings")
         .select("timezone_name")
-        .eq("tenant_id", activeMembership.id)
-        .maybeSingle()
+        .eq("tenant_id", activeMembership.id), deadline).maybeSingle()
     : { data: null, error: null };
   if (tenantSettingsResult.error) {
     console.error("Tijdzone voor actieve tenant laden mislukt", tenantSettingsResult.error);
@@ -183,12 +206,13 @@ async function resolveControlSession(
         supabase,
         activeMembership.id,
         roles,
-        Boolean(activeMembership.customRoleId)
+        Boolean(activeMembership.customRoleId),
+        deadline
       )
     : getCapabilitiesForRoles(roles);
-  const platformTicketResult = await supabase.rpc(
+  const platformTicketResult = await sessionRequest(supabase.rpc(
     "get_my_platform_ticket_capabilities_v1"
-  );
+  ), deadline);
   const allowedCapabilities = new Set<Capability>(capabilities);
   const platformTicketCapabilities = Array.isArray(platformTicketResult.data)
     ? platformTicketResult.data.filter(
@@ -201,6 +225,7 @@ async function resolveControlSession(
     ...new Set([...baseCapabilities, ...platformTicketCapabilities])
   ];
 
+  deadline?.assertActive();
   return {
     assuranceLevel: normalizeAssuranceLevel(assuranceResult.data.currentLevel),
     capabilities: effectiveCapabilities,
@@ -231,9 +256,9 @@ async function resolveControlSession(
 
 const getCachedControlSession = cache(() => resolveControlSession());
 
-export function getControlSession(authenticatedClient?: ControlSupabaseClient) {
+export function getControlSession(authenticatedClient?: ControlSupabaseClient, deadline?: RequestDeadline) {
   return authenticatedClient
-    ? resolveControlSession(authenticatedClient)
+    ? resolveControlSession(authenticatedClient, deadline)
     : getCachedControlSession();
 }
 
@@ -248,14 +273,16 @@ async function loadEffectiveCapabilities(
   supabase: NonNullable<Awaited<ReturnType<typeof createControlSupabaseClient>>>,
   tenantId: string,
   fallbackRoles: ControlSession["roles"],
-  hasCustomRole: boolean
+  hasCustomRole: boolean,
+  deadline?: RequestDeadline
 ): Promise<Capability[]> {
   const platformCapabilities = getCapabilitiesForRoles(
     fallbackRoles.filter((role) => role.startsWith("platform_"))
   );
-  const { data, error } = await supabase.rpc("get_my_tenant_capabilities_v1", {
+  const { data, error } = await sessionRequest(supabase.rpc("get_my_tenant_capabilities_v1", {
     p_tenant_id: tenantId
-  });
+  }), deadline);
+  deadline?.assertActive();
   if (error || !Array.isArray(data)) {
     console.error("Effectieve tenantrechten laden mislukt", error);
     return hasCustomRole

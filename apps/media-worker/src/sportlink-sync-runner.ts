@@ -29,6 +29,9 @@ import {
   prepareSportlinkClubLogo,
   prepareSportlinkPersonPhoto,
   prepareSportlinkTeamLogo,
+  persistSportlinkLogoObject,
+  sportlinkLogoObjectKey,
+  type SportlinkLogoStorage,
   type SportlinkMediaArtifact,
   type SportlinkPersonPhotoArtifact,
   type SportlinkTeamLogoArtifact
@@ -78,11 +81,12 @@ type RpcClient = {
   from?(table: "provider_asset_cache"): { select(columns: string): ProviderCacheQuery };
   storage?: {
     from(bucket: string): {
+      download?: SportlinkLogoStorage["download"];
       upload(
         path: string,
         bytes: Uint8Array,
         options: Record<string, unknown>
-      ): Promise<{ error: { message?: string } | null }>;
+      ): Promise<{ error: { message?: string; status?: number; statusCode?: string } | null }>;
     };
   };
 };
@@ -173,6 +177,7 @@ const emptyBatch = (): NormalizedSportlinkBatch => ({
 
 export class SupabaseSportlinkSyncBackend {
   private readonly client: RpcClient;
+  private readonly logoStorageForSignal?: (signal: AbortSignal) => SportlinkLogoStorage;
   private readonly requestTimeoutMs: number;
   private operationSignal?: AbortSignal;
 
@@ -192,13 +197,13 @@ export class SupabaseSportlinkSyncBackend {
   ) {
     const timeoutMs = Number.isFinite(requestTimeoutMs) ? Math.min(30_000, Math.max(1, requestTimeoutMs)) : 30_000;
     this.requestTimeoutMs = timeoutMs;
-    this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
+    const scopedClient = (logoSignal?: AbortSignal) => createClient(supabaseUrl, serviceRoleKey, {
       global: {
         fetch: (input, init) => {
           assertOperationActive(this.operationSignal);
           const deadline = AbortSignal.timeout(timeoutMs);
           const requestSignal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
-          const signals = [deadline, requestSignal, this.operationSignal]
+          const signals = [deadline, requestSignal, this.operationSignal, logoSignal]
             .filter((signal): signal is AbortSignal => Boolean(signal));
           return fetch(input, {
             ...init,
@@ -207,7 +212,13 @@ export class SupabaseSportlinkSyncBackend {
         }
       },
       auth: { autoRefreshToken: false, persistSession: false }
-    }) as unknown as RpcClient;
+    });
+    this.client = client ?? scopedClient() as unknown as RpcClient;
+    // storage-js upload has no fetch-signal parameter. Give each immutable
+    // logo operation its own client closure so GET and POST share its budget
+    // without changing the signal of concurrent RPCs or person-photo work.
+    this.logoStorageForSignal = client ? undefined
+      : (signal) => scopedClient(signal).storage.from("provider-assets") as unknown as SportlinkLogoStorage;
   }
 
   async claim(workerId: string, lockTimeoutSeconds: number) {
@@ -232,11 +243,24 @@ export class SupabaseSportlinkSyncBackend {
         (artifact): artifact is SportlinkMediaArtifact => Boolean(artifact)
       );
     const persistedLogos = new Set<SportlinkMediaArtifact>();
+    const persistedObjects = new Set<string>();
     const unpersistedTeams = new Set<string>();
     let failedLogos = 0;
     let skippedLogos = 0;
     for (const artifact of optionalLogos) {
       assertOperationActive(this.operationSignal);
+      let objectKey: string;
+      try {
+        objectKey = sportlinkLogoObjectKey(artifact);
+        if (persistedObjects.has(objectKey)) {
+          persistedLogos.add(artifact);
+          continue;
+        }
+      } catch {
+        failedLogos++;
+        if (artifact.role === "team_logo") unpersistedTeams.add(artifact.externalId);
+        continue;
+      }
       if (failedLogos) {
         // One storage failure opens the circuit for the remaining optional
         // images: an outage must not cost 100 sequential request deadlines.
@@ -244,12 +268,17 @@ export class SupabaseSportlinkSyncBackend {
       } else {
         try {
           if (!this.client.storage) throw new Error("storage_unavailable");
-          const upload = await operationWait(() => this.client.storage!.from("provider-assets")
-            .upload(artifact.storagePath, artifact.bytes, {
-              cacheControl: "31536000", contentType: artifact.mimeType, upsert: true
-            }), this.operationSignal);
+          const signal = AbortSignal.any([
+            AbortSignal.timeout(this.requestTimeoutMs),
+            ...(this.operationSignal ? [this.operationSignal] : [])
+          ]);
+          const bucket = this.logoStorageForSignal?.(signal) ?? this.client.storage.from("provider-assets");
+          if (!bucket.download) throw new Error("storage_lookup_unavailable");
+          await operationWait(() => persistSportlinkLogoObject(
+            bucket as SportlinkLogoStorage, artifact, signal
+          ), signal);
           assertOperationActive(this.operationSignal);
-          if (upload.error) throw new Error("optional_logo_upload_failed");
+          persistedObjects.add(objectKey);
           persistedLogos.add(artifact);
           continue;
         } catch {

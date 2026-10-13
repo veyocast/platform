@@ -28,6 +28,110 @@ export type SportlinkPersonPhotoArtifact = SportlinkMediaArtifact & {
   sourceUrl: string;
 };
 
+type LogoStorageError = { message?: string; status?: number; statusCode?: string };
+export type SportlinkLogoStorage = {
+  download(path: string, options: Record<string, never>, parameters: RequestInit): {
+    asStream(): PromiseLike<{ data: ReadableStream<Uint8Array> | null; error: LogoStorageError | null }>;
+  };
+  upload(path: string, bytes: Uint8Array, options: Record<string, unknown>): PromiseLike<{ error: LogoStorageError | null }>;
+};
+
+// Entity IDs belong to the database pointers; immutable object identity is
+// shared by teams with the same normalized image. Never use this for photos.
+export function sportlinkLogoObjectKey(artifact: SportlinkMediaArtifact) {
+  if (!['club_logo', 'team_logo'].includes(artifact.role)
+    || !/^[a-f0-9]{64}$/.test(artifact.checksumSha256)
+    || artifact.storagePath !== `providers/sportlink/${artifact.role}/${artifact.checksumSha256}.webp`
+    || artifact.mimeType !== 'image/webp'
+    || !Number.isSafeInteger(artifact.fileSizeBytes) || artifact.fileSizeBytes < 1 || artifact.fileSizeBytes > 2_000_000
+    || artifact.bytes.byteLength !== artifact.fileSizeBytes
+    || createHash('sha256').update(artifact.bytes).digest('hex') !== artifact.checksumSha256
+    || !Number.isInteger(artifact.width) || artifact.width < 1 || artifact.width > 512
+    || !Number.isInteger(artifact.height) || artifact.height < 1 || artifact.height > 512) {
+    throw new Error('sportlink_logo_object_invalid');
+  }
+  return JSON.stringify(['provider-assets', artifact.role, artifact.storagePath,
+    artifact.checksumSha256, artifact.fileSizeBytes, artifact.width, artifact.height, artifact.mimeType]);
+}
+
+export async function persistSportlinkLogoObject(
+  bucket: SportlinkLogoStorage,
+  artifact: SportlinkMediaArtifact,
+  signal: AbortSignal
+) {
+  sportlinkLogoObjectKey(artifact);
+  const metadata = await sharp(artifact.bytes, { failOn: 'warning', limitInputPixels: 16_000_000 }).metadata();
+  if (metadata.format !== 'webp' || metadata.width !== artifact.width || metadata.height !== artifact.height) {
+    throw new Error('sportlink_logo_object_invalid');
+  }
+  if (await verifiedStoredLogo(bucket, artifact, signal)) return;
+  if (signal.aborted) throw new Error('sportlink_logo_object_cancelled');
+  const result = await bucket.upload(artifact.storagePath, artifact.bytes, {
+    cacheControl: '31536000', contentType: artifact.mimeType, upsert: false
+  });
+  if (signal.aborted) throw new Error('sportlink_logo_object_cancelled');
+  if (!result.error) return;
+  // A competing producer may have won the immutable insert. Its bytes, not
+  // the conflict code or a cache pointer, establish successful persistence.
+  if (isLogoObjectConflict(result.error)
+    && await verifiedStoredLogo(bucket, artifact, signal)) return;
+  throw new Error('sportlink_logo_object_upload_failed');
+}
+
+async function verifiedStoredLogo(bucket: SportlinkLogoStorage, artifact: SportlinkMediaArtifact, signal: AbortSignal) {
+  if (signal.aborted) throw new Error('sportlink_logo_object_cancelled');
+  const result = await bucket.download(artifact.storagePath, {}, { cache: 'no-store', signal }).asStream();
+  if (signal.aborted) {
+    await result.data?.cancel().catch(() => undefined);
+    throw new Error('sportlink_logo_object_cancelled');
+  }
+  if (result.error) {
+    if (isMissingLogoObject(result.error)) return false;
+    throw new Error('sportlink_logo_object_lookup_failed');
+  }
+  if (!result.data) throw new Error('sportlink_logo_object_lookup_failed');
+  const reader = result.data.getReader();
+  const abort = () => { void reader.cancel().catch(() => undefined); };
+  signal.addEventListener('abort', abort, { once: true });
+  const hash = createHash('sha256');
+  let size = 0;
+  let complete = false;
+  try {
+    while (true) {
+      if (signal.aborted) throw new Error('sportlink_logo_object_cancelled');
+      const chunk = await reader.read();
+      if (signal.aborted) throw new Error('sportlink_logo_object_cancelled');
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > artifact.fileSizeBytes || size > 2_000_000) throw new Error('sportlink_logo_object_integrity_failed');
+      hash.update(chunk.value);
+    }
+    if (size !== artifact.fileSizeBytes || hash.digest('hex') !== artifact.checksumSha256) {
+      throw new Error('sportlink_logo_object_integrity_failed');
+    }
+    complete = true;
+    return true;
+  } finally {
+    signal.removeEventListener('abort', abort);
+    if (!complete) await reader.cancel().catch(() => undefined);
+    reader.releaseLock();
+  }
+}
+
+// Storage's documented legacy contract uses HTTP400 with a specific object
+// code. Arbitrary4xx, absent buckets and upstream failures are not misses.
+function isMissingLogoObject(error: LogoStorageError) {
+  if (error.status === 404) return ['404', 'NoSuchKey', 'not_found'].includes(error.statusCode ?? '404');
+  return error.status === 400 && (['NoSuchKey', 'not_found'].includes(error.statusCode ?? '')
+    || (error.statusCode === '404' && error.message === 'Object not found'));
+}
+
+function isLogoObjectConflict(error: LogoStorageError) {
+  if (error.status === 409) return ['409', 'ResourceAlreadyExists', 'KeyAlreadyExists', 'already_exists'].includes(error.statusCode ?? '409');
+  return error.status === 400 && (error.statusCode === 'already_exists'
+    || (error.statusCode === '409' && error.message === 'The resource already exists'));
+}
+
 export async function prepareSportlinkClubLogo(
   job: ClaimedSportlinkSync,
   externalId: string,
