@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(27);
+select plan(32);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
 values
@@ -81,6 +81,48 @@ reset role;
 select is((select capabilities -> 'manifestSchemaVersions' from public.player_devices where id = '65000000-0000-4000-8000-000000000261'), '[1]'::jsonb, 'heartbeat persists declared manifest compatibility');
 select is((select platform from public.player_devices where id = '65000000-0000-4000-8000-000000000261'), 'LG webOS', 'heartbeat persists the detected Player platform');
 select is((select release_id from public.player_sync_events where device_id = '65000000-0000-4000-8000-000000000261' order by created_at desc limit 1), '70000000-0000-4000-8000-000000000262'::uuid, 'download progress is attributed to the desired release');
+select has_index(
+  'public',
+  'player_sync_events',
+  'player_sync_events_tenant_screen_created_idx',
+  'screen detail history has the exact tenant/screen/latest access path'
+);
+
+set local role anon;
+select ok(
+  public.record_player_heartbeat_v2(
+    repeat('d', 64), 'DOWNLOADING',
+    '70000000-0000-4000-8000-000000000261',
+    '70000000-0000-4000-8000-000000000262',
+    512, 4096, 'release-test', 'LG webOS',
+    '{"manifestSchemaVersions":[1],"releaseHashAlgorithms":["sha256"]}'::jsonb,
+    'downloading',
+    '{"networkState":"online","acknowledgedAt":"2026-10-13T08:00:00Z","currentItemId":"item-2","goalVideoDiagnostics":{"attempts":2}}'::jsonb
+  ) is not null,
+  'a periodic heartbeat remains recorded when only volatile playback detail changes'
+);
+reset role;
+select is((select count(*) from public.player_sync_events
+  where device_id = '65000000-0000-4000-8000-000000000261'),1::bigint,
+  'volatile heartbeat detail does not manufacture another sync event');
+
+set local role anon;
+select ok(
+  public.record_player_heartbeat_v2(
+    repeat('d', 64), 'OFFLINE_PLAYING',
+    '70000000-0000-4000-8000-000000000261',
+    '70000000-0000-4000-8000-000000000262',
+    512, 4096, 'release-test', 'LG webOS',
+    '{"manifestSchemaVersions":[1],"releaseHashAlgorithms":["sha256"]}'::jsonb,
+    'downloading',
+    '{"networkState":"offline","acknowledgedAt":"2026-10-13T08:01:00Z","currentItemId":"item-2"}'::jsonb
+  ) is not null,
+  'a meaningful sync detail transition remains part of history'
+);
+reset role;
+select is((select count(*) from public.player_sync_events
+  where device_id = '65000000-0000-4000-8000-000000000261'),2::bigint,
+  'network-state change creates one new sync event');
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000261', true);

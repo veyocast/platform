@@ -32,7 +32,7 @@ export function readMediaWorkerConfig(
   return {
     ledScoresClaimIntervalMs: readInteger(
       environment.LEDSCORES_CLAIM_INTERVAL_MS,
-      5_000,
+      15_000,
       1_000,
       60_000,
       "LEDSCORES_CLAIM_INTERVAL_MS"

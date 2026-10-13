@@ -94,7 +94,29 @@ describe("LED Scores connector backend", () => {
       client
     );
     await expect(backend.claim("worker:test", 45, 10)).resolves.toEqual([connection]);
-    expect(client.rpc).toHaveBeenCalledWith("claim_ledscores_connections_v1", {
+    expect(client.rpc).toHaveBeenCalledWith("claim_ledscores_connections_v2", {
+      p_exclude_connection_ids: [],
+      p_lease_seconds: 45,
+      p_limit: 10,
+      p_worker_id: "worker:test"
+    });
+  });
+
+  it("passes open websocket IDs to the database claim boundary", async () => {
+    const client = { rpc: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    const backend = new SupabaseLedScoresConnectorBackend(
+      "https://project.supabase.co",
+      "service-role",
+      client
+    );
+    await expect(backend.claim(
+      "worker:test",
+      45,
+      10,
+      [connection.connectionId]
+    )).resolves.toEqual([]);
+    expect(client.rpc).toHaveBeenCalledWith("claim_ledscores_connections_v2", {
+      p_exclude_connection_ids: [connection.connectionId],
       p_lease_seconds: 45,
       p_limit: 10,
       p_worker_id: "worker:test"

@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(54);
+select plan(56);
 
 insert into auth.users (
   id,aud,role,email,encrypted_password,email_confirmed_at,created_at,updated_at,
@@ -118,6 +118,9 @@ select ok(not has_function_privilege(
   'authenticated','public.claim_ledscores_connections_v1(text,integer,integer)','execute'
 ),'browser roles cannot claim provider worker leases');
 select ok(not has_function_privilege(
+  'authenticated','public.claim_ledscores_connections_v2(text,integer,integer,uuid[])','execute'
+),'browser roles cannot call the exclusion-aware worker lease boundary');
+select ok(not has_function_privilege(
   'anon','public.get_ledscores_player_bootstrap_v1(text)','execute'
 ),'anonymous clients cannot call service-backed Player bootstrap');
 
@@ -138,6 +141,9 @@ select is((select count(*) from public.claim_ledscores_connections_v1('worker:s1
 select is((select endpoint_url from public.claim_ledscores_connections_v1('worker:s132',45,10)),
   'wss://wss.ledscores.score.tel/clubs/duindorp-sv/scores/',
   'worker receives only the canonical read-only websocket endpoint');
+select is((select count(*) from public.claim_ledscores_connections_v2(
+  'worker:s132',45,10,array[current_setting('test.ledscores_connection_id')::uuid]
+)),0::bigint,'an already-open websocket is excluded without rewriting its lease');
 select is((select count(*) from public.claim_ledscores_connections_v1('worker:other',45,10)),0::bigint,
   'a second worker cannot steal an active lease');
 select is(public.renew_ledscores_connection_lease_v1(
