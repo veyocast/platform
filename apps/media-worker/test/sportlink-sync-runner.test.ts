@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mapSportlinkMatches, SportlinkClient } from "@veyocast/integrations/server";
 import sharp from "sharp";
+import { createHash } from "node:crypto";
 import type { SportlinkTeamLogoArtifact } from "../src/sportlink-media";
+import { prepareSportlinkClubLogo, prepareSportlinkTeamLogo } from "../src/sportlink-media";
 
 import {
   collectSportlinkPoolContexts,
@@ -21,6 +23,313 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+const logoBytes = new Uint8Array(await sharp({
+  create: { background: "#123456", channels: 4, height: 64, width: 64 }
+}).webp().toBuffer());
+const logoChecksum = createHash("sha256").update(logoBytes).digest("hex");
+
+describe("immutable Sportlink logo objects through the real Supabase client", () => {
+  const job = {
+    connectionId: "20000000-0000-4000-8000-000000000001", dataSourceId: "30000000-0000-4000-8000-000000000001",
+    datasetGroup: "competitions", encryptedClientId: "unused", encryptionIv: "unused", encryptionTag: "unused",
+    runId: "40000000-0000-4000-8000-000000000001", tenantId: "10000000-0000-4000-8000-000000000001", timezone: "Europe/Amsterdam"
+  };
+  type Batch = Parameters<SupabaseSportlinkSyncBackend["complete"]>[2];
+  const batch = (teamLogos: SportlinkTeamLogoArtifact[] = []): Batch => ({
+    activities: [], birthdayFetchedAt: null, birthdays: [], club: null, clubLogo: null,
+    matches: [], personPhotos: [], standings: [], teamMembers: [], teamLogos, teams: []
+  });
+  const image = (color: string) => sharp({
+    create: { background: color, channels: 4, height: 64, width: 64 }
+  }).png().toBuffer();
+  const prepare = async (id: string, color = "#123456") => prepareSportlinkTeamLogo(
+    job, id, "Testteam", "https://images.test/same-source.png", await image(color)
+  );
+  const storage = () => {
+    const objects = new Map<string, Uint8Array>();
+    const uploads: string[] = [];
+    const reads: string[] = [];
+    const payloads: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname.startsWith("/storage/v1/object/")) {
+        if (init?.method === "GET") {
+          reads.push(url.pathname);
+          expect(init.cache).toBe("no-store");
+          const object = objects.get(url.pathname);
+          return object ? new Response(new Uint8Array(object), { headers: { "content-type": "image/webp" } })
+            : Response.json({ message: "not found" }, { status: 404 });
+        }
+        expect(init?.method).toBe("POST");
+        expect(new Headers(init?.headers).get("x-upsert")).toBe("false");
+        uploads.push(url.pathname);
+        objects.set(url.pathname, new Uint8Array(init?.body as Uint8Array));
+        return Response.json({ Id: "stored", Key: "stored" });
+      }
+      expect(url.pathname).toBe("/rest/v1/rpc/complete_sportlink_sync_v4");
+      payloads.push(JSON.parse(String(init?.body)));
+      return Response.json({ readCount: 2 });
+    }));
+    return { objects, uploads, reads, payloads };
+  };
+  const backend = () => new SupabaseSportlinkSyncBackend("https://supabase.test", "fixture-only");
+
+  it("uploads one shared object, keeps both external IDs, and reuses verified bytes in a new worker run", async () => {
+    const first = await prepare("team-1"), second = await prepare("team-2");
+    expect(first.storagePath).toBe(second.storagePath);
+    expect(first.assetId).not.toBe(second.assetId);
+    const state = storage();
+    await expect(backend().complete(job, "worker:test", batch([first, second]))).resolves.toBe(2);
+    await expect(backend().complete(job, "worker:test", batch([first, second]))).resolves.toBe(2);
+    expect(state.uploads).toHaveLength(1);
+    expect(state.reads).toHaveLength(2);
+    for (const payload of state.payloads) expect(payload.p_team_logos).toEqual([
+      expect.objectContaining({ assetId: first.assetId, externalId: "team-1" }),
+      expect.objectContaining({ assetId: second.assetId, externalId: "team-2" })
+    ]);
+  });
+
+  it("checks changed bytes at the same source URL and stores precisely one new shared object", async () => {
+    const old = await prepare("team-1"), current = await prepare("team-1", "#abcdef"), other = await prepare("team-2", "#abcdef");
+    expect(old.sourceUrl).toBe(current.sourceUrl);
+    const state = storage();
+    await backend().complete(job, "worker:test", batch([old]));
+    await backend().complete(job, "worker:test", batch([current, other]));
+    expect(state.uploads).toHaveLength(2);
+    expect(state.objects).toHaveProperty("size", 2);
+    expect(current.assetId).not.toBe(old.assetId);
+    expect(state.payloads[1]?.p_team_logos).toEqual([
+      expect.objectContaining({ assetId: current.assetId, externalId: "team-1" }),
+      expect.objectContaining({ assetId: other.assetId, externalId: "team-2" })
+    ]);
+  });
+
+  it("checks the daily club source again and submits its newly stored version rather than the old logo", async () => {
+    let color = "#123456";
+    const source = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      return url.pathname === "/clubgegevens" ? Response.json({ clubcode: "TEST", clubnaam: "Testclub" })
+        : new Response(new Uint8Array(await image(color)), { headers: { "content-type": "image/png" } });
+    });
+    const client = new SportlinkClient("fixture-only", { fetchImpl: source, maxAttempts: 1 });
+    const state = storage();
+    const old = await fetchSportlinkDataset("club_profile", client, job);
+    await backend().complete({ ...job, datasetGroup: "club_profile" }, "worker:test", old);
+    color = "#abcdef";
+    const current = await fetchSportlinkDataset("club_profile", client, job);
+    await backend().complete({ ...job, datasetGroup: "club_profile" }, "worker:test", current);
+    expect(source).toHaveBeenCalledTimes(4);
+    expect(state.uploads).toHaveLength(2);
+    expect(current.clubLogo?.assetId).not.toBe(old.clubLogo?.assetId);
+    expect(state.payloads[1]?.p_club_logo).toMatchObject({ assetId: current.clubLogo?.assetId, externalId: "TEST" });
+  });
+
+  it.each([true, false])("accepts a concurrent insert only after verifying the competing object's bytes (%s)", async (valid) => {
+    const artifact = await prepare("team-1");
+    let reads = 0, writes = 0;
+    let payload: Record<string, unknown> | undefined;
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname.startsWith("/storage/")) {
+        if (init?.method === "GET") return ++reads === 1 ? Response.json({}, { status: 404 })
+          : new Response(valid ? new Uint8Array(artifact.bytes) : new Uint8Array(artifact.bytes.length), { headers: { "content-type": "image/webp" } });
+        writes++;
+        return Response.json({ message: "conflict", statusCode: "409" }, { status: 409 });
+      }
+      payload = JSON.parse(String(init?.body));
+      return Response.json({ readCount: 1 });
+    }));
+    await backend().complete(job, "worker:test", batch([artifact]));
+    expect(reads).toBe(2); expect(writes).toBe(1);
+    expect(payload?.p_team_logos).toHaveLength(valid ? 1 : 0);
+  });
+
+  it.each([400, 503])("does not interpret lookup HTTP%s with a false404 body as a missing object", async (status) => {
+    const artifact = await prepare("team-1");
+    const methods: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname.startsWith("/storage/")) {
+        methods.push(init?.method ?? "");
+        return Response.json({ statusCode: "404", message: "PRIVATE_TOKEN" }, { status });
+      }
+      if (url.pathname.endsWith("provider_asset_cache")) return Response.json([]);
+      expect(JSON.parse(String(init?.body)).p_team_logos).toEqual([]);
+      return Response.json({ readCount: 1 });
+    }));
+    await expect(backend().complete(job, "worker:test", batch([artifact]))).resolves.toBe(1);
+    expect(methods).toEqual(["GET"]);
+  });
+
+  it.each([
+    [404, { code: "NoSuchKey", message: "not found" }],
+    [400, { code: "not_found", message: "Object not found" }],
+    [400, { statusCode: "404", message: "Object not found" }]
+  ])("creates a missing immutable object for the pinned SDK's documented shape HTTP%s/%j", async (status, body) => {
+    const artifact = await prepare("team-1");
+    const methods: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname.startsWith("/storage/")) {
+        methods.push(init?.method ?? "");
+        return init?.method === "GET" ? Response.json(body, { status }) : Response.json({ Id: "stored", Key: "stored" });
+      }
+      expect(JSON.parse(String(init?.body)).p_team_logos).toHaveLength(1);
+      return Response.json({ readCount: 1 });
+    }));
+    await backend().complete(job, "worker:test", batch([artifact]));
+    expect(methods).toEqual(["GET", "POST"]);
+  });
+
+  it.each([
+    [404, { code: "NoSuchBucket", message: "Object not found" }],
+    [400, { code: "InvalidRequest", message: "Object not found" }],
+    [500, { code: "not_found", message: "Object not found" }],
+    [503, { code: "NoSuchKey", message: "Object not found" }]
+  ])("keeps non-object-miss HTTP%s/%j behind the optional media circuit", async (status, body) => {
+    const artifact = await prepare("team-1");
+    const methods: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname.startsWith("/storage/")) {
+        methods.push(init?.method ?? ""); return Response.json(body, { status });
+      }
+      if (url.pathname.endsWith("provider_asset_cache")) return Response.json([]);
+      expect(JSON.parse(String(init?.body)).p_team_logos).toHaveLength(0);
+      return Response.json({ readCount: 1 });
+    }));
+    await backend().complete(job, "worker:test", batch([artifact]));
+    expect(methods).toEqual(["GET"]);
+  });
+
+  it.each([
+    [409, { code: "ResourceAlreadyExists", message: "exists" }],
+    [400, { code: "already_exists", message: "The resource already exists" }],
+    [400, { statusCode: "409", message: "The resource already exists" }]
+  ])("verifies real bytes after the pinned SDK's modern or legacy conflict HTTP%s/%j", async (status, body) => {
+    const artifact = await prepare("team-1");
+    const methods: string[] = [];
+    let reads = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname.startsWith("/storage/")) {
+        methods.push(init?.method ?? "");
+        if (init?.method === "GET") return ++reads === 1 ? Response.json({}, { status: 404 }) : new Response(new Uint8Array(artifact.bytes));
+        return Response.json(body, { status });
+      }
+      expect(JSON.parse(String(init?.body)).p_team_logos).toHaveLength(1);
+      return Response.json({ readCount: 1 });
+    }));
+    await backend().complete(job, "worker:test", batch([artifact]));
+    expect(methods).toEqual(["GET", "POST", "GET"]);
+  });
+
+  it("cancels an oversized object stream and never rewrites its corrupt immutable path", async () => {
+    const artifact = await prepare("team-1");
+    let cancelled = false;
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(new Uint8Array(artifact.bytes.length + 1)); },
+      cancel() { cancelled = true; }
+    });
+    const writes: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname.startsWith("/storage/")) {
+        writes.push(init?.method ?? "");
+        return new Response(stream);
+      }
+      if (url.pathname.endsWith("provider_asset_cache")) return Response.json([]);
+      expect(JSON.parse(String(init?.body)).p_team_logos).toEqual([]);
+      return Response.json({ readCount: 1 });
+    }));
+    await backend().complete(job, "worker:test", batch([artifact]));
+    expect(cancelled).toBe(true); expect(writes).toEqual(["GET"]);
+  });
+
+  it("aborts a held object body without upload, pointer completion or private error leakage", async () => {
+    const artifact = await prepare("team-1");
+    let began!: () => void;
+    const started = new Promise<void>((resolve) => { began = resolve; });
+    let cancelled = false;
+    const methods: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      methods.push(init?.method ?? "");
+      return new Response(new ReadableStream<Uint8Array>({
+        start(controller) { controller.enqueue(artifact.bytes.slice(0, 1)); began(); },
+        cancel() { cancelled = true; }
+      }));
+    }));
+    const controller = new AbortController();
+    const instance = backend(); instance.bindOperationSignal(controller.signal);
+    const pending = instance.complete(job, "worker:test", batch([artifact]));
+    await started; controller.abort("PRIVATE_REASON");
+    await expect(pending).rejects.toHaveProperty("code", "SPORTLINK_WORKER_CANCELLED");
+    await vi.waitFor(() => expect(cancelled).toBe(true));
+    expect(methods).toEqual(["GET"]);
+  });
+
+  it("aborts the real SDK's held POST at the same object deadline after a late missing GET", async () => {
+    const artifact = await prepare("team-1"), later = await prepare("team-2", "#abcdef");
+    const paths: string[] = [];
+    let began!: () => void, closed!: () => void;
+    const uploading = new Promise<void>((resolve) => { began = resolve; });
+    const disconnected = new Promise<void>((resolve) => { closed = resolve; });
+    let uploadSignal: AbortSignal | null | undefined;
+    const nativeFetch = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>((input, init) => {
+      if (init?.method === "POST" && String(input).includes("/storage/v1/object/")) uploadSignal = init.signal;
+      return nativeFetch(input, init);
+    }));
+    const server = createServer((request, response) => {
+      const path = request.url ?? "";
+      paths.push(`${request.method} ${path}`);
+      request.resume();
+      response.setHeader("Content-Type", "application/json");
+      if (path.startsWith("/storage/") && request.method === "GET") {
+        setTimeout(() => { response.statusCode = 404; response.end(JSON.stringify({ message: "not found" })); }, 350);
+      } else if (path.startsWith("/storage/")) {
+        response.writeHead(200);
+        response.write('{"Id":');
+        response.once("close", closed);
+        began();
+      } else if (path.startsWith("/rest/v1/provider_asset_cache")) response.end("[]");
+      else response.end(JSON.stringify({ readCount: 2 }));
+    });
+    await new Promise<void>((resolve) => { server.listen(0, "127.0.0.1", resolve); });
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("fixture_address_invalid");
+    const instance = new SupabaseSportlinkSyncBackend(`http://127.0.0.1:${address.port}`, "fixture-only", undefined, 600);
+    let pending: ReturnType<SupabaseSportlinkSyncBackend["complete"]> | undefined;
+    try {
+      pending = instance.complete(job, "worker:test", batch([artifact, later]));
+      await uploading;
+      await expect(pending).resolves.toBe(2);
+      expect(uploadSignal?.aborted).toBe(true);
+      await disconnected;
+      expect(paths.filter((path) => path.includes("/storage/"))).toEqual([
+        `GET /storage/v1/object/provider-assets/${artifact.storagePath}`,
+        `POST /storage/v1/object/provider-assets/${artifact.storagePath}`
+      ]);
+      expect(paths.filter((path) => path.includes("complete_sportlink_sync_v4"))).toHaveLength(1);
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve) => { server.close(() => resolve()); });
+      await pending;
+    }
+  });
+
+  it("separates club and team roles even for the same normalized image", async () => {
+    const team = await prepare("team-1");
+    const club = await prepareSportlinkClubLogo(job, "club-1", "Testclub", await image("#123456"));
+    const state = storage();
+    const current = batch([team]); current.clubLogo = club;
+    await backend().complete(job, "worker:test", current);
+    expect(club.checksumSha256).toBe(team.checksumSha256);
+    expect(state.uploads).toHaveLength(2);
+    expect(state.payloads[0]?.p_club_logo).toMatchObject({ assetId: club.assetId, role: "club_logo" });
+  });
+});
+
 describe("Sportlink worker lifecycle cancellation", () => {
   const job = {
     connectionId: "20000000-0000-4000-8000-000000000001", dataSourceId: "30000000-0000-4000-8000-000000000001",
@@ -34,10 +343,10 @@ describe("Sportlink worker lifecycle cancellation", () => {
   const batch = (): Batch => ({ activities: [], birthdayFetchedAt: null, birthdays: [], club: null, clubLogo: null,
     matches: [], personPhotos: [], standings: [], teamMembers: [], teamLogos: [], teams: [] });
   const logos = (): Batch["teamLogos"] => [1, 2].map((number) => ({
-    assetId: `50000000-0000-5000-8000-${String(number).padStart(12, "0")}`, bytes: new Uint8Array([1, 2, 3]),
-    checksumSha256: "a".repeat(64), externalId: `team-${number}`, fileSizeBytes: 3, height: 64,
+    assetId: `50000000-0000-5000-8000-${String(number).padStart(12, "0")}`, bytes: logoBytes,
+    checksumSha256: logoChecksum, externalId: `team-${number}`, fileSizeBytes: logoBytes.length, height: 64,
     mimeType: "image/webp", role: "team_logo", sourceUrl: "https://provider.test/PRIVATE_SOURCE",
-    storagePath: `providers/sportlink/team_logo/${"a".repeat(64)}.webp`, title: "PRIVATE_TEAM", width: 64
+    storagePath: `providers/sportlink/team_logo/${logoChecksum}.webp`, title: "PRIVATE_TEAM", width: 64
   }));
 
   it("binds exactly one lifecycle signal and rejects rebinding before any I/O", async () => {
@@ -1167,10 +1476,10 @@ describe("Sportlink sync worker", () => {
     };
     const logo = (externalId: string, number: number): SportlinkTeamLogoArtifact => ({
       assetId: `50000000-0000-5000-8000-${String(number).padStart(12, "0")}`,
-      bytes: new Uint8Array([1, 2, 3]), checksumSha256: "a".repeat(64),
-      externalId, fileSizeBytes: 3, height: 64, mimeType: "image/webp",
+      bytes: logoBytes, checksumSha256: logoChecksum,
+      externalId, fileSizeBytes: logoBytes.length, height: 64, mimeType: "image/webp",
       role: "team_logo", sourceUrl: "https://provider.test/PRIVATE_SOURCE",
-      storagePath: `providers/sportlink/team_logo/${"a".repeat(64)}.webp`,
+      storagePath: `providers/sportlink/team_logo/${logoChecksum}.webp`,
       title: "PRIVATE_TEAM_NAME", width: 64
     });
     const batch = (count = 3): Batch => ({
@@ -1307,11 +1616,20 @@ describe("Sportlink sync worker", () => {
     it("submits successfully stored logos while omitting later failed and skipped new versions", async () => {
       const readWarnings = warnings();
       const current = batch();
+      const differentBytes = new Uint8Array(await sharp({
+        create: { background: "#abcdef", channels: 4, height: 64, width: 64 }
+      }).webp().toBuffer());
+      const differentChecksum = createHash("sha256").update(differentBytes).digest("hex");
+      for (const logo of current.teamLogos.slice(1)) Object.assign(logo, {
+        bytes: differentBytes, checksumSha256: differentChecksum, fileSizeBytes: differentBytes.length,
+        storagePath: `providers/sportlink/team_logo/${differentChecksum}.webp`
+      });
       let uploads = 0;
       let payload: Record<string, unknown> | undefined;
       vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
         const url = new URL(input instanceof Request ? input.url : input);
         if (url.pathname.startsWith("/storage/v1/object/")) {
+          if (init?.method === "GET") return Response.json({ message: "not found" }, { status: 404 });
           return ++uploads === 1 ? Response.json({ Id: "stored", Key: "stored" }) : storageFailure();
         }
         if (url.pathname === "/rest/v1/provider_asset_cache") {
@@ -1340,7 +1658,7 @@ describe("Sportlink sync worker", () => {
       };
       current.clubLogo = {
         ...logo("club-1", 1), role: "club_logo",
-        storagePath: `providers/sportlink/club_logo/${"a".repeat(64)}.webp`
+        storagePath: `providers/sportlink/club_logo/${logoChecksum}.webp`
       };
       const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
         const url = new URL(input instanceof Request ? input.url : input);
@@ -1484,7 +1802,7 @@ describe("Sportlink sync worker", () => {
       const current = batch(0);
       current.clubLogo = {
         ...logo("club-1", 1), role: "club_logo",
-        storagePath: `providers/sportlink/club_logo/${"a".repeat(64)}.webp`
+        storagePath: `providers/sportlink/club_logo/${logoChecksum}.webp`
       };
       const rpc = vi.fn().mockResolvedValue({ data: { readCount: 1 }, error: null });
       const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", { rpc });
@@ -1500,13 +1818,14 @@ describe("Sportlink sync worker", () => {
       error: null
     });
     const upload = vi.fn().mockResolvedValue({ error: null });
-    const from = vi.fn(() => ({ upload }));
+    const download = vi.fn(() => ({ asStream: async () => ({ data: null, error: { status: 404 } }) }));
+    const from = vi.fn(() => ({ download, upload }));
     const backend = new SupabaseSportlinkSyncBackend(
       "https://project.supabase.co",
       "service-secret",
       { rpc, storage: { from } }
     );
-    const bytes = new Uint8Array([1, 2, 3]);
+    const bytes = logoBytes;
 
     await expect(backend.complete({
       connectionId: "20000000-0000-4000-8000-000000000001",
@@ -1536,15 +1855,15 @@ describe("Sportlink sync worker", () => {
       clubLogo: {
         assetId: "50000000-0000-5000-8000-000000000001",
         bytes,
-        checksumSha256: "a".repeat(64),
+        checksumSha256: logoChecksum,
         externalId: "club-1",
-        fileSizeBytes: 3,
-        height: 100,
+        fileSizeBytes: bytes.length,
+        height: 64,
         mimeType: "image/webp",
         role: "club_logo",
-        storagePath: `providers/sportlink/club_logo/${"a".repeat(64)}.webp`,
+        storagePath: `providers/sportlink/club_logo/${logoChecksum}.webp`,
         title: "Duindorp sv clublogo",
-        width: 100
+        width: 64
       },
       matches: [],
       personPhotos: [],
@@ -1556,12 +1875,12 @@ describe("Sportlink sync worker", () => {
 
     expect(from).toHaveBeenCalledWith("provider-assets");
     expect(upload).toHaveBeenCalledWith(
-      `providers/sportlink/club_logo/${"a".repeat(64)}.webp`,
+      `providers/sportlink/club_logo/${logoChecksum}.webp`,
       bytes,
       {
         cacheControl: "31536000",
         contentType: "image/webp",
-        upsert: true
+        upsert: false
       }
     );
     expect(rpc).toHaveBeenCalledWith("complete_sportlink_sync_v4", expect.objectContaining({
