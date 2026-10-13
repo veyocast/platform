@@ -10,6 +10,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
 
 import { dataApiResourcesCli, dataApiResourcesSql, probeDataApiResources, sanitizeDataApiResources } from "./probe-data-api-resources.mjs";
+import { capacityFailure } from "./supabase-capacity-metrics.mjs";
 
 const tenant = "7526e17f-c819-431c-a05d-4ef5f16ea1c0", sha = "a".repeat(40), project = "abcdefghijklmnopqrst";
 const roles = ["anon", "authenticated", "authenticator", "postgres", "service_role"];
@@ -36,7 +37,7 @@ function fixture() {
 }
 const response = (value = fixture()) => ({ ok: true, stdout: JSON.stringify([{ report: value }]) });
 const privateOutput = value => assert.doesNotMatch(JSON.stringify(value), /PRIVATE_|postgres:\/\/|RAW_ERROR|pg_stat_activity|pg_get_expr/);
-const dependencies = extra => ({ probe: async () => baseline(), executeSql: async () => response(), ...extra });
+const dependencies = extra => ({ probe: async () => baseline(), executeSql: async () => response(), collectCapacity: async () => capacityFailure(), ...extra });
 
 test("scope rejects before credential/SQL/probe access and preserves fixed output", async () => {
   for (const patch of [{ expectedRuntimeSha: "PRIVATE_SHA" }, { environment: { ...env(), GITHUB_REF: "refs/pull/1/merge" } },
@@ -75,6 +76,65 @@ test("project mismatch remains closed after baseline without metadata request", 
   const value = input(); value.environment.SUPABASE_DB_URL = value.environment.SUPABASE_DB_URL.replace(project, "uvwxyzabcdefghijklmn"); let calls = 0;
   const result = await probeDataApiResources(value, dependencies({ executeSql: async () => { calls++; } }));
   assert.equal(result.report.code, "RESOURCE_CONTEXT_UNPROVEN"); assert.equal(calls, 0); privateOutput(result);
+});
+
+test("capacity credentials are reached only after all existing runtime tenant and project guards", async () => {
+  for (const mutate of [value => { value.environment.GITHUB_REF = "refs/pull/228/merge"; },
+    value => { value.environment.SUPABASE_DB_URL = value.environment.SUPABASE_DB_URL.replace(project, "uvwxyzabcdefghijklmn"); }]) {
+    const value = input(); mutate(value); let reads = 0;
+    const result = await probeDataApiResources(value, dependencies({ collectCapacity: async () => { reads++; throw new Error("PRIVATE_METRICS"); } }));
+    assert.equal(reads, 0); assert.notEqual(result.exitCode, 0); privateOutput(result);
+  }
+  const before = baseline(); before.report.sql.tenantActive = false; let reads = 0;
+  const result = await probeDataApiResources(input(), dependencies({ probe: async () => before,
+    collectCapacity: async () => { reads++; throw new Error("PRIVATE_METRICS"); } }));
+  assert.equal(reads, 0); assert.equal(result.report.code, "RESOURCE_BASELINE_UNPROVEN"); privateOutput(result);
+});
+
+test("one independent capacity operation preserves context when the metadata read fails", async () => {
+  let reads = 0;
+  const measurements = capacityFailure();
+  const result = await probeDataApiResources(input(), dependencies({ executeSql: async () => { throw new Error("PRIVATE_SQL"); },
+    collectCapacity: async request => {
+      assert.equal(request.projectRef, project); assert.equal(request.serviceRoleKey, "PRIVATE_KEY");
+      assert.equal(request.signal, undefined); reads++; return measurements;
+    } }));
+  assert.equal(reads, 1); assert.equal(result.report.code, "RESOURCE_CONTEXT_UNPROVEN"); assert.equal(result.exitCode, 1);
+  assert.deepEqual(result.report.capacityMetrics, measurements); assert.equal(result.report.metadata, undefined); privateOutput(result);
+});
+
+test("unavailable or hostile capacity reads cannot mask metadata or leak response labels", async () => {
+  for (const collectCapacity of [async () => { throw new Error("PRIVATE_RESPONSE"); }, async () => ({ PRIVATE_LABEL: "PRIVATE_KEY" })]) {
+    const result = await probeDataApiResources(input(), dependencies({ collectCapacity }));
+    assert.equal(result.report.code, "RESOURCE_CONTEXT_OBSERVED"); assert.equal(result.exitCode, 0);
+    assert.deepEqual(result.report.capacityMetrics, capacityFailure()); assert.equal(result.report.verdict, "UNPROVEN"); privateOutput(result);
+  }
+});
+
+test("operation abort cancels both independent reads and remains fatal", async () => {
+  const controller = new globalThis.AbortController(); let sqlAborted = false, metricsAborted = false;
+  const result = await probeDataApiResources(input(), dependencies({ operationSignal: controller.signal,
+    collectCapacity: async ({ signal }) => new Promise(resolve => {
+      signal.addEventListener("abort", () => { metricsAborted = true; resolve(capacityFailure("CAPACITY_ABORTED")); }, { once: true });
+    }),
+    executeSql: ({ signal }) => {
+      signal.addEventListener("abort", () => { sqlAborted = true; }, { once: true });
+      void delay(1).then(() => controller.abort("PRIVATE_REASON")); return new Promise(() => {});
+    } }));
+  assert.equal(result.report.code, "RESOURCE_CANCELLED"); assert.equal(result.exitCode, 1);
+  assert.equal(sqlAborted, true); assert.equal(metricsAborted, true); privateOutput(result);
+});
+
+test("late exporter abort retains completed metadata while cancellation remains fatal", async () => {
+  const controller = new globalThis.AbortController(); let metricsAborted = false;
+  const result = await probeDataApiResources(input(), dependencies({ operationSignal: controller.signal,
+    collectCapacity: async ({ signal }) => new Promise(resolve => {
+      signal.addEventListener("abort", () => { metricsAborted = true; resolve(capacityFailure("CAPACITY_ABORTED")); }, { once: true });
+      void delay(5).then(() => controller.abort("PRIVATE_REASON"));
+    }) }));
+  assert.equal(result.report.code, "RESOURCE_CANCELLED"); assert.equal(result.exitCode, 1);
+  assert.equal(metricsAborted, true); assert.equal(result.report.metadata.contextComplete, true);
+  assert.equal(result.report.capacityMetrics.code, "CAPACITY_ABORTED"); privateOutput(result);
 });
 
 test("fixed SQL contains exact scope, history, index and caps and no mutating commands", () => {
@@ -355,10 +415,12 @@ for (const [signal, exitCode] of [["SIGINT", 130], ["SIGTERM", 143]]) {
       const marker = join(directory, "active.json"), script = join(directory, "cli.mjs");
       const moduleUrl = pathToFileURL(join(process.cwd(), "scripts/probe-data-api-resources.mjs")).href;
       const adapterUrl = pathToFileURL(join(process.cwd(), "scripts/probe-runtime-database.mjs")).href;
+      const capacityUrl = pathToFileURL(join(process.cwd(), "scripts/supabase-capacity-metrics.mjs")).href;
       await writeFile(script, `import {spawn} from 'node:child_process'; import {dataApiResourcesCli,probeDataApiResources} from ${JSON.stringify(moduleUrl)};
 import {createSqlAdapter} from ${JSON.stringify(adapterUrl)};
+import {capacityFailure} from ${JSON.stringify(capacityUrl)};
 const adapter=createSqlAdapter((_file,_args,options)=>spawn(process.execPath,['-e',\`const fs=require('node:fs'),{spawn}=require('node:child_process');const descendant=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});fs.writeFileSync(process.argv[1],JSON.stringify({wrapper:process.pid,descendant:descendant.pid}));process.stderr.write('RAW_ERROR PRIVATE_PASSWORD');setInterval(()=>{},1000);\`,${JSON.stringify(marker)}],options));
-process.exitCode=await dataApiResourcesCli({argv:[${JSON.stringify(sha)}],environment:${JSON.stringify({ ...env(), RUNNER_TEMP: directory })},probe:(value,options)=>probeDataApiResources(value,{...options,probe:async()=>(${JSON.stringify(baseline())}),executeSql:adapter})});`, { mode: 0o600 });
+process.exitCode=await dataApiResourcesCli({argv:[${JSON.stringify(sha)}],environment:${JSON.stringify({ ...env(), RUNNER_TEMP: directory })},probe:(value,options)=>probeDataApiResources(value,{...options,probe:async()=>(${JSON.stringify(baseline())}),executeSql:adapter,collectCapacity:async()=>capacityFailure()})});`, { mode: 0o600 });
       child = spawn(process.execPath, [script], { detached: true, stdio: ["ignore", "pipe", "pipe"] });
       child.stdout.on("data", chunk => { stdout += chunk; }); child.stderr.on("data", chunk => { stderr += chunk; });
       closed = new Promise(resolve => child.once("close", (code, terminalSignal) => resolve({ code, terminalSignal })));

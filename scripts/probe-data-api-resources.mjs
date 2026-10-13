@@ -8,6 +8,7 @@ import { clearTimeout, setTimeout } from "node:timers";
 import { pathToFileURL } from "node:url";
 
 import { createSqlAdapter, diagnosticDatabaseConfig, probeRuntimeDatabase } from "./probe-runtime-database.mjs";
+import { capacityFailure, collectCapacityMetrics, sanitizeCapacityMetrics } from "./supabase-capacity-metrics.mjs";
 
 const TENANT = "7526e17f-c819-431c-a05d-4ef5f16ea1c0";
 const SHA = /^[0-9a-f]{40}$/;
@@ -54,7 +55,8 @@ const LIMITATIONS = [
   "bounded_blocker_edges_are_current_context_not_full_chains_or_deadlock_proof",
   "query_tokens_are_last_statement_hints_not_proof_of_active_rpc",
   "prepared_external_masked_or_unclassified_blockers_are_unknown",
-  "parallel_blocker_pids_are_deduplicated_per_waiter_not_global_session_counts"
+  "parallel_blocker_pids_are_deduplicated_per_waiter_not_global_session_counts",
+  "capacity_exporter_samples_are_current_database_host_context_not_historical_cause_or_application_vps_metrics"
 ];
 const values = rows => rows.map(value => `('${value}')`).join(",");
 const roleListSql = ROLES.map(role => `'${role}'`).join(",");
@@ -343,10 +345,11 @@ function baselineProjection(report) {
 }
 
 export async function probeDataApiResources({ expectedRuntimeSha, environment = process.env }, {
-  probe = probeRuntimeDatabase, executeSql = createSqlAdapter(), operationSignal, metadataDeadlineMs = 20_000, now = () => new Date()
+  probe = probeRuntimeDatabase, executeSql = createSqlAdapter(), collectCapacity = collectCapacityMetrics,
+  operationSignal, metadataDeadlineMs = 20_000, now = () => new Date()
 } = {}) {
   const started = performance.now();
-  const observed = { schemaVersion: 1, event: "data_api_resources_probe", completionScope: "one_read_only_context_snapshot_not_root_cause_or_readiness", limitations: [...LIMITATIONS] };
+  const observed = { schemaVersion: 2, event: "data_api_resources_probe", completionScope: "one_catalog_snapshot_and_two_capacity_samples_not_root_cause_or_readiness", limitations: [...LIMITATIONS] };
   const finish = (code, exitCode = 1) => ({ exitCode, report: { ...observed, code, verdict: "UNPROVEN", observedAt: now().toISOString(), elapsedMs: Math.round(performance.now() - started) } });
   if (environment.GITHUB_REF !== "refs/heads/main" || !SHA.test(environment.GITHUB_SHA ?? "") || !SHA.test(expectedRuntimeSha ?? "")
     || !Number.isInteger(metadataDeadlineMs) || metadataDeadlineMs < 1 || metadataDeadlineMs > 20_000
@@ -362,22 +365,38 @@ export async function probeDataApiResources({ expectedRuntimeSha, environment = 
       || before.report.health?.length !== 2 || before.report.health[0].service !== "control" || before.report.health[1].service !== "player"
       || before.report.health.some(row => row.status !== "passed")) return finish("RESOURCE_BASELINE_UNPROVEN");
     const config = diagnosticDatabaseConfig(environment.SUPABASE_DB_URL, environment.PGCONNECT_TIMEOUT, environment.SUPABASE_PROJECT_REF, environment);
-    const controller = new globalThis.AbortController();
-    let timer, rejectAbort;
-    const abort = () => { controller.abort(); rejectAbort?.(new Error("RESOURCE_CANCELLED")); };
-    operationSignal?.addEventListener("abort", abort, { once: true });
-    try {
-      const cancelled = new Promise((_, reject) => { rejectAbort = reject; });
-      if (operationSignal?.aborted) abort();
-      const deadline = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error("RESOURCE_METADATA_TIMEOUT")); }, metadataDeadlineMs); });
-      const result = await Promise.race([cancelled, deadline, Promise.resolve().then(() => {
-        if (controller.signal.aborted) throw new Error("RESOURCE_CANCELLED");
-        return executeSql({ databaseUrl: config.databaseUrl, sql: dataApiResourcesSql(), signal: controller.signal });
-      })]);
-      if (operationSignal?.aborted) return finish("RESOURCE_CANCELLED");
-      observed.metadata = metadataResult(result);
-      return finish(observed.metadata.contextComplete ? "RESOURCE_CONTEXT_OBSERVED" : "RESOURCE_CONTEXT_INCOMPLETE", 0);
-    } finally { clearTimeout(timer); operationSignal?.removeEventListener("abort", abort); }
+    if (operationSignal?.aborted) return finish("RESOURCE_CANCELLED");
+    // The independent exporter read must neither lengthen the SQL deadline nor
+    // discard useful capacity context when that fixed metadata query fails.
+    const capacity = Promise.resolve().then(() => {
+      if (operationSignal?.aborted) return capacityFailure("CAPACITY_ABORTED");
+      return collectCapacity({ projectRef: environment.SUPABASE_PROJECT_REF,
+        serviceRoleKey: environment.SUPABASE_SERVICE_ROLE_KEY, signal: operationSignal });
+    }).then(sanitizeCapacityMetrics).catch(() => capacityFailure("CAPACITY_UNPROVEN"));
+    const metadata = (async () => {
+      const controller = new globalThis.AbortController();
+      let timer, rejectAbort;
+      const abort = () => { controller.abort(); rejectAbort?.(new Error("RESOURCE_CANCELLED")); };
+      operationSignal?.addEventListener("abort", abort, { once: true });
+      try {
+        const cancelled = new Promise((_, reject) => { rejectAbort = reject; });
+        if (operationSignal?.aborted) abort();
+        const deadline = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error("RESOURCE_METADATA_TIMEOUT")); }, metadataDeadlineMs); });
+        const result = await Promise.race([cancelled, deadline, Promise.resolve().then(() => {
+          if (controller.signal.aborted) throw new Error("RESOURCE_CANCELLED");
+          return executeSql({ databaseUrl: config.databaseUrl, sql: dataApiResourcesSql(), signal: controller.signal });
+        })]);
+        return { metadata: metadataResult(result) };
+      } catch (error) {
+        return { code: operationSignal?.aborted ? "RESOURCE_CANCELLED" : error?.message === "RESOURCE_METADATA_TIMEOUT" ? "RESOURCE_METADATA_TIMEOUT" : "RESOURCE_CONTEXT_UNPROVEN" };
+      } finally { clearTimeout(timer); operationSignal?.removeEventListener("abort", abort); }
+    })();
+    const [context, measurements] = await Promise.all([metadata, capacity]);
+    observed.capacityMetrics = measurements;
+    if (context.metadata) observed.metadata = context.metadata;
+    if (operationSignal?.aborted) return finish("RESOURCE_CANCELLED");
+    if (context.code) return finish(context.code);
+    return finish(observed.metadata.contextComplete ? "RESOURCE_CONTEXT_OBSERVED" : "RESOURCE_CONTEXT_INCOMPLETE", 0);
   } catch (error) {
     return finish(operationSignal?.aborted ? "RESOURCE_CANCELLED" : error?.message === "RESOURCE_METADATA_TIMEOUT" ? "RESOURCE_METADATA_TIMEOUT" : "RESOURCE_CONTEXT_UNPROVEN");
   }
@@ -400,7 +419,7 @@ export async function dataApiResourcesCli({ argv = process.argv.slice(2), enviro
     }
     stdout.write(JSON.stringify(result.report) + "\n");
     return signalExit ?? (controller.signal.aborted ? 1 : result.exitCode);
-  } catch { stdout.write('{"schemaVersion":1,"event":"data_api_resources_probe","code":"RESOURCE_OUTPUT_UNPROVEN","verdict":"UNPROVEN"}\n'); return signalExit ?? 1; }
+  } catch { stdout.write('{"schemaVersion":2,"event":"data_api_resources_probe","code":"RESOURCE_OUTPUT_UNPROVEN","verdict":"UNPROVEN"}\n'); return signalExit ?? 1; }
   finally { clearTimeout(timer); process.removeListener("SIGINT", interrupt); process.removeListener("SIGTERM", terminate); }
 }
 
