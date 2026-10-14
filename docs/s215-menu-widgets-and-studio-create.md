@@ -21,6 +21,8 @@ widgetvelden. Alle andere identiteit-, prijs-, tenant- en assetchecks blijven ge
 - Categorie- en menuwidgets met aanpasbare naam/subtitel en één/twee productkolommen.
 - Pagina's met één/twee kolommen; widgets over de breedte, links of rechts.
 - Producten in een gekozen kolom, verplaatsen en verwijderen; productafbeelding.
+  Bij één kolom toont de plaatskiezer de werkelijke positie en is die niet
+  aanpasbaar; bij twee kolommen is de keuze direct beschikbaar.
 - Vetgedrukte productnaam en normale subregels: vrije tekst of gekoppelde artikelen.
 - Afbeeldingswidgets met 16:9/9:16, contain/cover/fill; deals met tekst en afbeelding.
 - Extra pagina's, afzonderlijke previewnavigatie en inhoudsafhankelijke paginering.
