@@ -92,6 +92,12 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
       void fetch(`/api/publisher/library?${params}`,{cache:'no-store',signal:controller.signal}).then(async response=>{const page=await response.json()as PublisherLibraryPage&{error?:string};if(!response.ok)throw new Error(page.error||'De bibliotheek kon niet worden geladen.');if(!controller.signal.aborted)setLibrary(page);}).catch(()=>{if(!controller.signal.aborted)setLibraryError('De bibliotheek kon niet worden geladen. Je selectie blijft behouden; probeer opnieuw.');}).finally(()=>{clearTimeout(deadline);if(!controller.signal.aborted)setLoading(false);});
     },250);return()=>{clearTimeout(delay);controller.abort();};
   },[tab,query,folderId,collection,favorites,offset,refresh]);
+  const processingMedia=library?.unavailableMedia?.some(item=>item.status==='processing');
+  useEffect(()=>{
+    if(tab!=='media'||!processingMedia||loading)return;
+    const timer=setTimeout(()=>setRefresh(value=>value+1),2000);
+    return()=>clearTimeout(timer);
+  },[tab,processingMedia,loading,refresh]);
   const activeMedia = [...new Map([...(library?.media??media),...media.filter(item=>item.sourceKind)].filter(item=>!item.archived).map(item=>[item.id,item])).values()];
   const needsEngageFallback=selection.some(choice=>choice.source==='media'&&choice.item.sourceKind==='engage'&&!choice.item.fallbackAssetId);
   const fallbackChoices=[...new Map([...activeMedia,...(engageFallback?[engageFallback]:[])].filter(item=>item.kind==='image'&&!item.sourceKind).map(item=>[item.id,item])).values()];
@@ -138,7 +144,7 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
         const uploaded = await uploadBackground(file);
         const image = uploaded.previewUrl;
         const item: Media = {
-          id: uploaded.assetId, name: file.name.replace(/\.[^.]+$/, '') || 'Nieuwe afbeelding',
+          id: uploaded.assetId, checksumSha256: uploaded.checksumSha256, name: file.name.replace(/\.[^.]+$/, '') || 'Nieuwe afbeelding',
           image, folder: 'Uploads', size: `${(file.size / 1024 / 1024).toLocaleString('nl-NL', {maximumFractionDigits: 1})} MB`,
           kind: 'image', tags: [], collections: [],
         };
@@ -191,6 +197,7 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
 
     <div className={styles.content} aria-busy={loading}>
       {libraryError&&<div className={styles.errors}role="alert">{libraryError}<button type="button"onClick={()=>setRefresh(value=>value+1)}>Opnieuw laden</button></div>}
+      {tab==='media'&&!!library?.unavailableMedia?.length&&<section className={styles.processingStatus}aria-label="Uploads in verwerking"><strong>Deze uploads zijn nog niet beschikbaar</strong>{library.unavailableMedia.map(item=><p key={item.id}><strong>{item.name}</strong> · {item.status==='validation_failed'?'Verwerking mislukt':item.status==='processing'?'Wordt verwerkt':'Upload niet afgerond'}<br/>{item.message}</p>)}<a href="/dashboard/media">Bekijk de beeldbank</a></section>}
       {videoUpload&&videoUploadConfig&&<section aria-label="Video uploaden"><VideoUploadForm canUpload anonKey={videoUploadConfig.anonKey}supabaseUrl={videoUploadConfig.supabaseUrl}/><button type="button"className={styles.outlineButton}onClick={()=>{setVideoUpload(false);setRefresh(value=>value+1);}}>Terug naar gereedstaande media</button></section>}
       {!!progress && <div className={styles.uploadStatus} role="status"><LoaderCircle size={18} className={styles.spin}/><div><strong>Afbeelding {progress.done + 1} van {progress.total} verwerken…</strong><span>{progress.name}</span><progress aria-label="Voortgang upload" value={progress.done} max={progress.total}/></div></div>}
       {!!uploadResult && <div className={styles.success} role="status"><Check size={18}/><span>{uploadResult}</span><button type="button" onClick={() => setUploadResult('')} aria-label="Uploadmelding sluiten"><X size={16}/></button></div>}

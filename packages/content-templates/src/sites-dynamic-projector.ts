@@ -32,7 +32,7 @@ export function resolveSitesDynamicAsset(payload:PlayerDynamicTemplatePayload,as
 /** Project canonical typed fields; display strings are never parsed back into data. */
 export function buildSitesPresentationFromDynamicPayload(value:unknown,configurationOverride?:SitesDynamicConfiguration|null,now=new Date(),liveState?:SitesLedMatchProjection|null):SitesPresentation|null {
  const parsed=playerDynamicTemplatePayloadSchema.safeParse(value);if(!parsed.success)return null;const payload=parsed.data;
- const document=record(record(payload.data.priceList)?.menuDocument);
+ const document=record(payload.data.menuDocument??record(payload.data.priceList)?.menuDocument);
  const stored=configurationOverride??payload.data.sitesConfiguration??document?.sitesConfiguration;
  const selectedTheme=record(record(record(payload.data.themePresentation)?.selection)?.ref)?.id;
  if(!stored&&selectedTheme!=="onzetrots-tv")return null; // Historical snapshots keep their renderer.
@@ -41,7 +41,13 @@ export function buildSitesPresentationFromDynamicPayload(value:unknown,configura
  if(!configResult.success||configResult.data.orientation!==payload.orientation||configResult.data.provider!==defaultProvider)return null;
  const configuration=configResult.data;
  const image=(url:string|undefined|null)=>sitesDynamicAssetReference(payload,url);
- if(configuration.provider==="menu" && document && configuration.menuWidgets) return buildSitesMenuPresentation(document,configuration,undefined,id=>{const stored=payload.assets?.[id];return stored?{kind:"tenant",mediaAssetId:id,checksumSha256:stored.checksumSha256}:undefined;});
+ if(configuration.provider==="menu" && document && configuration.menuWidgets) {
+  const asset=(id:string):SitesAssetReference|undefined=>{const stored=payload.assets?.[id];return stored?.mimeType.startsWith("image/")?{kind:"tenant",mediaAssetId:id,checksumSha256:stored.checksumSha256}:undefined;};
+  const brand=record(payload.data.brand),clubName=typeof brand?.clubName==="string"?brand.clubName:undefined;
+  const projected=buildSitesMenuPresentation(document,configuration,clubName,asset);
+  if(projected?.kind!=="dynamic")return projected;
+  return {...projected,content:{...projected.content,logo:projected.content.logo??(typeof brand?.logoMediaAssetId==="string"?asset(brand.logoMediaAssetId):undefined)}};
+ }
  if(payload.slideType==="ledscores_live_match"){
   liveState=liveState??readSitesLedStateFromCanonicalPayload(payload,now);
   if(!liveState)return null;

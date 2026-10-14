@@ -206,6 +206,7 @@ async function getLiveManifest(request: Request, token: string | null) {
   if (request.headers.get("if-none-match") === targetEtag) {
     return new NextResponse(null, { status: 304, headers: { ETag: targetEtag, "Cache-Control": "private, no-cache", Vary: "Authorization" } });
   }
+  let releaseStage = "release";
   try {
     const body = await loadPlayerReleaseEnvelope({
       device: {
@@ -218,15 +219,18 @@ async function getLiveManifest(request: Request, token: string | null) {
       releaseId: bootstrap.desired_release_id,
       tenantId: bootstrap.tenant_id
     });
+    releaseStage = "composition";
     body.composition=await loadAuthorizedScreenComposition({candidate:bootstrap.composition,main:body,load:releaseId=>loadPlayerReleaseEnvelope({device:body.device,releaseId,tenantId:bootstrap.tenant_id})});
     body.target = { revision: bootstrap.target_revision, publicationId: bootstrap.publication_id,
       configRevision: bootstrap.config_revision, assignmentSource: bootstrap.assignment_source,
       committedAt: bootstrap.target_changed_at };
     body.branding = await loadPlayerWaitingBranding(bootstrap.tenant_id);
     if (entitlementRow) {
+      releaseStage = "entitlement";
       const capabilities = entitlementRow.capabilities_json;
       body.entitlement = signPlayerEntitlement({ billingState: entitlementRow.billing_state as never, canActivateNetNewScreen:Boolean(capabilities.canActivateNetNewScreen), canManageBilling:Boolean(capabilities.canManageBilling), canPairReplacement:Boolean(capabilities.canPairReplacement), canPublish:Boolean(capabilities.canPublish), canRecoverPlayer:Boolean(capabilities.canRecoverPlayer), deviceId:entitlementRow.device_id, hardStopAt:entitlementRow.hard_stop_at, issuedAt:entitlementRow.issued_at, playbackMode:entitlementRow.playback_mode, reason:entitlementRow.reason, revision:Number(entitlementRow.revision), screenId:entitlementRow.screen_id, tenantId:entitlementRow.tenant_id, validUntil:entitlementRow.valid_until });
     }
+    releaseStage = "target";
     const checked = await admin.rpc("get_player_effective_target_v1", {
       p_token_hash: createHash("sha256").update(token.trim()).digest("hex")
     });
@@ -244,6 +248,7 @@ async function getLiveManifest(request: Request, token: string | null) {
       }
     });
   } catch {
+    console.error(JSON.stringify({event:"player_manifest_failed",code:"RELEASE_ASSETS_UNAVAILABLE",stage:releaseStage,releaseId:bootstrap.desired_release_id}));
     return manifestProblem(503, "ERROR_RECOVERABLE", {
       cause: "Niet alle release-assets konden veilig worden ontsloten.",
       code: "RELEASE_ASSETS_UNAVAILABLE",
