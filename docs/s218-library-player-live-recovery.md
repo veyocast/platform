@@ -83,6 +83,10 @@ Lokale verificatie:
   schaling, plus de zichtbare ingang naar de afzonderlijke Menu Studio. De oude
   verwachting van zestien families in Studio is aangepast aan deze expliciete
   gebruikersopdracht; de originele bronbestanden zijn ongewijzigd.
+- Drie echte routecontroles bevestigen de ene playlisteditor, behoud van
+  zoekfilters bij historische advanced-links, de afzonderlijke Menu Studio-
+  navigatie en de save-only Sportlink-wizard. Bestaande verwachtingen voor de
+  verwijderde tweede editor zijn vervangen door deze expliciete controles.
 - Worker: geverifieerde private captureassets en foutafhandeling, inclusief
   weigeren van onjuiste SVG-fallbacks; gecontroleerd via workspace-unitgates en
   de echte Menu Studio-renderopdracht.

@@ -486,14 +486,15 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
   await expect(library.getByRole("button", { name: "Nieuwe playlist" })).toBeDisabled();
   await expect(library.getByRole("button", { name: "Playlist maken" })).toBeDisabled();
-  await page.getByRole("link", { name: "Uitgebreid overzicht met kolommen, schermfilters en verwijderen" }).click();
-  await expect(page).toHaveURL(/advanced=1/);
-  const extendedFilters = page.getByRole("button", { name: "Filters", exact: true });
-  await extendedFilters.click();
-  await expect(page.getByLabel("Zoeken in playlists")).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "Schermgebruik", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Nieuwe playlist" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Uitgebreid overzicht met kolommen, schermfilters en verwijderen" })).toHaveCount(0);
+  // Historical links must retain search and resolve to the same library.
+  await page.goto("/dashboard/playlists?advanced=1&q=clubverhaal");
+  await expect(page).toHaveURL(/\/dashboard\/playlists\?q=clubverhaal$/);
+  await expect(library).toBeVisible();
+  await expect(library.getByLabel("Zoek een playlist")).toHaveValue("clubverhaal");
+  await expect(library.getByRole("button", { name: "Nieuwe playlist", exact: true })).toHaveCount(1);
+  await expect(library.getByRole("button", { name: "Nieuwe playlist", exact: true })).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toHaveCount(0);
 });
 
 test("Publicaties explains current publication and live data on mobile", async ({ page }) => {
