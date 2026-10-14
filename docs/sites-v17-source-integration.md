@@ -144,4 +144,8 @@ alle 176 inventariscases en geen fysieke LG- of Android-hardwareproef.
 - Chromium: de volledige taakscope en de mobiele route-/viewportmatrix zijn
   groen. Eén ongewijzigde Control-shelltest zoekt een achtergrondkop via de
   accessibility tree terwijl de geopende modale dialoog die achtergrond
-  terecht verbergt; productroute en test zijn buiten deze taak ongewijzigd.
+  terecht verbergt; productroute en test zijn buiten deze taak ongewijzigd;
+- de historische Sites-responsiviteitsmatrix: 66/66 groen. Voor Studio blijft
+  de ongewijzigde shell tegen de bevroren bron gemeten; de bewust vervangen
+  galerij controleert aanvullend 16 unieke v17-families, geladen
+  checksumassets, één oriëntatie en canvasbegrenzing.
