@@ -28,6 +28,7 @@ describe("Sites v17 frozen source identity", () => {
       content: { kind: "clubnieuws", title: "Clubnieuws", clubName: "Vereniging", rows: [{ id: "news-1", primary: "Nieuwsbericht", secondary: "Lees het volledige bericht.", tag: "Clubnieuws", value: "14 oktober" }] }
     });
     const markup = renderToStaticMarkup(<SitesStaticView presentation={presentation}/>);
+    expect(markup).toContain('aria-label="Voorbeeld Clubnieuws, 16:9"');
     expect(markup).toContain('aria-label="QR-code"');
     expect(markup).toContain("14 oktober");
     expect(markup).not.toContain('href="https://veyocast.nl/nieuws"');

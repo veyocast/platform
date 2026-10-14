@@ -9,7 +9,8 @@ import manifest from "../../../packages/content-templates/src/sites-system-asset
 import {createSitesSourceReference,resolveSitesSourceReferenceDirectory} from "./support/sites-source-reference";
 
 interface Comparison {templateId:string;themeId:string;orientation:string;width:number;height:number;changedPixels:number;changedPixelFraction:number;meanChannelDifference:number;maximumChannelDifference:number;sourceSha256:string;productionSha256:string;sourceComponentSha256:string;sourceCssSha256:string;status:"EXACT"|"DIFFERENT";captureTimeMs:number;scope:string}
-const matrix=studioSitesSystemTemplates.flatMap(template=>(["fieldflow","onzetrots-tv"]as const).map(themeId=>({template,themeId})));
+const legacyTemplates=studioSitesSystemTemplates.filter(template=>template.document.sitesPresentation?.kind==="studio"&&template.document.sitesPresentation.rendererVersion==="sites-v11");
+const matrix=legacyTemplates.flatMap(template=>(["fieldflow","onzetrots-tv"]as const).map(themeId=>({template,themeId})));
 const selectedSource=resolveSitesSourceReferenceDirectory();
 const enabled=Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM&&selectedSource&&process.env.SITES_SOURCE_COMPARISON_DIRECTORY);
 const sourceDirectory=resolve(selectedSource??"/missing-sites-reference");
@@ -22,6 +23,7 @@ const comparisons:Comparison[]=[];
 
 describe.runIf(enabled)("original immutable Sites components compared with production trusted DOM",()=>{
  beforeAll(async()=>{
+  if(legacyTemplates.length!==38)throw Error("Historical Source starter inventory is incomplete");
   reference=await createSitesSourceReference(sourceDirectory,process.env.SITES_CAPTURE_TEST_CHROMIUM!);
   sourceFixtures=await reference.fixtures() as typeof sourceFixtures;
   sourceComponentSha256=reference.sourceHashes["app/prototype/studio.tsx"]!;sourceCssSha256=reference.sourceHashes["app/prototype/studio.module.css"]!;
