@@ -89,7 +89,16 @@ const row = z.object({
   homeScore: shortText.optional(), awayScore: shortText.optional(), played: shortText.optional(), won: shortText.optional(), drawn: shortText.optional(), lost: shortText.optional(), difference: shortText.optional(), points: shortText.optional(), form: z.array(z.enum(["W", "G", "V", "U"])).max(5).optional()
 }).strict();
 
+const menuWidget = z.object({
+  id: z.string().min(1).max(128), type: z.enum(["category", "image", "promo", "text"]),
+  column: z.enum(["full", "left", "right"]), columns: z.union([z.literal(1), z.literal(2)]),
+  title: shortText, subtitle: text.optional(), image: asset.optional(),
+  aspectRatio: z.enum(["16:9", "9:16"]).optional(), fit: z.enum(["cover", "contain", "fill"]).optional(),
+  rows: z.array(row.extend({ column: z.union([z.literal(1), z.literal(2)]) })).max(100)
+}).strict();
+
 export const sitesTvContentSchema = z.object({
+  menuPages: z.array(z.object({ id: z.string().min(1).max(128), columns: z.union([z.literal(1), z.literal(2)]), widgets: z.array(menuWidget).max(100) }).strict()).min(1).max(200).optional(),
   kind: z.enum(["wedstrijd", "programma", "uitslagen", "stand", "kantine", "clubnieuws", "partners", "welkom", "score", "goal", "lineup", "generic"]), title: shortText, subtitle: text.optional(), eyebrow: shortText.optional(), clubName: shortText.optional(), logo: asset.optional(), brandLogo: asset.optional(),
   background: asset.optional(), heroImage: asset.optional(), time: shortText.optional(), location: shortText.optional(), footer: shortText.optional(), rows: z.array(row).max(200), values: z.array(shortText).max(12).optional(),
   combo: z.object({ name: shortText, price: shortText, note: shortText.optional() }).strict().optional(),
@@ -112,6 +121,7 @@ export const sitesStudioSlideSchema = z.object({
 });
 
 export const sitesDynamicConfigurationSchema = z.object({
+  menuWidgets: z.boolean().optional(),
   schemaVersion: z.literal(1), rendererVersion, sourceRevision, themeId: z.enum(sitesScreenThemeIds), orientation: z.enum(["landscape", "portrait"]), provider: z.enum(["led-scores", "sportlink", "menu"]), title: shortText, subtitle: text.default(""), background: asset.optional(), overlay: z.number().min(0).max(95).default(25), accent: color.default("#03438a"), layout: z.enum(["full", "split", "sidebar"]).default("full"), scale: scale.default(100), align: z.enum(["left", "center", "right"]).default("left"), safeArea: z.number().min(0).max(12).default(4), seconds: z.number().int().min(3).max(120).default(15), rowsPerPage: z.number().int().min(1).max(12).default(8),
   ledTemplate: z.enum(["match-center", "scoreboard"]).default("match-center"), ledTheme: z.enum(["blue", "paper", "fieldflow"]).default("blue"), ledMoment: z.enum(["live", "goal", "lineup", "start", "half", "end"]).default("live"), ledSide: z.enum(["own", "opponent", "unknown"]).default("unknown"), titleScale: scale.default(100), scoreScale: scale.default(100), logoScale: scale.default(100), teamScale: scale.default(100), showBranding: z.boolean().default(true), showSceneLabel: z.boolean().default(true), showClock: z.boolean().default(true), showTimeline: z.boolean().default(true), timelineLimit: z.number().int().min(1).max(10).default(3), backgroundFit: z.enum(["cover", "contain"]).default("contain"), grunge: z.number().min(0).max(100).default(55), animation: z.enum(["none", "fade", "rise", "zoom", "wipe"]).default("rise"),
   ...v17Options
@@ -119,6 +129,7 @@ export const sitesDynamicConfigurationSchema = z.object({
   const expectedRevision = value.rendererVersion === sitesCurrentPresentationVersion ? sitesCurrentPresentationSourceRevision : sitesLegacyPresentationSourceRevision;
   if (value.sourceRevision !== expectedRevision) context.addIssue({ code: "custom", path: ["sourceRevision"], message: "Renderer and Source identities must remain paired." });
   if (value.rendererVersion === sitesCurrentPresentationVersion && !value.unifiedKind) context.addIssue({ code: "custom", path: ["unifiedKind"], message: "Sites v17 requires a unified slide family." });
+  if(value.menuWidgets !== undefined && value.provider !== "menu")context.addIssue({code:z.ZodIssueCode.custom,path:["menuWidgets"],message:"Menuwidgets vereisen een menubron."});
   if (value.provider === "led-scores" && value.rowsPerPage > 8) context.addIssue({ code: "custom", path: ["rowsPerPage"], message: "LED pages can contain at most eight rows." });
   if (value.provider !== "led-scores" && (value.scale < 70 || value.scale > 140)) context.addIssue({ code: "custom", path: ["scale"], message: "Content scale must be between 70 and 140." });
 });

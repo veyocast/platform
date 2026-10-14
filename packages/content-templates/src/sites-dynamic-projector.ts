@@ -1,3 +1,5 @@
+import {sitesPresentationPages} from "./sites-presentation-model";
+import { projectSitesMenuWidgets } from "./sites-menu-widgets-model";
 import {
   menuDocumentV2Schema,
   playerDynamicTemplatePayloadSchema, sitesDynamicConfigurationSchema,
@@ -39,6 +41,7 @@ export function buildSitesPresentationFromDynamicPayload(value:unknown,configura
  if(!configResult.success||configResult.data.orientation!==payload.orientation||configResult.data.provider!==defaultProvider)return null;
  const configuration=configResult.data;
  const image=(url:string|undefined|null)=>sitesDynamicAssetReference(payload,url);
+ if(configuration.provider==="menu" && document && configuration.menuWidgets) return buildSitesMenuPresentation(document,configuration,undefined,id=>{const stored=payload.assets?.[id];return stored?{kind:"tenant",mediaAssetId:id,checksumSha256:stored.checksumSha256}:undefined;});
  if(payload.slideType==="ledscores_live_match"){
   liveState=liveState??readSitesLedStateFromCanonicalPayload(payload,now);
   if(!liveState)return null;
@@ -63,15 +66,17 @@ export function buildSitesPresentationFromDynamicPayload(value:unknown,configura
  return result.success?result.data:null;
 }
 
-export function sitesDynamicPresentationDurationSeconds(presentation:SitesPresentation){return presentation.kind==="dynamic"?presentation.configuration.seconds*Math.max(1,Math.ceil(presentation.content.rows.length/presentation.configuration.rowsPerPage)):presentation.slide.duration;}
+export function sitesDynamicPresentationDurationSeconds(presentation:SitesPresentation){return presentation.kind==="dynamic"?presentation.configuration.seconds*sitesPresentationPages(presentation):presentation.slide.duration;}
 
 /** Authoring preview of the actual typed menu, without synthetic snapshot IDs. */
-export function buildSitesMenuPresentation(value:unknown,configurationOverride?:SitesDynamicConfiguration,clubName?:string):SitesPresentation|null {
+export function buildSitesMenuPresentation(value:unknown,configurationOverride?:SitesDynamicConfiguration,clubName?:string,assetOverride?:(id:string)=>SitesAssetReference|undefined):SitesPresentation|null {
  const document=menuDocumentV2Schema.safeParse(value);if(!document.success)return null;
  const config=sitesDynamicConfigurationSchema.safeParse(configurationOverride??document.data.sitesConfiguration);if(!config.success||config.data.provider!=="menu")return null;
  const rows:Row[]=[];const seen=new Set<string>();
  for(const page of resolveMenuScenePages(document.data,config.data.orientation))for(const column of Object.values(page.columns)){let category="";for(const entry of column){if(entry.kind==="category"){category=entry.label;continue;}if(seen.has(entry.id))continue;seen.add(entry.id);if(entry.kind==="product")rows.push({id:entry.id,primary:entry.product.nameOverride??entry.product.snapshotFallback.name,secondary:entry.product.snapshotFallback.variantLabel??undefined,value:formatMenuMoney(entry.product.snapshotFallback.price),tag:category});else rows.push({id:entry.id,primary:entry.group.title,secondary:entry.group.secondaryLineItems.map(line=>line.kind==="free-text"?line.label:line.labelOverride??line.snapshotFallback.variantLabel??line.snapshotFallback.name).join(" · "),value:resolveMenuGroupPrice(entry.group),tag:category});}}
- const result=sitesPresentationSchema.safeParse({kind:"dynamic",configuration:config.data,content:{kind:"kantine",title:config.data.title||document.data.title||"De kantine",subtitle:config.data.subtitle,clubName,background:config.data.background,rows}});return result.success?result.data:null;
+ const asset=assetOverride??((id:string)=>{const ref=document.data.assets.find(asset=>asset.assetId===id);return ref?.sha256?{kind:"tenant" as const,mediaAssetId:id,checksumSha256:ref.sha256}:undefined;});
+ const menuPages=config.data.menuWidgets?projectSitesMenuWidgets(document.data,config.data,asset):undefined;
+ const result=sitesPresentationSchema.safeParse({kind:"dynamic",configuration:config.data,content:{kind:"kantine",title:config.data.title||document.data.title||"De kantine",subtitle:config.data.subtitle,clubName,logo:document.data.theme.brand.logoAssetId?asset(document.data.theme.brand.logoAssetId):undefined,background:config.data.background,rows,menuPages}});return result.success?result.data:null;
 }
 
 /** Reads stored, normalized match state; never opens a provider connection. */

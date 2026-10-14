@@ -375,3 +375,8 @@ providercache en telemetrybloat blijven achter. Zie
 `docs/deployment/s210-clean-database-cutover.md`.
 
 Zie `docs/sub-agent-orchestration.md`.
+
+S215 herstelt de echte Studio-create-aanvraag en breidt Menu Studio uit met
+getypeerde widgets, productkolommen, subregels en pagina’s. Preview, PNG en
+Player delen één projectie; prijs-/tenantguards en immutable publicatie blijven
+leidend. Validatie en uitrol staan in `docs/s215-menu-widgets-and-studio-create.md`.

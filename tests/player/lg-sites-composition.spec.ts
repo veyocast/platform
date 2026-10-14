@@ -78,3 +78,13 @@ test("LG Engage upgrades the verified Studio fallback with real campaign data an
  campaign={...campaign,resultsVisible:false,totalVotes:8};await page.clock.fastForward(5000);await expect(page.locator(".lg-engage-media.visible .engage-playback__results")).toHaveAttribute("data-results-visible","false");await expect(page.locator(".lg-engage-media.visible [role=progressbar]")).toHaveCount(0);await expect(page.locator(".lg-engage-media.visible")).toContainText("Tussenstand verborgen.");
  await page.clock.fastForward(2200);await expect(page.locator("#media-root > img.visible")).toHaveAttribute("src",/^blob:/);await expect(page.locator(".lg-engage-media.visible")).toHaveCount(0);expect(requests).toBeGreaterThanOrEqual(3);
 });
+
+for(const orientation of ["landscape","portrait"] as const)test(`S215 LG widget pages and portrait image frame ${orientation}`,async({page})=>{
+ test.setTimeout(90000);await page.clock.install();await page.setViewportSize(orientation==="portrait"?{width:720,height:1280}:{width:1280,height:720});await page.addInitScript(()=>{if(window.CSS)window.CSS.supports=()=>false;});
+ const data=release(1,"#ff5a1f",30),markup=JSON.parse(execFileSync("pnpm",["--filter","@veyocast/player","exec","tsx","app/_lib/menu-widget-canonical-fixture.ts",orientation],{encoding:"utf8"}));
+ Object.assign(data.manifest,{systemAssets:systemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}))});Object.assign(data.manifest.items[0]!,{sitesPresentation:markup});await fixture(page,()=>data);await page.goto(`${playerUrl}/lg/legacy`);
+ const canvas=page.locator(".lg-sites-canvas.visible");await expect(canvas.locator(".vm-product strong")).toHaveText("Clubkoffie",{timeout:60000});await expect(canvas.locator(".vm-product small")).toHaveText("Met koekje · Cappuccino");
+ const image=canvas.locator('.vm-widget-image[data-ratio="9:16"] img');await expect.poll(()=>image.evaluate(element=>{const rect=element.getBoundingClientRect();return rect.width/rect.height;})).toBeCloseTo(9/16,2);
+ expect(await canvas.locator(".vm-product").evaluateAll(rows=>rows.every(row=>{const a=row.getBoundingClientRect(),b=row.closest('.vm-widget')!.getBoundingClientRect();return a.left>=b.left&&a.right<=b.right+1&&a.top>=b.top&&a.bottom<=b.bottom+1;}))).toBe(true);
+ await page.clock.fastForward(15100);await expect(canvas.locator(".vm-widget h2")).toHaveText("Koffiedeal");
+});
