@@ -149,6 +149,10 @@ alle 176 inventariscases en geen fysieke LG- of Android-hardwareproef.
   de ongewijzigde shell tegen de bevroren bron gemeten; de bewust vervangen
   galerij controleert aanvullend 16 unieke v17-families, geladen
   checksumassets, één oriëntatie en canvasbegrenzing;
+- de historische v11-startervergelijking: 76/76 bron/productieparen met nul
+  gewijzigde pixels. De matrix selecteert expliciet het v11 renderer/source-paar,
+  zodat nieuwe rendererfamilies nooit stilzwijgend tegen een oudere bronfixture
+  worden gehouden;
 - de zes mobiele Sportlink-wizardgevallen die het schermvoorbeeld openen:
   6/6 groen. De v17-preview behoudt daarvoor zijn beschrijvende
   `Voorbeeld …`-naam in de accessibility tree.
