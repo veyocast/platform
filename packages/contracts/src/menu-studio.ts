@@ -217,6 +217,8 @@ export const menuProductPlacementSchema = z.object({
   mediaOverrideAssetId: menuStudioIdSchema.nullable().optional(),
   nameOverride: z.string().trim().min(1).max(160).nullable().optional(),
   order: z.number().int().min(0).max(100_000),
+  column: z.union([z.literal(1), z.literal(2)]).optional(),
+  secondaryLineItems: z.array(z.discriminatedUnion("kind", [menuLinkedProductLineItemSchema, menuFreeTextLineItemSchema])).max(8).optional(),
   productRef: menuProductRefSchema,
   snapshotFallback: menuProductSnapshotSchema
 }).strict();
@@ -238,6 +240,7 @@ const menuCategorySourceSchema = z.object({
 });
 
 const baseBlockFields = {
+  widget: z.object({ column: z.enum(["full", "left", "right"]), aspectRatio: z.enum(["16:9", "9:16"]).optional() }).strict().optional(),
   hidden: z.boolean().optional(),
   id: menuStudioIdSchema,
   layout: menuOrientationLayoutsSchema,
@@ -248,6 +251,7 @@ const baseBlockFields = {
 export const menuCategoryBlockSchema = z.object({
   ...baseBlockFields,
   flowAcrossColumns: z.boolean().optional(),
+  columns: z.union([z.literal(1), z.literal(2)]).optional(),
   headingVisible: z.boolean().optional(),
   labelOverride: z.string().trim().min(1).max(56).nullable().optional(),
   productNodes: z.array(z.discriminatedUnion("kind", [
@@ -376,6 +380,7 @@ export const menuPageSchema = z.object({
   blocks: z.array(menuBlockSchema).max(100),
   durationMs: z.number().int().min(6_000).max(120_000).optional(),
   id: menuStudioIdSchema,
+  landscapeColumns: z.union([z.literal(1), z.literal(2)]).optional(),
   order: z.number().int().min(0).max(10_000),
   portraitColumns: z.union([z.literal(1), z.literal(2)]).optional()
 }).strict();
@@ -605,6 +610,16 @@ function validateMenuDocumentInvariants(
         nodeOrders.add(node.order);
         if (node.kind === "product") {
           registerProduct(node.productRef, [...nodePath, "productRef"]);
+          const lineOrders=new Set<number>();
+          for (const [lineIndex, line] of (node.secondaryLineItems ?? []).entries()) {
+            if(lineOrders.has(line.order))context.addIssue({code:z.ZodIssueCode.custom,message:"Subregels moeten een unieke volgorde hebben.",path:[...nodePath,"secondaryLineItems",lineIndex,"order"]});
+            lineOrders.add(line.order);
+            register(line.id, [...nodePath, "secondaryLineItems", lineIndex, "id"]);
+            if (line.kind === "linked-product") {
+              registerProduct(line.productRef, [...nodePath, "secondaryLineItems", lineIndex, "productRef"]);
+              requireAsset(line.mediaOverrideAssetId ?? line.snapshotFallback.imageAssetId, [...nodePath, "secondaryLineItems", lineIndex]);
+            }
+          }
           requireAsset(node.mediaOverrideAssetId ?? node.snapshotFallback.imageAssetId, [
             ...nodePath,
             "mediaOverrideAssetId"

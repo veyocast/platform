@@ -4,6 +4,7 @@ import type {SitesDynamicDesignView,SitesStudioSlideView} from "./sites-render-t
 export type SitesAssetResolver = (asset: SitesAssetReference) => string | undefined;
 export const sitesTvRowsPerPage = {programma:8,uitslagen:8,stand:8,kantine:12,clubnieuws:3,partners:6,generic:6} as const;
 export function sitesPresentationPages(input: SitesPresentation): number {
+  if(input.kind==="dynamic" && input.content.menuPages)return input.content.menuPages.length;
   const rendererVersion=input.kind==="studio"?input.rendererVersion:input.configuration.rendererVersion;
   if(rendererVersion===sitesCurrentPresentationVersion)return 1;
   if(input.kind==="dynamic")return Math.max(1,Math.ceil(input.content.rows.length/input.configuration.rowsPerPage));

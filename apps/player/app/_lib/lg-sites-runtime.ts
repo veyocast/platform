@@ -291,6 +291,13 @@ export function lgSitesRuntimeScript() {
       });
     }
     function lgSitesAutoFit(artboard) {
+      var menuImages = artboard.querySelectorAll(".vm-widget-image[data-ratio]");
+      for (var imageIndex = 0; imageIndex < menuImages.length; imageIndex += 1) {
+        var frame = menuImages[imageIndex]; var image = frame.querySelector("img"); if (!image) continue;
+        var imageRatio = frame.getAttribute("data-ratio") === "9:16" ? 9 / 16 : 16 / 9;
+        var imageWidth = Math.min(frame.clientWidth, frame.clientHeight * imageRatio);
+        image.style.width = String(imageWidth) + "px"; image.style.height = String(imageWidth / imageRatio) + "px";
+      }
       var boxes = artboard.querySelectorAll("[data-fit-box]");
       for (var index = 0; index < boxes.length; index += 1) {
         var box = boxes[index]; var inner = box.querySelector("[data-fit-content]"); if (!inner) continue;

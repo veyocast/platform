@@ -109,7 +109,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
  const artboard={width:orientation==="portrait"?1080:1920,height:orientation==="portrait"?1920:1080};
  const totalDurationMs=durationMs??(input.kind==="studio"?input.slide.duration:input.configuration.seconds)*sitesPresentationPages(input)*1000;
  if(!Number.isFinite(totalDurationMs)||totalDurationMs<3000||totalDurationMs>120000)throw new SitesDomCaptureError();
- const browserLifecycle=(input.kind==="dynamic"&&input.configuration.provider==="led-scores"&&input.configuration.themeId==="fieldflow"&&input.configuration.ledTheme!=="fieldflow")||(input.kind==="studio"?input.slide.themeId:input.configuration.themeId)==="onzetrots-tv";
+ const browserLifecycle=(input.kind==="dynamic"&&Boolean(input.content.menuPages))||(input.kind==="dynamic"&&input.configuration.provider==="led-scores"&&input.configuration.themeId==="fieldflow"&&input.configuration.ledTheme!=="fieldflow")||(input.kind==="studio"?input.slide.themeId:input.configuration.themeId)==="onzetrots-tv";
  if(signal?.aborted)throw new SitesDomCaptureError();
  const trustedBundle=browserLifecycle?await getSitesBrowserRenderBundle().catch(()=>{throw new SitesDomCaptureError();}):undefined;
  const tenantAssetSources=browserLifecycle?browserAssetSources(assetSources):{};

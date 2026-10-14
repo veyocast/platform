@@ -3,7 +3,7 @@ import {createSitesStudioDocument,studioSitesSystemTemplates} from "@veyocast/st
 import {buildSitesCaptureHtml,createSitesStudioCapture} from "../src/sites-dom-capture";
 import sharp from "sharp";
 import {createServer} from "node:http";
-import {sitesDynamicConfigurationSchema,sitesPresentationSchema} from "@veyocast/contracts";
+import {sitesCurrentPresentationSourceRevision,sitesDynamicConfigurationSchema,sitesPresentationSchema} from "@veyocast/contracts";
 import {createSitesPresentationCapture} from "../src/sites-dom-capture";
 import {getSitesBrowserRenderBundle} from "../src/sites-dom-browser-bundle";
 function led(title="Live tussenstand"){
@@ -25,4 +25,12 @@ describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))("actual Chromiu
   try{expect(await sharp(await capture.renderPng(1200)).metadata()).toMatchObject({width:1080,height:1920});expect(requests).toBe(0);}finally{await capture.close();await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
  },45000);
  it("retains the asset-integrity boundary on the React LED rendering path",async()=>{const capture=await createSitesPresentationCapture({presentation:led(),executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!,publicDirectory:"/tmp/s191-sites-missing-assets"});try{await expect(capture.renderPng(1200)).rejects.toMatchObject({code:"studio_sites_capture_failed",failureStage:"font_load"});}finally{await capture.close();}},45000);
+});
+
+describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))("S215 menu PNG projection",()=>{
+ for(const themeId of ["onzetrots-tv","fieldflow"] as const)for(const orientation of ["landscape","portrait"] as const)it(`captures both widget pages at native ${themeId} ${orientation} resolution without clipping`,async()=>{
+  const input=sitesPresentationSchema.parse({kind:"dynamic",configuration:{schemaVersion:1,rendererVersion:"sites-v17",sourceRevision:sitesCurrentPresentationSourceRevision,provider:"menu",unifiedKind:"kantine",themeId,orientation,title:"Onze kantine",accent:"#c12545",menuWidgets:true,seconds:15},content:{kind:"kantine",title:"Onze kantine",rows:[],menuPages:[{id:"page-1",columns:2,widgets:[{id:"products",type:"category",column:"right",columns:1,title:"Warme dranken",subtitle:"Vers gezet",rows:[{id:"coffee",column:1,primary:"Clubkoffie met verse melk en een lekker koekje",secondary:"Met koekje · Cappuccino · Havermelk · Vanille · Decafé",value:"€ 2,50"}]}]},{id:"page-2",columns:1,widgets:[{id:"deal",type:"promo",column:"full",columns:1,title:"Koffiedeal",subtitle:"Koffie met iets lekkers",rows:[]}]}]}});
+  const measurements:unknown[]=[];const capture=await createSitesPresentationCapture({presentation:input,executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!,onMeasure:value=>measurements.push(value)});
+  try{const first=await capture.renderPng(1200),second=await capture.renderPng(16200);expect(first).not.toEqual(second);expect(await sharp(first).metadata()).toMatchObject({width:orientation==="landscape"?1920:1080,height:orientation==="landscape"?1080:1920});expect(measurements).toHaveLength(2);for(const measurement of measurements){const data=measurement as {viewport:{width:number;height:number};elements:Array<{bounds:{x:number;y:number;width:number;height:number};tag:string}>};for(const row of data.elements.filter(element=>["STRONG","SMALL","H1","H2","P"].includes(element.tag))){expect(row.bounds.x).toBeGreaterThanOrEqual(0);expect(row.bounds.y).toBeGreaterThanOrEqual(0);expect(row.bounds.x+row.bounds.width).toBeLessThanOrEqual(data.viewport.width);expect(row.bounds.y+row.bounds.height).toBeLessThanOrEqual(data.viewport.height);}}}finally{await capture.close();}
+ },45000);
 });

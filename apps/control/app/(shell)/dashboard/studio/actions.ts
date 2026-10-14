@@ -1,6 +1,6 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -137,7 +137,10 @@ export async function createStudioProject(formData: FormData) {
 
   if(document.sitesPresentation?.kind==="studio"&&formData.get("projectKind")!=="tenant_template"){
     const brandLogo=await getVerifiedSitesTenantBrandLogo(supabase,session.tenantId);document=createTenantSitesStudioStarter(document,session.tenant,brandLogo);document=parseStudioDocument({...document,sitesPresentation:document.sitesPresentation?.kind==="studio"?{...document.sitesPresentation,slide:{...document.sitesPresentation.slide,name}}:undefined});
-    const key=idempotencyValue(formData);const created=await supabase.rpc("create_studio_series_v1",{p_tenant_id:session.tenantId,p_name:name,p_idempotency_key:key,p_slides:[{name,document,referencedAssetIds:referencedAssetIds(document),commandKey:key}]});
+    const key=idempotencyValue(formData);
+    const hash=createHash("sha256").update(`${key}:studio-series:0`).digest("hex");
+    const childKey=`${hash.slice(0,8)}-${hash.slice(8,12)}-5${hash.slice(13,16)}-a${hash.slice(17,20)}-${hash.slice(20,32)}`;
+    const created=await supabase.rpc("create_studio_series_v1",{p_tenant_id:session.tenantId,p_name:name,p_idempotency_key:key,p_slides:[{name,document,referencedAssetIds:referencedAssetIds(document),commandKey:childKey}]});
     const seriesId=resultString(created.data,"seriesId");if(created.error||!seriesId)redirectStudioError(createErrorMessage(created.error?.code));revalidatePath("/dashboard/studio");redirect(`/dashboard/studio/${seriesId}`);
   }
   const { data, error } = await supabase.rpc("create_studio_project_v1", {
@@ -705,7 +708,8 @@ function createErrorMessage(code: string | undefined) {
   if (code === "23514") {
     return "De templategegevens passen niet bij het gekozen formaat of een ondersteunde ontwerpversie. Er is niets opgeslagen. Vernieuw Studio en kies het template opnieuw.";
   }
-  return "Het Studio-ontwerp kon niet veilig worden aangemaakt.";
+  if(code === "23505")return "De bewerkingssleutel kon niet worden bevestigd. Er is niets opgeslagen. Open Nieuw ontwerp opnieuw en probeer nogmaals.";
+  return "De server kon het Studio-ontwerp niet aanmaken. Er is niets opgeslagen. Je bestaande ontwerpen blijven behouden; probeer opnieuw.";
 }
 
 function saveErrorMessage(code: string | undefined) {
