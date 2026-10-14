@@ -1,9 +1,11 @@
-import {sitesSystemImageChecksums,type SitesAssetReference,type SitesPresentation,type SitesStudioSlide,type SitesTvContent} from "@veyocast/contracts";
+import {sitesCurrentPresentationVersion,sitesSystemImageChecksums,type SitesAssetReference,type SitesPresentation,type SitesStudioSlide,type SitesTvContent} from "@veyocast/contracts";
 import type {OnzeTrotsTvContent} from "./sites-screen-themes";
 import type {SitesDynamicDesignView,SitesStudioSlideView} from "./sites-render-types";
 export type SitesAssetResolver = (asset: SitesAssetReference) => string | undefined;
 export const sitesTvRowsPerPage = {programma:8,uitslagen:8,stand:8,kantine:12,clubnieuws:3,partners:6,generic:6} as const;
 export function sitesPresentationPages(input: SitesPresentation): number {
+  const rendererVersion=input.kind==="studio"?input.rendererVersion:input.configuration.rendererVersion;
+  if(rendererVersion===sitesCurrentPresentationVersion)return 1;
   if(input.kind==="dynamic")return Math.max(1,Math.ceil(input.content.rows.length/input.configuration.rowsPerPage));
   if(input.slide.themeId!=="onzetrots-tv"||!input.slide.tv)return 1;
   return Math.max(1,Math.ceil(input.slide.tv.rows.length/(sitesTvRowsPerPage[input.slide.tv.kind as keyof typeof sitesTvRowsPerPage]??12)));

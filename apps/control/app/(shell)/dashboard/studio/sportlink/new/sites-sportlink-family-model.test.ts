@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sportDynamicSlideTypes, type ThemeSelection } from "@veyocast/contracts";
-import { createSitesSourceDesign } from "./sites-source-design";
+import { createSitesSourceDesign, sitesUnifiedOptionsForDynamicSlide } from "./sites-source-design";
 import { buildSitesSportlinkFamilyDraft, canonicalSitesSportlinkFamilyConfiguration, initialSitesSportlinkFamilySelection, parseSitesSportlinkFamilyDraft, sitesSportlinkAutoContext } from "./sites-sportlink-family-model";
 
 const theme:ThemeSelection={accent:"#2459ED",categoryOverrides:[],modePolicy:{kind:"fixed",mode:"light"},ref:{catalog:"v2",id:"fieldflow",version:"1.0.0"},support:null};
@@ -9,7 +9,12 @@ function draft(family:(typeof sportDynamicSlideTypes)[number]){return buildSites
 describe("Sportlink-familiewizard gebruikt getypte bronselecties",()=>{
  it("bouwt alle zeventien families en bewaart de volledige keuze voor save/reload",()=>{
   expect(sportDynamicSlideTypes).toHaveLength(17);
-  for(const family of sportDynamicSlideTypes){const value=draft(family);expect(parseSitesSportlinkFamilyDraft(JSON.parse(JSON.stringify(value)))).toEqual(value);expect(value.configuration.sitesConfiguration.provider).toBe("sportlink");}
+  for(const family of sportDynamicSlideTypes){const value=draft(family);expect(parseSitesSportlinkFamilyDraft(JSON.parse(JSON.stringify(value)))).toEqual(value);expect(value.configuration.sitesConfiguration).toMatchObject({provider:"sportlink",rendererVersion:"sites-v17"});expect(value.configuration.sitesConfiguration.unifiedKind).toBeTruthy();}
+ });
+ it("gebruikt de exacte v17-variantnamen voor team- en aankomstslides",()=>{
+  expect(sitesUnifiedOptionsForDynamicSlide("sport_team")).toEqual({unifiedKind:"sportlink-extra",extraType:"teaminfo"});
+  expect(sitesUnifiedOptionsForDynamicSlide("sport_visitor_arrivals")).toEqual({unifiedKind:"bezoekers",extraType:"welkom-bezoekers"});
+  expect(sitesUnifiedOptionsForDynamicSlide("sport_referee_arrivals")).toEqual({unifiedKind:"sportlink-extra",extraType:"welkom-scheidsrechters"});
  });
  it("vertaalt clubprogramma en uitslagen naar hun bestaande selectiecontract en aankomsten naar expliciete contexts",()=>{
   expect(canonicalSitesSportlinkFamilyConfiguration(draft("sport_program"))).toMatchObject({blueprintKey:"sportlink.club_schedule_next_7_days",teamSelection:{mode:"selected",teamContexts:[{providerTeamId:"provider-team-41"}]}});

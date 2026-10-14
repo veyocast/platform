@@ -53,7 +53,7 @@ import {
 } from "./actions";
 import styles from "./sportlink-bulk-wizard.module.css";
 import sites from "./sites-source-wizard.module.css";
-import { createSitesSourceDesign, updateSitesSourceDesign } from "./sites-source-design";
+import { createSitesSourceDesign, sitesUnifiedOptionsForDynamicSlide, updateSitesSourceDesign } from "./sites-source-design";
 import { SitesSportlinkFamilyWizard } from "./sites-sportlink-family-wizard";
 import { SitesSportlinkDraftPreview } from "./sites-sportlink-preview";
 import { SitesSourceDesignControls } from "./sites-source-design-controls";
@@ -253,7 +253,7 @@ export function SportlinkBulkWizard({
         arrival: isArrivalKey(draft.blueprintKey) ? arrivalConfig : undefined,
         display,
         themeSelection,
-        sitesConfiguration: { ...sitesDesign, orientation }
+        sitesConfiguration: { ...sitesDesign, ...sitesUnifiedOptionsForDynamicSlide(sportlinkSlideBlueprints[draft.blueprintKey].slideType), orientation }
       }));
     } catch {
       return [];

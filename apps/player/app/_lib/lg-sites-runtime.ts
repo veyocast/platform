@@ -194,7 +194,7 @@ export function lgSitesRuntimeScript() {
       return Boolean(document.createElement && window.getComputedStyle);
     }
     function lgSitesValidDocument(value) {
-      return Boolean(value && value.rendererVersion === "sites-v11" && value.sourceRevision === CONFIG.sitesSystemAssets[0].sourceRevision &&
+      return Boolean(value && (value.rendererVersion === "sites-v11" && value.sourceRevision === "b1cae899af19fc39908217253094c5240d7359fc" || value.rendererVersion === "sites-v17" && value.sourceRevision === "6800bc858436ba0843eaea89b682cd5b43c3521d") &&
         ["portrait", "landscape"].indexOf(value.orientation) !== -1 && value.width === (value.orientation === "portrait" ? 1080 : 1920) && value.height === (value.orientation === "portrait" ? 1920 : 1080) &&
         Array.isArray(value.pages) && value.pages.length > 0 && value.pages.length <= 250 && value.pages.every(function (page) { return typeof page === "string" && page.length <= 1048576; }) &&
         typeof value.css === "string" && value.css.length <= 1048576 && Array.isArray(value.assetTokens) && value.assetTokens.length <= 2000);

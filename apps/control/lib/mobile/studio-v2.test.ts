@@ -34,7 +34,7 @@ describe("native Sites authoring pause", () => {
     client.from.mockReturnValue(query);
     const workspace = await loadMobileStudioV2(context(client), tenant);
     expect(workspace).toMatchObject({ schemaVersion: 2, authoringPaused: true, total: 0, series: [] });
-    expect(workspace.templates).toHaveLength(38);
+    expect(workspace.templates).toHaveLength(70);
     expect(query.eq).toHaveBeenCalledWith("tenant_id", tenant.id);
   });
 });

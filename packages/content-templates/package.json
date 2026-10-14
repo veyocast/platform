@@ -32,6 +32,10 @@
       "types": "./dist/sites-styles.d.ts",
       "default": "./src/sites-styles.ts"
     },
+    "./sites-v17-styles": {
+      "types": "./dist/sites-v17-styles.d.ts",
+      "default": "./src/sites-v17-styles.ts"
+    },
     "./sites-media": {
       "types": "./dist/sites-media.d.ts",
       "default": "./src/sites-media.tsx"
@@ -60,7 +64,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@veyocast/contracts": "workspace:*"
+    "@veyocast/contracts": "workspace:*",
+    "qrcode-generator": "2.0.4"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",

@@ -7,16 +7,16 @@ import type {Slide}from"./model";
 import styles from "./placement-preview.module.css";
 /** Preview uses the same trusted template and actual asset identity as the server render. */
 export function photoPlacementPresentation(slide:Slide,tenantName:string):Extract<SitesPresentation,{kind:'studio'}>|null{
- const marker=slide.studioSlide?.presentation.slide.id==='sites-v11-media-placement';
+ const marker=slide.studioSlide?.presentation.slide.id==='sites-v17-media-placement';
  const original=marker?slide.studioSlide?.presentation.slide.photo:undefined;
  const mediaId=original?.kind==='tenant'?original.mediaAssetId:slide.mediaId;
  const checksum=original?.kind==='tenant'?original.checksumSha256:slide.mediaChecksumSha256;
  const theme=slide.studioSlide?.themeId??slide.themeId;
  if(slide.design||slide.kind==='video'||theme!=='onzetrots-tv'||!mediaId||!checksum||(!marker&&slide.studioSlide))return null;
  const orientation=slide.orientation??slide.studioSlide?.orientation??'landscape';
- const base=studioSitesSystemTemplates.find(value=>value.id===`sites-v11-tv-welkom-${orientation}-hd`)?.document.sitesPresentation;if(base?.kind!=='studio')return null;
+ const base=studioSitesSystemTemplates.find(value=>value.id===`sites-v17-welkom-${orientation}-hd`)?.document.sitesPresentation;if(base?.kind!=='studio')return null;
  const reference={kind:'tenant' as const,mediaAssetId:mediaId,checksumSha256:checksum};const title=slide.name.trim().slice(0,120);
- const parsed=sitesPresentationSchema.safeParse({...base,slide:{...base.slide,id:'sites-v11-media-placement',name:title,title,time:'',location:'',subtitle:'',logo:undefined,photo:reference,duration:Math.min(120,slide.seconds),clubName:tenantName,tv:{kind:'generic',title,rows:[],heroImage:reference,clubName:tenantName,scale:100}}});
+ const parsed=sitesPresentationSchema.safeParse({...base,slide:{...base.slide,id:'sites-v17-media-placement',name:title,title,time:'',location:'',subtitle:'',logo:undefined,photo:reference,duration:Math.min(120,slide.seconds),clubName:tenantName,tv:{kind:'generic',title,rows:[],heroImage:reference,clubName:tenantName,scale:100}}});
  return parsed.success&&parsed.data.kind==='studio'?parsed.data:null;
 }
 export function PlaylistPlacementPreview({slide,active,tenantName}:{slide:Slide;active:boolean;tenantName:string}){
