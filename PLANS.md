@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S218 maakt opgeslagen Studio-documenten zonder export zichtbaar in één
+slidebibliotheek, brengt menu’s onder Menu Studio en gebruikt dezelfde HTML/CSS-
+renderer in preview, Player en compatibiliteitscapture. Nieuwe wizards bewaren
+een ontwerp; playlists worden op één plek opgebouwd en gepubliceerd. Zie
+`docs/s218-library-player-live-recovery.md`.
+
 S217 herstelt de Clubverhaal-slidebibliotheek, uploadbevestigingen en de
 productie-Player-serverrenderer. De echte Next-build wordt als regressiegrens
 getest; uploads in verwerking en mislukte uploads blijven zichtbaar. Zie

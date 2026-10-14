@@ -74,7 +74,7 @@ test("toont de Sportlink-bulkwizard als Studio-familie", async ({ page }) => {
     "Inhoud kiezen",
     "Teams & gegevens",
     "Vormgeving",
-    "Schermen",
+    "Opslaan",
     "Controleren"
   ]) {
     await expect(page.getByRole("navigation", {name:"Sportlink-wizardstappen"})).toContainText(step);

@@ -13,7 +13,7 @@ export const sitesStudioCategoryLabels={matchday:"Wedstrijddag",schedule:"Progra
 export type StudioSitesTheme="fieldflow"|"onzetrots-tv";
 export function SitesStudioCreateDialog({open,onOpenChange,action,tenantName,canCreate,initialTemplate,hasTenantBrand=false,restoreFocus}:{open:boolean;onOpenChange:(open:boolean)=>void;action:(data:FormData)=>Promise<void>;tenantName:string;canCreate:boolean;initialTemplate?:StudioSystemTemplate;hasTenantBrand?:boolean;restoreFocus?:()=>void}){
  const initial=initialTemplate?.document.sitesPresentation;const [name,setName]=useState(initialTemplate?.name??""),[orientation,setOrientation]=useState<"landscape"|"portrait">(initialTemplate?.formatId==="portrait-hd"?"portrait":"landscape"),[theme,setTheme]=useState<StudioSitesTheme>(initial?.kind==="studio"?initial.slide.themeId:"fieldflow"),[selected,setSelected]=useState(initialTemplate?.id??""),[category,setCategory]=useState("all"),[useBrand,setUseBrand]=useState(hasTenantBrand),[key]=useState(()=>crypto.randomUUID());
- const available=studioSitesSystemTemplates.filter(template=>template.formatId===`${orientation}-hd`&&template.document.sitesPresentation?.kind==="studio"&&template.document.sitesPresentation.slide.themeId===theme);
+ const available=studioSitesSystemTemplates.filter(template=>template.category!=="menu"&&template.formatId===`${orientation}-hd`&&template.document.sitesPresentation?.kind==="studio"&&template.document.sitesPresentation.slide.themeId===theme);
  const categories=[...new Set(available.map(template=>template.category))];
  const visible=available.filter(template=>category==="all"||template.category===category);
  const chosen=visible.find(template=>template.id===selected)??visible[0];

@@ -18,6 +18,7 @@ describe("control navigation", () => {
     expect(links).toStrictEqual([
       "/dashboard",
       "/dashboard/studio",
+      "/dashboard/slides/menu-studio",
       "/dashboard/sponsors",
       "/dashboard/engage",
       "/dashboard/media",
@@ -66,6 +67,7 @@ describe("control navigation", () => {
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
       "/dashboard/studio",
+      "/dashboard/slides/menu-studio",
       "/dashboard/media",
       "/dashboard/playlists",
       "/dashboard/slides",

@@ -15,7 +15,7 @@ export * from "./sites-presentation-model";
 export function SitesPresentationView({presentation,resolveAsset=resolveSitesSystemAsset,page=0,active=false,compact=false,fitViewport=false,includeStyles=true,systemAssetUrls={}}:{presentation:SitesPresentation;resolveAsset?:SitesAssetResolver;page?:number;active?:boolean;compact?:boolean;fitViewport?:boolean;includeStyles?:boolean;systemAssetUrls?:Readonly<Record<string,string>>}) {
  const supplied=resolveAsset;resolveAsset=asset=>asset.kind==="system"?systemAssetUrls[asset.path]??supplied(asset):supplied(asset);
  const input=sitesPresentationSchema.parse(presentation);const pages=sitesPresentationPages(input);const safePage=Math.min(pages-1,Math.max(0,Math.trunc(page)));const rendererVersion=input.kind==="studio"?input.rendererVersion:input.configuration.rendererVersion;let node:ReactNode;
- if(input.kind==="dynamic" && input.content.menuPages)node=<SitesMenuWidgets presentation={input} resolveAsset={resolveAsset} page={safePage} fitViewport={fitViewport}/>;
+ if(input.kind==="dynamic" && input.content.menuPages)node=<SitesMenuWidgets active={active} presentation={input} resolveAsset={resolveAsset} page={safePage} fitViewport={fitViewport}/>;
  else if(rendererVersion===sitesCurrentPresentationVersion)node=<SitesUnifiedV17 presentation={input} resolveAsset={resolveAsset} active={active} fitViewport={fitViewport}/>;
  else if(input.kind==="studio"){
   const {slide,content}=resolveSitesStudioPage(input,resolveAsset,safePage);

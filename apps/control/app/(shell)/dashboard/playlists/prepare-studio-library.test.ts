@@ -1,0 +1,12 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+import { preparePublisherStudioSeries } from './prepare-studio-library';
+const f = vi.hoisted(() => ({ capabilities: ['tenant.studio.render'], rpc: vi.fn() }));
+const tenant = '10000000-0000-4000-8000-000000000218', series = '20000000-0000-4000-8000-000000000218', project = '30000000-0000-4000-8000-000000000218', job = '40000000-0000-4000-8000-000000000218', key = '50000000-0000-4000-8000-000000000218';
+vi.mock('../../../../lib/control-session', () => ({ requireTenantControlSession: async () => ({ isLive: true, tenantId: tenant, capabilities: f.capabilities }) }));
+vi.mock('../../../../lib/supabase/server', () => ({ createControlSupabaseClient: async () => ({ rpc: f.rpc }) }));
+const input = () => ({ seriesId: series, revision: 1, key, members: [{ id: project, draftRevision: 2, motion: false }] });
+beforeEach(() => { f.capabilities = ['tenant.studio.render']; f.rpc.mockReset().mockResolvedValue({ data: { jobs: [{ projectId: project, jobId: job }] }, error: null }); });
+it('uses one transactional exact-draft command with a stable retry identity', async () => { await expect(preparePublisherStudioSeries(input())).resolves.toEqual({ ok: true, jobs: [{ projectId: project, jobId: job }] }); expect(f.rpc).toHaveBeenCalledWith('prepare_publisher_studio_series_v1', { p_series_id: series, p_expected_revision: 1, p_members: [{ id: project, draftRevision: 2 }], p_idempotency_key: key }); });
+it('reports an actual revision conflict without claiming success', async () => { f.rpc.mockResolvedValue({ data: null, error: { code: '40001' } }); await expect(preparePublisherStudioSeries(input())).resolves.toMatchObject({ ok: false, error: expect.stringContaining('gewijzigd') }); });
+it('rejects a response for a different selected member', async () => { f.rpc.mockResolvedValue({ data: { jobs: [{ projectId: key, jobId: job }] }, error: null }); expect((await preparePublisherStudioSeries(input())).ok).toBe(false); });
+it('requires render permission before preparing compatibility media', async () => { f.capabilities = []; expect((await preparePublisherStudioSeries(input())).ok).toBe(false); expect(f.rpc).not.toHaveBeenCalled(); });

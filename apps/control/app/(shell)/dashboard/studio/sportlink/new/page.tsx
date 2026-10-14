@@ -12,7 +12,6 @@ import { Button } from "@veyocast/ui";
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../../lib/supabase/server";
 import { createSportlinkSlideBatch } from "./actions";
-import { loadSitesSourceDestinationOptions } from "./sites-source-destination-data";
 import { SportlinkBulkWizard } from "./sportlink-bulk-wizard";
 
 type PageProps = { searchParams: Promise<{ fout?: string }> };
@@ -34,7 +33,7 @@ export default async function SportlinkNewPage({ searchParams }: PageProps) {
         De aparte verjaardagswizard gebruikt de dagelijkse Sportlink-snapshot, betrouwbare leeftijdsverrijking en automatische paginering.{" "}
         <Button asChild size="sm" variant="secondary"><Link href="/dashboard/studio/sportlink/birthdays/new">Sportlink — Verjaardagen openen</Link></Button>
       </p>
-      <SportlinkBulkWizard action={createSportlinkSlideBatch} {...data} destinationOptions={await loadSitesSourceDestinationOptions()} />
+      <SportlinkBulkWizard action={createSportlinkSlideBatch} {...data}  />
     </>
   );
 }

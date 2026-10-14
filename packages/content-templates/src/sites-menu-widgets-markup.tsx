@@ -4,11 +4,12 @@ import type { SitesAssetResolver } from "./sites-presentation-model";
 import { SitesUnifiedV17Markup } from "./sites-unified-v17-markup";
 
 /** Widgets are content inside the original Studio canvas, never a second theme. */
-export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, width }: {
+export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, width, active=false }: {
   presentation: Extract<SitesPresentation, { kind: "dynamic" }>;
   resolveAsset: SitesAssetResolver;
   page?: number;
   width?: number;
+  active?: boolean;
 }) {
   const config = presentation.configuration;
   const content = presentation.content;
@@ -33,7 +34,7 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
     "--vm-image-width": `${(nativeWidth - (portrait ? 184 : 192) - 2 * inset) / (menuPage.columns === 2 ? 2 : 1)}px`
   } as CSSProperties;
   return <div className="vm-frame" style={{ width: width ?? nativeWidth, height: width ? width * nativeHeight / nativeWidth : nativeHeight }}>
-    <SitesUnifiedV17Markup presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === "#03438a" ? "" : " vm-custom-accent"}`} canvasStyle={style} backgroundOverride={background || (config.themeId === "onzetrots-tv" && config.overlay > 0) ? { src: background, fit: background ? config.backgroundFit : "cover", overlay: config.overlay } : undefined}>
+    <SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === "#03438a" ? "" : " vm-custom-accent"}`} canvasStyle={style} backgroundOverride={background || (config.themeId === "onzetrots-tv" && config.overlay > 0) ? { src: background, fit: background ? config.backgroundFit : "cover", overlay: config.overlay } : undefined}>
       <div className="ucc-body" data-fit-box><div className="ucc-content ucc-canteen ucc-menu-columns vm-content" data-fit-content>
         <div className="ucc-meta"><span>{config.subtitle || "Actuele clubinformatie"}</span></div>
         <div className="ucc-menu-grid vm-widgets" data-columns={menuPage.columns} data-full={full}>

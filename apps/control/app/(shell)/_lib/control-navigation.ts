@@ -185,6 +185,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "tenant"
   },
   {
+    description: "Menu’s en prijslijsten ontwerpen en beheren",
+    href: "/dashboard/slides/menu-studio",
+    label: "Menu Studio",
+    requiredCapability: "tenant.dynamic_slide.read",
+    section: "content",
+    scope: "tenant"
+  },
+  {
     description: "Sponsors, campagnes, posities en bewijs van vertoning",
     href: "/dashboard/sponsors",
     label: "Sponsor Hub",
@@ -451,6 +459,12 @@ export function getControlRoutePresentation(
     paths: readonly string[];
     title: string;
   }>[] = [
+    {
+      description: "Maak menu’s en prijslijsten voor je schermen.",
+      family: "slides",
+      paths: ["/dashboard/slides/menu-studio"],
+      title: "Menu Studio"
+    },
     {
       description: "Maak en beheer wat jouw schermen laten zien.",
       family: "studio",

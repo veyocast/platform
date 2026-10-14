@@ -57,6 +57,7 @@ export async function createStudioProject(formData: FormData) {
   const systemTemplate = templateId
     ? getStudioSystemTemplate(templateId)
     : undefined;
+  if(systemTemplate?.category==="menu")redirect(`/dashboard/slides/menu-studio/new?formaat=${formatId==="portrait-hd"?"portrait":"landscape"}&thema=${systemTemplate.document.sitesPresentation?.kind==="studio"?systemTemplate.document.sitesPresentation.slide.themeId:"onzetrots-tv"}`);
   const sitesTheme=formData.get("sitesTheme");
   if(sitesTheme!==null&&(sitesTheme!=="fieldflow"&&sitesTheme!=="onzetrots-tv"||systemTemplate?.document.sitesPresentation?.kind!=="studio"||systemTemplate.document.sitesPresentation.slide.themeId!==sitesTheme||systemTemplate.formatId!==formatId))redirectStudioError("Het gekozen schermthema, template of formaat is ongeldig. Kies het startpunt opnieuw.");
   const motionEnabled = formData.get("motionEnabled") === "on";

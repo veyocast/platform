@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 
 import { chromium } from "playwright-core";
+import {buildSitesPresentationFromDynamicPayload} from "@veyocast/content-templates/sites-dynamic-projector";
+import {createSitesPresentationCapture} from "./sites-dom-capture";
+import {loadSitesDynamicCaptureAssets} from "./dynamic-sites-capture-assets";
 
 import {
   editorialArenaActiveSlideTypes,
@@ -16,7 +19,7 @@ import {
 
 export class ReactDomDynamicThumbnailRenderer {
   constructor(
-    private readonly playerUrl: string,
+    private readonly playerUrl: string|undefined,
     private readonly executablePath = process.env.CHROMIUM_EXECUTABLE_PATH ??
       "/usr/bin/chromium"
   ) {}
@@ -31,6 +34,13 @@ export class ReactDomDynamicThumbnailRenderer {
     signal?: AbortSignal;
   }) {
     const payload = buildThumbnailPayload(job, assets);
+    const presentation=buildSitesPresentationFromDynamicPayload(payload);
+    if(presentation){
+      const assetSources=await loadSitesDynamicCaptureAssets(presentation,assets,process.env.SUPABASE_URL,signal);
+      const capture=await createSitesPresentationCapture({presentation,assetSources,durationMs:3000,executablePath:this.executablePath,signal});
+      try{return await capture.renderPng(1200);}finally{await capture.close();}
+    }
+    if(payload.data.sitesConfiguration||!this.playerUrl)throw renderFailure("sites_presentation_unavailable");
     const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
     if (encoded.length > 1_500_000) throw renderFailure("payload_too_large");
     const target = new URL("/thumbnail", this.playerUrl);
@@ -42,6 +52,7 @@ export class ReactDomDynamicThumbnailRenderer {
     });
     try {
       const page = await browser.newPage({
+        serviceWorkers: "block",
         deviceScaleFactor: 1,
         viewport: {
           height: job.manifest.canvas.height,
@@ -56,10 +67,11 @@ export class ReactDomDynamicThumbnailRenderer {
           waitUntil: "domcontentloaded"
         });
         await page.waitForFunction(
-          () => document.documentElement.dataset.thumbnailReady === "true",
+          () => document.documentElement.dataset.thumbnailReady === "true"||Boolean(document.documentElement.dataset.thumbnailError),
           undefined,
           { timeout: 30_000 }
         );
+        if(await page.evaluate(()=>Boolean(document.documentElement.dataset.thumbnailError)))throw renderFailure("asset_or_presentation_unavailable");
         const bytes = await page.screenshot({ animations: "disabled", type: "png" });
         return new Uint8Array(bytes);
       } finally {

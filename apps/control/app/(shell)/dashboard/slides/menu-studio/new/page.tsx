@@ -10,7 +10,6 @@ import {
   loadMenuStudioOptions,
   menuStudioTemplateVersionIds
 } from "../data";
-import { loadSitesSourceDestinationOptions } from "../../../studio/sportlink/new/sites-source-destination-data";
 import { SitesMenuWizard } from "../sites-menu-wizard";
 import styles from "../menu-studio.module.css";
 
@@ -56,7 +55,7 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
           ) : null}
           <SitesMenuWizard
             clubName={session.tenant}
-            destinationOptions={await loadSitesSourceDestinationOptions()}
+
             initialOrientation={query.formaat !== "portrait" && data.templates.some((template) => template.orientation === "landscape")
               ? "landscape"
               : "portrait"}
