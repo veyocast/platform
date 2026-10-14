@@ -133,7 +133,10 @@ test("renders the control shell with role-aware navigation", async ({ page }) =>
   await expect(page.getByRole("region", { name: "Schermen" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
   await page.goto("/dashboard/screens/new");
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Scherm toevoegen" })).toBeVisible();
+  // The open modal correctly hides the background page from the accessibility
+  // tree. Keep proving that the page owns exactly one h1, then assert the
+  // accessible dialog title below.
+  await expect(page.locator("h1").filter({ hasText: "Scherm toevoegen" })).toHaveCount(1);
   const setup = page.getByRole("dialog", { name: "Nieuw scherm instellen" });
   await expect(setup).toBeVisible();
   await expect(setup.getByLabel("Schermnaam", { exact: true })).toBeDisabled();

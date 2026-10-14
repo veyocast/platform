@@ -703,7 +703,7 @@ function createErrorMessage(code: string | undefined) {
     return "Je hebt geen recht om binnen deze vereniging een ontwerp te maken.";
   }
   if (code === "23514") {
-    return "Het gekozen formaat of template bevat ongeldige ontwerpgegevens.";
+    return "De templategegevens passen niet bij het gekozen formaat of een ondersteunde ontwerpversie. Er is niets opgeslagen. Vernieuw Studio en kies het template opnieuw.";
   }
   return "Het Studio-ontwerp kon niet veilig worden aangemaakt.";
 }

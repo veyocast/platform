@@ -1,4 +1,21 @@
-.title { font-size: 23px; font-weight: 650; letter-spacing: -.025em; line-height: 1.5; margin: 0; }
+.overviewToolbar { display: flex; justify-content: flex-end; margin: 0 0 22px; }
+.templateBrowser { display: grid; grid-template-columns: minmax(220px, .72fr) minmax(360px, 1.65fr); gap: 18px; min-height: 330px; }
+.templateList { display: grid; align-content: start; gap: 7px; max-height: 430px; overflow-y: auto; padding: 3px 8px 3px 3px; }
+.templateChoice { display: grid; grid-template-columns: 22px minmax(0, 1fr) 20px; align-items: center; gap: 10px; width: 100%; min-height: 58px; padding: 10px 12px; border: 1px solid var(--studio-border); border-radius: 11px; background: var(--studio-surface); color: var(--studio-ink); text-align: left; }
+.templateChoice > svg:first-child { color: var(--studio-muted); }
+.templateChoice > span { display: grid; gap: 3px; min-width: 0; }
+.templateChoice strong { overflow: hidden; font-size: 13px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.templateChoice small { color: var(--studio-muted); font-size: 11px; }
+.templateChoice[aria-checked="true"] { border-color: #168f65; background: #eff7f3; box-shadow: 0 0 0 2px #168f6526; }
+.templateChoice[aria-checked="true"] > svg { color: #16724f; }
+.templatePreview { display: grid; align-content: start; gap: 14px; min-width: 0; padding: 15px; border: 1px solid var(--studio-border); border-radius: 14px; background: #eef3f1; }
+.templatePreviewCanvas { display: grid; place-items: center; min-height: 0; overflow: hidden; border-radius: 9px; background: #dfe8e4; }
+.templatePreviewCanvas > div { width: 100%; }
+.templatePreviewCanvas :global(.s191-studio-tvPortrait) { width: min(46%, 230px); }
+.templatePreview > div:last-child { display: grid; gap: 4px; }
+.templatePreview small { color: #24765a; font-size: 10px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.templatePreview strong { font-size: 16px; }
+.templatePreview p { font-size: 12px; }
 /* Source Studio controls inherit their authoring context; these rules never target a broadcast canvas. */
 :global(html[data-design-system="fieldflow"]) .overview :global(.vc-button) { font: inherit; white-space: normal; height: auto; }
 /* Preserve canonical label/control association with the original Field geometry. */
@@ -9,7 +26,12 @@
 .overview .collectionField > select, .overview .templateField > select { padding: 11px 12px; font-size: 14px; font-weight: 600; line-height: normal; min-height: 43px; }
 .collectionForm { flex-shrink: 0; }
 @media (max-width: 700px) {
- .title { font-size: 21px; }
+ .overviewToolbar { margin-bottom: 16px; }
+ .overviewToolbar .headerControls { width: 100%; }
+ .templateBrowser { grid-template-columns: 1fr; min-height: 0; }
+ .templateList { max-height: 245px; order: 2; }
+ .templatePreview { order: 1; padding: 11px; }
+ .templatePreviewCanvas :global(.s191-studio-tvPortrait) { width: min(44%, 180px); }
  :global(html[data-design-system="fieldflow"]) .overview .headerControls :global(.vc-button) { font-size: 13px; }
  .collectionForm, .collectionForm > button { width: 100%; }
  .overview .collectionField { max-width: none; }

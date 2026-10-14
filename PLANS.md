@@ -1,5 +1,13 @@
 # VeyoCast MVP Plan
 
+S214 herstelt het opslaan van OnzeTrots v17-templates door de exacte v17-
+renderer/source-identiteit door alle databasegrenzen te voeren. Studio gebruikt
+één shellkop en een compacte templatekeuzelijst met één contain-geschaalde
+preview voor mobiel en desktop. De database-eerst providerdatastroom, immutable
+publicaties, RLS en v11-compatibiliteit blijven behouden. Zie
+`prompts/sprints/S214-studio-template-picker-fix.md` en
+`docs/s214-studio-template-picker-fix.md`.
+
 S213 integreert de actuele Sites-v17-presentatie rechtstreeks uit broncommit
 `6800bc858436ba0843eaea89b682cd5b43c3521d`. Nieuwe Studio- en providerdrafts
 gebruiken één gedeeld contract en één renderer in Control, playlistpreview,
