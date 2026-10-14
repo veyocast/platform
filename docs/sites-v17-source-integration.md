@@ -148,4 +148,7 @@ alle 176 inventariscases en geen fysieke LG- of Android-hardwareproef.
 - de historische Sites-responsiviteitsmatrix: 66/66 groen. Voor Studio blijft
   de ongewijzigde shell tegen de bevroren bron gemeten; de bewust vervangen
   galerij controleert aanvullend 16 unieke v17-families, geladen
-  checksumassets, één oriëntatie en canvasbegrenzing.
+  checksumassets, één oriëntatie en canvasbegrenzing;
+- de zes mobiele Sportlink-wizardgevallen die het schermvoorbeeld openen:
+  6/6 groen. De v17-preview behoudt daarvoor zijn beschrijvende
+  `Voorbeeld …`-naam in de accessibility tree.
