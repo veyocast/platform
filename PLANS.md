@@ -1,5 +1,10 @@
 # VeyoCast MVP Plan
 
+S216 herstelt de visuele pariteit van Menu Studio-widgets met het oorspronkelijke
+OnzeTrots v17 Studio-template. Clubkop, bronfonts/achtergrond, informatievlak en
+categoriebanen komen uit dezelfde renderer; widgetauthoring blijft behouden.
+Zie `docs/s216-menu-studio-visual-parity.md`.
+
 S214 herstelt het opslaan van OnzeTrots v17-templates door de exacte v17-
 renderer/source-identiteit door alle databasegrenzen te voeren. Studio gebruikt
 één shellkop en een compacte templatekeuzelijst met één contain-geschaalde

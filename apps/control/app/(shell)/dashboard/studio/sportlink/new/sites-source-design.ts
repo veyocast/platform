@@ -16,7 +16,7 @@ export function sitesUnifiedOptionsForDynamicSlide(slideType: string) {
 }
 
 export function createSitesSourceDesign(provider: SitesDynamicConfiguration["provider"], title: string, orientation: SitesDynamicConfiguration["orientation"] = "landscape", unifiedKind: SitesUnifiedKind = provider === "led-scores" ? "led" : provider === "menu" ? "kantine" : "sportlink-extra"): SitesDynamicConfiguration {
-  return sitesDynamicConfigurationSchema.parse({ schemaVersion: 1, rendererVersion: sitesCurrentPresentationVersion, sourceRevision: sitesCurrentPresentationSourceRevision, provider, title, unifiedKind, themeId: "fieldflow", orientation, overlay: 65, accent: "#ff8127", scale: 100, safeArea: 6, seconds: 15, rowsPerPage: provider === "menu" ? 12 : 4 });
+  return sitesDynamicConfigurationSchema.parse({ schemaVersion: 1, rendererVersion: sitesCurrentPresentationVersion, sourceRevision: sitesCurrentPresentationSourceRevision, provider, title, unifiedKind, themeId: "fieldflow", orientation, overlay: provider === "menu" ? 0 : 65, accent: "#ff8127", scale: 100, safeArea: 6, seconds: 15, rowsPerPage: provider === "menu" ? 12 : 4 });
 }
 
 export function sitesSystemBackground(path: string) {

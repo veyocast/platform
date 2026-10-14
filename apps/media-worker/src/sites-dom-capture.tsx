@@ -8,7 +8,8 @@ import { chromium,type Browser,type Page } from "playwright-core";
 import sharp from "sharp";
 import {SitesStaticView} from "@veyocast/content-templates/sites-static-view";
 import {sitesPresentationPages} from "@veyocast/content-templates/sites-presentation-model";
-import { sitesPresentationCss } from "@veyocast/content-templates/sites-styles";
+import { sitesV17Css } from "@veyocast/content-templates/sites-v17-styles";
+import { sitesPresentationCss, sitesMenuWidgetCss } from "@veyocast/content-templates/sites-styles";
 import { sitesPresentationSchema,type SitesPresentation } from "@veyocast/contracts";
 import type { StudioDocument } from "@veyocast/studio";
 import systemAssets from "../../../packages/content-templates/src/sites-system-assets.json";
@@ -85,9 +86,11 @@ function buildSitesCaptureFrame(input:SitesPresentation,content:string,trustedSc
  const orientation=input.kind==="studio"?input.slide.orientation:input.configuration.orientation;
  const width=orientation==="portrait"?1080:1920,height=orientation==="portrait"?1920:1080;
  const nonce=trustedScript?randomBytes(18).toString("base64url"):undefined;
+ const rendererVersion=input.kind==="studio"?input.rendererVersion:input.configuration.rendererVersion;
+ const css=rendererVersion==="sites-v17"||(input.kind==="dynamic"&&input.content.menuPages)?sitesPresentationCss+sitesV17Css+(input.kind==="dynamic"&&input.content.menuPages?sitesMenuWidgetCss:""):sitesPresentationCss;
  const policy=nonce?`'nonce-${nonce}'`:"'none'";
  const script=trustedScript?`<script nonce="${nonce}">${trustedScript.replace(/<\/script/gi,"<\\/script")}</script>`:"";
- return `<!doctype html><html><head><meta charset="utf-8"><base href="${origin}/"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${origin} data:; font-src ${origin}; style-src 'unsafe-inline'; script-src ${policy}; connect-src 'none'"><style>*{box-sizing:border-box}html,body{margin:0;width:${width}px;height:${height}px;overflow:hidden;font-family:"Inter Variable",Inter,ui-sans-serif,system-ui,sans-serif}#sites-capture{width:${width}px;height:${height}px;container-type:inline-size}${sitesPresentationCss}</style></head><body><div id="sites-capture">${content}</div>${script}</body></html>`;
+ return `<!doctype html><html><head><meta charset="utf-8"><base href="${origin}/"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${origin} data:; font-src ${origin}; style-src 'unsafe-inline'; script-src ${policy}; connect-src 'none'"><style>*{box-sizing:border-box}html,body{margin:0;width:${width}px;height:${height}px;overflow:hidden;font-family:"Inter Variable",Inter,ui-sans-serif,system-ui,sans-serif}#sites-capture{width:${width}px;height:${height}px;container-type:inline-size}${css}</style></head><body><div id="sites-capture">${content}</div>${script}</body></html>`;
 }
 function browserAssetSources(assetSources:StudioSvgAssetSources):Record<string,string>{
  const output:Record<string,string>={};let bytes=0;

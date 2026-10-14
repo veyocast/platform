@@ -25,7 +25,7 @@ export async function buildSitesMarkup(presentation:SitesPresentation,assets:Rea
  const tokens=new Map<string,string>();const token=(checksum:string)=>{const value=`VEYOSITES_ASSET_${checksum}`;tokens.set(value,`/__veyocast-player-cache/${checksum}`);return value;};
  const system=new Map(systemAssets.files.map(asset=>[asset.path,asset]));
  const rendererVersion=presentation.kind==="dynamic"?presentation.configuration.rendererVersion:presentation.rendererVersion;
- const sourceCss=(rendererVersion==="sites-v17"?sitesV17Css:sitesPresentationCss)+(presentation.kind==="dynamic"&&presentation.content.menuPages?sitesMenuWidgetCss:"");
+ const sourceCss=(rendererVersion==="sites-v17"||(presentation.kind==="dynamic"&&presentation.content.menuPages)?sitesV17Css:sitesPresentationCss)+(presentation.kind==="dynamic"&&presentation.content.menuPages?sitesMenuWidgetCss:"");
  const css=sourceCss.replace(/url\(["']?(\/[^"')]+)["']?\)/g,(_match,path:string)=>{const asset=system.get(path);if(!asset)throw new Error("SITES_SYSTEM_ASSET_UNAVAILABLE");return `url("${token(asset.sha256)}")`;});
  const pages=await Promise.all(Array.from({length:sitesPresentationPages(presentation)},async(_,page)=>{const stream=await renderToReadableStream(<SitesStaticView presentation={presentation} page={page} includeStyles={false} active resolveAsset={asset=>{
   if(asset.kind==="system"){const trusted=system.get(asset.path);return trusted?.sha256===asset.checksumSha256?token(asset.checksumSha256):undefined;}
