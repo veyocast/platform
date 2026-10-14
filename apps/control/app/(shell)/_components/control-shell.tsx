@@ -779,6 +779,7 @@ function MobileBottomNav({
 }
 
 function isActive(pathname: string, item: ControlNavigationItem) {
+  if(item.href==="/dashboard/slides"&&pathname.startsWith("/dashboard/slides/menu-studio"))return false;
   if (item.href === "/dashboard" || item.href === "/platform") {
     return pathname === item.href || (item.href === "/dashboard" && pathname === "/dashboard/pilot");
   }

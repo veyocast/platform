@@ -1,21 +1,13 @@
 import Link from "next/link";
+import {redirect} from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
-import {
-  Button,
-  FilterBar,
-  SummaryStrip,
-  TablePreferences
-} from "@veyocast/ui";
+import { Button } from "@veyocast/ui";
 
 import { requireControlSession } from "../../../../lib/control-session";
-import { PageHeader } from "../../_components/shell-primitives";
 import {SitesPlaylistLibraryWorkspace}from"./_components/sites/sites-playlist-library-workspace";
 import {loadSitesPlaylistList}from"./sites-library-data";
-import { loadPlaylistList, type PlaylistListFilter } from "./data";
-import { PlaylistCreateDialog } from "./playlist-create-dialog";
-import { PlaylistLibraryWorkspace } from "./playlist-library-workspace";
-import { archivePlaylists, deletePlaylists } from "./actions";
+import type { loadPlaylistList, PlaylistListFilter } from "./data";
 
 type PlaylistsPageProps = {
   searchParams: Promise<{
@@ -34,93 +26,22 @@ type PlaylistsPageProps = {
 export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps) {
   const session = await requireControlSession();
   const params = await searchParams;
+  if(params.advanced){const next=new URLSearchParams();for(const [key,value] of Object.entries(params))if(key!=="advanced"&&value)next.set(key,value);redirect(`/dashboard/playlists${next.size?`?${next}`:""}`);}
   const filter = parseFilter(params);
   let data:Awaited<ReturnType<typeof loadPlaylistList>>={error:null,page:1,pageCount:1,rows:[],total:0};
-  if(session.isLive&&session.tenantId){try{data=params.advanced==='1'?await loadPlaylistList(session.tenantId,filter):await loadSitesPlaylistList(session.tenantId,filter);}catch{data={...data,error:'De vernieuwde playlistbibliotheek kon niet volledig worden geladen. Vernieuw de pagina of open het uitgebreide overzicht.'};}}
+  if(session.isLive&&session.tenantId){try{data=await loadSitesPlaylistList(session.tenantId,filter);}catch{data={...data,error:'De vernieuwde playlistbibliotheek kon niet volledig worden geladen. Vernieuw de pagina om opnieuw te proberen.'};}}
 
   const tenantIsMutable = session.isLive && session.tenantStatus === "active";
   const canWrite = tenantIsMutable && hasCapability(session.capabilities, "tenant.playlist.write");
-  const draftsNeedingAttention = data.rows.filter(
-    ({ lastPublishedVersion, status }) => status === "draft" && lastPublishedVersion !== null
-  ).length;
-
   return (
     <>
-      {params.advanced!=='1'&&<h1 className="sr-only">Playlists</h1>}
-      {params.advanced==='1'&&<PageHeader
-        actions={canWrite ? <PlaylistCreateDialog canWrite={canWrite} sources={data.rows.map(({ id, name }) => ({ id, name }))} /> : null}
-        description="Beheer concepten, publicatiestatus en schermgebruik. Open één playlist voor de volledige editor."
-        eyebrow={session.tenant}
-        status={!session.isLive ? { label: "Demomodus", tone: "warning" } : undefined}
-        title="Playlists"
-      />}
-
+      <h1 className="sr-only">Playlists</h1>
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Actie mislukt.</strong> {params.fout}</p> : null}
       {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
       {data.error ? <p className="notice notice--critical" role="alert"><strong>Playlists niet geladen.</strong> {data.error}</p> : null}
       {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte playlists te maken en bewerken.</p> : null}
 
-      {params.advanced!=='1'?<><SitesPlaylistLibraryWorkspace rows={data.rows}total={data.total}canWrite={canWrite}canManage={tenantIsMutable&&hasCapability(session.capabilities,'tenant.playlist.archive')}query={filter.query??''}status={filter.status??'all'}sort={filter.sort??'updated'}/>{data.pageCount>1?<nav aria-label="Playlistpagina's"className="pagination"><PaginationLink disabled={data.page<=1}href={pageHref(params,data.page-1)}label="Vorige pagina"/><span>Pagina {data.page} van {data.pageCount}</span><PaginationLink disabled={data.page>=data.pageCount}href={pageHref(params,data.page+1)}label="Volgende pagina"/></nav>:null}<p><Link href="/dashboard/playlists?advanced=1">Uitgebreid overzicht met kolommen, schermfilters en verwijderen</Link></p></>:<>
-      <SummaryStrip
-        aria-label="Compact playlistoverzicht"
-        items={[
-          {
-            detail: draftsNeedingAttention ? "Concept wijkt af van de laatste release" : "Geen open publicatiewijzigingen op deze pagina",
-            label: "Actie nodig",
-            tone: draftsNeedingAttention ? "warning" : "success",
-            value: draftsNeedingAttention
-          },
-          { label: "Playlists", value: data.total },
-          {
-            label: "Toegewezen",
-            value: data.rows.filter(({ assignedScreenCount }) => assignedScreenCount > 0).length
-          }
-        ]}
-      />
-
-      <form method="get" role="search">
-        <FilterBar
-          activeCount={playlistFilterCount(filter)}
-          actions={(
-            <TablePreferences
-              columns={[
-                { id: "playlist", label: "Playlist", required: true },
-                { id: "status", label: "Conceptstatus" },
-                { id: "content", label: "Inhoud" },
-                { id: "release", label: "Laatste publicatie" },
-                { id: "screens", label: "Schermen" },
-                { defaultVisible: false, id: "updated", label: "Laatst bewerkt" },
-                { id: "action", label: "Actie", required: true }
-              ]}
-              defaultDensity="comfortable"
-              tableKey="tenant-playlists"
-            />
-          )}
-          clearHref="/dashboard/playlists"
-          defaultOpen={playlistFilterCount(filter) > 0}
-          primary={<input aria-label="Zoeken in playlists" className="toolbar-search" defaultValue={filter.query} name="q" placeholder="Zoeken op playlistnaam" type="search" />}
-          results={`${data.total} ${data.total === 1 ? "playlist" : "playlists"}`}
-        >
-          <label className="toolbar-field"><span>Status</span><select defaultValue={filter.status} name="status"><option value="all">Alle statussen</option><option value="draft">Concept</option><option value="published">Gepubliceerd</option><option value="archived">Gearchiveerd</option></select></label>
-          <label className="toolbar-field"><span>Schermgebruik</span><select defaultValue={filter.assignment} name="assignment"><option value="all">Alle toewijzingen</option><option value="assigned">Toegewezen</option><option value="unassigned">Niet toegewezen</option></select></label>
-          <label className="toolbar-field"><span>Sorteren</span><select defaultValue={filter.sort} name="sort"><option value="updated">Laatst gewijzigd</option><option value="name">Naam</option></select></label>
-          <Button type="submit" variant="secondary">Filters toepassen</Button>
-        </FilterBar>
-      </form>
-
-      <section aria-labelledby="playlist-list-title">
-        <h2 className="sr-only" id="playlist-list-title">Playlistoverzicht</h2>
-        {data.rows.length ? (
-          <PlaylistLibraryWorkspace archiveAction={archivePlaylists} canWrite={canWrite} deleteAction={deletePlaylists} rows={data.rows} />
-        ) : (
-          <div className="empty-state" role="status">
-            <h2>Nog geen passende playlists</h2>
-            <p>Pas de filters aan of gebruik Nieuwe playlist bovenaan om media in een vaste volgorde te publiceren.</p>
-          </div>
-        )}
-        {data.pageCount > 1 ? <nav aria-label="Playlistpagina's" className="pagination"><PaginationLink disabled={data.page <= 1} href={pageHref(params, data.page - 1)} label="Vorige pagina" /><span>Pagina {data.page} van {data.pageCount}</span><PaginationLink disabled={data.page >= data.pageCount} href={pageHref(params, data.page + 1)} label="Volgende pagina" /></nav> : null}
-      </section>
-      </>}
+      <SitesPlaylistLibraryWorkspace rows={data.rows}total={data.total}canWrite={canWrite}canManage={tenantIsMutable&&hasCapability(session.capabilities,'tenant.playlist.archive')}query={filter.query??''}status={filter.status??'all'}sort={filter.sort??'updated'}/>{data.pageCount>1?<nav aria-label="Playlistpagina's"className="pagination"><PaginationLink disabled={data.page<=1}href={pageHref(params,data.page-1)}label="Vorige pagina"/><span>Pagina {data.page} van {data.pageCount}</span><PaginationLink disabled={data.page>=data.pageCount}href={pageHref(params,data.page+1)}label="Volgende pagina"/></nav>:null}
     </>
   );
 }
@@ -135,18 +56,9 @@ function parseFilter(params: Awaited<PlaylistsPageProps["searchParams"]>): Playl
   };
 }
 
-function playlistFilterCount(filter: PlaylistListFilter) {
-  return [
-    Boolean(filter.query),
-    filter.status !== "all",
-    filter.assignment !== "all",
-    filter.sort !== "updated"
-  ].filter(Boolean).length;
-}
-
 function pageHref(params: Awaited<PlaylistsPageProps["searchParams"]>, page: number) {
   const next = new URLSearchParams();
-  for (const key of ["q", "status", "assignment", "sort","advanced"] as const) if (params[key]) next.set(key, params[key]);
+  for (const key of ["q", "status", "assignment", "sort"] as const) if (params[key]) next.set(key, params[key]);
   next.set("page", String(page));
   return `/dashboard/playlists?${next.toString()}`;
 }

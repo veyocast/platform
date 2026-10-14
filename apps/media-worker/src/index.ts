@@ -211,9 +211,7 @@ async function main() {
     config.serviceRoleKey
   );
   const studioRenderer = new ResvgSharpStudioRenderer();
-  const reactDomRenderer = process.env.MONITOR_PLAYER_URL
-    ? new ReactDomDynamicThumbnailRenderer(process.env.MONITOR_PLAYER_URL)
-    : undefined;
+  const reactDomRenderer = new ReactDomDynamicThumbnailRenderer(process.env.MONITOR_PLAYER_URL);
   if (mode === "--once") {
     const mediaResult = await runWorkerOnce({ backend, config });
     logWorkerResult(logger, mediaResult);

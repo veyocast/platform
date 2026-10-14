@@ -339,7 +339,6 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
         <label className={s.search}><Search size={18} /><input value={screenQuery} onChange={event => setScreenQuery(event.target.value)} placeholder="Zoek een scherm of ruimte" aria-label="Schermen zoeken" />{screenQuery && <button type="button" aria-label="Zoeken wissen" onClick={() => setScreenQuery('')}><X size={17} /></button>}</label>
         <div className={s.screenList}>{visibleScreens.map(screen => <label key={screen.id} className={s.screenChoice} data-selected={screenIds.includes(screen.id)}><input type="checkbox" checked={screenIds.includes(screen.id)} onChange={() => toggleScreen(screen.id)} /><Monitor size={22} /><span><strong>{screen.name}</strong><small>{screen.group} · {screen.orientation}</small></span><span className={s.screenStatus} data-offline={screen.status === 'offline'}>{screen.status === 'unknown' ? 'Nog niet bevestigd' : screen.status === 'offline' ? 'Offline' : 'Online'}</span></label>)}</div>
         {!visibleScreens.length && <p className={s.emptyResult}>Geen schermen gevonden. Probeer een andere naam.</p>}
-        <button type="button" className={s.secondary} onClick={()=>requestLeave('advanced')}>Secties, uitsnede, geluid en herstel</button>
           <p className={s.demoNote}><ShieldCheck size={18} />Publiceren controleert je inhoud en maakt een complete, vaste publicatie voor de gekozen schermen. Live gegevens verversen zelfstandig.</p>
       </div>
       <footer className={s.publishFooter}><div><strong>{targets.length} {targets.length === 1 ? 'scherm' : 'schermen'}</strong><span>geselecteerd</span></div><button type="button" className={s.primary} disabled={!canPublish || pending || !targets.length || !playlist.slides.length || playlist.name.trim().length < 2} onClick={() => { setStorageError(''); onPublish({ ...playlist, name: playlist.name.trim() }, targets.map(screen => screen.id)); }}><CheckCheck size={18} />Publiceren</button></footer>
@@ -359,8 +358,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
             <ScreenThemePicker value={bulkTheme} onChange={setBulkTheme} legacyLabel="Oorspronkelijke stijl" compact />
             <button type="button" className={s.secondary} disabled={!canEdit || !playlist.slides.length} onClick={() => applyTheme(playlist.slides.map(slide => slide.id), bulkTheme)}>Toepassen op alle {playlist.slides.length} items</button>
           </section>
-          <button type="button" className={s.secondary} onClick={()=>requestLeave('advanced')}>Secties, uitsnede, geluid en herstel</button>
-          <p className={s.demoNote}><ShieldCheck size={18} />Opslaan bevestigt je concept in de database. Gepubliceerde inhoud blijft actief totdat je een complete nieuwe publicatie kiest.</p>
+            <p className={s.demoNote}><ShieldCheck size={18} />Opslaan bevestigt je concept in de database. Gepubliceerde inhoud blijft actief totdat je een complete nieuwe publicatie kiest.</p>
           <button type="button" className={s.secondary} disabled={!canPublish || pending || playlist.name.trim().length < 2 || !playlist.slides.length} onClick={() => showMode('publish')}><Monitor size={18} />Schermen kiezen en publiceren<ArrowRight size={18} /></button>
         </section> : view === 'Voorbeeld' ? <div className={s.previewOnly}>{preview()}</div> : <div className={s.workspace}>
           <section className={s.contentPanel} aria-label="Playlistinhoud">

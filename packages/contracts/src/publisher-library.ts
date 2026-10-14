@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const publisherLibraryFilterSchema = z.object({
-  tab: z.enum(["media", "studio", "dynamic"]).default("media"),
+  tab: z.enum(["media", "slides", "studio", "dynamic"]).default("media"),
+  source: z.enum(["all","studio","sportlink","led-scores","menu"]).optional(),
   query: z.string().max(160).optional(),
   folderId: z.string().uuid().optional(),
   collectionId: z.string().uuid().optional(),

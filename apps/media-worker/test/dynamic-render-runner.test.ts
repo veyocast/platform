@@ -303,6 +303,13 @@ describe("dynamic render worker", () => {
     expect(fallback.renderPng).toHaveBeenCalledOnce();
   });
 
+  it.each([true,false])("never marks an old SVG as a successful Sites render (renderer present: %s)",async present=>{
+    const backend=backendMock({...job,snapshotData:{type:'price_list',sitesConfiguration:{rendererVersion:'sites-v17'}}});
+    const renderer={renderPng:vi.fn().mockResolvedValue(Buffer.from('wrong legacy output')),renderQrSvgDataUri:vi.fn(),renderRgba:vi.fn()};
+    const result=await runDynamicRenderOnce({backend,config:{lockTimeoutSeconds:120,maxAttempts:3,workerId:'worker-1'},renderer,reactDomRenderer:present?{renderPng:vi.fn().mockRejectedValue(new Error('capture unavailable'))}as never:undefined});
+    expect(result.status).not.toBe('completed');expect(renderer.renderPng).not.toHaveBeenCalled();expect(backend.uploadArtifact).not.toHaveBeenCalled();expect(backend.completeJob).not.toHaveBeenCalled();expect(backend.failJob).toHaveBeenCalledWith(expect.anything(),'worker-1',expect.objectContaining({retryable:true}));
+  });
+
   it("maakt de prijslijstthumbnail met dezelfde 9-rijpaginering", async () => {
     const priceJob: ClaimedDynamicRenderJob = {
       ...job,

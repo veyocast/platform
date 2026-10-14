@@ -50,6 +50,7 @@ export function SitesPlaylistWorkspace({tenantName,initial,revision,inventory,gr
      prepared.current.set(cacheKey,themed);normalized.slides.push(themed);continue;
     }
     if(!slide.studioSlide||slide.studioSlide.themeId===slide.studioSlide.presentation.slide.themeId){normalized.slides.push(slide);continue;}
+    if(!slide.studioSlide.exportId)throw new Error('De Studio-slide is nog niet voor afspelen voorbereid. Selecteer hem opnieuw uit de bibliotheek.');
     const cacheKey=`${slide.studioSlide.exportId}:${slide.studioSlide.themeId}`;const cached=prepared.current.get(cacheKey);if(cached){normalized.slides.push({...cached,id:slide.id,name:slide.name,seconds:slide.seconds});continue;}
     setNotice('Het gekozen thema wordt als nieuwe, gecontroleerde Studio-render voorbereid. Je bronontwerp blijft behouden.');
     let themeKey=themeKeys.current.get(cacheKey);if(!themeKey){themeKey=crypto.randomUUID();themeKeys.current.set(cacheKey,themeKey);}

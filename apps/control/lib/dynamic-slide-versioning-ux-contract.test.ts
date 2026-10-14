@@ -16,7 +16,7 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
 
     const stepDefinitions = wizard.match(/const steps = \[([\s\S]*?)\] as const;/u)?.[1];
     expect(stepDefinitions?.match(/"[^"\n]+"/gu)).toEqual([
-      '"Inhoud kiezen"', '"Teams & gegevens"', '"Vormgeving"', '"Schermen"', '"Controleren"'
+      '"Inhoud kiezen"', '"Teams & gegevens"', '"Vormgeving"', '"Opslaan"', '"Controleren"'
     ]);
     expect(wizard).toContain("<strong>{drafts.length} {drafts.length === 1");
     expect(wizard).toContain("step === 1 && selectedTeams.length");

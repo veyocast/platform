@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, ArrowUpRight, Check, Copy, ImagePlus, LayoutGrid, List, ListVideo, Monitor, Plus, RotateCcw, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { Archive, ArrowUpRight, Check, Copy, ImagePlus, LayoutGrid, List, ListVideo, Monitor, Plus, RotateCcw, Search, SlidersHorizontal, Sparkles, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { AssetImage } from './presentation-adapter';
 import type { Playlist } from './model';
@@ -15,7 +15,7 @@ type Props = {
   view:'grid'|'list'; onView:(view:'grid'|'list')=>void;
   selection:string[]; onSelection:(ids:string[])=>void; inventory:Screen[];
   onOpen:(playlist:Playlist,add?:boolean)=>void; onCreate:()=>void; onStudio:()=>void;
-  onDuplicate:()=>void; onArchive:()=>void; onRestore:()=>void;
+  onDuplicate:()=>void; onArchive:()=>void; onRestore:()=>void; onDelete?:()=>void;
 };
 
 function runningTime(playlist:Playlist) {
@@ -23,7 +23,7 @@ function runningTime(playlist:Playlist) {
   return `${Math.floor(total/60)}:${String(total%60).padStart(2,'0')}`;
 }
 
-export function PlaylistLibrary({playlists,total,query,onQuery,filter,onFilter,sort,onSort,view,onView,selection,onSelection,inventory,onOpen,onCreate,onStudio,onDuplicate,onArchive,onRestore,canWrite=true,canManage=true}:Props) {
+export function PlaylistLibrary({playlists,total,query,onQuery,filter,onFilter,sort,onSort,view,onView,selection,onSelection,inventory,onOpen,onCreate,onStudio,onDuplicate,onArchive,onRestore,onDelete,canWrite=true,canManage=true}:Props) {
   const [filtersOpen,setFiltersOpen]=useState(false);
   const [selecting,setSelecting]=useState(false);
   const allSelected=playlists.length>0&&playlists.every(p=>selection.includes(p.id));
@@ -41,7 +41,7 @@ export function PlaylistLibrary({playlists,total,query,onQuery,filter,onFilter,s
     {filtersOpen&&<div id="playlist-filters" className={styles.filters}><label>Status<select value={filter} onChange={event=>onFilter(event.target.value)}>{['Alle playlists','Gepubliceerd','Concept','Archief'].map(value=><option key={value}>{value}</option>)}</select></label><label>Sorteren<select value={sort} onChange={event=>onSort(event.target.value)}><option value="recent">Recent toegevoegd</option><option value="name">Naam A–Z</option><option value="items">Meeste items</option></select></label></div>}
     <div className={styles.listHeading}><div><strong>{playlists.length} playlists</strong><span>{query||filter!=='Alle playlists'?`van ${total} actieve playlists`:'Klaar voor het volgende clubmoment'}</span></div><button onClick={()=>{setSelecting(!selecting);onSelection([])}}>{selecting?<><Check size={17}/>Klaar</>:<>Selecteren</>}</button></div>
     {selecting&&<div className={styles.selectionBar}><label><input type="checkbox" checked={allSelected} onChange={()=>onSelection(allSelected?selection.filter(id=>!playlists.some(p=>p.id===id)):Array.from(new Set([...selection,...playlists.map(p=>p.id)])))}/>Alles selecteren</label><span>{selection.length} gekozen</span></div>}
-    {selection.length>0&&<div className={styles.bulk} aria-label="Acties voor geselecteerde playlists"><button disabled={!canWrite}onClick={onDuplicate}><Copy size={18}/>Dupliceren</button>{filter==='Archief'?<button disabled={!canManage}onClick={onRestore}><RotateCcw size={18}/>Herstellen</button>:<button disabled={!canManage}onClick={onArchive}><Archive size={18}/>Archiveren</button>}<button onClick={()=>onSelection([])} aria-label="Selectie wissen"><X size={18}/></button></div>}
+    {selection.length>0&&<div className={styles.bulk} aria-label="Acties voor geselecteerde playlists"><button disabled={!canWrite}onClick={onDuplicate}><Copy size={18}/>Dupliceren</button>{filter==='Archief'?<button disabled={!canManage}onClick={onRestore}><RotateCcw size={18}/>Herstellen</button>:<button disabled={!canManage}onClick={onArchive}><Archive size={18}/>Archiveren</button>}{onDelete&&<button disabled={!canManage}onClick={onDelete}><Trash2 size={18}/>Definitief verwijderen</button>}<button onClick={()=>onSelection([])} aria-label="Selectie wissen"><X size={18}/></button></div>}
     <div className={`${styles.cards} ${view==='list'?styles.list:''}`}>
       {playlists.map(playlist=>{
         const targets=playlist.assignedScreenCount??inventory.filter(screen=>screen.playlist===playlist.name).length;

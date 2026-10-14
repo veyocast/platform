@@ -90,7 +90,7 @@ const steps = [
   "Inhoud kiezen",
   "Teams & gegevens",
   "Vormgeving",
-  "Schermen",
+  "Opslaan",
   "Controleren"
 ] as const;
 const blueprintKeys = Object.keys(
@@ -491,7 +491,7 @@ export function SportlinkBulkWizard({
             />
             </details>
           </>) : null}
-          {step === 3 ? <><StepHeading eyebrow="Bestemming" title="Waar komt je ontwerp in beeld?" description="Bewaar het ontwerp of kies een echte playlist en doelschermen. Je bevestigt de daadwerkelijke publicatie pas na opslaan en de gereedheidscontrole." /><SitesSourceDestinationPicker options={destinationOptions} value={destination} onChange={setDestination} /></> : null}
+          {step === 3 ? <><StepHeading eyebrow="Bestemming" title="Je ontwerp opslaan" description="Je ontwerp komt in de slidebibliotheek. Kies daarna je playlist en schermen via Playlists." /><SitesSourceDestinationPicker options={destinationOptions} value={destination} onChange={setDestination} /></> : null}
           {step === 4 ? (
             <ReviewStep
               creationResult={creationResult}

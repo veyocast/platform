@@ -8,6 +8,8 @@ import {SlideCanvas, type StudioProject} from './presentation-adapter';
 import {PHOTOS, mediaPlacementDuration} from './model';
 import {VideoUploadForm}from'../../../media/video-upload-form';
 import type{PublisherLibraryPage}from'../../library';
+import {preparePublisherStudioSeries} from '../../prepare-studio-library';
+import {readStudioPlacementThemeRenderAction} from '../../../studio/sites-placement-theme-actions';
 import styles from './playlist-media-picker.module.css';
 
 export interface PlaylistMediaPickerProps {
@@ -21,7 +23,7 @@ export interface PlaylistMediaPickerProps {
   videoUploadConfig?:{anonKey:string;supabaseUrl:string};
 }
 
-type Tab = 'media' | 'studio' | 'dynamic';
+type Tab = 'media' | 'slides';
 type Choice =
   | {key: string; source: 'media'; item: Media}
   | {key: string; source: 'studio'; item: StudioProject}
@@ -29,8 +31,7 @@ type Choice =
 type UploadProgress = {done: number; total: number; name: string; added: number};
 const tabs: {id: Tab; label: string}[] = [
   {id: 'media', label: 'Media'},
-  {id: 'studio', label: 'Studio'},
-  {id: 'dynamic', label: 'Sportlink & LED'},
+  {id: 'slides', label: 'Slides'},
 ];
 const createId = () => crypto.randomUUID();
 const itemCount = (choice: Choice) => choice.source === 'studio' ? choice.item.slides.length : 1;
@@ -58,13 +59,14 @@ function toSlides(choice: Choice): Slide[] {
 }
 
 export function PlaylistMediaPicker({media, onMediaChange, projects, designs, onAdd, onGoStudio,videoUploadConfig}: PlaylistMediaPickerProps) {
-  const [tab, setTab] = useState<Tab>('media');
+  const [tab, setTab] = useState<Tab>(media.length||(!projects.length&&!designs.length)?'media':'slides');
   const [query, setQuery] = useState('');
   const [folder, setFolder] = useState('all');
   const [favorites, setFavorites] = useState(false);
   const [collection,setCollection]=useState('all');
   const [offset,setOffset]=useState(0);
-  const [library,setLibrary]=useState<PublisherLibraryPage|null>(null);
+  const [libraryResponse,setLibraryResponse]=useState<{tab:Tab;page:PublisherLibraryPage}|null>(null);
+  const library=libraryResponse?.tab===tab?libraryResponse.page:null;
   const [loading,setLoading]=useState(false);
   const [libraryError,setLibraryError]=useState('');
   const [refresh,setRefresh]=useState(0);
@@ -73,6 +75,8 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
   const [selection, setSelection] = useState<Choice[]>([]);
   const [engageFallback,setEngageFallback]=useState<Media|null>(null);
   const [showSelection, setShowSelection] = useState(false);
+  const [preparing,setPreparing]=useState(false);
+  const prepareKeys=useRef(new Map<string,string>());
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [uploadResult, setUploadResult] = useState('');
@@ -83,18 +87,18 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
   useEffect(() => {mounted.current = true; return () => {mounted.current = false;};}, []);
   useEffect(() => {scrollArea.current?.scrollTo({top: 0});}, [tab, folder, favorites, provider, query]);
 
-  useEffect(()=>{setOffset(0);},[tab,query,folder,collection,favorites]);
+  useEffect(()=>{setOffset(0);},[tab,query,folder,collection,favorites,provider]);
   const folderId=library?.folders.find(item=>item.name===folder)?.id;
   useEffect(()=>{
     const controller=new AbortController();const delay=setTimeout(()=>{setLoading(true);setLibraryError('');
-      const params=new URLSearchParams({tab,offset:String(offset)});if(query.trim())params.set('query',query.trim());if(folderId)params.set('folderId',folderId);if(collection!=='all')params.set('collectionId',collection);if(favorites)params.set('favorites','true');
+      const params=new URLSearchParams({tab,offset:String(offset)});if(tab==='slides'&&provider!=='all')params.set('source',provider);if(query.trim())params.set('query',query.trim());if(folderId)params.set('folderId',folderId);if(collection!=='all')params.set('collectionId',collection);if(favorites)params.set('favorites','true');
       const deadline=setTimeout(()=>{setLibraryError('De bibliotheek antwoordde niet op tijd. Je selectie blijft behouden; probeer opnieuw.');setLoading(false);controller.abort();},20000);
-      void fetch(`/api/publisher/library?${params}`,{cache:'no-store',signal:controller.signal}).then(async response=>{const page=await response.json()as PublisherLibraryPage&{error?:string};if(!response.ok)throw new Error(page.error||'De bibliotheek kon niet worden geladen.');if(!controller.signal.aborted)setLibrary(page);}).catch(()=>{if(!controller.signal.aborted)setLibraryError('De bibliotheek kon niet worden geladen. Je selectie blijft behouden; probeer opnieuw.');}).finally(()=>{clearTimeout(deadline);if(!controller.signal.aborted)setLoading(false);});
+      void fetch(`/api/publisher/library?${params}`,{cache:'no-store',signal:controller.signal}).then(async response=>{const page=await response.json()as PublisherLibraryPage&{error?:string};if(!response.ok)throw new Error(page.error||'De bibliotheek kon niet worden geladen.');if(!controller.signal.aborted)setLibraryResponse({tab,page});}).catch(()=>{if(!controller.signal.aborted)setLibraryError('De bibliotheek kon niet worden geladen. Je selectie blijft behouden; probeer opnieuw.');}).finally(()=>{clearTimeout(deadline);if(!controller.signal.aborted)setLoading(false);});
     },250);return()=>{clearTimeout(delay);controller.abort();};
-  },[tab,query,folderId,collection,favorites,offset,refresh]);
-  const processingMedia=library?.unavailableMedia?.some(item=>item.status==='processing');
+  },[tab,query,folderId,collection,favorites,offset,refresh,provider]);
+  const processingMedia=tab==='media'?library?.unavailableMedia?.some(item=>item.status==='processing'):library?.unavailableDesigns?.some(item=>item.processing);
   useEffect(()=>{
-    if(tab!=='media'||!processingMedia||loading)return;
+    if(!processingMedia||loading)return;
     const timer=setTimeout(()=>setRefresh(value=>value+1),2000);
     return()=>clearTimeout(timer);
   },[tab,processingMedia,loading,refresh]);
@@ -106,14 +110,15 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
   const matches = (value: string) => value.toLocaleLowerCase('nl').includes(normalizedQuery);
   const choices: Choice[] = tab === 'media'
     ? activeMedia.filter(item => (folder === 'all' || item.folder === folder) && (!favorites || item.favorite) && matches(`${item.name} ${(item.tags || []).join(' ')} ${(item.collections || []).join(' ')}`)).map(item => ({key: `media:${item.id}`, source: 'media' as const, item}))
-    : tab === 'studio'
-      ? (library?.projects??projects).filter(item => matches(`${item.name} ${item.slides.map(slide => `${slide.name} ${slide.title}`).join(' ')}`)).map(item => ({key: `studio:${item.id}`, source: 'studio' as const, item}))
-      : (library?.designs??designs).filter(item => (provider === 'all' || item.provider === provider) && matches(`${item.name} ${item.title} ${item.subtitle} ${providerLabel(item)}`)).map(item => ({key: `dynamic:${item.id}`, source: 'dynamic' as const, item}));
+    : [
+      ...(library?.projects??projects).filter(() => provider==='all'||provider==='studio').filter(item => matches(`${item.name} ${item.slides.map(slide => `${slide.name} ${slide.title}`).join(' ')}`)).map(item => ({key: `studio:${item.id}`, source: 'studio' as const, item})),
+      ...(library?.designs??designs).filter(item => (provider === 'all' || item.provider === provider) && matches(`${item.name} ${item.title} ${item.subtitle} ${providerLabel(item)}`)).map(item => ({key: `dynamic:${item.id}`, source: 'dynamic' as const, item}))
+    ];
   const selectable = choices.filter(choice => itemCount(choice) > 0);
   const selectedKeys = new Set(selection.map(choice => choice.key));
   const allVisibleSelected = selectable.length > 0 && selectable.every(choice => selectedKeys.has(choice.key));
   const totalSlides = selection.reduce((total, choice) => total + itemCount(choice), 0);
-  const filtered = !!query || (tab === 'media' && (folder !== 'all' || favorites)) || (tab === 'dynamic' && provider !== 'all');
+  const filtered = !!query || (tab === 'media' && (folder !== 'all' || favorites)) || (tab === 'slides' && provider !== 'all');
 
   function toggle(choice: Choice) {
     setSelection(previous => previous.some(item => item.key === choice.key) ? previous.filter(item => item.key !== choice.key) : [...previous, choice]);
@@ -164,13 +169,40 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
     }
   }
 
+  async function addSelection(){
+    if(preparing||progress)return;setPreparing(true);setUploadErrors([]);
+    try{
+      const prepared:Choice[]=[];
+      for(const choice of selection){
+        if(choice.source!=='studio'||choice.item.slides.every(slide=>slide.exportId&&slide.exportAssetId)){prepared.push(choice);continue;}
+        const fingerprint=JSON.stringify([choice.item.id,choice.item.revision,choice.item.slides.map(slide=>[slide.id,slide.draftRevision])]);
+        let key=prepareKeys.current.get(fingerprint);if(!key){key=crypto.randomUUID();prepareKeys.current.set(fingerprint,key);}
+        const result=await preparePublisherStudioSeries({seriesId:choice.item.id,revision:choice.item.revision,key,members:choice.item.slides.map(slide=>({id:slide.id,draftRevision:slide.draftRevision??0,motion:slide.exportKind==='video'}))});
+        if(!result.ok)throw new Error(result.error);
+        const slides=[...choice.item.slides];
+        for(const job of result.jobs){
+          let rendered=await readStudioPlacementThemeRenderAction({jobId:job.jobId});
+          for(let poll=0;mounted.current&&rendered.ok&&rendered.status==='pending'&&poll<90;poll++){await new Promise(resolve=>setTimeout(resolve,1000));rendered=await readStudioPlacementThemeRenderAction({jobId:job.jobId});}
+          if(!mounted.current)return;
+          if(rendered.status==='failed')prepareKeys.current.delete(fingerprint);
+          if(!rendered.ok||rendered.status!=='ready'||!rendered.exportId||!rendered.mediaAssetId)throw new Error(rendered.error??'De slide wordt nog voorbereid. Je selectie blijft bewaard; probeer opnieuw.');
+          const index=slides.findIndex(slide=>slide.id===job.projectId);if(index<0)throw new Error('De render hoort niet bij deze selectie. Vernieuw de bibliotheek.');
+          slides[index]={...slides[index]!,exportId:rendered.exportId,exportAssetId:rendered.mediaAssetId};
+        }
+        prepared.push({...choice,item:{...choice.item,slides}});
+      }
+      if(mounted.current)onAdd(prepared.flatMap(choice=>toSlides(choice.source==='media'&&choice.item.sourceKind==='engage'&&!choice.item.fallbackAssetId&&engageFallback?{...choice,item:{...choice.item,fallbackAssetId:engageFallback.id,image:engageFallback.image,checksumSha256:engageFallback.checksumSha256}}:choice)));
+    }catch(error){if(mounted.current)setUploadErrors([error instanceof Error?error.message:'De selectie kon niet worden toegevoegd. Probeer opnieuw.']);}
+    finally{if(mounted.current)setPreparing(false);}
+  }
+
   return <div className={styles.picker}>
-    <div className={styles.scrollBody} ref={scrollArea}>
+    <div className={styles.scrollBody} ref={scrollArea} inert={preparing}>
     <div className={styles.tools}>
       <div className={styles.tabs} aria-label="Inhoud kiezen uit">
         {tabs.map(item => <button type="button" key={item.id} aria-pressed={tab === item.id} onClick={() => setTab(item.id)}>
           {item.label}
-          {selection.some(choice => choice.source === item.id) && <span className={styles.tabCount}>{selection.filter(choice => choice.source === item.id).length}</span>}
+          {selection.some(choice => item.id==='slides'?choice.source!=='media':choice.source==='media') && <span className={styles.tabCount}>{selection.filter(choice => item.id==='slides'?choice.source!=='media':choice.source==='media').length}</span>}
         </button>)}
       </div>
       <div className={styles.searchRow}>
@@ -190,13 +222,14 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
         {videoUploadConfig&&<button type="button"className={styles.favorite}aria-expanded={videoUpload}onClick={()=>setVideoUpload(value=>!value)}>Video uploaden</button>}
         <button type="button" className={styles.favorite} aria-pressed={favorites} onClick={() => setFavorites(value => !value)}><Star size={16} fill={favorites ? 'currentColor' : 'none'}/>Favorieten</button>
       </div>}
-      {tab === 'dynamic' && <div className={styles.filters}>
-        {([{value: 'all', label: 'Alle ontwerpen'}, {value: 'sportlink', label: 'Sportlink'}, {value: 'led-scores', label: 'LED Scores'}, {value: 'menu', label: 'Kantine'}]).map(item => <button type="button" className={styles.filterChip} key={item.value} aria-pressed={provider === item.value} onClick={() => setProvider(item.value)}>{item.label}</button>)}
+      {tab === 'slides' && <div className={styles.filters}>
+        {([{value: 'all', label: 'Alle slides'}, {value: 'studio', label: 'Studio'}, {value: 'sportlink', label: 'Sportlink'}, {value: 'led-scores', label: 'LED Scores'}, {value: 'menu', label: 'Kantine'}]).map(item => <button type="button" className={styles.filterChip} key={item.value} aria-pressed={provider === item.value} onClick={() => setProvider(item.value)}>{item.label}</button>)}
       </div>}
     </div>
 
     <div className={styles.content} aria-busy={loading}>
       {libraryError&&<div className={styles.errors}role="alert">{libraryError}<button type="button"onClick={()=>setRefresh(value=>value+1)}>Opnieuw laden</button></div>}
+      {tab==='slides'&&!!library?.unavailableDesigns?.length&&<section className={styles.processingStatus} aria-label="Ontwerpen in voorbereiding"><strong>Je opgeslagen ontwerpen</strong>{library.unavailableDesigns.map(item=><p key={item.id}><strong>{item.name}</strong> · {item.processing?'Wordt voorbereid':item.status==='error'?'Voorbereiding mislukt':'Concept'}<br/>{item.processing?'Het ontwerp verschijnt automatisch zodra de afspeelfallback is geverifieerd.':<a href={item.href}>Open het ontwerp om het gereed te maken.</a>}</p>)}</section>}
       {tab==='media'&&!!library?.unavailableMedia?.length&&<section className={styles.processingStatus}aria-label="Uploads in verwerking"><strong>Deze uploads zijn nog niet beschikbaar</strong>{library.unavailableMedia.map(item=><p key={item.id}><strong>{item.name}</strong> · {item.status==='validation_failed'?'Verwerking mislukt':item.status==='processing'?'Wordt verwerkt':'Upload niet afgerond'}<br/>{item.message}</p>)}<a href="/dashboard/media">Bekijk de beeldbank</a></section>}
       {videoUpload&&videoUploadConfig&&<section aria-label="Video uploaden"><VideoUploadForm canUpload anonKey={videoUploadConfig.anonKey}supabaseUrl={videoUploadConfig.supabaseUrl}/><button type="button"className={styles.outlineButton}onClick={()=>{setVideoUpload(false);setRefresh(value=>value+1);}}>Terug naar gereedstaande media</button></section>}
       {!!progress && <div className={styles.uploadStatus} role="status"><LoaderCircle size={18} className={styles.spin}/><div><strong>Afbeelding {progress.done + 1} van {progress.total} verwerken…</strong><span>{progress.name}</span><progress aria-label="Voortgang upload" value={progress.done} max={progress.total}/></div></div>}
@@ -219,25 +252,25 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
             <span className={styles.cardCopy}><strong>{choice.item.name}</strong><small>{choice.source === 'media' ? choice.item.kind === 'video' ? 'Geverifieerde video' : `${choice.item.folder || 'Media'} · 12 sec.` : choice.source === 'studio' ? itemCount(choice) ? 'Hele Studio-reeks' : 'Nog geen slides' : `${providerLabel(choice.item)} · ${choice.item.seconds} sec.`}</small></span>
           </button>;
         })}
-      </div> : <div className={styles.empty}>
+      </div> : (tab==='media'?library?.unavailableMedia?.length:library?.unavailableDesigns?.length)?<p role="status">Je opgeslagen inhoud staat hierboven met de verwerkingsstatus. Gereedstaande inhoud kun je hier selecteren.</p> : <div className={styles.empty}>
         {tab === 'media' ? <ImagePlus size={34}/> : <Sparkles size={34}/>}
         <h3>{filtered ? 'Geen resultaten gevonden' : tab === 'media' ? 'Jouw clubbeelden beginnen hier' : 'Nog geen ontwerpen'}</h3>
-        <p>{filtered ? 'Probeer een andere zoekterm of maak de filters leeg. Je selectie blijft bewaard.' : tab === 'media' ? 'Kies meerdere foto’s op je telefoon en voeg ze in één keer toe.' : 'Maak in Studio een ontwerp. Daarna kun je het hier aan je playlist toevoegen.'}</p>
+        <p>{filtered ? 'Probeer een andere zoekterm of maak de filters leeg. Je selectie blijft bewaard.' : tab === 'media' ? 'Upload foto’s en video’s. Je opgeslagen ontwerpen en menu’s staan onder Slides.' : 'Maak in Studio een ontwerp. Daarna kun je het hier aan je playlist toevoegen.'}</p>
         {filtered ? <button type="button" className={styles.outlineButton} onClick={resetFilters}>Filters wissen</button> : tab === 'media' ? <button type="button" className={styles.uploadButton} disabled={!!progress} onClick={() => input.current?.click()}><CloudUpload size={18}/>Afbeeldingen kiezen</button> : !selection.length ? <button type="button" className={styles.uploadButton} onClick={onGoStudio}><Sparkles size={18}/>Naar Studio</button> : <p>Voeg eerst je selectie toe om deze te bewaren.</p>}
       </div>}
-      {library&&(offset>0||library.hasMore)&&<nav aria-label="Bibliotheekpagina's"className={styles.resultRow}><button type="button"disabled={loading||offset===0}onClick={()=>setOffset(value=>Math.max(0,value-(tab==='studio'||tab==='dynamic'?8:48)))}>Vorige pagina</button><span>{Math.min(offset+1,library.total)}–{Math.min(offset+(tab==='studio'||tab==='dynamic'?8:48),library.total)} van {library.total}</span><button type="button"disabled={loading||!library.hasMore}onClick={()=>setOffset(value=>value+(tab==='studio'||tab==='dynamic'?8:48))}>Volgende pagina</button></nav>}
-      <p className={styles.hint}>{tab === 'media' ? 'JPG, PNG, WebP of AVIF · maximaal 25 MB per foto. Uploads worden privé opgeslagen en gecontroleerd.' : tab === 'studio' ? 'Een Studio-reeks voegt alle slides toe, met jouw tekst, opmaak en ingestelde duur.' : 'Je achtergrond, indeling en instellingen worden meegenomen als opgeslagen versie.'}</p>
+      {library&&(offset>0||library.hasMore)&&<nav aria-label="Bibliotheekpagina's"className={styles.resultRow}><button type="button"disabled={loading||offset===0}onClick={()=>setOffset(value=>Math.max(0,value-(tab==='slides'?8:48)))}>Vorige pagina</button><span>Pagina {Math.floor(offset/(tab==='slides'?8:48))+1} · {library.total} {tab==='slides'?'ontwerpen':'bestanden'}</span><button type="button"disabled={loading||!library.hasMore}onClick={()=>setOffset(value=>value+(tab==='slides'?8:48))}>Volgende pagina</button></nav>}
+      <p className={styles.hint}>{tab === 'media' ? 'JPG, PNG, WebP of AVIF · maximaal 25 MB per foto. Uploads worden privé opgeslagen en gecontroleerd.' : 'Opgeslagen Studio-ontwerpen, menu’s en actuele clubslides. Hetzelfde ontwerp verschijnt in je playlist en op het scherm.'}</p>
     </div>
     </div>
 
     <footer className={styles.footer}>
       {selection.length > 0 && <div className={styles.selectionSummary}>
-        <button type="button" className={styles.selectionToggle} aria-expanded={showSelection} aria-controls="playlist-picker-selection" onClick={() => setShowSelection(value => !value)}><Check size={16}/>{selection.length} geselecteerd{showSelection ? <ChevronDown size={16}/> : <ChevronUp size={16}/>}</button>
-        <button type="button" className={styles.clear} onClick={() => {setSelection([]); setShowSelection(false);}}>Wissen</button>
+        <button type="button" className={styles.selectionToggle} disabled={preparing} aria-expanded={showSelection} aria-controls="playlist-picker-selection" onClick={() => setShowSelection(value => !value)}><Check size={16}/>{selection.length} geselecteerd{showSelection ? <ChevronDown size={16}/> : <ChevronUp size={16}/>}</button>
+        <button type="button" className={styles.clear} disabled={preparing} onClick={() => {setSelection([]); setShowSelection(false);}}>Wissen</button>
       </div>}
-      {showSelection && selection.length > 0 && <ol id="playlist-picker-selection" className={styles.selectionTray}>{selection.map((choice, index) => <li key={choice.key}><span>{index + 1}</span><strong>{choice.item.name}</strong>{itemCount(choice) > 1 && <small>{itemCount(choice)} items</small>}<button type="button" aria-label={`${choice.item.name} uit selectie verwijderen`} onClick={() => toggle(choice)}><X size={16}/></button></li>)}</ol>}
+      {showSelection && selection.length > 0 && <ol id="playlist-picker-selection" className={styles.selectionTray}>{selection.map((choice, index) => <li key={choice.key}><span>{index + 1}</span><strong>{choice.item.name}</strong>{itemCount(choice) > 1 && <small>{itemCount(choice)} items</small>}<button type="button" aria-label={`${choice.item.name} uit selectie verwijderen`} disabled={preparing} onClick={() => toggle(choice)}><X size={16}/></button></li>)}</ol>}
       {needsEngageFallback&&<label>Back-upbeeld voor Engage<select value={engageFallback?.id??''}onChange={event=>setEngageFallback(fallbackChoices.find(item=>item.id===event.target.value)??null)}><option value="">Kies een gereedstaand beeld</option>{fallbackChoices.map(item=><option key={item.id}value={item.id}>{item.name}</option>)}</select></label>}
-      <button type="button" className={styles.addButton} disabled={!totalSlides || !!progress||(needsEngageFallback&&!engageFallback)} onClick={() => onAdd(selection.flatMap(choice=>toSlides(choice.source==='media'&&choice.item.sourceKind==='engage'&&!choice.item.fallbackAssetId&&engageFallback?{...choice,item:{...choice.item,fallbackAssetId:engageFallback.id,image:engageFallback.image,checksumSha256:engageFallback.checksumSha256}}:choice)))}><Plus size={20}/>{progress ? 'Afbeeldingen verwerken…' : totalSlides ? `${totalSlides} item${totalSlides === 1 ? '' : 's'} toevoegen` : 'Kies de inhoud voor je playlist'}</button>
+      <button type="button" className={styles.addButton} disabled={!totalSlides || !!progress||preparing||(needsEngageFallback&&!engageFallback)} onClick={() => void addSelection()}><Plus size={20}/>{preparing ? 'Slides voorbereiden…' : progress ? 'Afbeeldingen verwerken…' : totalSlides ? `${totalSlides} item${totalSlides === 1 ? '' : 's'} toevoegen` : 'Kies de inhoud voor je playlist'}</button>
       <span className={styles.srOnly} role="status" aria-live="polite">{selection.length} geselecteerd. {totalSlides} items worden toegevoegd in de volgorde van je selectie.</span>
     </footer>
   </div>;

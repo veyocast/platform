@@ -7,12 +7,16 @@ import {createControlAdminClient}from"../../../../lib/supabase/admin";
 import type {DynamicDesign,Media,StudioProject,StudioSlide}from"./_components/sites/model";
 import {chunkPlaylistStudioIds} from "./playlist-studio-query-scope";
 
-export type PublisherLibraryFilter={tab:"media"|"studio"|"dynamic";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string};
-export type PublisherLibraryPage={media:Media[];projects:StudioProject[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
+export type PublisherLibraryFilter={tab:"media"|"slides"|"studio"|"dynamic";source?:"all"|"studio"|"sportlink"|"led-scores"|"menu";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string};
+export type PublisherLibraryPage={media:Media[];projects:StudioProject[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableDesigns?:Array<{id:string;name:string;status:string;processing:boolean;href:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
 const empty:PublisherLibraryPage={media:[],projects:[],designs:[],total:0,hasMore:false,folders:[],collections:[]};
 const pageSize=48;
 
-export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibraryFilter):Promise<PublisherLibraryPage>{
+export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibraryFilter,access={studio:true,dynamic:true}):Promise<PublisherLibraryPage>{
+ if(filter.tab==="slides"){
+  const pages=await Promise.all([access.studio&&(!filter.source||["all","studio"].includes(filter.source))?loadPublisherLibrary(tenantId,{...filter,tab:"studio"}):Promise.resolve(empty),access.dynamic&&filter.source!=="studio"?loadPublisherLibrary(tenantId,{...filter,tab:"dynamic"}):Promise.resolve(empty)]);
+  return {...empty,projects:pages[0]!.projects,designs:pages[1]!.designs,total:pages.reduce((sum,page)=>sum+page.total,0),hasMore:pages.some(page=>page.hasMore),unavailableDesigns:pages[1]!.unavailableDesigns};
+ }
  const supabase=await createControlSupabaseClient();if(!supabase)throw new Error("De beveiligde datasessie ontbreekt.");
  const offset=filter.offset??0;
  if(filter.tab==="media"){
@@ -44,7 +48,15 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
  if(filter.tab==="dynamic"){
   const dynamicPageSize=8;
   let query=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,orientation,current_snapshot_id",{count:"exact"}).eq("tenant_id",tenantId).eq("status","ready").order("updated_at",{ascending:false}).range(offset,offset+dynamicPageSize-1);
+  if(filter.source==="menu")query=query.in("slide_type",["menu","price_list"]);
+  else if(filter.source==="led-scores")query=query.eq("slide_type","ledscores_live_match");
+  else if(filter.source==="sportlink")query=query.not("slide_type","in","(menu,price_list,ledscores_live_match)");
   if(filter.query)query=query.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
+  let unavailableQuery=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,status").eq("tenant_id",tenantId).not("status","in","(ready,archived)").is("archived_at",null).order("updated_at",{ascending:false}).limit(12);
+  if(filter.source==="menu")unavailableQuery=unavailableQuery.in("slide_type",["menu","price_list"]);else if(filter.source==="led-scores")unavailableQuery=unavailableQuery.eq("slide_type","ledscores_live_match");else if(filter.source==="sportlink")unavailableQuery=unavailableQuery.not("slide_type","in","(menu,price_list,ledscores_live_match)");
+  if(filter.query)unavailableQuery=unavailableQuery.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
+  const unavailable=await unavailableQuery;if(unavailable.error)throw new Error("De ontwerpstatus kon niet worden gecontroleerd. Probeer opnieuw.");
+
   const slides=await query;if(slides.error)throw new Error("De opgeslagen ontwerpen konden niet worden geladen.");
   const ids=(slides.data??[]).flatMap(slide=>slide.current_snapshot_id?[slide.current_snapshot_id]:[]);
   const snapshots=ids.length?await supabase.from("dynamic_slide_snapshots").select("id,dynamic_slide_id,template_version_id,source_revision_hash,snapshot_data_json,output_media_asset_id,status").eq("tenant_id",tenantId).in("id",ids).eq("status","ready"):{data:[],error:null};
@@ -59,11 +71,11 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
    if(!configuration.success)throw new Error("De vormgeving van een opgeslagen slide kon niet worden gelezen.");const cfg=configuration.data;const presentation=buildSitesPresentationFromDynamicPayload(payload.data,cfg);
    return[{...cfg,id:slide.id,name:slide.name,kind:presentation?.kind==="dynamic"?presentation.content.kind:"generic",background:cfg.background?.kind==="system"?cfg.background.path:"",rows:presentation?.kind==="dynamic"?presentation.content.rows:[],config:cfg,screenIds:[],groupNames:[],snapshotId:snapshot.id,payload:payload.data,sitesConfiguration:cfg}];
   });
-  return{...empty,designs,total:slides.count??designs.length,hasMore:offset+dynamicPageSize<(slides.count??0)};
+  return{...empty,designs,unavailableDesigns:(unavailable.data??[]).map(slide=>({id:slide.id,name:slide.name,status:slide.status,processing:slide.status==="rendering",href:["menu","price_list"].includes(slide.slide_type)?`/dashboard/slides/menu-studio/${slide.id}`:`/dashboard/slides/${slide.id}`})),total:slides.count??designs.length,hasMore:offset+dynamicPageSize<(slides.count??0)};
  }
- const series=await supabase.rpc("list_publisher_studio_series_v1",{p_tenant_id:tenantId,p_offset:offset,p_search:filter.query||null});
+ const series=await supabase.rpc("list_publisher_studio_series_v2",{p_tenant_id:tenantId,p_offset:offset,p_search:filter.query||null});
  if(series.error)throw new Error("De actuele Studio-reeksen konden niet worden geladen. Probeer opnieuw.");
- const response=series.data as {total:number;series:Array<{id:string;name:string;revision:number;members:Array<{projectId:string;name:string;document:unknown;exportId:string;mediaAssetId:string;outputKind:string}>}>};
+ const response=series.data as {total:number;series:Array<{id:string;name:string;revision:number;members:Array<{projectId:string;name:string;document:unknown;draftRevision:number;exportId:string|null;mediaAssetId:string|null;outputKind:string|null}>}>};
  const presentations=response.series.flatMap(row=>row.members.flatMap(member=>{const parsed=sitesPresentationSchema.safeParse((member.document as {sitesPresentation?:unknown})?.sitesPresentation);return parsed.success?[parsed.data]:[];}));
  const assetUrls=await loadSitesAssetUrls(tenantId,presentations);
  const result:StudioProject[]=[];
@@ -74,7 +86,7 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
    if(!parsed.success||parsed.data.kind!=="studio")break;
    const slide=parsed.data.slide;
    const resolve=(asset:{kind:string;path?:string;mediaAssetId?:string}|undefined)=>asset?.kind==="system"?asset.path:asset?.mediaAssetId?assetUrls[asset.mediaAssetId]:undefined;
-   const resolved:StudioSlide={...resolveSitesStudioSlide(slide,asset=>resolve(asset)),id:member.projectId,name:member.name,presentation:parsed.data,assetUrls,exportId:member.exportId,exportAssetId:member.mediaAssetId,exportKind:member.outputKind==="mp4"?"video":"image"};
+   const resolved:StudioSlide={...resolveSitesStudioSlide(slide,asset=>resolve(asset)),id:member.projectId,name:member.name,presentation:parsed.data,assetUrls,draftRevision:Number(member.draftRevision),exportId:member.exportId??undefined,exportAssetId:member.mediaAssetId??undefined,exportKind:member.outputKind==="mp4"||!member.outputKind&&(member.document as {motion?:{enabled?:boolean}})?.motion?.enabled?"video":"image"};
    slides.push(resolved);
   }
   if(slides.length===row.members.length&&slides.length)result.push({id:row.id,name:row.name,revision:Number(row.revision),slides});

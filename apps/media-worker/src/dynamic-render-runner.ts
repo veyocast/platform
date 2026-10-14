@@ -54,6 +54,13 @@ export async function runDynamicRenderOnce({
         "Dynamische render is tijdens afsluiten onderbroken."
       );
     }
+    const requiresSites=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&(
+      (job.snapshotData as Record<string,unknown>).sitesConfiguration||
+      ((job.snapshotData as {menuDocument?:{sitesConfiguration?:unknown}}).menuDocument?.sitesConfiguration)
+      ||(job.snapshotData as {priceList?:{menuDocument?:{sitesConfiguration?:unknown}}}).priceList?.menuDocument?.sitesConfiguration
+      ||(job.snapshotData as {themePresentation?:{selection?:{ref?:{id?:string}}}}).themePresentation?.selection?.ref?.id==='onzetrots-tv'
+    ));
+    if(requiresSites&&!reactDomRenderer)throw new DynamicRenderBackendError('dynamic_sites_renderer_unavailable',true,'De gedeelde slide-renderer is niet beschikbaar. De laatste goede slide blijft behouden.');
     let bytes: Uint8Array | null = null;
     if (reactDomRenderer) {
       try {
@@ -62,7 +69,8 @@ export async function runDynamicRenderOnce({
           job,
           signal
         });
-      } catch {
+      } catch (error) {
+        if(requiresSites)throw error;
         bytes = null;
       }
     }

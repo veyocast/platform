@@ -2,15 +2,11 @@ import {getSupabasePublicConfig}from"../../../../../lib/supabase/config";
 import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
-import type { PlayerPlaybackItem } from "@veyocast/contracts";
 
 import { requireControlSession } from "../../../../../lib/control-session";
-import { PublisherStudioWorkspace } from "../_components/publisher-studio-workspace";
 import {SitesPlaylistWorkspace}from"../_components/sites/sites-playlist-workspace";
 import {loadSitesPlaylistEditor}from"../sites-editor-data";
 import { loadPlaylistStudio } from "../data";
-import type { PlaylistPreviewItem } from "../playlist-preview";
-import { getReadinessCopy } from "../readiness-copy";
 
 type PlaylistStudioPageProps = {
   params: Promise<{ playlistId: string }>;
@@ -61,75 +57,9 @@ export default async function PlaylistStudioPage({
     tenantIsMutable &&
       hasCapability(session.capabilities, "tenant.playlist.write")
   );
-  const canManage = Boolean(
-    tenantIsMutable &&
-      hasCapability(session.capabilities, "tenant.playlist.archive")
-  );
   let sitesData:Awaited<ReturnType<typeof loadSitesPlaylistEditor>>|null=null;
   let sitesError:string|null=null;
-  if(playlist&&query.advanced!=='1'&&session.tenantId){try{sitesData=await loadSitesPlaylistEditor(session.tenantId,data,{media:hasCapability(session.capabilities,'tenant.media.read'),studio:hasCapability(session.capabilities,'tenant.studio.read'),dynamic:hasCapability(session.capabilities,'tenant.dynamic_slide.read')});}catch{sitesError='De vernieuwde inhoudkiezer kon niet volledig worden geladen. Gebruik de uitgebreide editor om je bestaande concept te beheren, of vernieuw de pagina.';}}
-  const sectionById = new Map(
-    data.sections.map((section) => [section.id, section])
-  );
-  const previewItems: PlaylistPreviewItem[] = [...data.items]
-    .filter((item) => {
-      const section = item.sectionId ? sectionById.get(item.sectionId) : null;
-      return item.enabled && (!section || section.enabled);
-    })
-    .sort((left, right) => {
-      const leftSection = left.sectionId ? sectionById.get(left.sectionId) : null;
-      const rightSection = right.sectionId ? sectionById.get(right.sectionId) : null;
-      if (!leftSection && rightSection) return -1;
-      if (leftSection && !rightSection) return 1;
-      if (leftSection && rightSection && leftSection.positionKey !== rightSection.positionKey) {
-        return leftSection.positionKey - rightSection.positionKey;
-      }
-      return left.sortOrder - right.sortOrder;
-    })
-    .flatMap((item) => {
-    const asset = item.asset;
-    const url = asset?.variant?.previewUrl;
-    if (!asset || !url) return [];
-    const playback: PlayerPlaybackItem = {
-      accessibilityName: item.accessibilityName || undefined,
-      backgroundColor: item.backgroundColor || undefined,
-      cropFocus: { x: item.cropFocusX, y: item.cropFocusY },
-      displayTitle: item.displayTitle || undefined,
-      durationSeconds: item.durationSeconds,
-      enabled: item.enabled,
-      fitMode: item.fitMode,
-      id: item.id,
-      kind: asset.kind,
-      muted: item.muted,
-      section: item.sectionId
-        ? (() => {
-            const section = sectionById.get(item.sectionId);
-            return section
-              ? {
-                  name: section.name,
-                  positionKey: section.positionKey,
-                  sourceSectionId: section.id
-                }
-              : undefined;
-          })()
-        : undefined,
-      title: asset.title,
-      transition: item.transition,
-      trim: {
-        endSeconds: item.trimEndSeconds ?? undefined,
-        startSeconds: item.trimStartSeconds
-      },
-      visibility: item.visibleFrom || item.visibleUntil
-        ? {
-            from: item.visibleFrom ?? undefined,
-            until: item.visibleUntil ?? undefined
-          }
-        : undefined,
-      volumePercent: item.volumePercent
-    };
-    return [{ ...playback, url }];
-    });
-
+  if(playlist&&session.tenantId){try{sitesData=await loadSitesPlaylistEditor(session.tenantId,data,{media:hasCapability(session.capabilities,'tenant.media.read'),studio:hasCapability(session.capabilities,'tenant.studio.read'),dynamic:hasCapability(session.capabilities,'tenant.dynamic_slide.read')});}catch{sitesError='De inhoudkiezer kon niet volledig worden geladen. Je playlist blijft bewaard; vernieuw de pagina om opnieuw te laden.';}}
   return (
     <>
       {query.fout ? (
@@ -153,171 +83,8 @@ export default async function PlaylistStudioPage({
           en log opnieuw in.
         </p>
       ) : null}
-      {query.conflict && playlist ? (
-        <ConflictPanel
-          actual={query.actual}
-          expected={query.expected}
-          operation={query.operation}
-          playlistId={playlist.id}
-          updatedBy={playlist.updatedBy}
-        />
-      ) : null}
-
       {sitesError?<p className="notice notice--critical"role="alert">{sitesError}</p>:null}
-      {sitesData?<>{sitesData.warnings.map((warning,index)=><p key={index}className="notice notice--warning"role="status">{warning}</p>)}<SitesPlaylistWorkspace tenantName={session.tenant} initial={sitesData.playlist}revision={sitesData.revision}inventory={sitesData.inventory}groups={sitesData.groups}media={sitesData.media}designs={sitesData.designs}projects={sitesData.projects}canWrite={canWrite}canPublish={tenantIsMutable&&hasCapability(session.capabilities,'tenant.playlist.publish')}startAdding={query.add==='1'}videoUploadConfig={publicConfig&&hasCapability(session.capabilities,'tenant.media.write')?{anonKey:publicConfig.anonKey,supabaseUrl:publicConfig.url}:undefined}/></>:playlist ? (
-        <PublisherStudioWorkspace
-          assets={data.assets}
-          canManage={canManage}
-          canWrite={canWrite}
-          dynamicSlides={data.dynamicSlides}
-          engageCampaigns={data.engageCampaigns}
-          items={data.items}
-          latestReleaseVersion={data.releases[0]?.version ?? null}
-          playlist={playlist}
-          previewItems={previewItems}
-          previewScreens={data.screens}
-          readiness={
-            data.readiness
-              ? {
-                  canPublish: data.readiness.canPublish,
-                  itemCount: data.readiness.itemCount,
-                  messages: data.readiness.reasons.map((reason) =>
-                    getReadinessCopy(reason)
-                  ),
-                  totalBytes: data.readiness.totalBytes,
-                  totalDurationSeconds:
-                    data.readiness.totalDurationSeconds
-                }
-              : null
-          }
-          sections={data.sections}
-          screenStatus={playlistScreenStatus(data.screens, playlist.id)}
-          serverAcknowledged={Boolean(query.succes)}
-          serverConflict={Boolean(query.conflict)}
-          youtubeSources={data.youtubeSources}
-        />
-      ) : null}
+      {sitesData?<>{sitesData.warnings.map((warning,index)=><p key={index}className="notice notice--warning"role="status">{warning}</p>)}<SitesPlaylistWorkspace tenantName={session.tenant} initial={sitesData.playlist}revision={sitesData.revision}inventory={sitesData.inventory}groups={sitesData.groups}media={sitesData.media}designs={sitesData.designs}projects={sitesData.projects}canWrite={canWrite}canPublish={tenantIsMutable&&hasCapability(session.capabilities,'tenant.playlist.publish')}startAdding={query.add==='1'}videoUploadConfig={publicConfig&&hasCapability(session.capabilities,'tenant.media.write')?{anonKey:publicConfig.anonKey,supabaseUrl:publicConfig.url}:undefined}/></>:<p><a href={`/dashboard/playlists/${playlistId}`}>Playlist opnieuw laden</a></p>}
     </>
   );
-}
-
-function playlistScreenStatus(
-  screens: Array<{
-    activeReleaseId: string | null;
-    assignedPlaylistId: string | null;
-    desiredReleaseId: string | null;
-    lastSeenAt: string | null;
-  }>,
-  playlistId: string
-) {
-  const assigned = screens.filter(
-    (screen) => screen.assignedPlaylistId === playlistId
-  );
-  const online = assigned.filter(
-    (screen) =>
-      screen.lastSeenAt &&
-      Date.now() - Date.parse(screen.lastSeenAt) <= 5 * 60_000
-  ).length;
-  const synchronizing = assigned.filter(
-    (screen) =>
-      screen.desiredReleaseId !== null &&
-      screen.activeReleaseId !== screen.desiredReleaseId
-  ).length;
-  const synchronized = assigned.filter(
-    (screen) =>
-      screen.desiredReleaseId !== null &&
-      screen.activeReleaseId === screen.desiredReleaseId
-  ).length;
-  return {
-    online,
-    synchronized,
-    synchronizing,
-    total: assigned.length
-  };
-}
-
-function ConflictPanel({
-  actual,
-  expected,
-  operation,
-  playlistId,
-  updatedBy
-}: {
-  actual?: string;
-  expected?: string;
-  operation?: string;
-  playlistId: string;
-  updatedBy: string;
-}) {
-  return (
-    <section
-      className="notice notice--warning playlist-conflict"
-      id="playlist-conflict"
-      role="alert"
-    >
-      <div>
-        <strong>Dit concept is ondertussen gewijzigd.</strong>
-        <p>
-          Jouw actie is niet uitgevoerd. De nieuwste revisie blijft intact,
-          zodat er geen wijzigingen verloren gaan.
-        </p>
-      </div>
-      <details>
-        <summary>Revisies vergelijken</summary>
-        <dl className="meta-list">
-          <div>
-            <dt>Jouw revisie</dt>
-            <dd>{expected ?? "Onbekend"}</dd>
-          </div>
-          <div>
-            <dt>Nieuwste revisie</dt>
-            <dd>{actual ?? "Onbekend"}</dd>
-          </div>
-          <div>
-            <dt>Laatste bewerker</dt>
-            <dd>{updatedBy}</dd>
-          </div>
-          <div>
-            <dt>Niet uitgevoerde actie</dt>
-            <dd>{operationLabel(operation)}</dd>
-          </div>
-        </dl>
-      </details>
-      <div className="page-action-group">
-        <a
-          className="button-link button-link--primary"
-          href={`/dashboard/playlists/${playlistId}`}
-        >
-          Nieuwste versie laden
-        </a>
-        <a
-          className="button-link button-link--secondary"
-          href="#storyboard-title"
-        >
-          Wijziging opnieuw invoeren
-        </a>
-      </div>
-    </section>
-  );
-}
-
-function operationLabel(operation?: string) {
-  const labels: Record<string, string> = {
-    add_item: "Media toevoegen",
-    archive: "Archiveren",
-    move_item: "Volgorde wijzigen",
-    publish: "Publiceren",
-    remove_item: "Item verwijderen",
-    assign_item_section: "Item aan sectie koppelen",
-    create_section: "Sectie toevoegen",
-    delete_section: "Sectie verwijderen",
-    move_section: "Sectie verplaatsen",
-    update_details: "Conceptgegevens opslaan",
-    update_playlist_defaults: "Playliststandaarden opslaan",
-    update_section: "Sectie-instellingen opslaan",
-    update_item: "Iteminstellingen opslaan"
-  };
-  return operation
-    ? labels[operation] ?? "Concept wijzigen"
-    : "Concept wijzigen";
 }
