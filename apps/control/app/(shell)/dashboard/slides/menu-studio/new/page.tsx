@@ -15,7 +15,7 @@ import { SitesMenuWizard } from "../sites-menu-wizard";
 import styles from "../menu-studio.module.css";
 
 type PageProps = {
-  searchParams: Promise<{ bron?: string }>;
+  searchParams: Promise<{ bron?: string; thema?: string; formaat?: string }>;
 };
 
 export default async function NewMenuStudioPage({ searchParams }: PageProps) {
@@ -55,14 +55,15 @@ export default async function NewMenuStudioPage({ searchParams }: PageProps) {
             </nav>
           ) : null}
           <SitesMenuWizard
+            clubName={session.tenant}
             destinationOptions={await loadSitesSourceDestinationOptions()}
-            initialOrientation={data.templates.some((template) => template.orientation === "landscape")
+            initialOrientation={query.formaat !== "portrait" && data.templates.some((template) => template.orientation === "landscape")
               ? "landscape"
               : "portrait"}
             initialDocument={initialMenuDocument({
               documentId: randomUUID(),
               tenantId: session.tenantId!,
-              theme: data.theme
+              theme: { ...data.theme, themeId: query.thema === "fieldflow" ? "fieldflow" : "onzetrots-tv", themeVersion: query.thema === "fieldflow" ? data.theme.themeVersion : "11.0.0" }
             })}
             media={data.media}
             products={data.products}

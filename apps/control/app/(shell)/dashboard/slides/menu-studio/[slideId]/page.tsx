@@ -59,7 +59,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
         title={data.slide.name}
       />
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
-      {draftVersion?.status === "draft" ? data.document.sitesConfiguration && query.geavanceerd !== "1" ? <SitesMenuWizard destinationOptions={await loadSitesSourceDestinationOptions()} initialDocument={data.document} initialName={data.slide.name} initialOrientation={data.slide.orientation === "portrait" ? "portrait" : "landscape"} media={data.media} products={data.products} slideId={slideId} sourceId={data.source.id} templateVersionIds={menuStudioTemplateVersionIds(data.templates, data.slide.template_version_id)} /> : <MenuStudioEditor
+      {draftVersion?.status === "draft" ? data.document.sitesConfiguration && query.geavanceerd !== "1" ? <SitesMenuWizard clubName={session.tenant} destinationOptions={await loadSitesSourceDestinationOptions()} initialDocument={data.document} initialName={data.slide.name} initialOrientation={data.slide.orientation === "portrait" ? "portrait" : "landscape"} media={data.media} products={data.products} slideId={slideId} sourceId={data.source.id} templateVersionIds={menuStudioTemplateVersionIds(data.templates, data.slide.template_version_id)} /> : <MenuStudioEditor
         initialOrientation={data.slide.orientation === "portrait" ? "portrait" : "landscape"}
         initialDocument={data.document}
         linkedGroupsEnabled={data.flags.linkedGroups}

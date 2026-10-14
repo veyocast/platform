@@ -306,7 +306,8 @@ export function lgSitesRuntimeScript() {
         for (var child = 0; child < inner.children.length; child += 1) { var bounds = inner.children[child].getBoundingClientRect(); left = Math.min(left, bounds.left); right = Math.max(right, bounds.right); top = Math.min(top, bounds.top); bottom = Math.max(bottom, bounds.bottom); }
         var width = Math.max(inner.scrollWidth, inner.offsetWidth, (right - left) / ratio, 1);
         var height = Math.max(inner.scrollHeight, inner.offsetHeight, (bottom - top) / ratio, 1);
-        var scale = Math.min(1, box.clientWidth / (width * 1.035), box.clientHeight / (height * 1.08));
+        var isMenu = inner.classList.contains("vm-content");
+        var scale = Math.min(1, box.clientWidth / (width * (isMenu ? 1 : 1.035)), box.clientHeight / (height * (isMenu ? 1 : 1.08)));
         inner.style.setProperty("--led-auto-fit", String(Math.max(.01, scale)));
       }
       var text = artboard.querySelectorAll(".otv-live-score,.otv-score-team h2,.otv-score-screen h1,.ns-match-teams h3,.otv-generic h1,.nk-welcome-copy h1,.nk-walking-feature h2");

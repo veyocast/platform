@@ -10,7 +10,7 @@ export function projectSitesMenuWidgets(document:MenuDocumentV2,configuration:Si
   const blocks=page.blocks.filter(block=>!block.hidden).sort((a,b)=>a.order-b.order);
   for(let start=0;start<Math.max(1,blocks.length);) {
    const current:typeof blocks=[]; const weights:[number,number]=[0,0];
-   for(const candidate of blocks.slice(start)){const column=columns===1?"full":candidate.widget?.column??"full";const left=column==="right"?0:1,right=column==="left"?0:1;if(current.length && (weights[0]+left>2 || weights[1]+right>2))break;current.push(candidate);weights[0]+=left;weights[1]+=right;}
+   for(const candidate of blocks.slice(start)){const column=columns===1?"full":candidate.widget?.column??"full";const left=column==="right"?0:1,right=column==="left"?0:1;if(current.length && (weights[0]+left>(configuration.orientation==="portrait"?3:2) || weights[1]+right>(configuration.orientation==="portrait"?3:2)))break;current.push(candidate);weights[0]+=left;weights[1]+=right;}
    const chunkStart=start;start+=Math.max(1,current.length);
    weights[0]=weights[1]=0;
    for(const block of current){const col=columns===1?"full":block.widget?.column??"full";if(col!=="right")weights[0]++;if(col!=="left")weights[1]++;}

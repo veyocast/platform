@@ -16,11 +16,11 @@ import { SitesSourceDestinationPicker, SitesSourceDestinationAfterSave } from ".
 import { emptySitesSourceDestinationOptions, initialSitesSourceDestination, validSitesSourceDestination, type SitesSourceDestinationOptions } from "../../studio/sportlink/new/sites-source-destination-model";
 import styles from "./sites-menu.module.css";
 
-export function SitesMenuWizard({ initialDocument, initialOrientation, media, products, sourceId, templateVersionIds, slideId, initialName, destinationOptions = emptySitesSourceDestinationOptions }: { initialDocument: MenuDocumentV2; initialOrientation: "landscape" | "portrait"; media: MenuStudioMediaOption[]; products: MenuStudioProductOption[]; sourceId: string; templateVersionIds: Partial<Record<"landscape" | "portrait", string>>; slideId?: string; initialName?: string; destinationOptions?: SitesSourceDestinationOptions }) {
+export function SitesMenuWizard({ initialDocument, initialOrientation, media, products, sourceId, templateVersionIds, slideId, initialName, clubName, destinationOptions = emptySitesSourceDestinationOptions }: { initialDocument: MenuDocumentV2; initialOrientation: "landscape" | "portrait"; media: MenuStudioMediaOption[]; products: MenuStudioProductOption[]; sourceId: string; templateVersionIds: Partial<Record<"landscape" | "portrait", string>>; slideId?: string; initialName?: string; clubName?: string; destinationOptions?: SitesSourceDestinationOptions }) {
   const [destination, setDestination] = useState(initialSitesSourceDestination);
   const [menuPublished, setMenuPublished] = useState(false);
   const [document, setDocument] = useState(() => prepareMenuWidgets(initialDocument));
-  const [design, setDesign] = useState<SitesDynamicConfiguration>(() => ({ ...(initialDocument.sitesConfiguration ?? createSitesSourceDesign("menu", initialDocument.title || "Onze menukaart", initialOrientation)), themeId: initialDocument.sitesConfiguration?.themeId ?? (initialDocument.theme.themeId === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow"), accent: initialDocument.sitesConfiguration?.accent ?? initialDocument.theme.brand.accent, menuWidgets: true }));
+  const [design, setDesign] = useState<SitesDynamicConfiguration>(() => ({ ...(initialDocument.sitesConfiguration ?? createSitesSourceDesign("menu", initialDocument.title || "Onze menukaart", initialOrientation)), themeId: initialDocument.sitesConfiguration?.themeId ?? (initialDocument.theme.themeId === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow"), accent: initialDocument.sitesConfiguration?.accent ?? (initialDocument.theme.themeId === "onzetrots-tv" ? "#03438a" : initialDocument.theme.brand.accent), menuWidgets: true }));
   const [pageIndex, setPageIndex] = useState(0);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [storedOrientation, setStoredOrientation] = useState(initialOrientation);
@@ -33,11 +33,11 @@ export function SitesMenuWizard({ initialDocument, initialOrientation, media, pr
   const selected = products.filter(product => selectedIds.includes(product.id));
   const built = useMemo(() => { try { return {draft:buildMenuWidgetDocument(document, products, design, media),error:null}; } catch (error) { return {draft:null,error:error instanceof Error&&error.name!=="ZodError"?error.message:"Een widget heeft onvolledige of te lange invoer. Controleer de titel, tekst en afbeelding voordat je opslaat."}; } }, [document, products, design, media]);
   const draft = built.draft;
-  const presentation = useMemo(()=>draft ? buildSitesMenuPresentation(draft, design) : null,[draft,design]);
+  const presentation = useMemo(()=>draft ? buildSitesMenuPresentation(draft, design, clubName) : null,[draft,design,clubName]);
   const pages = presentation ? sitesPresentationPages(presentation) : 1;
   useEffect(()=>{if(presentation?.kind!=="dynamic")return;const id=document.pages[pageIndex]?.id;const target=presentation.content.menuPages?.findIndex(page=>page.id.startsWith(`${id}:`))??0;setPreviewIndex(Math.max(0,target));},[pageIndex,document.pages,presentation]);
   const hasContent = document.pages.some(page => page.blocks.some(block => block.type !== "category" || block.productNodes.length > 0));
-  function patch(value: Partial<SitesDynamicConfiguration>) { setDesign(current => updateSitesSourceDesign(current, value)); setSaved(false); }
+  function patch(value: Partial<SitesDynamicConfiguration>) { setDesign(current => updateSitesSourceDesign(current, {...value, ...(value.themeId && value.themeId !== current.themeId ? {accent:value.themeId === "onzetrots-tv" ? "#03438a" : "#09554e"} : {})})); setSaved(false); }
   function save() {
     if (!draft || missing || !hasContent || name.trim().length < 2 || pending || !validSitesSourceDestination(destination, destinationOptions)) return;
     setError(null);
