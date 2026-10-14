@@ -31,7 +31,7 @@ export function SitesPlaylistWorkspace({tenantName,initial,revision,inventory,gr
     return {...rendered,mediaAssetId:rendered.mediaAssetId,exportId:rendered.exportId,presentation:rendered.document.sitesPresentation};
    }
    for(const slide of next.slides){
-    const photoPlacement=slide.studioSlide?.presentation.slide.id==='sites-v11-media-placement';
+    const photoPlacement=slide.studioSlide?.presentation.slide.id==='sites-v17-media-placement';
     const sourcePhoto=photoPlacement?slide.studioSlide?.presentation.slide.photo:undefined;
     if(photoPlacement&&slide.studioSlide?.themeId==='fieldflow'&&sourcePhoto?.kind==='tenant'){
      normalized.slides.push({...slide,mediaId:sourcePhoto.mediaAssetId,image:slide.studioSlide.assetUrls[sourcePhoto.mediaAssetId]??'',kind:'image',mediaChecksumSha256:sourcePhoto.checksumSha256,studioSlide:undefined,studioSlideId:undefined,frozenStudioSlide:undefined,themeId:'fieldflow'});continue;

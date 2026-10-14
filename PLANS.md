@@ -1,5 +1,14 @@
 # VeyoCast MVP Plan
 
+S213 integreert de actuele Sites-v17-presentatie rechtstreeks uit broncommit
+`6800bc858436ba0843eaea89b682cd5b43c3521d`. Nieuwe Studio- en providerdrafts
+gebruiken één gedeeld contract en één renderer in Control, playlistpreview,
+moderne Player en Static LG. Alle slides worden breedte- én hoogtegebonden in de
+viewport geschaald; de bestaande database-eerst bronrefresh, immutable
+publicatie, retentie en last-known-good blijven ongewijzigd. Zie
+`prompts/sprints/S213-sites-v17-source-integration.md` en
+`docs/sites-v17-source-integration.md`.
+
 S212 herstelt de laatste Sportlink-live-datasets na de schone productiecutover.
 Sportlink geeft voor een deel van de artikelen geldige JSON terug met een
 ontbrekende of onjuiste media-typeheader. De serverclient leest de al begrensde

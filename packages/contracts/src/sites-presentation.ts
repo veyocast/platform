@@ -1,9 +1,19 @@
 import { z } from "zod";
 
-/** Frozen, trusted presentation identity. Source data remains database-owned. */
-export const sitesPresentationVersion = "sites-v11" as const;
-export const sitesPresentationSourceRevision = "b1cae899af19fc39908217253094c5240d7359fc" as const;
+/** Frozen, trusted renderer identities. Source data remains database-owned. */
+export const sitesLegacyPresentationVersion = "sites-v11" as const;
+export const sitesLegacyPresentationSourceRevision = "b1cae899af19fc39908217253094c5240d7359fc" as const;
+export const sitesPresentationVersion = sitesLegacyPresentationVersion;
+export const sitesPresentationSourceRevision = sitesLegacyPresentationSourceRevision;
+export const sitesCurrentPresentationVersion = "sites-v17" as const;
+export const sitesCurrentPresentationSourceRevision = "6800bc858436ba0843eaea89b682cd5b43c3521d" as const;
+export const sitesPresentationIdentities = [
+  { rendererVersion: sitesLegacyPresentationVersion, sourceRevision: sitesLegacyPresentationSourceRevision },
+  { rendererVersion: sitesCurrentPresentationVersion, sourceRevision: sitesCurrentPresentationSourceRevision }
+] as const;
 export const sitesScreenThemeIds = ["fieldflow", "onzetrots-tv"] as const;
+export const sitesUnifiedKinds = ["agenda", "competitie", "rss", "uitslagen", "programma", "matchday", "verjaardagen", "trainingen", "vacatures", "kantine", "partners", "welkom", "bezoekers", "led", "sportlink-extra", "vrij"] as const;
+
 export const sitesSystemImageChecksums = {
   "/favicon.svg": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7",
   "/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp": "5115506847b4e78a4ea51618be9fd1c04202ced1564b00a47961e56a6941fe1a",
@@ -33,6 +43,12 @@ export const sitesSystemImageChecksums = {
   "/onzetrots/premium/kerk.png": "0a2b23aaa9a3caddb6b7a6f36f5bfc2ed83c2f64ba32438a63023905d62ee7ec",
   "/onzetrots/readability-brush.svg": "f42dba3e394f6c87a1381a55214c6998ba8e80ee17709702ab537e969a17dfbb",
   "/onzetrots/type-distress.svg": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
+  "/onzetrots/website-brush/aan-zee-portrait-941.webp": "446eeeaa84b0e032d34fa6aac10615716d4927917bf9258d245ddad0ebc347d6",
+  "/onzetrots/website-brush/aan-zee-wide-1672.webp": "ab1df0dd01e1f5ed768e099897377e12b92b85c2856eb80c48c7a06416ece3ae",
+  "/onzetrots/website-brush/de-wijk-portrait-941.webp": "a9aab1cb20cbd4abcf92ed90463d8e50a2a67c4cf1637bd2cdeb55dbd265ae70",
+  "/onzetrots/website-brush/de-wijk-wide-1672.webp": "d7198cf38780978b142c15c6cbc33f196afe1d77016582495438daf903c4234e",
+  "/onzetrots/website-brush/houtrust-portrait-941.webp": "e96a079d1a96f3ca75305329431065d2c61b7f3548735f48811bb57d34be4a14",
+  "/onzetrots/website-brush/houtrust-wide-1672.webp": "4e654df31f432c922a44b1670f6bf8d64af3361d40645f410de0a4d696d46171",
   "/onzetrots-tv/assets/clubmuur-lettering.webp": "c4bf31d7c6331f76f6e4db9bbac59052a01ad9c6f6ae3abe497925f90e15bf32",
   "/onzetrots-tv/assets/clubmuur-players/trio-1280.webp": "543bb88be5c642cac8ed64c3f0f1f8e38608d8640fe5f41623a6477d62b89291",
   "/onzetrots-tv/assets/clubmuur-portraits-v14/05-juichen-1280.webp": "a7519a49d43abe4e0bdc786780ad7d377528114085801c5de2592c38140a3dbb",
@@ -49,51 +65,77 @@ export const sitesSystemImageChecksums = {
   "/onzetrots-tv/assets/type-distress.svg": "eebad54e89c5bccd0854f9db7c0a39549709454386271acea7263d06386c5107",
   "/window.svg": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66"
 } as const;
+
 const checksum = z.string().regex(/^[a-f0-9]{64}$/);
 const text = z.string().max(1000);
 const shortText = z.string().max(240);
 const color = z.string().regex(/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i);
 const scale = z.number().min(70).max(200);
+const rendererVersion = z.enum([sitesLegacyPresentationVersion, sitesCurrentPresentationVersion]);
+const sourceRevision = z.enum([sitesLegacyPresentationSourceRevision, sitesCurrentPresentationSourceRevision]);
+const unifiedKind = z.enum(sitesUnifiedKinds);
+
 const asset = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("system"), path: z.enum(Object.keys(sitesSystemImageChecksums) as [keyof typeof sitesSystemImageChecksums, ...Array<keyof typeof sitesSystemImageChecksums>]), checksumSha256: checksum }).strict(),
   z.object({ kind: z.literal("tenant"), mediaAssetId: z.string().uuid(), checksumSha256: checksum }).strict()
 ]).superRefine((value, context) => {
-  if (value.kind === "system" && sitesSystemImageChecksums[value.path] !== value.checksumSha256) context.addIssue({code:"custom",path:["checksumSha256"],message:"System image identity mismatch."});
+  if (value.kind === "system" && sitesSystemImageChecksums[value.path] !== value.checksumSha256) context.addIssue({ code: "custom", path: ["checksumSha256"], message: "System image identity mismatch." });
 });
 export const sitesAssetReferenceSchema = asset;
+
 const row = z.object({
- id: z.string().min(1).max(100), primary: shortText, secondary: text.optional(), value: shortText.optional(), rank: z.number().int().min(0).max(10000).optional(), image: asset.optional(),
- home:shortText.optional(),away:shortText.optional(),time:shortText.optional(),field:shortText.optional(),tag:shortText.optional(),own:z.boolean().optional(),homeOwn:z.boolean().optional(),awayOwn:z.boolean().optional(),
- homeScore:shortText.optional(),awayScore:shortText.optional(),played:shortText.optional(),won:shortText.optional(),drawn:shortText.optional(),lost:shortText.optional(),difference:shortText.optional(),points:shortText.optional(),form:z.array(z.enum(["W","G","V","U"])).max(5).optional()
+  id: z.string().min(1).max(100), primary: shortText, secondary: text.optional(), value: shortText.optional(), rank: z.number().int().min(0).max(10000).optional(), image: asset.optional(),
+  home: shortText.optional(), away: shortText.optional(), homeImage: asset.optional(), awayImage: asset.optional(), time: shortText.optional(), field: shortText.optional(), tag: shortText.optional(), own: z.boolean().optional(), homeOwn: z.boolean().optional(), awayOwn: z.boolean().optional(),
+  homeScore: shortText.optional(), awayScore: shortText.optional(), played: shortText.optional(), won: shortText.optional(), drawn: shortText.optional(), lost: shortText.optional(), difference: shortText.optional(), points: shortText.optional(), form: z.array(z.enum(["W", "G", "V", "U"])).max(5).optional()
 }).strict();
+
 export const sitesTvContentSchema = z.object({
- kind:z.enum(["wedstrijd","programma","uitslagen","stand","kantine","clubnieuws","partners","welkom","score","goal","lineup","generic"]),title:shortText,subtitle:text.optional(),eyebrow:shortText.optional(),clubName:shortText.optional(),logo:asset.optional(),brandLogo:asset.optional(),
- background:asset.optional(),heroImage:asset.optional(),time:shortText.optional(),location:shortText.optional(),footer:shortText.optional(),rows:z.array(row).max(200),values:z.array(shortText).max(12).optional(),
- combo:z.object({name:shortText,price:shortText,note:shortText.optional()}).strict().optional(),
- match:z.object({home:shortText,away:shortText,homeScore:shortText.optional(),awayScore:shortText.optional(),homeLogo:asset.optional(),awayLogo:asset.optional(),homeOwn:z.boolean().optional(),awayOwn:z.boolean().optional(),clock:shortText.optional(),label:shortText.optional(),homeLabel:shortText.optional(),awayLabel:shortText.optional()}).strict().optional(),
- standingColumns:z.array(z.enum(["played","won","drawn","lost","difference","points","form"])).max(7).optional(),page:z.number().int().min(0).max(199).optional(),pages:z.number().int().min(1).max(200).optional(),scale:scale.optional(),overlay:z.number().min(0).max(95).optional(),align:z.enum(["left","center","right"]).optional(),safeArea:z.number().min(0).max(12).optional(),accent:color.optional(),
- titleScale:scale.optional(),scoreScale:scale.optional(),logoScale:scale.optional(),teamScale:scale.optional(),showBranding:z.boolean().optional(),backgroundFit:z.enum(["cover","contain"]).optional(),showSceneLabel:z.boolean().optional(),timeline:z.array(row).max(30).optional(),layout:z.enum(["full","split","sidebar"]).optional()
+  kind: z.enum(["wedstrijd", "programma", "uitslagen", "stand", "kantine", "clubnieuws", "partners", "welkom", "score", "goal", "lineup", "generic"]), title: shortText, subtitle: text.optional(), eyebrow: shortText.optional(), clubName: shortText.optional(), logo: asset.optional(), brandLogo: asset.optional(),
+  background: asset.optional(), heroImage: asset.optional(), time: shortText.optional(), location: shortText.optional(), footer: shortText.optional(), rows: z.array(row).max(200), values: z.array(shortText).max(12).optional(),
+  combo: z.object({ name: shortText, price: shortText, note: shortText.optional() }).strict().optional(),
+  match: z.object({ home: shortText, away: shortText, homeScore: shortText.optional(), awayScore: shortText.optional(), homeLogo: asset.optional(), awayLogo: asset.optional(), homeOwn: z.boolean().optional(), awayOwn: z.boolean().optional(), clock: shortText.optional(), label: shortText.optional(), homeLabel: shortText.optional(), awayLabel: shortText.optional() }).strict().optional(),
+  standingColumns: z.array(z.enum(["played", "won", "drawn", "lost", "difference", "points", "form"])).max(7).optional(), page: z.number().int().min(0).max(199).optional(), pages: z.number().int().min(1).max(200).optional(), scale: scale.optional(), overlay: z.number().min(0).max(95).optional(), align: z.enum(["left", "center", "right"]).optional(), safeArea: z.number().min(0).max(12).optional(), accent: color.optional(),
+  titleScale: scale.optional(), scoreScale: scale.optional(), logoScale: scale.optional(), teamScale: scale.optional(), showBranding: z.boolean().optional(), backgroundFit: z.enum(["cover", "contain"]).optional(), showSceneLabel: z.boolean().optional(), timeline: z.array(row).max(30).optional(), layout: z.enum(["full", "split", "sidebar"]).optional()
 }).strict();
+
+const v17Options = {
+  unifiedKind: unifiedKind.optional(), paintTone: z.enum(["white", "blue"]).default("white"), photoMotion: z.boolean().default(true), rssLayout: z.enum(["accordion", "fullscreen", "split"]).default("accordion"), menuLayout: z.enum(["columns", "tiles", "list", "featured"]).default("columns"),
+  showPrices: z.boolean().default(true), showCategories: z.boolean().default(true), currency: z.string().trim().min(3).max(3).default("EUR"), extraType: shortText.default("periodestand"), arrivalCards: z.number().int().min(1).max(4).default(4), arrivalBefore: z.number().int().min(0).max(1440).default(180), arrivalAfter: z.number().int().min(0).max(1440).default(120), arrivalShowLogo: z.boolean().default(true), arrivalShowKickoff: z.boolean().default(true), qrUrl: z.string().url().max(1024).default("https://veyocast.nl"), body: text.default(""), vacancyContact: shortText.default(""), welcomeImage: asset.optional()
+} as const;
+
 export const sitesStudioSlideSchema = z.object({
- id:z.string().min(1).max(100),name:shortText,title:shortText,time:shortText,subtitle:text,location:shortText,photo:asset.optional(),duration:z.number().int().min(3).max(120),color,background:color,bold:z.boolean(),italic:z.boolean(),align:z.enum(["left","center","right"]),size:z.number().min(20).max(180),context:z.boolean(),showLocation:z.boolean(),animation:z.enum(["Geen","Flow in","Vervagen","Omhoog","Zoom"]),transition:z.enum(["Rustig","Lineair","Versnellen","Vloeiend"]),orientation:z.enum(["landscape","portrait"]),layout:z.enum(["split","image-left","full","bottom"]).optional(),photoPosition:z.enum(["center","top","bottom","left","right"]).optional(),overlay:z.number().min(0).max(95).optional(),clubName:shortText.optional(),logo:asset.optional(),themeId:z.enum(sitesScreenThemeIds),tv:sitesTvContentSchema.optional()
+  id: z.string().min(1).max(100), name: shortText, title: shortText, time: shortText, subtitle: text, location: shortText, photo: asset.optional(), duration: z.number().int().min(3).max(120), color, background: color, bold: z.boolean(), italic: z.boolean(), align: z.enum(["left", "center", "right"]), size: z.number().min(20).max(180), context: z.boolean(), showLocation: z.boolean(), animation: z.enum(["Geen", "Flow in", "Vervagen", "Omhoog", "Zoom"]), transition: z.enum(["Rustig", "Lineair", "Versnellen", "Vloeiend"]), orientation: z.enum(["landscape", "portrait"]), layout: z.enum(["split", "image-left", "full", "bottom"]).optional(), photoPosition: z.enum(["center", "top", "bottom", "left", "right"]).optional(), overlay: z.number().min(0).max(95).optional(), clubName: shortText.optional(), logo: asset.optional(), themeId: z.enum(sitesScreenThemeIds), tv: sitesTvContentSchema.optional(),
+  ...v17Options
 }).strict().superRefine((slide, context) => {
- if(slide.themeId==="onzetrots-tv"&&!slide.tv)context.addIssue({code:"custom",path:["tv"],message:"OnzeTrots TV content is required."});
- if(slide.themeId==="onzetrots-tv"&&slide.tv?.scale!==undefined&&(slide.tv.scale<75||slide.tv.scale>140))context.addIssue({code:"custom",path:["tv","scale"],message:"Studio TV scale must be between 75 and 140."});
+  if (slide.themeId === "onzetrots-tv" && !slide.tv) context.addIssue({ code: "custom", path: ["tv"], message: "OnzeTrots TV content is required." });
+  if (slide.themeId === "onzetrots-tv" && slide.tv?.scale !== undefined && (slide.tv.scale < 75 || slide.tv.scale > 140)) context.addIssue({ code: "custom", path: ["tv", "scale"], message: "Studio TV scale must be between 75 and 140." });
 });
+
 export const sitesDynamicConfigurationSchema = z.object({
- schemaVersion:z.literal(1),rendererVersion:z.literal(sitesPresentationVersion),sourceRevision:z.literal(sitesPresentationSourceRevision),themeId:z.enum(sitesScreenThemeIds),
- orientation:z.enum(["landscape","portrait"]),provider:z.enum(["led-scores","sportlink","menu"]),title:shortText,subtitle:text.default(""),background:asset.optional(),overlay:z.number().min(0).max(95).default(25),accent:color.default("#03438a"),layout:z.enum(["full","split","sidebar"]).default("full"),scale:scale.default(100),align:z.enum(["left","center","right"]).default("left"),safeArea:z.number().min(0).max(12).default(4),seconds:z.number().int().min(3).max(120).default(15),rowsPerPage:z.number().int().min(1).max(12).default(8),
- showCategories:z.boolean().default(true),ledTemplate:z.enum(["match-center","scoreboard"]).default("match-center"),ledTheme:z.enum(["blue","paper","fieldflow"]).default("blue"),ledMoment:z.enum(["live","goal","lineup","start","half","end"]).default("live"),ledSide:z.enum(["own","opponent","unknown"]).default("unknown"),titleScale:scale.default(100),scoreScale:scale.default(100),logoScale:scale.default(100),teamScale:scale.default(100),showBranding:z.boolean().default(true),showSceneLabel:z.boolean().default(true),showClock:z.boolean().default(true),showTimeline:z.boolean().default(true),timelineLimit:z.number().int().min(1).max(10).default(3),backgroundFit:z.enum(["cover","contain"]).default("contain"),grunge:z.number().min(0).max(100).default(55),animation:z.enum(["none","fade","rise","zoom","wipe"]).default("rise")
-}).strict().superRefine((value,context)=>{
- if(value.provider==="led-scores"&&value.rowsPerPage>8)context.addIssue({code:"custom",path:["rowsPerPage"],message:"LED pages can contain at most eight rows."});
- if(value.provider!=="led-scores"&&(value.scale<70||value.scale>140))context.addIssue({code:"custom",path:["scale"],message:"Content scale must be between 70 and 140."});
+  schemaVersion: z.literal(1), rendererVersion, sourceRevision, themeId: z.enum(sitesScreenThemeIds), orientation: z.enum(["landscape", "portrait"]), provider: z.enum(["led-scores", "sportlink", "menu"]), title: shortText, subtitle: text.default(""), background: asset.optional(), overlay: z.number().min(0).max(95).default(25), accent: color.default("#03438a"), layout: z.enum(["full", "split", "sidebar"]).default("full"), scale: scale.default(100), align: z.enum(["left", "center", "right"]).default("left"), safeArea: z.number().min(0).max(12).default(4), seconds: z.number().int().min(3).max(120).default(15), rowsPerPage: z.number().int().min(1).max(12).default(8),
+  ledTemplate: z.enum(["match-center", "scoreboard"]).default("match-center"), ledTheme: z.enum(["blue", "paper", "fieldflow"]).default("blue"), ledMoment: z.enum(["live", "goal", "lineup", "start", "half", "end"]).default("live"), ledSide: z.enum(["own", "opponent", "unknown"]).default("unknown"), titleScale: scale.default(100), scoreScale: scale.default(100), logoScale: scale.default(100), teamScale: scale.default(100), showBranding: z.boolean().default(true), showSceneLabel: z.boolean().default(true), showClock: z.boolean().default(true), showTimeline: z.boolean().default(true), timelineLimit: z.number().int().min(1).max(10).default(3), backgroundFit: z.enum(["cover", "contain"]).default("contain"), grunge: z.number().min(0).max(100).default(55), animation: z.enum(["none", "fade", "rise", "zoom", "wipe"]).default("rise"),
+  ...v17Options
+}).strict().superRefine((value, context) => {
+  const expectedRevision = value.rendererVersion === sitesCurrentPresentationVersion ? sitesCurrentPresentationSourceRevision : sitesLegacyPresentationSourceRevision;
+  if (value.sourceRevision !== expectedRevision) context.addIssue({ code: "custom", path: ["sourceRevision"], message: "Renderer and Source identities must remain paired." });
+  if (value.rendererVersion === sitesCurrentPresentationVersion && !value.unifiedKind) context.addIssue({ code: "custom", path: ["unifiedKind"], message: "Sites v17 requires a unified slide family." });
+  if (value.provider === "led-scores" && value.rowsPerPage > 8) context.addIssue({ code: "custom", path: ["rowsPerPage"], message: "LED pages can contain at most eight rows." });
+  if (value.provider !== "led-scores" && (value.scale < 70 || value.scale > 140)) context.addIssue({ code: "custom", path: ["scale"], message: "Content scale must be between 70 and 140." });
 });
-export const sitesPresentationSchema = z.discriminatedUnion("kind",[
- z.object({kind:z.literal("studio"),schemaVersion:z.literal(1),rendererVersion:z.literal(sitesPresentationVersion),sourceRevision:z.literal(sitesPresentationSourceRevision),slide:sitesStudioSlideSchema}).strict(),
- z.object({kind:z.literal("dynamic"),configuration:sitesDynamicConfigurationSchema,content:sitesTvContentSchema}).strict()
+
+const studioPresentation = z.object({ kind: z.literal("studio"), schemaVersion: z.literal(1), rendererVersion, sourceRevision, slide: sitesStudioSlideSchema }).strict().superRefine((value, context) => {
+  const expectedRevision = value.rendererVersion === sitesCurrentPresentationVersion ? sitesCurrentPresentationSourceRevision : sitesLegacyPresentationSourceRevision;
+  if (value.sourceRevision !== expectedRevision) context.addIssue({ code: "custom", path: ["sourceRevision"], message: "Renderer and Source identities must remain paired." });
+  if (value.rendererVersion === sitesCurrentPresentationVersion && !value.slide.unifiedKind) context.addIssue({ code: "custom", path: ["slide", "unifiedKind"], message: "Sites v17 requires a unified slide family." });
+});
+export const sitesPresentationSchema = z.union([
+  studioPresentation,
+  z.object({ kind: z.literal("dynamic"), configuration: sitesDynamicConfigurationSchema, content: sitesTvContentSchema }).strict()
 ]);
-export type SitesAssetReference=z.infer<typeof sitesAssetReferenceSchema>;
-export type SitesTvContent=z.infer<typeof sitesTvContentSchema>;
-export type SitesStudioSlide=z.infer<typeof sitesStudioSlideSchema>;
-export type SitesDynamicConfiguration=z.infer<typeof sitesDynamicConfigurationSchema>;
-export type SitesPresentation=z.infer<typeof sitesPresentationSchema>;
+
+export type SitesAssetReference = z.infer<typeof sitesAssetReferenceSchema>;
+export type SitesTvContent = z.infer<typeof sitesTvContentSchema>;
+export type SitesStudioSlide = z.infer<typeof sitesStudioSlideSchema>;
+export type SitesDynamicConfiguration = z.infer<typeof sitesDynamicConfigurationSchema>;
+export type SitesPresentation = z.infer<typeof sitesPresentationSchema>;
+export type SitesUnifiedKind = (typeof sitesUnifiedKinds)[number];
