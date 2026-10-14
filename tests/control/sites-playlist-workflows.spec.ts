@@ -4,6 +4,7 @@ import {createHash} from "node:crypto";
 import {createRequire} from "node:module";
 import {join} from "node:path";
 import {expect,test,type Page} from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 /** Real source Editor/Library/Picker, bundled without a test route in production.
  * Only the unexercised video uploader is isolated. Library/save replies use a
@@ -63,6 +64,20 @@ async function mount(page:Page,qa=false){
  return{saves,setConflict:(value:boolean)=>{conflict=value;}};
 }
 async function contained(page:Page){const geometry=await page.getByRole("dialog").evaluate(dialog=>{const box=dialog.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth+1};});expect(geometry.left).toBeGreaterThanOrEqual(-1);expect(geometry.right).toBeLessThanOrEqual(geometry.width+1);expect(geometry.top).toBeGreaterThanOrEqual(-1);expect(geometry.bottom).toBeLessThanOrEqual(geometry.height+1);expect(geometry.overflow).toBe(false);}
+test("Clubverhaal shows failed uploads and refreshes processing media only until verified",async({page})=>{
+ await page.setViewportSize({width:390,height:844});await mount(page);let polls=0;
+ await page.route("**/api/publisher/library*",async route=>{
+  polls++;const data=await page.evaluate(()=>Reflect.get(window,"__sitesFixture") as {media:Array<{id:string;name:string}>});
+  const completed=polls>1;
+  return route.fulfill({contentType:"application/json",body:JSON.stringify({media:completed?[data.media[0]]:[],projects:[],designs:[],folders:[],collections:[],total:completed?1:0,hasMore:false,unavailableMedia:[{id:"failed",name:"Niet verwerkbare video",status:"validation_failed",message:"Exporteer als H.264 tot 1080p30 en probeer opnieuw."},...(!completed?[{id:"processing",name:"Nieuw clubbeeld",status:"processing",message:"Wordt gecontroleerd."}]:[])]})});
+ });
+ await page.getByRole("button",{name:"Toevoegen",exact:true}).click();
+ const status=page.getByRole("region",{name:"Uploads in verwerking"});await expect(status).toContainText("Verwerking mislukt");await expect(status).toContainText("Nieuw clubbeeld");
+ await expect(page.getByRole("button",{name:"Nieuwe clubfoto, selecteren",exact:true})).toBeVisible({timeout:10000});await expect(status).not.toContainText("Nieuw clubbeeld");
+ const settledPolls=polls;await page.waitForTimeout(2500);expect(polls).toBe(settledPolls);
+ const a11y=await new AxeBuilder({page}).include('[aria-label="Uploads in verwerking"]').analyze();expect(a11y.violations).toEqual([]);
+ await contained(page);
+});
 for(const width of[390,768,1440]){
  test(`Sites playlist StrictMode and browser Back preserve dirty edits and close after confirmed save at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:900});const transport=await mount(page);

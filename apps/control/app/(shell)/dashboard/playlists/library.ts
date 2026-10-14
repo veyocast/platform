@@ -8,7 +8,7 @@ import type {DynamicDesign,Media,StudioProject,StudioSlide}from"./_components/si
 import {chunkPlaylistStudioIds} from "./playlist-studio-query-scope";
 
 export type PublisherLibraryFilter={tab:"media"|"studio"|"dynamic";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string};
-export type PublisherLibraryPage={media:Media[];projects:StudioProject[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>};
+export type PublisherLibraryPage={media:Media[];projects:StudioProject[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
 const empty:PublisherLibraryPage={media:[],projects:[],designs:[],total:0,hasMore:false,folders:[],collections:[]};
 const pageSize=48;
 
@@ -16,11 +16,12 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
  const supabase=await createControlSupabaseClient();if(!supabase)throw new Error("De beveiligde datasessie ontbreekt.");
  const offset=filter.offset??0;
  if(filter.tab==="media"){
-  const[assets,folders,collections]=await Promise.all([
+  const[assets,folders,collections,unavailable]=await Promise.all([
    filter.assetId?supabase.from("media_assets").select("id,title,kind,file_size_bytes,status,deleted_at").eq("tenant_id",tenantId).eq("id",filter.assetId).limit(1)
     :supabase.rpc("list_publisher_media_assets_v2",{p_tenant_id:tenantId,p_page_size:pageSize,p_offset:offset,p_search:filter.query||null,p_folder_id:filter.folderId||null,p_collection_id:filter.collectionId||null,p_favorites_only:filter.favorites??false,p_status:"ready",p_sort:"newest"}),
    supabase.from("media_folders").select("id,name").eq("tenant_id",tenantId).order("name").limit(200),
-   supabase.from("media_collections").select("id,name").eq("tenant_id",tenantId).order("name").limit(200)
+   supabase.from("media_collections").select("id,name").eq("tenant_id",tenantId).order("name").limit(200),
+   filter.assetId?Promise.resolve({data:[],error:null}):supabase.from("media_assets").select("id,title,status,validation_error").eq("tenant_id",tenantId).eq("source_kind","user").is("deleted_at",null).in("status",["uploading","processing","validation_failed"]).order("created_at",{ascending:false}).limit(12)
   ]);
   if(assets.error||folders.error||collections.error)throw new Error("De beeldbank kon niet volledig worden geladen. Probeer opnieuw.");
   const rows=(assets.data??[])as Array<{id?:string;asset_id?:string;title:string;kind:"image"|"video";file_size_bytes:number;folder_id?:string;is_favorite?:boolean;tags?:Array<{name:string}>;collections?:Array<{name:string}>;total_count?:number;status?:string;deleted_at?:string|null}>;
@@ -35,7 +36,10 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
    return{durationSeconds,checksumSha256:variant.checksum_sha256,id,name:row.title,image:signed.data.signedUrl,kind:row.kind,folder:folders.data?.find(folder=>folder.id===row.folder_id)?.name??"Media",size:`${(Number(row.file_size_bytes)/1048576).toLocaleString("nl-NL",{maximumFractionDigits:1})} MB`,favorite:row.is_favorite,tags:row.tags?.map(tag=>tag.name),collections:row.collections?.map(collection=>collection.name)};
   }));
   const total=Number(rows[0]?.total_count??rows.length);
-  return{...empty,media:media.filter((item):item is Media=>item!==null),total,hasMore:offset+pageSize<total,folders:folders.data??[],collections:collections.data??[]};
+  if(rows.some(row=>row.status==="ready")&&media.every(item=>item===null))throw new Error("De gereedstaande media kon niet veilig worden ontsloten. Vernieuw de beeldbank.");
+  if(unavailable.error)throw new Error("De verwerkingsstatus van je uploads kon niet worden geladen.");
+  const unavailableMedia=(unavailable.data??[]).map(asset=>({id:asset.id,name:asset.title,status:asset.status as "uploading"|"processing"|"validation_failed",message:asset.status==="validation_failed"?asset.validation_error==="processing_timeout"?"De video overschreed de verwerkingslimiet. Exporteer als H.264 tot 1080p30 en probeer opnieuw via de beeldbank.":"De upload kon niet veilig worden verwerkt. Controleer de fout in de beeldbank en probeer opnieuw.":asset.status==="uploading"?"De overdracht is nog niet afgerond. Hervat de upload via de beeldbank.":"De upload wordt verwerkt. Hij verschijnt hier automatisch zodra de afspeelvariant is geverifieerd."}));
+  return{...empty,media:media.filter((item):item is Media=>item!==null),unavailableMedia,total,hasMore:offset+pageSize<total,folders:folders.data??[],collections:collections.data??[]};
  }
  if(filter.tab==="dynamic"){
   const dynamicPageSize=8;
@@ -43,16 +47,16 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
   if(filter.query)query=query.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
   const slides=await query;if(slides.error)throw new Error("De opgeslagen ontwerpen konden niet worden geladen.");
   const ids=(slides.data??[]).flatMap(slide=>slide.current_snapshot_id?[slide.current_snapshot_id]:[]);
-  const snapshots=ids.length?await supabase.from("dynamic_slide_snapshots").select("id,dynamic_slide_id,template_version_id,snapshot_hash,snapshot_data_json,output_media_asset_id,status").eq("tenant_id",tenantId).in("id",ids).eq("status","ready"):{data:[],error:null};
+  const snapshots=ids.length?await supabase.from("dynamic_slide_snapshots").select("id,dynamic_slide_id,template_version_id,source_revision_hash,snapshot_data_json,output_media_asset_id,status").eq("tenant_id",tenantId).in("id",ids).eq("status","ready"):{data:[],error:null};
   if(snapshots.error)throw new Error("De vaste ontwerpinhoud kon niet worden geladen.");
   const snapshotAssets=await loadCanonicalSnapshotAssets(tenantId,(snapshots.data??[]).map(snapshot=>snapshot.snapshot_data_json));
   const designs=(slides.data??[]).flatMap((slide):DynamicDesign[]=>{
    const snapshot=snapshots.data?.find(item=>item.id===slide.current_snapshot_id);if(!snapshot)return[];if(snapshot.dynamic_slide_id!==slide.id)throw new Error("De opgeslagen broninhoud hoort niet bij het gekozen ontwerp.");
-   const payload=playerDynamicTemplatePayloadSchema.safeParse({schemaVersion:1,slideType:slide.slide_type,orientation:slide.orientation,snapshotHash:snapshot.snapshot_hash,snapshotId:snapshot.id,templateVersionId:snapshot.template_version_id,templateSlug:slide.slide_type.replaceAll("_","-"),data:snapshot.snapshot_data_json,assets:Object.fromEntries(collectCanonicalSnapshotAssetIds(snapshot.snapshot_data_json).flatMap(id=>snapshotAssets[id]?[[id,snapshotAssets[id]]]:[]))});
-   if(!payload.success)return[];
+   const payload=playerDynamicTemplatePayloadSchema.safeParse({schemaVersion:1,slideType:slide.slide_type,orientation:slide.orientation,snapshotHash:snapshot.source_revision_hash,snapshotId:snapshot.id,templateVersionId:snapshot.template_version_id,templateSlug:slide.slide_type.replaceAll("_","-"),data:snapshot.snapshot_data_json,assets:Object.fromEntries(collectCanonicalSnapshotAssetIds(snapshot.snapshot_data_json).flatMap(id=>snapshotAssets[id]?[[id,snapshotAssets[id]]]:[]))});
+   if(!payload.success)throw new Error("De opgeslagen slide-inhoud is ongeldig. Open het bronontwerp om dit te herstellen.");
    const provider=slide.slide_type==="ledscores_live_match"?"led-scores":["menu","price_list"].includes(slide.slide_type)?"menu":"sportlink";
    const configuration=sitesDynamicConfigurationSchema.safeParse(payload.data.data.sitesConfiguration??{schemaVersion:1,rendererVersion:sitesPresentationVersion,sourceRevision:sitesPresentationSourceRevision,themeId:"fieldflow",orientation:slide.orientation,provider,title:slide.name});
-   if(!configuration.success)return[];const cfg=configuration.data;const presentation=buildSitesPresentationFromDynamicPayload(payload.data,cfg);
+   if(!configuration.success)throw new Error("De vormgeving van een opgeslagen slide kon niet worden gelezen.");const cfg=configuration.data;const presentation=buildSitesPresentationFromDynamicPayload(payload.data,cfg);
    return[{...cfg,id:slide.id,name:slide.name,kind:presentation?.kind==="dynamic"?presentation.content.kind:"generic",background:cfg.background?.kind==="system"?cfg.background.path:"",rows:presentation?.kind==="dynamic"?presentation.content.rows:[],config:cfg,screenIds:[],groupNames:[],snapshotId:snapshot.id,payload:payload.data,sitesConfiguration:cfg}];
   });
   return{...empty,designs,total:slides.count??designs.length,hasMore:offset+dynamicPageSize<(slides.count??0)};

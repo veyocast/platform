@@ -1,5 +1,10 @@
 # VeyoCast MVP Plan
 
+S217 herstelt de Clubverhaal-slidebibliotheek, uploadbevestigingen en de
+productie-Player-serverrenderer. De echte Next-build wordt als regressiegrens
+getest; uploads in verwerking en mislukte uploads blijven zichtbaar. Zie
+`docs/s217-clubverhaal-media-release-recovery.md`.
+
 S216 herstelt de visuele pariteit van Menu Studio-widgets met het oorspronkelijke
 OnzeTrots v17 Studio-template. Clubkop, bronfonts/achtergrond, informatievlak en
 categoriebanen komen uit dezelfde renderer; widgetauthoring blijft behouden.
