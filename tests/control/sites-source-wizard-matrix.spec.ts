@@ -195,7 +195,7 @@ for(const width of [390,768,1440])test(`S215 widget authoring, appearance and re
  await page.getByLabel(/^Widget toevoegen/).selectOption('image');await page.getByRole('button',{name:'Widget toevoegen',exact:true}).click();
  const image=page.getByRole('region',{name:'Widget 2',exact:true});await image.getByLabel(/Plaats van widget 2/).selectOption('left');await image.getByLabel(/^Afbeeldingsformaat/).selectOption('9:16');
  await page.getByRole('button',{name:'Pagina toevoegen',exact:true}).click();await page.getByLabel(/^Kolommen op pagina 2/).selectOption('1');await page.getByLabel(/^Widget toevoegen/).selectOption('promo');await page.getByRole('button',{name:'Widget toevoegen',exact:true}).click();
- await page.getByLabel('Dealtitel',{exact:true}).fill('Koffiedeal');await page.getByLabel('Dealomschrijving of prijs',{exact:true}).fill('Koffie met iets lekkers');
+ await page.getByLabel('Dealtitel',{exact:true}).fill('');await expect(page.getByRole('status').filter({hasText:'Een widget heeft onvolledige of te lange invoer'})).toBeVisible();await page.getByLabel('Dealtitel',{exact:true}).fill('Koffiedeal');await page.getByLabel('Dealomschrijving of prijs',{exact:true}).fill('Koffie met iets lekkers');
  await page.getByRole('button',{name:'Pagina 1',exact:true}).click();
  await expect(page.locator('.vm-product strong')).toHaveText('Clubkoffie');await expect(page.locator('.vm-product small')).toHaveText('Met koekje · Cappuccino');await expect.poll(()=>page.locator('.vm-widget-image[data-ratio="9:16"] img').evaluate(image=>{const b=image.getBoundingClientRect();return b.width/b.height;})).toBeCloseTo(9/16,2);
  await readyLayout(page);const a11y=await new AxeBuilder({page}).include("main").analyze();expect(a11y.violations).toEqual([]);

@@ -31,7 +31,7 @@ export function SitesMenuWizard({ initialDocument, initialOrientation, media, pr
   const selectedIds = menuLinkedIds(document);
   const missing = selectedIds.some(id => !products.some(product => product.id === id));
   const selected = products.filter(product => selectedIds.includes(product.id));
-  const built = useMemo(() => { try { return {draft:buildMenuWidgetDocument(document, products, design, media),error:null}; } catch (error) { return {draft:null,error:error instanceof Error?error.message:"Controleer de widgets en media."}; } }, [document, products, design, media]);
+  const built = useMemo(() => { try { return {draft:buildMenuWidgetDocument(document, products, design, media),error:null}; } catch (error) { return {draft:null,error:error instanceof Error&&error.name!=="ZodError"?error.message:"Een widget heeft onvolledige of te lange invoer. Controleer de titel, tekst en afbeelding voordat je opslaat."}; } }, [document, products, design, media]);
   const draft = built.draft;
   const presentation = useMemo(()=>draft ? buildSitesMenuPresentation(draft, design) : null,[draft,design]);
   const pages = presentation ? sitesPresentationPages(presentation) : 1;

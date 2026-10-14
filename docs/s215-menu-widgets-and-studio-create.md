@@ -29,7 +29,9 @@ widgetvelden. Alle andere identiteit-, prijs-, tenant- en assetchecks blijven ge
   PNG en LG. Afbeeldingsframes behouden hun gekozen verhouding, ook op Chrome 79.
 - Opslaan blijft een expliciete, revision-aware opdracht. Een concept wordt pas
   gereedgemaakt voor de playlist na serverbevestiging. Iedere menupagina krijgt
-  haar ingestelde duur; de playlistplaatsing bewaart de totale duur.
+  haar ingestelde duur; de playlistplaatsing bewaart de totale duur. Een
+  handmatige duur die niet door het aantal pagina’s deelbaar is blijft geldig: de
+  externe Playerklok verdeelt die exact, terwijl het authoringdocument integer blijft.
 
 ## Behouden grenzen
 
@@ -55,7 +57,7 @@ gecontroleerde lokale assets en behoudt zijn LKG.
   behoud, beeldverhouding, vormgeving, opslag/heropenen en playlistvoorbereiding.
 - Werkelijke Chromium PNG-capture: 11 PASS, beide thema's en oriëntaties,
   onderscheiden pagina's, gecontroleerde assets en geometrie binnen het canvas.
-- Trusted Player markup: 7 PASS, alle widgetpagina's met cachetokens en eigen CSS.
+- Trusted Player markup: 8 PASS, alle widgetpagina's met cachetokens en eigen CSS.
 - Offline-suite: 7 PASS, waaronder LKG-startup, corrupte pending bytes en SW-ranges.
 
 Een brede lokale Player-run liep na 200+ proeven tegen de gedeelde inotifylimiet

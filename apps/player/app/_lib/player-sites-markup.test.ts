@@ -22,3 +22,8 @@ it("freezes menu widgets, pages, sublines and checksum-bound imagery for offline
  const before=JSON.stringify(input),markup=await buildSitesMarkup(input,{[assetId]:{checksumSha256:sha,mimeType:"image/webp"}},40);
  expect(markup.pages).toHaveLength(2);expect(markup.pageDurationSeconds).toBe(20);expect(markup.css).toContain(".vm-canvas");expect(markup.pages[0]).toContain('<strong>Clubkoffie</strong><small>Met koekje · Cappuccino</small>');expect(markup.pages[1]).toContain("Koffiedeal");expect(markup.pages.join("")).not.toMatch(/(?:src|href)="(?:https?:|\/onzetrots)/);expect(markup.assetTokens).toContainEqual({token:`VEYOSITES_ASSET_${sha}`,cacheKey:`/__veyocast-player-cache/${sha}`});expect(JSON.stringify(input)).toBe(before);
 });
+
+it("shares a fractional placement budget across menu pages without invalidating the authoring configuration",async()=>{
+ const input=sitesPresentationSchema.parse({kind:"dynamic",configuration:{schemaVersion:1,rendererVersion:"sites-v17",sourceRevision:sitesCurrentPresentationSourceRevision,provider:"menu",unifiedKind:"kantine",themeId:"onzetrots-tv",orientation:"landscape",title:"Menu",menuWidgets:true,seconds:15},content:{kind:"kantine",title:"Menu",rows:[],menuPages:[1,2,3].map(index=>({id:`page-${index}`,columns:1,widgets:[{id:`deal-${index}`,type:"promo",column:"full",columns:1,title:`Deal ${index}`,rows:[]}]}))}});
+ const markup=await buildSitesMarkup(input,{},20);expect(markup.pages).toHaveLength(3);expect(markup.pageDurationSeconds).toBe(20/3);expect(input.kind==="dynamic"&&input.configuration.seconds).toBe(15);expect(markup.pages[2]).toContain("Deal 3");
+});
