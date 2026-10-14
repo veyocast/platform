@@ -65,11 +65,28 @@ externe HTTP-media toestaat. Alleen het lokale testcertificaat wordt vertrouwd;
 CSP, mediaresponses, publicatiebevestigingen en Playeractivatie worden niet
 vervangen door mocks.
 
-Definitieve testuitkomsten en exacte uitrolidentiteit worden na de gates
-vastgelegd. Fysieke LG-activatie is een afzonderlijke bewijsgrens: op de laatste
-productielezing was de LG sinds 14 oktober 19:59 UTC niet meer online en gebruikte
-hij nog een oudere applicatieversie. Een geslaagde healthroute bewijst geen
-zichtbare inhoud op dat apparaat.
+Lokale verificatie:
+
+- Workspace lint, typecheck en unit tests: elk 30/30 taken groen.
+- Verse DB-reset met 165 migraties; 108 RLS-bestanden / 3.048 assertions groen;
+  securityadvisors zonder bevindingen.
+- Control- en Playerproductiebuilds inclusief server/client-grenschecks groen.
+- Echte end-to-endflow: 1 PASS in 49 seconden, met opgeslagen HTML-productregel,
+  first-frameacknowledgement en offline herstart. De database bevestigt één
+  publicatie met dezelfde gewenste en actieve release. Zie
+  `s218-local-player-evidence.json`.
+- Editor-, bibliotheek- en wizardmatrix: 173 cases. De brede run gaf 171 PASS;
+  twee mobiele stepper-/titelasserties waren bij een geïsoleerde herhaling
+  ongewijzigd groen. Geen assertions of deadlines zijn hiervoor afgezwakt.
+- Worker: geverifieerde private captureassets en foutafhandeling, inclusief
+  weigeren van onjuiste SVG-fallbacks; gecontroleerd via workspace-unitgates en
+  de echte Menu Studio-renderopdracht.
+
+Hosted gates en exacte staging-/productionreadback worden gevolgd op
+[PR 244](https://github.com/veyocast/platform/pull/244). Fysieke LG-activatie is een
+aparte bewijsgrens: de gebruiker bevestigt dat het apparaat uitstaat. De laatste
+heartbeat is van 14 oktober 19:59 UTC, op een oudere applicatieversie. De
+browserproef bewijst geen zichtbare inhoud op dit uitgeschakelde apparaat.
 
 ## Migratie en herstel
 
