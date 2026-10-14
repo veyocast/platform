@@ -78,6 +78,11 @@ Lokale verificatie:
 - Editor-, bibliotheek- en wizardmatrix: 173 cases. De brede run gaf 171 PASS;
   twee mobiele stepper-/titelasserties waren bij een geïsoleerde herhaling
   ongewijzigd groen. Geen assertions of deadlines zijn hiervoor afgezwakt.
+- De strikte Studio-bronvergelijking is op zes schermformaten groen. Zij
+  controleert alle vijftien resterende families, hun fonts/beelden en contain-
+  schaling, plus de zichtbare ingang naar de afzonderlijke Menu Studio. De oude
+  verwachting van zestien families in Studio is aangepast aan deze expliciete
+  gebruikersopdracht; de originele bronbestanden zijn ongewijzigd.
 - Worker: geverifieerde private captureassets en foutafhandeling, inclusief
   weigeren van onjuiste SVG-fallbacks; gecontroleerd via workspace-unitgates en
   de echte Menu Studio-renderopdracht.
