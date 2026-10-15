@@ -34,9 +34,8 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
     "--vm-image-width": `${(nativeWidth - (portrait ? 184 : 192) - 2 * inset) / (menuPage.columns === 2 ? 2 : 1)}px`
   } as CSSProperties;
   return <div className="vm-frame" style={{ width: width ?? nativeWidth, height: width ? width * nativeHeight / nativeWidth : nativeHeight }}>
-    <SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === "#03438a" ? "" : " vm-custom-accent"}`} canvasStyle={style} backgroundOverride={background || (config.themeId === "onzetrots-tv" && config.overlay > 0) ? { src: background, fit: background ? config.backgroundFit : "cover", overlay: config.overlay } : undefined}>
+    <SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === "#03438a" ? "" : " vm-custom-accent"}`} canvasStyle={style} backgroundOverride={background || (config.themeId === "onzetrots-tv" && config.overlay > 0) ? { src: background, fit: background ? config.backgroundFit : "cover", overlay: config.overlay } : undefined} canvasFooter={<strong className="vm-menu-slogan">Onze Club. Onze Trots.</strong>}>
       <div className="ucc-body" data-fit-box><div className="ucc-content ucc-canteen ucc-menu-columns vm-content" data-fit-content>
-        <div className="ucc-meta"><span>{config.subtitle || "Actuele clubinformatie"}</span></div>
         <div className="ucc-menu-grid vm-widgets" data-columns={menuPage.columns} data-full={full}>
           {menuPage.widgets.map((widget, index) => <section key={widget.id} className={`ucc-menu-category vm-widget vm-${widget.type}`} data-column={widget.column}>
             {(widget.title || widget.subtitle) && <header><span>{String(index + 1).padStart(2, "0")}</span><div><h2>{widget.title}</h2>{widget.subtitle && <p>{widget.subtitle}</p>}</div></header>}
@@ -54,7 +53,6 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
             </div>
           </section>)}
         </div>
-        <div className="ucc-menu-foot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 8h13v8a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Zm13 2h2a3 3 0 0 1 0 6h-2M7 3v2m5-2v2"/></svg><span>{content.footer || "Bestellen en afrekenen aan de bar."}</span><strong>Onze Club. Onze Trots.</strong></div>
       </div></div>
     </SitesUnifiedV17Markup>
   </div>;

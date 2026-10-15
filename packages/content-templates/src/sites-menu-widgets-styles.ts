@@ -12,6 +12,8 @@ export const sitesMenuWidgetCss = String.raw`
 .vm-canvas.uc-portrait .uc-slide-title[data-length=medium]{font-size:calc(51px * var(--vm-scale))}
 .vm-canvas.uc-portrait .uc-slide-title[data-length=long]{font-size:calc(37px * var(--vm-scale))}
 .vm-content{transform:scale(var(--led-auto-fit,1));transform-origin:top left}
+.vm-menu-slogan{position:absolute;left:0;bottom:0;z-index:1;margin:0;max-width:calc(100% - 380px);background:var(--uc-surface);color:var(--uc-blue);font-family:var(--uc-font-display);font-size:24px;line-height:1;text-transform:uppercase;white-space:nowrap}
+.vm-canvas.uc-portrait .vm-menu-slogan{font-size:35px}
 .vm-canvas .vm-widgets{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;align-content:start;flex:none;min-width:0}
 .vm-canvas .vm-widgets[data-columns="1"],.vm-canvas .vm-widgets[data-full=true]{grid-template-columns:1fr}
 .vm-widget{min-width:0;min-height:0;overflow:hidden}

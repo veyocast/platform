@@ -1,5 +1,9 @@
 # VeyoCast MVP Plan
 
+S219 verwijdert de twee vaste hulpteksten uit Menu Studio-menukaarten en zet
+de clubslogan vast in de uiterste linkeronderhoek van het slidecanvas. Zie
+`docs/s219-menu-copy-footer-hotfix.md`.
+
 S218 maakt opgeslagen Studio-documenten zonder export zichtbaar in één
 slidebibliotheek, brengt menu’s onder Menu Studio en gebruikt dezelfde HTML/CSS-
 renderer in preview, Player en compatibiliteitscapture. Nieuwe wizards bewaren
