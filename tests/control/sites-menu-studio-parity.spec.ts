@@ -48,13 +48,12 @@ for (const orientation of ["portrait", "landscape"] as const) {
     const header=await page.locator(".uc-header").screenshot();
     const footer=await page.locator(".uc-footer").screenshot();
     const bars=orientation === "portrait" ? await Promise.all([0,1,2].map(index=>page.locator(".ucc-menu-category>header").nth(index).screenshot())) : [];
-    // S219 deliberately adds a corner slogan in the bottom 35 logical pixels.
-    const scenery=await page.screenshot({clip:{x:0,y:0,width,height:height-48},mask:[page.locator(".uc-header"),page.locator(".uc-body"),page.locator(".uc-footer")]});
+    const scenery=await page.screenshot({mask:[page.locator(".uc-header"),page.locator(".uc-body"),page.locator(".uc-footer")]});
     await mount(page,orientation,true,width,height);
     await page.screenshot({path:join(evidence,`${orientation}-widgets.png`)});
     expect(await pixelHash(await page.locator(".uc-header").screenshot())).toBe(await pixelHash(header));
     expect(await pixelHash(await page.locator(".uc-footer").screenshot())).toBe(await pixelHash(footer));
-    expect(await pixelHash(await page.screenshot({clip:{x:0,y:0,width,height:height-48},mask:[page.locator(".uc-header"),page.locator(".uc-body"),page.locator(".uc-footer")]}))).toBe(await pixelHash(scenery));
+    expect(await pixelHash(await page.screenshot({mask:[page.locator(".uc-header"),page.locator(".uc-body"),page.locator(".uc-footer")]}))).toBe(await pixelHash(scenery));
     for(const [index,bar] of bars.entries())expect(await pixelHash(await page.locator(".vm-widget>header").nth(index).screenshot())).toBe(await pixelHash(bar));
     await expect(page.locator(".vm-widget")).toHaveCount(3);
     expect(await page.locator(".vm-widget>header>span").allTextContents()).toEqual(["01","02","03"]);
@@ -68,8 +67,8 @@ for (const orientation of ["portrait", "landscape"] as const) {
   });
   for(const [width,height] of [[390,844],[768,900],[1440,900],[3840,2160]])test(`S216 ${orientation} content stays inside viewport ${width}x${height}`,async({page})=>{
     await mount(page,orientation,true,width!,height!);
-    const corner=await page.locator(".vm-menu-slogan").evaluate(element=>{const b=element.getBoundingClientRect(),canvas=element.closest('.uc-slide')!.getBoundingClientRect();return {left:b.left-canvas.left,bottom:canvas.bottom-b.bottom};});
-    expect(Math.abs(corner.left)).toBeLessThan(.1);expect(Math.abs(corner.bottom)).toBeLessThan(.1);
+    const corner=await page.locator(".vm-menu-slogan").evaluate(element=>{const b=element.getBoundingClientRect(),panel=element.closest('.vm-menu-panel')!,p=panel.getBoundingClientRect(),style=getComputedStyle(panel),scale=p.width/(panel as HTMLElement).offsetWidth;return {left:b.left-p.left,bottom:p.bottom-b.bottom,expectedLeft:(parseFloat(style.paddingLeft)+parseFloat(style.borderLeftWidth))*scale,expectedBottom:(parseFloat(style.paddingBottom)+parseFloat(style.borderBottomWidth))*scale};});
+    expect(corner.left).toBeGreaterThan(0);expect(corner.bottom).toBeGreaterThan(0);expect(corner.left).toBeCloseTo(corner.expectedLeft,1);expect(corner.bottom).toBeCloseTo(corner.expectedBottom,1);
     const bounds=await page.locator(".uc-slide").evaluateAll(canvases=>canvases.flatMap(canvas=>[canvas,...canvas.querySelectorAll('.uc-header,.uc-body,.uc-footer,.vm-menu-slogan,.vm-product,.vm-widget header')].map(element=>{const b=element.getBoundingClientRect();return {x:b.x,y:b.y,right:b.right,bottom:b.bottom};})));
     for(const b of bounds){expect(b.x).toBeGreaterThanOrEqual(-.1);expect(b.y).toBeGreaterThanOrEqual(-.1);expect(b.right).toBeLessThanOrEqual(width!+.1);expect(b.bottom).toBeLessThanOrEqual(height!+.1);}
   });

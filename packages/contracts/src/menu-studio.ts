@@ -119,7 +119,8 @@ export const menuLinkedProductLineItemSchema = z.object({
 export const menuFreeTextLineItemSchema = z.object({
   id: menuStudioIdSchema,
   kind: z.literal("free-text"),
-  label: menuLineLabelSchema,
+  label: z.string().trim().min(1).transform(value => value.normalize("NFC"))
+    .refine(value => !hasControlCharacters(value), "Een subregel mag geen besturingstekens bevatten."),
   locale: z.string().regex(localePattern).nullable().optional(),
   order: z.number().int().min(0).max(100_000),
   presentationOnly: z.literal(true)
@@ -216,6 +217,7 @@ export const menuProductPlacementSchema = z.object({
   kind: z.literal("product"),
   mediaOverrideAssetId: menuStudioIdSchema.nullable().optional(),
   nameOverride: z.string().trim().min(1).max(160).nullable().optional(),
+  priceOverrideMinor: z.number().int().min(0).max(999_999_999).nullable().optional(),
   order: z.number().int().min(0).max(100_000),
   column: z.union([z.literal(1), z.literal(2)]).optional(),
   secondaryLineItems: z.array(z.discriminatedUnion("kind", [menuLinkedProductLineItemSchema, menuFreeTextLineItemSchema])).max(8).optional(),

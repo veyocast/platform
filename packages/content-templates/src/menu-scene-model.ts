@@ -3,6 +3,10 @@ import {menuDocumentV2Schema,type MenuBlock,type MenuMoney,type MenuProductGroup
 export const MENU_SCENE_RENDERER_VERSION = "2.0.0";
 export const MENU_SCENE_CONTENT_FIT_VERSION = "dom-measured-2.0.0";
 
+export function resolveMenuProductPrice(product: MenuProductPlacement): MenuMoney {
+  return { ...product.snapshotFallback.price, amountMinor: product.priceOverrideMinor ?? product.snapshotFallback.price.amountMinor };
+}
+
 export const menuSceneCanvases = {
   landscape: { height: 1080, width: 1920 },
   portrait: { height: 1920, width: 1080 }

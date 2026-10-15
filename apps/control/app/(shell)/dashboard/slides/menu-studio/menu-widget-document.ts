@@ -2,6 +2,13 @@ import { menuDocumentV2Schema, type MenuBlock, type MenuDocumentV2, type MenuPro
 import type { MenuStudioMediaOption, MenuStudioProductOption } from "./menu-studio-editor";
 
 export const menuWidgetZones = { landscape: { x: 96, y: 248, w: 1728, h: 704 }, portrait: { x: 72, y: 348, w: 936, h: 1388 } } as const;
+/** Decimal input becomes exact integer cents; no floating-point rounding. */
+export function parseMenuPriceMinor(value: string): number | null {
+  const match = /^(\d{1,7})(?:[,.](\d{1,2}))?$/u.exec(value.trim());
+  if (!match) return null;
+  const amount = Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
+  return amount <= 999_999_999 ? amount : null;
+}
 export function menuWidgetLayout() { return Object.fromEntries(Object.entries(menuWidgetZones).map(([key, zone]) => [key, { ...zone, rotation: 0 }])) as MenuBlock["layout"]; }
 export function menuProductPlacement(product: MenuStudioProductOption, id = crypto.randomUUID()): MenuProductPlacement {
   return { id, kind: "product", order: 0, productRef: { productId: product.id, source: product.sourceKind === "twelve_excel" ? "twelve" : "manual", sourceRevision: product.sourceRevision, ...(product.sourceKind === "twelve_excel" ? { providerConnectionId: product.sourceId } : {}) }, snapshotFallback: { available: product.available, name: product.name, price: { amountMinor: product.priceCents, currency: product.currency, taxMode: product.taxMode, ...(product.taxRateBps === undefined ? {} : { taxRateBps: product.taxRateBps }), ...(product.unitKey ? { unitKey: product.unitKey } : {}) } } };

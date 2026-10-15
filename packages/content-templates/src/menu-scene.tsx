@@ -19,7 +19,7 @@ import {
 import { freezeThemePresentation, themeCssVariables } from "./theme-catalog";
 import styles from "./menu-scene.module.css";
 
-import {menuSceneZones,MENU_SCENE_CONTENT_FIT_VERSION,type MenuFloatingBlock,menuSceneCanvases,resolveMenuSceneScale,resolveMenuScenePages,resolveProductTitleDensity,formatMenuMoney,resolveMenuGroupPrice,type MenuSceneAsset,type MenuSceneRow,type ResolvedMenuScenePage} from "./menu-scene-model";
+import {menuSceneZones,MENU_SCENE_CONTENT_FIT_VERSION,type MenuFloatingBlock,menuSceneCanvases,resolveMenuSceneScale,resolveMenuScenePages,resolveProductTitleDensity,formatMenuMoney,resolveMenuProductPrice,resolveMenuGroupPrice,type MenuSceneAsset,type MenuSceneRow,type ResolvedMenuScenePage} from "./menu-scene-model";
 export * from "./menu-scene-model";
 
 export function MenuScene({
@@ -306,7 +306,7 @@ function ProductRow({
           <small>{product.snapshotFallback.variantLabel}</small>
         ) : <small aria-hidden="true">&nbsp;</small>}
       </span>
-      <b>{formatMenuMoney(product.snapshotFallback.price)}</b>
+      <b>{formatMenuMoney(resolveMenuProductPrice(product))}</b>
     </article>
   );
 }

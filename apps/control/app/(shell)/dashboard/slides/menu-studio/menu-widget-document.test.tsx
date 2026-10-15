@@ -6,7 +6,7 @@ import { buildSitesMenuPresentation } from "@veyocast/content-templates/sites-dy
 import { SitesStaticView } from "@veyocast/content-templates/sites-static-view";
 import { sitesPresentationAssets, sitesPresentationPages } from "@veyocast/content-templates/sites-presentation-model";
 import { createSitesSourceDesign } from "../../studio/sportlink/new/sites-source-design";
-import { buildMenuWidgetDocument, menuLinkedIds, menuProductPlacement, menuWidgetLayout } from "./menu-widget-document";
+import { buildMenuWidgetDocument, menuLinkedIds, menuProductPlacement, menuWidgetLayout, parseMenuPriceMinor } from "./menu-widget-document";
 import type {MenuStudioProductOption,MenuStudioMediaOption} from "./menu-studio-editor";
 const id=(index:number)=>`10000000-0000-4000-8000-${String(index).padStart(12,"0")}`;
 const product=(index:number):MenuStudioProductOption=>({id:id(index),sourceId:id(50),sourceKind:"twelve_excel",sourceRevision:"rev-2",name:index===1?"Koffie":"Cappuccino",priceCents:250,currency:"EUR",category:"Dranken",available:true,description:"",taxMode:"inclusive"});
@@ -32,6 +32,30 @@ describe("Menu widget persistence and display",()=>{
   const built=buildMenuWidgetDocument(source,products,{...design,rowsPerPage:4,scale:140},[photo]),presentation=buildSitesMenuPresentation(built)!;
   if(presentation.kind!=="dynamic")throw Error("missing");const rendered=presentation.content.menuPages!.flatMap(page=>page.widgets.flatMap(widget=>widget.rows));
   expect(rendered).toHaveLength(22);expect(new Set(rendered.map(row=>row.id)).size).toBe(22);expect(sitesPresentationPages(presentation)).toBeGreaterThan(1);
+ });
+
+ it("preserves edited amounts and unrestricted sublines while refreshing catalog snapshots",()=>{
+  const source=fixture(),block=source.pages[0]!.blocks[0]!;if(block.type!=="category")throw Error("fixture");
+  const node=block.productNodes[0]!;if(node.kind!=="product")throw Error("fixture");
+  const copy="Deze vrije toelichting is langer dan vierentwintig tekens. ".repeat(40);
+  node.priceOverrideMinor=375;node.secondaryLineItems=[{id:"long-copy",kind:"free-text",order:0,presentationOnly:true,label:copy}];
+  const built=buildMenuWidgetDocument(source,[{...product(1),priceCents:300},product(2)],design,[photo]);
+  const reopened=menuDocumentV2Schema.parse(JSON.parse(JSON.stringify(built))),presentation=buildSitesMenuPresentation(reopened)!;
+  expect(reopened.pages[0]?.blocks[0]).toMatchObject({productNodes:[{priceOverrideMinor:375,snapshotFallback:{price:{amountMinor:300}}}]});
+  if(presentation.kind!=="dynamic")throw Error("missing");
+  expect(presentation.content.menuPages?.[0]?.widgets[0]?.rows[0]).toMatchObject({value:"€ 3,75",secondary:copy.trim()});
+ });
+ it("fills automatic products down column one before two, without reshuffling existing rows",()=>{
+  const source=fixture();source.pages=source.pages.slice(0,1);source.pages[0]!.blocks=source.pages[0]!.blocks.slice(0,1);const block=source.pages[0]!.blocks[0]!;if(block.type!=="category")throw Error("fixture");
+  block.widget={column:"full"};
+  const products=Array.from({length:12},(_,index)=>({...product(index+1),name:`Product ${index+1}`}));
+  const project=(count:number)=>{block.productNodes=products.slice(0,count).map((item,index)=>({...menuProductPlacement(item,`row-${index}`),order:index}));const presentation=buildSitesMenuPresentation(buildMenuWidgetDocument(source,products,{...design,rowsPerPage:3,orientation:"portrait",scale:100},[photo]))!;if(presentation.kind!=="dynamic")throw Error("missing");return presentation.content.menuPages!.flatMap(page=>page.widgets.flatMap(widget=>widget.rows));};
+  expect(project(1).map(row=>row.column)).toEqual([1]);expect(project(2).map(row=>row.column)).toEqual([1,1]);
+  const rows=project(12);expect(rows.map(row=>row.id)).toEqual(products.map((_,index)=>`row-${index}`));expect(rows.map(row=>row.column)).toEqual([1,1,1,2,2,2,1,1,1,2,2,2]);
+ });
+ it("parses decimal prices as exact cents and rejects ambiguous or invalid input",()=>{
+  for(const [input,expected]of [["3,50",350],["3.5",350],["0",0],["0,01",1],["9999999,99",999999999],[" 2 ",200]] as const)expect(parseMenuPriceMinor(input)).toBe(expected);
+  for(const input of ["","-1","3,555","1e3","3,50 euro","10000000","NaN"])expect(parseMenuPriceMinor(input)).toBeNull();
  });
  it("allows a media-only menu and rejects missing product or replaced media selections before saving",()=>{
   const source=fixture();source.pages[0]!.blocks=source.pages[0]!.blocks.slice(1);expect(buildMenuWidgetDocument(source,[],design,[photo]).pages).toHaveLength(2);
