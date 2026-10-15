@@ -61,9 +61,11 @@ nagebootst.
 
 Eén forwardmigratie vervangt uitsluitend `private.validate_menu_node_v2`.
 Geen tabellen, RLS-policies of grants naar publieke rollen toegevoegd. Bestaande
-migraties zijn ongewijzigd. Rollback is applicatierollback met behoud van deze
-voorwaarts compatibele validator; de oude tekstlimiet niet herinvoeren op reeds
-opgeslagen nieuwe documenten. Geen automatische slide-/playlistversies,
+migraties zijn ongewijzigd. Vóór nieuwe bewerkingen kan de applicatie terug.
+Na opslag van schermprijzen of lange subregels kunnen oudere strikte clients
+deze documenten afwijzen: herstel dan voorwaarts. Een inhoudsconversie voor
+rollback vereist een afzonderlijk gecontroleerd plan; de oude tekstlimiet
+niet terugzetten op reeds opgeslagen nieuwe documenten. Geen automatische slide-/playlistversies,
 providerfetch vanuit slides, release-mutatie of wijziging van offline-LKG.
 
 CI, merge en staging/productie volgen na de bovenstaande lokale gates. De
