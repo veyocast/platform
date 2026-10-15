@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildNormalizationArguments,
@@ -6,7 +6,9 @@ import {
   createPlayerVideoPoster,
   getCanonicalPlayerDimensions,
   normalizePlayerVideo,
+  normalizationTimeoutMs,
   parseVideoProbe,
+  runCommand,
   validateInputProbe,
   validatePlayerVariant,
   VideoProcessingError,
@@ -47,7 +49,39 @@ const rotatedPortraitProbe = JSON.stringify({
   ]
 });
 
+afterEach(() => vi.useRealTimers());
+
 describe("video normalization", () => {
+  it("allows a valid transcode to finish after the former 40-second deadline", async () => {
+    vi.useFakeTimers();
+    let probes = 0;
+    const runner: CommandRunner = async (program, _args, options) => {
+      if (program === "ffprobe") return {stderr: "", stdout: probes++ === 0 ? inputProbe : normalizedProbe};
+      return new Promise((resolve, reject) => {
+        const deadline = setTimeout(() => reject(new VideoProcessingError("processing_timeout", "deadline")), options?.timeoutMs);
+        setTimeout(() => {clearTimeout(deadline); resolve({stderr: "encoded", stdout: ""});}, 45_000);
+      });
+    };
+    const result = normalizePlayerVideo({inputPath: "input.mp4", outputPath: "output.mp4", runner})
+      .then(value => ({value}), error => ({error}));
+    await vi.advanceTimersByTimeAsync(45_000);
+    expect(await result).toMatchObject({value: {output: {videoCodec: "h264"}}});
+    expect(probes).toBe(2);
+  });
+
+  it("scales CPU deadlines with duration while keeping copies short and work finite", () => {
+    const safe = parseVideoProbe(portraitProbe);
+    const transcode = {...safe, videoCodec: "hevc"};
+    expect(normalizationTimeoutMs(safe)).toBe(40_000);
+    expect(normalizationTimeoutMs(transcode)).toBe(120_000);
+    expect(normalizationTimeoutMs({...transcode, durationSeconds: 120})).toBe(390_000);
+    expect(normalizationTimeoutMs({...transcode, durationSeconds: 300})).toBe(600_000);
+  });
+
+  it("still terminates a command that exceeds its explicit processing deadline", async () => {
+    await expect(runCommand(process.execPath, ["-e", "setTimeout(() => {}, 60000)"], {timeoutMs: 30}))
+      .rejects.toMatchObject({code: "processing_timeout"});
+  });
   it("transcodes high-bitrate and unknown-bitrate H264 instead of relabeling it", () => {
     const compatible = parseVideoProbe(portraitProbe);
     for (const containerBitrate of [40_432_276, 19_381_677, undefined]) {
@@ -211,7 +245,7 @@ describe("video normalization", () => {
     expect(runner).toHaveBeenNthCalledWith(
       2, "ffmpeg",
       expect.arrayContaining(["-nostdin", "libx264", "/jobs/player-1080p.mp4"]),
-      expect.objectContaining({ timeoutMs: 40_000 })
+      expect.objectContaining({ timeoutMs: 120_000 })
     );
   });
 

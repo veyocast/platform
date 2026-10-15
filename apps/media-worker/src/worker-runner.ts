@@ -7,6 +7,7 @@ import { pipeline } from "node:stream/promises";
 
 import {
   createPlayerVideoPoster,
+  maximumNormalizationTimeMs,
   normalizePlayerVideo,
   VideoProcessingError,
   type VideoNormalizationResult
@@ -26,6 +27,10 @@ type PosterGenerator = (input: {
   inputPath: string;
   outputPath: string;
 }) => Promise<string>;
+
+// Leave five minutes for bounded downloads, probes, poster, uploads and completion.
+// The general queue lease can stay short for RSS/Sportlink and Studio jobs.
+const minimumMediaJobLeaseSeconds = Math.ceil(maximumNormalizationTimeMs / 1_000) + 300;
 
 export type WorkerRunResult =
   | { status: "idle" }
@@ -52,7 +57,7 @@ export async function runWorkerOnce({
 }): Promise<WorkerRunResult> {
   const job = await backend.claimJob(
     config.workerId,
-    config.lockTimeoutSeconds,
+    Math.max(config.lockTimeoutSeconds, minimumMediaJobLeaseSeconds),
     config.maxAttempts
   );
   onQueuePoll();

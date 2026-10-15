@@ -60,8 +60,15 @@ De production worker gebruikt voor reeds conforme én maximaal passende
 H.264/yuv420p/AAC-video een nieuwe, geverifieerde remux in plaats van een
 kwaliteitsverlagende volledige transcode. Een kleinere variant zoals 720p is
 niet eindconform en wordt één keer naar het passende 1080p-raster
-genormaliseerd. Afwijkende invoer gebruikt `veryfast`, een harde FFmpeg-grens van
-40 seconden en acht-secondenlimieten voor beide Storage-overdrachten. Queuepolling staat in de gedeployde stack op 500 ms; Control
+genormaliseerd. Afwijkende invoer gebruikt `veryfast`, maximaal twee decoder-,
+filter- en encoderthreads en een eindig duurafhankelijk FFmpeg-budget: minimaal
+120 seconden, drie keer de bronduur plus 30 seconden, maximaal tien minuten.
+Probes, remux en postergeneratie behouden hun grens van 40 seconden; afzonderlijke
+Storage-overdrachten blijven op acht seconden begrensd. Mediajobs worden minimaal
+vijftien minuten geleased, inclusief marge voor I/O en afronding. De korte
+algemene workerlease voor andere queues blijft behouden. Een timeout wordt niet
+automatisch herhaald; een opgeslagen bron kan via de geautoriseerde retry opnieuw
+worden verwerkt zonder een nieuwe upload. Queuepolling staat in de gedeployde stack op 500 ms; Control
 ververst zolang er actieve uploads zijn iedere twee seconden.
 
 Control maakt voor MP4 transactioneel een tenantgebonden asset en TUS-intent,
