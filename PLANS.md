@@ -416,3 +416,8 @@ S221 herstelt een zwart OnzeTrots-menu op LG door de binnenste native preview
 expliciet te dimensioneren wanneer CSS-ratio's ontbreken. Een nulframe wordt
 niet meer als weergegeven bevestigd; regressies controleren zichtbare pixels,
 viewportschaling en offlinebehoud. Zie `docs/s221-lg-menu-black-screen.md`.
+
+S223 maakt schermsynchronisatie een werkelijk door de Player ontvangen en
+bevestigd verzoek, herstelt ontbrekende LG-videostartbewaking en schaalt het
+LED Scores-voorbeeld binnen de beschikbare viewport. Zie
+`docs/s223-player-sync-and-led-preview.md`.

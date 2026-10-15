@@ -49,6 +49,7 @@ with expected(oid) as (
       'public.record_player_heartbeat_v2(text,text,uuid,uuid,bigint,bigint,text,text,jsonb,text,jsonb)'
         ::regprocedure
     ),
+    ('public.record_player_heartbeat_v3(text,text,uuid,uuid,bigint,bigint,text,text,jsonb,text,jsonb)'::regprocedure),
     ('public.recover_pending_pairing_v1(text,text,text)'::regprocedure),
     ('public.recover_player_pairing_v2(text,text,text,text)'::regprocedure),
     ('public.recover_player_pairing_v3(text,text,text,text)'::regprocedure),

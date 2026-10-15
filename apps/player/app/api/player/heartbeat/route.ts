@@ -75,6 +75,7 @@ export async function POST(request: Request) {
     storageQuotaBytes?: number | null;
     storageUsedBytes?: number | null;
     syncPhase?: string | null;
+    syncRetryAcknowledgedAt?: unknown;
   } | null;
 
   if (!body?.runtimeState || !runtimeStates.has(body.runtimeState)) {
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
   const tokenHash = sha256(deviceToken);
   const traffic = safeMediaTraffic(body.mediaTraffic);
 
-  const { error } = await supabase.rpc("record_player_heartbeat_v2", {
+  const { data: heartbeatReceipt, error } = await supabase.rpc("record_player_heartbeat_v3", {
     p_active_release_id: body.activeReleaseId ?? null,
     p_app_version: typeof body.runtimeVersion === "string" && /^(?:[0-9a-f]{40}|development|local)$/.test(body.runtimeVersion) ? body.runtimeVersion : "unreported",
     p_capabilities: {
@@ -126,6 +127,7 @@ export async function POST(request: Request) {
     p_storage_quota_bytes: safeNonNegativeInteger(body.storageQuotaBytes),
     p_storage_used_bytes: safeNonNegativeInteger(body.storageUsedBytes),
     p_sync_detail: {
+      syncRetryAcknowledgedAt: safeSyncReceipt(body.syncRetryAcknowledgedAt),
       currentItemId: safePlayerIdentifier(body.currentItemId),
       activeCompositionId: safePlayerIdentifier(typeof body.activeCompositionId==="string"?body.activeCompositionId:null),
       desiredCompositionId: safePlayerIdentifier(typeof body.desiredCompositionId==="string"?body.desiredCompositionId:null),
@@ -197,6 +199,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     {
+      syncRetryRequestedAt: safeSyncReceipt((heartbeatReceipt as { syncRetryRequestedAt?: unknown } | null)?.syncRetryRequestedAt),
       automation: automation?.success ? automation.data : null,
       ok: true
     },
@@ -281,4 +284,8 @@ function heartbeatFailure(code: string, status: number) {
       status
     }
   );
+}
+
+function safeSyncReceipt(value: unknown) {
+  return typeof value === "string" && value.length <= 80 && Number.isFinite(Date.parse(value)) ? value : null;
 }

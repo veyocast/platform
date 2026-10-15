@@ -266,6 +266,8 @@ export function PlayerRuntime() {
   const preparingCountRef = useRef(0);
   const lastPlaybackErrorRef = useRef<PlaybackErrorReport | null>(null);
   const sendHeartbeatRef = useRef<(() => void) | null>(null);
+  const syncRetryRequestedRef = useRef<string | null>(null);
+  const syncRetryAcknowledgedRef = useRef<string | null>(null);
   const playbackReadyRef = useRef(false);
   const pairingMachineRef = useRef<PairingMachineSnapshot>(pairingMachine);
   const playbackTimerStateRef = useRef<{
@@ -1148,6 +1150,7 @@ export function PlayerRuntime() {
       syncInFlight = true;
       manifestController = new AbortController();
       const requestController = manifestController;
+      const syncReceipt = syncRetryRequestedRef.current;
       const requestTimeout = window.setTimeout(() => requestController.abort(), 10_000);
       let syncSucceeded = false;
       let nextSyncBaseDelayMs = isWaitingContentRuntime(runtimeRef.current)
@@ -1345,6 +1348,10 @@ export function PlayerRuntime() {
         window.clearTimeout(requestTimeout);
         manifestController = null;
         syncInFlight = false;
+        if (syncSucceeded && syncReceipt && syncRetryRequestedRef.current === syncReceipt && syncRetryAcknowledgedRef.current !== syncReceipt) {
+          syncRetryAcknowledgedRef.current = syncReceipt;
+          sendHeartbeatRef.current?.();
+        }
         consecutiveSyncFailures = syncSucceeded
           ? 0
           : Math.min(consecutiveSyncFailures + 1, 8);
@@ -1553,6 +1560,14 @@ export function PlayerRuntime() {
       }
       handleNetworkOnline();
     }
+    function handleSyncRequest(event: Event) {
+      const receipt = (event as CustomEvent<string>).detail;
+      if (!receipt || receipt === syncRetryRequestedRef.current) return;
+      syncRetryRequestedRef.current = receipt;
+      manifestEtag = null;
+      handleNetworkOnline();
+    }
+    window.addEventListener("veyocast:sync-requested", handleSyncRequest);
     function handleResume() { if (document.visibilityState === "visible") handleNetworkOnline(); }
     window.addEventListener("veyocast:target-invalidated", handleInvalidation);
     document.addEventListener("visibilitychange", handleResume);
@@ -1574,6 +1589,7 @@ export function PlayerRuntime() {
       manifestController?.abort();
       latestTargetRef.current.cancel();
       pendingTargetRef.current = null;
+      window.removeEventListener("veyocast:sync-requested", handleSyncRequest);
       window.removeEventListener("veyocast:target-invalidated", handleInvalidation);
       document.removeEventListener("visibilitychange", handleResume);
       window.removeEventListener("pageshow", handleNetworkOnline);
@@ -1945,6 +1961,7 @@ export function PlayerRuntime() {
       try {
         const response = await fetchPlayerOrigin("/api/player/heartbeat", {
           body: JSON.stringify({
+            syncRetryAcknowledgedAt: syncRetryAcknowledgedRef.current,
             activeReleaseId: presentedReleaseIdRef.current,
             activeCompositionId:compositionAckRef.current?.split(":")[0]??null,
             desiredCompositionId:playbackRuntime?.release.envelope.composition?.published.id??null,
@@ -1978,8 +1995,12 @@ export function PlayerRuntime() {
         if (!response.ok) throw new Error("Heartbeat is geweigerd.");
         const heartbeat = await response.json().catch(() => null) as {
           automation?: unknown;
+          syncRetryRequestedAt?: string | null;
           ok?: boolean;
         } | null;
+        if (typeof heartbeat?.syncRetryRequestedAt === "string" && Number.isFinite(Date.parse(heartbeat.syncRetryRequestedAt))) {
+          window.dispatchEvent(new CustomEvent("veyocast:sync-requested", { detail: heartbeat.syncRetryRequestedAt }));
+        }
         if (heartbeat?.automation !== undefined) {
           storeAutomationSync(window.localStorage, heartbeat.automation);
         }

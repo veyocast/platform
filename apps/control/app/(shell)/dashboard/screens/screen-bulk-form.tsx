@@ -92,7 +92,7 @@ export function ScreenBulkForm({
                 </div>
               ) : null}
               <Button formAction={syncAction} type="submit" variant="secondary">
-                Synchronisatie opnieuw proberen
+                Nu synchroniseren
               </Button>
             </>
           )}

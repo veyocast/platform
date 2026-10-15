@@ -193,8 +193,8 @@ select is(
   'only the allowlisted safe Player error code is persisted'
 );
 select ok(
-  (select sync_retry_requested_at is null from public.player_devices where tenant_id = '10000000-0000-4000-8000-000000000271' and status = 'paired'),
-  'heartbeat acknowledges and clears the retry request'
+  (select sync_retry_requested_at is not null from public.player_devices where tenant_id = '10000000-0000-4000-8000-000000000271' and status = 'paired'),
+  'an ordinary heartbeat cannot consume an unexecuted retry request'
 );
 
 set local role authenticated;
