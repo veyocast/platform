@@ -94,7 +94,7 @@ const menuWidget = z.object({
   column: z.enum(["full", "left", "right"]), columns: z.union([z.literal(1), z.literal(2)]),
   title: shortText, subtitle: text.optional(), image: asset.optional(),
   aspectRatio: z.enum(["16:9", "9:16"]).optional(), fit: z.enum(["cover", "contain", "fill"]).optional(),
-  rows: z.array(row.extend({ column: z.union([z.literal(1), z.literal(2)]) })).max(100)
+  rows: z.array(row.extend({ column: z.union([z.literal(1), z.literal(2)]), secondary: z.string().optional() })).max(100)
 }).strict();
 
 export const sitesTvContentSchema = z.object({

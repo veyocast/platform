@@ -2,12 +2,23 @@ import { describe, expect, it } from "vitest";
 
 import {
   menuDocumentV2Schema,
+  menuProductPlacementSchema,
+  menuFreeTextLineItemSchema,
   menuProductGroupPlacementSchema,
   menuStudioCommandSchema,
   type MenuDocumentV2
 } from "../src/menu-studio";
 
 describe("MenuDocument.v2", () => {
+  it("laat vrije subregels langer dan 24 of 1000 tekens toe en begrenst alleen geldige productbedragen", () => {
+    expect(menuFreeTextLineItemSchema.parse({id:"free",order:0,kind:"free-text",presentationOnly:true,label:"a".repeat(2000)}).label).toHaveLength(2000);
+    const linked=validGroup().secondaryLineItems[0]!;
+    if(linked.kind!=="linked-product")throw Error("fixture");
+    const product={...linked,kind:"product"};
+    for(const priceOverrideMinor of [undefined,null,0,350,999_999_999])expect(menuProductPlacementSchema.safeParse({...product,priceOverrideMinor}).success).toBe(true);
+    for(const priceOverrideMinor of [-1,1.5,"350",1_000_000_000])expect(menuProductPlacementSchema.safeParse({...product,priceOverrideMinor}).success).toBe(false);
+  });
+
   it("accepteert één strikt document voor de tien canonieke thema's", () => {
     for (const themeId of themeIds) {
       expect(menuDocumentV2Schema.safeParse(document({ themeId })).success).toBe(true);
@@ -35,7 +46,7 @@ describe("MenuDocument.v2", () => {
     }).success).toBe(false);
   });
 
-  it("normaliseert subregellabels en blokkeert besturingstekens, meer dan 24 graphemes en onveilige wrapping", () => {
+  it("normaliseert subregellabels en blokkeert besturingstekens en onveilige groepswrapping", () => {
     const group = validGroup();
     const freeText = group.secondaryLineItems[1]!;
     const normalized = menuProductGroupPlacementSchema.parse({
@@ -43,7 +54,7 @@ describe("MenuDocument.v2", () => {
       secondaryLineItems: [group.secondaryLineItems[0], { ...freeText, label: "  cafe\u0301  " }]
     });
     expect(normalized.secondaryLineItems[1]).toMatchObject({ label: "café" });
-    for (const label of ["a".repeat(25), "Verborgen\u0000tekst"]) {
+    for (const label of ["Verborgen\u0000tekst"]) {
       expect(menuProductGroupPlacementSchema.safeParse({
         ...group,
         secondaryLineItems: [group.secondaryLineItems[0], { ...freeText, label }]

@@ -106,11 +106,9 @@ set menu_document_v2_read_enabled = true,
     menu_studio_v2_player_enabled = true
 where tenant_id = '10000000-0000-4000-8000-000000001121';
 
-select throws_ok(
+select lives_ok(
   $$select private.validate_menu_node_v2('{"kind":"free-text","label":"1234567890123456789012345","presentationOnly":true}'::jsonb)$$,
-  '22023',
-  'free menu line contains product semantics',
-  'free menu labels are limited to 24 visible codepoints server-side'
+  'free menu labels may exceed 24 characters server-side'
 );
 
 select throws_ok(

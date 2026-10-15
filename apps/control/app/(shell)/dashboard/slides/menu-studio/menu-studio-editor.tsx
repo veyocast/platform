@@ -2065,7 +2065,7 @@ function GroupInspector({
             <input
               aria-label={`${line.kind === "linked-product" ? "Gekoppelde subregel" : "Vrije subregel"} ${index + 1}`}
               defaultValue={line.kind === "free-text" ? line.label : line.labelOverride ?? line.snapshotFallback.variantLabel ?? line.snapshotFallback.name}
-              maxLength={24}
+              maxLength={line.kind === "free-text" ? undefined : 24}
               onBlur={(event) => {
                 const label = event.currentTarget.value.trim();
                 if (!label) return;

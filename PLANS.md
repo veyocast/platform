@@ -400,3 +400,9 @@ S215 herstelt de echte Studio-create-aanvraag en breidt Menu Studio uit met
 getypeerde widgets, productkolommen, subregels en pagina’s. Preview, PNG en
 Player delen één projectie; prijs-/tenantguards en immutable publicatie blijven
 leidend. Validatie en uitrol staan in `docs/s215-menu-widgets-and-studio-create.md`.
+
+S220 zet de clubslogan binnen de oorspronkelijke productencontainer, maakt
+Menu Studio-widgets en producten exclusief inklapbaar en voegt plaatsingsgebonden
+naam-/prijsbewerking toe. Automatische producten vullen eerst kolom 1 en daarna
+kolom 2. Vrije productsubregels hebben geen tekenlimiet; validatie en gedeelde
+HTML-projectie blijven tenantveilig. Zie `docs/s220-menu-studio-editing.md`.

@@ -34,8 +34,9 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
     "--vm-image-width": `${(nativeWidth - (portrait ? 184 : 192) - 2 * inset) / (menuPage.columns === 2 ? 2 : 1)}px`
   } as CSSProperties;
   return <div className="vm-frame" style={{ width: width ?? nativeWidth, height: width ? width * nativeHeight / nativeWidth : nativeHeight }}>
-    <SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === "#03438a" ? "" : " vm-custom-accent"}`} canvasStyle={style} backgroundOverride={background || (config.themeId === "onzetrots-tv" && config.overlay > 0) ? { src: background, fit: background ? config.backgroundFit : "cover", overlay: config.overlay } : undefined} canvasFooter={<strong className="vm-menu-slogan">Onze Club. Onze Trots.</strong>}>
-      <div className="ucc-body" data-fit-box><div className="ucc-content ucc-canteen ucc-menu-columns vm-content" data-fit-content>
+    <SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === "#03438a" ? "" : " vm-custom-accent"}`} canvasStyle={style} backgroundOverride={background || (config.themeId === "onzetrots-tv" && config.overlay > 0) ? { src: background, fit: background ? config.backgroundFit : "cover", overlay: config.overlay } : undefined}>
+      <div className="ucc-body"><div className="ucc-content ucc-canteen ucc-menu-columns vm-menu-panel">
+        <div className="vm-products-fit" data-fit-box><div className="vm-content" data-fit-content>
         <div className="ucc-menu-grid vm-widgets" data-columns={menuPage.columns} data-full={full}>
           {menuPage.widgets.map((widget, index) => <section key={widget.id} className={`ucc-menu-category vm-widget vm-${widget.type}`} data-column={widget.column}>
             {(widget.title || widget.subtitle) && <header><span>{String(index + 1).padStart(2, "0")}</span><div><h2>{widget.title}</h2>{widget.subtitle && <p>{widget.subtitle}</p>}</div></header>}
@@ -53,6 +54,8 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
             </div>
           </section>)}
         </div>
+        </div></div>
+        <strong className="vm-menu-slogan">Onze Club. Onze Trots.</strong>
       </div></div>
     </SitesUnifiedV17Markup>
   </div>;
