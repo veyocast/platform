@@ -38,6 +38,19 @@ attribuutwaarden, declaraties en de frozen bron-CSS blijven intact. Een aparte
 regressie bewijst de fout vóór en na herstel; de browser controleert nu ook de
 werkelijke witte paneelkleur.
 
+Een aanvullende proef gebruikt de werkelijke Chromium 79.0.3945.0-engine uit
+Google's officiële Linux-snapshot 706915, met de echte door Next gegenereerde
+LG-route en uitsluitend lokale fixture-API's. Zonder gestubde features meldt
+hij zowel ratio- als inset-ondersteuning afwezig. De kaart verschijnt correct,
+maar de originele achtergrond werd aanvankelijk te klein: CSS `inset` werd
+geheel genegeerd. De adapter zet de vaste bronshorthands nu om naar equivalente
+fysieke randen, inclusief `auto`, prioriteit en latere randoverschrijvingen.
+De echte oudere engine meet daarna zowel preview als achtergrond op de volle
+native verhouding. Capture en product-/sloganpositie zijn visueel gecontroleerd.
+Dit is een begrensde raw-CDP-proef, geen volledige Playwright-suite op die oude
+engine: modern Playwright kan zijn `Browser.setDownloadBehavior`-commando daar
+niet uitvoeren. Ook dit blijft afzonderlijk van fysiek LG-hardwarebewijs.
+
 De LG-runtime geeft nu ook de binnenste menu-preview de gepubliceerde native
 breedte en hoogte. De bestaande viewportschaling, bronvormgeving en
 productcontent blijven gelijk. Vóór activering controleert hij bovendien dat
@@ -49,7 +62,7 @@ media wordt tijdens voorbereiding behouden.
 Validatie vóór commit:
 
 - Workspace lint, typecheck en unit: elk 30/30 taken groen; de Player voert
-  399 assertions in 71 testbestanden uit, inclusief de ES5-runtimecontrole.
+  400 assertions in 71 testbestanden uit, inclusief de ES5-runtimecontrole.
 - De nieuwe portrait/landscapeproeven falen vóór de fix op 0 px hoogte; de
   commentaarproef faalt vóór de tweede fix op een ongeldige selectorlijst.
 - Volledige LG-compositiesuite en offline-suite: 17 + 7 browserproeven; zichtbaar
