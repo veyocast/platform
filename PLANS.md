@@ -1,5 +1,10 @@
 # VeyoCast MVP Plan
 
+S222 herstelt MP4-verwerking na een geslaagde upload met een eindig
+duurafhankelijk transcodebudget en een bijpassende mediajoblease. Bestaande
+bronnen kunnen opnieuw worden verwerkt zonder upload; media-, tenant- en
+publicatievalidatie blijven behouden. Zie `docs/s222-video-processing-budget.md`.
+
 S219 verwijdert de twee vaste hulpteksten uit Menu Studio-menukaarten en zet
 de clubslogan vast in de uiterste linkeronderhoek van het slidecanvas. Zie
 `docs/s219-menu-copy-footer-hotfix.md`.

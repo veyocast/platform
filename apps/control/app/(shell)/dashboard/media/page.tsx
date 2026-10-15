@@ -1421,7 +1421,7 @@ function processingExplanation(processing: ProcessingSummary) {
     command_failed: "De worker kon FFmpeg tijdelijk niet uitvoeren.",
     complete_failed: "De geverifieerde playervariant kon niet transactioneel worden geregistreerd. Probeer de verwerking opnieuw.",
     normalization_failed: "De video kon niet naar het playercontract worden genormaliseerd.",
-    processing_timeout: "De video kon niet binnen één minuut veilig worden verwerkt. Lever bij voorkeur H.264/AAC tot 1080p30 aan.",
+    processing_timeout: "De video overschreed de verwerkingslimiet. Het bronbestand is opgeslagen; kies Verwerking opnieuw proberen. Blijft dit gebeuren, exporteer dan als H.264 tot 1080p30.",
     player_upload_failed: "De geverifieerde variant kon niet naar private opslag worden geschreven.",
     player_upload_timeout: "Het opslaan van de playervariant duurde langer dan acht seconden.",
     source_download_failed: "De worker kon de bron tijdelijk niet ophalen.",

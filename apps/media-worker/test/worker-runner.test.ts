@@ -57,6 +57,15 @@ describe("media worker runner", () => {
     expect(backend.downloadOriginal).not.toHaveBeenCalled();
   });
 
+  it("keeps media leased through a long transcode even when other queues use 60 seconds", async () => {
+    const backend = createBackend(null);
+    await runWorkerOnce({backend, config: {...config, lockTimeoutSeconds: 60}});
+    expect(backend.claimJob).toHaveBeenCalledWith(config.workerId, 900, config.maxAttempts);
+    const longerLease = createBackend(null);
+    await runWorkerOnce({backend: longerLease, config: {...config, lockTimeoutSeconds: 1_800}});
+    expect(longerLease.claimJob).toHaveBeenCalledWith(config.workerId, 1_800, config.maxAttempts);
+  });
+
   it("verifies, normalizes, uploads and atomically completes a claimed job", async () => {
     const backend = createBackend(job);
     const normalize = vi.fn(async ({ outputPath }: { inputPath: string; outputPath: string }) => {

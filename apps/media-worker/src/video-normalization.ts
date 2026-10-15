@@ -52,7 +52,15 @@ export class VideoProcessingError extends Error {
 }
 
 const maximumCapturedOutputBytes = 5 * 1024 * 1024;
-export const maximumNormalizationTimeMs = 40_000;
+const commandTimeoutMs = 40_000;
+export const maximumNormalizationTimeMs = 600_000;
+
+/** CPU work scales with duration; copies and probes keep their short deadline. */
+export function normalizationTimeoutMs(input: VideoProbe) {
+  if (canRemuxWithoutTranscoding(input)) return commandTimeoutMs;
+  return Math.min(maximumNormalizationTimeMs,
+    Math.max(120_000, Math.ceil(input.durationSeconds * 3 + 30) * 1_000));
+}
 
 export async function probeVideoFile(
   inputPath: string,
@@ -80,7 +88,7 @@ export async function normalizePlayerVideo({
 
   try {
     await runner("ffmpeg", buildNormalizationArguments(inputPath, outputPath, input), {
-      timeoutMs: maximumNormalizationTimeMs
+      timeoutMs: normalizationTimeoutMs(input)
     });
   } catch (error) {
     if (error instanceof VideoProcessingError) throw error;
@@ -110,7 +118,7 @@ export async function createPlayerVideoPoster({
     "-map", "0:v:0", "-frames:v", "1",
     "-vf", "thumbnail,scale=w='if(gte(iw,ih),min(1920,iw),min(1080,iw))':h='if(gte(iw,ih),min(1080,ih),min(1920,ih))':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos",
     "-an", "-f", "image2", outputPath
-  ], { timeoutMs: maximumNormalizationTimeMs });
+  ], { timeoutMs: commandTimeoutMs });
   return outputPath;
 }
 
@@ -123,12 +131,12 @@ export function buildNormalizationArguments(
     ? ["-c:v", "copy"]
     : [
       "-vf", "scale=w='if(gte(iw,ih),min(1920,iw),min(1080,iw))':h='if(gte(iw,ih),min(1080,ih),min(1920,ih))':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1,fps=30",
-      "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.0",
+      "-c:v", "libx264", "-threads", "2", "-profile:v", "main", "-level:v", "4.0",
       "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "21",
       "-maxrate", "6M", "-bufsize", "12M"
     ];
   return [
-    "-hide_banner", "-nostdin", "-y", "-i", inputPath,
+    "-hide_banner", "-nostdin", "-y", "-threads", "2", "-filter_threads", "2", "-i", inputPath,
     "-map", "0:v:0",
     ...codecArguments,
     "-an",
@@ -273,7 +281,7 @@ export function runCommand(
         `Commando ${executable} overschreed de tijdslimiet.`,
         "processing_timeout"
       );
-    }, options.timeoutMs ?? maximumNormalizationTimeMs);
+    }, options.timeoutMs ?? commandTimeoutMs);
 
     function append(current: string, chunk: Buffer) {
       const next = current + chunk.toString("utf8");
