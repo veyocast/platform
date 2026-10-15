@@ -257,8 +257,25 @@ export function lgSitesRuntimeScript() {
           if (/cqw|cqh|cqmin|cqmax/.test(value)) nodes[index].style.setProperty(name, normalizeLgSitesCss(value, width, height), nodes[index].style.getPropertyPriority(name));
         }
       }
-      var canvas = artboard.firstElementChild;
-      if (canvas) { canvas.style.width = String(width) + "px"; canvas.style.height = String(height) + "px"; canvas.style.maxWidth = String(width) + "px"; canvas.style.maxHeight = String(height) + "px"; }
+      // Menu widgets wrap the native preview in vm-frame. Old webOS ignores
+      // intrinsic CSS ratios, so sizing only the outer wrapper leaves its clipped
+      // uc-preview at zero height even though the slide children have bounds.
+      var canvases = Array.prototype.slice.call(artboard.querySelectorAll(".vm-frame > .uc-preview"));
+      if (artboard.firstElementChild) canvases.unshift(artboard.firstElementChild);
+      for (var frame = 0; frame < canvases.length; frame += 1) {
+        var canvas = canvases[frame];
+        canvas.style.width = String(width) + "px"; canvas.style.height = String(height) + "px";
+        canvas.style.maxWidth = String(width) + "px"; canvas.style.maxHeight = String(height) + "px";
+      }
+    }
+    function lgSitesFrameReady(artboard) {
+      if (!artboard.firstElementChild) return false;
+      var frames = Array.prototype.slice.call(artboard.querySelectorAll(".uc-preview"));
+      frames.push(artboard.firstElementChild);
+      return frames.every(function (frame) {
+        var bounds = frame.getBoundingClientRect();
+        return isFinite(bounds.width) && isFinite(bounds.height) && bounds.width > 0 && bounds.height > 0;
+      });
     }
     function lgSitesCompileCss(css, width, height) {
       var calculations = [];
@@ -395,6 +412,7 @@ export function lgSitesRuntimeScript() {
             window.requestAnimationFrame(function () {
               if (generation !== runtime.playbackGeneration || runtime.pendingElement !== root) return;
               fit();
+              if (!lgSitesFrameReady(artboard)) { log("LEGACY_SITES_FRAME_UNAVAILABLE", item.id); return; }
               if (commitPendingMedia(root, allUrls, generation)) { window.clearTimeout(runtime.watchdogTimer); runtime.watchdogTimer = null; scheduleTemplateAdvance(advance, Math.max(1000, Number(resolved.document.pageDurationSeconds) * 1000 || itemDurationMs(item))); }
             });
           });

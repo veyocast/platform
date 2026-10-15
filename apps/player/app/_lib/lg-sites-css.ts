@@ -35,8 +35,13 @@ export function normalizeLgSitesCss(css: string, width: number, height: number, 
     return result;
   }
   css = css.replace(/([^{}]+)\{/g,function (match,prelude) {
-    if (prelude.trim().charAt(0) === "@" || !/:(?:is|where)\(/.test(prelude)) return match;
-    var selectors = splitSelectors(prelude); var expanded: string[] = [];
+    // Source comments contain commas and may describe selectors. They are not
+    // selector-list entries; retain quoted attribute values verbatim.
+    var selectorPrelude = prelude.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\/\*[\s\S]*?\*\//g, function (token: string) {
+      return token.slice(0, 2) === "/*" ? "" : token;
+    });
+    if (selectorPrelude.trim().charAt(0) === "@" || !/:(?:is|where)\(/.test(selectorPrelude)) return match;
+    var selectors = splitSelectors(selectorPrelude); var expanded: string[] = [];
     for (var index = 0; index < selectors.length; index += 1) expanded = expanded.concat(expandSelector(selectors[index]!));
     return expanded.join(",") + "{";
   });

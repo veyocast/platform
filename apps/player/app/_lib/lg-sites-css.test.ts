@@ -43,4 +43,9 @@ describe("Sites fixed-canvas CSS for legacy LG",()=>{
   expect(original).toContain("cqw"); expect(normalized).not.toMatch(/\d(?:cqw|cqh|cqmin|cqmax)\b/);
   expect(sitesLedCss+sitesTvCss).toBe(original);expect(normalized).toContain("minmax(");
  });
+ it("keeps commas and selector-like text inside comments out of expanded surface selectors",()=>{
+  const css='/* One panel, rather than cards; :is(example,other). */\n.canvas :is(.panel,.menu){background:var(--surface);content:"/* keep, literal */"}';
+  expect(normalizeLgSitesCss(css,1080,1920)).toBe('\n.canvas .panel,\n.canvas .menu{background:var(--surface);content:"/* keep, literal */"}');
+  expect(normalizeLgSitesCss('.canvas[data-label="/* keep, literal */"] :is(h1,h2){color:red}',1080,1920)).toContain('[data-label="/* keep, literal */"] h1');
+ });
 });

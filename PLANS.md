@@ -406,3 +406,8 @@ Menu Studio-widgets en producten exclusief inklapbaar en voegt plaatsingsgebonde
 naam-/prijsbewerking toe. Automatische producten vullen eerst kolom 1 en daarna
 kolom 2. Vrije productsubregels hebben geen tekenlimiet; validatie en gedeelde
 HTML-projectie blijven tenantveilig. Zie `docs/s220-menu-studio-editing.md`.
+
+S221 herstelt een zwart OnzeTrots-menu op LG door de binnenste native preview
+expliciet te dimensioneren wanneer CSS-ratio's ontbreken. Een nulframe wordt
+niet meer als weergegeven bevestigd; regressies controleren zichtbare pixels,
+viewportschaling en offlinebehoud. Zie `docs/s221-lg-menu-black-screen.md`.
