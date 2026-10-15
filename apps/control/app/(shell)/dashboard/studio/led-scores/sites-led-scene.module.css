@@ -170,3 +170,7 @@
 }
 
 .styleTv{background:linear-gradient(130deg,#002f73d9,#03438a70),url("/onzetrots-tv/assets/clubmuur-wall.webp") center/cover;color:#fff}.styleTv>span{font-size:20px}.styleTv>strong{font-size:40px}
+
+/* The complete design fits the viewport; portrait never inherits native canvas width. */
+.previewFrame { height: clamp(180px, calc(100svh - 260px), 640px); min-width: 0; min-height: 0; }
+.previewHead { flex-wrap: wrap; }

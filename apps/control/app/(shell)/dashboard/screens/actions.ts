@@ -219,10 +219,10 @@ export async function requestScreenSyncRetry(formData: FormData) {
     p_screen_id: screenId,
     p_tenant_id: session.tenantId
   });
-  if (error) fail(`/dashboard/screens/${screenId}?tab=sync`, deviceMutationFailure(error.code));
+  if (error) fail(`/dashboard/screens/${screenId}?tab=health`, deviceMutationFailure(error.code));
   complete(
-    `/dashboard/screens/${screenId}?tab=sync`,
-    "Het retryverzoek is vastgelegd. De Player pakt dit op bij de eerstvolgende verbinding; de huidige release blijft spelen.",
+    `/dashboard/screens/${screenId}?tab=health`,
+    "Synchronisatie aangevraagd. Een online Player haalt binnen 30 seconden de actuele publicatie op. De huidige inhoud blijft zichtbaar tot de nieuwe inhoud gereed is.",
     screenId
   );
 }

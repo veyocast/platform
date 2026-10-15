@@ -1060,6 +1060,9 @@ export function renderLgLegacyHtml() {
       deviceToken: null,
       envelope: null,
       forceManifestRefresh: false,
+      syncRetryRequestedAt: null,
+      syncRetryAcknowledgedAt: null,
+      lastPlaybackError: null,
       goalAckFlushTimer: null,
       goalAckInFlight: false,
       goalAckRetryAttempts: {},
@@ -5071,6 +5074,7 @@ export function renderLgLegacyHtml() {
     }
     function syncManifest() {
       var forceRefresh = runtime.forceManifestRefresh;
+      var syncReceipt = runtime.syncRetryRequestedAt;
       var headers;
       var knownReleaseId;
       if (!runtime.identityReady) return;
@@ -5133,6 +5137,8 @@ export function renderLgLegacyHtml() {
             return;
           }
           if (!transport && status >= 200 && status < 300 && isWaitingEnvelope(body)) {
+            if (syncReceipt && runtime.syncRetryRequestedAt === syncReceipt) runtime.syncRetryAcknowledgedAt = syncReceipt;
+            runtime.forceManifestRefresh = false;
             clearTemporaryPairing();
             runtime.syncFailures = 0;
             runtime.pendingRelease = null;
@@ -5209,14 +5215,15 @@ export function renderLgLegacyHtml() {
                 return;
               }
               if (runtime.publicationTrace && runtime.publicationTrace.releaseId === releaseIdOf(body)) runtime.publicationTrace.assetsReadyAt = new Date().toISOString();
-              runtime.forceManifestRefresh = false;
+              if (syncReceipt && runtime.syncRetryRequestedAt === syncReceipt) runtime.syncRetryAcknowledgedAt = syncReceipt;
+              runtime.forceManifestRefresh = Boolean(runtime.syncRetryRequestedAt && runtime.syncRetryRequestedAt !== runtime.syncRetryAcknowledgedAt);
               if (releaseIdOf(runtime.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(body)) {
                 runtime.pendingRelease = null;
                 refreshSameReleaseMediaAccess(body);
                 runtime.itemFailures = {};
                 setState(runtime.offline ? "OFFLINE_PLAYING" : "PLAYING");
                 runtime.syncPhase = "active";
-                if (forceRefresh) playCurrent();
+                if (forceRefresh && (runtime.presentedReleaseId !== releaseIdOf(body) || runtime.lastPlaybackError && !runtime.lastPlaybackError.recoveredAt)) playCurrent();
                 persistRelease(runtime.envelope, prepared.assets, function () {});
                 scheduleManifestSync(CONFIG.manifestIntervalMs);
                 sendHeartbeat();
@@ -5872,6 +5879,7 @@ export function renderLgLegacyHtml() {
       runtime.pendingObjectUrls = [];
       runtime.currentElement = element;
       runtime.currentObjectUrls = objectUrls || [];
+      if (runtime.lastPlaybackError && !runtime.lastPlaybackError.recoveredAt) runtime.lastPlaybackError.recoveredAt = new Date().toISOString();
       element.className += " visible";
       lgEngageFallbackReady();
       if (previousElement && previousElement.birthdayCleanup) { previousElement.birthdayCleanup(); previousElement.birthdayCleanup = null; }
@@ -9891,8 +9899,8 @@ export function renderLgLegacyHtml() {
         startVideo(video, generation);
       };
       video.oncanplay = function () { startVideo(video, generation); };
-      video.onplaying = function () {
-        if (generation !== runtime.playbackGeneration) return;
+      function confirmVideoFrame() {
+        if (generation !== runtime.playbackGeneration || video.readyState < 2 || video.paused || !video.videoWidth || !video.videoHeight) return;
         runtime.lastProgressAt = monotonicNow();
         if (!committed) {
           window.clearTimeout(runtime.watchdogTimer);
@@ -9908,7 +9916,11 @@ export function renderLgLegacyHtml() {
           try { video.pause(); } catch (error) {}
         }
       };
+      video.onplaying = confirmVideoFrame;
       video.ontimeupdate = function () {
+        // Some webOS decoders advance real frames without dispatching playing.
+        // Time progression + decoded dimensions is evidence; play() resolving is not.
+        if (!committed && video.currentTime > (Number(item.trim && item.trim.startSeconds) || 0) + 0.04) confirmVideoFrame();
         if (!committed || runtime.currentElement !== video) return;
         runtime.lastProgressAt = monotonicNow();
         if (
@@ -9931,7 +9943,7 @@ export function renderLgLegacyHtml() {
       runtime.watchdogTimer = window.setTimeout(function () {
         if (
           generation === runtime.playbackGeneration &&
-          (!video || video.paused || video.readyState < 2)
+          !committed
         ) {
           fallbackOrFail("LEGACY_VIDEO_START_TIMEOUT");
         }
@@ -9975,6 +9987,8 @@ export function renderLgLegacyHtml() {
       var attempts = runtime.itemFailures[key] || 0;
       runtime.itemFailures[key] = attempts + 1;
       log(code, key);
+      runtime.lastPlaybackError = { code: code, itemId: key, occurredAt: new Date().toISOString(), action: "retry" };
+      sendHeartbeat();
       cancelPendingMedia();
       if (
         code === "LEGACY_CACHE_MISSING" ||
@@ -10126,6 +10140,8 @@ export function renderLgLegacyHtml() {
         runtime.pendingRelease.envelope &&
         runtime.pendingRelease.envelope.manifest;
       return {
+        syncRetryAcknowledgedAt: runtime.syncRetryAcknowledgedAt,
+        lastPlaybackError: runtime.lastPlaybackError,
         mediaTraffic: playerMediaTraffic.snapshot(),
         goalVideoDiagnostics: goalVideoTelemetry(),
         goalVideoCapabilities: goalVideoCapabilities("static-lg", CONFIG.appVersion),
@@ -10149,7 +10165,7 @@ export function renderLgLegacyHtml() {
         runtimeVersion: CONFIG.appVersion,
         publicationTrace: runtime.publicationTrace,
         preparationError: runtime.preparationError,
-        syncPhase: runtime.syncPhase
+        syncPhase: runtime.lastPlaybackError && !runtime.lastPlaybackError.recoveredAt ? "failed" : runtime.syncPhase === "active" && runtime.presentedReleaseId !== releaseIdOf(runtime.envelope) ? "verifying" : runtime.syncPhase
       };
     }
     function sendHeartbeat() {
@@ -10168,6 +10184,13 @@ export function renderLgLegacyHtml() {
         JSON.stringify(heartbeatBody()),
         function (transport, status, body) {
           runtime.heartbeatInFlight = false;
+          if (!transport && status >= 200 && status < 300 && body && typeof body.syncRetryRequestedAt === "string" && parsePlayerTimestamp(body.syncRetryRequestedAt) !== null && body.syncRetryRequestedAt !== runtime.syncRetryRequestedAt) {
+            runtime.syncRetryRequestedAt = body.syncRetryRequestedAt;
+            runtime.forceManifestRefresh = true;
+            runtime.syncFailures = 0;
+            runtime.manifestEtag = null;
+            scheduleManifestSync(0);
+          }
           if (runtime.heartbeatPending) { runtime.heartbeatPending = false; window.setTimeout(sendHeartbeat, 0); }
           var code = errorCode(body, transport || "PLAYER_API_UNAVAILABLE");
           if (

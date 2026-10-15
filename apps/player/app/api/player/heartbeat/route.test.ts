@@ -34,12 +34,21 @@ describe("player heartbeat API", () => {
     expect(await response.json()).toMatchObject({ ok: true });
     expect(rpc).toHaveBeenNthCalledWith(
       1,
-      "record_player_heartbeat_v2",
+      "record_player_heartbeat_v3",
       expect.objectContaining({
         p_runtime_state: "PLAYING",
         p_sync_phase: null
       })
     );
+  });
+
+  it("levert een exact sync-verzoek en de Playerbevestiging zonder timestampafronding", async () => {
+    const stamp = "2026-10-15T23:00:01.123456+00:00";
+    rpc.mockResolvedValueOnce({ data: { heartbeatId: "heartbeat", syncRetryRequestedAt: stamp }, error: null })
+      .mockResolvedValueOnce({ data: null, error: null });
+    const response = await heartbeat({ runtimeState: "PLAYING", syncPhase: "active", syncRetryAcknowledgedAt: stamp });
+    expect(await response.json()).toMatchObject({ ok: true, syncRetryRequestedAt: stamp });
+    expect(rpc).toHaveBeenNthCalledWith(1, "record_player_heartbeat_v3", expect.objectContaining({ p_sync_detail: expect.objectContaining({ syncRetryAcknowledgedAt: stamp }) }));
   });
 
   it("verwijdert een geldige schermcredential niet bij een heartbeat-validatiefout", async () => {
@@ -92,6 +101,7 @@ describe("player heartbeat API", () => {
 function heartbeat(body: {
   runtimeState: string;
   syncPhase: string | null;
+  syncRetryAcknowledgedAt?: unknown;
 }) {
   return POST(
     new Request("https://player.veyocast.nl/api/player/heartbeat", {

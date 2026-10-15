@@ -220,7 +220,8 @@ describe("zelfstandige LG Legacy Player", () => {
     expect(html).toContain("LEGACY_DEVICE_CREDENTIAL_RECOVERED");
     expect(html).toContain("VEYOCAST_LG_PLAYER_READY");
     expect(html).toContain('path: "/lg"');
-    expect(html).toContain("syncPhase: runtime.syncPhase");
+    expect(html).toContain('syncPhase: runtime.lastPlaybackError');
+    expect(html).toContain('runtime.presentedReleaseId !== releaseIdOf(runtime.envelope) ? "verifying"');
     expect(html).not.toContain('syncPhase: "lg-legacy"');
     expect(html).not.toContain('syncPhase: "lg-legacy-pairing"');
     expect(html).toContain("@keyframes legacy-rss-photo-in");

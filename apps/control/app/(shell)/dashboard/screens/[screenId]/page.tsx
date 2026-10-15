@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
-import { MultiSelectDropdown, SummaryStrip } from "@veyocast/ui";
+import { Button, MultiSelectDropdown, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
@@ -77,7 +77,8 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
     <PageHeader
       actions={screen ? <div className="page-action-group">
         <Link className="button-link button-link--secondary" href={`/dashboard/screens/new?screen=${screen.id}`}>Onboarding openen</Link>
-        <Link className="button-link button-link--primary" href={`/dashboard/screens/${screen.id}?tab=health`}>Gezondheid bekijken</Link>
+        <Link className="button-link button-link--secondary" href={`/dashboard/screens/${screen.id}?tab=health`}>Gezondheid bekijken</Link>
+        <form action={requestScreenSyncRetry}><input name="screenId" type="hidden" value={screen.id} /><Button variant="primary" size="md" disabled={!canManage || !pairedDevice || screen.status !== "active"} type="submit">Nu synchroniseren</Button></form>
       </div> : null}
       description={screen ? `${screen.location || "Geen locatie"} · ${orientationLabel(screen.orientation)} · ${resolutionLabel(screen)}` : "Het scherm kon niet worden geladen."}
       eyebrow={`${session.tenant} · Schermdetail`}
@@ -468,8 +469,8 @@ function SyncTab({ canManage, device, heartbeats, releases, screenId, syncEvents
       ]}
     />
     <section className="data-surface" aria-labelledby="sync-actions-title">
-      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="sync-actions-title">Gecontroleerd opnieuw proberen</h2><p className="work-panel__meta">Het verzoek wordt traceerbaar vastgelegd en bij de eerstvolgende Playerverbinding bevestigd. De actieve release blijft spelen.</p></div><StatusPill label={device?.syncRetryRequestedAt ? "Retry aangevraagd" : "Geen open retry"} tone={device?.syncRetryRequestedAt ? "info" : "neutral"} /></div>
-      <form action={requestScreenSyncRetry}><input name="screenId" type="hidden" value={screenId} /><button className="button-link button-link--primary" disabled={!canManage || !device} type="submit">Synchronisatie opnieuw proberen</button></form>
+      <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="sync-actions-title">Publicatie synchroniseren</h2><p className="work-panel__meta">Een online Player controleert binnen 30 seconden de actuele publicatie. Het verzoek blijft bewaard tot de Player de controle bevestigt. De eerste zichtbare frame bevestigt daarna de actieve release.</p></div><StatusPill label={device?.syncRetryRequestedAt ? "Synchronisatie aangevraagd" : "Geen open verzoek"} tone={device?.syncRetryRequestedAt ? "info" : "neutral"} /></div>
+      <form action={requestScreenSyncRetry}><input name="screenId" type="hidden" value={screenId} /><button className="button-link button-link--primary" disabled={!canManage || !device} type="submit">Nu synchroniseren</button></form>
     </section>
     <section className="workspace-section" aria-labelledby="sync-timeline-title"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="sync-timeline-title">Synchronisatietijdlijn</h2><p className="work-panel__meta">Downloaden, verifiëren, wissel gereed, actief en fout blijven afzonderlijk zichtbaar.</p></div><StatusPill label={`${syncEvents.length} gebeurtenissen`} tone="neutral" /></div>{syncEvents.length ? <ol className="screen-event-list">{syncEvents.map((event) => <li key={event.id}><span className="screen-event-list__marker" aria-hidden="true">{syncPhaseIcon(event.phase)}</span><div><strong>{syncPhaseLabel(event.phase)}</strong><p>{event.releaseId ? releaseLabel(event.releaseId, releases) : "Geen release-ID"} · {formatDate(event.createdAt)}</p></div></li>)}</ol> : <p className="notice" role="status">Nog geen synchronisatiegebeurtenissen. De eerste heartbeat en releasevoorbereiding verschijnen hier automatisch.</p>}</section>
   </>;
