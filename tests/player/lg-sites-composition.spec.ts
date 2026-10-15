@@ -1,8 +1,21 @@
 import {createHash} from "node:crypto";
 import {readFileSync} from "node:fs";
+import {createRequire} from "node:module";
+import {join} from "node:path";
 import {execFileSync} from "node:child_process";
 import {expect,test,type Page} from "@playwright/test";
 import systemAssets from "../../packages/content-templates/src/sites-system-assets.json";
+
+const require=createRequire(join(process.cwd(),"package.json"));
+const sharp=require(require.resolve("sharp",{paths:[join(process.cwd(),"apps/media-worker")]}));
+
+/** CSS.supports=false alone leaves Chromium's real aspect-ratio layout enabled. */
+async function withoutAspectRatio(page:Page,extraCss=""){
+ await page.route(`${playerUrl}/lg/legacy`,async route=>{
+  const response=await route.fetch();
+  await route.fulfill({response,body:(await response.text()).replace("</head>",`<style>.uc-preview{aspect-ratio:auto!important}${extraCss}</style></head>`)});
+ });
+}
 
 const playerUrl=`http://127.0.0.1:${process.env.PLAYER_PORT??3106}`;
 const id=(value:number)=>`00000000-0000-4000-8000-${String(value).padStart(12,"0")}`;
@@ -81,10 +94,56 @@ test("LG Engage upgrades the verified Studio fallback with real campaign data an
 
 for(const orientation of ["landscape","portrait"] as const)test(`S215 LG widget pages and portrait image frame ${orientation}`,async({page})=>{
  test.setTimeout(90000);await page.clock.install();await page.setViewportSize(orientation==="portrait"?{width:720,height:1280}:{width:1280,height:720});await page.addInitScript(()=>{if(window.CSS)window.CSS.supports=()=>false;});
+ await withoutAspectRatio(page);
  const data=release(1,"#ff5a1f",30),markup=JSON.parse(execFileSync("pnpm",["--filter","@veyocast/player","exec","tsx","app/_lib/menu-widget-canonical-fixture.ts",orientation],{encoding:"utf8"}));
  Object.assign(data.manifest,{systemAssets:systemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}))});Object.assign(data.manifest.items[0]!,{sitesPresentation:markup});await fixture(page,()=>data);await page.goto(`${playerUrl}/lg/legacy`);
  const canvas=page.locator(".lg-sites-canvas.visible");await expect(canvas.locator(".vm-product strong")).toHaveText("Clubkoffie",{timeout:60000});await expect(canvas.locator(".vm-product small")).toHaveText("Met koekje · Cappuccino");
  const image=canvas.locator('.vm-widget-image[data-ratio="9:16"] img');await expect.poll(()=>image.evaluate(element=>{const rect=element.getBoundingClientRect();return rect.width/rect.height;})).toBeCloseTo(9/16,2);
  expect(await canvas.locator(".vm-product").evaluateAll(rows=>rows.every(row=>{const a=row.getBoundingClientRect(),b=row.closest('.vm-widget')!.getBoundingClientRect();return a.left>=b.left&&a.right<=b.right+1&&a.top>=b.top&&a.bottom<=b.bottom+1;}))).toBe(true);
  await page.clock.fastForward(15100);await expect(canvas.locator(".vm-widget h2")).toHaveText("Koffiedeal");
+});
+
+for(const orientation of ["landscape","portrait"] as const)test(`S221 LG headerless menu paints without aspect-ratio and remains visible offline ${orientation}`,async({page,context},testInfo)=>{
+ test.setTimeout(90000);await page.setViewportSize({width:1920,height:1080});
+ await page.addInitScript(()=>{if(window.CSS)window.CSS.supports=()=>false;});
+ await withoutAspectRatio(page);
+ const data=release(1,"#ff5a1f",15),markup=JSON.parse(execFileSync("pnpm",["--filter","@veyocast/player","exec","tsx","app/_lib/menu-widget-canonical-fixture.ts",orientation,"headerless"],{encoding:"utf8"}));
+ Object.assign(data.manifest,{systemAssets:systemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}))});
+ Object.assign(data.manifest.items[0]!,{sitesPresentation:markup});
+ await fixture(page,()=>data);await page.goto(`${playerUrl}/lg/legacy`);
+ const canvas=page.locator(".lg-sites-canvas.visible");
+ await expect(canvas.locator(".vm-product strong")).toHaveText("Clubkoffie",{timeout:60000});
+ let captureIndex=0;
+ const assertPainted=async()=>{
+  await expect(canvas).toHaveCSS("opacity","1");
+  await expect(canvas.locator(".vm-menu-panel")).toHaveCSS("background-color","rgba(255, 255, 255, 0.92)");
+  expect(await canvas.locator(".uc-preview").evaluate(element=>({width:element.clientWidth,height:element.clientHeight}))).toEqual(orientation==="portrait"?{width:1080,height:1920}:{width:1920,height:1080});
+  for(const selector of [".vm-product strong",".vm-menu-slogan"]){
+   expect(await canvas.locator(selector).evaluate(element=>{const rect=element.getBoundingClientRect();return element.contains(document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2));})).toBe(true);
+  }
+  // A positive child rectangle alone can still be entirely clipped by its parent.
+  const capture=await canvas.locator(".lg-sites-artboard").screenshot({path:testInfo.outputPath(`menu-${captureIndex++}.png`)});
+  const stats=await sharp(capture).stats();
+  expect(stats.channels.slice(0,3).every((channel:{mean:number})=>channel.mean>80)).toBe(true);
+  return capture;
+ };
+ await testInfo.attach("lg-menu-1080p",{body:await assertPainted(),contentType:"image/png"});
+ await page.setViewportSize({width:720,height:1280});await assertPainted();
+ await context.setOffline(true);await assertPainted();await context.setOffline(false);
+});
+
+test("S221 LG never acknowledges a zero-height Sites frame and uses its verified fallback",async({page})=>{
+ test.setTimeout(90000);await page.clock.install();
+ await withoutAspectRatio(page,".uc-preview{height:0!important}");
+ const data=release(1,"#ff5a1f",30),markup=JSON.parse(execFileSync("pnpm",["--filter","@veyocast/player","exec","tsx","app/_lib/menu-widget-canonical-fixture.ts","portrait","headerless"],{encoding:"utf8"}));
+ Object.assign(data.manifest,{systemAssets:systemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}))});
+ Object.assign(data.manifest.items[0]!,{sitesPresentation:markup});
+ const events=await fixture(page,()=>data);await page.goto(`${playerUrl}/lg/legacy`);
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem("veyocast.player.lgLegacyDiagnostics.v1")??"")).toContain("LEGACY_SITES_FRAME_UNAVAILABLE");
+ await expect(page.locator(".lg-sites-canvas.visible")).toHaveCount(0);
+ expect(events.heartbeats.some(body=>(body.publicationTrace as {firstFrameAt?:string}|undefined)?.firstFrameAt)).toBe(false);
+ await page.clock.fastForward(15100);
+ await expect(page.locator("#media-root > img.visible")).toHaveAttribute("src",/^blob:/);
+ await expect(page.locator(".lg-sites-canvas")).toHaveCount(0);
+ expect(events.downloads).toEqual(["/__lg-sites/1.svg"]);
 });

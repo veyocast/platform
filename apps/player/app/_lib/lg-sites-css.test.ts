@@ -2,6 +2,7 @@ import {Script} from "node:vm";
 import {describe,expect,it} from "vitest";
 import {lgSitesCssScript,normalizeLgSitesCss} from "./lg-sites-css";
 import {sitesLedCss,sitesTvCss,sitesStudioCss} from "../../../../packages/content-templates/src/sites-styles";
+import {sitesV17Css} from "../../../../packages/content-templates/src/sites-v17-styles";
 
 describe("Sites fixed-canvas CSS for legacy LG",()=>{
  it("resolves container units from the published logical canvas in both orientations",()=>{
@@ -42,5 +43,14 @@ describe("Sites fixed-canvas CSS for legacy LG",()=>{
   const original=sitesLedCss+sitesTvCss; const normalized=normalizeLgSitesCss(original,1920,1080);
   expect(original).toContain("cqw"); expect(normalized).not.toMatch(/\d(?:cqw|cqh|cqmin|cqmax)\b/);
   expect(sitesLedCss+sitesTvCss).toBe(original);expect(normalized).toContain("minmax(");
+ });
+ it("keeps commas and selector-like text inside comments out of expanded surface selectors",()=>{
+  const css='/* One panel, rather than cards; :is(example,other). */\n.canvas :is(.panel,.menu){background:var(--surface);content:"/* keep, literal */"}';
+  expect(normalizeLgSitesCss(css,1080,1920)).toBe('\n.canvas .panel,\n.canvas .menu{background:var(--surface);content:"/* keep, literal */"}');
+  expect(normalizeLgSitesCss('.canvas[data-label="/* keep, literal */"] :is(h1,h2){color:red}',1080,1920)).toContain('[data-label="/* keep, literal */"] h1');
+ });
+ it("preserves fixed inset geometry and later edge overrides on engines without the shorthand",()=>{
+  expect(normalizeLgSitesCss('.photo{inset:0}.slide{inset:0 auto auto 0}.reset{inset:auto!important}.frame{inset:10px 20px 30px;left:40px}',1080,1920)).toBe('.photo{top:0;right:0;bottom:0;left:0}.slide{top:0;right:auto;bottom:auto;left:0}.reset{top:auto!important;right:auto!important;bottom:auto!important;left:auto!important}.frame{top:10px;right:20px;bottom:30px;left:20px;left:40px}');
+  expect(normalizeLgSitesCss(sitesV17Css,1080,1920)).not.toMatch(/[;{]\s*inset\s*:/);
  });
 });
