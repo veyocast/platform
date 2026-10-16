@@ -6,15 +6,18 @@ const origin=`http://127.0.0.1:${process.env.PLAYER_PORT??3106}`;
 const video=readFileSync("apps/player/public/lg-probe/h264-baseline-aac.mp4");
 const sha=createHash("sha256").update(video).digest("hex");
 const image='<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920"><rect width="1080" height="1920" fill="#155fac"/></svg>';
+const replacementImage=image.replace("#155fac","#008844");
+const replacementImageSha=createHash("sha256").update(replacementImage).digest("hex");
 const imageSha=createHash("sha256").update(image).digest("hex");
 type Report={activeReleaseId?:string;desiredReleaseId?:string;lastPlaybackError?:{code:string;action:string;recoveredAt?:string};syncPhase?:string;syncRetryAcknowledgedAt?:string;videoProbe?:{code:string}};
-async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",previousVideo=false,initialVideo=false){
+async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",previousVideo=false,initialVideo=false,mixedRelease=false){
  const base=await(await page.request.get(`${origin}/api/player/manifest?deviceToken=demo-online`)).json()as PlayerManifestEnvelope;
  const delivered=previousVideo?Buffer.concat([video,Buffer.from([0,0,0,8,102,114,101,101])]):video;
  const deliveredSha=createHash("sha256").update(delivered).digest("hex");
  const old:PlayerManifestEnvelope={...base,device:{...base.device,desiredReleaseId:"old-menu"},manifest:{...base.manifest,releaseId:"old-menu",items:[{...base.manifest.items[0]!,id:"menu",kind:"image",durationSeconds:5,source:{url:`${origin}/compat-menu.svg`,bytes:Buffer.byteLength(image),mimeType:"image/svg+xml",checksumSha256:imageSha}}]}};
  if(previousVideo)old.manifest.items=[{...old.manifest.items[0]!,id:"good-video",kind:"video",source:{url:`${origin}/compat-good.mp4`,bytes:video.length,mimeType:"video/mp4",checksumSha256:sha}}];
  const next:PlayerManifestEnvelope={...old,device:{...old.device,desiredReleaseId:"new-video"},manifest:{...old.manifest,releaseId:"new-video",items:[{...old.manifest.items[0]!,id:"video",kind:"video",durationSeconds:30,source:{url:`${origin}/compat-video.mp4`,bytes:delivered.length,mimeType:"video/mp4",checksumSha256:deliveredSha}}]}};
+ if(mixedRelease)old.manifest.items.push({...next.manifest.items[0]!,id:"old-rejected-video"});
  let desired=initialVideo?next:old;let downloads=0;let syncReceipt:string|null=null;const reports:Report[]=[];
  await page.addInitScript(mode=>{
   localStorage.setItem("veyocast.player.deviceToken","a".repeat(48));localStorage.setItem("veyocast.player.installationCredential","i".repeat(48));
@@ -37,6 +40,7 @@ async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",prev
  await page.route("**/api/player/realtime",route=>route.fulfill({status:204}));
  await page.route("**/api/player/commands",route=>route.fulfill({json:{ok:true,commands:[],serverTime:new Date().toISOString()}}));
  await page.route("**/api/player/manifest*",route=>route.fulfill({json:desired}));
+ await page.context().route("**/compat-replacement.svg",route=>route.fulfill({body:replacementImage,contentType:"image/svg+xml"}));
  await page.context().route("**/compat-menu.svg",route=>route.fulfill({body:image,contentType:"image/svg+xml"}));
  await page.context().route("**/compat-video.mp4",route=>{downloads++;return route.fulfill({body:delivered,contentType:"video/mp4"});});
  await page.context().route("**/compat-good.mp4",route=>route.fulfill({body:video,contentType:"video/mp4"}));
@@ -44,7 +48,7 @@ async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",prev
  await page.goto(`${origin}/lg/legacy`);
  if(!initialVideo)await expect.poll(()=>reports.some(body=>body.activeReleaseId==="old-menu")).toBe(true);
  await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener("controllerchange",()=>resolve(),{once:true}));});
- return{reports,getDownloads:()=>downloads,requestSync:async()=>{syncReceipt="2026-10-16T01:00:00.123456+00:00";await page.evaluate(()=>window.dispatchEvent(new Event("online")));},publishAgain:async()=>{desired={...next,device:{...next.device,desiredReleaseId:"new-video-2"},manifest:{...next.manifest,releaseId:"new-video-2"}};await page.evaluate(()=>window.dispatchEvent(new Event("online")));},publish:async()=>{desired=next;await page.evaluate(()=>window.dispatchEvent(new Event("online")));}};
+ return{reports,publishImage:async()=>{desired={...old,device:{...old.device,desiredReleaseId:"new-image"},manifest:{...old.manifest,releaseId:"new-image",items:[{...old.manifest.items[0]!,id:"new-image-item",kind:"image",source:{url:`${origin}/compat-replacement.svg`,bytes:Buffer.byteLength(replacementImage),mimeType:"image/svg+xml",checksumSha256:replacementImageSha}}]}};await page.evaluate(()=>window.dispatchEvent(new Event("online")));},getDownloads:()=>downloads,requestSync:async()=>{syncReceipt="2026-10-16T01:00:00.123456+00:00";await page.evaluate(()=>window.dispatchEvent(new Event("online")));},publishAgain:async()=>{desired={...next,device:{...next.device,desiredReleaseId:"new-video-2"},manifest:{...next.manifest,releaseId:"new-video-2"}};await page.evaluate(()=>window.dispatchEvent(new Event("online")));},publish:async()=>{desired=next;await page.evaluate(()=>window.dispatchEvent(new Event("online")));}};
 }
 test.afterEach(async({page},info)=>{if(info.status!==info.expectedStatus)console.log(JSON.stringify(await page.evaluate(()=>({attempts:(window as unknown as{videoAttempts:unknown}).videoAttempts,diagnostics:localStorage.getItem("veyocast.player.lgLegacyDiagnostics.v1"),text:document.body.innerText.slice(-1200)}))));});
 test("LG prepares a paintable video underneath the last menu before confirming its first frame",async({page})=>{
@@ -127,4 +131,59 @@ test("a cold pending video keeps the startup status painted above its decoder su
  await expect(page.locator("#status")).toBeVisible();
  expect(await page.evaluate(()=>Boolean(document.elementFromPoint(innerWidth/2,innerHeight/2)?.closest("#status")))).toBe(true);
  expect(await page.locator("#media-root video").evaluate(element=>getComputedStyle(element).visibility)).toBe("visible");
+});
+
+
+test("a verified image publication escapes a terminal video failure without a remaining item timer",async({page,context})=>{
+ const run=await fixture(page,"all-fail",false,false,true);
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:15000}).toBe(4);
+ await expect.poll(()=>run.reports.at(-1)?.syncPhase).toBe("failed");
+ await run.publishImage();
+ await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-image"),{timeout:8000}).toBe(true);
+ await expect(page.locator("#media-root img.visible:not(.retiring)")).toBeVisible();
+ await expect.poll(()=>run.reports.at(-1)?.lastPlaybackError?.recoveredAt).toBeTruthy();
+ await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));
+ await context.setOffline(true);await page.reload();
+ await expect(page.locator("#media-root img.visible:not(.retiring)")).toBeVisible();
+ await expect(page.locator("#status")).toBeHidden();
+});
+
+
+test("a healthy LG video keeps its own boundary when a new verified image is ready",async({page})=>{
+ const run=await fixture(page,"all-fail",true);
+ const active=page.locator("video.visible:not(.retiring)");
+ await active.evaluate((video:HTMLVideoElement)=>{video.playbackRate=0.1;video.setAttribute("data-before-publication","true");});
+ await run.publishImage();
+ await expect.poll(()=>run.reports.some(body=>body.desiredReleaseId==="new-image"&&body.syncPhase==="switch_pending")).toBe(true);
+ await page.waitForTimeout(500);
+ expect(run.reports.some(body=>body.activeReleaseId==="new-image")).toBe(false);
+ await expect(page.locator('video[data-before-publication="true"]')).toBeVisible();
+ await active.evaluate(video=>video.dispatchEvent(new Event("ended")));
+ await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-image")).toBe(true);
+ await expect(page.locator("#media-root img.visible:not(.retiring)")).toBeVisible();
+});
+
+
+test("recovery waits for a paused goal overlay and resumes after it expires",async({page})=>{
+ const run=await fixture(page,"all-fail",false,false,true);
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:15000}).toBe(4);
+ await expect.poll(()=>run.reports.at(-1)?.syncPhase).toBe("failed");
+ let sent=false;
+ await page.route("**/api/player/realtime/ack",route=>route.fulfill({json:{ok:true}}));
+ await page.route("**/api/player/realtime",route=>{
+  if(sent)return route.fulfill({status:204});
+  sent=true;const now=Date.now();
+  const goal={id:"11111111-1111-4111-8111-000000000225",assets:[],executeAt:new Date(now+100).toISOString(),expiresAt:new Date(now+15000).toISOString(),serverTime:new Date(now).toISOString(),payload:{
+   eventId:"22222222-2222-4222-8222-000000000225",design:{headline:"GOAL!",palette:"ink-black",animation:"none"},durationMs:3000,underlayPolicy:"pause",scoringSide:"own",homeScore:1,awayScore:0,previousHomeScore:0,previousAwayScore:0
+  }};
+  return route.fulfill({body:`event: goal\ndata: ${JSON.stringify(goal)}\n\n`,contentType:"text/event-stream"});
+ });
+ await page.evaluate(()=>window.dispatchEvent(new Event("online")));
+ await expect(page.locator("#goal-overlay")).toBeVisible();
+ await run.publishImage();
+ await expect.poll(()=>run.reports.some(body=>body.desiredReleaseId==="new-image")).toBe(true);
+ await expect(page.locator("#goal-overlay")).toBeVisible();
+ expect(run.reports.some(body=>body.activeReleaseId==="new-image")).toBe(false);
+ await expect(page.locator("#goal-overlay")).toBeHidden({timeout:5000});
+ await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-image"),{timeout:5000}).toBe(true);
 });
