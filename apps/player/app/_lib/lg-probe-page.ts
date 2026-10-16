@@ -982,6 +982,7 @@ export function renderLgProbeHtml() {
         activeReleaseId: manifest.device.activeReleaseId || null,
         currentItemId: activeItem ? activeItem.id : null,
         desiredReleaseId: manifest.device.desiredReleaseId || null,
+        videoProbe: safeReport(diagnosis),
         lastPlaybackError: {
           action: "Voer /lg/probe uit en deel code " + diagnosis.code,
           code: diagnosis.code,
@@ -1022,6 +1023,7 @@ export function renderLgProbeHtml() {
         if (sent) {
           byId("result-summary").textContent = diagnosis.summary + " De diagnose is veilig naar Control verzonden.";
         }
+        if (/[?&]returnToPlayer=1(?:&|$)/.test(window.location.search)) window.setTimeout(function () { window.location.replace("/lg/legacy"); }, 2000);
       });
     }
 
@@ -1055,6 +1057,7 @@ export function renderLgProbeHtml() {
         });
     }
 
+    if (/[?&]returnToPlayer=1(?:&|$)/.test(window.location.search)) window.setTimeout(function () { window.location.replace("/lg/legacy"); }, 120000);
     window.onerror = function (message, source, line, column) {
       log("window.onerror | " + safeText(message) + " | regel=" + String(line || 0) + ":" + String(column || 0));
       return true;

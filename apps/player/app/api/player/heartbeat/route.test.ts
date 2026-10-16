@@ -51,6 +51,13 @@ describe("player heartbeat API", () => {
     expect(rpc).toHaveBeenNthCalledWith(1, "record_player_heartbeat_v3", expect.objectContaining({ p_sync_detail: expect.objectContaining({ syncRetryAcknowledgedAt: stamp }) }));
   });
 
+  it("bewaart uitsluitend begrensde compatibiliteitsresultaten van de gekoppelde Player", async () => {
+    rpc.mockResolvedValueOnce({data:{heartbeatId:"heartbeat",syncRetryRequestedAt:null},error:null}).mockResolvedValueOnce({data:null,error:null});
+    await heartbeat({runtimeState:"PLAYING",syncPhase:"active",videoProbe:{code:"LG-BLOB-MEMORY",createdAt:"2026-10-16T00:00:00Z",url:"private-url",userAgent:"private-agent",results:[{id:"blob",status:"fail",message:"private-message"}]}});
+    expect(rpc).toHaveBeenNthCalledWith(1,"record_player_heartbeat_v3",expect.objectContaining({p_sync_detail:expect.objectContaining({videoProbe:{code:"LG-BLOB-MEMORY",createdAt:"2026-10-16T00:00:00.000Z",results:[{id:"blob",status:"fail"}]}})}));
+    expect(JSON.stringify(rpc.mock.calls)).not.toContain("private");
+  });
+
   it("verwijdert een geldige schermcredential niet bij een heartbeat-validatiefout", async () => {
     rpc
       .mockResolvedValueOnce({
@@ -102,6 +109,7 @@ function heartbeat(body: {
   runtimeState: string;
   syncPhase: string | null;
   syncRetryAcknowledgedAt?: unknown;
+  videoProbe?: unknown;
 }) {
   return POST(
     new Request("https://player.veyocast.nl/api/player/heartbeat", {

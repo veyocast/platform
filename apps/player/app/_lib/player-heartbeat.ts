@@ -122,3 +122,17 @@ export function safePublicationTrace(value: unknown) {
   }
   return result;
 }
+
+/** Only bounded operational results, never the probe's user agent, URLs or raw errors. */
+export function safeVideoProbe(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const input = value as Record<string, unknown>;
+  const codes = ["LG-UNPAIRED", "LG-WAITING-CONTENT", "LG-VIDEO-REFERENCE", "LG-HTML-CSS-RENDER", "LG-DIRECT-FETCH", "LG-ACTIVE-ASSET", "LG-BLOB-MEMORY", "LG-CACHE-RANGE", "LG-DIRECT-READY", "LG-IMAGE-DIRECT-READY", "LG-HTML-CSS-READY", "LG-PLAYBACK-READY", "LG-IMAGE-PLAYBACK-READY", "LG-PROBE-FAILED", "LG-PROBE-PARTIAL"];
+  const at = typeof input.createdAt === "string" ? safeIsoTimestamp(input.createdAt) : null;
+  if (!at || !codes.includes(String(input.code))) return null;
+  const results = (Array.isArray(input.results) ? input.results.slice(0, 8) : []).flatMap(entry => {
+    if (!entry || typeof entry !== "object" || !["platform", "origin", "reference", "manifest", "template", "direct", "blob", "cache"].includes(entry.id) || !["pass", "warn", "fail"].includes(entry.status)) return [];
+    return [{ id: entry.id as string, status: entry.status as string }];
+  });
+  return { code: String(input.code), createdAt: at, results };
+}

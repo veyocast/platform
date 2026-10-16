@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { playbackErrorSyncDetail, safeGoalVideoDiagnostics, safeGoalVideoCapabilities, safePublicationTrace } from "./player-heartbeat";
+import { safeVideoProbe, playbackErrorSyncDetail, safeGoalVideoDiagnostics, safeGoalVideoCapabilities, safePublicationTrace } from "./player-heartbeat";
 
 describe("playbackErrorSyncDetail", () => {
   it("keeps an unresolved playback error active", () => {
@@ -65,5 +65,15 @@ describe("bounded publication evidence", () => {
     expect(JSON.stringify(result)).not.toMatch(/secret|private|sourceData/);
     expect(safePublicationTrace({ ...input, targetRevision: "-1" })).toBeNull();
     expect(safePublicationTrace({ ...input, firstFrameAt: "bad", frameAfterBoundaryMs: Infinity })).toMatchObject({ firstFrameAt: null, frameAfterBoundaryMs: null });
+  });
+});
+
+describe("bounded LG video probe reports",()=>{
+  it("retains the diagnostic result without URLs, user agents, names or arbitrary messages",()=>{
+    const raw={code:"LG-BLOB-MEMORY",createdAt:"2026-10-16T00:00:00Z",userAgent:"private-agent",url:"private-url",results:[{id:"blob",status:"fail",code:"private-message",url:"private-url"},{id:"secret-name",status:"pass"},{id:"cache",status:"pass"}]};
+    expect(safeVideoProbe(raw)).toEqual({code:"LG-BLOB-MEMORY",createdAt:"2026-10-16T00:00:00.000Z",results:[{id:"blob",status:"fail"},{id:"cache",status:"pass"}]});
+    expect(JSON.stringify(safeVideoProbe(raw))).not.toContain("private");
+    expect(safeVideoProbe({...raw,code:"arbitrary-private-text"})).toBeNull();expect(safeVideoProbe({...raw,createdAt:"bad"})).toBeNull();
+    expect(safeVideoProbe({...raw,results:Array.from({length:30},()=>raw.results[0])})?.results).toHaveLength(8);
   });
 });

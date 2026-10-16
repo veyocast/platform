@@ -421,3 +421,8 @@ S223 maakt schermsynchronisatie een werkelijk door de Player ontvangen en
 bevestigd verzoek, herstelt ontbrekende LG-videostartbewaking en schaalt het
 LED Scores-voorbeeld binnen de beschikbare viewport. Zie
 `docs/s223-player-sync-and-led-preview.md`.
+
+S224 vervolgt de na de S223-uitrol werkelijk gemeten LG-videofout met een
+paintbare videolaag, een geverifieerde lokale cachetransportroute, herstel van de
+vorige werkende release en begrensde fysieke-/workerdiagnostiek. Zie
+`docs/s224-lg-video-cache.md`.
