@@ -8,14 +8,14 @@ const sha=createHash("sha256").update(video).digest("hex");
 const image='<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920"><rect width="1080" height="1920" fill="#155fac"/></svg>';
 const imageSha=createHash("sha256").update(image).digest("hex");
 type Report={activeReleaseId?:string;desiredReleaseId?:string;lastPlaybackError?:{code:string;action:string;recoveredAt?:string};syncPhase?:string;syncRetryAcknowledgedAt?:string;videoProbe?:{code:string}};
-async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",previousVideo=false){
+async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",previousVideo=false,initialVideo=false){
  const base=await(await page.request.get(`${origin}/api/player/manifest?deviceToken=demo-online`)).json()as PlayerManifestEnvelope;
  const delivered=previousVideo?Buffer.concat([video,Buffer.from([0,0,0,8,102,114,101,101])]):video;
  const deliveredSha=createHash("sha256").update(delivered).digest("hex");
  const old:PlayerManifestEnvelope={...base,device:{...base.device,desiredReleaseId:"old-menu"},manifest:{...base.manifest,releaseId:"old-menu",items:[{...base.manifest.items[0]!,id:"menu",kind:"image",durationSeconds:5,source:{url:`${origin}/compat-menu.svg`,bytes:Buffer.byteLength(image),mimeType:"image/svg+xml",checksumSha256:imageSha}}]}};
  if(previousVideo)old.manifest.items=[{...old.manifest.items[0]!,id:"good-video",kind:"video",source:{url:`${origin}/compat-good.mp4`,bytes:video.length,mimeType:"video/mp4",checksumSha256:sha}}];
  const next:PlayerManifestEnvelope={...old,device:{...old.device,desiredReleaseId:"new-video"},manifest:{...old.manifest,releaseId:"new-video",items:[{...old.manifest.items[0]!,id:"video",kind:"video",durationSeconds:30,source:{url:`${origin}/compat-video.mp4`,bytes:delivered.length,mimeType:"video/mp4",checksumSha256:deliveredSha}}]}};
- let desired=old;let downloads=0;let syncReceipt:string|null=null;const reports:Report[]=[];
+ let desired=initialVideo?next:old;let downloads=0;let syncReceipt:string|null=null;const reports:Report[]=[];
  await page.addInitScript(mode=>{
   localStorage.setItem("veyocast.player.deviceToken","a".repeat(48));localStorage.setItem("veyocast.player.installationCredential","i".repeat(48));
   const state=window as unknown as{videoAttempts:Array<{scheme:string;paintable:boolean;cover:string}>};state.videoAttempts=[];
@@ -42,7 +42,7 @@ async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",prev
  await page.context().route("**/compat-good.mp4",route=>route.fulfill({body:video,contentType:"video/mp4"}));
  await page.route("**/api/player/heartbeat",route=>{const body=route.request().postDataJSON();reports.push(body);if(body.syncRetryAcknowledgedAt===syncReceipt)syncReceipt=null;return route.fulfill({json:{ok:true,syncRetryRequestedAt:syncReceipt}});});
  await page.goto(`${origin}/lg/legacy`);
- await expect.poll(()=>reports.some(body=>body.activeReleaseId==="old-menu")).toBe(true);
+ if(!initialVideo)await expect.poll(()=>reports.some(body=>body.activeReleaseId==="old-menu")).toBe(true);
  await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener("controllerchange",()=>resolve(),{once:true}));});
  return{reports,getDownloads:()=>downloads,requestSync:async()=>{syncReceipt="2026-10-16T01:00:00.123456+00:00";await page.evaluate(()=>window.dispatchEvent(new Event("online")));},publishAgain:async()=>{desired={...next,device:{...next.device,desiredReleaseId:"new-video-2"},manifest:{...next.manifest,releaseId:"new-video-2"}};await page.evaluate(()=>window.dispatchEvent(new Event("online")));},publish:async()=>{desired=next;await page.evaluate(()=>window.dispatchEvent(new Event("online")));}};
 }
@@ -117,4 +117,14 @@ test("several unpresented video publications cannot overwrite the previous worki
  await expect(page.locator("#media-root img.visible").first()).toBeVisible();
  await expect(page.locator("#status")).toBeHidden();
  expect(run.getDownloads()).toBe(1);
+});
+
+
+test("a cold pending video keeps the startup status painted above its decoder surface",async({page})=>{
+ await page.addInitScript(()=>{HTMLMediaElement.prototype.play=()=>new Promise<void>(()=>{});});
+ await fixture(page,"paintable",false,true);
+ await expect(page.locator("#media-root video")).toBeAttached();
+ await expect(page.locator("#status")).toBeVisible();
+ expect(await page.evaluate(()=>Boolean(document.elementFromPoint(innerWidth/2,innerHeight/2)?.closest("#status")))).toBe(true);
+ expect(await page.locator("#media-root video").evaluate(element=>getComputedStyle(element).visibility)).toBe("visible");
 });

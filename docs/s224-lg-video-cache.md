@@ -11,7 +11,10 @@ De bestaande legacylaag zette ook video op opacity:0 en visibility:hidden
 terwijl de decoder moest starten. De nieuwe videolaag krijgt een echt
 paint-oppervlak onder de laatst zichtbare laag. De bestaande zichtbare laag
 blijft erboven tot de nieuwe video zijn frame bevestigt. Video krijgt geen
-opacitytransitie. LG noemt volledige transparantie als beperking bij het bepalen
+opacitytransitie. De mediagroep heeft een eigen stacking context, zodat een
+opstart- of herstelmelding zichtbaar boven de paintbare decoder blijft. Een
+eerst falende hit-test bewijst dat de melding werkelijk zichtbaar moet zijn;
+alleen een positieve DOM-rechthoek was hiervoor onvoldoende. LG noemt volledige transparantie als beperking bij het bepalen
 van het video-oppervlak in de [officiële TV-FAQ](https://webostv.developer.lge.com/faq?category=faq&filter=viewall&page=4).
 Dit is een gerichte compatibiliteitsmaatregel; de FAQ bewijst niet het exacte
 Signage-model of de oorspronkelijke fysieke foutoorzaak.
@@ -63,10 +66,14 @@ De workflow wijzigt geen playlist, asset, verwerkingstaak of providerdata.
 
 Validatie: workspace lint/typecheck/unit elk30/30 taken, Player-productiebuild
 inclusief bundle-/webOS-controles, workflowvalidatie met Actionlint/ShellCheck en
-87 groene browser-/offline-/LG-/a11yproeven op die build. Hieronder vallen echte
+88 groene browser-/offline-/LG-/a11yproeven op die build. Hieronder vallen echte
 browservideoproeven voor paintbaarheid en Blob-weigering, lokale Rangeweergave,
 offline cold start, blijvende vorige inhoud, geforceerde retry en begrensde
-operator-/probegegevens. De volledige exacte CI en de beschermde uitrol moeten
+operator-/probegegevens. De actieve-zone-selectors sluiten uitfaderende vorige
+lagen uit, zodat hun 220 ms afbouw geen dubbele actieve zone suggereert. Een
+parallelle lokale herhaling raakte geheugen-/swapdruk; de betrokken cases,
+inclusief beide 100-ronden-downloadproeven, slagen daarna met één worker.
+De volledige exacte CI en de beschermde uitrol moeten
 nog slagen voordat fysieke videoweergave als hersteld wordt gemeld. Er zijn geen
 schema-, dependency-, credential- of merkassetwijzigingen. Applicatierollback
 blijft mogelijk; de toegevoegde shellcache mag regulier vervangen worden terwijl

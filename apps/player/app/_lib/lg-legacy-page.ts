@@ -138,7 +138,7 @@ export function renderLgLegacyHtml() {
     *{box-sizing:border-box}
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050505;color:#f7f5f0;font-family:Arial,Helvetica,sans-serif}
     body{position:relative}
-    #media-root{position:absolute;top:0;right:0;bottom:0;left:0;background:#050505;overflow:hidden}
+    #media-root{position:absolute;z-index:0;top:0;right:0;bottom:0;left:0;background:#050505;overflow:hidden}
     #media-root>img,#media-root>video{display:block;width:100%;height:100%;border:0;background:#050505}
     .legacy-media-layer{position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;opacity:0;visibility:hidden;transition:opacity 180ms ease}
     .legacy-media-layer.visible{opacity:1;visibility:visible}
