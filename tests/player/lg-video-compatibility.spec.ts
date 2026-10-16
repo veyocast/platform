@@ -52,16 +52,16 @@ test("LG prepares a paintable video underneath the last menu before confirming i
  await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-video"),{timeout:12000}).toBe(true);
  const attempts=await page.evaluate(()=>(window as unknown as{videoAttempts:Array<{paintable:boolean;cover:string}>}).videoAttempts);
  expect(attempts[0]).toMatchObject({paintable:true,cover:"IMG"});
- expect(run.getDownloads()).toBe(1);await expect(page.locator("video.visible")).toBeVisible();
+ expect(run.getDownloads()).toBe(1);await expect(page.locator("video.visible:not(.retiring)")).toBeVisible();
 });
 test("LG retries a rejected Blob using verified local Range bytes and restores that video offline",async({page,context})=>{
  const run=await fixture(page,"blob-fails");await run.publish();
  await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-video"),{timeout:12000}).toBe(true);
- await expect(page.locator("video.visible")).toHaveAttribute("src",`/__veyocast-player-cache/${sha}`);
+ await expect(page.locator("video.visible:not(.retiring)")).toHaveAttribute("src",`/__veyocast-player-cache/${sha}`);
  expect(run.getDownloads()).toBe(1);
  await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));await context.setOffline(true);await page.reload();
- await expect(page.locator("video.visible")).toHaveAttribute("src",`/__veyocast-player-cache/${sha}`);
- await expect.poll(()=>page.locator("video.visible").evaluate((v:HTMLVideoElement)=>v.currentTime),{timeout:8000}).toBeGreaterThan(0);
+ await expect(page.locator("video.visible:not(.retiring)")).toHaveAttribute("src",`/__veyocast-player-cache/${sha}`);
+ await expect.poll(()=>page.locator("video.visible:not(.retiring)").evaluate((v:HTMLVideoElement)=>v.currentTime),{timeout:8000}).toBeGreaterThan(0);
  expect(run.getDownloads()).toBe(1);
 });
 test("LG preserves the verified previous menu after both local video transports fail, including offline startup",async({page,context})=>{
@@ -100,10 +100,10 @@ test("a different verified previous video remains eligible for offline last-know
  const run=await fixture(page,"all-fail",true);await run.publish();
  await expect.poll(()=>run.reports.some(body=>body.lastPlaybackError?.action.includes("media_4")),{timeout:12000}).toBe(true);
  await expect.poll(()=>run.reports.at(-1)?.activeReleaseId).toBe("old-menu");
- await expect(page.locator("video.visible").last()).toBeVisible();
+ await expect(page.locator("video.visible:not(.retiring)").last()).toBeVisible();
  await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));await context.setOffline(true);await page.reload();
- await expect(page.locator("video.visible").last()).toBeVisible();
- await expect.poll(()=>page.locator("video.visible").last().evaluate((v:HTMLVideoElement)=>v.currentTime)).toBeGreaterThan(0);
+ await expect(page.locator("video.visible:not(.retiring)").last()).toBeVisible();
+ await expect.poll(()=>page.locator("video.visible:not(.retiring)").last().evaluate((v:HTMLVideoElement)=>v.currentTime)).toBeGreaterThan(0);
 });
 
 

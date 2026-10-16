@@ -69,7 +69,7 @@ inclusief bundle-/webOS-controles, workflowvalidatie met Actionlint/ShellCheck e
 88 groene browser-/offline-/LG-/a11yproeven op die build. Hieronder vallen echte
 browservideoproeven voor paintbaarheid en Blob-weigering, lokale Rangeweergave,
 offline cold start, blijvende vorige inhoud, geforceerde retry en begrensde
-operator-/probegegevens. De actieve-zone-selectors sluiten uitfaderende vorige
+operator-/probegegevens. De actieve-media- en zone-selectors sluiten uitfaderende vorige
 lagen uit, zodat hun 220 ms afbouw geen dubbele actieve zone suggereert. Een
 parallelle lokale herhaling raakte geheugen-/swapdruk; de betrokken cases,
 inclusief beide 100-ronden-downloadproeven, slagen daarna met één worker.
