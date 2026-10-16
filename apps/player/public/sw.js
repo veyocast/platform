@@ -1,11 +1,12 @@
 /* global Headers, ReadableStream, Request, Response, URL, caches, fetch, self */
 
-const SHELL_CACHE = "veyocast-player-shell-v3";
+const SHELL_CACHE = "veyocast-player-shell-v4";
 const SHELL_CACHE_PREFIX = "veyocast-player-shell-";
 const ASSET_CACHE = "veyocast-player-assets-v1";
 const CACHE_PATH_PREFIX = "/__veyocast-player-cache/";
 const SHELL_ENTRYPOINTS = [
   "/lg",
+  "/lg/legacy",
   "/manifest.webmanifest",
   "/brand/veyocast-icon-primary.svg",
   "/brand/veyocast-icon-maskable-512.png",
@@ -123,7 +124,13 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(cacheFirst(request));
+  // A partial native video response cannot be stored in CacheStorage. Media
+  // inputs are validated by the downloader and belong in ASSET_CACHE only.
+  if (request.headers.has("Range")) return;
+  if (SHELL_ENTRYPOINTS.includes(url.pathname) || url.pathname.startsWith("/_next/static/") ||
+      url.pathname.startsWith("/brand/") || url.pathname.startsWith("/fonts/")) {
+    event.respondWith(cacheFirst(request));
+  }
 });
 
 async function serveCachedMedia(request) {
@@ -225,7 +232,7 @@ async function networkFirstNavigation(request) {
   const cache = await caches.open(SHELL_CACHE);
   try {
     const response = await fetch(request);
-    if (response.ok) await cache.put(request, response.clone());
+    if (response.ok && response.status !== 206) await cache.put(request, response.clone());
     return response;
   } catch {
     const cachedRequest = await cache.match(request);
@@ -241,7 +248,7 @@ async function cacheFirst(request) {
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response.ok) await cache.put(request, response.clone());
+  if (response.ok && response.status !== 206) await cache.put(request, response.clone());
   return response;
 }
 

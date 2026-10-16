@@ -49,7 +49,7 @@ test("pre-caches and reloads the complete player shell without a network connect
   });
 
   const cachedShell = await page.evaluate(async () => {
-    const cache = await caches.open("veyocast-player-shell-v3");
+    const cache = await caches.open("veyocast-player-shell-v4");
     const paths = (await cache.keys()).map((request) => new URL(request.url).pathname);
     return {
       hasIcon: paths.includes("/brand/veyocast-icon-maskable-512.png"),
@@ -132,7 +132,7 @@ test("removes obsolete player shell caches on service-worker activation", async 
   await page.evaluate(async () => navigator.serviceWorker.ready);
   await page.waitForFunction(async () => {
     const names = await caches.keys();
-    return !names.includes("veyocast-player-shell-v1") && names.includes("veyocast-player-shell-v3");
+    return !names.includes("veyocast-player-shell-v1") && names.includes("veyocast-player-shell-v4");
   });
 
   await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain(
@@ -142,4 +142,38 @@ test("removes obsolete player shell caches on service-worker activation", async 
     const media = await caches.open("veyocast-player-assets-v1");
     return (await media.match("/__veyocast-player-cache/s186-preserved"))?.text();
   })).toBe("verified media");
+});
+
+test("leaves uncached native video Range requests usable without storing partial MP4 responses", async ({ page }) => {
+  await page.goto(playerURL);
+  await page.evaluate(async () => navigator.serviceWorker.ready);
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  const result = await page.evaluate(async () => {
+    const path = "/lg-probe/h264-baseline-aac.mp4";
+    const response = await fetch(path, { headers: { Range: "bytes=0-31" } });
+    const shell = await caches.open("veyocast-player-shell-v4");
+    return { status: response.status, bytes: (await response.arrayBuffer()).byteLength,
+      range: response.headers.get("Content-Range"), cached: Boolean(await shell.match(path)) };
+  });
+  expect(result).toEqual({ status: 206, bytes: 32, range: expect.stringMatching(/^bytes 0-31\/[0-9]+$/), cached: false });
+});
+
+test("rechecks source bytes after a rejected download instead of retaining them in the app shell cache", async ({ page, context }) => {
+  let attempts = 0;
+  const path = "/s224-source/input.svg";
+  await context.route(`${playerURL}${path}`, route => {
+    attempts += 1;
+    return route.fulfill({ body: attempts === 1 ? "rejected bytes" : "corrected bytes", contentType: "image/svg+xml" });
+  });
+  await page.goto(playerURL);
+  await page.evaluate(async () => navigator.serviceWorker.ready);
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  const result = await page.evaluate(async path => {
+    const first = await (await fetch(path)).text();
+    const second = await (await fetch(path)).text();
+    const shell = await caches.open("veyocast-player-shell-v4");
+    return { first, second, cached: Boolean(await shell.match(path)) };
+  }, path);
+  expect(result).toEqual({ first: "rejected bytes", second: "corrected bytes", cached: false });
+  expect(attempts).toBe(2);
 });

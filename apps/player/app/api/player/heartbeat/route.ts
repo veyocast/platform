@@ -12,6 +12,7 @@ import {
 import { createPlayerAnonClient } from "../../../_lib/player-supabase";
 import {
   playbackErrorSyncDetail,
+  safeVideoProbe,
   safeGoalVideoDiagnostics,
   safeGoalVideoCapabilities,
   safePublicationTrace,
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
     runtimeVersion?: unknown;
     publicationTrace?: unknown;
     preparationError?: unknown;
+    videoProbe?: unknown;
     mediaTraffic?: unknown;
     goalVideoDiagnostics?: unknown;
     goalVideoCapabilities?: unknown;
@@ -136,6 +138,7 @@ export async function POST(request: Request) {
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
         "local",
       ...playbackErrorDetail,
+      videoProbe: safeVideoProbe(body.videoProbe),
       publicationTrace: safePublicationTrace(body.publicationTrace),
       preparationError: typeof body.preparationError === "string" && /^[A-Z_0-9]{1,80}$/.test(body.preparationError) ? body.preparationError : null,
       acknowledgedAt: new Date().toISOString(),

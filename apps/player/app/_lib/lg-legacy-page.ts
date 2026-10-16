@@ -138,10 +138,14 @@ export function renderLgLegacyHtml() {
     *{box-sizing:border-box}
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050505;color:#f7f5f0;font-family:Arial,Helvetica,sans-serif}
     body{position:relative}
-    #media-root{position:absolute;top:0;right:0;bottom:0;left:0;background:#050505;overflow:hidden}
+    #media-root{position:absolute;z-index:0;top:0;right:0;bottom:0;left:0;background:#050505;overflow:hidden}
     #media-root>img,#media-root>video{display:block;width:100%;height:100%;border:0;background:#050505}
     .legacy-media-layer{position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;opacity:0;visibility:hidden;transition:opacity 180ms ease}
     .legacy-media-layer.visible{opacity:1;visibility:visible}
+    .legacy-media-layer.visible{z-index:2}
+    /* A hardware video decoder needs a real paint surface during startup.
+       The last visible layer covers this surface until an actual frame commits. */
+    video.legacy-media-layer{opacity:1;visibility:visible;transition:none}
     .legacy-media-layer.retiring{opacity:0;visibility:visible}
     #status{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;padding:5vh 5vw;background:#071c1b}
     #status[hidden]{display:none}
@@ -1063,6 +1067,14 @@ export function renderLgLegacyHtml() {
       syncRetryRequestedAt: null,
       syncRetryAcknowledgedAt: null,
       lastPlaybackError: null,
+      desiredPlaybackReleaseId: null,
+      desiredPlaybackReleaseKnown: false,
+      rejectedVideoReleaseId: null,
+      rejectedVideoRetryAt: 0,
+      rejectedVideoAttemptCount: 0,
+      rejectedVideoChecksum: null,
+      restoringVideoFallback: false,
+      cachePlaybackWorkerStarted: false,
       goalAckFlushTimer: null,
       goalAckInFlight: false,
       goalAckRetryAttempts: {},
@@ -5051,6 +5063,8 @@ export function renderLgLegacyHtml() {
       if (revision && runtime.targetRevision &&
         (revision.length < runtime.targetRevision.length ||
         (revision.length === runtime.targetRevision.length && revision < runtime.targetRevision))) return false;
+      runtime.desiredPlaybackReleaseId = releaseIdOf(envelope);
+      runtime.desiredPlaybackReleaseKnown = true;
       if (key === runtime.targetKey) return true;
       runtime.targetKey = key;
       runtime.targetRevision = revision || null;
@@ -5137,6 +5151,8 @@ export function renderLgLegacyHtml() {
             return;
           }
           if (!transport && status >= 200 && status < 300 && isWaitingEnvelope(body)) {
+            runtime.desiredPlaybackReleaseId = null;
+            runtime.desiredPlaybackReleaseKnown = true;
             if (syncReceipt && runtime.syncRetryRequestedAt === syncReceipt) runtime.syncRetryAcknowledgedAt = syncReceipt;
             runtime.forceManifestRefresh = false;
             clearTemporaryPairing();
@@ -5182,6 +5198,12 @@ export function renderLgLegacyHtml() {
               setState("SWITCH_PENDING");
               runtime.syncPhase = "switch_pending";
               scheduleManifestSync(CONFIG.manifestIntervalMs);
+              sendHeartbeat();
+              return;
+            }
+            if (!forceRefresh && runtime.rejectedVideoReleaseId === releaseIdOf(body) && now() < runtime.rejectedVideoRetryAt) {
+              runtime.syncPhase = "failed";
+              scheduleManifestSync(Math.max(1000, runtime.rejectedVideoRetryAt - now()));
               sendHeartbeat();
               return;
             }
@@ -5495,7 +5517,11 @@ export function renderLgLegacyHtml() {
           var current = currentRequest.result;
           if (
             current &&
-            (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope))
+            (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope)) &&
+            (runtime.currentElement && runtime.currentElement.lgReleaseIdentity === releaseIdOf(current.envelope) + ":" + lgCompositionIdentity(current.envelope) ||
+              lgCompositionIdentity(current.envelope) === "full" &&
+                (releaseIdOf(current.envelope) === runtime.presentedReleaseId ||
+                  envelope.device && releaseIdOf(current.envelope) === envelope.device.activeReleaseId))
           ) {
             previousStore.put(current);
           }
@@ -5741,6 +5767,10 @@ export function renderLgLegacyHtml() {
         setState("READY");
         return;
       }
+      if (!runtime.desiredPlaybackReleaseKnown) {
+        runtime.desiredPlaybackReleaseId = envelope.device && envelope.device.desiredReleaseId || releaseIdOf(envelope);
+        runtime.desiredPlaybackReleaseKnown = true;
+      }
       runtime.envelope = envelope;
       runtime.releaseSource = source;
       runtime.activeIndex = runtime.activeIndex % items.length;
@@ -5879,7 +5909,15 @@ export function renderLgLegacyHtml() {
       runtime.pendingObjectUrls = [];
       runtime.currentElement = element;
       runtime.currentObjectUrls = objectUrls || [];
-      if (runtime.lastPlaybackError && !runtime.lastPlaybackError.recoveredAt) runtime.lastPlaybackError.recoveredAt = new Date().toISOString();
+      runtime.videoFailureAction = null;
+      if (runtime.lastPlaybackError && !runtime.lastPlaybackError.recoveredAt &&
+          (!runtime.rejectedVideoReleaseId || releaseIdOf(runtime.envelope) === runtime.desiredPlaybackReleaseId)) {
+        runtime.lastPlaybackError.recoveredAt = new Date().toISOString();
+        runtime.rejectedVideoReleaseId = null;
+        runtime.rejectedVideoRetryAt = 0;
+        runtime.rejectedVideoAttemptCount = 0;
+        runtime.rejectedVideoChecksum = null;
+      }
       element.className += " visible";
       lgEngageFallbackReady();
       if (previousElement && previousElement.birthdayCleanup) { previousElement.birthdayCleanup(); previousElement.birthdayCleanup = null; }
@@ -5890,6 +5928,7 @@ export function renderLgLegacyHtml() {
         }, 220);
       }
       var confirmedReleaseId = releaseIdOf(runtime.envelope);
+      element.lgReleaseIdentity = confirmedReleaseId + ":" + lgCompositionIdentity(runtime.envelope);
       window.requestAnimationFrame(function () {
         window.requestAnimationFrame(function () {
         if (runtime.currentElement !== element || generation !== runtime.playbackGeneration) return;
@@ -9840,11 +9879,74 @@ export function renderLgLegacyHtml() {
       }, 12000);
       image.src = sourceUrl;
     }
+    function verifiedVideoCacheUrl(item) {
+      var worker = navigator.serviceWorker;
+      var script;
+      if (!worker || !worker.controller || !item.source || !/^[a-f0-9]{64}$/.test(item.source.checksumSha256 || "")) return null;
+      try { script = new URL(worker.controller.scriptURL); } catch (error) { return null; }
+      if (script.origin !== window.location.origin || script.pathname !== "/sw.js") return null;
+      return CONFIG.cachePathPrefix + item.source.checksumSha256;
+    }
+    function ensureVideoCacheWorker() {
+      var worker = navigator.serviceWorker;
+      if (runtime.cachePlaybackWorkerStarted || !worker || typeof worker.register !== "function") return;
+      runtime.cachePlaybackWorkerStarted = true;
+      // The same worker serves verified bytes and Range responses for the modern Player.
+      // Registration is optional and never delays the last-known-good surface.
+      try {
+        worker.register("/sw.js", { scope: "/" }).then(function () {}, function () {});
+      } catch (error) {}
+    }
+    function restoreVideoFallback() {
+      if (runtime.restoringVideoFallback) return;
+      var rejectedId = releaseIdOf(runtime.envelope);
+      var generation = runtime.targetGeneration;
+      var playbackGeneration = runtime.playbackGeneration;
+      runtime.rejectedVideoReleaseId = rejectedId;
+      runtime.forceManifestRefresh = false;
+      runtime.restoringVideoFallback = true;
+      readReleaseStore(runtime.deviceToken, CONFIG.previousReleaseStore, function (cached) {
+        runtime.restoringVideoFallback = false;
+        if (generation !== runtime.targetGeneration || playbackGeneration !== runtime.playbackGeneration) return;
+        function unavailable() {
+          if (!runtime.currentElement) {
+            showStatus("Playback herstelt", "Video kon niet starten", "Er is nog geen eerdere werkende inhoud beschikbaar. De Player probeert opnieuw. Controleer het videobestand of kies Nu synchroniseren in Control.", "LEGACY_VIDEO_ERROR");
+            setState("ERROR_RECOVERABLE");
+          }
+        }
+        if (!cached || releaseIdOf(cached.envelope) === rejectedId) { unavailable(); return; }
+        var items = playableItems(cached.envelope);
+        var index = items.findIndex(function (item) { return !item.onlinePlayback && (item.kind !== "video" || item.source && item.source.checksumSha256 !== runtime.rejectedVideoChecksum); });
+        if (index < 0) { unavailable(); return; }
+        // Keep the failed candidate out of the visible LKG path. Do not rotate or
+        // delete either persisted store: the previous verified release stays intact.
+        runtime.cachedRelease = cached;
+        runtime.activeIndex = index;
+        startRelease(cached.envelope, "cache");
+        runtime.syncPhase = "failed";
+        scheduleManifestSync(Math.max(1000, runtime.rejectedVideoRetryAt - now()));
+        sendHeartbeat();
+      });
+    }
     function playVideo(item, sourceUrl, objectUrls, generation, allowCacheFallback) {
       var video;
       var committed = false;
       var fallbackStarted = false;
       function fallbackOrFail(code) {
+        runtime.videoFailureAction = "retry_" + (sourceUrl.indexOf("blob:") === 0 ? "blob" : "cache") +
+          "_media_" + String(video && video.error && video.error.code || 0) +
+          "_ready_" + String(video && video.readyState || 0) + "_network_" + String(video && video.networkState || 0);
+        var localUrl = sourceUrl.indexOf("blob:") === 0 ? verifiedVideoCacheUrl(item) : null;
+        if (localUrl && !fallbackStarted) {
+          fallbackStarted = true;
+          runtime.lastPlaybackError = { code: code, itemId: item.id, occurredAt: new Date().toISOString(), action: runtime.videoFailureAction };
+          sendHeartbeat();
+          clearPlaybackTimers();
+          if (runtime.pendingElement === video) cancelPendingMedia();
+          log("LEGACY_VIDEO_LOCAL_TRANSPORT", "verified cache HTTP after Blob failure");
+          playVideo(item, localUrl, [], generation, false);
+          return;
+        }
         if (!allowCacheFallback || fallbackStarted) {
           failItem(code);
           return;
@@ -9987,7 +10089,8 @@ export function renderLgLegacyHtml() {
       var attempts = runtime.itemFailures[key] || 0;
       runtime.itemFailures[key] = attempts + 1;
       log(code, key);
-      runtime.lastPlaybackError = { code: code, itemId: key, occurredAt: new Date().toISOString(), action: "retry" };
+      runtime.lastPlaybackError = { code: code, itemId: key, occurredAt: new Date().toISOString(), action: runtime.videoFailureAction || "retry" };
+      runtime.videoFailureAction = null;
       sendHeartbeat();
       cancelPendingMedia();
       if (
@@ -10012,6 +10115,25 @@ export function renderLgLegacyHtml() {
         return;
       }
       if (runtime.pendingRelease) { nextItem(); return; }
+      if (item && item.kind === "video" && attempts > 0) {
+        if (legacyIsCompositionZone) {
+          clearPlaybackTimers();
+          if (legacyZoneCallbacks) legacyZoneCallbacks.failed();
+          return;
+        }
+        var rejectedReleaseId = releaseIdOf(runtime.envelope);
+        runtime.rejectedVideoAttemptCount = runtime.rejectedVideoReleaseId === rejectedReleaseId ? Math.min(5, runtime.rejectedVideoAttemptCount + 1) : 1;
+        runtime.rejectedVideoReleaseId = rejectedReleaseId;
+        runtime.rejectedVideoChecksum = item.source && item.source.checksumSha256;
+        var retryMs = Math.min(300000, 30000 * Math.pow(2, runtime.rejectedVideoAttemptCount - 1));
+        runtime.rejectedVideoRetryAt = now() + retryMs;
+        runtime.forceManifestRefresh = false;
+        clearPlaybackTimers();
+        restoreVideoFallback();
+        scheduleManifestSync(retryMs);
+        sendHeartbeat();
+        return;
+      }
       if (attempts === 0) {
         playCurrent();
         return;
@@ -10110,6 +10232,15 @@ export function renderLgLegacyHtml() {
         nextIndex = priorityIndex >= 0 ? priorityIndex : 0;
         if (priorityIndex < 0) runtime.publicationPass = null;
       }
+      if (runtime.pendingRelease) {
+        activatePendingRelease(function (activated) {
+          if (!activated) {
+            runtime.activeIndex = nextIndex;
+          }
+          playCurrent();
+        });
+        return;
+      }
       if (Object.keys(runtime.itemFailures).length >= items.length) {
         showStatus(
           "Playback herstelt",
@@ -10121,17 +10252,25 @@ export function renderLgLegacyHtml() {
         scheduleManifestSync(runtime.forceManifestRefresh ? 0 : 15000);
         return;
       }
-      if (runtime.pendingRelease) {
-        activatePendingRelease(function (activated) {
-          if (!activated) {
-            runtime.activeIndex = nextIndex;
-          }
-          playCurrent();
-        });
-        return;
+      // A verified previous release can contain the same unsupported video.
+      // Continue its other items while the latest candidate waits for retry.
+      if (runtime.rejectedVideoChecksum && releaseIdOf(runtime.envelope) !== runtime.desiredPlaybackReleaseId) {
+        var skipped = 0;
+        while (skipped < items.length && items[nextIndex].kind === "video" && items[nextIndex].source && items[nextIndex].source.checksumSha256 === runtime.rejectedVideoChecksum) {
+          nextIndex = (nextIndex + 1) % items.length;
+          skipped += 1;
+        }
+        if (skipped === items.length) { scheduleManifestSync(30000); return; }
       }
       runtime.activeIndex = nextIndex;
       playCurrent();
+    }
+    function storedVideoProbe() {
+      var report = parseJson(safeRead("veyocast.player.lgProbe.v1"));
+      if (!report || typeof report.code !== "string" || report.code.length > 40 || typeof report.createdAt !== "string" || report.createdAt.length > 40 || !Array.isArray(report.results)) return null;
+      return { code: report.code, createdAt: report.createdAt, results: report.results.slice(0, 8).map(function (entry) {
+        return { id: entry && typeof entry.id === "string" ? entry.id.slice(0, 30) : "", status: entry && typeof entry.status === "string" ? entry.status.slice(0, 10) : "" };
+      }) };
     }
     function heartbeatBody() {
       var manifest = runtime.envelope && runtime.envelope.manifest;
@@ -10142,16 +10281,17 @@ export function renderLgLegacyHtml() {
       return {
         syncRetryAcknowledgedAt: runtime.syncRetryAcknowledgedAt,
         lastPlaybackError: runtime.lastPlaybackError,
+        videoProbe: storedVideoProbe(),
         mediaTraffic: playerMediaTraffic.snapshot(),
         goalVideoDiagnostics: goalVideoTelemetry(),
         goalVideoCapabilities: goalVideoCapabilities("static-lg", CONFIG.appVersion),
         activeReleaseId: runtime.presentedReleaseId,
         currentItemId: runtime.currentItem ? runtime.currentItem.id : null,
-        desiredReleaseId: pendingManifest
+        desiredReleaseId: runtime.desiredPlaybackReleaseKnown ? runtime.desiredPlaybackReleaseId : (pendingManifest
           ? pendingManifest.releaseId
           : device
             ? device.desiredReleaseId
-            : null,
+            : null),
         networkState: runtime.offline ? "offline" : "online",
         runtimeState:
           runtime.state === "DOWNLOADING" ||
@@ -10187,6 +10327,8 @@ export function renderLgLegacyHtml() {
           if (!transport && status >= 200 && status < 300 && body && typeof body.syncRetryRequestedAt === "string" && parsePlayerTimestamp(body.syncRetryRequestedAt) !== null && body.syncRetryRequestedAt !== runtime.syncRetryRequestedAt) {
             runtime.syncRetryRequestedAt = body.syncRetryRequestedAt;
             runtime.forceManifestRefresh = true;
+            runtime.rejectedVideoRetryAt = 0;
+            runtime.rejectedVideoAttemptCount = 0;
             runtime.syncFailures = 0;
             runtime.manifestEtag = null;
             scheduleManifestSync(0);
@@ -10265,7 +10407,8 @@ export function renderLgLegacyHtml() {
             clearInvalidDeviceCredential();
             ensurePairing();
           } else if (command.commandType === "RELOAD_PLAYER") {
-            window.location.reload();
+            if (command.payload && command.payload.view === "video-diagnostics") window.location.replace("/lg/probe?returnToPlayer=1");
+            else window.location.reload();
           }
         });
       });
@@ -10467,6 +10610,7 @@ export function renderLgLegacyHtml() {
     };
     if (legacyIsCompositionZone) { lgInstallZoneBridge(); return; }
     window.setInterval(function () { lgCompositionCancelBoundary(); }, 250);
+    ensureVideoCacheWorker();
     window.setInterval(sendHeartbeat, CONFIG.heartbeatIntervalMs);
     window.setInterval(pollCommands, CONFIG.commandIntervalMs);
     window.addEventListener("online", function () {
