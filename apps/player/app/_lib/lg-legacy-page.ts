@@ -5610,6 +5610,16 @@ export function renderLgLegacyHtml() {
           releaseIdOf(envelope) || "release"
         );
         callback(null);
+        // A terminal decoder failure may leave the last painted image in place
+        // after clearing every item timer. No natural boundary can arrive then.
+        // Advance the verified candidate at that failed boundary, while a live
+        // decoder, timed item, zone or paused overlay retains its own boundary.
+        if (!legacyIsCompositionZone && !runtime.pendingElement &&
+            !runtime.playbackTimer && !runtime.watchdogTimer &&
+            !runtime.progressTimer && runtime.playbackRemainingMs === null &&
+            runtime.currentItem && runtime.itemFailures[runtime.currentItem.id] > 0) {
+          schedulePlaybackAdvance(1);
+        }
         return;
       }
       persistRelease(envelope, assets, function (persistError) {

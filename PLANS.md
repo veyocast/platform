@@ -426,3 +426,9 @@ S224 vervolgt de na de S223-uitrol werkelijk gemeten LG-videofout met een
 paintbare videolaag, een geverifieerde lokale cachetransportroute, herstel van de
 vorige werkende release en begrensde fysieke-/workerdiagnostiek. Zie
 `docs/s224-lg-video-cache.md`.
+
+S225 herstelt een verloren LG-itemgrens na terminale videoweigering: volledig
+geverifieerde nieuwe media hoeven niet op een verwijderde timer te wachten.
+Gezonde video, overlaypauzes, compositiezones en offline last-known-good behouden
+hun bestaande grenzen. De fysieke videoweigering blijft afzonderlijk te meten;
+zie `docs/s225-lg-media-recovery.md`.
