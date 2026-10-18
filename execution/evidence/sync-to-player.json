@@ -1,0 +1,72 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T03:06:19.636Z",
+  "scope": "actual disposable AAL2 Control publication → production-mode browser Player → offline reload",
+  "projectId": "a3753b6d-609b-44af-b70c-b4c90b24a4f9",
+  "renderJobId": "0d6d8012-fb1e-4e9d-bade-1f3139cce5c1",
+  "assetId": "c202f2fe-0ee8-4e36-b794-b5c6572313b6",
+  "sha256": "ae0a10b8c586151497b3a0642a5d2106080aadf5c8e63de33681537e9392d302",
+  "bytes": 762199,
+  "screenId": "19170000-0000-4000-8000-000000000021",
+  "playlistId": "a41b9dc3-07bc-486f-9687-813f4210e4b7",
+  "release": {
+    "rows": 5,
+    "bytes": 762199,
+    "sha256": "ae0a10b8c586151497b3a0642a5d2106080aadf5c8e63de33681537e9392d302",
+    "assetId": "c202f2fe-0ee8-4e36-b794-b5c6572313b6",
+    "version": 1,
+    "releaseId": "ba33f3d2-92ee-4ef2-9a91-d63538c27578",
+    "rowsPerPage": 4,
+    "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+    "syncDurationMs": 6000,
+    "durationSeconds": 6
+  },
+  "firstFrame": {
+    "releaseId": "ba33f3d2-92ee-4ef2-9a91-d63538c27578",
+    "runtimeState": "PLAYING",
+    "trace": {
+      "revision": "2",
+      "publicationId": "a41b9dc3-07bc-486f-9687-813f4210e4b7",
+      "configRevision": "1",
+      "assignmentSource": "default",
+      "committedAt": null,
+      "correlationId": "a394728b-9933-4e90-9342-984f91c64f7e",
+      "generation": 1,
+      "releaseId": "ba33f3d2-92ee-4ef2-9a91-d63538c27578",
+      "signalReceivedAt": null,
+      "resolvedAt": "2026-10-18T03:06:25.070Z",
+      "targetWrittenAt": "2026-10-18T03:06:22.366028+00:00",
+      "targetRevision": "2",
+      "assetsReadyAt": "2026-10-18T03:06:25.210Z",
+      "firstFrameAt": "2026-10-18T03:06:25.374Z"
+    },
+    "serverStatus": 200
+  },
+  "manifest": {
+    "sourceAssets": 11,
+    "etag": "\"target-38947e904034decc9b2d4a140e36b65d88259e8c7940fcc6834238e60f5a9b66\"",
+    "capability": "sync-v1"
+  },
+  "legacyBinaryProfile": true,
+  "onlinePages": [
+    0,
+    1
+  ],
+  "readback": {
+    "phase": "active",
+    "lastSeenAt": "2026-10-18T03:06:25.384452+00:00",
+    "lastErrorCode": null,
+    "activeReleaseId": "ba33f3d2-92ee-4ef2-9a91-d63538c27578",
+    "desiredReleaseId": "ba33f3d2-92ee-4ef2-9a91-d63538c27578"
+  },
+  "cache": {
+    "verifiedAssetCount": 12,
+    "shellControlled": true
+  },
+  "offlinePages": [
+    0,
+    1
+  ],
+  "offlineReload": true,
+  "pairingPreserved": true
+}

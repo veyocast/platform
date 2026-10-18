@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-10-18T13:25:12.573Z",
+  "scope": "Actual built Next Control, existing AAL2 user, authenticated upload/remap/apply, real PostgreSQL readback. Explicit generated CSV/XLSX fixtures, no claim of a live Twelve API or external customer export.",
+  "run": "19155660-30a6-4367-b487-85091ef24d70",
+  "tenant": "19170000-0000-4000-8000-000000000010",
+  "imports": [
+    {
+      "extension": "csv",
+      "importId": "c4533ab2-880e-43cf-a7d9-cf3b70c8f214",
+      "checksumSha256": "adb35e2fc1ac3bf6f5b81a75400b88b4ce899a9d7263791497618f3ecbcb1fd2",
+      "uploadStatus": 200
+    }
+  ],
+  "beforeProductCount": 1015,
+  "beforeReleaseHistory": "b70edd35ce1f2a47af096cb3a51385d418dddb536b7da31a4d92ecf89c8869f2",
+  "status": "FAIL",
+  "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'CSV-import controleren', level: 1 })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'CSV-import controleren', level: 1 })\n    - waiting for\" http://localhost:3240/dashboard/sources/twelve/imports/c4533ab2-880e-43cf-a7d9-cf3b70c8f214\" navigation to finish...\n    - navigated to \"http://localhost:3240/login?reden=sessie\"\n"
+}

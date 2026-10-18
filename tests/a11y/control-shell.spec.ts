@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-// These route-level checks share one lazily compiling Next.js development
-// server. Keeping this file serial prevents concurrent first-load compiles
-// from replacing one route with another route's loading boundary.
-test.describe.configure({ mode: "serial" });
+// Route checks use the configured single worker for the lazily compiling server.
+// Each has a fresh browser context and no dependency on an earlier test, so a
+// failed check must not suppress the remaining route/keyboard evidence.
+test.describe.configure({ mode: "default" });
 
 test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await page.goto("/dashboard");
@@ -16,23 +16,23 @@ test("control shell exposes keyboard and landmark basics", async ({ page }) => {
   await expect(
     page.getByRole("navigation", { name: "Hoofdnavigatie" })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Goedemorgen,/ })).toBeVisible();
-  await expect(page.getByText("Schermen online", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Nog niets actief" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Mooi dat je er bent,/ })).toBeVisible();
+  await expect(page.getByText("Schermen bereikbaar", { exact: true })).toBeVisible();
+  await expect(page.getByText("Nog geen bevestigde inhoud", { exact: true })).toBeVisible();
 });
 
-test("fixed FieldFlow tenant navigation remains keyboard reachable", async ({ page }) => {
+test("fixed Sync tenant navigation remains keyboard reachable", async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1280 });
   await page.goto("/dashboard");
   await page.waitForLoadState("networkidle");
 
   const sidebar = page.getByLabel("Control navigatie");
   const overview = sidebar.getByRole("link", { name: "Overzicht", exact: true });
-  await expect(sidebar).toHaveCSS("width", "248px");
+  await expect(sidebar).toHaveCSS("width", "228px");
   await expect(sidebar.locator(".vx-brand img")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
-  ).toBeVisible();
+  ).toBeHidden();
   await expect
     .poll(async () => {
       await overview.focus();
@@ -74,7 +74,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
         expect(box?.width).toBeGreaterThanOrEqual(44);
       }
 
-      const moreButton = mobileNavigation.getByRole("button", { name: "Meer" });
+      const moreButton = page.getByRole("button", { name: "Navigatie openen" });
       await expect(moreButton).toBeEnabled();
       await moreButton.click();
       await expect(moreButton).toHaveAttribute("aria-expanded", "true");
@@ -87,7 +87,7 @@ test("control shell reflows across canonical viewport widths", async ({ page }) 
       await expect(moreButton).toHaveAttribute("aria-expanded", "false");
     } else {
       const sidebar = page.getByLabel("Control navigatie");
-      await expect(sidebar).toHaveCSS("width", width <= 1100 ? "216px" : "248px");
+      await expect(sidebar).toHaveCSS("width", width <= 1200 ? "205px" : "228px");
       await expect(page.getByRole("button", { name: "Navigatie openen" })).not.toBeVisible();
       await expect(page.getByRole("navigation", { name: "Hoofdnavigatie" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Snel naar een onderdeel" })).toBeEnabled();
@@ -107,8 +107,8 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
   });
   await expect(mobileNavigation).toBeVisible();
   await expect(mobileNavigation.getByRole("link", { name: "Playlists" })).toBeVisible();
-  await expect(mobileNavigation.getByRole("link", { name: "Planning" })).toHaveCount(0);
-  await expect(mobileNavigation.locator("a,button")).toHaveText(["Overzicht", "Playlists", "Studio", "Schermen", "Meer"]);
+  await expect(mobileNavigation.getByRole("link", { name: "Planning" })).toBeVisible();
+  await expect(mobileNavigation.locator("a,button")).toHaveText(["Overzicht", "Content", "Playlists", "Planning", "Schermen"]);
   await expect(mobileNavigation.getByRole("link", { name: "Klanten" })).toHaveCount(0);
 
   const platformPage = await page.context().newPage();
@@ -130,8 +130,9 @@ test("mobile navigation never mixes tenant and platform destinations", async ({
   await platformPage.close();
 });
 
-test("all Control overview routes remain inside the viewport", async ({ page }) => {
-  test.setTimeout(600_000);
+for (const width of [320, 390, 768, 1024, 1100, 1280]) {
+ test(`all Control overview routes remain inside the viewport at ${width}px`, async ({ page }) => {
+  test.setTimeout(300_000);
 
   const routes = [
     "/dashboard",
@@ -157,8 +158,7 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
     "/platform/system"
   ];
 
-  for (const width of [320, 390, 768, 1024, 1100, 1280]) {
-    await page.setViewportSize({ height: 900, width });
+  await page.setViewportSize({ height: 900, width });
 
     for (const route of routes) {
       await expect(async () => {
@@ -176,8 +176,8 @@ test("all Control overview routes remain inside the viewport", async ({ page }) 
         `${route} blijft binnen ${width}px`
       ).toBe(true);
     }
-  }
-});
+ });
+}
 
 test("dynamic content workspaces remain usable on mobile and desktop", async ({
   page
@@ -195,13 +195,29 @@ test("dynamic content workspaces remain usable on mobile and desktop", async ({
     ]) {
       await expect(async () => {
         try {
-          await page.goto(route, { waitUntil: "domcontentloaded" });
+          await page.goto(route, { waitUntil: "domcontentloaded", timeout: 15_000 });
         } catch (error) {
           if (!(error instanceof Error) || !error.message.includes("ERR_ABORTED")) {
             throw error;
           }
         }
-        await expect(page.locator("#control-content")).toBeVisible();
+        if (route === "/dashboard/slides/new") {
+          // The legacy alias redirects asynchronously after its initial SSR.
+          // Wait for the destination before asserting its modal or retrying.
+          await page.waitForURL(/\/dashboard\/studio\/new(?:\?|$)/, {
+            waitUntil: "domcontentloaded", timeout: 15_000
+          });
+        }
+        await expect(page.locator("#control-content"), `${route} laadt op ${width}px`).toBeVisible();
+        if (route === "/dashboard/slides/new") {
+          const chooser=page.getByRole("dialog", {name:"Wat wil je maken?"});
+          await expect(chooser).toBeVisible();
+          await expect(chooser.getByRole("heading", {name:"Wat wil je maken?"})).toBeVisible();
+          await page.keyboard.press("Tab");
+          expect(await chooser.evaluate(element=>element.contains(document.activeElement))).toBe(true);
+          await page.keyboard.press("Escape");
+          await expect(chooser).toBeHidden();
+        }
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
         expect(
           await page.evaluate(
@@ -211,69 +227,26 @@ test("dynamic content workspaces remain usable on mobile and desktop", async ({
           ),
           `${route} heeft geen horizontale overflow op ${width}px`
         ).toBe(true);
-      }).toPass({ timeout: 20_000 });
+      }, `${route} herstelt van een ontwikkelserverherstart op ${width}px`).toPass({ timeout: 20_000 });
     }
   }
 });
 
-test("Bronnen exposes Twelve Producten as a responsive secondary journey", async ({
-  page
-}) => {
+test("Sync Bronnen and Producten distinguish an empty library from a connected provider", async ({ page }) => {
   for (const width of [390, 1280]) {
     await page.setViewportSize({ height: 900, width });
     await page.goto("/dashboard/sources");
-
-    await expect(
-      page.getByRole("heading", { exact: true, level: 1, name: "Bronnen" })
-    ).toBeVisible();
-    await expect(
-      page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) }).getByRole("link", { name: "Koppeling bekijken" })
-    ).toBeVisible();
-    const twelveCard = page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) });
-    const statusDetails = twelveCard.getByRole("button", { name: /^Twelve statusdetails/ });
-    await statusDetails.focus();
-    await page.keyboard.press("Enter");
-    const statusDialog = page.getByRole("dialog", { name: "Twelve statusdetails" });
-    await expect(statusDialog.getByText("0 opgeslagen koppelingen", { exact: true })).toBeVisible();
-    await expect(statusDialog).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(statusDialog).not.toBeVisible();
-    await expect(statusDetails).toBeFocused();
-    await expect
-      .poll(() =>
-        page.evaluate(
-          () =>
-            document.documentElement.scrollWidth <=
-            document.documentElement.clientWidth
-        )
-      )
-      .toBe(true);
-
-    await expect(async () => {
-      if (!/\/dashboard\/sources\/twelve\/products$/.test(page.url())) {
-        await page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) }).getByRole("link", { name: "Koppeling bekijken" }).click();
-      }
-      await expect(page).toHaveURL(/\/dashboard\/sources\/twelve\/products$/);
-    }).toPass({ timeout: 20_000 });
-    await expect(
-      page.getByRole("heading", {
-        exact: true,
-        level: 1,
-        name: "Twelve producten"
-      })
-    ).toBeVisible();
-    await expect(
-      page.getByText("Nog geen producten", { exact: true })
-    ).toBeVisible();
-    await expect
-      .poll(() =>
-        page.evaluate(
-          () =>
-            document.documentElement.scrollWidth <=
-            document.documentElement.clientWidth
-        )
-      )
-      .toBe(true);
+    await expect(page.getByRole("heading", { exact: true, level: 1, name: "Alles begint bij goede gegevens." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nog geen bronnen verbonden", exact: true })).toBeVisible();
+    await expect(page.locator(".ad-source")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Bron toevoegen", exact: true })).toBeDisabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await page.goto("/dashboard/products");
+    await expect(page.getByRole("heading", { exact: true, level: 1, name: "Een frisse kaart voor je club." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Geen producten gevonden", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Product toevoegen", exact: true })).toBeDisabled();
+    await expect(page.getByLabel("Producten zoeken")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
 });
 
@@ -292,7 +265,7 @@ test("screen workspace keeps its primary controls readable on desktop and mobile
       } catch (error) {
         if (!String(error).includes("ERR_ABORTED")) throw error;
       }
-      await expect(page.getByLabel("Zoeken in de schermvloot")).toBeVisible();
+      await expect(page.getByLabel("Zoek scherm")).toBeVisible();
     }).toPass({ timeout: 20_000 });
     expect(
       await page.evaluate(
@@ -308,7 +281,7 @@ test("Source resource filters remain keyboard reachable through compact desktop"
     await page.goto("/dashboard/playlists");
     const library = page.getByRole("region", { name: "Playlistbibliotheek" });
     const trigger = library.getByRole("button", { exact: true, name: "Filters" });
-    await expect(library.getByLabel("Zoek een playlist")).toBeVisible();
+    await expect(library.getByLabel("Playlists zoeken")).toBeVisible();
     await expect(trigger).toBeVisible();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
     await expect(library.getByRole("combobox", { exact: true, name: "Status" })).not.toBeVisible();
@@ -356,7 +329,7 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
     } catch (error) {
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
-    await expect(page.getByRole("heading", { name: /Goedemorgen,/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Mooi dat je er bent,/ })).toBeVisible();
   }).toPass({ timeout: 20_000 });
 
   const switcher = page.getByRole("button", {
@@ -472,26 +445,26 @@ test("playlists route exposes searchable resource filters and safe creation", as
   await page.goto("/dashboard/playlists");
 
   await expect(
-    page.getByLabel("Control status").getByRole("heading", { exact: true, level: 1, name: "Playlists" })
+    page.getByRole("main").getByRole("heading", { exact: true, level: 1, name: "Je playlists" })
   ).toBeVisible();
   const library = page.getByRole("region", { name: "Playlistbibliotheek" });
   const trigger = library.getByRole("button", { exact: true, name: "Filters" });
-  await expect(library.getByLabel("Zoek een playlist")).toBeVisible();
+  await expect(library.getByLabel("Playlists zoeken")).toBeVisible();
   await trigger.focus();
   await page.keyboard.press("Enter");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   await expect(library.getByRole("combobox", { exact: true, name: "Status" })).toBeVisible();
   await expect(library.getByRole("combobox", { exact: true, name: "Sorteren" })).toBeVisible();
-  await expect(library.getByRole("heading", { name: "Je eerste playlist begint hier" })).toBeVisible();
+  await expect(library.getByRole("heading", { name: "Een nieuw verhaal", exact: true })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Configureer Supabase" })).toBeVisible();
   await expect(library.getByRole("button", { name: "Nieuwe playlist" })).toBeDisabled();
-  await expect(library.getByRole("button", { name: "Playlist maken" })).toBeDisabled();
+  await expect(library.getByRole("button", { name: /Een nieuw verhaal/ })).toBeDisabled();
   await expect(page.getByRole("link", { name: "Uitgebreid overzicht met kolommen, schermfilters en verwijderen" })).toHaveCount(0);
   // Historical links must retain search and resolve to the same library.
   await page.goto("/dashboard/playlists?advanced=1&q=clubverhaal");
   await expect(page).toHaveURL(/\/dashboard\/playlists\?q=clubverhaal$/);
   await expect(library).toBeVisible();
-  await expect(library.getByLabel("Zoek een playlist")).toHaveValue("clubverhaal");
+  await expect(library.getByLabel("Playlists zoeken")).toHaveValue("clubverhaal");
   await expect(library.getByRole("button", { name: "Nieuwe playlist", exact: true })).toHaveCount(1);
   await expect(library.getByRole("button", { name: "Nieuwe playlist", exact: true })).toBeDisabled();
   await expect(page.getByRole("heading", { name: "Playlistoverzicht" })).toHaveCount(0);
@@ -603,7 +576,7 @@ test("billing surfaces explain shadow mode and remain usable on mobile", async (
 
   await page.goto("/dashboard/settings/billing");
   await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Abonnement & facturatie" })
+    page.getByRole("heading", { exact: true, level: 1, name: "Alles helder geregeld." })
   ).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Shadowmodus" })).toBeVisible();
   await expect(page.getByText("€ 5,95 incl. btw", { exact: false })).toBeVisible();
@@ -619,13 +592,14 @@ test("billing surfaces explain shadow mode and remain usable on mobile", async (
 test("team route exposes roles and a safely disabled invitation flow", async ({ page }) => {
   await page.goto("/dashboard/team");
 
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Team" })).toBeVisible();
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Samen aan het stuur." })).toBeVisible();
   await expect(page.getByLabel("E-mailadres")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Uitnodiging versturen" })).toHaveCount(0);
   await expect(
     page.getByRole("status").filter({ hasText: "Configureer Supabase" })
   ).toBeVisible();
-  await expect(page.getByRole("status").filter({ hasText: "Nog geen teamleden" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Toegang binnen de actieve vereniging." })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Toegang binnen de actieve vereniging." }).locator("tbody tr")).toHaveCount(0);
 });
 
 test("tenant management exposes a labelled and safely disabled creation flow", async ({
@@ -674,11 +648,12 @@ test("screens onboarding exposes labelled lifecycle and safely disabled creation
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
     await expect(
-      page.getByLabel("Control status", { exact: true }).getByRole("heading", { exact: true, level: 1, name: "Schermen" })
+      page.getByRole("main").getByRole("heading", { exact: true, level: 1, name: "Jouw club. Overal in beeld." })
     ).toBeVisible();
   }).toPass({ timeout: 20_000 });
 
-  await expect(page.getByRole("status").filter({ hasText: "geen fictieve schermen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Scherm koppelen", exact: true })).toBeDisabled();
+  await expect(page.locator(".px-screen-card")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
   await page.goto("/dashboard/screens/new");
   await expect(page.getByLabel("Scherminstelstappen")).toContainText("Controleren");
@@ -705,6 +680,13 @@ test("pilot route exposes a sequential and fully labelled flow", async ({ page }
 });
 
 test("public auth routes have clear headings and forms", async ({ context, page }) => {
+  test.slow();
+  // Warm the real route before the browser's bounded PWA navigation deadline.
+  // Cold Next development compilation can legitimately take longer than the
+  // network deadline and return the privacy-preserving offline document.
+  for (const path of ["/login", "/forgot-password", "/accept-invite"]) {
+    expect((await page.request.get(path)).status(), path).toBe(200);
+  }
   await page.goto("/login");
 
   await expect(

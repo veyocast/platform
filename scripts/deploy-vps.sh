@@ -621,6 +621,11 @@ create_candidate_env() {
   if [[ -n ${SLACK_ALERT_WEBHOOK_URL:-} ]]; then
     write_env_value "${candidate_env_file}" SLACK_ALERT_WEBHOOK_URL "${SLACK_ALERT_WEBHOOK_URL}"
   fi
+  for optional_mail_name in SENDGRID_API_KEY SENDGRID_FROM_EMAIL VEYOCAST_INQUIRY_EMAIL; do
+    if [[ -n ${!optional_mail_name:-} ]]; then
+      write_env_value "${candidate_env_file}" "${optional_mail_name}" "${!optional_mail_name}"
+    fi
+  done
   write_env_value "${candidate_env_file}" SUPABASE_SERVICE_ROLE_KEY "${SUPABASE_SERVICE_ROLE_KEY}"
   write_env_value "${candidate_env_file}" VEYOCAST_ENVIRONMENT "${environment}"
   if [[ ${environment} == production ]]; then

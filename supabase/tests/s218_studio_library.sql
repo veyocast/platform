@@ -30,7 +30,7 @@ select is(jsonb_array_length((select value->'jobs'from prepared)),1,'preparation
 select is(public.prepare_publisher_studio_series_v1((select(value->>'seriesId')::uuid from result),1,jsonb_build_array(jsonb_build_object('id',(select value#>>'{projectIds,0}'from result),'draftRevision',0)),pg_temp.uid(61)),(select value from prepared),'a second session command reuses the exact draft render');
 select is((select count(*)from public.studio_render_jobs where tenant_id=pg_temp.uid(10)),1::bigint,'library selection does not create repeated render jobs');
 select is((select count(*)from public.studio_revisions where tenant_id=pg_temp.uid(10)),1::bigint,'library selection does not create repeated Studio versions');
-select throws_ok($$select public.prepare_publisher_studio_series_v1((select(value->>'seriesId')::uuid from result),1,jsonb_build_array(jsonb_build_object('id',(select value#>>'{projectIds,0}'from result),'draftRevision',9)),pg_temp.uid(62))$$,'40001',null,'stale selected content is rejected');
+select throws_ok($$select public.prepare_publisher_studio_series_v1((select(value->>'seriesId')::uuid from result),1,jsonb_build_array(jsonb_build_object('id',(select value#>>'{projectIds,0}'from result),'draftRevision',9)),pg_temp.uid(62))$$,'PT409',null,'stale selected content is rejected');
 select set_config('request.jwt.claim.sub',pg_temp.uid(3)::text,true);
 select throws_ok($$select public.prepare_publisher_studio_series_v1((select(value->>'seriesId')::uuid from result),1,jsonb_build_array(jsonb_build_object('id',(select value#>>'{projectIds,0}'from result),'draftRevision',0)),pg_temp.uid(63))$$,'42501',null,'viewers cannot start a render');
 select set_config('request.jwt.claim.sub',pg_temp.uid(2)::text,true);

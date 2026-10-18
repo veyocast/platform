@@ -1,0 +1,322 @@
+[
+  {
+    "path": ".github/workflows/android-google-tv-play-internal.yml",
+    "git_blob_sha": "bc0089681396f04166bf98ef5dd6dd02ce589533",
+    "secrets": [
+      "ANDROID_TV_UPLOAD_KEYSTORE_BASE64",
+      "ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD",
+      "ANDROID_TV_UPLOAD_KEY_ALIAS",
+      "ANDROID_TV_UPLOAD_KEY_PASSWORD"
+    ],
+    "variables": [
+      "GOOGLE_WORKLOAD_IDENTITY_PROVIDER",
+      "GOOGLE_PLAY_SERVICE_ACCOUNT"
+    ],
+    "environment_references": [
+      "    environment: android-tv-internal"
+    ]
+  },
+  {
+    "path": ".github/workflows/android-tv-play-internal.yml",
+    "git_blob_sha": "1235f2d8ccb471abc5e1951762836257f32dc2d7",
+    "secrets": [
+      "ANDROID_TV_UPLOAD_KEYSTORE_BASE64",
+      "ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD",
+      "ANDROID_TV_UPLOAD_KEY_ALIAS",
+      "ANDROID_TV_UPLOAD_KEY_PASSWORD"
+    ],
+    "variables": [
+      "GOOGLE_WORKLOAD_IDENTITY_PROVIDER",
+      "GOOGLE_PLAY_SERVICE_ACCOUNT"
+    ],
+    "environment_references": [
+      "    environment: android-tv-internal"
+    ]
+  },
+  {
+    "path": ".github/workflows/android-tv.yml",
+    "git_blob_sha": "d5bce1766fc0fc4e93f56fc385857281eb7508dc",
+    "secrets": [],
+    "variables": [],
+    "environment_references": []
+  },
+  {
+    "path": ".github/workflows/control-mobile-ci.yml",
+    "git_blob_sha": "d9357b7fb68166e97b09a05f8cfb698a0229abfa",
+    "secrets": [],
+    "variables": [],
+    "environment_references": []
+  },
+  {
+    "path": ".github/workflows/control-mobile-play-internal.yml",
+    "git_blob_sha": "1fc13f6fcb28b45fa61c4fea79868f90baee903b",
+    "secrets": [
+      "ANDROID_CONTROL_UPLOAD_KEYSTORE_BASE64",
+      "ANDROID_CONTROL_UPLOAD_KEYSTORE_PASSWORD",
+      "ANDROID_CONTROL_UPLOAD_KEY_ALIAS",
+      "ANDROID_CONTROL_UPLOAD_KEY_PASSWORD",
+      "ANDROID_CONTROL_GOOGLE_SERVICES_JSON_BASE64"
+    ],
+    "variables": [
+      "GOOGLE_WORKLOAD_IDENTITY_PROVIDER",
+      "GOOGLE_PLAY_CONTROL_SERVICE_ACCOUNT",
+      "ANDROID_CONTROL_UPLOAD_CERT_SHA256",
+      "CONTROL_MOBILE_PUBLIC_ORIGIN",
+      "CONTROL_MOBILE_PUBLIC_SUPABASE_URL",
+      "CONTROL_MOBILE_PUBLIC_SUPABASE_ANON_KEY"
+    ],
+    "environment_references": [
+      "    environment: android-control-internal"
+    ]
+  },
+  {
+    "path": ".github/workflows/control-mobile-play-production.yml",
+    "git_blob_sha": "b54a3cd49d0643c7612a34415207b3e8fe2a64f6",
+    "secrets": [],
+    "variables": [
+      "GOOGLE_WORKLOAD_IDENTITY_PROVIDER",
+      "GOOGLE_PLAY_CONTROL_SERVICE_ACCOUNT"
+    ],
+    "environment_references": [
+      "    environment: android-control-production"
+    ]
+  },
+  {
+    "path": ".github/workflows/current-publication-maintenance.yml",
+    "git_blob_sha": "d8f8b92716eb275e06a8d03ab2d61fca9ec32e75",
+    "secrets": [
+      "SUPABASE_DB_URL"
+    ],
+    "variables": [],
+    "environment_references": [
+      "    environment: ${{ inputs.target_environment }}"
+    ]
+  },
+  {
+    "path": ".github/workflows/database-rls-gates.yml",
+    "git_blob_sha": "9edad6976312b37ae37d199715b6561a66992446",
+    "secrets": [],
+    "variables": [],
+    "environment_references": []
+  },
+  {
+    "path": ".github/workflows/deploy.yml",
+    "git_blob_sha": "2570d0608d1d4fd41a5355d46e5b3c1dc143ff11",
+    "secrets": [
+      "DEVICE_LAB_ACCESS_TOKEN",
+      "DEVICE_LAB_SESSION_SECRET",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY",
+      "SUPABASE_DB_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SLACK_ALERT_WEBHOOK_URL"
+    ],
+    "variables": [
+      "CONTROL_BIND_PORT",
+      "CONTROL_HOST",
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "PLAYER_BIND_PORT",
+      "PLAYER_HOST",
+      "SUPABASE_PROJECT_REF",
+      "MARKETING_BIND_PORT",
+      "MARKETING_HOST"
+    ],
+    "environment_references": [
+      "    environment:",
+      "      name: staging",
+      "    environment:",
+      "      name: staging",
+      "    environment:",
+      "      name: staging",
+      "    environment:",
+      "      name: production"
+    ]
+  },
+  {
+    "path": ".github/workflows/fieldflow-royal-theme-reset.yml",
+    "git_blob_sha": "74b8b240594dc30858b8bc8e948299e250e9bbc1",
+    "secrets": [
+      "SUPABASE_DB_URL"
+    ],
+    "variables": [],
+    "environment_references": [
+      "    environment:"
+    ]
+  },
+  {
+    "path": ".github/workflows/lg-webos-signage-ipk.yml",
+    "git_blob_sha": "c40706c80686dcb50509cd62a07f112bc879e65f",
+    "secrets": [
+      "LG_WEBOS_DISTRIBUTION_BEARER_TOKEN"
+    ],
+    "variables": [
+      "LG_WEBOS_DISTRIBUTION_BASE_URL"
+    ],
+    "environment_references": [
+      "    environment: lg-webos-signage-release"
+    ]
+  },
+  {
+    "path": ".github/workflows/menu-studio-pilot-rollout.yml",
+    "git_blob_sha": "f3731324cb4f80fdd16ac5271af996144160c95f",
+    "secrets": [
+      "SUPABASE_DB_URL"
+    ],
+    "variables": [],
+    "environment_references": [
+      "    environment:"
+    ]
+  },
+  {
+    "path": ".github/workflows/pr-gates.yml",
+    "git_blob_sha": "a8a0090cb5b38c0a579a3ad3b086bfb0addeb585",
+    "secrets": [],
+    "variables": [],
+    "environment_references": []
+  },
+  {
+    "path": ".github/workflows/probe-data-api-resources.yml",
+    "git_blob_sha": "51fad01150e7a19d4a2e027754c7fa3b8e176be1",
+    "secrets": [
+      "SUPABASE_DB_URL",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "variables": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "SUPABASE_PROJECT_REF"
+    ],
+    "environment_references": [
+      "    environment: production"
+    ]
+  },
+  {
+    "path": ".github/workflows/probe-goal-media.yml",
+    "git_blob_sha": "f75909598358c48ea9e7c8ca21a0bdea0333e4a6",
+    "secrets": [],
+    "variables": [],
+    "environment_references": [
+      "    environment: ${{ inputs.target_environment }}"
+    ]
+  },
+  {
+    "path": ".github/workflows/probe-live-integrations.yml",
+    "git_blob_sha": "b01612391eca5d470b6da8709d158ab6283db8b0",
+    "secrets": [],
+    "variables": [],
+    "environment_references": [
+      "    environment: ${{ inputs.target_environment }}"
+    ]
+  },
+  {
+    "path": ".github/workflows/probe-player-video.yml",
+    "git_blob_sha": "ed4c513c2d1ac4880b21ac4cc57f08fad3722774",
+    "secrets": [],
+    "variables": [],
+    "environment_references": [
+      "    environment: ${{ inputs.target_environment }}"
+    ]
+  },
+  {
+    "path": ".github/workflows/probe-publication-runtime.yml",
+    "git_blob_sha": "6d921f5356d386f9a4d7a02ec5febfc6a7404cb5",
+    "secrets": [
+      "SUPABASE_DB_URL"
+    ],
+    "variables": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "SUPABASE_PROJECT_REF"
+    ],
+    "environment_references": [
+      "    environment: ${{ inputs.target_environment }}"
+    ]
+  },
+  {
+    "path": ".github/workflows/probe-runtime-database.yml",
+    "git_blob_sha": "45168d6bbec020b6320164caf67e07c9d20e0e13",
+    "secrets": [
+      "SUPABASE_DB_URL",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "variables": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "SUPABASE_PROJECT_REF"
+    ],
+    "environment_references": [
+      "    environment: ${{ inputs.target_environment }}"
+    ]
+  },
+  {
+    "path": ".github/workflows/recover-data-api.yml",
+    "git_blob_sha": "73629ce1618a4d393326e4beb4105bd94a36987f",
+    "secrets": [
+      "SUPABASE_DB_URL",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "variables": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "SUPABASE_PROJECT_REF"
+    ],
+    "environment_references": [
+      "    environment: production"
+    ]
+  },
+  {
+    "path": ".github/workflows/recovery-drill.yml",
+    "git_blob_sha": "8a53a1915f9425b919dcdb434dc12b337391249d",
+    "secrets": [
+      "SUPABASE_RESTORE_DRILL_DB_URL",
+      "SUPABASE_DB_URL"
+    ],
+    "variables": [
+      "SUPABASE_PROJECT_REF"
+    ],
+    "environment_references": [
+      "    environment:",
+      "      name: staging"
+    ]
+  },
+  {
+    "path": ".github/workflows/retention-maintenance.yml",
+    "git_blob_sha": "544deba41c00a7c06b13f41228675419fa2bb7c6",
+    "secrets": [
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "variables": [
+      "RETENTION_ENFORCEMENT_ENABLED",
+      "NEXT_PUBLIC_SUPABASE_URL"
+    ],
+    "environment_references": [
+      "    environment: production"
+    ]
+  },
+  {
+    "path": ".github/workflows/sites-reference-gates.yml",
+    "git_blob_sha": "2dc7543f44639ee1bf1d03694c50cb36fff63b6b",
+    "secrets": [],
+    "variables": [],
+    "environment_references": []
+  },
+  {
+    "path": ".github/workflows/slack-alert-smoke.yml",
+    "git_blob_sha": "42599fd1adfe7b84ce9120ad5d2d3f345a64272a",
+    "secrets": [
+      "SLACK_ALERT_WEBHOOK_URL"
+    ],
+    "variables": [],
+    "environment_references": [
+      "      environment:",
+      "    environment:"
+    ]
+  },
+  {
+    "path": ".github/workflows/vector-v2-pilot-rollout.yml",
+    "git_blob_sha": "ebc16ab04ea7a4997931ff761a724e9d7ac07c8d",
+    "secrets": [
+      "SUPABASE_DB_URL"
+    ],
+    "variables": [],
+    "environment_references": [
+      "    environment:"
+    ]
+  }
+]

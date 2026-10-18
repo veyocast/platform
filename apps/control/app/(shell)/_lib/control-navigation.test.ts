@@ -17,6 +17,7 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
+      "/dashboard/content",
       "/dashboard/studio",
       "/dashboard/slides/menu-studio",
       "/dashboard/sponsors",
@@ -30,6 +31,8 @@ describe("control navigation", () => {
       "/dashboard/playlist-templates",
       "/dashboard/publications",
       "/dashboard/sources",
+      "/dashboard/products",
+      "/dashboard/settings/billing",
       "/dashboard/team",
       "/dashboard/activity",
       "/dashboard/settings",
@@ -66,6 +69,7 @@ describe("control navigation", () => {
     ]);
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
+      "/dashboard/content",
       "/dashboard/studio",
       "/dashboard/slides/menu-studio",
       "/dashboard/media",
@@ -77,8 +81,10 @@ describe("control navigation", () => {
       "/dashboard/planning",
       "/dashboard/publications",
       "/dashboard/sources",
+      "/dashboard/products",
       "/dashboard/sponsors",
       "/dashboard/engage",
+      "/dashboard/settings/billing",
       "/dashboard/team",
       "/dashboard/activity",
       "/dashboard/settings",
@@ -114,6 +120,9 @@ describe("control navigation", () => {
     ["/dashboard/releases/release-id", "publications", "resource", "Publicaties"],
     ["/dashboard/slides/slide-id", "slides", "resource", "Slides & formats"],
     ["/dashboard/themes/fieldflow", "themes", "resource", "Thema's"],
+    ["/dashboard/products", "integrations", "resource", "Producten"],
+    ["/dashboard/sources/twelve/products", "integrations", "resource", "Producten"],
+    ["/dashboard/integrations/twelve-products/imports/id", "integrations", "resource", "Producten"],
     ["/dashboard/sources/sportlink", "sources", "resource", "Bronnen"],
     ["/dashboard/data-sources/sportlink", "sources", "resource", "Bronnen"],
     ["/dashboard/integrations/youtube", "integrations", "resource", "Integraties"],
@@ -189,6 +198,7 @@ describe("control navigation", () => {
 
     expect(links).toStrictEqual([
       "/dashboard",
+      "/dashboard/content",
       "/dashboard/media",
       "/dashboard/screens"
     ]);

@@ -1,0 +1,19 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T06:38:12.638Z",
+  "playerBuildId": "DAmn0pWYVaAEunTbxoMX1",
+  "scope": "actual AAL2 catalog mutation and existing published-data refresh runner; same publication and complete verified DOM staged at natural boundary, grown page count and offline reload; explicit binary remains complete frozen publication fallback; no Source binding editor, external provider, hardware or hosted deployment claim",
+  "sourceId": "d98978b2-786d-4fdf-9de8-c304ae380227",
+  "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+  "releaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a",
+  "productReceiptReplayed": true,
+  "refreshResults": [
+    {
+      "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+      "status": "completed",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    }
+  ],
+  "binaryStillFullFrozenFallback": true,
+  "error": "page.evaluate: ReferenceError: __name is not defined\n    at eval (eval at evaluate (:303:30), <anonymous>:1:52)\n    at UtilityScript.evaluate (<anonymous>:305:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+}

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { sportlinkSlideBlueprintKeys } from "@veyocast/contracts";
+import { sportlinkSlideBlueprintKeys,syncDynamicConfigurationSchema } from "@veyocast/contracts";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
@@ -30,7 +30,8 @@ export async function createOrResumeDynamicSlideVersion(formData: FormData) {
   const menu = slide.data?.slide_type === "price_list" && configuration?.schemaVersion === "menu-document.v2";
   const sportlink = typeof configuration?.blueprintKey === "string" &&
     sportlinkSlideBlueprintKeys.includes(configuration.blueprintKey as (typeof sportlinkSlideBlueprintKeys)[number]);
-  if (slide.error || !slide.data || (!menu && !sportlink)) {
+  const sync=syncDynamicConfigurationSchema.safeParse(configuration?.syncConfiguration).success;
+  if (slide.error || !slide.data || (!menu && !sportlink&&!sync)) {
     redirect(`/dashboard/slides/${slideId}?fout=Voor+dit+slidetype+is+veilig+versioneren+nog+niet+beschikbaar.`);
   }
   const result = await supabase.rpc("create_or_resume_dynamic_slide_version_v1", {

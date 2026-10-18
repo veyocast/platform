@@ -1,0 +1,28 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T07:12:46.423Z",
+  "controlBuildId": "chcFxKuUhKEVYeoGsfvnt",
+  "scope": "actual AAL2 Source menu creation with explicit canonical source selection, lost committed create response and exact receipt recovery, complete existing-worker artifact; no RSS/external provider, sport selectors, copied Studio origin, hardware or hosted deployment claim",
+  "previewReadOnly": true,
+  "slideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "exactCreateReceiptRecovered": true,
+  "transportWritesThisRun": 2,
+  "canonical": {
+    "rows": 9,
+    "jobId": "3b91e0dc-7fb4-4ccd-a577-aa3a7ab36fc4",
+    "seedRows": 0,
+    "sourceId": "d98978b2-786d-4fdf-9de8-c304ae380227",
+    "jobStatus": "queued",
+    "slideCount": 1,
+    "snapshotId": "8e0649ee-0d20-44c1-a32b-49b2ade98bd4"
+  },
+  "completeOutput": {
+    "rows": 9,
+    "bytes": 1844051,
+    "sha256": "b8e8cba6db421bf67ed5c359fd0e91f183d350765931aac1ca609c6c6f56fc28",
+    "status": "ready",
+    "assetId": "d5a87273-23c3-5db3-873a-8fc3e6620790",
+    "durationMs": 15000
+  },
+  "error": "expect(locator).toBeVisible() failed\n\nLocator: getByLabel('Volledige offline fallback van S226 Source UI-aanmaak 1792307566121', { exact: true })\nExpected: visible\nError: strict mode violation: getByLabel('Volledige offline fallback van S226 Source UI-aanmaak 1792307566121', { exact: true }) resolved to 2 elements:\n    1) <video controls=\"\" playsinline=\"\" preload=\"metadata\" aria-label=\"Volledige offline fallback van S226 Source UI-aanmaak 1792307566121\" src=\"https://127.0.0.1:57631/storage/v1/object/sign/tenant-media/tenants/19170000-0000-4000-8000-000000000010/assets/d5a87273-23c3-5db3-873a-8fc3e6620790/sync-dynamic/b8e8cba6db421bf67ed5c359fd0e91f183d350765931aac1ca609c6c6f56fc28.mp4?token=[redacted]></video> aka getByRole('region', { name: 'Huidige HTML/CSS-weergave' }).getByLabel('Volledige offline fallback')\n    2) <video muted=\"\" controls=\"\" playsinline=\"\" preload=\"metadata\" aria-label=\"Volledige offline fallback van S226 Source UI-aanmaak 1792307566121\" src=\"https://127.0.0.1:57631/storage/v1/object/sign/tenant-media/tenants/19170000-0000-4000-8000-000000000010/assets/d5a87273-23c3-5db3-873a-8fc3e6620790/sync-dynamic/b8e8cba6db421bf67ed5c359fd0e91f183d350765931aac1ca609c6c6f56fc28.mp4?token=[redacted]></video> aka getByLabel('Volledige offline fallback').nth(1)\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 30000ms\n  - waiting for getByL"
+}

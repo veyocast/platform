@@ -1,0 +1,179 @@
+{
+  "status": "PARTIAL",
+  "phase": "Source menu/sport/RSS/LED/Engage and complete bounded binary local chains proven; remaining exact UI/scenarios/provider/hosted acceptance stays explicit",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "implemented": [
+    "Strict independent Source dynamic configuration over existing dynamic authoring/version tables",
+    "Same dynamic render queue, real template/version/hash identity and per-attempt lease tokens",
+    "Complete multipage/Motion H264 MP4 or one-page static PNG with validated poster and private SHA-bound storage",
+    "Frozen snapshot render time without needless canonical hash/data revisions",
+    "Complete source selections through 200 rows, explicit overflow, unchanged protected S206 canonical bodies",
+    "Old dynamic DOM profile excludes Source snapshots and retains their complete binary fallback",
+    "Independent Source DOM and qualified binary capability with separate cache/ETag identities; old clients retain the original complete binary",
+    "Actual dynamic snapshot publication with first visible frame and verified offline cold reload for DOM and binary profiles",
+    "Existing published-data queue refreshes authorized Source DOM facts independently of immutable release configuration",
+    "Complete live DOM preparation stages at the natural item boundary and retains latest verified data after offline reload",
+    "Existing Source dynamic versions open in the Source frame with authorized read-only canonical previews and separate static input",
+    "Existing Publisher receipts protect Source create/save/prepare before mutable draft CAS; actual lost-save recovery and explicit complete output confirmed",
+    "Source menu/RSS create page with explicit canonical source choice; actual menu create lost-ACK recovery and one complete 15s MP4 confirmed",
+    "Independent Source library and pinned placement identity without synthetic Sites configuration",
+    "Explicit theme/duration variants clone only frozen canonical facts into existing versions/snapshots/queue, preserve the main source/draft, and bind atomically with playlist/snapshot CAS",
+    "Source-only ready/failure/reaper/draft-follower fences; verified variants remain pinned and ordinary Source follows complete artifact duration",
+    "Intrinsic Source playlist preview geometry and actual Source thumbnails",
+    "Actual pinned Source variant publication freezes its design while retaining the existing live-data binding; full DOM/binary offline acceptance and first-frame acknowledged on the existing paired device",
+    "Actual price revision for a pinned Source variant preserves OnzeTrots/8s pages, finishes all three old pages before activation, and survives offline reload without any new render/version/snapshot/release",
+    "Source create/edit/copy supports all 17 Sportlink types with current-user bounded team/context/options, exact canonical pool/team/period compilation and 7/14/21-day birthday choices",
+    "Source Engage tenant/public campaign binding, complete immutable fallback and public-privacy Source Player projection",
+    "Source YouTube selects existing verified sources and replaces only placement fallback in the existing atomic batch; immutable online/source identity guard; single natural fallback boundary",
+    "Complete binary facts refresh in the existing queue/worker, three bounded slots and durable incomplete-upload budget; completed delivery identity invalidates the existing authorized manifest ETag"
+  ],
+  "evidence": {
+    "actualAal2CanonicalToArtifact": "execution/evidence/sync-dynamic-real-worker.json",
+    "decodedPageOne": "execution/evidence/sync-dynamic-real-page-1.png",
+    "decodedPageTwo": "execution/evidence/sync-dynamic-real-page-2.png",
+    "workerUnit": {
+      "passed": 365,
+      "skippedReferenceBrowserCases": 324
+    },
+    "contractsUnit": {
+      "passed": 128
+    },
+    "contentTemplatesUnit": {
+      "passed": 201
+    },
+    "playerUnit": {
+      "passed": 438
+    },
+    "sql": {
+      "files": 124,
+      "assertions": 3469,
+      "freshResetThrough": "20261018073738",
+      "sourceVariantAssertions": 51
+    },
+    "typeAndLint": [
+      "media-worker",
+      "player"
+    ],
+    "databaseLint": {
+      "errorLevelResults": 0,
+      "warningLevelFunctions": 15,
+      "sourceFunctionWarnings": 0,
+      "warningNote": "The wider warning-level pass includes existing historical functions; this is not a zero-warning result."
+    },
+    "actualPublication": "execution/evidence/sync-dynamic-to-player.json",
+    "playerComponentBrowser": {
+      "passed": 15
+    },
+    "actualLiveDom": "execution/evidence/sync-dynamic-live-player.json",
+    "playerBuildId": "CK4MaRAQXk4djp4SnK10V",
+    "actualSourceEditor": "execution/evidence/sync-dynamic-editor-real.json",
+    "controlEditorBrowser": {
+      "passed": 13,
+      "existingStudioRegressionPassed": 22
+    },
+    "actualSourceCreate": "execution/evidence/sync-dynamic-create-real.json",
+    "controlUnit": {
+      "passed": 793,
+      "historicalSkipped": 34
+    },
+    "controlBuildId": "eLES1fqneU5xg52f-BsBk",
+    "actualIndependentSourceLibrary": "execution/evidence/sync-dynamic-library-real.json",
+    "playlistBrowser": {
+      "passed": 120,
+      "includesVisibleSourceGeometryAt": [
+        390,
+        1440
+      ]
+    },
+    "actualPlacementVariant": "execution/evidence/sync-dynamic-placement-real.json",
+    "actualPlacementVariantPublication": "execution/evidence/sync-dynamic-variant-to-player.json",
+    "actualVariantLiveDom": "execution/evidence/sync-dynamic-variant-live-player.json",
+    "sportBindingModel": {
+      "passed": 21
+    },
+    "actualSportBindingWithPersistedFixtures": "execution/evidence/sync-sportlink-binding-real.json",
+    "actualRssCopyWithPersistedFixtures": "execution/evidence/sync-rss-copy-real.json",
+    "actualProductionReceiptReplay": "execution/evidence/sync-rss-recovery-replay.json",
+    "sourceLedImplementation": {
+      "contractsPassed": 129,
+      "playerUnitPassed": 442,
+      "playerBrowserPassed": 16,
+      "controlUnitPassed": 793,
+      "freshRls": {
+        "files": 125,
+        "assertions": 3489,
+        "throughMigration": "20261018104700"
+      },
+      "applicationSchemaDbLintErrors": 0,
+      "authoring": "execution/evidence/sync-led-binding-real.json",
+      "publicationAndGlobalStream": "execution/evidence/sync-led-to-player.json",
+      "priorAttempts": [
+        "execution/evidence/sync-led-to-player-attempt-1.json",
+        "execution/evidence/sync-led-to-player-attempt-2.json"
+      ],
+      "status": "PASS_WITH_EXPLICIT_STORED_FIXTURES",
+      "externalProviderVerified": false
+    },
+    "sourceEngage": {
+      "status": "PASS_LOCAL_REAL_SERVICES",
+      "authoring": "execution/evidence/sync-engage-binding-real.json",
+      "publicationVotePrivacyOffline": "execution/evidence/sync-engage-to-player.json",
+      "playerUnitPassed": 443,
+      "studioBrowserPassed": 25,
+      "playerBrowserPassed": 18
+    },
+    "sourceYouTube": {
+      "status": "PARTIAL",
+      "providerVerified": false,
+      "controlUnitPassed": 794,
+      "studioBrowserPassed": 25,
+      "playerBrowserPassed": 18,
+      "freshFullRls": {
+        "files": 127,
+        "assertions": 3518,
+        "includesFinalFreezeCases": true
+      },
+      "subsequentFocusedRls": {
+        "assertions": 20
+      },
+      "applicationSchemaDbLintErrors": 0,
+      "controlBuildId": "aGTKupPJH7y1pP9SSfAGL",
+      "playerBuildId": "J3IHgudc0uysddJcI3vXS"
+    },
+    "boundedFreshBinary": {
+      "status": "PASS_LOCAL_REAL_SERVICES",
+      "reports": [
+        "sync-binary-installation-continuity.json",
+        "sync-binary-refresh-cooldown.json",
+        "sync-binary-corrupt-candidate.json"
+      ],
+      "renderSpacingMs": 302702,
+      "playerBuildId": "bdxQ7X0HdiQeUZNLvkTSE",
+      "rlsFiles": 128,
+      "rlsChecks": 3570,
+      "focusedBinaryChecks": 52,
+      "workspaceLintTypeUnit": "30/30 each",
+      "providerHardwareHostedClaim": false
+    }
+  },
+  "limitations": [
+    "Source menu create/edit, Source variant publication/live DOM and pool/team/period UI are proven with actual AAL2 services; sport data and capability metadata in the local acceptance journey are explicit fixtures. RSS/copy journeys also pass over stored fixtures; external provider verification remains open.",
+    "No external provider, hardware or staging/production acceptance is inferred from the local artifact/publication/live-DOM tests",
+    "Source LED authoring/publication/global stream/offline pass with leased normalized local fixtures, not an external provider websocket. Engage Source full local chain passes; actual YouTube provider acceptance remains open.",
+    "Canonical-fact binary refresh is locally proven; real-time binary LED overlays, exact complete Source UI/scenarios and hosted deployment are not inferred. Physical/24h and SendGrid configuration are explicitly deferred by the user."
+  ],
+  "recoveredFailures": [
+    "The first broad RLS pass exposed the protected S206 typed-body boundary; the next pass also exposed its exact wrapper boundary. Both historical bodies and all 68 original assertions remain unchanged; Source-only private readers restore full RLS.",
+    "The new image-authority tests exposed a record alias and a local variable ambiguity before integration; both were corrected and the complete 20-case SQL file passes.",
+    "The first actual publication harness used playlists.draft_revision instead of revision; it stopped with one empty owned playlist. The corrected harness reused it and completed the intended publication.",
+    "The live-proof harness first encountered tsx function-name serialization and then an uninvoked string expression. Original guarded commands/receipts were retained. A broad price matcher also matched a different product; the corrected observer measures the changed product row and all three complete old page intervals. No product, cache or pairing reset was used.",
+    "The first real Source-editor harness did not match the redirect querystring, so a normal draft save completed without a dropped reply. It retained that same version. Later locators included temporarily hidden streamed markup; the final visible-frame proof genuinely dropped the committed save response and recovered the exact receipt.",
+    "The first variant UI harness matched duplicate/hidden controls. A subsequent real worker exposed the historical latest-draft follower adopting a Source placement variant before its CAS, retaining the prior duration. The Source-only follower fence and pin semantics were added and tested against an existing latest item. The owned draft was restored through the ordinary UI before a new 24s variant completed with exact receipt recovery and one new queue job; original attempt reports remain.",
+    "The initial variant publication correctly inherited the historical pinned-snapshot no-refresh policy. A private Source-only live-binding exception now freezes the variant design while preserving source facts; ordinary pinned snapshots remain unchanged (six added SQL checks). Version 1 remains immutable; unchanged config correctly reused it. An explicit playlist label change produced version 2, whose first-frame, all three pages and both offline profiles pass. Two harness selectors were corrected without duplicate entities or pairing reset.",
+    "The first sport binding harness used p_name rather than the existing RPC p_data_source_name and wrote nothing. The next stage proved real authenticated options/preview, excluded an unselected team and other pool, and committed exactly one create before a lost response. Recovery exposed a UI validation-order issue: persisted valid attempts must replay even if current team options are unavailable. The 13th controller case proves that boundary, and the real harness recovered the original entity/job and verified the complete private 10s artifact.",
+    "The first RSS copy completed one real entity/job/full private artifact but reported production-only hydration/navigation errors. QR nested-anchor semantics were independently corrected; exact replay still failed until create success used the Next router. The same committed receipt replays twice without browser errors or new history in production build fr92zEN4P5nfnqFN0YUca; artifact readback resumes with zero writes. Original failed reports remain.",
+    "Actual LED publication found a service-role screen SELECT in the old bootstrap loader, then an invalid screens.id PostgreSQL filter that rejected the whole multiplexed realtime subscription. The existing token authority now includes own-screen orientation and only identity/revision column grants support the server filter. Original bootstrap catch-up ordering/body guards remain unchanged. The third real delta reaches 5–1, freezes at 18:25 and survives offline reload without new history/published facts. Failed attempts remain.",
+    "Source Engage real-service harness first observed save busy as completion, then selected the data tab instead of settings for render. The confirmed same project/save was resumed; prior reports are preserved.",
+    "Source YouTube focused checks found a batch record alias collision; fresh migration and full RLS pass after its scoped correction. Its freeze tests use actual source_item_id authority, never a forged direct source field."
+  ]
+}

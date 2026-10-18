@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-18T15:07:48.356184+00:00",
+  "entries": [
+    {
+      "path": "/home/codex/repos/castivo-s226/apps/control/.next-qa/cache",
+      "bytes": 915654029,
+      "reason": "Ignored compiler cache; current compiled runtime/static files and all operational data retained."
+    },
+    {
+      "path": "/home/codex/repos/castivo-s226/apps/player/.next/cache",
+      "bytes": 492169263,
+      "reason": "Ignored compiler cache; current compiled runtime/static files and all operational data retained."
+    },
+    {
+      "path": "/home/codex/repos/castivo-s226/apps/marketing/.next/cache",
+      "bytes": 402462897,
+      "reason": "Ignored compiler cache; current compiled runtime/static files and all operational data retained."
+    }
+  ]
+}

@@ -65,6 +65,8 @@ services:
       NEXT_PUBLIC_PLAYER_URL: https://${PLAYER_HOST:?PLAYER_HOST ontbreekt}
       VEYOCAST_ENVIRONMENT: ${VEYOCAST_ENVIRONMENT:?VEYOCAST_ENVIRONMENT ontbreekt}
       VEYOCAST_SETUP_INTENT_SIGNING_SECRET: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:?NEXT_SERVER_ACTIONS_ENCRYPTION_KEY ontbreekt}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?SUPABASE_SERVICE_ROLE_KEY ontbreekt}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 15s

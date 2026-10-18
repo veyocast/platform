@@ -2,16 +2,18 @@ import type { MetadataRoute } from "next";
 
 import { sitemapPages } from "./_content/pages";
 import { canonicalUrl } from "./_lib/site-config";
+import { marketingPages as syncPages } from "./_sync/pages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date("2026-07-24T00:00:00.000Z");
-  const routes = [
+  const routes = [...new Set([
     "/",
     ...sitemapPages.map((page) => page.pathname),
     "/privacy",
     "/account-verwijderen",
     "/data-verwijderen"
-  ];
+    , ...Object.keys(syncPages).filter(path => path !== "/").map(path => path.replace(/\/$/, ""))
+  ])];
 
   return routes.map((pathname) => ({
     changeFrequency: pathname.startsWith("/kennisbank") ? "monthly" : "weekly",

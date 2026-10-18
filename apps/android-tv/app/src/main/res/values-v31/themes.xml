@@ -4,7 +4,7 @@
         <item name="android:fontFamily">sans</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowBackground">@color/vc_ink_black</item>
-        <item name="android:windowSplashScreenBackground">@color/vc_master_black</item>
+        <item name="android:windowSplashScreenBackground">@color/veyocast_icon_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/veyocast_launcher_icon</item>
         <item name="android:windowSplashScreenAnimationDuration">0</item>
         <item name="android:colorAccent">@color/vc_electric_orange</item>

@@ -1,5 +1,8 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { receiveInquiry } from "../_lib/inquiries.server";
+
 import {
   verifySetupIntentToken
 } from "../_lib/setup-intent";
@@ -8,7 +11,7 @@ import { setupIntentSigningSecret } from "../_lib/setup-intent.server";
 export type LeadFormState = {
   errors: Record<string, string>;
   message: string;
-  status: "idle" | "invalid" | "unavailable";
+  status: "idle" | "invalid" | "unavailable" | "received";
 };
 
 function textValue(formData: FormData, field: string, maxLength: number) {
@@ -34,6 +37,9 @@ export async function submitLeadForm(
   const organizationType = textValue(formData, "organizationType", 80);
   const honeypot = textValue(formData, "website", 160);
   const setupIntentToken = textValue(formData, "setupIntent", 8_000);
+  const requestId = textValue(formData, "requestId", 36);
+  const consent = textValue(formData, "consent", 3);
+  let setupIntent = null;
   const errors: Record<string, string> = {};
 
   if (honeypot) {
@@ -49,7 +55,8 @@ export async function submitLeadForm(
   }
   if (setupIntentToken) {
     const secret = setupIntentSigningSecret();
-    if (!secret || !await verifySetupIntentToken(setupIntentToken, secret)) {
+    setupIntent = secret ? await verifySetupIntentToken(setupIntentToken, secret) : null;
+    if (!setupIntent) {
       errors.form = "De meegenomen opstelling is verlopen of ongeldig. Bouw de opstelling opnieuw.";
     }
   }
@@ -67,9 +74,10 @@ export async function submitLeadForm(
   if (kind === "contact" && subject.length < 3) {
     errors.subject = "Vul een onderwerp in.";
   }
-  if (message.length < 10) {
+  if (kind === "contact" && message.length < 10) {
     errors.message = "Beschrijf je vraag in minimaal 10 tekens.";
   }
+  if (consent !== "yes") errors.consent = "Bevestig dat we je gegevens voor deze aanvraag mogen gebruiken.";
 
   if (Object.keys(errors).length > 0) {
     return {
@@ -79,12 +87,19 @@ export async function submitLeadForm(
     };
   }
 
-  // Er is bewust nog geen deliveryprovider geconfigureerd. Geldige invoer wordt
-  // niet gelogd of tijdelijk opgeslagen en er wordt geen vals succes gemeld.
+  const receipt = await receiveInquiry(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId) ? requestId : randomUUID(),
+    { kind, name, email, organization, organizationType, screens, subject, message, consent, setupIntent }
+  );
+  if (receipt.received) return {
+    errors: {},
+    message: "Je aanvraag is veilig ontvangen. We nemen contact met je op; er is nog geen afspraak ingepland.",
+    status: "received"
+  };
   return {
     errors: {},
     message:
-      "Het formulier kan nog niet veilig worden afgeleverd. Mail je aanvraag rechtstreeks naar support@veyocast.nl; je invoer is niet opgeslagen.",
+      "De ontvangst kon niet worden bevestigd. Je invoer blijft staan. Probeer opnieuw of mail support@veyocast.nl.",
     status: "unavailable"
   };
 }

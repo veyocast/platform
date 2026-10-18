@@ -13,6 +13,8 @@ import {
 } from "./dynamic-render-backend";
 import type { StudioExternalRenderer } from "./studio-render-image";
 import type { ReactDomDynamicThumbnailRenderer } from "./dynamic-react-thumbnail";
+import {renderSyncDynamicArtifact} from './sync-dynamic-render';
+import {createDynamicRenderLease} from './dynamic-render-lease';
 
 export type DynamicRenderRunResult =
   | { status: "idle" }
@@ -28,7 +30,9 @@ export async function runDynamicRenderOnce({
   config,
   renderer,
   reactDomRenderer,
-  signal
+  signal,
+  sourceRenderer=renderSyncDynamicArtifact,
+  storageOrigin=process.env.SUPABASE_URL,
 }: {
   backend: DynamicRenderBackend;
   config: {
@@ -37,8 +41,10 @@ export async function runDynamicRenderOnce({
     workerId: string;
   };
   renderer: StudioExternalRenderer;
-  reactDomRenderer?: ReactDomDynamicThumbnailRenderer;
+  reactDomRenderer?: Pick<ReactDomDynamicThumbnailRenderer,'renderPng'>;
   signal?: AbortSignal;
+  sourceRenderer?:typeof renderSyncDynamicArtifact;
+  storageOrigin?:string;
 }): Promise<DynamicRenderRunResult> {
   const job = await backend.claimJob(
     config.workerId,
@@ -46,13 +52,27 @@ export async function runDynamicRenderOnce({
     config.maxAttempts
   );
   if (!job) return { status: "idle" };
+  const lease=createDynamicRenderLease(backend,job,config,signal);
   try {
+    await lease.begin();
+    signal=lease.signal;
     if (signal?.aborted) {
       throw new DynamicRenderBackendError(
         "dynamic_render_cancelled",
         true,
         "Dynamische render is tijdens afsluiten onderbroken."
       );
+    }
+    const requiresSource=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&Object.hasOwn(job.snapshotData,'syncConfiguration'));
+    if(requiresSource){
+      if(!job.leaseToken||!backend.renewJob)throw new DynamicRenderBackendError('sync_dynamic_lease_unavailable',false,'De gekoppelde bronweergave vereist een actuele beveiligde renderopdracht.');
+      const rendered=await sourceRenderer({job,renderer,assets:await backend.resolveAssets?.(job)??{},storageOrigin,signal});
+      const artifact={bytes:rendered.bytes,byteLength:rendered.byteLength,checksumSha256:rendered.checksumSha256,height:rendered.height,width:rendered.width,storagePath:dynamicRenderStoragePath(job,rendered.mimeType,rendered.checksumSha256),sync:{mimeType:rendered.mimeType,durationMs:rendered.durationMs,presentation:rendered.presentation,poster:{...rendered.poster,storagePath:dynamicRenderStoragePath(job,'image/png',rendered.poster.checksumSha256)}}};
+      await lease.check();
+      await backend.uploadArtifact(job,artifact);
+      await lease.prepareCompletion();
+      await backend.completeJob(job,config.workerId,artifact);
+      return {jobId:job.jobId,mediaAssetId:job.outputMediaAssetId,status:'completed'};
     }
     const requiresSites=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&(
       (job.snapshotData as Record<string,unknown>).sitesConfiguration||
@@ -95,6 +115,7 @@ export async function runDynamicRenderOnce({
       width: job.manifest.canvas.width
     };
     await backend.uploadArtifact(job, artifact);
+    await lease.prepareCompletion();
     await backend.completeJob(job, config.workerId, artifact);
     return {
       jobId: job.jobId,
@@ -102,16 +123,20 @@ export async function runDynamicRenderOnce({
       status: "completed"
     };
   } catch (error) {
-    const failure = classifyDynamicRenderFailure(error);
+    await lease.stop();
+    const failure = classifyDynamicRenderFailure(lease.error??error);
     if (failure.code === "dynamic_render_lease_lost") {
       return failedResult(job, failure.code, "lease_lost");
     }
-    const status = await backend.failJob(job, config.workerId, failure);
+    let status:'failed'|'queued';
+    try{status=await backend.failJob(job, config.workerId, failure);}catch(reportError){if(reportError instanceof DynamicRenderBackendError&&reportError.code==='dynamic_render_lease_lost')return failedResult(job,reportError.code,'lease_lost');throw reportError;}
     return failedResult(
       job,
       failure.code,
       status === "queued" ? "retry_scheduled" : "failed"
     );
+  }finally{
+    await lease.stop();
   }
 }
 
@@ -134,7 +159,7 @@ export async function runDynamicRenderLoop({
   intervalMs: number;
   onResult?: (result: DynamicRenderRunResult) => void;
   renderer: StudioExternalRenderer;
-  reactDomRenderer?: ReactDomDynamicThumbnailRenderer;
+  reactDomRenderer?: Pick<ReactDomDynamicThumbnailRenderer,'renderPng'>;
   signal: AbortSignal;
   waitForWork?: (signal: AbortSignal) => Promise<void>;
 }) {

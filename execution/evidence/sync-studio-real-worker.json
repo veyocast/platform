@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-18T01:07:37.397Z",
+  "transport": "actual AAL2 PostgREST, unchanged project/render commands, real Chromium/FFmpeg worker and private Storage bytes",
+  "environment": "disposable S226 local Supabase",
+  "results": [
+    {
+      "outputKind": "png",
+      "projectId": "04c6421e-7150-4d7f-90bb-f0de44b0e010",
+      "job": {
+        "id": "c03ddc95-e389-45fe-9eee-b376612d0759",
+        "status": "completed",
+        "progress": 100,
+        "media_asset_id": "0ddcc140-ef9f-49fe-8ef5-bc31e498df92",
+        "project_id": "04c6421e-7150-4d7f-90bb-f0de44b0e010"
+      },
+      "media": {
+        "id": "0ddcc140-ef9f-49fe-8ef5-bc31e498df92",
+        "kind": "image",
+        "status": "ready",
+        "width": 1080,
+        "height": 1920,
+        "checksum_sha256": "c6578f71cddfafcd70f23250845b63097df8560022ea8b4e7b0766bcbf24c21e",
+        "duration_seconds": null
+      },
+      "previousFailedJobs": [],
+      "documentDurationMs": 12000,
+      "documentPages": 1,
+      "outputSha256": "c6578f71cddfafcd70f23250845b63097df8560022ea8b4e7b0766bcbf24c21e",
+      "bytes": 2503076
+    },
+    {
+      "outputKind": "mp4",
+      "projectId": "a3753b6d-609b-44af-b70c-b4c90b24a4f9",
+      "job": {
+        "id": "0d6d8012-fb1e-4e9d-bade-1f3139cce5c1",
+        "status": "completed",
+        "progress": 100,
+        "media_asset_id": "c202f2fe-0ee8-4e36-b794-b5c6572313b6",
+        "project_id": "a3753b6d-609b-44af-b70c-b4c90b24a4f9"
+      },
+      "media": {
+        "id": "c202f2fe-0ee8-4e36-b794-b5c6572313b6",
+        "kind": "video",
+        "status": "ready",
+        "width": 1920,
+        "height": 1080,
+        "checksum_sha256": "ae0a10b8c586151497b3a0642a5d2106080aadf5c8e63de33681537e9392d302",
+        "duration_seconds": 6
+      },
+      "previousFailedJobs": [
+        "4ac25dc2-9afd-4e0b-adda-9c93478813e9"
+      ],
+      "documentDurationMs": 6000,
+      "documentPages": 2,
+      "outputSha256": "ae0a10b8c586151497b3a0642a5d2106080aadf5c8e63de33681537e9392d302",
+      "bytes": 762199
+    }
+  ],
+  "unintendedReleases": 0,
+  "limits": "No new Source editor UI, live provider projection, Player publication or hosted deployment claim."
+}

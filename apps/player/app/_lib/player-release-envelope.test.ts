@@ -56,6 +56,13 @@ describe("dynamic template release payload", () => {
     expect(payloads.size).toBe(0);
   });
 
+  it('never projects a new Source snapshot through the historical dynamic DOM identity',()=>{
+    const templateId='33333333-3333-4333-8333-333333333333',versionId='22222222-2222-4222-8222-222222222222';
+    const common={source_revision_hash:'a'.repeat(64),template_version_id:versionId};
+    const payloads=buildDynamicTemplatePayloadMap({snapshots:[{...common,id:'11111111-1111-4111-8111-111111111111',snapshot_data_json:{type:'news',syncConfiguration:{rendererVersion:'sync-v1'},news:{articles:[]}}},{...common,id:'44444444-4444-4444-8444-444444444444',snapshot_data_json:{type:'news',news:{articles:[]}}}],templates:[{id:templateId,orientation:'landscape',slide_type:'news',slug:'editorial-arena-nieuws-dark-landscape'}],versions:[{id:versionId,template_id:templateId}]});
+    expect([...payloads.keys()]).toEqual(['44444444-4444-4444-8444-444444444444']);
+  });
+
   it("verzamelt alleen begrensde UUID-mediareferenties uit HTML/CSS-snapshots", () => {
     expect(collectDynamicSnapshotMediaAssetIds({
       brand: {

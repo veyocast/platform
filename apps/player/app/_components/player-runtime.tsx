@@ -1,4 +1,7 @@
 "use client";
+import {supportsSyncSlideDom,syncPlayerRendererHeader,syncPlayerRendererVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
+import {assertSyncDynamicConfigurationContinuity} from '../_lib/sync-player-assets';
+import {sourceDataNeedsBoundary} from '../_lib/player-source-data-boundary';
 
 import { playerMediaTraffic } from "../_lib/media-traffic";
 
@@ -16,7 +19,7 @@ import { goalVideoTelemetry, goalVideoCapabilities } from "../_lib/goal-video-te
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
 import { VEYOCAST_APPS } from "@veyocast/config";
-import type { SponsorPlayEvent, SponsorPositionKey } from "@veyocast/contracts";
+import type { SponsorPlayEvent, SponsorPositionKey,SyncSlidePresentation } from "@veyocast/contracts";
 import React, {
   useCallback,
   useEffect,
@@ -138,6 +141,7 @@ import {
 } from "../_lib/player-storage";
 import styles from "./player-playback.module.css";
 import {SitesDynamicMedia} from "./sites-dynamic-media";
+import {SyncStudioMedia} from "./sync-studio-media";
 import { DynamicTemplateMedia } from "./dynamic-template-media";
 import { EngagePlaybackMedia } from "./engage-playback-media";
 import { YouTubePlaybackMedia } from "./youtube-playback-media";
@@ -222,6 +226,17 @@ export function PlayerRuntime() {
   const [installation, setInstallation] = useState<InstallationRuntime>({
     status: "registering"
   });
+  const installationRef=useRef(installation);
+  installationRef.current=installation;
+  const bootstrappedDeviceCredentialRef=useRef<string|null>(null);
+  const browserDeviceCredential=typeof window==='undefined'?null:new URLSearchParams(window.location.search).get('deviceToken')??readStoredDeviceToken();
+  // Installation retries can replace their status object while a valid device
+  // is already playing. Only a real device-credential change restarts that
+  // session; registration/command recovery remains independent of its decoder.
+  const runtimeBootstrapKey=browserDeviceCredential&&(installation.status!=='registering'||bootstrappedDeviceCredentialRef.current===browserDeviceCredential)
+    ?`device:${browserDeviceCredential}`
+    :installation.status==='ready'?`installation:${installation.credential}`
+    :installation.status==='unavailable'?`unavailable:${installation.code}`:'registering';
   const [pairingRevision, setPairingRevision] = useState(0);
   const [recoveryMenuOpen, setRecoveryMenuOpen] = useState(false);
   const [installationDisplayId, setInstallationDisplayId] =
@@ -253,7 +268,7 @@ export function PlayerRuntime() {
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
   const latestTargetRef = useRef(new LatestPlayerTarget());
-  const pendingTargetRef = useRef<{ release: HydratedPlayerRelease; token: PlayerTargetToken } | null>(null);
+  const pendingTargetRef = useRef<{ release: HydratedPlayerRelease; token: PlayerTargetToken;dataOnly?:boolean } | null>(null);
   const presentedReleaseIdRef = useRef<string | null>(null);
   const goalPausedRef = useRef(false);
   const screenGoalPaused=realtimeGoal.pauseUnderlay||Boolean(realtimeGoal.active&&isPlaybackRuntime(runtime)&&runtime.release.envelope.composition);
@@ -402,8 +417,9 @@ export function PlayerRuntime() {
 
   const advancePlayback = useCallback(async (itemId: string, recoveryMessage?: string) => {
     if (advancingRef.current || goalPausedRef.current) return;
-    const snapshot = runtimeRef.current;
-    if (!isPlaybackRuntime(snapshot)) return;
+    const currentSnapshot = runtimeRef.current;
+    if (!isPlaybackRuntime(currentSnapshot)) return;
+    let snapshot:PlaybackRuntime=currentSnapshot;
     const activeItem = snapshot.release.envelope.manifest.items[snapshot.activeIndex];
     if (!activeItem || activeItem.id !== itemId) return;
     if (applicationReloadPendingRef.current) {
@@ -417,6 +433,16 @@ export function PlayerRuntime() {
       const pending = pendingTargetRef.current;
       const deviceToken = readStoredDeviceToken();
       if (pending && deviceToken && pending.token.isCurrent()) {
+        if(pending.dataOnly){
+          if(!(await compositionBoundaryRef.current.holdAll(pending.token.signal))||!pending.token.isCurrent()){retryBoundary=true;return;}
+          try{
+            await activateRelease({assets:pending.release.assets,deviceToken,envelope:pending.release.envelope,signal:pending.token.signal});
+            if(!pending.token.isCurrent()||pendingTargetRef.current!==pending){retryBoundary=true;return;}
+            pendingTargetRef.current=null;
+            snapshot={...snapshot,release:pending.release,pendingRelease:undefined,state:'PLAYING',syncMessage:'Actuele brongegevens gewisseld na de huidige slide; publicatie en volgorde zijn behouden.'};
+            runtimeRef.current=snapshot;setRuntime(snapshot);
+          }catch{ /* Current complete content keeps playing; retry at a later boundary. */ }
+        }else{
         const order = publicationPlaybackOrder(
           snapshot.release.envelope.manifest, pending.release.envelope.manifest,
           snapshot.activeIndex,
@@ -452,6 +478,7 @@ export function PlayerRuntime() {
             setRuntime(next);
             return;
           }
+        }
         }
       }
       const pass = snapshot.publicationPass?.filter((index) => {
@@ -785,7 +812,8 @@ export function PlayerRuntime() {
   }, [transitionPairing]);
 
   useEffect(() => {
-    if (installation.status === "registering") return undefined;
+    const setup=installationRef.current;
+    if (setup.status === "registering"&&(!bootstrappedDeviceCredentialRef.current||bootstrappedDeviceCredentialRef.current!==readStoredDeviceToken())) return undefined;
 
     const searchParams = new URLSearchParams(window.location.search);
     const queryToken = searchParams.get("deviceToken");
@@ -800,7 +828,7 @@ export function PlayerRuntime() {
 
     const deviceToken = queryToken ?? readStoredDeviceToken();
     const installationCredential =
-      installation.status === "ready" ? installation.credential : null;
+      setup.status === "ready" ? setup.credential : null;
     const recoveryMarker = consumePlayerRecoveryMarker(window.localStorage);
     if (recoveryMarker && !recoveryMarker.pairingPrepared && !deviceToken) {
       clearPairingProvisionAfter();
@@ -812,8 +840,8 @@ export function PlayerRuntime() {
         error: {
           cause: "De installatiecredential ontbreekt of is ongeldig.",
           code:
-            installation.status === "unavailable"
-              ? installation.code
+            setup.status === "unavailable"
+              ? setup.code
               : "INVALID_INSTALLATION_CREDENTIAL",
           effect: "Er kan nu geen veilige nieuwe koppelcode worden gemaakt.",
           recovery: "Open /lg/recover en kies zo nodig Volledige playerreset."
@@ -1071,6 +1099,7 @@ export function PlayerRuntime() {
     }
 
     const activeDeviceToken = deviceToken;
+    bootstrappedDeviceCredentialRef.current=activeDeviceToken;
     let cancelled = false;
     let consecutiveSyncFailures = 0;
     let syncInFlight = false;
@@ -1166,6 +1195,8 @@ export function PlayerRuntime() {
             headers: {
               Accept: "application/json",
               Authorization: `Bearer ${activeDeviceToken}`,
+              ...(supportsSyncSlideDom()?{[syncPlayerRendererHeader]:syncPlayerRendererVersion}:{}),
+              [syncDynamicRendererHeader]:supportsSyncSlideDom()?syncDynamicDomVersion:syncDynamicBinaryVersion,
               ...(manifestEtag ? { "If-None-Match": manifestEtag } : {})
             }
           }
@@ -1263,6 +1294,8 @@ export function PlayerRuntime() {
           currentRuntime.release.envelope.manifest.sponsorPlan?.revisionId ===
             body.manifest.sponsorPlan?.revisionId
         ) {
+          const pendingData=pendingTargetRef.current;
+          if(pendingData?.dataOnly&&pendingData.token.isCurrent()&&screenCompositionDataIdentity(pendingData.release.envelope)===screenCompositionDataIdentity(body)){syncSucceeded=true;return;}
           if (currentRuntime.pendingRelease) {
             releaseHydratedReference(currentRuntime.pendingRelease);
           }
@@ -1363,11 +1396,20 @@ export function PlayerRuntime() {
     async function refreshLiveData(body: PlayerManifestEnvelope, token: PlayerTargetToken, generation: number) {
       preparingCountRef.current += 1;
       try {
+        const current=runtimeRef.current;
+        if(isPlaybackRuntime(current))assertSyncDynamicConfigurationContinuity(current.release.envelope.manifest,body.manifest);
         const prepared = await preparePendingRelease({ envelope: body, signal: token.signal });
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) return;
         if (!prepared.ok) throw new Error(prepared.error);
         const hydrated = await hydratePreparedRelease({ assets: prepared.assets, envelope: body });
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
+        const active=runtimeRef.current;
+        if(isPlaybackRuntime(active)&&sourceDataNeedsBoundary(active.release.envelope,body)){
+          hydratedReleasesRef.current.push(hydrated);
+          pendingTargetRef.current={release:hydrated,token,dataOnly:true};
+          setRuntime(value=>isPlaybackRuntime(value)&&value.release.envelope.manifest.releaseId===body.manifest.releaseId?{...value,pendingRelease:hydrated,syncMessage:'Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.'}:value);
+          return;
+        }
         await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken, envelope: body, signal: token.signal });
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
         hydratedReleasesRef.current.push(hydrated);
@@ -1597,7 +1639,7 @@ export function PlayerRuntime() {
       window.removeEventListener("online", handleNetworkOnline);
       hydratedReleasesRef.current.splice(0).forEach(revokeHydratedRelease);
     };
-  }, [installation, pairingRevision, transitionPairing]);
+  }, [runtimeBootstrapKey, pairingRevision, transitionPairing]);
 
   useEffect(() => {
     if (installation.status !== "ready") return undefined;
@@ -1873,7 +1915,7 @@ export function PlayerRuntime() {
     if (!isPlayerManifestItemPlayable(activeItem) || !playbackReadyRef.current) return;
     // A healthy decoder owns the natural video/trim boundary. Its progress
     // watchdog detects a stall; an unrelated wall timer must not cut it short.
-    if (((activeItem.kind === "video"&&!activeItem.sitesStudioPresentation)||activeItem.onlinePlayback?.kind==="youtube") && !durationOverrideMs) return;
+    if (((activeItem.kind === "video"&&!activeItem.sitesStudioPresentation)||activeItem.syncDynamic||activeItem.onlinePlayback?.kind==="youtube") && !durationOverrideMs) return;
 
     const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackAttempt}`;
     const durationMs = getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs);
@@ -2234,7 +2276,7 @@ function PlaybackView({
           aria-hidden="true"
           className="playback-brand-mark"
           data-testid="player-brand-mark"
-          src="/brand/veyocast-logo-inverse.svg"
+          src="/assets/full-light.svg"
         />
         {entitlement && entitlementMode === "tenant_content_with_warning" ? <BillingWarningChip entitlement={entitlement} /> : null}
       </section>
@@ -2258,7 +2300,7 @@ function BillingSystemSplash({ mode, screenName }: { mode: "system_suspended" | 
   const verification = mode === "veyocast_verification_splash";
   const suspended = mode === "system_suspended";
   return <main {...playerSystemThemeAttributes} className="billing-system-splash" aria-label={verification ? "Abonnement verifiëren" : suspended ? "Player gepauzeerd" : "Betaling herstellen"}>
-    <img alt="VeyoCast" className="billing-system-splash__logo" src="/brand/veyocast-logo-inverse.svg"/>
+    <img alt="VeyoCast" className="billing-system-splash__logo" src="/assets/full-light.svg"/>
     <div className="billing-system-splash__copy"><span className="billing-system-splash__signal" aria-hidden="true">{verification ? "↻" : suspended ? "‖" : "!"}</span><p>{verification ? "VERIFICATIE NODIG" : suspended ? "PLAYER GEPAUZEERD" : "BETALING HERSTELLEN"}</p><h1>{verification ? "Verbind om het abonnement veilig te controleren." : suspended ? "Dit scherm is tijdelijk door VeyoCast gepauzeerd." : "De content is veilig bewaard."}</h1><p>{verification ? "Dit is geen melding van wanbetaling. Zodra de verbinding terug is, controleert de Player automatisch de geldige entitlement." : suspended ? "Neem contact op met de beheerder of VeyoCast Support." : "Een beheerder kan de betaalmethode in Control herstellen. Publiceren of opnieuw downloaden is daarna niet nodig."}</p><p className="billing-system-splash__support">Scherm: {screenName} · control.veyocast.nl/dashboard/settings/billing</p></div>
   </main>;
 }
@@ -2564,7 +2606,7 @@ export function PlaybackScene({
           onFailure={onFailure}
           onReady={() => {
             setScene((currentScene) =>
-              currentScene.current.key === scene.current.key
+              currentScene.current.key === scene.current.key&&!currentScene.ready
                 ? { ...currentScene, ready: true }
                 : currentScene
             );
@@ -2600,7 +2642,9 @@ export function PlaybackMedia({
   paused?: boolean;
   watchdogTimeoutMs: number;
 }) {
-  const renderStudioFallback = item.sitesStudioPresentation
+  const renderStudioFallback = item.syncStudioPresentation||item.syncDynamic
+    ? (ready: (itemId: string) => void,presentation?:SyncSlidePresentation) => <SyncStudioMedia item={item} presentationOverride={presentation} liveMatchStates={liveMatchStates} onReady={ready} onEnded={onEnded} passive={passive} paused={paused} fallback={<BinaryPlaybackMedia item={item} onEnded={onEnded} onFailure={onFailure} onPlaybackStateChange={onPlaybackStateChange} onReady={ready} passive={passive} paused={paused} watchdogTimeoutMs={watchdogTimeoutMs} ownsImageBoundary={Boolean(item.syncDynamic)}/>}/>
+    : item.sitesStudioPresentation
     ? (ready: (itemId: string) => void) => <SitesDynamicMedia
       item={item}
       presentation={item.sitesStudioPresentation!}
@@ -2672,7 +2716,8 @@ function BinaryPlaybackMedia({
   onReady,
   passive = false,
   paused = false,
-  watchdogTimeoutMs
+  watchdogTimeoutMs,
+  ownsImageBoundary=false,
 }: {
   item: PlayerManifestItem;
   onEnded: (itemId: string) => void;
@@ -2682,6 +2727,7 @@ function BinaryPlaybackMedia({
   passive?: boolean;
   paused?: boolean;
   watchdogTimeoutMs: number;
+  ownsImageBoundary?:boolean;
 }) {
   const presentation = resolvePlayerItemPresentation(item);
   const className = `playback-media playback-media--${item.fitMode}`;
@@ -2706,6 +2752,13 @@ function BinaryPlaybackMedia({
   const readyFrameSecondRef = useRef<number | null>(null);
   const readyReportedRef = useRef(false);
   const [sourceUrl, setSourceUrl] = useState(item.source.url);
+  const [imageReady,setImageReady]=useState(false),imageRemaining=useRef(getPlayerItemPlaybackDurationMs(item)),endedCallback=useRef(onEnded);
+  endedCallback.current=onEnded;
+  useEffect(()=>{
+    if(!ownsImageBoundary||item.kind!=='image'||!imageReady||passive||paused||hasEndedRef.current)return;
+    const started=performance.now(),timer=window.setTimeout(()=>{hasEndedRef.current=true;endedCallback.current(item.id);},Math.max(1,imageRemaining.current));
+    return()=>{window.clearTimeout(timer);imageRemaining.current=Math.max(1,imageRemaining.current-(performance.now()-started));};
+  },[ownsImageBoundary,item.kind,item.id,imageReady,passive,paused]);
 
   const reportFailure = useCallback((code: PlaybackFailureCode) => {
     if (passive || failureReportedRef.current) return;
@@ -2718,8 +2771,9 @@ function BinaryPlaybackMedia({
   const reportReady = useCallback(() => {
     if (passive || readyReportedRef.current) return;
     readyReportedRef.current = true;
+    if(ownsImageBoundary&&item.kind==='image')setImageReady(true);
     onReady(item.id);
-  }, [item.id, onReady, passive]);
+  }, [item.id,item.kind,ownsImageBoundary, onReady, passive]);
 
   const reportVideoFirstFrame = useCallback(() => {
     if (passive || readyReportedRef.current || readyFrameRef.current !== null) {
@@ -3013,7 +3067,7 @@ function PairingPanel({
       <section className="pairing-stage" aria-labelledby="player-title">
         <PairingBrandScene />
         <div className="pairing-stage__primary">
-          <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
+          <img alt="VeyoCast" className="pairing-logo" src="/assets/full-light.svg" />
           <div className="pairing-heading">
             <p className="runtime-kicker"><span className="pairing-live-dot" aria-hidden="true" /> Klaar om te koppelen</p>
             <h1 className="runtime-title" id="player-title">Koppel dit scherm aan VeyoCast</h1>
@@ -3069,7 +3123,7 @@ function SetupPanel({
     <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player sync">
       <SetupBackdrop />
       <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
-        <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
+        <img alt="VeyoCast" className="sync-boot-hero" src="/assets/brand-hero-800.webp" />
         <p className="runtime-kicker">{visibleStateLabel}</p>
         <h1 className="runtime-title" id="player-title">
           {title}
@@ -3100,7 +3154,7 @@ function ProblemPanel({
     <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player status">
       <SetupBackdrop />
       <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
-        <img alt="VeyoCast" className="pairing-logo" src="/brand/veyocast-logo-inverse.svg" />
+        <img alt="VeyoCast" className="pairing-logo" src="/assets/full-light.svg" />
         <p className="runtime-kicker">{problem.state}</p>
         <h1 className="runtime-title" id="player-title">
           {title}
@@ -3201,8 +3255,8 @@ function DefaultWaitingScreen({
             alt="VeyoCast"
             className="default-waiting-screen__veyocast-logo"
             src={resolved.themeMode === "light"
-              ? "/brand/veyocast-logo-primary.svg"
-              : "/brand/veyocast-logo-inverse.svg"}
+              ? "/assets/full-dark.svg"
+              : "/assets/full-light.svg"}
           />
           <p className="default-waiting-screen__payoff">
             Narrowcasting voor sportverenigingen!
@@ -3268,12 +3322,7 @@ function formatDefaultWaitingClock(value: Date, timezone: string) {
 function PairingBrandScene() {
   return (
     <div className="pairing-brand-scene" aria-hidden="true">
-      <span className="pairing-brand-scene__track pairing-brand-scene__track--outer" />
-      <span className="pairing-brand-scene__track pairing-brand-scene__track--inner" />
-      <img alt="" src="/brand/veyocast-icon-primary.svg" />
-      <span className="pairing-brand-accent pairing-brand-accent--orange" />
-      <span className="pairing-brand-accent pairing-brand-accent--blue" />
-      <span className="pairing-brand-accent pairing-brand-accent--paper" />
+      <img alt="" className="sync-pairing-hero" src="/assets/brand-hero-800.webp" />
     </div>
   );
 }

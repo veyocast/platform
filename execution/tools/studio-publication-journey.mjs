@@ -1,0 +1,44 @@
+if(process.env.VEYOCAST_S226_LOCAL_ACCEPTANCE!=='1')throw Error('Set the explicit isolated S226 acceptance gate before running this archived journey');
+import {chromium,expect as check} from '/home/codex/repos/castivo-s226/node_modules/@playwright/test/index.mjs';
+import fs from 'node:fs';import {execFileSync} from 'node:child_process';
+const expect=check.configure({timeout:30000});
+const root='/home/codex/repos/castivo-s226';const base='http://127.0.0.1:3220';
+const db='supabase_db_veyocast-s226',tenant='19170000-0000-4000-8000-000000000010',screen='19170000-0000-4000-8000-000000000021';
+const proof=JSON.parse(fs.readFileSync(root+'/execution/evidence/studio-real-worker.json','utf8'));
+if(proof.api!=='http://127.0.0.1:57621'||!/^S226 Studio \d+$/.test(proof.name)||! /^[a-f0-9-]{36}$/.test(proof.media.assetId))throw Error('Explicit local Studio proof required');
+function sql(statement){return execFileSync('docker',['exec',db,'psql','-U','postgres','-d','postgres','-At','-v','ON_ERROR_STOP=1','-c',statement],{encoding:'utf8',timeout:15000}).trim();}
+const browser=await chromium.launch();const context=await browser.newContext({storageState:'/tmp/veyocast-s226-qa-auth-state.json',reducedMotion:'reduce',viewport:{width:1440,height:1000}});
+await context.addCookies([{name:'veyocast-tenant-context',value:'duindorp-sites-local-qa',url:base,httpOnly:true,sameSite:'Lax'}]);
+context.setDefaultTimeout(30000);const page=await context.newPage();const report={scope:'isolated-local-real-studio-to-player',studioProjectId:proof.draft.projectId,renderJobId:proof.rendered.jobId,assetId:proof.media.assetId,sha256:proof.media.variants.find(v=>v.type==='original').sha256,screenId:screen};
+try{
+ await page.goto(base+'/dashboard/playlists',{timeout:120000});if(!page.url().startsWith(base+'/dashboard/playlists'))throw Error('Actual AAL2 session required');
+ await page.getByRole('button',{name:'Nieuwe playlist',exact:true}).click();const create=page.getByRole('dialog',{name:'Nieuwe playlist',exact:true});
+ await create.getByLabel('Playlistnaam').fill(proof.name+' publicatie');await create.getByRole('button',{name:'Concept maken',exact:true}).click();await expect(page).toHaveURL(/\/dashboard\/playlists\/[a-f0-9-]{36}(?:\?|$)/);
+ report.playlistId=new URL(page.url()).pathname.split('/').at(-1);const editor=page.getByRole('dialog',{name:'Playlist bewerken',exact:true});
+ await editor.getByRole('button',{name:'Eerste inhoud toevoegen',exact:true}).click();const picker=page.getByRole('dialog',{name:'Inhoud toevoegen aan playlist',exact:true});
+ await picker.getByRole('button',{name:'Media',exact:true}).click();await picker.getByRole('searchbox',{name:'Inhoud zoeken'}).fill(proof.name);
+ await picker.getByRole('button',{name:proof.name+', selecteren',exact:true}).click();await picker.getByRole('button',{name:'1 item toevoegen',exact:true}).click();await editor.getByRole('button',{name:'Opslaan',exact:true}).click();
+ await expect(editor.getByText('Je concept is bevestigd door de server.').first()).toBeVisible();
+ expect(sql(`select media_asset_id from public.playlist_items where playlist_id='${report.playlistId}' and tenant_id='${tenant}'`)).toBe(report.assetId);
+ console.log('Exact rendered asset saved in playlist through UI');
+ await editor.getByRole('button',{name:'Schermen kiezen en publiceren',exact:true}).click();const targets=page.getByRole('dialog',{name:'Playlist publiceren',exact:true});
+ await targets.getByRole('checkbox',{name:/^Entree/}).check();await targets.getByRole('button',{name:'Publiceren',exact:true}).click();await expect(page).toHaveURL(/\/publish\?/);
+ for(let step=0;step<4;step++)await page.locator('.vc-sticky-action-bar').getByRole('button',{name:'Volgende',exact:true}).click();
+ const risk=page.getByRole('checkbox',{name:/begrijp|risico|bewust/i});if(await risk.count())await risk.check();
+ await page.getByRole('checkbox',{name:/Publiceer de actuele configuratie/}).check();await page.getByRole('button',{name:'Publiceren en schermstatus volgen',exact:true}).click();
+ await expect.poll(()=>Number(sql(`select count(*)from public.playlist_releases where playlist_id='${report.playlistId}' and tenant_id='${tenant}'`))).toBe(1);
+ report.release=JSON.parse(sql(`select jsonb_build_object('releaseId',r.id,'version',r.version,'assetId',i.media_asset_id,'sha256',i.checksum_sha256,'bytes',i.file_size_bytes,'width',i.width,'height',i.height)from public.playlist_releases r join public.playlist_release_items i on i.tenant_id=r.tenant_id and i.release_id=r.id where r.playlist_id='${report.playlistId}' and r.tenant_id='${tenant}'`));
+ expect(report.release.assetId).toBe(report.assetId);expect(report.release.sha256).toBe(report.sha256);expect(report.release.bytes).toBe(proof.media.variants.find(v=>v.type==='original').bytes);
+ console.log('Immutable release frozen with matching generated SHA256');
+ const pc=await browser.newContext({viewport:{width:1920,height:1080}});pc.setDefaultTimeout(30000);const player=await pc.newPage();
+ const firstFrame=player.waitForResponse(response=>{if(!response.url().endsWith('/api/player/heartbeat')||response.status()!==200)return false;const body=response.request().postDataJSON();return body?.activeReleaseId===report.release.releaseId&&!!body?.publicationTrace?.firstFrameAt;},{timeout:180000});
+ await player.goto('http://127.0.0.1:3222',{timeout:120000});const code=(await player.getByLabel('Pairingcode').textContent())?.trim();expect(code).toMatch(/^[A-Z2-9]{3} [A-Z2-9]{3}$/);
+ await page.goto(base+'/dashboard/screens/new?screen='+screen,{timeout:120000});await page.getByLabel('Koppelcode',{exact:true}).fill(code);await page.getByRole('button',{name:'Player veilig koppelen',exact:true}).click();
+ await expect(player.getByRole('region',{name:'Release playback'})).toBeVisible({timeout:90000});
+ const response=await firstFrame;const body=response.request().postDataJSON();expect(body.runtimeState).toBe('PLAYING');report.firstFrame={releaseId:body.activeReleaseId,runtimeState:body.runtimeState,trace:body.publicationTrace,serverStatus:response.status()};
+ report.readback=JSON.parse(sql(`select jsonb_build_object('activeReleaseId',active_release_id,'desiredReleaseId',desired_release_id,'phase',current_sync_phase,'lastSeenAt',last_seen_at,'lastErrorCode',last_error_code)from public.player_devices where tenant_id='${tenant}' and screen_id='${screen}' and status='paired'`));
+ expect(report.readback.activeReleaseId).toBe(report.release.releaseId);expect(report.readback.desiredReleaseId).toBe(report.release.releaseId);expect(report.readback.lastErrorCode).toBeNull();
+ await player.screenshot({path:root+'/execution/evidence/studio-to-player-first-frame.png'});
+ await pc.setOffline(true);await expect(player.getByRole('region',{name:'Release playback'})).toBeVisible();report.offlineVisible=true;
+ fs.writeFileSync(root+'/execution/evidence/studio-to-player.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));await pc.close();
+}catch(error){await page.screenshot({path:'/tmp/veyocast-s226-studio-publication-failure.png',fullPage:true});console.log((await page.locator('main').innerText()).slice(0,4500));throw error;}finally{await browser.close();}

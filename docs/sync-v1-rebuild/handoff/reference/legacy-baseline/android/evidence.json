@@ -1,0 +1,150 @@
+{
+  "repository": "veyocast/platform",
+  "ref": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "readAt": "2026-10-17",
+  "purpose": "Read-only legacy Android baseline; no secret values or signing key material",
+  "files": [
+    {
+      "path": "apps/android-tv/PLAY_STORE_GOOGLE_TV.md",
+      "blobSha": "2b79a33735647c321e0d5f2de278030ff0aceefd",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/PLAY_STORE_GOOGLE_TV.md"
+    },
+    {
+      "path": "apps/android-tv/PLAY_STORE_INTERNAL_TEST.md",
+      "blobSha": "ba0c2f49911c13751251762512e12466d54d6469",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/PLAY_STORE_INTERNAL_TEST.md"
+    },
+    {
+      "path": "apps/android-tv/app/build.gradle.kts",
+      "blobSha": "e705da4abc1b3e2b55320596530f64363e02eaad",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/build.gradle.kts"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/AndroidManifest.xml",
+      "blobSha": "80a9717fb1740a5b30a69b8406f6181920f5f830",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/AndroidManifest.xml"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/AppPreferences.kt",
+      "blobSha": "df0c3f74b7f1a98dfcc386e7886d99f54b2e5c21",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/AppPreferences.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/AutomationStore.kt",
+      "blobSha": "2fb966cda67c9a1782bb1d181cdabeee9d701fce",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/AutomationStore.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/BootCompletedReceiver.kt",
+      "blobSha": "0b30154a1b9e1e7308c95dd18faf5dfcf93c1488",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/BootCompletedReceiver.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/MainActivity.kt",
+      "blobSha": "48b42ec653f80281b699b609a48e4d3848269874",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/MainActivity.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/NativeRecoveryIdentity.kt",
+      "blobSha": "0dfec31a2ed8642f57999f9b6de50270b145c8fc",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/NativeRecoveryIdentity.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/NavigationPolicy.kt",
+      "blobSha": "82d7eda74ed838fe46dfea444abd9450eebe13f9",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/NavigationPolicy.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/PlayerConfiguration.kt",
+      "blobSha": "2fddef0022ba26b12c092db3bb229ddf56aff80b",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/PlayerConfiguration.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/VeyoCastWebViewClient.kt",
+      "blobSha": "74a3e8be873df120d987abc930b89842134623a3",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/VeyoCastWebViewClient.kt"
+    },
+    {
+      "path": "apps/android-tv/app/src/main/java/nl/veyocast/player/WebPlaybackScripts.kt",
+      "blobSha": "9d27873821e7706d0db16ace760f0957ba472fdf",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/app/src/main/java/nl/veyocast/player/WebPlaybackScripts.kt"
+    },
+    {
+      "path": "apps/android-tv/tv/build.gradle.kts",
+      "blobSha": "b58fa1b8f763ec2514b93cf134342fd46dff92a2",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/tv/build.gradle.kts"
+    },
+    {
+      "path": "apps/android-tv/tv/src/main/AndroidManifest.xml",
+      "blobSha": "da237c6a949bd441abb8c5da193aa074d0d466ad",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/android-tv/tv/src/main/AndroidManifest.xml"
+    },
+    {
+      "path": "apps/control-mobile/app.config.ts",
+      "blobSha": "68dc08aeb603c073b27b4be4b1569e45bda99c4c",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/control-mobile/app.config.ts"
+    },
+    {
+      "path": "apps/control-mobile/eas.json",
+      "blobSha": "f89861cc8f6d830c7e5db3d259bf2b5fb3e408c2",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/control-mobile/eas.json"
+    },
+    {
+      "path": "apps/control-mobile/plugins/with-control-signing.cjs",
+      "blobSha": "e68b65c86b53da2356fc4bcc4990218d1a3b2f8f",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/control-mobile/plugins/with-control-signing.cjs"
+    },
+    {
+      "path": "apps/control-mobile/src/api/mobile-api.ts",
+      "blobSha": "6e7f3b6ced4b42cb0fcec6f5d0cba2c54a0fc6f5",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/control-mobile/src/api/mobile-api.ts"
+    },
+    {
+      "path": "apps/control-mobile/src/auth/secure-storage.ts",
+      "blobSha": "4de213827850e77cf7ddbd8211c6df86c55e582b",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/control-mobile/src/auth/secure-storage.ts"
+    },
+    {
+      "path": "apps/control-mobile/src/storage/tenant-cache.ts",
+      "blobSha": "2cad66086ca5e73f7bd4c86e0f098f80a39ab699",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/control-mobile/src/storage/tenant-cache.ts"
+    },
+    {
+      "path": "apps/control-mobile/src/storage/upload-queue.ts",
+      "blobSha": "2785413f6559f17fd7f3a2b960d6f25eac0cce04",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/control-mobile/src/storage/upload-queue.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/player-cache.ts",
+      "blobSha": "a19069a173d5c4abbfb060e6fcc30d8f02802417",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/player/app/_lib/player-cache.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/player-manifest.ts",
+      "blobSha": "47ba050271f31d3b4aefaf7389e129a6769076a1",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/player/app/_lib/player-manifest.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/player-native-recovery.ts",
+      "blobSha": "f80f1c0a1146e25ca8ccea3d02548320eac928f3",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/player/app/_lib/player-native-recovery.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/player-storage.ts",
+      "blobSha": "46ae9729c3f38ac52eb1ce592f3c2c2a179f3da3",
+      "url": "https://github.com/veyocast/platform/blob/20729be35d38dc8eb67b836160632ac7c3ea5153/apps/player/app/_lib/player-storage.ts"
+    }
+  ],
+  "iconPaths": [
+    {
+      "path": "apps/android-tv/app/src/main/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "sha": "aa44b042a7dc2b39adc6f0170bd850676a286b0a",
+      "size": 11777
+    },
+    {
+      "path": "apps/android-tv/app/src/main/res/drawable-nodpi/veyocast_tv_banner.png",
+      "sha": "f5f6584a775b7a6cbfa2518ba7aa96c2cc3a7976",
+      "size": 5475
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "capturedAt": "2026-10-18T01:49:46.681Z",
+  "transport": "actual Next Source editor and AAL2 server actions on isolated local Supabase",
+  "projectId": "04c6421e-7150-4d7f-90bb-f0de44b0e010",
+  "error": "expect(locator).toBeVisible() failed\n\nLocator: getByLabel('Ontwerpnaam', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for getByLabel('Ontwerpnaam', { exact: true })\n    - waiting for\" http://127.0.0.1:3220/context?reden=needs_selection\" navigation to finish...\n"
+}

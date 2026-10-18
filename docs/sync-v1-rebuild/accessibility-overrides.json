@@ -1,0 +1,70 @@
+{
+  "reason": "Axe-confirmed Source contrast/heading corrections and the existing higher canon minimum44px touch targets. Immutable original Source files stay unchanged; direct and derived layout changes must be measured individually.",
+  "colors": {
+    "#80948c": "#64736d",
+    "#218978": "#1d796a",
+    "#697b79": "#5e6f6d",
+    "#90a49b": "#65736c",
+    "#157a69": "#147666",
+    "#8a9d94": "#68766f",
+    "#087c67": "#087864",
+    "#789187": "#62776f",
+    "#9cafa6": "#69756f",
+    "#749388": "#5e776e",
+    "#829e93": "#60756d",
+    "#839688": "#616f65",
+    "#6b8274": "#5d7165",
+    "#6c8578": "#5a6e64",
+    "#90a398": "#66746c",
+    "#829586": "#606e63",
+    "#708f7d": "#5b7465",
+    "#91a69a": "#6a7970",
+    "#96a89b": "#68746b",
+    "#789084": "#61756b",
+    "#92a89b": "#65746b",
+    "#009981": "#007f6b",
+    "#3b7e63": "#37765d",
+    "#8a9f91": "#616f66",
+    "#6d8c79": "#587162",
+    "#6c9b82": "#567c68",
+    "#5f8f74": "#547e66",
+    "#91a698": "#6a796f",
+    "#85a496": "#60766c",
+    "#5c8a6e": "#517961",
+    "#6c9277": "#55735e",
+    "#649c78": "#517e61",
+    "#8ba08f": "#68786b",
+    "#73a389": "#557965",
+    "#799388": "#5e776e",
+    "#779487": "#5e776e"
+  },
+  "controlColors": {
+    "#718285": "#5b6d70"
+  },
+  "controlEvidence": {
+    "reason": "Whole-page Axe found 4.01:1 mobile navigation text on white. The corrected muted foreground is at least 4.87:1 on all three Sync light surfaces; original source snapshots stay immutable.",
+    "legacySportlinkEyebrow": {
+      "from": "#5d877b",
+      "to": "#4b7064",
+      "background": "#f3f7f6",
+      "originalRatio": 3.72,
+      "correctedRatio": 5.12
+    }
+  },
+  "touchTargets": {
+    "minimumPx": 44,
+    "authority": [
+      "docs/design-implementation-canon.md:113",
+      "docs/design-canon/v1/VEYOCAST_DESIGN_CANON_v2.0.md:1079"
+    ],
+    "scope": "Only the interactive hit area and necessary resulting layout. No blanket geometry tolerance or unexplained visual exception.",
+    "mobileNavigation": {
+      "heightPx": 65,
+      "derivation": "44px target +20px vertical Source padding +1px border; plus device safe-area inset"
+    },
+    "mobileHeader": {
+      "gapPx": 5,
+      "derivation": "Keep four44px icon/account targets separate at360px while preserving the34px visible avatar."
+    }
+  }
+}

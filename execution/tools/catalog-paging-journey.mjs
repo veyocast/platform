@@ -1,0 +1,73 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {readFileSync,statSync,writeFileSync} from 'node:fs';
+import {chromium,expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+assert.equal(process.env.VEYOCAST_S226_LOCAL_ACCEPTANCE,'1');
+assert.equal(process.cwd(),'/home/codex/repos/castivo-s226');
+const configFile='/tmp/veyocast-s226-local-status.json',stateFile='/tmp/veyocast-s226-qa-auth-state.json';
+for(const f of [configFile,stateFile])assert.equal(statSync(f).mode&0o777,0o600);
+const cfg=JSON.parse(readFileSync(configFile,'utf8'));
+assert.equal(new URL(cfg.API_URL).origin,'http://127.0.0.1:57621');assert.equal(new URL(cfg.DB_URL).port,'57622');
+const container='supabase_db_veyocast-s226';
+assert.equal(execFileSync('docker',['inspect','--format','{{.Name}} {{ index .Config.Labels "com.supabase.cli.project" }}',container],{encoding:'utf8'}).trim(),'/supabase_db_veyocast-s226 veyocast-s226');
+const tenant='19170000-0000-4000-8000-000000000010',user='19170000-0000-4000-8000-000000000001';
+const source='22610000-0000-4000-8000-000000000000';
+function sql(input){return execFileSync('docker',['exec','-i',container,'psql','-U','postgres','-d','postgres','-At','-v','ON_ERROR_STOP=1'],{input,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();}
+const existingCount=Number(sql(`select count(*) from public.tenant_products where tenant_id='${tenant}';`));
+assert.ok(existingCount===0 || (existingCount===1005 && Number(sql(`select count(*) from public.tenant_products where tenant_id='${tenant}' and data_source_id='${source}' and id::text like '22610000-0000-4000-8000-%';`))===1005),'This journey only reuses its own complete disposable fixture.');
+if(existingCount===0)sql(`begin;
+insert into public.dynamic_data_sources(id,tenant_id,kind,name,status) values('${source}','${tenant}','manual_products','S226 gepagineerde lokale catalogus','active');
+insert into public.tenant_products(id,tenant_id,data_source_id,source,slug,name,category,price_cents,active,available,revision,created_by)
+select ('22610000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'${tenant}','${source}','manual','s226-catalog-'||lpad(n::text,4,'0'),'S226 catalogus '||lpad(n::text,4,'0'),case when n=1005 then 'Buiten de eerste pagina' else 'Dranken' end,200,n<>1005,n<>1005,1,'${user}' from generate_series(1,1005)n;
+commit;`);
+const initialAvailable=sql(`select count(*) from public.tenant_products where tenant_id='${tenant}' and active;`);
+const expectedSecond=sql(`select name from public.tenant_products where tenant_id='${tenant}' and deleted_at is null order by active desc,category asc nulls last,name,id offset 50 limit 1;`);
+const lastBefore=JSON.parse(sql(`select row_to_json(p) from(select active,revision from public.tenant_products where tenant_id='${tenant}' and id='22610000-0000-4000-8000-000000001005')p;`));
+const beforeReleases=Number(sql(`select count(*) from public.playlist_releases where tenant_id='${tenant}';`));
+const base='http://127.0.0.1:3220';
+const browser=await chromium.launch();const context=await browser.newContext({storageState:stateFile,viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+context.setDefaultTimeout(30000);
+await context.addCookies([{name:'veyocast-tenant-context',value:'duindorp-sites-local-qa',url:base,httpOnly:true,sameSite:'Lax'}]);
+const page=await context.newPage();const report={startedAt:new Date().toISOString(),reusedOwnedFixture:existingCount===1005,environment:'disposable local Supabase + actual Next Control',transport:'real AAL2 SSR/server actions, no mocked responses',tenant,fixtureProducts:1005};
+try{
+ await page.goto(base+'/dashboard/sources/twelve/products',{timeout:120000});
+ await expect(page.getByRole('heading',{name:'Een frisse kaart voor je club.'})).toBeVisible();
+ const table=page.getByRole('table');await expect(table.locator('tbody tr')).toHaveCount(50);
+ await expect(page.locator('.ad-metric').nth(0).locator('strong')).toHaveText('1005');
+ await expect(page.locator('.ad-metric').nth(1).locator('strong')).toHaveText(initialAvailable);
+ report.initial={rows:50,total:1005,available:Number(initialAvailable)};
+ await page.getByRole('button',{name:'Volgende producten'}).click();
+ await expect(table.locator('tbody tr').first()).toContainText(expectedSecond);
+ report.secondPageFirst=expectedSecond;
+ const search=page.getByRole('searchbox',{name:'Producten zoeken'});
+ await search.fill('1005');await expect(table.locator('tbody tr')).toHaveCount(1);
+ await expect(table).toContainText('S226 catalogus 1005');
+ await page.getByRole('combobox',{name:'Categorie',exact:true}).selectOption('Buiten de eerste pagina');
+ await expect(table.locator('tbody tr')).toHaveCount(1);await expect(table).toContainText('S226 catalogus 1005');
+ await page.getByRole('button',{name:`S226 catalogus 1005: ${lastBefore.active?'beschikbaar, klik om uit te zetten':'niet beschikbaar, klik om aan te zetten'}`,exact:true}).click();
+ await expect.poll(()=>JSON.parse(sql(`select row_to_json(p) from(select active,revision from public.tenant_products where tenant_id='${tenant}' and id='22610000-0000-4000-8000-000000001005')p;`))).toEqual({active:!lastBefore.active,revision:lastBefore.revision+1});
+ await expect(page.getByRole('button',{name:`S226 catalogus 1005: ${lastBefore.active?'niet beschikbaar, klik om aan te zetten':'beschikbaar, klik om uit te zetten'}`,exact:true})).toBeVisible();
+ report.deepSearch={name:'S226 catalogus 1005',category:'Buiten de eerste pagina',active:!lastBefore.active,revision:lastBefore.revision+1};
+ await page.getByRole('button',{name:'Product toevoegen',exact:true}).click();
+ const dialog=page.getByRole('dialog',{name:'Product toevoegen'});await expect(dialog).toBeVisible();await expect(dialog.getByLabel('Productbron',{exact:true})).toHaveValue(source);
+ await dialog.getByLabel('Productnaam',{exact:true}).fill('S226 browserproduct');
+ await dialog.getByLabel('Prijs (€)',{exact:true}).fill('2,35');
+ await dialog.getByLabel('Categorie',{exact:true}).fill('Nieuwe categorie');
+ await dialog.getByLabel('Artikelnummer',{exact:true}).fill('S226-browserproduct');
+ await dialog.getByRole('button',{name:'Product opslaan',exact:true}).click();
+ await expect.poll(()=>Number(sql(`select count(*) from public.tenant_products where tenant_id='${tenant}' and source_external_id='S226-browserproduct' and price_cents=235;`))).toBe(1);
+ await expect(dialog).not.toBeVisible();
+ const created=JSON.parse(sql(`select row_to_json(p) from(select id,name,price_cents,revision,data_source_id from public.tenant_products where tenant_id='${tenant}' and source_external_id='S226-browserproduct')p;`));
+ assert.equal(created.data_source_id,source);report.created=created;
+ await page.getByRole('searchbox',{name:'Producten zoeken'}).fill('S226 browserproduct');
+ await expect(table.locator('tbody tr')).toHaveCount(1);await expect(table).toContainText('S226 browserproduct');
+ const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+ report.axeViolations=axe.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.map(n=>n.target)}));assert.deepEqual(report.axeViolations,[]);
+ report.viewports=[];
+ for(const width of [320,390,768,1024,1440]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>document.fonts.ready);const metrics=await page.evaluate(()=>({width:innerWidth,documentWidth:document.documentElement.scrollWidth}));assert.ok(metrics.documentWidth<=width+1);report.viewports.push(metrics);}
+ await page.screenshot({path:'execution/evidence/catalog-paging-real-services.png',fullPage:true});
+ report.afterReleases=Number(sql(`select count(*) from public.playlist_releases where tenant_id='${tenant}';`));assert.equal(report.afterReleases,beforeReleases);report.beforeReleases=beforeReleases;report.status='PASS';
+}catch(error){report.status='FAIL';report.error=String(error.message).slice(0,500);await page.screenshot({path:'/tmp/veyocast-s226-catalog-real-failure.png',fullPage:true}).catch(()=>undefined);throw error;}
+finally{writeFileSync('execution/evidence/catalog-paging-real-services.json',JSON.stringify(report,null,2)+'\n');await browser.close();}
+console.log(JSON.stringify({status:report.status,fixtureProducts:report.fixtureProducts,axeViolations:report.axeViolations.length,viewports:report.viewports.length}));

@@ -1,0 +1,17 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T09:00:23.131Z",
+  "controlBuildId": "mvsexGYnTZAAW_n6z5VlH",
+  "scope": "actual manual-to-bound RSS navigation and twice-replayed already committed create, first reply deliberately lost; exact same command/entity/artifact, no new history or original-document change; no external feed or hosted deployment claim",
+  "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   {\n+     message: 'Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.',\n+     phase: 'SSR reload and second exact receipt'\n+   },\n+   {\n+     message: \"Cannot read properties of null (reading 'parentNode')\",\n+     phase: 'SSR reload and second exact receipt'\n+   }\n+ ]\n- []\n",
+  "browserErrors": [
+    {
+      "phase": "SSR reload and second exact receipt",
+      "message": "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    },
+    {
+      "phase": "SSR reload and second exact receipt",
+      "message": "Cannot read properties of null (reading 'parentNode')"
+    }
+  ]
+}

@@ -1,0 +1,210 @@
+{
+  "status": "measured development baseline; no deployment performed",
+  "measured_at": "2026-10-17T19:57:23.878374+00:00",
+  "baseline_repository": "veyocast/platform",
+  "baseline_main": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "development": {
+    "hostname": "codex-worker-01",
+    "user": "codex",
+    "source_roots": [
+      "/home/codex/repos/castivo-s226"
+    ],
+    "git_remote": "https://github.com/veyocast/platform.git",
+    "branch": "veyocast/s226-sync-v1-rebuild",
+    "worktrees": "worktree /home/codex/repos/castivo\nHEAD b57b537224b1fe5e0b8bc9b8cdb1d40f316a7120\nbranch refs/heads/main\n\nworktree /home/codex/repos/castivo-s110\nHEAD 884a02b4127d001f3acaa4e2af1e642089c79a1c\nbranch refs/heads/veyocast/s110-expo-57-current-patches\n\nworktree /home/codex/repos/castivo-s111\nHEAD 65fca4a32c10152936c0ad9ab74e071a658f8800\nbranch refs/heads/veyocast/s111-media-lg-navigation-recovery\n\nworktree /home/codex/repos/castivo-s133-sportlink-sync-hotfix\nHEAD a8bdd32f1fd835b866211cefc710f78e7108887c\nbranch refs/heads/veyocast/s133-sportlink-sync-hotfix\n\nworktree /home/codex/repos/castivo-s158-match-row-layout\nHEAD 3b9bd9a06800e58e88ebd197d94828cf05d95277\ndetached\n\nworktree /home/codex/repos/castivo-s161-royal-current\nHEAD 1e3a8e4141d18e3668f92d6340169525645bdd46\ndetached\n\nworktree /home/codex/repos/castivo-s213\nHEAD 141343b0c3ed979c1812670b12b44d2a6265f6c6\nbranch refs/heads/veyocast/s213-sites-v17-source-integration\n\nworktree /home/codex/repos/castivo-s214\nHEAD d017cacf0d69ffa77b78d60d0862429e46e16858\nbranch refs/heads/veyocast/s214-studio-template-picker-fix\n\nworktree /home/codex/repos/castivo-s215\nHEAD 71ad6ce758e2aa72e6282b444f2d327b1c5f3b8d\nbranch refs/heads/veyocast/s215-menu-widgets-and-studio-create\n\nworktree /home/codex/repos/castivo-s216\nHEAD 0a8499efe0e2adf469634056f1bf9805ae3c3986\nbranch refs/heads/veyocast/s216-menu-studio-visual-parity\n\nworktree /home/codex/repos/castivo-s217\nHEAD ea52b3b697fa003706efa8085cb0ac97d6351156\nbranch refs/heads/veyocast/s217-clubverhaal-media-release-recovery\n\nworktree /home/codex/repos/castivo-s218\nHEAD 90bedfecae2b5a151eddaccb553ef4c6b8c72646\nbranch refs/heads/veyocast/s218-library-player-live-recovery\n\nworktree /home/codex/repos/castivo-s219\nHEAD bc00179b7706c87978828e386cf29e9b7b0bf92d\nbranch refs/heads/veyocast/s219-menu-copy-footer-hotfix\n\nworktree /home/codex/repos/castivo-s220\nHEAD 27eb6022389cd96fa46fbc300dcaafbf4656fe41\nbranch refs/heads/veyocast/s220-menu-studio-editing\n\nworktree /home/codex/repos/castivo-s221\nHEAD 6208452e4e3ba1b37dcbb8dba472d7e30f96b040\nbranch refs/heads/veyocast/s221-lg-menu-black-screen\n\nworktree /home/codex/repos/castivo-s222\nHEAD 396669b464c353b905f234bb3dc279bdb3024701\nbranch refs/heads/veyocast/s222-video-processing-budget\n\nworktree /home/codex/repos/castivo-s223\nHEAD 8d14bc14a6a8de0d8aa21699a0c0385ddb3b5520\nbranch refs/heads/veyocast/s223-force-player-sync\n\nworktree /home/codex/repos/castivo-s224\nHEAD a2639ecf2fb02c8bd3551292124dbfacaa32d84d\nbranch refs/heads/veyocast/s224-lg-video-cache\n\nworktree /home/codex/repos/castivo-s225\nHEAD 6dc97f2010e12e7ce5bf9d790833ef17226822f6\nbranch refs/heads/veyocast/s225-lg-media-recovery\n\nworktree /home/codex/repos/castivo-s226\nHEAD 20729be35d38dc8eb67b836160632ac7c3ea5153\nbranch refs/heads/veyocast/s226-sync-v1-rebuild\n\nworktree /home/codex/repos/veyocast-menu-studio-pilot\nHEAD 111ce34c98dd5432350340399cd1f5c9d2501560\ndetached\n\nworktree /home/codex/repos/veyocast-s121-menu-scene-viewport\nHEAD 5969bba71d84480ac6956d481ee1fb9128a366b4\nbranch refs/heads/veyocast/s121-menu-scene-viewport",
+    "containers": [
+      {
+        "Names": "supabase_db_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/postgres:15.8.1.085",
+        "Ports": "0.0.0.0:54622->5432/tcp, [::]:54622->5432/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_studio_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/studio:2026.07.06-sha-66cf431",
+        "Ports": "0.0.0.0:54623->3000/tcp, [::]:54623->3000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_pg_meta_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/postgres-meta:v0.96.6",
+        "Ports": "8080/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_edge_runtime_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/edge-runtime:v1.74.2",
+        "Ports": "8081/tcp",
+        "State": "exited"
+      },
+      {
+        "Names": "supabase_storage_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/storage-api:v1.62.5",
+        "Ports": "5000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_rest_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/postgrest:v14.14",
+        "Ports": "3000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_realtime_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/realtime:v2.112.6",
+        "Ports": "4000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_inbucket_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/mailpit:v1.30.2",
+        "Ports": "0.0.0.0:54325->1025/tcp, [::]:54325->1025/tcp, 0.0.0.0:54326->1110/tcp, [::]:54326->1110/tcp, 0.0.0.0:54624->8025/tcp, [::]:54624->8025/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_auth_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/gotrue:v2.192.0",
+        "Ports": "9999/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_kong_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/kong:2.8.1",
+        "Ports": "",
+        "State": "exited"
+      },
+      {
+        "Names": "supabase_vector_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/vector:0.53.0-alpine",
+        "Ports": "",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_analytics_veyocast-s215",
+        "Image": "public.ecr.aws/supabase/logflare:1.46.0",
+        "Ports": "0.0.0.0:54327->4000/tcp, [::]:54327->4000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_db_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/postgres:15.8.1.085",
+        "Ports": "0.0.0.0:55462->5432/tcp, [::]:55462->5432/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_pg_meta_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/postgres-meta:v0.96.6",
+        "Ports": "8080/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_edge_runtime_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/edge-runtime:v1.74.2",
+        "Ports": "8081/tcp",
+        "State": "exited"
+      },
+      {
+        "Names": "supabase_storage_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/storage-api:v1.62.5",
+        "Ports": "5000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_rest_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/postgrest:v14.14",
+        "Ports": "3000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_realtime_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/realtime:v2.112.6",
+        "Ports": "4000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_inbucket_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/mailpit:v1.30.2",
+        "Ports": "0.0.0.0:55465->1025/tcp, [::]:55465->1025/tcp, 0.0.0.0:55466->1110/tcp, [::]:55466->1110/tcp, 0.0.0.0:55464->8025/tcp, [::]:55464->8025/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_auth_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/gotrue:v2.192.0",
+        "Ports": "9999/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_kong_veyocast-s206",
+        "Image": "public.ecr.aws/supabase/kong:2.8.1",
+        "Ports": "",
+        "State": "exited"
+      },
+      {
+        "Names": "supabase_db_veyocast-s190",
+        "Image": "public.ecr.aws/supabase/postgres:15.8.1.085",
+        "Ports": "0.0.0.0:56522->5432/tcp, [::]:56522->5432/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_pg_meta_veyocast-s190",
+        "Image": "public.ecr.aws/supabase/postgres-meta:v0.96.6",
+        "Ports": "8080/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_storage_veyocast-s190",
+        "Image": "public.ecr.aws/supabase/storage-api:v1.62.5",
+        "Ports": "5000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_rest_veyocast-s190",
+        "Image": "public.ecr.aws/supabase/postgrest:v14.14",
+        "Ports": "3000/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_inbucket_veyocast-s190",
+        "Image": "public.ecr.aws/supabase/mailpit:v1.30.2",
+        "Ports": "0.0.0.0:56525->1025/tcp, [::]:56525->1025/tcp, 0.0.0.0:56526->1110/tcp, [::]:56526->1110/tcp, 0.0.0.0:56524->8025/tcp, [::]:56524->8025/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_auth_veyocast-s190",
+        "Image": "public.ecr.aws/supabase/gotrue:v2.192.0",
+        "Ports": "9999/tcp",
+        "State": "running"
+      },
+      {
+        "Names": "supabase_kong_veyocast-s190",
+        "Image": "public.ecr.aws/supabase/kong:2.8.1",
+        "Ports": "",
+        "State": "exited"
+      },
+      {
+        "Names": "supabase_db_veyocast-s185",
+        "Image": "public.ecr.aws/supabase/postgres:15.8.1.085",
+        "Ports": "0.0.0.0:55722->5432/tcp, [::]:55722->5432/tcp",
+        "State": "running"
+      }
+    ],
+    "protected_config_locations": [
+      "/home/codex/.config/gh/hosts.yml",
+      "/home/codex/.ssh",
+      "/home/codex/.android",
+      "/home/codex/repos/castivo-s215/.env.local"
+    ],
+    "shares_staging_host": false,
+    "role_evidence": "Development checkout and local test stacks; staging/production are separate named self-hosted runners using /srv/apps/veyocast. /srv/apps absent on this host."
+  },
+  "branch_audit_complete": false,
+  "branch_heads_inventoried": 178,
+  "settings_names_scopes_verified": true,
+  "current_release_sha": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "rollback_reference": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "last_successful_deployment_run": 38973162759,
+  "production_authorization": "Explicit user request in this chat; existing gates retained",
+  "notes": "Only names/scopes; no secret values. Historical worktrees and test volumes remain protected until dependency review.",
+  "hardware_acceptance": "deferred explicitly by user; untested",
+  "sendgrid_configuration": "deferred explicitly by user; sending inactive without all three configuration values"
+}

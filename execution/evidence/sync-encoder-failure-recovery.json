@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-10-18T01:02:31.558Z",
+  "jobId": "4ac25dc2-9afd-4e0b-adda-9c93478813e9",
+  "workerId": "s226-sync-mp4-proof",
+  "environment": "disposable local S226 Supabase",
+  "failure": "actual FFmpeg ENOENT after successful PNG output; no MP4 completion",
+  "recovery": "same confirmed crashed worker identity reported its own failure through fail_studio_render_job_v1",
+  "result": "failed",
+  "rawLog": "/tmp/veyocast-s226-sync-real-worker-attempt2.log"
+}

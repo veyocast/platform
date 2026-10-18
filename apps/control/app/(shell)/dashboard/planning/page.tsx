@@ -22,7 +22,6 @@ import planningStyles from "./planning.module.css";
 import {
   FilteredPlanningEmpty,
   PlanningCalendar,
-  PlanningAgenda,
   PlanningWorkspaceToolbar
 } from "./planning-calendar";
 import {
@@ -37,6 +36,7 @@ import {
 } from "./schedule-calendar";
 import { isoToZonedDateTimeLocal, zonedLocalDateTimeToIso } from "./schedule-time";
 import type { ContentScheduleListItem } from "./planning-types";
+import { SyncPlanning } from "./sync-planning";
 
 type PlanningPageProps = {
   searchParams: Promise<{
@@ -124,9 +124,22 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
     );
   }
 
+  if (view !== "month") {
+    return <SyncPlanning canWrite={canOpenReferenceEditor} context={hrefContext} days={calendarDays}
+      groups={data.groups} screens={data.screens} releases={data.releases} schedules={filteredSchedules}
+      timeZone={data.timezoneName} today={normalizeReferenceDate(undefined, data.timezoneName, currentTime)}
+      periodLabel={planningPeriodLabel(calendarDays, referenceDate, view)}
+      previousHref={planningHref({ ...hrefContext, date: shiftReferenceDate(referenceDate, "week", -1) })}
+      nextHref={planningHref({ ...hrefContext, date: shiftReferenceDate(referenceDate, "week", 1) })}
+      notice={<>{query.fout ? <p className="notice notice--critical" role="alert"><strong>Planning niet opgeslagen.</strong> {query.fout}</p> : null}{query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}{!session.isLive && !visualReference ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte planningen te beheren.</p> : !canWrite ? <p className="notice notice--info" role="status">Je kunt de planning bekijken. Playlistbewerkingsrechten zijn nodig om tijdvakken te wijzigen.</p> : null}</>}
+      dialogs={<div hidden>{editingSchedule && canOpenReferenceEditor ? <ContentScheduleDialog key={editingSchedule.id} defaultOpen defaultStartAt={defaultStartAt} disabled={false} groups={data.groups} releases={data.releases} screens={data.screens} schedule={editingSchedule} timezoneName={data.timezoneName} /> : null}{query.nieuw === "1" && canOpenReferenceEditor ? <ContentScheduleDialog defaultOpen defaultStartAt={defaultStartAt} defaultTarget={selectedTarget} disabled={false} groups={data.groups} releases={data.releases} screens={data.screens} timezoneName={data.timezoneName} /> : null}</div>}
+      management={<RecurringPlanningDialog schedules={filteredSchedules} defaultStartAt={defaultStartAt} disabled={!canWrite} groups={data.groups} releases={data.releases} screens={data.screens} timezoneName={data.timezoneName} />}
+    />;
+  }
+
   return (
     <div className={planningStyles.planningPage}>
-      <div className={planningStyles.readHeading}><PageHeader description="Bepaal waar en wanneer content zichtbaar wordt." eyebrow="VeyoCast FieldFlow" title="Planning"/></div>
+      <div><PageHeader description="Bepaal waar en wanneer content zichtbaar wordt." eyebrow="VeyoCast FieldFlow" title="Planning"/></div>
 
       {query.fout ? <p className="notice notice--critical" role="alert"><strong>Planning niet opgeslagen.</strong> {query.fout}</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
@@ -160,7 +173,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
         label={planningPeriodLabel(calendarDays, referenceDate, view)}
         nextHref={planningHref({
           ...hrefContext,
-          date: shiftReferenceDate(referenceDate, view === "agenda" ? "week" : view, 1)
+          date: shiftReferenceDate(referenceDate, view, 1)
         })}
         period={selectedPeriod}
         playlists={data.releases.map((release) => ({
@@ -169,7 +182,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
         }))}
         previousHref={planningHref({
           ...hrefContext,
-          date: shiftReferenceDate(referenceDate, view === "agenda" ? "week" : view, -1)
+          date: shiftReferenceDate(referenceDate, view, -1)
         })}
         screens={data.screens.map((screen) => ({
           disabled: screen.disabled,
@@ -183,9 +196,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
         visual={visualReference ? "reference" : undefined}
       />
 
-      {view === "agenda" ? (
-        <section className={planningStyles.agendaPanel}><PlanningAgenda days={calendarDays} timeZone={data.timezoneName}/></section>
-      ) : selectedTarget || selectedContent || selectedPeriod !== "day" ? (
+      {selectedTarget || selectedContent || selectedPeriod !== "day" ? (
         filteredSchedules.length ? (
           <PlanningCalendar
             currentTimeIso={currentTime.toISOString()}

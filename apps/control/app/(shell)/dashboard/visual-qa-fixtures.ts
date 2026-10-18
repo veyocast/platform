@@ -82,6 +82,8 @@ export function createTodayVisualFixture(
   const configured = {
     ...base,
     devices: Array.from({ length: 20 }, (_, index) => ({
+      current_sync_phase: index < 7 ? "active" : null,
+      current_sync_detail: index < 7 ? { publicationTrace: { releaseId: `visual-release-${index + 1}`, firstFrameAt: recent } } : {},
       active_release_id: index < 7 ? `visual-release-${index + 1}` : null,
       desired_release_id: index < 7 ? `visual-release-${index + 1}` : null,
       id: `visual-device-${index + 1}`,
@@ -101,6 +103,7 @@ export function createTodayVisualFixture(
     })),
     integrations: {
       dynamicSources: [{
+        config_json: { refreshMinutes: 15 },
         id: "visual-source-1",
         kind: "rss",
         last_attempt_at: recent,

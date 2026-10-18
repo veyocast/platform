@@ -49,10 +49,11 @@ test("pre-caches and reloads the complete player shell without a network connect
   });
 
   const cachedShell = await page.evaluate(async () => {
-    const cache = await caches.open("veyocast-player-shell-v4");
+    const cache = await caches.open("veyocast-player-shell-v5");
     const paths = (await cache.keys()).map((request) => new URL(request.url).pathname);
     return {
       hasIcon: paths.includes("/brand/veyocast-icon-maskable-512.png"),
+      hasHero: paths.includes("/assets/brand-hero-800.webp"),
       hasManifest: paths.includes("/manifest.webmanifest"),
       hasNextAssets: paths.some((path) => path.startsWith("/_next/static/")),
       hasRoot: paths.includes("/")
@@ -60,6 +61,7 @@ test("pre-caches and reloads the complete player shell without a network connect
   });
   expect(cachedShell).toEqual({
     hasIcon: true,
+    hasHero: true,
     hasManifest: true,
     hasNextAssets: true,
     hasRoot: true

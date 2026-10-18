@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode, type SetStateAction } from 'react';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, CheckCheck, ChevronDown, Clock3, Copy, ImagePlus, ListChecks, ListOrdered, Monitor, Pause, Play, Plus, RotateCcw, Save, Search, Settings2, ShieldCheck, Trash2, Undo2, X } from 'lucide-react';
-import type { Media, Playlist, Slide } from './model';
+import type { Media, Playlist, Slide,SyncDynamicLibraryDesign } from './model';
 import { AssetImage, type DynamicDesign } from './presentation-adapter';
 import type { Group, Screen } from './model';
 import { type StudioProject } from './presentation-adapter';
@@ -10,6 +10,7 @@ import { playlistPlacementPages } from './playlist-command-plan';
 import { PHOTOS } from './model';
 import { PlaylistMediaPicker } from './playlist-media-picker';
 import { ScreenThemePicker } from './screen-theme-picker';
+import { SyncSlidePreview } from './sync-studio-preview';
 import type { ScreenThemeId } from './model';
 import s from './playlist-editor.module.css';
 
@@ -25,6 +26,7 @@ type Props = {
   media: Media[];
   onMediaChange: (action: SetStateAction<Media[]>) => void;
   designs: DynamicDesign[];
+  syncDesigns?:SyncDynamicLibraryDesign[];
   projects: StudioProject[];
   onGoStudio: () => void;
   renderPreview: (slide: Slide, active: boolean) => ReactNode;
@@ -42,32 +44,33 @@ const pages = playlistPlacementPages;
 const seconds = (slide: Slide) => slide.seconds * pages(slide);
 const clock = (value: number) => `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
-const boundedSeconds = (value: number, dynamic: boolean) => Math.max(dynamic ? 5 : 3, Math.min(180, Math.round(value) || (dynamic ? 5 : 3)));
-const kind = (slide: Slide) => slide.sourceKind === 'youtube' ? 'YouTube' : slide.sourceKind === 'engage' ? 'Engage' : slide.kind === 'video' ? 'Video' : slide.design ? (slide.design.provider === 'led-scores' ? 'LED Scores' : slide.design.provider === 'sportlink' ? 'Sportlink' : 'Menubord') : slide.studioSlide ? 'Studio' : 'Afbeelding';
-const themeOf = (slide: Slide): ScreenThemeId | undefined => slide.design ? slide.design.themeId : slide.studioSlide ? slide.studioSlide.themeId : slide.themeId;
+const boundedSeconds = (value: number, dynamic: boolean, maximum=180) => Math.max(dynamic ? 5 : 3, Math.min(maximum, Math.round(value) || (dynamic ? 5 : 3)));
+const maximumSeconds=(slide:Slide)=>slide.syncStudio||slide.syncDynamic?Math.floor(120/pages(slide)):180;
+const kind = (slide: Slide) => slide.sourceKind === 'youtube' ? 'YouTube' : slide.sourceKind === 'engage' ? 'Engage' : slide.syncDynamic?'Gekoppeld ontwerp':slide.syncStudio ? 'Studio' : slide.kind === 'video' ? 'Video' : slide.design ? (slide.design.provider === 'led-scores' ? 'LED Scores' : slide.design.provider === 'sportlink' ? 'Sportlink' : 'Menubord') : slide.studioSlide ? 'Studio' : 'Afbeelding';
+const themeOf = (slide: Slide): ScreenThemeId | undefined => slide.syncDynamic?slide.themeId??slide.syncDynamic.presentation.theme:slide.syncStudio ? slide.themeId??slide.syncStudio.presentation.theme : slide.design ? slide.design.themeId : slide.studioSlide ? slide.studioSlide.themeId : slide.themeId;
 const themedSlide = (slide: Slide, themeId: ScreenThemeId): Slide => slide.design
   ? { ...slide, design: { ...slide.design, themeId } }
   : slide.studioSlide ? { ...slide, studioSlide: { ...slide.studioSlide, themeId } } : { ...slide, themeId };
 
-function DurationInput({ value, dynamic, onCommit }: { value: number; dynamic: boolean; onCommit: (value: number) => void }) {
+function DurationInput({ value, dynamic, maximum=180, onCommit }: { value: number; dynamic: boolean; maximum?:number; onCommit: (value: number) => void }) {
   const [draft, setDraft] = useState(String(value));
   useEffect(() => setDraft(String(value)), [value]);
   function commit() {
-    const next = draft.trim() ? boundedSeconds(Number(draft), dynamic) : value;
+    const next = draft.trim() ? boundedSeconds(Number(draft), dynamic,maximum) : value;
     setDraft(String(next));
     if (next !== value) onCommit(next);
   }
-  return <input type="number" inputMode="numeric" min={dynamic ? 5 : 3} max={180} value={draft} onChange={event => {
+  return <input type="number" inputMode="numeric" min={dynamic ? 5 : 3} max={maximum} value={draft} onChange={event => {
     const text = event.target.value;
     setDraft(text);
     const next = Number(text);
     // Keep incomplete input editable, while valid values immediately become
     // part of the draft protected by Escape and the browser Back button.
-    if (text.trim() && Number.isInteger(next) && next >= (dynamic ? 5 : 3) && next <= 180 && next !== value) onCommit(next);
+    if (text.trim() && Number.isInteger(next) && next >= (dynamic ? 5 : 3) && next <= maximum && next !== value) onCommit(next);
   }} onBlur={commit} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} />;
 }
 
-export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish, inventory, groups, initialScreenIds, media, onMediaChange, designs, projects, onGoStudio, renderPreview, startAdding = false,notice:serverNotice,canWrite=true,canPublish=true,busy=false,onAdvanced,videoUploadConfig }: Props) {
+export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish, inventory, groups, initialScreenIds, media, onMediaChange, designs,syncDesigns=[], projects, onGoStudio, renderPreview, startAdding = false,notice:serverNotice,canWrite=true,canPublish=true,busy=false,onAdvanced,videoUploadConfig }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const scrollBody = useRef<HTMLDivElement>(null);
   const backAction = useRef<() => void>(() => {});
@@ -160,7 +163,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
       if (slide.id !== id) return slide;
       const updated = { ...slide, ...patch };
       if (patch.seconds !== undefined) {
-        updated.seconds = boundedSeconds(patch.seconds, !!updated.design);
+        updated.seconds = boundedSeconds(patch.seconds, !!updated.design,maximumSeconds(updated));
         if (updated.design) updated.design = { ...updated.design, seconds: updated.seconds };
         if (updated.studioSlide) updated.studioSlide = { ...updated.studioSlide, duration: updated.seconds };
       }
@@ -243,18 +246,20 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
     if (!canEdit) return;
     updateSlides(playlist.slides.map(slide => {
       if (!validSelection.includes(slide.id)) return slide;
-      const value = boundedSeconds(Number(bulkSeconds), !!slide.design);
+      const value = boundedSeconds(Number(bulkSeconds), !!slide.design,maximumSeconds(slide));
       return { ...slide, seconds: value, ...(slide.design ? { design: { ...slide.design, seconds: value } } : {}), ...(slide.studioSlide ? { studioSlide: { ...slide.studioSlide, duration: value } } : {}) };
     }));
     setNotice(`Duur aangepast voor ${validSelection.length} ${validSelection.length === 1 ? 'item' : 'items'}. Dynamische pagina’s duren minimaal 5 seconden.`);
   }
   function applyTheme(ids: string[], themeId: ScreenThemeId) {
     if (!ids.length||!canEdit) return;
-    const supported=playlist.slides.filter(slide=>ids.includes(slide.id)&&(slide.kind!=='video'||slide.studioSlide)).map(slide=>slide.id);
+    const supported=playlist.slides.filter(slide=>ids.includes(slide.id)&&(slide.kind!=='video'||slide.studioSlide||slide.syncStudio||slide.syncDynamic)).map(slide=>slide.id);
     updateSlides(playlist.slides.map(slide => supported.includes(slide.id) ? themedSlide(slide, themeId) : slide));
     setNotice(`${themeId === 'onzetrots-tv' ? 'OnzeTrots TV' : 'Oorspronkelijke stijl'} toegepast op ${supported.length} ${supported.length === 1 ? 'item' : 'items'}. Je inhoud en duur per pagina blijven behouden.${supported.length<ids.length?' Video’s behouden hun eigen beeld.':''}`);
   }
   function refresh(slide: Slide) {
+    const latestSource=syncDesigns.find(design=>design.id===slide.designId);
+    if(slide.syncDynamic&&latestSource){patchSlide(slide.id,{syncDynamic:copy(latestSource),seconds:latestSource.configuration.secondsPerPage,kind:latestSource.kind,mediaId:latestSource.mediaAssetId,mediaChecksumSha256:latestSource.checksumSha256,image:'',orientation:latestSource.presentation.orientation});setNotice('De nieuwste volledige Source-versie staat in je concept. Sla op om deze keuze te bevestigen.');return;}
     const latestDesign = designs.find(design => design.id === slide.designId);
     const latestSlide = projects.find(project => project.id === slide.studioProjectId)?.slides.find(item => item.id === slide.studioSlideId);
     if (slide.design && latestDesign) patchSlide(slide.id, { design: { ...copy(latestDesign), seconds: slide.seconds }, image: latestDesign.background || PHOTOS.club });
@@ -269,27 +274,32 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
   }
 
   function itemSettings(slide: Slide) {
-    const canRefresh = !!(slide.design && designs.some(design => design.id === slide.designId)) || !!(slide.studioSlide && projects.some(project => project.id === slide.studioProjectId && project.slides.some(item => item.id === slide.studioSlideId)));
+    const canRefresh = !!(slide.syncDynamic&&syncDesigns.some(design=>design.id===slide.designId))||!!(slide.design && designs.some(design => design.id === slide.designId)) || !!(slide.studioSlide && projects.some(project => project.id === slide.studioProjectId && project.slides.some(item => item.id === slide.studioSlideId)));
     return <fieldset disabled={!canEdit}className={s.itemSettings}style={{border:0,margin:0,padding:0,minWidth:0}}>
       <label className={s.field}>Naam in playlist<input value={slide.name} onChange={event => patchSlide(slide.id, { name: event.target.value })} /></label>
       <div className={s.durationSettings}>
-        <label className={s.field}>{pages(slide) > 1 ? 'Seconden per pagina' : 'Seconden in beeld'}<DurationInput key={slide.id} value={slide.seconds} dynamic={!!slide.design} onCommit={value => patchSlide(slide.id, { seconds: value })} /></label>
-        <div className={s.presets} aria-label="Snelle afspeelduur">{[10, 15, 20].map(value => <button key={value} type="button" aria-pressed={slide.seconds === value} onClick={() => patchSlide(slide.id, { seconds: value })}>{value}s</button>)}</div>
+        <label className={s.field}>{pages(slide) > 1 ? 'Seconden per pagina' : 'Seconden in beeld'}<DurationInput key={slide.id} value={slide.seconds} dynamic={!!slide.design} maximum={maximumSeconds(slide)} onCommit={value => patchSlide(slide.id, { seconds: value })} /></label>
+        <div className={s.presets} aria-label="Snelle afspeelduur">{[10, 15, 20].filter(value=>value<=maximumSeconds(slide)).map(value => <button key={value} type="button" aria-pressed={slide.seconds === value} onClick={() => patchSlide(slide.id, { seconds: value })}>{value}s</button>)}</div>
       </div>
       {pages(slide) > 1 && <p className={s.hint}>{pages(slide)} pagina’s × {slide.seconds}s = {seconds(slide)} seconden in je playlist.</p>}
       <div className={s.themeSettings}>
-        {slide.kind==='video'&&!slide.studioSlide?<p className={s.hint}>Deze video speelt zijn eigen beeld af.</p>:<ScreenThemePicker value={themeOf(slide)} onChange={themeId => applyTheme([slide.id], themeId)} legacyLabel="Oorspronkelijke stijl" compact />}
+        {slide.kind==='video'&&!slide.studioSlide&&!slide.syncStudio&&!slide.syncDynamic?<p className={s.hint}>Deze video speelt zijn eigen beeld af.</p>:<ScreenThemePicker value={themeOf(slide)} onChange={themeId => applyTheme([slide.id], themeId)} legacyLabel="Oorspronkelijke stijl" compact />}
         {slide.sourceKind&&<p className={s.hint}>Het schermthema geldt voor de lokale back-upkaart.</p>}
-        {!slide.design && !slide.studioSlide && themeOf(slide) === 'onzetrots-tv' && <label className={s.field}>Schermstand<select value={slide.orientation || 'landscape'} onChange={event => patchSlide(slide.id, { orientation: event.target.value as 'landscape' | 'portrait' })}><option value="landscape">Liggend · 16:9</option><option value="portrait">Staand · 9:16</option></select></label>}
-        {(slide.design || slide.studioSlide) && <p className={s.hint}>Het thema geldt voor dit playlistitem. Je bronontwerp in Studio blijft behouden.</p>}
+        {!slide.syncDynamic&&!slide.syncStudio && !slide.design && !slide.studioSlide && themeOf(slide) === 'onzetrots-tv' && <label className={s.field}>Schermstand<select value={slide.orientation || 'landscape'} onChange={event => patchSlide(slide.id, { orientation: event.target.value as 'landscape' | 'portrait' })}><option value="landscape">Liggend · 16:9</option><option value="portrait">Staand · 9:16</option></select></label>}
+        {(slide.syncDynamic||slide.design || slide.studioSlide || slide.syncStudio) && <p className={s.hint}>Het thema geldt voor dit playlistitem. Je bronontwerp in Studio blijft behouden.</p>}
       </div>
-      {(slide.design || slide.studioSlide) && <p className={s.hint}>Dit item bevat je opgeslagen Studio-ontwerp. De naam hierboven is het label in je playlist.</p>}
+      {(slide.syncDynamic||slide.design || slide.studioSlide || slide.syncStudio) && <p className={s.hint}>Dit item bevat je opgeslagen Studio-ontwerp. De naam hierboven is het label in je playlist.</p>}
       <div className={s.itemActions}>
         <button type="button" className={s.secondary} onClick={() => duplicate(slide)}><Copy size={17} />Kopiëren</button>
         <button type="button" className={s.danger} onClick={() => remove([slide.id])}><Trash2 size={17} />Verwijderen</button>
         {canRefresh && <button type="button" className={s.refresh} onClick={() => refresh(slide)}><RotateCcw size={16} />Nieuwste Studio-versie</button>}
       </div>
     </fieldset>;
+  }
+
+  function thumbnail(slide:Slide){
+    const source=slide.syncDynamic??slide.syncStudio;
+    return source?<span aria-hidden="true"className={s.thumbnail}><SyncSlidePreview presentation={{...source.presentation,theme:themeOf(slide)??source.presentation.theme}}assetUrls={source.assetUrls}durationSeconds={source.durationSeconds}id={source.id}compact/></span>:<span className={s.thumbnail}><AssetImage src={slide.image}alt=""/></span>;
   }
 
   function preview() {
@@ -331,7 +341,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
       <button type="button" className={s.primary} disabled={!canEdit || playlist.name.trim().length < 2} onClick={() => void save(leave)}><Save size={18} />{leave === 'studio' ? 'Opslaan en naar Studio' : leave === 'advanced' ? 'Opslaan en naar uitgebreide instellingen' : 'Opslaan en sluiten'}</button>
       <button type="button" className={s.secondary} onClick={() => setLeave(null)}>Verder bewerken</button>
       {leave === 'close' && <button type="button" className={s.danger} disabled={pending} onClick={onClose}>Wijzigingen niet bewaren</button>}
-    </div> : mode === 'picker' ? <PlaylistMediaPicker media={media} onMediaChange={onMediaChange} projects={projects} designs={designs} onAdd={addItems}videoUploadConfig={videoUploadConfig} onBack={() => showMode('editor')} onGoStudio={() => requestLeave('studio')} /> : mode === 'publish' ? <>
+    </div> : mode === 'picker' ? <PlaylistMediaPicker media={media} onMediaChange={onMediaChange} projects={projects} designs={designs}syncDesigns={syncDesigns} onAdd={addItems}videoUploadConfig={videoUploadConfig} onBack={() => showMode('editor')} onGoStudio={() => requestLeave('studio')} /> : mode === 'publish' ? <>
       <div className={s.body} ref={scrollBody}>
         <div className={s.publishSummary}><span className={s.summaryIcon}><ListChecks size={25} /></span><div><strong>{playlist.name}</strong><p>{playlist.slides.length} items · {clock(total)} afspeeltijd</p></div><button type="button" className={s.textButton} onClick={() => showMode('editor')}>Bewerken</button></div>
         <div className={s.sectionHeading}><div><h3>Waar mag deze playlist spelen?</h3><p>Kies een groep of selecteer losse schermen.</p></div></div>
@@ -376,7 +386,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
               <div className={s.row}>
                 {listMode === 'select' && <label className={s.selectTouch}><input type="checkbox" aria-label={`${slide.name} selecteren`} checked={validSelection.includes(slide.id)} onChange={() => setSelectedIds(previous => previous.includes(slide.id) ? previous.filter(id => id !== slide.id) : [...previous, slide.id])} /></label>}
                 <button type="button" className={s.rowMain} aria-expanded={listMode === 'normal' ? editingId === slide.id : undefined} onClick={() => { setActiveId(slide.id); setPlaying(false); if (listMode === 'select') setSelectedIds(previous => previous.includes(slide.id) ? previous.filter(id => id !== slide.id) : [...previous, slide.id]); else if (listMode === 'normal') setEditingId(editingId === slide.id ? null : slide.id); }}>
-                  <span className={s.rowNumber}>{index + 1}</span><span className={s.thumbnail}><AssetImage src={slide.image} alt="" /></span><span className={s.rowCopy}><strong>{slide.name || 'Naamloos item'}</strong><small>{kind(slide)}{pages(slide) > 1 ? ` · ${pages(slide)} pagina’s` : ''}</small></span>
+                  <span className={s.rowNumber}>{index + 1}</span>{thumbnail(slide)}<span className={s.rowCopy}><strong>{slide.name || 'Naamloos item'}</strong><small>{kind(slide)}{pages(slide) > 1 ? ` · ${pages(slide)} pagina’s` : ''}</small></span>
                 </button>
                 {listMode === 'reorder' ? <div className={s.moveButtons}><button type="button" aria-label={`${slide.name} omhoog`} disabled={!canEdit || index === 0} onClick={() => move(slide.id, -1)}><ArrowUp size={19} /></button><button type="button" aria-label={`${slide.name} omlaag`} disabled={!canEdit || index === playlist.slides.length - 1} onClick={() => move(slide.id, 1)}><ArrowDown size={19} /></button></div> : <button type="button" className={s.durationButton} aria-label={`${slide.name}, ${seconds(slide)} seconden, instellingen openen`} onClick={() => { setActiveId(slide.id); setPlaying(false); if (listMode === 'select') { setView('Voorbeeld'); } else setEditingId(editingId === slide.id ? null : slide.id); }}><span>{seconds(slide)}s</span>{listMode === 'normal' && <ChevronDown size={14} />}</button>}
               </div>

@@ -43,7 +43,7 @@ export function ControlNotificationsDialog({ canRead, tenantId, tenantName, time
   }, [open, canRead, tenantId, attempt]);
   const time = (value: string) => new Intl.DateTimeFormat("nl-NL", { timeZone: timezoneName, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
   return <Dialog open={open} onOpenChange={setOpen}>
-    <DialogTrigger asChild><button aria-label="Meldingen openen" aria-keyshortcuts="Control+Shift+N Meta+Shift+N" className="demo-icon" type="button" onClick={() => { returnFocus.current = null; }}><Bell size={22} aria-hidden="true" /></button></DialogTrigger>
+    <DialogTrigger asChild><button aria-label="Meldingen openen" aria-keyshortcuts="Control+Shift+N Meta+Shift+N" className="demo-icon icon-button sync-topbar-icon" type="button" onClick={() => { returnFocus.current = null; }}><Bell size={18} strokeWidth={1.7} aria-hidden="true" /></button></DialogTrigger>
     <DialogContent className="sites-control demo-modal control-notifications-dialog" showClose={false} onCloseAutoFocus={event => { if (returnFocus.current?.isConnected) { event.preventDefault(); returnFocus.current.focus(); returnFocus.current = null; } }}>
       <div className="demo-modal-heading"><DialogTitle>Meldingen</DialogTitle><DialogClose asChild><button className="demo-icon" aria-label="Meldingen sluiten" type="button"><X size={20} aria-hidden="true" /></button></DialogClose></div>
       <DialogDescription className="vc-visually-hidden">Recente activiteit van {tenantName}. Alleen geregistreerde acties worden getoond.</DialogDescription>

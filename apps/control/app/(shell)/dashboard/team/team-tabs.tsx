@@ -6,9 +6,9 @@ import { Search } from "lucide-react";
 import s from "../settings/sites-settings.module.css";
 
 const tabs = [
-  { id: "members", label: "Teamleden" },
-  { id: "invitations", label: "Uitnodigingen" },
-  { id: "roles", label: "Rollen en rechten" }
+  { id: "members", label: "Leden" },
+  { id: "roles", label: "Rollen & rechten" },
+  { id: "activity", label: "Activiteit" }
 ] as const;
 
 type TeamTab = (typeof tabs)[number]["id"];
@@ -37,7 +37,7 @@ export function TeamSearch({ panel }: { panel: "members" | "invitations" }) {
   );
 }
 
-export function TeamTabs({ children, memberCount }: { children: ReactNode; memberCount: number }) {
+export function TeamTabs({ children, canReadActivity = false }: { children: ReactNode; canReadActivity?: boolean }) {
   const [activeTab, setActiveTab] = useState<TeamTab>("members");
   const [query,setQuery]=useState("");
   const panels=useRef<HTMLDivElement>(null);
@@ -45,18 +45,16 @@ export function TeamTabs({ children, memberCount }: { children: ReactNode; membe
   return (
     <TeamSearchContext.Provider value={{ query, setQuery }}>
     <div className="team-tabs">
-      <div aria-label="Teamonderdelen" className={s.tabs} role="tablist">
+      <div aria-label="Teamonderdelen" className="ad-tabs" role="group">
         {tabs.map((tab) => (
           <button
-            aria-selected={activeTab === tab.id}
-            className={activeTab===tab.id?s.selected:undefined}
+            aria-pressed={activeTab === tab.id}
+            disabled={tab.id === "activity" && !canReadActivity}
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            role="tab"
             type="button"
           >
             {tab.label}
-            {tab.id==="members"?<span>{memberCount}</span>:null}
           </button>
         ))}
       </div>

@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T10:12:27.647Z",
+  "controlBuildId": "J2Lbz5-N-MXQGRhRsWoyF",
+  "scope": "actual AAL2 Engage campaign, real Source Studio selection and explicit save/render, public privacy authority, secure QR and complete verified private output; local QA, no hosted or hardware claim",
+  "campaignId": "894c0aba-532f-4b81-a86e-abe3e0c1d960",
+  "publicId": "1b0e5085-6725-45c8-9980-59dd02c1d85d",
+  "projectId": "418e83dd-319d-4313-82f0-b581ddbdba8e",
+  "jobId": "420b971b-6112-44f5-be1c-74d25d5374de",
+  "artifact": {
+    "bytes": 809923,
+    "sha256": "c90cc28f31dd9630e1a820865d24340ac757708362c452c0448b8acb0b71b44b",
+    "status": "completed",
+    "assetId": "2d88ed0d-17ec-4cd8-a2ac-df2b9516be8f",
+    "mimeType": "video/mp4",
+    "privateDownloadVerified": true
+  },
+  "noReleaseMutation": true,
+  "browserErrors": [],
+  "finishedAt": "2026-10-18T10:12:47.608Z"
+}

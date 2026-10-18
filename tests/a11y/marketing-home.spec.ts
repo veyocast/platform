@@ -10,21 +10,18 @@ test("marketing homepage exposes navigation, sections and CTA landmarks", async 
 
   await expect(page.getByRole("banner")).toBeVisible();
   await expect(
-    page.getByRole("navigation", { exact: true, name: "Hoofdnavigatie" })
+    page.getByRole("navigation", { exact: true, name: "Publieke hoofdnavigatie" })
   ).toBeVisible();
   await expect(page.getByRole("main")).toBeVisible();
   await expect(
     page.getByRole("heading", {
       exact: true,
       level: 1,
-      name: "Van clubverhaal naar ieder scherm."
+      name: "Maak van ieder scherm een verhaal."
     })
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Je boodschap vindt vanzelf de juiste weg." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Direct zien wat er speelt." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Ieder moment voelt als maatwerk." })).toBeVisible();
   await expect(page.getByRole("contentinfo")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Naar de inhoud" })).toBeAttached();
+  await expect(page.getByRole("link", { name: "Direct naar inhoud" })).toBeAttached();
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);

@@ -1,0 +1,46 @@
+{
+  "status": "FAIL",
+  "scope": "read-only actual Next template picker, groups, accessibility, overflow and keyboard focus",
+  "axe": [
+    {
+      "id": "landmark-no-duplicate-banner",
+      "nodes": [
+        {
+          "target": [
+            "div[aria-label=\"Voorbeeld: Programma\"] > .vc-slide-safe > .vc-slide-top"
+          ],
+          "summary": "Fix any of the following:\n  Document has more than one banner landmark"
+        }
+      ]
+    },
+    {
+      "id": "landmark-no-duplicate-contentinfo",
+      "nodes": [
+        {
+          "target": [
+            "div[aria-label=\"Voorbeeld: Programma\"] > .vc-slide-safe > footer"
+          ],
+          "summary": "Fix any of the following:\n  Document has more than one contentinfo landmark"
+        }
+      ]
+    },
+    {
+      "id": "landmark-unique",
+      "nodes": [
+        {
+          "target": [
+            "div[aria-label=\"Voorbeeld: Programma\"] > .vc-slide-safe > .vc-slide-top"
+          ],
+          "summary": "Fix any of the following:\n  The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable"
+        },
+        {
+          "target": [
+            "div[aria-label=\"Voorbeeld: Programma\"] > .vc-slide-safe > footer"
+          ],
+          "summary": "Fix any of the following:\n  The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable"
+        }
+      ]
+    }
+  ],
+  "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   {\n+     id: 'landmark-no-duplicate-banner',\n+     nodes: [\n+       {\n+         summary: 'Fix any of the following:\\n' +\n+           '  Document has more than one banner landmark',\n+         target: [\n+           'div[aria-label=\"Voorbeeld: Programma\"] > .vc-slide-safe > .vc-slide-top'\n+         ]\n+       }\n+     ]\n+   },\n+   {\n+     id: 'landmark-no-duplicate-contentinfo',\n+     nodes: [\n+       {\n+         summary: 'Fix any of the following:\\n' +\n+           '  Document has more than one contentinfo landmark',\n+         target: [\n+           'div[aria-label=\"Voorbeeld: Programma\"] > .vc-slide-safe > footer'\n+         ]\n+       }\n+     ]\n+   },\n+   {\n+     id: 'landmark-unique',\n+     nodes: [\n+       {\n+         summary: 'Fix any of the following:\\n' +\n+           '  The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable',\n+         target: [\n+           'div[aria-label=\"Voorbeeld: Programma\"] > .vc-slide-safe > .vc-slide-top'\n+         ]\n+       },\n+       {\n+         summary: 'Fix any of the following:\\n' +\n+           '  The landmark must have a unique aria-l"
+}

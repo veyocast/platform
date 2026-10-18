@@ -1,0 +1,78 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T06:41:39.756Z",
+  "playerBuildId": "DAmn0pWYVaAEunTbxoMX1",
+  "scope": "actual AAL2 catalog mutation and existing published-data refresh runner; same publication and complete verified DOM staged at natural boundary, grown page count and offline reload; explicit binary remains complete frozen publication fallback; no Source binding editor, external provider, hardware or hosted deployment claim",
+  "sourceId": "d98978b2-786d-4fdf-9de8-c304ae380227",
+  "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+  "releaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a",
+  "productReceiptReplayed": true,
+  "refreshResults": [],
+  "recoveredCompletedRefresh": [
+    {
+      "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+      "status": "completed",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    }
+  ],
+  "binaryStillFullFrozenFallback": true,
+  "observedEvents": [
+    {
+      "at": 946,
+      "page": "0",
+      "productOnePrice": "€ 4,25"
+    },
+    {
+      "at": 3365.4000000059605,
+      "page": "1",
+      "productOnePrice": null
+    },
+    {
+      "at": 6365.4000000059605,
+      "page": "2",
+      "productOnePrice": null
+    },
+    {
+      "at": 9480.40000000596,
+      "page": "0",
+      "productOnePrice": "€ 4,25"
+    },
+    {
+      "at": 12512.90000000596,
+      "page": "1",
+      "productOnePrice": null
+    },
+    {
+      "at": 15512.800000011921,
+      "page": "2",
+      "productOnePrice": null
+    },
+    {
+      "at": 18633.80000001192,
+      "page": "0",
+      "productOnePrice": "€ 4,75"
+    }
+  ],
+  "boundary": {
+    "oldPageZeroAt": 9480.40000000596,
+    "oldPageOneAt": 12512.90000000596,
+    "oldPageTwoAt": 15512.800000011921,
+    "newPageZeroAt": 18633.80000001192,
+    "lastOldPageMs": 3121
+  },
+  "data": {
+    "fromRevision": 2,
+    "toRevision": 3,
+    "fromRows": 9,
+    "toRows": 9,
+    "fromDurationMs": 9000,
+    "toDurationMs": 9000,
+    "originalPublicationRows": 5,
+    "originalPublicationDurationMs": 6000,
+    "configurationHash": "1104d2345896acb4e9458f8247ce02cc8f3a07bb0c4c8cac815f066100cefe95",
+    "contentHash": "4eaccd1e4a3ac35a60c18e834762b046bc4d76219e42ed97567198eb45e666f1"
+  },
+  "offlineReloadLatestData": true,
+  "pairingPreserved": true,
+  "noReleaseVersionSnapshotOrRenderJobCreated": true
+}

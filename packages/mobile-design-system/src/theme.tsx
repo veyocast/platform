@@ -2,13 +2,10 @@ import {
   createContext,
   useContext,
   useMemo,
-  type PropsWithChildren
+  type PropsWithChildren,
 } from "react";
 import { useColorScheme } from "react-native";
-import {
-  mobilePalette,
-  type MobileThemeMode
-} from "./tokens";
+import { mobilePalette, type MobileThemeMode } from "./tokens";
 
 export type MobileTheme = Readonly<{
   mode: MobileThemeMode;
@@ -23,6 +20,7 @@ export type MobileTheme = Readonly<{
     ink: string;
     line: string;
     mutedInk: string;
+    onAction: string;
     raised: string;
     secondaryInk: string;
     strongLine: string;
@@ -42,19 +40,29 @@ function createTheme(mode: MobileThemeMode): MobileTheme {
           critical: mobilePalette.darkStatus.criticalSurface,
           info: mobilePalette.darkStatus.infoSurface,
           success: mobilePalette.darkStatus.successSurface,
-          warning: mobilePalette.darkStatus.warningSurface
+          warning: mobilePalette.darkStatus.warningSurface,
         }
       : {
           critical: mobilePalette.status.criticalSurface,
           info: mobilePalette.status.infoSurface,
           success: mobilePalette.status.successSurface,
-          warning: mobilePalette.status.warningSurface
+          warning: mobilePalette.status.warningSurface,
         };
   return {
     mode,
     colors: {
-      action: mobilePalette.brand.action,
-      actionPressed: mobilePalette.brand.actionPressed,
+      action:
+        mode === "dark"
+          ? mobilePalette.brand.darkAction
+          : mobilePalette.brand.action,
+      actionPressed:
+        mode === "dark"
+          ? mobilePalette.brand.darkActionPressed
+          : mobilePalette.brand.actionPressed,
+      onAction:
+        mode === "dark"
+          ? mobilePalette.brand.darkOnAction
+          : mobilePalette.brand.onAction,
       canvas: base.canvas,
       critical: mobilePalette.status.critical,
       criticalSurface: statusSurfaces.critical,
@@ -70,8 +78,8 @@ function createTheme(mode: MobileThemeMode): MobileTheme {
       success: mobilePalette.status.success,
       successSurface: statusSurfaces.success,
       warning: mobilePalette.status.warning,
-      warningSurface: statusSurfaces.warning
-    }
+      warningSurface: statusSurfaces.warning,
+    },
   };
 }
 
@@ -85,12 +93,19 @@ export type MobileThemeProviderProps = PropsWithChildren<{
 
 export function MobileThemeProvider({
   children,
-  preference = "system"
+  preference = "system",
 }: MobileThemeProviderProps) {
   const systemMode = useColorScheme();
   const mode: MobileThemeMode =
-    preference === "system" ? (systemMode === "dark" ? "dark" : "light") : preference;
-  const theme = useMemo(() => (mode === "dark" ? darkTheme : lightTheme), [mode]);
+    preference === "system"
+      ? systemMode === "dark"
+        ? "dark"
+        : "light"
+      : preference;
+  const theme = useMemo(
+    () => (mode === "dark" ? darkTheme : lightTheme),
+    [mode],
+  );
   return (
     <MobileThemeContext.Provider value={theme}>
       {children}

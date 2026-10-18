@@ -1,0 +1,69 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T09:27:23.256Z",
+  "playerBuildId": "jUalEOouauCaLHk87iwiL",
+  "scope": "real AAL2 Source LED placement/preflight/immutable publication and new screen pairing; existing device-authorized global SSE, leased normalized fixture updates, stale/offline latest state and complete frozen binary; no external provider websocket, hardware or hosted deployment claim",
+  "slideId": "23ea0738-ed15-4fd2-8c22-c684269fadb2",
+  "snapshotId": "dcae3a55-edd5-48f5-ab96-ba6102f237b3",
+  "assetId": "716a5305-d79f-53e5-866d-ffc655bba96e",
+  "screenId": "5e5bebc6-b81c-4fb5-ae12-c43e6e3e3173",
+  "sha256": "e9b0847b3ce1ff6fb24f9c9b4e5e0b10d7810bd29f6696a43a992dc8b666b682",
+  "playlistId": "4034bd77-f246-4e2c-92f2-2f33e139fda8",
+  "placementReceipt": {
+    "itemId": "93e116de-127e-42e6-bd71-a804c09ad0ec",
+    "outcome": "applied",
+    "renderMode": "html_css",
+    "actualRevision": 1,
+    "dynamicSlideId": "23ea0738-ed15-4fd2-8c22-c684269fadb2",
+    "durationSeconds": 5,
+    "dynamicSnapshotId": "dcae3a55-edd5-48f5-ab96-ba6102f237b3"
+  },
+  "release": {
+    "kind": "video",
+    "bytes": 773192,
+    "sha256": "e9b0847b3ce1ff6fb24f9c9b4e5e0b10d7810bd29f6696a43a992dc8b666b682",
+    "assetId": "716a5305-d79f-53e5-866d-ffc655bba96e",
+    "version": 1,
+    "mimeType": "video/mp4",
+    "releaseId": "29e385f2-9e73-473c-8387-e85da60b01e6",
+    "snapshotId": "dcae3a55-edd5-48f5-ab96-ba6102f237b3",
+    "durationSeconds": 5,
+    "liveDataEnabled": true
+  },
+  "firstFrame": {
+    "releaseId": "29e385f2-9e73-473c-8387-e85da60b01e6",
+    "trace": {
+      "revision": "2",
+      "publicationId": "4034bd77-f246-4e2c-92f2-2f33e139fda8",
+      "configRevision": "1",
+      "assignmentSource": "default",
+      "committedAt": null,
+      "correlationId": "b1a66b3a-c107-4481-a545-7af5b4b97739",
+      "generation": 1,
+      "releaseId": "29e385f2-9e73-473c-8387-e85da60b01e6",
+      "signalReceivedAt": null,
+      "resolvedAt": "2026-10-18T09:27:29.457Z",
+      "targetWrittenAt": "2026-10-18T09:27:26.689874+00:00",
+      "targetRevision": "2",
+      "assetsReadyAt": "2026-10-18T09:27:29.609Z",
+      "firstFrameAt": "2026-10-18T09:27:29.776Z"
+    },
+    "serverStatus": 200
+  },
+  "profiles": {
+    "domAssets": 11,
+    "binaryAssets": 0,
+    "oldAssets": 0,
+    "distinctEtags": 3,
+    "sourceDurationMs": 5000
+  },
+  "onlinePages": [
+    0
+  ],
+  "domCache": {
+    "assets": 12,
+    "shellControlled": true
+  },
+  "authorizedSourceBinding": true,
+  "error": "expect(locator).toHaveText(expected) failed\n\nLocator:  locator('.playback-sync[data-sync-ready=\"true\"]').last().locator('.vc-match-middle > strong')\nExpected: \"3 – 1\"\nReceived: \"2 – 1\"\nTimeout:  30000ms\n\nCall log:\n  - Expect \"to.have.text\" with timeout 30000ms\n  - waiting for locator('.playback-sync[data-sync-ready=\"true\"]').last().locator('.vc-match-middle > strong')\n    64 × locator resolved to <strong>2 – 1</strong>\n       - unexpected value \"2 – 1\"\n"
+}

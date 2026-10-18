@@ -2,13 +2,15 @@
 
 import {useEffect, useRef, useState, type SetStateAction} from 'react';
 import {Check, ChevronDown, ChevronUp, CloudUpload, ImagePlus, Layers, LoaderCircle, Plus, Search, Sparkles, Star, X} from 'lucide-react';
-import type {Media, Slide} from './model';
+import type {Media, Slide,SyncStudioLibraryProject,SyncDynamicLibraryDesign} from './model';
+import {syncSlidePageCount} from '@veyocast/contracts';
 import {AssetImage, ExperiencePreview, uploadBackground, type DynamicDesign} from './presentation-adapter';
 import {SlideCanvas, type StudioProject} from './presentation-adapter';
 import {PHOTOS, mediaPlacementDuration} from './model';
 import {VideoUploadForm}from'../../../media/video-upload-form';
 import type{PublisherLibraryPage}from'../../library';
-import {preparePublisherStudioSeries} from '../../prepare-studio-library';
+import {preparePublisherStudioSeries,preparePublisherSyncProject} from '../../prepare-studio-library';
+import {SyncStudioLibraryPreview,SyncSlidePreview} from './sync-studio-preview';
 import {readStudioPlacementThemeRenderAction} from '../../../studio/sites-placement-theme-actions';
 import styles from './playlist-media-picker.module.css';
 
@@ -17,6 +19,7 @@ export interface PlaylistMediaPickerProps {
   onMediaChange: (action: SetStateAction<Media[]>) => void;
   projects: StudioProject[];
   designs: DynamicDesign[];
+  syncDesigns?:SyncDynamicLibraryDesign[];
   onAdd: (slides: Slide[]) => void;
   onBack: () => void;
   onGoStudio: () => void;
@@ -27,17 +30,24 @@ type Tab = 'media' | 'slides';
 type Choice =
   | {key: string; source: 'media'; item: Media}
   | {key: string; source: 'studio'; item: StudioProject}
-  | {key: string; source: 'dynamic'; item: DynamicDesign};
+  | {key:string;source:'sync';item:SyncStudioLibraryProject}
+  | {key: string; source: 'dynamic'; item: DynamicDesign}
+  | {key:string;source:'sync-dynamic';item:SyncDynamicLibraryDesign};
 type UploadProgress = {done: number; total: number; name: string; added: number};
 const tabs: {id: Tab; label: string}[] = [
   {id: 'media', label: 'Media'},
   {id: 'slides', label: 'Slides'},
 ];
 const createId = () => crypto.randomUUID();
-const itemCount = (choice: Choice) => choice.source === 'studio' ? choice.item.slides.length : 1;
-const providerLabel = (design: DynamicDesign) => design.provider === 'led-scores' ? 'LED Scores' : design.provider === 'sportlink' ? 'Sportlink' : 'Kantine';
+const itemCount = (choice: Choice) => choice.source==='sync'?choice.item.members.length:choice.source === 'studio' ? choice.item.slides.length : 1;
+const providerLabel = (design: DynamicDesign|SyncDynamicLibraryDesign) => design.provider === 'led-scores' ? 'LED Scores' : design.provider === 'sportlink' ? 'Sportlink' : design.provider==='news'?'Nieuws & RSS':'Kantine';
 
 function toSlides(choice: Choice): Slide[] {
+  if(choice.source==='sync-dynamic'){const design=choice.item;return[{id:createId(),name:design.name,image:'',seconds:design.configuration.secondsPerPage,designId:design.id,syncDynamic:JSON.parse(JSON.stringify(design)),mediaId:design.mediaAssetId,mediaChecksumSha256:design.checksumSha256,kind:design.kind,orientation:design.configuration.seed.orientation}];}
+  if(choice.source==='sync')return choice.item.members.map(member=>{
+    if(!member.exportId||!member.exportAssetId||!member.checksumSha256)throw new Error('Het ontwerp heeft nog geen volledig gecontroleerde afspeelfallback. Bevestig je selectie opnieuw.');
+    return {id:createId(),name:member.name,image:'',seconds:member.durationSeconds/syncSlidePageCount(member.presentation),mediaId:member.exportAssetId,mediaChecksumSha256:member.checksumSha256,kind:member.exportKind,orientation:member.presentation.orientation,syncStudio:JSON.parse(JSON.stringify(member)),...(member.onlineSource?{sourceKind:member.onlineSource.kind,sourceId:member.onlineSource.id,fallbackAssetId:member.exportAssetId}:{})};
+  });
   if (choice.source === 'media') {
     const media = choice.item;
     return [{id: createId(), mediaId:media.sourceKind?media.fallbackAssetId:media.id,mediaChecksumSha256:media.checksumSha256, name: media.name, image: media.image, seconds: mediaPlacementDuration(media), kind:media.kind, sourceKind:media.sourceKind,sourceId:media.sourceId,fallbackAssetId:media.fallbackAssetId}];
@@ -58,8 +68,8 @@ function toSlides(choice: Choice): Slide[] {
   }];
 }
 
-export function PlaylistMediaPicker({media, onMediaChange, projects, designs, onAdd, onGoStudio,videoUploadConfig}: PlaylistMediaPickerProps) {
-  const [tab, setTab] = useState<Tab>(media.length||(!projects.length&&!designs.length)?'media':'slides');
+export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syncDesigns=[], onAdd, onGoStudio,videoUploadConfig}: PlaylistMediaPickerProps) {
+  const [tab, setTab] = useState<Tab>(media.length||(!projects.length&&!designs.length&&!syncDesigns.length)?'media':'slides');
   const [query, setQuery] = useState('');
   const [folder, setFolder] = useState('all');
   const [favorites, setFavorites] = useState(false);
@@ -111,6 +121,8 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
   const choices: Choice[] = tab === 'media'
     ? activeMedia.filter(item => (folder === 'all' || item.folder === folder) && (!favorites || item.favorite) && matches(`${item.name} ${(item.tags || []).join(' ')} ${(item.collections || []).join(' ')}`)).map(item => ({key: `media:${item.id}`, source: 'media' as const, item}))
     : [
+      ...(library?.syncDesigns??syncDesigns).filter(item=>(provider==='all'||item.provider===provider)&&matches(`${item.name} ${item.configuration.seed.title} ${providerLabel(item)}`)).map(item=>({key:`sync-dynamic:${item.id}`,source:'sync-dynamic' as const,item})),
+      ...(library?.syncProjects??[]).filter(()=>provider==='all'||provider==='studio').filter(item=>matches(`${item.name} ${item.members.map(member=>member.name).join(' ')}`)).map(item=>({key:`sync:${item.id}`,source:'sync' as const,item})),
       ...(library?.projects??projects).filter(() => provider==='all'||provider==='studio').filter(item => matches(`${item.name} ${item.slides.map(slide => `${slide.name} ${slide.title}`).join(' ')}`)).map(item => ({key: `studio:${item.id}`, source: 'studio' as const, item})),
       ...(library?.designs??designs).filter(item => (provider === 'all' || item.provider === provider) && matches(`${item.name} ${item.title} ${item.subtitle} ${providerLabel(item)}`)).map(item => ({key: `dynamic:${item.id}`, source: 'dynamic' as const, item}))
     ];
@@ -174,6 +186,24 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
     try{
       const prepared:Choice[]=[];
       for(const choice of selection){
+        if(choice.source==='sync'){
+          if(choice.item.members.every(member=>member.exportId&&member.exportAssetId&&member.checksumSha256)){prepared.push(choice);continue;}
+          const fingerprint=JSON.stringify(['sync',choice.item.kind,choice.item.id,choice.item.revision,choice.item.members.map(member=>[member.id,member.draftRevision])]);
+          let key=prepareKeys.current.get(fingerprint);if(!key){key=crypto.randomUUID();prepareKeys.current.set(fingerprint,key);}
+          const result=choice.item.kind==='series'?await preparePublisherStudioSeries({seriesId:choice.item.id,revision:choice.item.revision,key,members:choice.item.members.map(member=>({id:member.id,draftRevision:member.draftRevision,motion:member.exportKind==='video'}))}):await preparePublisherSyncProject({projectId:choice.item.members[0]!.id,draftRevision:choice.item.members[0]!.draftRevision,key});
+          if(!result.ok)throw new Error(result.error);
+          const members=[...choice.item.members];
+          for(const job of result.jobs){
+            let rendered=await readStudioPlacementThemeRenderAction({jobId:job.jobId});
+            for(let poll=0;mounted.current&&rendered.ok&&rendered.status==='pending'&&poll<90;poll++){await new Promise(resolve=>setTimeout(resolve,1000));rendered=await readStudioPlacementThemeRenderAction({jobId:job.jobId});}
+            if(!mounted.current)return;
+            if(rendered.status==='failed')prepareKeys.current.delete(fingerprint);
+            if(!rendered.ok||rendered.status!=='ready'||!rendered.exportId||!rendered.mediaAssetId||!rendered.checksumSha256||!rendered.document?.syncPresentation)throw new Error(rendered.error??'Het ontwerp wordt nog voorbereid. Je selectie blijft bewaard; bevestig dezelfde keuze opnieuw.');
+            const index=members.findIndex(member=>member.id===job.projectId);if(index<0||rendered.projectId!==job.projectId||rendered.document.motion.durationMs!==members[index]!.durationSeconds*1000||rendered.document.motion.enabled!==(members[index]!.exportKind==='video')||JSON.stringify(members[index]!.presentation)!==JSON.stringify(rendered.document.syncPresentation))throw new Error('De uitvoer hoort niet bij de gekozen ontwerpversie. Vernieuw de bibliotheek om de actuele versie te kiezen.');
+            members[index]={...members[index]!,exportId:rendered.exportId,exportAssetId:rendered.mediaAssetId,checksumSha256:rendered.checksumSha256};
+          }
+          prepared.push({...choice,item:{...choice.item,members}});continue;
+        }
         if(choice.source!=='studio'||choice.item.slides.every(slide=>slide.exportId&&slide.exportAssetId)){prepared.push(choice);continue;}
         const fingerprint=JSON.stringify([choice.item.id,choice.item.revision,choice.item.slides.map(slide=>[slide.id,slide.draftRevision])]);
         let key=prepareKeys.current.get(fingerprint);if(!key){key=crypto.randomUUID();prepareKeys.current.set(fingerprint,key);}
@@ -240,16 +270,16 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs, on
         {choices.map(choice => {
           const order = selection.findIndex(item => item.key === choice.key);
           const disabled = itemCount(choice) === 0;
-          return <button type="button" key={choice.key} className={styles.card} aria-pressed={order >= 0} disabled={disabled} onClick={() => toggle(choice)} aria-label={`${choice.item.name}${choice.source === 'studio' ? `, ${itemCount(choice)} items` : ''}${disabled ? ', niet beschikbaar' : order >= 0 ? `, selectie ${order + 1}, deselecteren` : ', selecteren'}`}>
-            <div className={styles.thumbnail} aria-hidden="true" data-orientation={choice.source === 'studio' ? choice.item.slides[0]?.orientation : choice.source === 'dynamic' ? choice.item.orientation : 'landscape'}>
+          return <button type="button" key={choice.key} className={styles.card} aria-pressed={order >= 0} disabled={disabled} onClick={() => toggle(choice)} aria-label={`${choice.item.name}${choice.source === 'studio'||choice.source==='sync' ? `, ${itemCount(choice)} items` : ''}${disabled ? ', niet beschikbaar' : order >= 0 ? `, selectie ${order + 1}, deselecteren` : ', selecteren'}`}>
+            <div className={styles.thumbnail} aria-hidden="true" data-orientation={choice.source==='sync'?choice.item.members[0]?.presentation.orientation:choice.source === 'studio' ? choice.item.slides[0]?.orientation : choice.source==='sync-dynamic'?choice.item.configuration.seed.orientation:choice.source === 'dynamic' ? choice.item.orientation : 'landscape'}>
               {choice.source === 'media' ? choice.item.kind==='video'?<video src={choice.item.image} muted playsInline preload="metadata"><track kind="captions"/></video>:<AssetImage src={choice.item.image} alt="" loading="lazy"/>
-                : choice.source === 'studio' ? choice.item.slides[0] ? <SlideCanvas slide={choice.item.slides[0]}/> : <Sparkles size={30}/>
+                : choice.source==='sync-dynamic'?<SyncSlidePreview presentation={choice.item.presentation}assetUrls={choice.item.assetUrls}durationSeconds={choice.item.durationSeconds}id={choice.item.snapshotId}compact/>: choice.source==='sync'?<SyncStudioLibraryPreview member={choice.item.members[0]!} compact/>: choice.source === 'studio' ? choice.item.slides[0] ? <SlideCanvas slide={choice.item.slides[0]}/> : <Sparkles size={30}/>
                 : <ExperiencePreview design={choice.item} compact/>}
               {!disabled && <span className={styles.check}>{order >= 0 ? order + 1 : <Plus size={17}/>}</span>}
               {choice.source === 'media' && choice.item.favorite && <span className={styles.favoriteMark}><Star size={13} fill="currentColor"/></span>}
-              {choice.source === 'studio' && itemCount(choice) > 0 && <span className={styles.bundle}><Layers size={12}/>{itemCount(choice)} items</span>}
+              {(choice.source === 'studio'||choice.source==='sync') && itemCount(choice) > 0 && <span className={styles.bundle}><Layers size={12}/>{itemCount(choice)} items</span>}
             </div>
-            <span className={styles.cardCopy}><strong>{choice.item.name}</strong><small>{choice.source === 'media' ? choice.item.kind === 'video' ? 'Geverifieerde video' : `${choice.item.folder || 'Media'} · 12 sec.` : choice.source === 'studio' ? itemCount(choice) ? 'Hele Studio-reeks' : 'Nog geen slides' : `${providerLabel(choice.item)} · ${choice.item.seconds} sec.`}</small></span>
+            <span className={styles.cardCopy}><strong>{choice.item.name}</strong><small>{choice.source === 'media' ? choice.item.kind === 'video' ? 'Geverifieerde video' : `${choice.item.folder || 'Media'} · 12 sec.` : choice.source==='sync'?choice.item.kind==='series'?'Hele Studio-reeks':'Studio-ontwerp':choice.source === 'studio' ? itemCount(choice) ? 'Hele Studio-reeks' : 'Nog geen slides' : `${providerLabel(choice.item)} · ${choice.source==='sync-dynamic'?choice.item.durationSeconds:choice.item.seconds} sec.`}</small></span>
           </button>;
         })}
       </div> : (tab==='media'?library?.unavailableMedia?.length:library?.unavailableDesigns?.length)?<p role="status">Je opgeslagen inhoud staat hierboven met de verwerkingsstatus. Gereedstaande inhoud kun je hier selecteren.</p> : <div className={styles.empty}>

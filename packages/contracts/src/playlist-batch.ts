@@ -23,6 +23,7 @@ export const playlistItemPatchSchema = z.object({
 export const playlistBatchOperationSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("add_media"), clientId: id, mediaAssetId: id, durationSeconds: duration }).strict(),
   z.object({ operation: z.literal("add_dynamic"), clientId: id, dynamicSlideId: id, expectedSnapshotId: id, durationSeconds: duration.min(5) }).strict(),
+  z.object({ operation: z.literal("add_sync_dynamic"), clientId: id, dynamicSlideId: id, expectedSnapshotId: id, snapshotId: id, durationSeconds: duration.max(120) }).strict(),
   z.object({ operation: z.literal("add_youtube"), clientId: id, sourceId: id, durationSeconds: duration.min(5) }).strict(),
   z.object({ operation: z.literal("add_engage"), clientId: id, campaignId: id, fallbackAssetId: id, durationSeconds: duration.min(5) }).strict(),
   z.object({ operation: z.literal("add_studio_series"), clientId: id, clientItemIds: z.array(id).min(1).max(20), seriesId: id, expectedSeriesRevision: z.number().int().positive() }).strict(),
@@ -30,6 +31,7 @@ export const playlistBatchOperationSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("replace_media"), itemId: id, mediaAssetId: id }).strict(),
   z.object({ operation: z.literal("replace_fallback"), itemId: id, mediaAssetId: id, sourceKind: z.enum(["youtube", "engage"]), sourceId: id }).strict(),
   z.object({ operation: z.literal("refresh_dynamic"), itemId: id, expectedSnapshotId: id }).strict(),
+  z.object({ operation: z.literal("use_sync_dynamic_variant"), itemId: id, expectedSnapshotId: id, snapshotId: id, durationSeconds: duration.max(120) }).strict(),
   z.object({ operation: z.literal("remove"), itemId: id }).strict(),
   z.object({ operation: z.literal("patch"), itemId: id, patch: playlistItemPatchSchema }).strict(),
   z.object({ operation: z.literal("reorder"), itemIds: z.array(id).max(1000).refine((ids) => new Set(ids).size === ids.length, "An item occurs more than once.") }).strict(),

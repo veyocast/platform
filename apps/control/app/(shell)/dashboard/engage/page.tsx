@@ -31,7 +31,7 @@ export default async function EngagePage({ searchParams }: { searchParams: Promi
 
   const publicResults=data.enabled?await loadVisibleEngageResults(data.campaigns):{};
   const primaryPolls=data.campaigns.map(campaign=>{const publicResult=publicResults[campaign.id];const metric=data.metrics.find(metric=>metric.campaign_id===campaign.id);const count=metric?Number(metric.total_votes):null;return{id:campaign.id,publicId:campaign.public_id,title:campaign.title,question:campaign.question,status:campaign.status,revision:Number(campaign.revision),kind:campaign.kind,resultVisibility:campaign.result_visibility,startsAt:campaign.starts_at,endsAt:campaign.ends_at,totalVotes:count!==null&&Number.isSafeInteger(count)&&count>=0?count:null,resultsVisible:publicResult?.resultsVisible===true,options:data.options.filter(option=>option.campaign_id===campaign.id).map(option=>({id:option.id,label:option.label,voteCount:publicResult?.resultsVisible?publicResult.options.find(value=>value.id===option.id)?.voteCount??null:null}))};});
-  return <div className={styles.shell}><h1 className="sr-only">Engage</h1>
+  return <div className={styles.shell}>
     <SitesEngagePrimary polls={primaryPolls} enabled={data.enabled} canWrite={canWrite} saveAction={saveSitesEngageCampaign}/>
     {params.succes ? <p className={styles.banner} role="status">Wijziging opgeslagen.</p> : null}
     {params.fout ? <p className={styles.banner} role="alert"><strong>Wijziging mislukt.</strong> Controleer de invoer, status en rollout.</p> : null}

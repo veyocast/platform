@@ -1,0 +1,12 @@
+if(process.env.VEYOCAST_S226_LOCAL_ACCEPTANCE!=='1')throw Error('Set the explicit isolated S226 acceptance gate before running this archived journey');
+import {readFileSync,statSync} from 'node:fs';
+import {SupabaseStudioRenderBackend} from '/home/codex/repos/castivo-s226/apps/media-worker/src/studio-render-backend.ts';
+import {ResvgSharpStudioRenderer} from '/home/codex/repos/castivo-s226/apps/media-worker/src/studio-render-resvg.ts';
+import {runStudioRenderOnce} from '/home/codex/repos/castivo-s226/apps/media-worker/src/studio-render-runner.ts';
+const path='/tmp/veyocast-s226-local-status.json';
+if((statSync(path).mode&0o777)!==0o600)throw Error('Protected local fixture configuration required');
+const cfg=JSON.parse(readFileSync(path,'utf8'));
+if(cfg.API_URL!=='http://127.0.0.1:57621')throw Error('Only S226 disposable API permitted');
+const result=await runStudioRenderOnce({backend:new SupabaseStudioRenderBackend(cfg.API_URL,cfg.SERVICE_ROLE_KEY),renderer:new ResvgSharpStudioRenderer(),config:{workerId:'s226-real-studio-proof',lockTimeoutSeconds:900,maxAttempts:3}});
+console.log(JSON.stringify(result));
+if(result.status!=='completed')process.exitCode=1;

@@ -1,0 +1,134 @@
+[
+  {
+    "route": "/dashboard",
+    "url": "/dashboard",
+    "h1": [
+      "Mooi dat je er bent, QA."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard",
+    "width": 1440,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/content",
+    "url": "/dashboard/content",
+    "h1": [
+      "Contentbibliotheek"
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/content",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/content",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/content",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/content",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/content",
+    "width": 1440,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/playlists",
+    "url": "/dashboard/playlists",
+    "h1": [
+      "Je playlists"
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/playlists",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/playlists",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/playlists",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/playlists",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/playlists",
+    "width": 1440,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/screens",
+    "url": "/dashboard/screens",
+    "h1": [
+      "Jouw club. Overal in beeld."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/screens",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/screens",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/screens",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/screens",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/screens",
+    "width": 1440,
+    "overflow": false
+  }
+]

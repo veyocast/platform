@@ -1,0 +1,27 @@
+{
+  "status": "nog in developmentomgeving vast te stellen",
+  "baseline_repository": "veyocast/platform",
+  "baseline_main": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "development": {
+    "hostname": null,
+    "user": null,
+    "source_roots": [],
+    "git_heads": [],
+    "worktrees": [],
+    "services": [],
+    "processes": [],
+    "ports": [],
+    "symlinks": [],
+    "mounts": [],
+    "containers": [],
+    "protected_config_locations": [],
+    "data_volumes": [],
+    "signing_locations_no_values": [],
+    "shares_staging_host": null
+  },
+  "branch_audit_complete": false,
+  "settings_names_scopes_verified": false,
+  "current_release_sha": null,
+  "rollback_reference": null,
+  "notes": "Nooit geheimen of credentialwaarden invullen."
+}

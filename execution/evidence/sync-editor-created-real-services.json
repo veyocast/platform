@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T02:11:35.241Z",
+  "scope": "actual Next Source template creation, committed response loss, reload, original receipt replay and editor save",
+  "beforeProjects": 3,
+  "beforeReleases": 0,
+  "disabledSave": {
+    "background": "rgb(0, 109, 115)",
+    "color": "rgb(255, 255, 255)"
+  },
+  "axeViolations": 0,
+  "widths": [
+    {
+      "width": 320,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "width": 768,
+      "overflow": 0
+    },
+    {
+      "width": 1024,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "overflow": 0
+    }
+  ],
+  "project": {
+    "id": "dd38316c-63b4-4a60-9d8c-3b8211de00ce",
+    "name": "S226 echt aangemaakt in Sync",
+    "orientation": "portrait",
+    "width": 1080,
+    "height": 1920
+  },
+  "draftRevision": 1,
+  "commandsIdentical": true,
+  "receiptProjectCount": 1,
+  "unintendedReleases": 0
+}

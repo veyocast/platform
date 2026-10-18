@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { slideAvailability, slideEditorKind, slidePurpose } from "./slide-management";
 import { parseSlideResourceFilter, slidePageHref } from "./slide-resource";
+import {createSyncStudioStarter} from '@veyocast/studio';
 
 describe("datagedreven slidebeheer", () => {
   it.each([
@@ -15,6 +16,12 @@ describe("datagedreven slidebeheer", () => {
   it("behoudt de bestaande Menu Studio-route", () => {
     expect(slideEditorKind({ schemaVersion: "menu-document.v2" })).toBe("menu");
     expect(slideEditorKind(null)).toBe("detail");
+  });
+  it('houdt een Source-ontwerp uit de historische editor, ook bij een ongeldig Source-pakket',()=>{
+    const seed=createSyncStudioStarter({family:'menu',tenantName:'Eigen club'}).syncPresentation!;
+    const configuration={syncConfiguration:{schemaVersion:1,kind:'dynamic',rendererVersion:'sync-v1',sourceRevision:seed.sourceRevision,slideType:'menu',secondsPerPage:3,seed}};
+    expect(slideEditorKind(configuration)).toBe('sync');
+    expect(slideEditorKind({blueprintKey:'sportlink.pool_standings',syncConfiguration:{}})).toBe('detail');
   });
   it("beschrijft periode en scope zonder extra slidetype te verzinnen", () => {
     expect(slidePurpose({ blueprintKey: "sportlink.pool_schedule_today" })).toBe("Pouleprogramma vandaag");

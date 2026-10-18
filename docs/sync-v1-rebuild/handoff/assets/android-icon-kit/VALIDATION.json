@@ -1,0 +1,24 @@
+{
+  "expo/icon-1024.png": {
+    "width": 1024,
+    "height": 1024,
+    "alpha": true
+  },
+  "expo/adaptive-foreground-1024.png": {
+    "width": 1024,
+    "height": 1024,
+    "alpha": true
+  },
+  "android/res/drawable-nodpi/veyocast_tv_banner.png": {
+    "width": 320,
+    "height": 180,
+    "alpha": true
+  },
+  "safezone": {
+    "maxRadiusFraction": 0.27903468489991934,
+    "allowedRadiusFraction": 0.3055555555555556,
+    "pass": true,
+    "visiblePixels": 68108
+  },
+  "exactSiteVectorBytes": true
+}

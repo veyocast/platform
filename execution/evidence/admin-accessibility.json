@@ -1,0 +1,101 @@
+[
+  {
+    "route": "/dashboard/sources",
+    "url": "/dashboard/sources",
+    "h1": [
+      "Alles begint bij goede gegevens."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/sources",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/sources",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/sources",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/sources",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/sources",
+    "width": 1440,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/themes",
+    "url": "/dashboard/themes",
+    "h1": [
+      "Eén club. Meerdere stijlen."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/themes",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/themes",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/themes",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/themes",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/themes",
+    "width": 1440,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=month",
+    "url": "/dashboard/planning",
+    "h1": [
+      "Planning"
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/planning?view=month",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=month",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=month",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=month",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=month",
+    "width": 1440,
+    "overflow": false
+  }
+]

@@ -1,6 +1,6 @@
 /* global Headers, ReadableStream, Request, Response, URL, caches, fetch, self */
 
-const SHELL_CACHE = "veyocast-player-shell-v4";
+const SHELL_CACHE = "veyocast-player-shell-v5";
 const SHELL_CACHE_PREFIX = "veyocast-player-shell-";
 const ASSET_CACHE = "veyocast-player-assets-v1";
 const CACHE_PATH_PREFIX = "/__veyocast-player-cache/";
@@ -10,7 +10,14 @@ const SHELL_ENTRYPOINTS = [
   "/manifest.webmanifest",
   "/brand/veyocast-icon-primary.svg",
   "/brand/veyocast-icon-maskable-512.png",
-  "/brand/veyocast-logo-inverse.svg"
+  "/brand/veyocast-logo-inverse.svg",
+  "/assets/brand-hero-800.webp",
+  "/assets/brand-hero-1254.webp",
+  "/assets/full-light.svg",
+  "/assets/full-dark.svg",
+  "/assets/brand-icon.svg",
+  "/assets/sync-icon-192.png",
+  "/assets/sync-icon-512.png"
 ];
 const PREVIOUS_BRAND_NAMESPACE = String.fromCharCode(99, 97, 115, 116, 105, 118, 111);
 const PREVIOUS_SHELL_CACHE_PREFIX = `${PREVIOUS_BRAND_NAMESPACE}-player-shell-`;

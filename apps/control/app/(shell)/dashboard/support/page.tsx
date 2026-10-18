@@ -1,48 +1,28 @@
-import Link from "next/link";
-import { ArrowRight, Clock3, Monitor, Palette } from "lucide-react";
 import sites from "../settings/sites-settings.module.css";
 
 import { hasCapability } from "@veyocast/auth";
-import { Button, DataTable, StatusPill } from "@veyocast/ui";
+import { Button, StatusPill } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { loadTenantSupport } from "./data";
 import { NewTicketDialog } from "./new-ticket-dialog";
-import { formatDate, relationName, statusLabel } from "./support-format";
+import { SyncTicketList } from "./sync-ticket-list";
+import { CheckCircle, LifeBuoy, MessagesSquare } from "lucide-react";
 
 export default async function SupportPage() {
   const session = await requireTenantControlSession("tenant.ticket.read");
   const data = session.tenantId
     ? await loadTenantSupport(session.tenantId)
-    : { departments: [], tickets: [] };
+    : { departments: [], tickets: [], error: false };
   const canWrite = session.isLive && hasCapability(session.capabilities, "tenant.ticket.write");
   const canExportSupport =
     session.isLive && hasCapability(session.capabilities, "tenant.support.export");
   return (
-    <div className={`${sites.page} ${sites.supportPage}`}>
-      <h1 className="sr-only">Support</h1>
-      {canWrite ? <header className={sites.actionHeading}><NewTicketDialog departments={data.departments} /></header> : null}
-      <div className={sites.helpCards}>{[{title:"Content maken",description:"Van een idee naar een slide.",path:"/dashboard/studio",Icon:Palette},{title:"Schermen koppelen",description:"Geef ieder scherm zijn plek.",path:"/dashboard/screens",Icon:Monitor},{title:"Planning beheren",description:"Op het juiste moment in beeld.",path:"/dashboard/planning",Icon:Clock3}].map(({title,description,path,Icon})=><Link href={path} key={path}><Icon aria-hidden="true" size={23}/><strong>{title}</strong><span>{description}</span><ArrowRight aria-hidden="true" size={17}/></Link>)}</div>
-      <section className={`${sites.surface} workspace-section`} aria-labelledby="tickets-title">
-          <div className={sites.surfaceHeading}>
-            <h2 id="tickets-title">Mijn tickets</h2>
-            <p>De tickets hieronder zijn van jouw vereniging. Nieuwe tickets worden veilig opgeslagen.</p>
-          </div>
-          <DataTable caption="Supporttickets van de actieve vereniging.">
-            <thead><tr><th scope="col">Ticket</th><th scope="col">Afdeling</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Acties</span></th></tr></thead>
-            <tbody>
-              {data.tickets.map((ticket) => (
-                <tr key={ticket.id}>
-                  <td><a className={sites.textButton} href={`/dashboard/support/${ticket.id}`}><small>VYO-{new Date().getFullYear()}-{String(ticket.ticket_number).padStart(6, "0")}</small><strong>{ticket.subject}</strong></a></td>
-                  <td>{relationName(ticket.support_departments)}</td>
-                  <td><StatusPill label={statusLabel(ticket.status)} tone={ticket.status === "resolved" || ticket.status === "closed" ? "success" : "info"} /></td>
-                  <td><Link aria-label={`Open ${ticket.subject}`} className={sites.iconButton} href={`/dashboard/support/${ticket.id}`} title={`Bijgewerkt ${formatDate(ticket.last_message_at)}`}><ArrowRight aria-hidden="true" size={17} /></Link></td>
-                </tr>
-              ))}
-            </tbody>
-          </DataTable>
-          {!data.tickets.length ? <p className="work-panel__meta">Nog geen tickets.</p> : null}
-      </section>
+    <div className="admin-page">
+      <header className="section-header"><div><div className="eyebrow">HELP / SUPPORT</div><h1>We helpen je verder.</h1><p>Eén gesprek, alle informatie en een duidelijke verantwoordelijke.</p></div><div className="header-actions">{canWrite ? <NewTicketDialog departments={data.departments} /> : <button className="btn btn-secondary" disabled type="button">Nieuw ticket</button>}</div></header>
+      {data.error ? <p className="notice notice--critical" role="alert">De supportgegevens konden niet veilig worden gelezen. Er is niets gewijzigd. Vernieuw de pagina of probeer later opnieuw.</p> : null}
+      <div className="grid-3">{[{ label: "Open tickets", count: data.tickets.filter(ticket => ticket.status === "open").length, Icon: LifeBuoy }, { label: "In behandeling", count: data.tickets.filter(ticket => ["in_progress", "waiting_for_customer"].includes(ticket.status)).length, Icon: MessagesSquare }, { label: "Opgelost", count: data.tickets.filter(ticket => ["resolved", "closed"].includes(ticket.status)).length, Icon: CheckCircle }].map(({ label, count, Icon }) => <div className="card ad-metric" key={label}><span className="ad-square"><Icon size={18} /></span><span className="muted">{label}</span><strong>{data.error ? "—" : count}</strong></div>)}</div>
+      <SyncTicketList tickets={data.tickets} unavailable={data.error} />
 
       <details className={sites.supportDetails}><summary>Veilige supportbundel</summary><section className={`${sites.surface} support-export`} aria-labelledby="support-export-title">
         <div className="work-panel__header">

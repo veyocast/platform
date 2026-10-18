@@ -1,5 +1,8 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
+import process from "node:process";
+import console from "node:console";
+import { Buffer } from "node:buffer";
 
 const appDirectory = resolve(process.argv[2] ?? ".");
 const outputDirectories = await findOutputDirectories(appDirectory);
@@ -56,7 +59,8 @@ if (violations.length > 0) {
 }
 
 async function findOutputDirectories(directory) {
-  const candidates = [resolve(directory, ".next/static"), resolve(directory, "dist")];
+  const nextOutput = process.env.VEYOCAST_QA_OUTPUT === "1" ? ".next-qa" : ".next";
+  const candidates = [resolve(directory, nextOutput, "static"), resolve(directory, "dist")];
   const output = [];
 
   for (const candidate of candidates) {

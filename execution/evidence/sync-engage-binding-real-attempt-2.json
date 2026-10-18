@@ -1,0 +1,21 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T10:10:49.359Z",
+  "controlBuildId": "J2Lbz5-N-MXQGRhRsWoyF",
+  "scope": "actual AAL2 Engage campaign, real Source Studio selection and explicit save/render, public privacy authority, secure QR and complete verified private output; local QA, no hosted or hardware claim",
+  "campaignId": "894c0aba-532f-4b81-a86e-abe3e0c1d960",
+  "publicId": "1b0e5085-6725-45c8-9980-59dd02c1d85d",
+  "projectId": "418e83dd-319d-4313-82f0-b581ddbdba8e",
+  "previewReadOnly": true,
+  "widths": [
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "editorAxeViolations": 0,
+  "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.sync-studio-frame:visible').getByRole('button', { name: 'Opslaan', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" class=\"vc-button vc-button--primary vc-button--md\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+  "browserErrors": [],
+  "finishedAt": "2026-10-18T10:11:23.130Z"
+}

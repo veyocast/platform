@@ -1,0 +1,189 @@
+{
+  "repository": "veyocast/platform",
+  "repository_secrets": [],
+  "repository_variables": [],
+  "environments": [
+    {
+      "deployment_branch_policy": null,
+      "name": "android-google-tv-internal",
+      "protection_rules": []
+    },
+    {
+      "deployment_branch_policy": null,
+      "name": "android-tv-internal",
+      "protection_rules": []
+    },
+    {
+      "deployment_branch_policy": null,
+      "name": "lg-webos-signage-release",
+      "protection_rules": []
+    },
+    {
+      "deployment_branch_policy": {
+        "custom_branch_policies": true,
+        "protected_branches": false
+      },
+      "name": "production",
+      "protection_rules": [
+        {
+          "type": "branch_policy"
+        },
+        {
+          "type": "required_reviewers"
+        }
+      ]
+    },
+    {
+      "deployment_branch_policy": {
+        "custom_branch_policies": true,
+        "protected_branches": false
+      },
+      "name": "staging",
+      "protection_rules": [
+        {
+          "type": "branch_policy"
+        }
+      ]
+    }
+  ],
+  "environment_configuration": {
+    "android-google-tv-internal": {
+      "secrets": [
+        {
+          "name": "ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_BASE64"
+        },
+        {
+          "name": "ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_PASSWORD"
+        }
+      ],
+      "variables": []
+    },
+    "android-tv-internal": {
+      "secrets": [
+        {
+          "name": "ANDROID_TV_UPLOAD_KEYSTORE_BASE64"
+        },
+        {
+          "name": "ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD"
+        },
+        {
+          "name": "ANDROID_TV_UPLOAD_KEY_ALIAS"
+        },
+        {
+          "name": "ANDROID_TV_UPLOAD_KEY_PASSWORD"
+        }
+      ],
+      "variables": [
+        {
+          "name": "GOOGLE_PLAY_SERVICE_ACCOUNT"
+        },
+        {
+          "name": "GOOGLE_WORKLOAD_IDENTITY_PROVIDER"
+        }
+      ]
+    },
+    "lg-webos-signage-release": {
+      "secrets": [],
+      "variables": []
+    },
+    "production": {
+      "secrets": [
+        {
+          "name": "DEVICE_LAB_ACCESS_TOKEN"
+        },
+        {
+          "name": "DEVICE_LAB_SESSION_SECRET"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        },
+        {
+          "name": "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
+        },
+        {
+          "name": "SLACK_ALERT_WEBHOOK_URL"
+        },
+        {
+          "name": "SUPABASE_DB_URL"
+        },
+        {
+          "name": "SUPABASE_SERVICE_ROLE_KEY"
+        }
+      ],
+      "variables": [
+        {
+          "name": "CONTROL_BIND_PORT"
+        },
+        {
+          "name": "CONTROL_HOST"
+        },
+        {
+          "name": "MARKETING_BIND_PORT"
+        },
+        {
+          "name": "MARKETING_HOST"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_URL"
+        },
+        {
+          "name": "PLAYER_BIND_PORT"
+        },
+        {
+          "name": "PLAYER_HOST"
+        },
+        {
+          "name": "SUPABASE_PROJECT_REF"
+        }
+      ]
+    },
+    "staging": {
+      "secrets": [
+        {
+          "name": "DEVICE_LAB_ACCESS_TOKEN"
+        },
+        {
+          "name": "DEVICE_LAB_SESSION_SECRET"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        },
+        {
+          "name": "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
+        },
+        {
+          "name": "SLACK_ALERT_WEBHOOK_URL"
+        },
+        {
+          "name": "SUPABASE_DB_URL"
+        },
+        {
+          "name": "SUPABASE_RESTORE_DRILL_DB_URL"
+        },
+        {
+          "name": "SUPABASE_SERVICE_ROLE_KEY"
+        }
+      ],
+      "variables": [
+        {
+          "name": "CONTROL_BIND_PORT"
+        },
+        {
+          "name": "CONTROL_HOST"
+        },
+        {
+          "name": "NEXT_PUBLIC_SUPABASE_URL"
+        },
+        {
+          "name": "PLAYER_BIND_PORT"
+        },
+        {
+          "name": "PLAYER_HOST"
+        },
+        {
+          "name": "SUPABASE_PROJECT_REF"
+        }
+      ]
+    }
+  }
+}

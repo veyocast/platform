@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T03:39:55.762Z",
+  "scope": "actual disposable AAL2 Control publication → production-mode browser Player → offline reload",
+  "projectId": "ff08733e-e5b7-4536-a6a0-31378d03af35",
+  "renderJobId": "9bdb5f70-c78e-4e3c-81f7-c11466ec5571",
+  "assetId": "0fe0396d-5071-4c26-a119-d2dcd1011e6d",
+  "sha256": "d73c45cfe18f60f20c123791c9ba6ec71e823956bdd244e7bcb8dc15c16147a7",
+  "bytes": 531140,
+  "screenId": "19170000-0000-4000-8000-000000000020",
+  "sourceUiMotionVerified": true,
+  "playlistId": "8008827a-a511-4a2e-a98d-ae92d2f52e08",
+  "release": {
+    "rows": 0,
+    "bytes": 531140,
+    "sha256": "d73c45cfe18f60f20c123791c9ba6ec71e823956bdd244e7bcb8dc15c16147a7",
+    "assetId": "0fe0396d-5071-4c26-a119-d2dcd1011e6d",
+    "version": 1,
+    "releaseId": "9ce58462-f79a-4497-b059-4a729b4cd48d",
+    "rowsPerPage": 4,
+    "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+    "syncDurationMs": 3000,
+    "durationSeconds": 5
+  },
+  "firstFrame": {
+    "releaseId": "9ce58462-f79a-4497-b059-4a729b4cd48d",
+    "runtimeState": "PLAYING",
+    "trace": {
+      "revision": "2",
+      "publicationId": "8008827a-a511-4a2e-a98d-ae92d2f52e08",
+      "configRevision": "1",
+      "assignmentSource": "default",
+      "committedAt": null,
+      "correlationId": "732dde87-be72-4547-9396-9441446cd9f9",
+      "generation": 1,
+      "releaseId": "9ce58462-f79a-4497-b059-4a729b4cd48d",
+      "signalReceivedAt": null,
+      "resolvedAt": "2026-10-18T03:40:03.086Z",
+      "targetWrittenAt": "2026-10-18T03:40:00.321345+00:00",
+      "targetRevision": "2",
+      "assetsReadyAt": "2026-10-18T03:40:03.226Z",
+      "firstFrameAt": "2026-10-18T03:40:03.393Z"
+    },
+    "serverStatus": 200
+  },
+  "manifest": {
+    "sourceAssets": 11,
+    "etag": "\"target-a0061ebf24ef07ea265fce9da20fbcbe65e14ea4d0a20f53039e891ad8141b73\"",
+    "capability": "sync-v1"
+  },
+  "legacyBinaryProfile": true,
+  "onlinePages": [
+    0
+  ],
+  "readback": {
+    "phase": "active",
+    "lastSeenAt": "2026-10-18T03:40:03.424706+00:00",
+    "lastErrorCode": null,
+    "activeReleaseId": "9ce58462-f79a-4497-b059-4a729b4cd48d",
+    "desiredReleaseId": "9ce58462-f79a-4497-b059-4a729b4cd48d"
+  },
+  "cache": {
+    "verifiedAssetCount": 12,
+    "shellControlled": true
+  },
+  "offlinePages": [
+    0
+  ],
+  "offlineReload": true,
+  "pairingPreserved": true
+}

@@ -1,0 +1,33 @@
+{
+  "status": "FAIL",
+  "scope": "read-only actual Next template picker, groups, accessibility, overflow and keyboard focus",
+  "axe": [],
+  "widths": [
+    {
+      "width": 320,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 390,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 768,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 1024,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 1440,
+      "root": 0,
+      "dialog": 0
+    }
+  ],
+  "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   '',\n    'Kantinemenu',\n-   'Prijslijst'\n  ]\n"
+}

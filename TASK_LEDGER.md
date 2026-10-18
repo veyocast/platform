@@ -4,6 +4,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 
 | ID | Status | Branch | Owner | Scope | Paths | Gates | Notes |
 |---|---|---|---|---|---|---|---|
+| S226 | in_progress | veyocast/s226-sync-v1-rebuild | root | Volledige Sync V1 rebuild en staging+productie via behouden releaseflow | Volledige afgebakende rebuildscope; execution/CURRENT-STATE.md | Lint/type/unit30/30; verse RLS129/3596 incl70 binary; DB-errors0; Sync responsive66/66; Next viewport126 + Studio focus/Escape groen; Control201+73+Team; Player274 + offline9; echte CSV/XLSX import/merge/readback; legacy548cases/644framesexact; volledige CI-Control376PASS/629opt-inSKIP; HTTPconflict53ms/PT409 en7privateboundaries | Lokale conflictfix/foundation/RLS groen; finale PR252-CI en staging→dezelfde release productie volgen. Alle148 scenario-IDs individueel beperkt gemapt, geen algemene V1-/pixel-/provider-/hardwareclaim. Fysiek/24u en SendGrid uitgesteld; geen eerdere Control-installatie. |
 | S222 | review | veyocast/s222-video-processing-budget | root | MP4-verwerking na geslaagde upload herstellen | Worker-normalisatie/lease, Control-timeoutuitleg, regressies, synthetische FFmpeg-proef en bewijsdocs | Lint/typecheck/unit elk30/30; worker340 PASS/318 conditionele SKIP; twee regressies rood vóór fix; echte FFmpeg46,6s met portrait1080p30 H.264 en poster binnen1,5CPU/1536MiB | Transcode120–600s op basis van duur, medialease minimaal900s, probes/remux/poster40s. Bronnen blijven opgeslagen en kunnen geautoriseerd opnieuw worden verwerkt. Geen DB/dependency/Player/publicatiewijziging; exacte CI/uitrol volgen. |
 | S219 | review | veyocast/s219-menu-copy-footer-hotfix | root | Menukaart zonder hulpcopy en met vaste slogan in linkeronderhoek | Gedeelde Menu Studio-markup/CSS, optionele canvasslot, bestaande visuele browsermatrix, prompt en bewijsdocs | Workspace lint/typecheck/test elk 30/30 groen; shell-/categoriepariteit en viewportmatrix 10/10 groen; Static-LG-widgets 2/2; Player-a11y 2/2; volledige offline 7/7 groen | Alleen widgetmenu-weergave; geen database-, dependency-, merkasset- of releasewijziging. Commit en push gevraagd; zie docs/s219-menu-copy-footer-hotfix.md. |
 | S218 | review | veyocast/s218-library-player-live-recovery | root | Eén werkelijke slidebibliotheek, afzonderlijke Menu Studio en primaire HTML/CSS-weergave herstellen | Control bibliotheek/editor/wizards, native worker-capture, gedeelde widgetrenderer, één forwardmigratie/pgTAP, browsergates en bewijsdocs | Verse DB-reset 165 migraties; volledige RLS 108 bestanden/3048 assertions; workspace lint/typecheck/test elk30/30; echte productiebuilds en HTML-publicatie/first-frame/offline-herstart 1 PASS; 173 browsercases groen via brede run171 + geïsoleerde2; securityadvisors zonder bevindingen | Productie had tien Studio-projecten zonder export die v1 volledig verborg; drie prijslijsten deelden dezelfde verkeerde 14KB-SVG-fallback. Documenten zijn nu onafhankelijk van exports leesbaar; voorbereiding is expliciet, begrensd en idempotent. Zie docs/s218-library-player-live-recovery.md. Hosted gates en exacte uitrolreadback worden op PR244 vastgelegd; fysieke LG staat volgens gebruiker uit. |
@@ -299,6 +300,7 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 
 | S225 | review | veyocast/s225-lg-media-recovery | root | LG-publicatiewissel na terminale videofout herstellen | LG-runtime, bestaande videobrowserfixture, prompt/docs/ledger/plan | Foundation elk30/30; Player-productiebuild incl webOS/bundleguards; 39 gerichte browser-/offline-/a11yproeven groen; vastloper en overlayrandgeval eerst rood gereproduceerd; exacte CI en uitrol volgen | Nieuwe afbeelding Droog was geverifieerd maar wachtte op verdwenen itemtimer. Alleen de mislukte grens zonder resterende bewaking/tijd krijgt hervatting; gezonde video en goalpauze behouden hun grens. Native video code4 blijft afzonderlijk te meten. Geen DB/dependency/content/credential/cachewijziging. |
 
+
 - S228: actuele LG-/workerdiagnose bevestigt lokale transportweigering met
   geslaagde directe video. Native HTTP-fallback na volledige verificatie en
   behoud van lokaal werkende vorige release. Lint/typecheck/unit 30/30 elk,
@@ -309,3 +311,21 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
   playbackownership en verouderde LKG-callbacks starten de kandidaat niet opnieuw.
   De gerichte raceproef 3/3, productiebuild, foundationgates elk 30/30 en alle 43
   productie-browser/offline/a11yproeven zijn na die correctie opnieuw groen.
+
+S226 vervolg: RSS-handmatig → expliciete gekoppelde kopie met echte AAL2-diensten
+PASS over drie opgeslagen fixtureartikelen (geen externe feedacceptatie). Eén
+15s-MP4/private SHA, origineel/publicaties behouden. Productie-only herstel-
+navigatiefout opgelost met Next-router; exact dezelfde gecommitteerde create
+herhaalt tweemaal zonder browserfouten/nieuwe geschiedenis. Bouw
+`fr92zEN4P5nfnqFN0YUca`, 13 controllerbrowsercases/type/build en contenttemplates
+201 groen. Hosted deployment blijft open.
+
+
+S226 LED vervolg: echte Source-authoring/publicatie/globale SSE/offline PASS met
+expliciete lokale leased fixtures, geen externe providerclaim. Eén 5s-MP4,
+773.192 private bytes/SHA; live 5–1 en stale 18:25 zonder render-/releasehistorie.
+Bestaande bootstraprechten en multiplexed schermfilter gecorrigeerd met eigen
+oriëntatie via tokenauthority en slechts drie metadata-kolomgrants. Alle oude
+S142/S191 catch-upasserties behouden. Verse reset door `20261018104700`, RLS
+125/3489, app-schema DB-lint nul; Player 442, contracts 129, zestien browsercases
+pass. Geen hosted deployment.

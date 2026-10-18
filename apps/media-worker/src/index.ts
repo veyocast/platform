@@ -8,6 +8,7 @@ import { readMediaWorkerConfig } from "./worker-config";
 import { parseQueueHint, QueueWakeup } from "./queue-wakeup";
 import { PublishedDataRefreshRunner } from "./published-data-refresh-runner";
 import { PublicationVersionPruneRunner } from "./publication-version-prune-runner";
+import { runInquiryMailLoop, runInquiryMailOnce, readInquiryMailConfig } from "./inquiry-mail-runner";
 import { createConfiguredMediaWorkerClient, SupabaseMediaWorkerBackend } from "./worker-backend";
 import { closeServer, createWorkerRuntimeHealth } from "./worker-health";
 import { runWorkerTaskGroup, superviseWorkerTask } from "./worker-lifecycle";
@@ -242,6 +243,7 @@ async function main() {
     });
     logSportlinkSyncResult(logger, sportlinkResult);
     const dataClient = createConfiguredMediaWorkerClient();
+    await runInquiryMailOnce(dataClient, readInquiryMailConfig());
     const publishedResult = await new PublishedDataRefreshRunner(dataClient, { workerId: config.workerId }).runOnce();
     const maintenanceResult = await new PublicationVersionPruneRunner(dataClient).runOnce();
     logDataWorkResult(logger, "published_data", publishedResult);
@@ -336,6 +338,7 @@ async function main() {
         process.exit(1);
       },
       tasks: [
+        supervise("inquiry_mail", () => runInquiryMailLoop(queueClient, controller.signal)),
         supervise("published", () => publishedDataRunner.loop({
           signal: controller.signal,
           waitForWork: (signal) => queueWakeup.wait("published", signal),

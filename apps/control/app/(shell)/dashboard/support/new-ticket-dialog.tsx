@@ -13,6 +13,7 @@ import {
 } from "@veyocast/ui";
 
 import { createSupportTicket } from "./actions";
+import { Plus } from "lucide-react";
 import styles from "./support.module.css";
 
 type Department = {
@@ -25,7 +26,7 @@ export function NewTicketDialog({ departments }: { departments: Department[] }) 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={!departments.length}>Nieuw ticket</Button>
+        <Button disabled={!departments.length}><Plus size={18} strokeWidth={1.7} aria-hidden="true" />Nieuw ticket</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

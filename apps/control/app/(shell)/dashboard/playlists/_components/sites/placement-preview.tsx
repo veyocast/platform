@@ -1,10 +1,11 @@
 "use client";
-import {sitesPresentationSchema,type SitesPresentation}from"@veyocast/contracts";
+import {sitesPresentationSchema,syncSlidePageCount,type SitesPresentation}from"@veyocast/contracts";
 import {studioSitesSystemTemplates}from"@veyocast/studio";
 import {SitesPresentationView}from"@veyocast/content-templates/sites-presentation";
 import {AssetImage,ExperiencePreview}from"./presentation-adapter";
 import type {Slide}from"./model";
 import styles from "./placement-preview.module.css";
+import {SyncStudioLibraryPreview,SyncSlidePreview} from './sync-studio-preview';
 /** Preview uses the same trusted template and actual asset identity as the server render. */
 export function photoPlacementPresentation(slide:Slide,tenantName:string):Extract<SitesPresentation,{kind:'studio'}>|null{
  const marker=slide.studioSlide?.presentation.slide.id==='sites-v17-media-placement';
@@ -12,7 +13,7 @@ export function photoPlacementPresentation(slide:Slide,tenantName:string):Extrac
  const mediaId=original?.kind==='tenant'?original.mediaAssetId:slide.mediaId;
  const checksum=original?.kind==='tenant'?original.checksumSha256:slide.mediaChecksumSha256;
  const theme=slide.studioSlide?.themeId??slide.themeId;
- if(slide.design||slide.kind==='video'||theme!=='onzetrots-tv'||!mediaId||!checksum||(!marker&&slide.studioSlide))return null;
+ if(slide.syncDynamic||slide.syncStudio||slide.design||slide.kind==='video'||theme!=='onzetrots-tv'||!mediaId||!checksum||(!marker&&slide.studioSlide))return null;
  const orientation=slide.orientation??slide.studioSlide?.orientation??'landscape';
  const base=studioSitesSystemTemplates.find(value=>value.id===`sites-v17-welkom-${orientation}-hd`)?.document.sitesPresentation;if(base?.kind!=='studio')return null;
  const reference={kind:'tenant' as const,mediaAssetId:mediaId,checksumSha256:checksum};const title=slide.name.trim().slice(0,120);
@@ -20,6 +21,8 @@ export function photoPlacementPresentation(slide:Slide,tenantName:string):Extrac
  return parsed.success&&parsed.data.kind==='studio'?parsed.data:null;
 }
 export function PlaylistPlacementPreview({slide,active,tenantName}:{slide:Slide;active:boolean;tenantName:string}){
+ if(slide.syncDynamic)return <SyncSlidePreview presentation={{...slide.syncDynamic.presentation,theme:slide.themeId??slide.syncDynamic.presentation.theme}}assetUrls={slide.syncDynamic.assetUrls}durationSeconds={slide.seconds*syncSlidePageCount(slide.syncDynamic.presentation)}id={slide.syncDynamic.snapshotId}active={active}intrinsic/>;
+ if(slide.syncStudio)return <SyncStudioLibraryPreview member={{...slide.syncStudio,presentation:{...slide.syncStudio.presentation,theme:slide.themeId??slide.syncStudio.presentation.theme},durationSeconds:slide.seconds*syncSlidePageCount(slide.syncStudio.presentation)}} active={active}intrinsic/>;
  if(slide.design)return <ExperiencePreview design={slide.design}/>;
  const photo=photoPlacementPresentation(slide,tenantName);
  if(photo)return <SitesPresentationView presentation={photo}active={active}resolveAsset={asset=>asset.kind==='system'?asset.path:slide.studioSlide?.assetUrls[asset.mediaAssetId]??slide.image}/>;

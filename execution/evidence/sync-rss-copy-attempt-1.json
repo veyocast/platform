@@ -1,0 +1,51 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T08:46:19.348Z",
+  "controlBuildId": "OOUsluem1Dbvzq8tjWv5s",
+  "scope": "actual AAL2 manual Source RSS project to explicit bound copy, stored tenant RSS fixtures/canonical preview, lost create response recovery and full worker/private SHA; original manual document remains unchanged; automatic RSS acquisition disabled for the fixture, no external feed, hardware or hosted deployment claim",
+  "manualOrigin": {
+    "projectId": "38941a5e-7aa2-464f-b3d8-1f921020caed",
+    "newsItems": 1,
+    "theme": "onzetrots-tv"
+  },
+  "fixture": {
+    "sourceId": "67c8ee21-7000-46ca-a4c1-20d2dcadf6b9",
+    "cachedArticles": 3,
+    "automaticRssAcquisitionDisabled": true,
+    "externalFeedVerified": false
+  },
+  "manualCopyLinkUsed": true,
+  "editorAxeViolations": 0,
+  "widths": [
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "previewReadOnly": true,
+  "slideId": "635a65c9-58b2-4274-84f9-494497e8502d",
+  "exactCreateReceiptRecovered": true,
+  "transportWritesThisRun": 2,
+  "canonical": {
+    "rows": 3,
+    "jobId": "22d03a37-41a2-47a9-bd46-f7753839f953",
+    "seedRows": 0,
+    "sourceId": "67c8ee21-7000-46ca-a4c1-20d2dcadf6b9",
+    "jobStatus": "queued",
+    "slideCount": 1,
+    "snapshotId": "3046fc6c-2446-4382-9e5c-39938d65363d"
+  },
+  "completeOutput": {
+    "rows": 3,
+    "bytes": 5818337,
+    "sha256": "7d8dc376f05dca9c4682cf59fbfc5b902776cd5d62946e7ce53764a30a831e6b",
+    "status": "ready",
+    "assetId": "081eea20-31d7-5e40-88ad-6cc24df2e8a2",
+    "durationMs": 15000
+  },
+  "detailAxeViolations": 0,
+  "originalManualDocumentUnchanged": true,
+  "existingReleasesUnchanged": true,
+  "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.',\n+   \"Cannot read properties of null (reading 'parentNode')\"\n+ ]\n- []\n"
+}

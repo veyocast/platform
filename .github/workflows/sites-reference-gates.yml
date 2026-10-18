@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   source-ui:
-    name: Original Sites responsive UI
+    name: Chosen Sync responsive UI
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -40,38 +40,39 @@ jobs:
       - name: Verify every original responsive criterion
         shell: bash
         env:
-          VEYOCAST_SITES_REFERENCE_ORIGIN: http://127.0.0.1:4193
-          VEYOCAST_SITES_RESP_SOURCE_COMPARISON: '1'
-          VEYOCAST_SITES_RESP_REQUIRE_COMPLETE: '1'
-          VEYOCAST_SITES_RESP_OUTPUT: ${{ runner.temp }}/sites-source-ui
+          VEYOCAST_SYNC_REFERENCE_ORIGIN: http://127.0.0.1:4194
+          VEYOCAST_SYNC_SOURCE_COMPARISON: '1'
+          VEYOCAST_SYNC_RESP_REQUIRE_COMPLETE: '1'
+          VEYOCAST_SYNC_RESP_AXE: '1'
+          VEYOCAST_SYNC_RESP_OUTPUT: ${{ runner.temp }}/sync-source-ui-${{ github.run_id }}-${{ github.run_attempt }}
           PLAYWRIGHT_EXTERNAL_SERVERS: '1'
           PLAYWRIGHT_APPS: marketing
           MARKETING_PORT: '3318'
           NODE_OPTIONS: '--max-old-space-size=2048'
         run: |
           set -Eeuo pipefail
-          node tests/helpers/sites-reference-runtime.mjs --port 4193 > "$RUNNER_TEMP/sites-reference-runtime.log" 2>&1 &
+          node tests/helpers/sync-reference-runtime.mjs --port 4194 > "$RUNNER_TEMP/sites-reference-runtime.log" 2>&1 &
           source_runtime_pid=$!
           pnpm --filter @veyocast/marketing exec next start --port 3318 --hostname 127.0.0.1 > "$RUNNER_TEMP/sites-marketing-runtime.log" 2>&1 &
           marketing_runtime_pid=$!
           trap 'kill "$source_runtime_pid" "$marketing_runtime_pid" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 60); do
-            if curl --fail --silent --max-time 2 http://127.0.0.1:4193/ > /dev/null && curl --fail --silent --max-time 2 http://127.0.0.1:3318/ > /dev/null; then
+            if curl --fail --silent --max-time 2 http://127.0.0.1:4194/ > /dev/null && curl --fail --silent --max-time 2 http://127.0.0.1:3318/ > /dev/null; then
               break
             fi
             kill -0 "$source_runtime_pid" "$marketing_runtime_pid"
             if [[ "$attempt" == 60 ]]; then exit 1; fi
             sleep 1
           done
-          pnpm exec playwright test tests/control/sites-source-geometry-comparison.spec.ts --grep 'original RESP-' --project=chromium --workers=1
-          node scripts/verify-sites-comparison.mjs responsive "$RUNNER_TEMP/sites-source-ui/case-readback.json"
+          pnpm exec playwright test tests/control/sync-source-geometry-comparison.spec.ts --grep 'original RESP-' --project=chromium --workers=1
+          node scripts/verify-sync-comparison.mjs "$VEYOCAST_SYNC_RESP_OUTPUT/case-readback.json"
       - name: Preserve individual Source comparisons
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sites-source-ui-${{ github.sha }}
           path: |
-            ${{ runner.temp }}/sites-source-ui
+            ${{ runner.temp }}/sync-source-ui-${{ github.run_id }}-${{ github.run_attempt }}
             ${{ runner.temp }}/sites-reference-runtime.log
             ${{ runner.temp }}/sites-marketing-runtime.log
           if-no-files-found: warn

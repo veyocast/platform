@@ -66,11 +66,8 @@ export async function loadLedScoresPlayerBootstrap(
   if (!screenId || !tenantId || !deviceId) {
     throw new Error("LEDSCORES_BOOTSTRAP_INVALID");
   }
-  const screen = await admin.from("screens").select("orientation")
-    .eq("tenant_id", tenantId).eq("id", screenId).maybeSingle();
-  if (screen.error) throw new Error("LEDSCORES_SCREEN_UNAVAILABLE");
-  const screenOrientation = screen.data?.orientation === "portrait" ? "portrait" as const
-    : screen.data?.orientation === "landscape" ? "landscape" as const : null;
+  const screenOrientation = result.data.screenOrientation === "portrait" ? "portrait" as const
+    : result.data.screenOrientation === "landscape" ? "landscape" as const : null;
   if (result.data.enabled !== true) {
     return {
       authorized: true as const,

@@ -1,7 +1,8 @@
-import { sportlinkSlideBlueprintKeys, sportlinkSlideBlueprints } from "@veyocast/contracts";
+import { sportlinkSlideBlueprintKeys, sportlinkSlideBlueprints,syncDynamicConfigurationSchema } from "@veyocast/contracts";
 
 export function slideEditorKind(configuration: unknown) {
   const value = slideRecord(configuration);
+  if(value&&Object.hasOwn(value,'syncConfiguration'))return syncDynamicConfigurationSchema.safeParse(value.syncConfiguration).success?'sync' as const:'detail' as const;
   if (value?.schemaVersion === "menu-document.v2") return "menu" as const;
   if (typeof value?.blueprintKey === "string" && sportlinkSlideBlueprintKeys.includes(
     value.blueprintKey as (typeof sportlinkSlideBlueprintKeys)[number]

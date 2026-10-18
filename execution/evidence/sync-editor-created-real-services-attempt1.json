@@ -1,0 +1,8 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T02:07:35.172Z",
+  "scope": "actual Next Source template creation, committed response loss, reload, original receipt replay and editor save",
+  "beforeProjects": 2,
+  "beforeReleases": 0,
+  "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: 'Wat wil je maken?' })\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 30000ms\n  - waiting for getByRole('dialog', { name: 'Wat wil je maken?' })\n"
+}

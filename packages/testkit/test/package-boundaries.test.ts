@@ -1,8 +1,8 @@
 import { readFile, readdir } from "node:fs/promises";
-import { dirname, extname, join, relative, resolve } from "node:path";
+import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { explicitServerImports, findReachableServerFile, moduleReferences, resolveLocalSourceFile } from "./package-boundary-scanner";
 
@@ -18,17 +18,39 @@ const packageRules = {
   studio: new Set(["@veyocast/contracts", "zod"])
 } as const;
 
+// One complete, immutable source snapshot per run. Re-parsing the same workspace
+// in every assertion spent most of its time on filesystem/TypeScript setup and
+// could time out under concurrent builds. No source or import edge is excluded.
+let inventory: string[];
+const sources = new Map<string, string>();
+const parsed = new Map<string, ReturnType<typeof moduleReferences>>();
+beforeAll(async () => {
+  inventory = (await Promise.all(["apps", "packages"].map(root =>
+    sourceFilesBelow(join(repositoryRoot, root))))).flat();
+  await Promise.all(inventory.map(async file => {
+    const source = await readFile(file, "utf8");
+    sources.set(file, source);
+    parsed.set(file, moduleReferences(source));
+  }));
+}, 30_000);
+const filesInSnapshot = (root: string) => inventory.filter(file => file.startsWith(root + sep));
+const referencesInSnapshot = (file: string) => {
+  const references = parsed.get(file);
+  if (!references) throw new Error(`Source missing from complete boundary snapshot: ${file}`);
+  return references;
+};
+
 const forbiddenRuntimeImports = ["next", "react", "@supabase/"] as const;
 
 describe("application package boundaries", () => {
   for (const [packageName, allowedImports] of Object.entries(packageRules)) {
     it(`keeps @veyocast/${packageName} framework-independent`, async () => {
       const packageRoot = join(repositoryRoot, "packages", packageName);
-      const sourceFiles = await sourceFilesBelow(join(packageRoot, "src"));
+      const sourceFiles = filesInSnapshot(join(packageRoot, "src"));
       const violations: string[] = [];
 
       for (const file of sourceFiles) {
-        const source = await readFile(file, "utf8");
+        const source = sources.get(file)!;
         const fileLabel = relative(repositoryRoot, file);
 
         if (source.includes("process.env")) {
@@ -39,7 +61,7 @@ describe("application package boundaries", () => {
           violations.push(`${fileLabel}: framework directives are not allowed`);
         }
 
-        for (const specifier of moduleReferences(source).imports) {
+        for (const specifier of referencesInSnapshot(file).imports) {
           if (specifier.startsWith(".")) continue;
 
           if (forbiddenRuntimeImports.some((prefix) => specifier.startsWith(prefix))) {
@@ -67,14 +89,9 @@ describe("application package boundaries", () => {
   }
 
   it("prevents client modules from importing explicit server entries", async () => {
-    const roots = [join(repositoryRoot, "apps"), join(repositoryRoot, "packages")];
-    const allSourceFiles = (await Promise.all(roots.map(sourceFilesBelow))).flat();
+    const allSourceFiles = inventory;
     const knownSourceFiles = new Set(allSourceFiles);
-    const references = new Map(
-      await Promise.all(
-        allSourceFiles.map(async (file) => [file, moduleReferences(await readFile(file, "utf8"))] as const)
-      )
-    );
+    const references = parsed;
     const serverOnlyFiles = new Set(
       allSourceFiles.filter((file) =>
         references.get(file)?.runtimeImports.includes("server-only")
@@ -159,8 +176,8 @@ describe("application package boundaries", () => {
         }
       }
 
-      for (const file of await sourceFilesBelow(appRoot)) {
-        for (const specifier of moduleReferences(await readFile(file, "utf8")).imports) {
+      for (const file of filesInSnapshot(appRoot)) {
+        for (const specifier of referencesInSnapshot(file).imports) {
           const importedApp = appEntries.find((candidate) =>
             specifier === `@veyocast/${candidate}` ||
             specifier.startsWith(`@veyocast/${candidate}/`)
@@ -188,8 +205,8 @@ describe("application package boundaries", () => {
     const playerRoot = join(repositoryRoot, "apps", "player");
     const violations: string[] = [];
 
-    for (const file of await sourceFilesBelow(controlRoot)) {
-      for (const specifier of moduleReferences(await readFile(file, "utf8")).imports) {
+    for (const file of filesInSnapshot(controlRoot)) {
+      for (const specifier of referencesInSnapshot(file).imports) {
         if (
           (specifier === "konva" || specifier === "react-konva") &&
           !relative(controlRoot, file).startsWith(
@@ -201,8 +218,8 @@ describe("application package boundaries", () => {
       }
     }
 
-    for (const file of await sourceFilesBelow(playerRoot)) {
-      for (const specifier of moduleReferences(await readFile(file, "utf8")).imports) {
+    for (const file of filesInSnapshot(playerRoot)) {
+      for (const specifier of referencesInSnapshot(file).imports) {
         if (specifier === "@veyocast/studio" || specifier.startsWith("@veyocast/studio/")) {
           violations.push(`${relative(repositoryRoot, file)} -> ${specifier}`);
         }
@@ -218,7 +235,7 @@ async function sourceFilesBelow(root: string): Promise<string[]> {
   const files: string[] = [];
 
   for (const entry of entries) {
-    if ([".next", ".turbo", "dist", "node_modules"].includes(entry.name)) continue;
+    if ([".next", ".next-qa", ".turbo", "dist", "node_modules"].includes(entry.name)) continue;
     const path = join(root, entry.name);
     if (entry.isDirectory()) {
       files.push(...await sourceFilesBelow(path));

@@ -57,3 +57,10 @@ opnieuw gebouwde Player, lint/typecheck/unit (elk 30/30), gerichte testlint en
 alle 43 productie-browser/offline/a11yproeven zijn opnieuw groen. Geen test is
 verwijderd, overgeslagen of van retries voorzien. De volledige CI draait opnieuw
 op de nieuwe commit voordat een uitrol kan plaatsvinden.
+
+Na groene volledige CI op a34c2da is main 848ab297 geïntegreerd. Alleen het
+appendpunt in TASK_LEDGER.md conflicteerde; beide registraties zijn behouden.
+De Sync V1-Playerassets/-vormgeving uit main en de LG-herstelcode zijn intact.
+Op deze gecombineerde bron slagen lint/typecheck/unit opnieuw elk 30/30,
+de Player-productiebuild met guards en alle 43 gerichte browser/offline/a11y-
+proeven. Volledige CI wordt op de mergecommit herhaald vóór uitrol.

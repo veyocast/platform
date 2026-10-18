@@ -1,0 +1,107 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T11:13:35.133Z",
+  "playerBuildId": "bdxQ7X0HdiQeUZNLvkTSE",
+  "scope": "real paired local QA identity, two interrupted installation requests followed by real registration recovery during full 24-second binary playback; no physical device or hosted acceptance",
+  "installation": [
+    {
+      "at": 1792322015766,
+      "interrupted": true
+    },
+    {
+      "at": 1792322020771,
+      "interrupted": true
+    },
+    {
+      "at": 1792322030796,
+      "status": 200,
+      "ok": true,
+      "bound": true
+    }
+  ],
+  "media": [
+    {
+      "type": "emptied",
+      "at": 1792322015807,
+      "time": 0,
+      "duration": null,
+      "element": 1,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "playing",
+      "at": 1792322015840,
+      "time": 0.011513,
+      "duration": 24,
+      "element": 1,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "ended",
+      "at": 1792322039830,
+      "time": 24,
+      "duration": 24,
+      "element": 1,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "emptied",
+      "at": 1792322039834,
+      "time": 0,
+      "duration": null,
+      "element": 2
+    },
+    {
+      "type": "playing",
+      "at": 1792322039867,
+      "time": 0.009867,
+      "duration": 24,
+      "element": 2,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "playing",
+      "at": 1792322039941,
+      "time": 0.080112,
+      "duration": 24,
+      "element": 2,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "ended",
+      "at": 1792322063862,
+      "time": 24,
+      "duration": 24,
+      "element": 2,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "emptied",
+      "at": 1792322063864,
+      "time": 0,
+      "duration": null,
+      "element": 3
+    },
+    {
+      "type": "playing",
+      "at": 1792322063896,
+      "time": 0.011067,
+      "duration": 24,
+      "element": 3,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "playing",
+      "at": 1792322063957,
+      "time": 0.067845,
+      "duration": 24,
+      "element": 3,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    }
+  ],
+  "browserErrors": [],
+  "twoInterruptedRequestsRecovered": true,
+  "pairingPreserved": true,
+  "noPrematurePlaybackRestart": true,
+  "finishedAt": "2026-10-18T11:14:26.939Z"
+}

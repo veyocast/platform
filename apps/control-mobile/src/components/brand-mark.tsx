@@ -1,5 +1,5 @@
 import { Image, StyleSheet, View } from "react-native";
-import brandIcon from "../../../../assets/brand/veyocast-icon-512.png";
+import brandIcon from "../../../../assets/brand/sync/icon-1024.png";
 
 export function BrandMark({ size = 72 }: { size?: number }) {
   return (

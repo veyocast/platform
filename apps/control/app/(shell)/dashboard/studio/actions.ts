@@ -35,6 +35,7 @@ const studioCapabilities = {
 
 export type StudioActionResult = {
   actualRevision?: number;
+  rejected?: boolean;
   error?: string;
   jobId?: string;
   mediaAssetId?: string;
@@ -45,6 +46,11 @@ export type StudioActionResult = {
   revision?: number;
   status?: string;
 };
+
+// A database error response proves that this individual transaction rolled back.
+// Callers recovering an earlier unknown write must still keep its original key.
+const studioTransactionRejected = (code: string | undefined) =>
+  Boolean(code && ["22023", "23514", "23503", "42501", "P0002", "55000", "23505", "PT409"].includes(code));
 
 export async function createStudioProject(formData: FormData) {
   const session = await requireTenantControlSession(studioCapabilities.create);
@@ -232,6 +238,7 @@ export async function saveStudioDraftAction(input: {
     console.error("Studio-concept opslaan mislukt", error);
     return {
       error: saveErrorMessage(error.code),
+      rejected: studioTransactionRejected(error.code),
       ok: false
     };
   }
@@ -365,7 +372,7 @@ export async function restoreStudioRevisionAction(input: {
   );
   if (error) {
     console.error("Studio-revisie herstellen mislukt", error);
-    return { error: saveErrorMessage(error.code), ok: false };
+    return { error: saveErrorMessage(error.code), rejected: studioTransactionRejected(error.code), ok: false };
   }
   const outcome = resultString(data, "outcome");
   if (outcome === "conflict") {
@@ -421,7 +428,7 @@ export async function copyStudioConflictAction(input: {
       p_document: document,
       p_idempotency_key: safeIdempotencyKey(input.idempotencyKey),
       p_name: safeProjectName(
-        `${sourceResult.data.name.slice(0, 101)} (conflictkopie)`
+        `${(document.syncPresentation?.name ?? sourceResult.data.name).slice(0, 101)} (conflictkopie)`
       ),
       p_orientation: document.artboard.orientation,
       p_project_kind: "design",
@@ -432,7 +439,7 @@ export async function copyStudioConflictAction(input: {
   const projectId = resultString(data, "projectId");
   if (error || !projectId) {
     console.error("Studio-conflictkopie maken mislukt", error);
-    return { error: createErrorMessage(error?.code), ok: false };
+    return { error: createErrorMessage(error?.code), rejected: studioTransactionRejected(error?.code), ok: false };
   }
   revalidatePath("/dashboard/studio");
   return {
@@ -529,7 +536,7 @@ export async function requestStudioRenderAction(input: {
   );
   if (error) {
     console.error("Studio-render aanvragen mislukt", error);
-    return { error: renderErrorMessage(error.code), ok: false };
+    return { error: renderErrorMessage(error.code), rejected: studioTransactionRejected(error.code), ok: false };
   }
   const outcome = resultString(data, "outcome");
   if (outcome === "conflict") {
@@ -728,6 +735,7 @@ function saveErrorMessage(code: string | undefined) {
 }
 
 function mutationErrorMessage(code: string | undefined) {
+  if (code === "PT409" || code === "40001") return "Het ontwerp is intussen gewijzigd. Je invoer blijft behouden; herlaad de actuele versie voordat je de projectactie bevestigt.";
   if (code === "42501") return "Je mag deze projectactie niet uitvoeren.";
   if (code === "P0002") return "Het Studio-ontwerp bestaat niet meer.";
   return "De projectactie kon niet veilig worden uitgevoerd.";

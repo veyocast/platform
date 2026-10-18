@@ -1,35 +1,11 @@
 import { Activity } from "lucide-react";
 
-import { PageHeader, StatusPill } from "@veyocast/ui";
-
-import styles from "./publisher-overview.module.css";
-
 export default function DashboardLoading() {
-  return (
-    <>
-      <PageHeader
-        description="De actuele scherm-, publicatie- en bronstatus wordt veilig opgehaald."
-        eyebrow="VeyoCast"
-        title="Overzicht"
-      />
-      <section
-        aria-busy="true"
-        aria-labelledby="operational-loading-title"
-        className={styles.systemPulse}
-        data-state="loading"
-      >
-        <div className={styles.systemPulseHeading}>
-          <span className={styles.systemPulseIcon} aria-hidden="true">
-            <Activity />
-          </span>
-          <div>
-            <p>Actuele status</p>
-            <h2 id="operational-loading-title">Status wordt geladen</h2>
-            <span>Waarden verschijnen pas nadat de tenantgebonden bronnen zijn bevestigd.</span>
-          </div>
-          <StatusPill label="Laden" tone="info" />
-        </div>
-      </section>
-    </>
-  );
+  return <div className="ov-page ov-sync">
+    <header className="ov-page-header"><div><span className="ov-eyebrow">Jouw werkplek</span><h1>Overzicht</h1><p>De actuele scherm-, publicatie- en bronstatus wordt veilig opgehaald.</p></div></header>
+    <section className="ov-panel" aria-busy="true" aria-labelledby="operational-loading-title" data-state="loading">
+      <Activity aria-hidden="true" /><h2 id="operational-loading-title">Status wordt geladen</h2>
+      <p>Waarden verschijnen pas nadat de tenantgebonden bronnen zijn bevestigd.</p>
+    </section>
+  </div>;
 }

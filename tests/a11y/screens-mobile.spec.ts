@@ -122,10 +122,10 @@ test("playlist authoring and settings remain sequential on mobile", async ({ pag
   await page.setViewportSize({ height: 844, width: 390 });
 
   await navigate(page, "/dashboard/playlists");
-  await expect(page.locator("#control-content").getByRole("heading", { exact: true, level: 1, name: "Playlists" })).toBeVisible();
+  await expect(page.locator("#control-content").getByRole("heading", { exact: true, level: 1, name: "Je playlists" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Playlistbibliotheek" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Even bijwerken. Klaar." })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Zoek een playlist" })).toBeVisible();
+  await expect(page.getByText("Combineer je verhaal. Kies je schermen. Zet het live.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Playlists zoeken" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Nieuwe playlist", exact: true })).toBeVisible();
   await expect(async () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -194,9 +194,15 @@ test("dashboard forms and surfaces share canonical alignment", async ({ page }) 
       }
     }
 
-    await navigate(page, "/dashboard/media");
-    const search = page.getByLabel("Zoeken in media");
+    await navigate(page, "/dashboard/content");
+    const search = page.getByRole("textbox", { name: "Zoek content", exact: true });
     await expect(search).toBeVisible();
-    expect((await search.boundingBox())?.height).toBe(viewport.width < 768 ? 46 : 21.5);
+    const searchBox = await search.boundingBox();
+    expect(searchBox?.width).toBeGreaterThan(44);
+    expect(searchBox!.x + searchBox!.width).toBeLessThanOrEqual(viewport.width);
+    await search.fill("club");
+    await search.press("Enter");
+    await expect(page).toHaveURL(/q=club/);
+    await expect(page.getByRole("textbox", { name: "Zoek content", exact: true })).toHaveValue("club");
   }
 });

@@ -1,0 +1,239 @@
+name: Google TV Player Play internal
+
+run-name: Google TV Player internal test from ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: android-google-tv-play-internal
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish Google TV internal AAB
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: android-tv-internal
+
+    defaults:
+      run:
+        working-directory: apps/android-tv
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4
+        with:
+          # The action already installs command-line tools; "tools" is retired.
+          packages: platform-tools
+
+      - name: Install pinned Android SDK components
+        run: >-
+          sdkmanager
+          "platform-tools"
+          "platforms;android-34"
+          "platforms;android-37.1"
+          "build-tools;36.0.0"
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Validate protected release secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
+          WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          PLAY_SERVICE_ACCOUNT: ${{ vars.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+        run: |
+          missing=0
+          for variable in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!variable:-}" ]]; then
+              echo "::error::GitHub Environment-secret ${variable} ontbreekt"
+              missing=1
+            fi
+          done
+          for variable in WORKLOAD_IDENTITY_PROVIDER PLAY_SERVICE_ACCOUNT; do
+            if [[ -z "${!variable:-}" ]]; then
+              echo "::error::GitHub Environment-variabele ${variable} ontbreekt"
+              missing=1
+            fi
+          done
+          if (( missing != 0 )); then
+            exit 1
+          fi
+          umask 077
+          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/veyocast-upload.jks"
+          test -s "${RUNNER_TEMP}/veyocast-upload.jks"
+
+      - name: Authenticate to Google Cloud without a stored service-account key
+        id: google_auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+
+      - name: Derive monotonic Play version
+        run: |
+          if (( GITHUB_RUN_NUMBER < 1 || GITHUB_RUN_NUMBER > 999999 )); then
+            echo "::error::Workflow-runnummer past niet meer in de gereserveerde Android TV versionCode-range"
+            exit 1
+          fi
+          if (( GITHUB_RUN_ATTEMPT < 1 || GITHUB_RUN_ATTEMPT > 99 )); then
+            echo "::error::Workflow-poging moet tussen 1 en 99 liggen om versionCode-botsingen te voorkomen"
+            exit 1
+          fi
+          release_sequence=$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))
+          version_code=$((200000000 + release_sequence))
+          if (( version_code < 200000000 || version_code > 299999999 )); then
+            echo "::error::Afgeleide Android TV versionCode valt buiten 200000000–299999999"
+            exit 1
+          fi
+          echo "VEYCAST_TV_VERSION_CODE=${version_code}" >> "${GITHUB_ENV}"
+          echo "VEYCAST_TV_VERSION_NAME=1.0.0-internal.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+
+      - name: Lint, test and build signed Google TV bundle
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/veyocast-upload.jks
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
+        run: >-
+          ./gradlew
+          :tv:lintProductionRelease
+          :tv:testProductionDebugUnitTest
+          :tv:bundleProductionRelease
+          --no-daemon
+
+      - name: Install pinned bundletool
+        run: |
+          bundletool_url="https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar"
+          bundletool_path="${RUNNER_TEMP}/bundletool-all-1.18.3.jar"
+          curl --fail --location --silent --show-error \
+            --proto '=https' \
+            --tlsv1.2 \
+            "${bundletool_url}" \
+            --output "${bundletool_path}"
+          printf '%s  %s\n' \
+            "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29" \
+            "${bundletool_path}" \
+            | sha256sum --check --status
+          echo "BUNDLETOOL_PATH=${bundletool_path}" >> "${GITHUB_ENV}"
+
+      - name: Verify signed bundle, resolved launcher and compiled class
+        run: |
+          bundle="tv/build/outputs/bundle/productionRelease/tv-production-release.aab"
+          test -s "${bundle}"
+          jarsigner -verify -verbose -certs "${bundle}" > "${RUNNER_TEMP}/jarsigner-google-tv-report.txt"
+          grep -Fq 'jar verified.' "${RUNNER_TEMP}/jarsigner-google-tv-report.txt"
+          scripts/validate-tv-bundle.sh \
+            "${bundle}" \
+            "${BUNDLETOOL_PATH}" \
+            "${ANDROID_HOME}/build-tools/36.0.0/dexdump" \
+            "${RUNNER_TEMP}/tv-launcher-evidence"
+          if unzip -Z1 "${bundle}" | grep -Eq '^base/lib/.+\.so$'; then
+            echo "::error::Native libraries vereisen een afzonderlijke ABI- en 16-KB-page-sizevalidatie"
+            exit 1
+          fi
+
+      - name: Enable Android emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Reclaim runner space for the Android TV userdata partition
+        run: |
+          sudo rm -rf \
+            "${ANDROID_HOME}/ndk" \
+            "${ANDROID_HOME}/cmake" \
+            "/opt/hostedtoolcache/CodeQL"
+          rm -rf \
+            "${GRADLE_USER_HOME}/caches" \
+            "${GRADLE_USER_HOME}/daemon"
+          available_kib="$(df --output=avail -k "${RUNNER_TEMP}" | tail -n 1 | tr -d ' ')"
+          required_kib="$((9 * 1024 * 1024))"
+          df -h "${RUNNER_TEMP}"
+          if (( available_kib < required_kib )); then
+            echo "::error::Minder dan 9 GiB vrije ruimte voor de Android TV-emulator"
+            exit 1
+          fi
+
+      - name: Install and start production TV bundle on Android TV API 34
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/veyocast-upload.jks
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_TV_UPLOAD_KEY_ALIAS }}
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_TV_UPLOAD_KEY_PASSWORD }}
+          BUNDLETOOL_PATH: ${{ env.BUNDLETOOL_PATH }}
+        with:
+          api-level: 34
+          target: android-tv
+          arch: x86
+          profile: tv_1080p
+          disk-size: 2G
+          pre-emulator-launch-script: |
+            sed -i '/^disk\.dataPartition\.size=/d' "${ANDROID_AVD_HOME}/test.avd/config.ini"
+            printf 'disk.dataPartition.size=2G\n' >> "${ANDROID_AVD_HOME}/test.avd/config.ini"
+            test "$(grep -c '^disk\.dataPartition\.size=2G$' "${ANDROID_AVD_HOME}/test.avd/config.ini")" -eq 1
+          disable-animations: true
+          emulator-options: >-
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+          script: bash apps/android-tv/scripts/install-tv-bundle-and-validate-launcher.sh
+
+      - name: Preserve signed Google TV artifact
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: veyocast-google-tv-internal-${{ github.run_number }}
+          path: |
+            apps/android-tv/tv/build/outputs/bundle/productionRelease/tv-production-release.aab
+            apps/android-tv/tv/build/outputs/mapping/productionRelease/mapping.txt
+            ${{ runner.temp }}/tv-launcher-evidence/
+            ${{ runner.temp }}/jarsigner-google-tv-report.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish to Google Play internal testing
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJson: ${{ steps.google_auth.outputs.credentials_file_path }}
+          packageName: nl.veyocast.player
+          releaseFiles: ${{ github.workspace }}/apps/android-tv/tv/build/outputs/bundle/productionRelease/tv-production-release.aab
+          tracks: tv:internal
+          status: completed
+          releaseName: VeyoCast Player Android TV ${{ env.VEYCAST_TV_VERSION_NAME }}
+          whatsNewDirectory: ${{ github.workspace }}/apps/android-tv/play-tv/release-notes
+          mappingFile: ${{ github.workspace }}/apps/android-tv/tv/build/outputs/mapping/productionRelease/mapping.txt
+
+      - name: Remove temporary signing material
+        if: always()
+        run: >-
+          rm -f
+          "${RUNNER_TEMP}/veyocast-upload.jks"
+          "${RUNNER_TEMP}/store-password.txt"
+          "${RUNNER_TEMP}/key-password.txt"

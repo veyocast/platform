@@ -1,3 +1,5 @@
+import { syncPlaybackEvidence } from "./sync-playback-evidence";
+
 export type OperationalSignal = {
   ageLabel: string;
   cause: string;
@@ -55,6 +57,7 @@ export type OperationalDataAvailability = Readonly<{
 export type OperationalSource = {
   availability?: OperationalDataAvailability;
   devices: Array<{
+    current_sync_detail?: unknown;
     active_release_id: string | null;
     desired_release_id: string | null;
     id: string;
@@ -160,7 +163,20 @@ export function deriveOperationalDashboard(
 
   for (const screen of source.screens.filter((item) => item.status === "active")) {
     const device = devicesByScreen.get(screen.id);
-    if (!device) continue;
+    if (!device) {
+      signals.push(signal({
+        cause: "Dit scherm heeft nog geen gekoppelde Player.",
+        effect: "Bereikbaarheid en zichtbare inhoud zijn nog niet bevestigd.",
+        href: `/dashboard/screens/${screen.id}`,
+        id: `screen-unpaired:${screen.id}`,
+        label: "Player nog niet gekoppeld",
+        occurredAt: screen.created_at,
+        recovery: "Open het scherm en koppel de Player met de tijdelijke code.",
+        resource: screen.name,
+        severity: "info"
+      }, nowMs));
+      continue;
+    }
     const lastSeenMs = timestamp(device.last_seen_at);
     const offline = !lastSeenMs || nowMs - lastSeenMs >= offlineAfterMs;
 
@@ -195,6 +211,21 @@ export function deriveOperationalDashboard(
         recovery: "Bekijk de synchronisatiegebeurtenissen en vraag alleen na diagnose een veilige retry aan.",
         resource: screen.name,
         severity: "warning"
+      }, nowMs));
+    }
+
+    const playbackEvidence = syncPlaybackEvidence(device, nowMs);
+    if (playbackEvidence.contact === "online" && device.desired_release_id && !playbackEvidence.desiredConfirmed && !device.last_error_code) {
+      signals.push(signal({
+        cause: "De gewenste publicatie is nog niet met een zichtbaar frame bevestigd.",
+        effect: "De laatst geldige publicatie kan blijven spelen terwijl de Player de nieuwe opdracht voorbereidt.",
+        href: `/dashboard/screens/${screen.id}`,
+        id: `publication-pending:${screen.id}`,
+        label: "Wacht op publicatiebevestiging",
+        occurredAt: device.last_seen_at ?? screen.created_at,
+        recovery: "Open het scherm om downloaden, controleren en zichtbaar bevestigen afzonderlijk te volgen.",
+        resource: screen.name,
+        severity: "info"
       }, nowMs));
     }
 
@@ -339,20 +370,27 @@ export function deriveOperationalDashboard(
 
   const latestHeartbeats = new Map<string, OperationalSource["heartbeats"][number]>();
   for (const heartbeat of source.heartbeats) {
-    if (!latestHeartbeats.has(heartbeat.screen_id)) latestHeartbeats.set(heartbeat.screen_id, heartbeat);
+    const previous = latestHeartbeats.get(heartbeat.screen_id);
+    if (Number.isFinite(Date.parse(heartbeat.created_at)) && (!previous || timestamp(heartbeat.created_at) > timestamp(previous.created_at))) {
+      latestHeartbeats.set(heartbeat.screen_id, heartbeat);
+    }
   }
   const pairedDevices = source.devices.filter((device) => device.status === "paired");
-  const activePlaybackCount = [...latestHeartbeats.values()].filter((heartbeat) =>
-    heartbeat.active_release_id &&
-    ["PLAYING", "OFFLINE_PLAYING", "READY"].includes(heartbeat.runtime_state) &&
-    nowMs - timestamp(heartbeat.created_at) < offlineAfterMs
-  ).length;
+  const activePlaybackCount = source.screens.filter(screen => {
+    const device = devicesByScreen.get(screen.id);
+    const heartbeat = latestHeartbeats.get(screen.id);
+    const evidence = syncPlaybackEvidence(device, nowMs);
+    return screen.status === "active" && evidence.contact === "online" && Boolean(evidence.confirmedReleaseId) &&
+      heartbeat?.active_release_id === evidence.confirmedReleaseId &&
+      ["PLAYING", "OFFLINE_PLAYING", "READY"].includes(heartbeat.runtime_state) &&
+      nowMs - timestamp(heartbeat.created_at) >= 0 && nowMs - timestamp(heartbeat.created_at) < offlineAfterMs;
+  }).length;
   const readyMediaCount = source.media.filter((asset) => asset.status === "ready").length;
   const playlistsWithItems = new Set(source.playlistItems.map((item) => item.playlist_id));
   const integrationHealth = deriveIntegrationHealth(source.integrations, nowMs);
   const onlineScreenCount = source.screens.filter((screen) => {
     const device = devicesByScreen.get(screen.id);
-    return screen.status === "active" && Boolean(device?.last_seen_at) && nowMs - timestamp(device?.last_seen_at ?? null) < offlineAfterMs;
+    return screen.status === "active" && syncPlaybackEvidence(device, nowMs).contact === "online";
   }).length;
   const sortedSignals = signals.sort(compareSignals);
   const status = deriveOperationalState({
