@@ -15,6 +15,9 @@ export type PlaylistStudioItem = {
   fitMode: "contain" | "cover";
   id: string;
   mediaAssetId: string;
+  mediaFrameId?: string | null;
+  mediaFrameVersionId?: string | null;
+  mediaFrameOverrides?: Record<string, true>;
   muted: boolean;
   sectionId: string | null;
   sortOrder: number;

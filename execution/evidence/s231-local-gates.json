@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-18T21:52:57.321328+00:00",
+  "scope": "Local S231 before independent hosted CI/promotion; final two presentation attributes additionally covered by full unchanged15-case editor cohort and lint/typechecks.",
+  "baseCommit": "7638a844df30452ec92b73f2fd5bf940fc795344",
+  "foundation": [
+    {
+      "name": "lint",
+      "command": [
+        "pnpm",
+        "lint"
+      ],
+      "exitCode": 0,
+      "logSha256": "d1f205e94f080a089c2429367820f57797300292fce8dd54583cc5e3c7e50ebf"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "pnpm",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "logSha256": "2e42d376254a2434f3a5b3c349842af4861a5943bbd4a2711ded56e30e06dc8f"
+    },
+    {
+      "name": "test",
+      "command": [
+        "pnpm",
+        "test",
+        "--concurrency=1"
+      ],
+      "exitCode": 0,
+      "logSha256": "588955bb25a8208dba03f2ffd35e8710685fb735380c90a6adffebf718e79532"
+    }
+  ],
+  "counts": {
+    "foundationTasksEach": 30,
+    "controlUnitPass": 1065,
+    "controlExpectedSkip": 34,
+    "playerUnitPass": 485,
+    "editorBrowserPass": 15,
+    "editorPresenterPass": 28,
+    "editorDataloaderPass": 8,
+    "playlistNewBrowserPass": 13,
+    "publisherDirectedUnitPass": 32,
+    "publisherResponsiveComponentPass": 1,
+    "lgRetryRegressionPass": 8
+  },
+  "database": {
+    "migration": {
+      "path": "supabase/migrations/20261018200500_sync_media_frames.sql",
+      "sha256": "304429f3ba27dfa8b297aa7ecc41f85c841c938a1206e897aaaf320895d887c5",
+      "bytes": 115440
+    },
+    "test": {
+      "path": "supabase/tests/s231_media_frames.sql",
+      "sha256": "d9e30d7322741ece60266a5f05c728da3bd084f91841dc214316e9a61d11db47",
+      "assertions": 145
+    },
+    "gates": {
+      "freshResetWithSeed": "PASS",
+      "fullRls": {
+        "files": 131,
+        "assertions": 3774,
+        "status": "PASS"
+      },
+      "lint": {
+        "schemas": [
+          "public",
+          "private"
+        ],
+        "errorLevel": 0,
+        "status": "PASS"
+      },
+      "concurrency": {
+        "cases": 7,
+        "status": "PASS",
+        "sameNonceReceiptExactEquality": true,
+        "reuseReason": "All mutation and locking functions are byte-identical to final seven-race-tested fddedd migration; only collection-name predicate in read-only RPC changed. Reverse-patch SHA reconstruction is exact."
+      }
+    },
+    "disposableDatabaseOnlyForReset": true,
+    "proof": {
+      "name": "s231-db-collection-search-final-proof.json",
+      "sha256": "26beedaa93c1c55a5d7f609cd02908ec619295f47623e6e162f8943c7cab7935"
+    }
+  },
+  "sourcePresentationFinalGates": {
+    "completeEditorBrowser": {
+      "passed": 15,
+      "total": 15,
+      "allPreviousAssertionsPreserved": true,
+      "newMetrics": "Both swatches actual Source RGB; saved hex text;25px input;44px wrapper minimum"
+    },
+    "productEslint": "PASS",
+    "browserEslint": "PASS",
+    "controlTypecheck": "PASS",
+    "strictBrowserTypecheck": "PASS",
+    "diffCheck": "PASS"
+  },
+  "playerProductionBuild": "PASS incl webOS79 syntax and bundle secret/import guards",
+  "scopedPeerReview": "No new concrete blocker in fresh actor/tenant authorization, immutable version/source/receipt boundaries, publisher, modern cache and LG URL ownership. Read-only; no additional gate claim.",
+  "retainedFindings": [
+    "Full install needed for actual workspace links; no dependency/lock change.",
+    "Contract test moved from exported src to test after package-boundary guard found vitest import. Original assertions retained.",
+    "Parallel CPU starvation run retained; full workspace tests serialized with unchanged5s Sportlink date-test deadline.",
+    "Three old unbound playlist mocks exposed unnecessary new helper call; product now skips frame readmodel for unbound items; old assertions retained.",
+    "Three LG VM harnesses now extract actual pure helper; original assertions retained.",
+    "Eight LG URL ownership regressions failed before fix and pass after.",
+    "One Chromium target crash retained; same one-case rerun passed unchanged."
+  ],
+  "preserved": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "all existing workflows",
+    "service workers",
+    "native Player/Control/signing",
+    "existing database history and data"
+  ],
+  "hostedDeploymentClaim": false
+}

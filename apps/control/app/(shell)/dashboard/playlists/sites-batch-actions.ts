@@ -8,12 +8,13 @@ import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 export type SavePlaylistBatchResult =
   | { outcome: "applied"; actualRevision: number; itemIds: Record<string, string> }
   | { outcome: "conflict"; actualRevision: number }
-  | { outcome: "failed"; message: string };
+  | { outcome: "failed"; message: string; uncertain?: boolean };
 
-export async function savePlaylistBatch(command: PlaylistBatchCommand): Promise<SavePlaylistBatchResult> {
+export async function savePlaylistBatch(command: PlaylistBatchCommand, expectedActorScope?: string): Promise<SavePlaylistBatchResult> {
   const parsed = playlistBatchCommandSchema.safeParse(command);
   if (!parsed.success) return { outcome: "failed", message: "De wijzigingen zijn ongeldig of te groot. Je concept blijft open; controleer de inhoud en probeer opnieuw." };
   const session = await requireTenantCapability("tenant.playlist.write", "mutate");
+  if (expectedActorScope !== undefined && (!session.userId || expectedActorScope !== `${session.tenantId}:${session.userId}`)) return { outcome: "failed", uncertain: true, message: "De gebruiker of vereniging is gewijzigd. De oorspronkelijke opdracht blijft bewaard; open dezelfde sessie voordat je opnieuw bevestigt." };
   const supabase = await createControlSupabaseClient();
   if (!session.isLive || !session.tenantId || !supabase) return { outcome: "failed", message: "De beveiligde datasessie ontbreekt. Je wijzigingen blijven open; log opnieuw in." };
   const scoped = await supabase.from("playlists").select("id").eq("tenant_id", session.tenantId).eq("id", parsed.data.playlistId).maybeSingle();
@@ -24,7 +25,7 @@ export async function savePlaylistBatch(command: PlaylistBatchCommand): Promise<
     p_operations: parsed.data.operations,
     p_idempotency_key: parsed.data.idempotencyKey
   });
-  if (error) return { outcome: "failed", message: ["40001","PT409"].includes(error.code ?? "")
+  if (error) return { outcome: "failed", ...(error.code === "PT409" ? { uncertain: false } : {}), message: ["40001","PT409"].includes(error.code ?? "")
     ? "Een ontwerp of playlist is intussen gewijzigd. Er is niets uit deze opslaghandeling toegepast. Je concept blijft open; laad de nieuwste versie en vergelijk de wijzigingen."
     : "De server kon deze wijzigingen niet veilig opslaan. Je concept blijft open; probeer opnieuw." };
   const result = data as { outcome?: string; actualRevision?: number; itemIds?: Record<string, string> } | null;

@@ -14,6 +14,21 @@ function inlineRuntime(html: string) {
 }
 
 describe("Royal Current Static LG", () => {
+  it("ververst alleen URL-toegang voor dezelfde bevroren mediaframebron", () => {
+    const source = inlineRuntime(renderLgLegacyHtml());
+    const body = source.slice(source.indexOf("function refreshMediaFrameMediaAccess("), source.indexOf("function liveDataChanged("));
+    const current = { mediaFrameBackground: { schemaVersion: 1, background: { kind: "preset", preset: "clubmuur" } }, mediaFrameBackgroundAssets: { clubmuur: { checksumSha256: "a".repeat(64), bytes: 123, mimeType: "image/webp", url: "old-signature" } } };
+    const fresh = structuredClone(current); fresh.mediaFrameBackgroundAssets.clubmuur.url = "new-signature";
+    const context = { current, fresh };
+    new Script(body + ";refreshMediaFrameMediaAccess(current,fresh);").runInNewContext(context);
+    expect(current.mediaFrameBackgroundAssets.clubmuur.url).toBe("new-signature");
+    fresh.mediaFrameBackgroundAssets.clubmuur.bytes += 1; fresh.mediaFrameBackgroundAssets.clubmuur.url = "unverified-signature";
+    new Script(body + ";refreshMediaFrameMediaAccess(current,fresh);").runInNewContext(context);
+    expect(current.mediaFrameBackgroundAssets.clubmuur.url).toBe("new-signature");
+    const binary: Record<string, unknown> = {};
+    new Script(body + ";refreshMediaFrameMediaAccess(current,fresh);").runInNewContext({ current: binary, fresh });
+    expect(binary).toEqual({});
+  });
   it("gebruikt de Source-wachtpresentatie met echte tenantnaam en behoudt de bestaande verborgen klok", () => {
     const html = renderLgLegacyHtml();
 

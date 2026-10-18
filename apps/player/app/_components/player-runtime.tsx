@@ -2,6 +2,7 @@
 import {supportsSyncSlideDom,syncPlayerRendererHeader,syncPlayerRendererVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
 import {assertSyncDynamicConfigurationContinuity} from '../_lib/sync-player-assets';
 import {sourceDataNeedsBoundary} from '../_lib/player-source-data-boundary';
+import { playerMediaFrameBackgroundStyle } from "../_lib/player-media-frame";
 
 import { playerMediaTraffic } from "../_lib/media-traffic";
 
@@ -2733,6 +2734,7 @@ function BinaryPlaybackMedia({
     ...(presentation.backgroundColor
       ? { backgroundColor: presentation.backgroundColor }
       : {}),
+    ...playerMediaFrameBackgroundStyle(item),
     objectPosition: `${presentation.cropFocusX * 100}% ${presentation.cropFocusY * 100}%`
   };
   const failureReportedRef = useRef(false);

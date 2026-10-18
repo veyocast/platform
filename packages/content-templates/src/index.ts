@@ -18,3 +18,4 @@ export { birthdayCalendarDay } from "./birthday-calendar";
 
 export * from "./sites-presentation";
 export * from "./sites-styles";
+export * from "./media-frame-background";

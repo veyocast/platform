@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-18T21:54:53.304033+00:00",
+  "status": "PASS_ARCHIVE_RECEIPT_TRANSFER_RESTORE_AND_LOGICAL_CLEANUP",
+  "scope": "Actual local AAL2 archive/restore for exact own S231 frames; only logical cleanup, no preexisting rows changed.",
+  "proofs": [
+    {
+      "name": "s231-archive-followup-a4747a0c-1ac2-4da1-8397-4a755d9be43b/checkpoint.json",
+      "sha256": "003d6e87267ef0975ef5c97f04af30a65bd2d9542d1086b25601bae737612acf"
+    },
+    {
+      "name": "s231-archive-real/checkpoint.json",
+      "sha256": "e8f1f629302eb98d1d6e2889fb4c0dfae35bbc67ed9a850b77e2c0ff80e6ffaa"
+    },
+    {
+      "name": "veyocast-s231-archive-followup.mjs",
+      "sha256": "61b7c260578a9ba8ac817e304cf632c8baa30973900fd523c63e3cb37f970fa7"
+    },
+    {
+      "name": "s231-qa-forward-applied.jsonl",
+      "sha256": "e90ea0b3eecb6580ebcd368281d54de10f2a74abe64e6e67dd1cd965979d8d45"
+    }
+  ],
+  "originalArchiveFailureRetained": true,
+  "originalFailureCause": "Committed archive response deliberately lost; harness searched card retry behind still-open Radix modal. Screenshot retains real unknown-outcome message. Product was not changed.",
+  "explicitRecoveryBoundary": {
+    "originalPaths": {
+      "script": "/tmp/veyocast-s231-archive-real.mjs",
+      "checkpoint": "/home/codex/.local/state/veyocast-s226/release-evidence/s231-archive-real/checkpoint.json",
+      "attempt": "/home/codex/.local/state/veyocast-s226/release-evidence/s231-archive-real/attempt-d58c621a-1ff9-4931-82d7-6a8923bf3a75.json"
+    },
+    "originalHashes": {
+      "script": "20853140be3a2ec3527da4e132d6c990b25d78b5f8942d0a2555b32a8aff360b",
+      "checkpoint": "e8f1f629302eb98d1d6e2889fb4c0dfae35bbc67ed9a850b77e2c0ff80e6ffaa",
+      "attempt": "f7794d9a918bafd87d53c69970fd8d67ee5cc97a0e688a72975a6a90106881ef"
+    },
+    "firstContextClosed": true,
+    "automaticContextPersistenceClaim": false,
+    "originalCommandTransferredOnly": true
+  },
+  "archiveReceiptReplay": {
+    "status": "PASS",
+    "sameCommandNonceAndCanonicalBody": true,
+    "sameReceiptAndRevision": true,
+    "newContextExplicitJournalTransfer": true,
+    "automaticPersistenceAcrossClosedContextClaimed": false
+  },
+  "completeWorkflowRequestsIncludingOriginal": 5,
+  "uniqueOriginalAndFreshReceipts": 4,
+  "finalHeaders": {
+    "primary": {
+      "id": "8a616a91-78ba-4665-b385-96ddeb011a37",
+      "status": "archived",
+      "revision": 2,
+      "current_version_id": "c53d4630-96e2-4e2c-819a-1c3668d8862b"
+    },
+    "copy": {
+      "id": "0233ac3b-c65d-4e0f-84f7-a557adf85fe0",
+      "status": "archived",
+      "revision": 4,
+      "current_version_id": "0199b6c5-4109-4ae2-9d2e-d3e5584408a7"
+    }
+  },
+  "immutableHashesUnchanged": true,
+  "logicalSoftCleanupOnly": true,
+  "noAssetDeletionOrStorageWrite": true,
+  "noPlaylistOrImmutableReleaseMutation": true,
+  "originalFailureEvidenceUnchanged": true,
+  "existingQaRows": {
+    "at": "2026-10-18T21:54:14.313Z",
+    "comparisons": [
+      {
+        "table": "media_assets",
+        "originalCount": 19,
+        "currentCount": 21,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "media_variants",
+        "originalCount": 50,
+        "currentCount": 54,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "studio_projects",
+        "originalCount": 17,
+        "currentCount": 17,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "studio_project_drafts",
+        "originalCount": 17,
+        "currentCount": 17,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "studio_render_jobs",
+        "originalCount": 10,
+        "currentCount": 10,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "playlists",
+        "originalCount": 8,
+        "currentCount": 9,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "playlist_items",
+        "originalCount": 9,
+        "currentCount": 11,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "playlist_releases",
+        "originalCount": 7,
+        "currentCount": 8,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "playlist_release_items",
+        "originalCount": 7,
+        "currentCount": 9,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "studio_series",
+        "originalCount": 2,
+        "currentCount": 2,
+        "unchanged": true,
+        "changedOriginalIds": []
+      },
+      {
+        "table": "studio_series_items",
+        "originalCount": 4,
+        "currentCount": 4,
+        "unchanged": true,
+        "changedOriginalIds": []
+      }
+    ],
+    "allOriginalRowsUnchanged": true
+  },
+  "physicalBytesBefore": {
+    "main": {
+      "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+      "bytes": 481
+    },
+    "background": {
+      "sha256": "36d49eb9290d9df7d6ec4f355fe6d928170da149e7ab69d9c8075f56ed08486a",
+      "bytes": 481
+    }
+  },
+  "physicalBytesAfter": {
+    "main": {
+      "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+      "bytes": 481
+    },
+    "background": {
+      "sha256": "36d49eb9290d9df7d6ec4f355fe6d928170da149e7ab69d9c8075f56ed08486a",
+      "bytes": 481
+    }
+  },
+  "qaForward": {
+    "singleExactMigrationSha256": "304429f3ba27dfa8b297aa7ecc41f85c841c938a1206e897aaaf320895d887c5",
+    "committedAndVerified": true,
+    "historyRecordCountAdded": 1,
+    "olderTrackingGapsLeftUntouched": 19,
+    "existingQaDatabaseReset": false
+  },
+  "pageErrors": [],
+  "blockedRequests": [],
+  "followupRequests": 4
+}

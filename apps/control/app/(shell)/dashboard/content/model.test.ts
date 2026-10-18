@@ -3,6 +3,12 @@ import{contentFormat,contentPlacementOperations,readContentPlacement,type Conten
 const id=(n:number)=>`22600000-0000-4000-8000-${String(n).padStart(12,"0")}`;
 const item=(patch:Partial<ContentItem>):ContentItem=>({id:id(1),key:"studio:"+id(1),title:"Ontwerp",kind:"studio",family:"free",status:"ready",archived:false,orientation:"landscape",duration:12,width:1920,height:1080,preview:null,href:"/dashboard/studio/"+id(1),placement:{kind:"media",assetId:id(2)},...patch});
 describe("content selection to existing guarded playlist batch",()=>{
+ it("keeps a logical frame/version separate from the asset and pins exactly the chosen version",()=>{
+  const placement=readContentPlacement({kind:"media_frame",frameId:id(70),versionId:id(71)});
+  expect(placement).toEqual({kind:"media_frame",frameId:id(70),versionId:id(71)});
+  expect(contentPlacementOperations([item({kind:"media",id:id(2),mediaFrameId:id(70),mediaFrameVersionId:id(71),duration:901,placement})],()=>id(72))).toEqual([{operation:"add_media_frame",clientId:id(72),frameId:id(70),expectedVersionId:id(71)}]);
+  expect(readContentPlacement({kind:"media_frame",frameId:id(70),versionId:"not-a-version"})).toBeNull();
+ });
  it("uses verified media dimensions rather than assuming every landscape file is 16:9",()=>{
   expect(contentFormat(item({kind:"media",width:1600,height:1200}))).toBe("4:3");
   expect(contentFormat(item({kind:"media",width:1080,height:1920}))).toBe("9:16");

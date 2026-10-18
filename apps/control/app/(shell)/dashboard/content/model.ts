@@ -1,7 +1,8 @@
-import type { PlaylistBatchOperation } from "@veyocast/contracts";
+import type { MediaFrameSettings, PlaylistBatchOperation } from "@veyocast/contracts";
 
 export type ContentPlacement =
   | { kind: "media"; assetId: string }
+  | { kind: "media_frame"; frameId: string; versionId: string }
   | { kind: "dynamic"; snapshotId: string }
   | { kind: "series"; memberCount: number; revision: number };
 export type ContentItem = {
@@ -22,6 +23,9 @@ export type ContentItem = {
   revision?: number | null;
   themeName?: string | null;
   restoreKey?: string;
+  mediaFrameId?: string;
+  mediaFrameVersionId?: string;
+  mediaFramePreview?: { settings: MediaFrameSettings; sourceUrl: string; backgroundUrl?: string; backgroundChecksumSha256?: string; kind: "image" | "video" };
 };
 
 /** Show actual media proportions; landscape alone does not establish 16:9. */
@@ -39,6 +43,7 @@ const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 export function readContentPlacement(value: unknown): ContentPlacement | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const p = value as Record<string, unknown>;
+  if (p.kind === "media_frame" && typeof p.frameId === "string" && uuid.test(p.frameId) && typeof p.versionId === "string" && uuid.test(p.versionId)) return { kind: "media_frame", frameId: p.frameId, versionId: p.versionId };
   if (
     p.kind === "media" &&
     typeof p.assetId === "string" &&
@@ -77,6 +82,7 @@ export function contentPlacementOperations(
         `${item.title} is nog niet gereed. Open het ontwerp om het voor te bereiden; je selectie blijft bewaard.`,
       );
     const p = item.placement;
+    if (p.kind === "media_frame") return { operation: "add_media_frame", clientId: newId(), frameId: p.frameId, expectedVersionId: p.versionId };
     if (p.kind === "series") {
       const ids = Array.from({ length: p.memberCount }, newId);
       return {

@@ -17,6 +17,7 @@ export type ImageUploadApiResult =
       error: {
         code:
           | "FORBIDDEN"
+          | "CONTEXT_CHANGED"
           | "INVALID_FILE"
           | "INVALID_ORIGIN"
           | "REQUEST_TOO_LARGE"

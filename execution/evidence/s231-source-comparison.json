@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-18T21:52:57.321328+00:00",
+  "status": "PASS_TWO_PROVEN_SOURCE_PRESENTATION_CORRECTIONS",
+  "scope": [
+    "Actual media-frame theme swatches use saved accent DTO backgroundColor as original Source does.",
+    "Accentkleur reuses existing Source .vc-color-input wrapper and visible saved hex adornment; no new interaction or persistence contract."
+  ],
+  "actualSourceCapture": {
+    "sha256": "fafb1c1facf1d7fdb09639118390964e3d0f3bd5c0684277b5a4382e39427d49",
+    "status": "CAPTURED_RAW_DIFFERENCES_RECORDED",
+    "states": 6,
+    "pngs": 16,
+    "sourceFilesUnchanged": 60,
+    "servedAssetHashesVerified": 14,
+    "productFilesUnchangedDuringCapture": true,
+    "protectedTenantTablesUnchanged": 10,
+    "journalWrites": 0,
+    "blockedWrites": 0,
+    "pageErrors": 0,
+    "metrics": [
+      {
+        "width": 390,
+        "swatches": {
+          "source": [
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 138,
+              "height": 72
+            },
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 138,
+              "height": 72
+            }
+          ],
+          "actual": [
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 138,
+              "height": 72
+            },
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 138,
+              "height": 72
+            }
+          ]
+        },
+        "hex": {
+          "source": [
+            {
+              "text": "#1763ed",
+              "width": 39,
+              "height": 13.9375
+            }
+          ],
+          "actual": [
+            {
+              "text": "#1763ed",
+              "width": 39,
+              "height": 13.9375
+            }
+          ]
+        },
+        "compactColorInput": {
+          "source": [
+            {
+              "width": 25,
+              "height": 23
+            }
+          ],
+          "actual": [
+            {
+              "width": 25,
+              "height": 44
+            }
+          ]
+        }
+      },
+      {
+        "width": 1440,
+        "swatches": {
+          "source": [
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 119.5,
+              "height": 56
+            },
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 119.5,
+              "height": 56
+            }
+          ],
+          "actual": [
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 119.5,
+              "height": 56
+            },
+            {
+              "backgroundColor": "rgb(23, 99, 237)",
+              "width": 119.5,
+              "height": 56
+            }
+          ]
+        },
+        "hex": {
+          "source": [
+            {
+              "text": "#1763ed",
+              "width": 39,
+              "height": 13.9375
+            }
+          ],
+          "actual": [
+            {
+              "text": "#1763ed",
+              "width": 39,
+              "height": 13.9375
+            }
+          ]
+        },
+        "compactColorInput": {
+          "source": [
+            {
+              "width": 25,
+              "height": 23
+            }
+          ],
+          "actual": [
+            {
+              "width": 25,
+              "height": 44
+            }
+          ]
+        }
+      }
+    ],
+    "knownTouchDifference": "Compact native swatch width25px matches Source. Actual44px input height preserves canonical touch minimum; Source23px remains a recorded raw difference.",
+    "comparisonContract": "Same unchanged reference and underlying measurements; added explicit swatch/color-input/hex-span observation selectors. Raw difference counts are not an improvement score. No crop/resize/mask/tolerance/pixel-PASS."
+  },
+  "originalRawReport": {
+    "name": "s231-media-source-comparison/report-a627fb63-1673-46b9-b1af-75656854111c.json",
+    "sha256": "402d4340041dd5a877cc7672b82d68c4f6e18db43a18a8b39e305386b7ac8cc2"
+  },
+  "finalRawReport": {
+    "name": "s231-media-source-comparison/report-cac652fe-abc3-4c30-80c0-af8349b6acd1.json",
+    "sha256": "fafb1c1facf1d7fdb09639118390964e3d0f3bd5c0684277b5a4382e39427d49"
+  },
+  "rawDifferencesRetained": true,
+  "remainingSoftware": "Clickable rawmedia library filmstrip and Source rawmedia series/add-slide are separate follow-up; no overall Source pixel/functionality completeness claim.",
+  "noProductCssChangeForFinalTwoCorrections": true
+}

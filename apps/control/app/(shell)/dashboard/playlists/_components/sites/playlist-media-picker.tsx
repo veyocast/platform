@@ -50,6 +50,7 @@ function toSlides(choice: Choice): Slide[] {
   });
   if (choice.source === 'media') {
     const media = choice.item;
+    if(media.mediaFrame){const binding=JSON.parse(JSON.stringify(media.mediaFrame))as NonNullable<Media['mediaFrame']>,selected=binding.selected;return[{id:createId(),mediaId:selected.mediaAssetId,mediaChecksumSha256:selected.checksumSha256,name:selected.settings.name,image:selected.image,seconds:selected.settings.durationSeconds,kind:selected.kind,orientation:selected.settings.orientation,mediaFrame:binding}];}
     return [{id: createId(), mediaId:media.sourceKind?media.fallbackAssetId:media.id,mediaChecksumSha256:media.checksumSha256, name: media.name, image: media.image, seconds: mediaPlacementDuration(media), kind:media.kind, sourceKind:media.sourceKind,sourceId:media.sourceId,fallbackAssetId:media.fallbackAssetId}];
   }
   if (choice.source === 'studio') {
@@ -75,13 +76,14 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syn
   const [favorites, setFavorites] = useState(false);
   const [collection,setCollection]=useState('all');
   const [offset,setOffset]=useState(0);
-  const [libraryResponse,setLibraryResponse]=useState<{tab:Tab;page:PublisherLibraryPage}|null>(null);
+  const [libraryResponse,setLibraryResponse]=useState<{tab:Tab;page:PublisherLibraryPage;filterKey:string}|null>(null);
   const library=libraryResponse?.tab===tab?libraryResponse.page:null;
   const [loading,setLoading]=useState(false);
   const [libraryError,setLibraryError]=useState('');
   const [refresh,setRefresh]=useState(0);
   const [videoUpload,setVideoUpload]=useState(false);
   const [provider, setProvider] = useState('all');
+  const filterKey=JSON.stringify([tab,query.trim(),folder,collection,favorites,offset,provider]);
   const [selection, setSelection] = useState<Choice[]>([]);
   const [engageFallback,setEngageFallback]=useState<Media|null>(null);
   const [showSelection, setShowSelection] = useState(false);
@@ -103,9 +105,9 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syn
     const controller=new AbortController();const delay=setTimeout(()=>{setLoading(true);setLibraryError('');
       const params=new URLSearchParams({tab,offset:String(offset)});if(tab==='slides'&&provider!=='all')params.set('source',provider);if(query.trim())params.set('query',query.trim());if(folderId)params.set('folderId',folderId);if(collection!=='all')params.set('collectionId',collection);if(favorites)params.set('favorites','true');
       const deadline=setTimeout(()=>{setLibraryError('De bibliotheek antwoordde niet op tijd. Je selectie blijft behouden; probeer opnieuw.');setLoading(false);controller.abort();},20000);
-      void fetch(`/api/publisher/library?${params}`,{cache:'no-store',signal:controller.signal}).then(async response=>{const page=await response.json()as PublisherLibraryPage&{error?:string};if(!response.ok)throw new Error(page.error||'De bibliotheek kon niet worden geladen.');if(!controller.signal.aborted)setLibraryResponse({tab,page});}).catch(()=>{if(!controller.signal.aborted)setLibraryError('De bibliotheek kon niet worden geladen. Je selectie blijft behouden; probeer opnieuw.');}).finally(()=>{clearTimeout(deadline);if(!controller.signal.aborted)setLoading(false);});
+      void fetch(`/api/publisher/library?${params}`,{cache:'no-store',signal:controller.signal}).then(async response=>{const page=await response.json()as PublisherLibraryPage&{error?:string};if(!response.ok)throw new Error(page.error||'De bibliotheek kon niet worden geladen.');if(!controller.signal.aborted)setLibraryResponse({tab,page,filterKey});}).catch(()=>{if(!controller.signal.aborted)setLibraryError('De bibliotheek kon niet worden geladen. Je selectie blijft behouden; probeer opnieuw.');}).finally(()=>{clearTimeout(deadline);if(!controller.signal.aborted)setLoading(false);});
     },250);return()=>{clearTimeout(delay);controller.abort();};
-  },[tab,query,folderId,collection,favorites,offset,refresh,provider]);
+  },[tab,query,folderId,collection,favorites,offset,refresh,provider,filterKey]);
   const processingMedia=tab==='media'?library?.unavailableMedia?.some(item=>item.status==='processing'):library?.unavailableDesigns?.some(item=>item.processing);
   useEffect(()=>{
     if(!processingMedia||loading)return;
@@ -118,8 +120,9 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syn
   const folders = Array.from(new Set([...activeMedia.map(item => item.folder),...(library?.folders.map(item=>item.name)??[])].filter(Boolean))).sort((a, b) => a.localeCompare(b, 'nl'));
   const normalizedQuery = query.trim().toLocaleLowerCase('nl');
   const matches = (value: string) => value.toLocaleLowerCase('nl').includes(normalizedQuery);
+  const serverMediaMatches=new Set(libraryResponse?.filterKey===filterKey?library?.media.map(item=>item.id):[]);
   const choices: Choice[] = tab === 'media'
-    ? activeMedia.filter(item => (folder === 'all' || item.folder === folder) && (!favorites || item.favorite) && matches(`${item.name} ${(item.tags || []).join(' ')} ${(item.collections || []).join(' ')}`)).map(item => ({key: `media:${item.id}`, source: 'media' as const, item}))
+    ? activeMedia.filter(item => (folder === 'all' || item.folder === folder) && (!favorites || item.favorite) && (serverMediaMatches.has(item.id)||matches(`${item.name} ${(item.tags || []).join(' ')} ${(item.collections || []).join(' ')}`))).map(item => ({key: `media:${item.id}`, source: 'media' as const, item}))
     : [
       ...(library?.syncDesigns??syncDesigns).filter(item=>(provider==='all'||item.provider===provider)&&matches(`${item.name} ${item.configuration.seed.title} ${providerLabel(item)}`)).map(item=>({key:`sync-dynamic:${item.id}`,source:'sync-dynamic' as const,item})),
       ...(library?.syncProjects??[]).filter(()=>provider==='all'||provider==='studio').filter(item=>matches(`${item.name} ${item.members.map(member=>member.name).join(' ')}`)).map(item=>({key:`sync:${item.id}`,source:'sync' as const,item})),
@@ -279,7 +282,7 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syn
               {choice.source === 'media' && choice.item.favorite && <span className={styles.favoriteMark}><Star size={13} fill="currentColor"/></span>}
               {(choice.source === 'studio'||choice.source==='sync') && itemCount(choice) > 0 && <span className={styles.bundle}><Layers size={12}/>{itemCount(choice)} items</span>}
             </div>
-            <span className={styles.cardCopy}><strong>{choice.item.name}</strong><small>{choice.source === 'media' ? choice.item.kind === 'video' ? 'Geverifieerde video' : `${choice.item.folder || 'Media'} · 12 sec.` : choice.source==='sync'?choice.item.kind==='series'?'Hele Studio-reeks':'Studio-ontwerp':choice.source === 'studio' ? itemCount(choice) ? 'Hele Studio-reeks' : 'Nog geen slides' : `${providerLabel(choice.item)} · ${choice.source==='sync-dynamic'?choice.item.durationSeconds:choice.item.seconds} sec.`}</small></span>
+            <span className={styles.cardCopy}><strong>{choice.item.name}</strong><small>{choice.source === 'media' ? choice.item.mediaFrame?`Media-ontwerp · versie ${choice.item.mediaFrame.pinnedVersionNumber} · ${choice.item.mediaFrame.selected.settings.durationSeconds} sec.`:choice.item.kind === 'video' ? 'Geverifieerde video' : `${choice.item.folder || 'Media'} · 12 sec.` : choice.source==='sync'?choice.item.kind==='series'?'Hele Studio-reeks':'Studio-ontwerp':choice.source === 'studio' ? itemCount(choice) ? 'Hele Studio-reeks' : 'Nog geen slides' : `${providerLabel(choice.item)} · ${choice.source==='sync-dynamic'?choice.item.durationSeconds:choice.item.seconds} sec.`}</small></span>
           </button>;
         })}
       </div> : (tab==='media'?library?.unavailableMedia?.length:library?.unavailableDesigns?.length)?<p role="status">Je opgeslagen inhoud staat hierboven met de verwerkingsstatus. Gereedstaande inhoud kun je hier selecteren.</p> : <div className={styles.empty}>

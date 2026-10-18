@@ -5,6 +5,10 @@ const file=(name="clubbeeld.png")=>new File(["bytes"],name,{type:"image/png"});
 const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
 afterEach(()=>{vi.unstubAllGlobals();vi.useRealTimers();});
 describe("Clubverhaal upload acknowledgement",()=>{
+ it("binds an opt-in editor upload to its original actor scope",async()=>{
+  const fetch=vi.fn().mockResolvedValueOnce(reply({ok:true,data:{assetId:id}})).mockResolvedValueOnce(reply({media:[{id,image:"https://private.example.test/signed.png"}]}));vi.stubGlobal("fetch",fetch);
+  await uploadBackground(file(),"tenant:original-actor");expect(fetch.mock.calls[0]![1].headers).toEqual({"X-VeyoCast-Actor-Scope":"tenant:original-actor"});
+ });
  it("shows the actual server cause and recovery without querying a fabricated receipt",async()=>{
   const fetch=vi.fn().mockResolvedValue(reply({ok:false,error:{code:"INVALID_FILE",message:"De afbeelding kon niet worden verwerkt.",recovery:"Exporteer het bestand opnieuw."}},422));vi.stubGlobal("fetch",fetch);
   await expect(uploadBackground(file())).rejects.toThrow("De afbeelding kon niet worden verwerkt. Exporteer het bestand opnieuw.");expect(fetch).toHaveBeenCalledTimes(1);
