@@ -80,6 +80,20 @@ test("LG preserves the verified previous menu after all video transports fail, i
  await run.requestSync();
  await expect.poll(()=>run.reports.some(body=>body.syncRetryAcknowledgedAt==="2026-10-16T01:00:00.123456+00:00")).toBe(true);
  await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:10000}).toBe(12);
+ // Force an offline notification while the previous image is being validated.
+ // A competing LKG read must not restart the rejected active video underneath it.
+ await page.addInitScript(checksum=>{
+  const match=Cache.prototype.match;let injected=false;
+  Cache.prototype.match=function(request,options){
+   const result=match.call(this,request,options);
+   const url=typeof request==="string"?request:request.url;
+   if(!navigator.onLine&&!injected&&url.includes(checksum)){
+    injected=true;setTimeout(()=>window.dispatchEvent(new Event("offline")),0);
+    return result.then(response=>new Promise<Response|undefined>(resolve=>setTimeout(()=>resolve(response),300)));
+   }
+   return result;
+  };
+ },imageSha);
  await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));await context.setOffline(true);await page.reload();await expect(page.locator("#media-root img.visible").first()).toBeVisible();
  await expect(page.locator("#status")).toBeHidden();
 });

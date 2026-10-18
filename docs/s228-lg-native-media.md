@@ -42,3 +42,18 @@ inclusief de twee nieuwe native transport-/retentieregressies. Volledige CI
 en de beschermde uitrol volgen via de PR; fysieke ontvangst en framebevestiging
 worden daarna afzonderlijk gecontroleerd. Rollback is een gewone
 applicatie-uitrol; geen datamigratie, cachewissen of opnieuw koppelen nodig.
+
+De eerste volledige CI vond bij offline cold start nog een samenloop: een
+manifest-/offlineherstel kon tijdens het asynchroon valideren van de vorige
+release opnieuw de afgewezen actieve video starten. De playbackgeneratie
+veranderde, waardoor de vorige-releasecallback terecht verviel maar er geen
+nieuwe werkende weergave kwam. De bestaande offlineproef stelt die samenloop
+nu gericht bloot met een extra offlinebericht tijdens de vorige cachelezing;
+deze proef faalt op 3973e01. Een lopende decoderterugval behoudt nu ownership.
+Een oudere algemene LKG-lezing mag na veranderde playbackgeneratie of een
+nieuwer zichtbaar frame geen tweede startup uitvoeren.
+De aangescherpte raceproef is na herstel drie opeenvolgende keren groen. De
+opnieuw gebouwde Player, lint/typecheck/unit (elk 30/30), gerichte testlint en
+alle 43 productie-browser/offline/a11yproeven zijn opnieuw groen. Geen test is
+verwijderd, overgeslagen of van retries voorzien. De volledige CI draait opnieuw
+op de nieuwe commit voordat een uitrol kan plaatsvinden.

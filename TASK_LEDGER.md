@@ -304,3 +304,8 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
   behoud van lokaal werkende vorige release. Lint/typecheck/unit 30/30 elk,
   productiebuild en 43 browser/offline/a11yproeven groen; CI/uitrol volgen.
   Zie `docs/s228-lg-native-media.md`.
+- S228 CI-vervolg: offline cold-start-race reproduceerbaar gemaakt met een
+  offlinebericht tijdens vorige-releasevalidatie; decoderherstel behoudt
+  playbackownership en verouderde LKG-callbacks starten de kandidaat niet opnieuw.
+  De gerichte raceproef 3/3, productiebuild, foundationgates elk 30/30 en alle 43
+  productie-browser/offline/a11yproeven zijn na die correctie opnieuw groen.

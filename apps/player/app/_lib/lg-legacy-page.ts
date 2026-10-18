@@ -5645,6 +5645,9 @@ export function renderLgLegacyHtml() {
       });
     }
     function restoreLastKnownGood(callback) {
+      // Offline notifications and a failed manifest can overlap the decoder's
+      // previous-release lookup. That lookup owns playback until it completes.
+      if (runtime.restoringVideoFallback) { callback(true); return; }
       if (runtime.currentElement && runtime.currentElement.lgNativeNetworkVideo ||
           runtime.pendingElement && runtime.pendingElement.lgNativeNetworkVideo) {
         runtime.offline = true;
@@ -5666,7 +5669,12 @@ export function renderLgLegacyHtml() {
         callback(true);
         return;
       }
+      var playbackGeneration = runtime.playbackGeneration;
       readCachedRelease(runtime.deviceToken, function (cached) {
+        if (playbackGeneration !== runtime.playbackGeneration || runtime.restoringVideoFallback || runtime.currentElement) {
+          callback(Boolean(runtime.envelope));
+          return;
+        }
         if (!cached) {
           callback(false);
           return;
