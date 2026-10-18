@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "observedAt": "2026-10-18T16:24:20.572Z",
+  "scope": "Actual S227 Control3250, preserved QA57621, unique own poll, isolated anonymous browser; no provider or hardware claim",
+  "runtime": "S227 dev3250 with real preserved QA Supabase57621; persistent server-actions root; dedicated Engage secret absent",
+  "poll": {
+    "campaignId": "83e34a35-9520-4d12-882f-9b6dc0a1e7c2",
+    "publicId": "d25ae66a-e2b5-4c15-afd0-17b1ee52416f",
+    "resultVisibility": "after_close",
+    "finalStatus": "closed",
+    "finalRevision": 2
+  },
+  "checks": {
+    "create": {
+      "status": "PASS",
+      "campaignId": "83e34a35-9520-4d12-882f-9b6dc0a1e7c2",
+      "publicId": "d25ae66a-e2b5-4c15-afd0-17b1ee52416f",
+      "optionCount": 3,
+      "resultVisibility": "after_close",
+      "revision": 0
+    },
+    "draftPrivate": {
+      "status": "PASS",
+      "apiStatus": 404
+    },
+    "start": {
+      "status": "PASS",
+      "postStatus": 303,
+      "uiShowsOpen": true
+    },
+    "beforeFix": {
+      "failure": "AFTER_CLOSE_RESULTS_EXPOSED_AFTER_VOTE_BEFORE_CLOSE",
+      "acceptedVote": true,
+      "leakedResultsVisible": true,
+      "leakedTotalVotes": 1,
+      "leakedOptionCounts": [
+        1,
+        0,
+        0
+      ]
+    },
+    "recovery": {
+      "status": "PASS",
+      "sameCampaign": true,
+      "sameVisitorState": true,
+      "liveIdentityReadHidden": true,
+      "totalVotesReturned": 0,
+      "optionCountsOmitted": true,
+      "existingAcceptedVotes": 1
+    },
+    "duplicate": {
+      "status": "PASS",
+      "apiStatus": 200,
+      "reason": "already_voted",
+      "voteUnchanged": true,
+      "resultsVisible": false,
+      "totalVotesReturned": 0,
+      "optionCountsOmitted": true
+    },
+    "close": {
+      "status": "PASS",
+      "uiShowsClosed": true
+    },
+    "results": {
+      "status": "PASS",
+      "apiStatus": 200,
+      "totalVotes": 1,
+      "optionCounts": [
+        1,
+        0,
+        0
+      ]
+    },
+    "closedVote": {
+      "apiStatus": 409,
+      "accepted": null,
+      "reason": null,
+      "votesUnchanged": true,
+      "status": "PASS"
+    },
+    "preservation": {
+      "status": "PASS",
+      "flagsUnchanged": true,
+      "existingReleasesUnchanged": true,
+      "existingCampaignsUnchanged": true
+    }
+  },
+  "ownerPageErrors": 0,
+  "limits": [
+    "The accepted anonymous vote predates the privacy fix; recovery reuses the same poll and visitor identity, without casting another accepted vote.",
+    "After-fix accepted receipts and other visibility policies are verified separately by the focused SQL regression suite, not claimed as this browser journey.",
+    "Actual authoring/lifecycle and anonymous visitor boundary covered; no blanket cross-tenant, provider, physical-player or hardware claim."
+  ],
+  "sourceEvidence": [
+    "/tmp/veyocast-engage-acceptance-report.json",
+    "/tmp/veyocast-engage-acceptance-before-privacy-fix.json"
+  ]
+}

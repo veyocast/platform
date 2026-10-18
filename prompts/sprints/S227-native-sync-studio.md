@@ -43,3 +43,28 @@ Dezelfde echte editor-Axeproef vond daarnaast de witte `Licht`-labeltekst op
 de lichte achtergrondkeuze (contrast2,23). De rootgenerator mag uitsluitend
 deze keuzetekst de bestaande locked Ink Black-token geven; oppervlak/layout
 blijven gelijk, geen Sourcebaseline- of tolerantiewijziging.
+
+Aanvullende root-scope na echte Engage-configuratiebevinding: bestaande publieke
+`apps/control/app/api/engage/[publicId]/route.ts`, een server-only
+`apps/control/lib/engage-server-secret.ts` en gerichte regressietests. De huidige
+deploy levert een stabiele serveractions-rootkey maar geen aparte Engage-key.
+De bestaande expliciete Engage-key blijft leidend; alleen bij afwezigheid mag
+een domeingescheiden HMAC-subkey worden afgeleid. Geen nieuwe GitHubconfiguratie,
+workflow, cookie-identiteit, publieke sleutel of raw secret in browser/logs.
+Ongeldige expliciete configuratie blijft fail-closed.
+
+Aanvullende scope na concrete echte gebruikersrepro: scoped agent release_audit
+bezit uitsluitend `apps/control/app/(shell)/dashboard/planning/planning-dialogs.tsx`
+en `tests/control/sites-screens-planning-workflows.spec.ts` voor de geblokkeerde
+eerste definitieve submit. Bestaande guarded action/overlapbevestiging blijven.
+Root bezit uitsluitend de noodzakelijke nieuwe forwardmigratie en gerichte
+pgTAP-regressies voor Engage-resultaatprivacy: after_close blijft verborgen tot
+closed, ook na stemmen. Bestaande RPCsignatures, IDs, ratelimits, rechten en
+immutable publicaties blijven behouden. Geen wijziging aan bestaande migraties.
+
+Scopedaudit scenario_audit bezit uitsluitend
+`tests/control/sync-source-geometry-comparison.spec.ts` voor de werkelijk
+gereproduceerde CSSOM/computed-style-race van de reeds bestaande mobiele
+tegenmeting. Wacht begrensd op exact de bestaande normalisatieregels; ruwe
+productiemeting, 66 cases, Source-assets, toleranties en alle criteria blijven.
+Geen product-CSSwijziging of vervanging van mislukte oude bewijzen.

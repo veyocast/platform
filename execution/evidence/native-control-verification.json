@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-18T16:04:49.760382+00:00",
+  "recordedAt": "2026-10-18T16:28:00.124388+00:00",
   "status": "LOCAL_SOFTWARE_PASS_CI_PENDING",
   "baseline": "1a44b49265076b182c80f156051434b9ab53dc0c",
   "scope": "S227 native Sync and separate V3 API; preserves existing v1/v2, IDs, biometrics, notifications, package and release workflows. No installed app/hardware/store claim.",
@@ -10,58 +10,58 @@
     "nativeTests": 58,
     "nativeTestFiles": 15,
     "studioTests": 39,
-    "controlTests": 816,
+    "controlTests": 823,
     "controlExistingSkips": 34
   },
   "proof": {
     "lint": {
-      "sha256": "98e49b085432f52017c8a0f90541b2c093925589e9b1db38854e6a6210ec3d4d",
+      "sha256": "26d39984027ce61697ac840045023a2e468e5bb03b479fef559be501d36169b7",
       "tail": [
+        "@veyocast/media-worker:lint: cache hit, replaying logs a15d5e64dbbc3bae",
+        "@veyocast/media-worker:lint: $ eslint . --max-warnings=0",
         "@veyocast/control:lint: $ eslint . --max-warnings=0",
-        "@veyocast/control-mobile:lint: cache hit, replaying logs 4ebeb3ce7b793b9e",
-        "@veyocast/control-mobile:lint: $ eslint . --max-warnings=0",
         "",
         " Tasks:    30 successful, 30 total",
         "Cached:    29 cached, 30 total",
-        "  Time:    7.123s ",
+        "  Time:    7.504s ",
         ""
       ]
     },
     "typecheck": {
-      "sha256": "9fb5352bfb370a5d5f5823a4fc1b088e0c57b206b1310e943b28d614577c210d",
+      "sha256": "b471c8600496f9e64dd5716936d45a2dbcd4dc4818ff9df213053703f6210182",
       "tail": [
+        "@veyocast/control-mobile:typecheck: cache hit, replaying logs 3dfe1129dbb2f54b",
         "@veyocast/control-mobile:typecheck: $ tsc --noEmit",
-        "@veyocast/control:typecheck: cache miss, executing a5b0d84015a47fa4",
         "@veyocast/control:typecheck: $ tsc --noEmit",
         "",
         " Tasks:    30 successful, 30 total",
         "Cached:    29 cached, 30 total",
-        "  Time:    3.256s ",
+        "  Time:    3.281s ",
         ""
       ]
     },
     "unit": {
-      "sha256": "9d4fcda11ef8889d68cc97d9fab09272f749c88233733d3193d0957de00a1977",
+      "sha256": "9028e13ab432e577e6306654bb3c5cdb3a337f3e7d942fac482214dddc89db45",
       "tail": [
-        "@veyocast/control-mobile:test:    Start at  17:21:08",
-        "@veyocast/control-mobile:test:    Duration  1.16s (transform 1.33s, setup 0ms, collect 3.78s, tests 119ms, environment 2ms, prepare 1.10s)",
-        "@veyocast/control-mobile:test: ",
+        "@veyocast/control:test:    Start at  18:24:31",
+        "@veyocast/control:test:    Duration  9.17s (transform 8.22s, setup 0ms, collect 48.34s, tests 4.98s, environment 32ms, prepare 11.28s)",
+        "@veyocast/control:test: ",
         "",
         " Tasks:    30 successful, 30 total",
         "Cached:    28 cached, 30 total",
-        "  Time:    13.471s ",
+        "  Time:    10.009s ",
         ""
       ]
     },
     "controlProductionBuild": {
-      "sha256": "a557ce802c4eabdcedb8299dd7b67bbe5c6bb2a03266efbbf77305a0c257e539",
+      "sha256": "229f6b23b7912af31cfb6e57e12acc13899122f7fd431c6aaaed3fe67e34692d",
       "tail": [
         "",
         "",
-        "ƒ Middleware                                                    92.8 kB",
+        "\u0192 Middleware                                                    92.8 kB",
         "",
-        "○  (Static)   prerendered as static content",
-        "ƒ  (Dynamic)  server-rendered on demand",
+        "\u25cb  (Static)   prerendered as static content",
+        "\u0192  (Dynamic)  server-rendered on demand",
         "",
         "Control authcontrole: beveiligde routes zijn dynamisch."
       ]
@@ -227,6 +227,20 @@
     "execution/evidence/support-real-services-final.json",
     "execution/evidence/composition-real-services-final.json",
     "execution/evidence/player-no-content-cache-real-services.json",
-    "execution/evidence/venue-existing-denial-real-services.json"
-  ]
+    "execution/evidence/venue-existing-denial-real-services.json",
+    "execution/evidence/engage-recovery-real-services-final.json",
+    "execution/evidence/engage-fresh-receipt-real-services-final.json",
+    "execution/evidence/planning-real-services-final.json"
+  ],
+  "database": {
+    "freshDisposableReset": "PASS",
+    "files": 130,
+    "assertions": 3629,
+    "newPrivacyRegressions": 33,
+    "preFixPrivacyFailures": 8,
+    "lintErrors": 0,
+    "migration": "supabase/migrations/20261018162300_sync_engage_result_privacy.sql",
+    "rlsLogSha256": "91eb666d93617a078474f1d9ffb88ae0545cfe49350374aa2842edf8604c71dd",
+    "qaApplication": "only forward CREATE OR REPLACE applied to preserved QA; no reset"
+  }
 }

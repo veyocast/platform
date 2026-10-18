@@ -1,0 +1,332 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T16:25:45.957Z",
+  "scope": "Actual final S227 local Control with preserved Supabase and existing verified AAL2. Only new own screen and its own schedules/settings may change; no global scheduler, physical wake command, flag or role mutation.",
+  "label": "S227 planning acceptatie 1792340149193",
+  "tenantId": "19170000-0000-4000-8000-000000000010",
+  "playlistReadOnly": "a41b9dc3-07bc-486f-9687-813f4210e4b7",
+  "steps": [
+    {
+      "name": "existing-aal2-context-and-capacity",
+      "status": "PASS",
+      "capacity": {
+        "used": 8,
+        "limit": 10
+      }
+    },
+    {
+      "name": "own-screen-reused-after-harness-readback-fix",
+      "status": "PASS",
+      "screenId": "bc7a7a4f-1851-49a9-842d-29875f1028c4"
+    },
+    {
+      "name": "actual-ui-schedule-prioriteit",
+      "status": "PASS",
+      "confirmedOverlap": true,
+      "schedule": {
+        "id": "1bb574ef-a7f0-42ad-adeb-8ef19152072b",
+        "name": "S227 planning acceptatie 1792340149193 prioriteit",
+        "endsAt": "2026-10-20T10:00:00+00:00",
+        "source": "publisher",
+        "enabled": true,
+        "priority": 200,
+        "revision": 0,
+        "startsAt": "2026-10-20T08:00:00+00:00",
+        "targetId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+        "deletedAt": null,
+        "snapshotId": "7e73caa7-a08a-4ad2-b4db-22cb9154f953",
+        "targetKind": "screen"
+      }
+    },
+    {
+      "name": "actual-ui-schedule-override",
+      "status": "PASS",
+      "confirmedOverlap": true,
+      "schedule": {
+        "id": "8a446f14-2c07-4b3b-8906-a59d40693544",
+        "name": "S227 planning acceptatie 1792340149193 override",
+        "endsAt": "2026-10-20T10:00:00+00:00",
+        "source": "override",
+        "enabled": true,
+        "priority": 1,
+        "revision": 0,
+        "startsAt": "2026-10-20T08:00:00+00:00",
+        "targetId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+        "deletedAt": null,
+        "snapshotId": "cd240c3f-7cdb-4154-9606-03a11d86f091",
+        "targetKind": "screen"
+      }
+    },
+    {
+      "name": "actual-ui-schedule-eenklik",
+      "status": "PASS",
+      "confirmedOverlap": false,
+      "schedule": {
+        "id": "4fc1a1c2-c6d2-4ca0-9a68-a71f774803dd",
+        "name": "S227 planning acceptatie 1792340149193 eenklik",
+        "endsAt": "2026-10-21T10:00:00+00:00",
+        "source": "publisher",
+        "enabled": true,
+        "priority": 50,
+        "revision": 0,
+        "startsAt": "2026-10-21T08:00:00+00:00",
+        "targetId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+        "deletedAt": null,
+        "snapshotId": "86b17d01-02d3-4828-882d-2b09a5d6ac9f",
+        "targetKind": "screen"
+      }
+    },
+    {
+      "name": "actual-stored-schedule-priority-readback",
+      "status": "PASS",
+      "at": "2026-10-20T09:00:00Z",
+      "orderedCandidates": [
+        {
+          "id": "8a446f14-2c07-4b3b-8906-a59d40693544",
+          "source": "override",
+          "priority": 1
+        },
+        {
+          "id": "1bb574ef-a7f0-42ad-adeb-8ef19152072b",
+          "source": "publisher",
+          "priority": 200
+        },
+        {
+          "id": "66b60f5e-b592-44d1-b71e-2c7237b5202a",
+          "source": "publisher",
+          "priority": 150
+        }
+      ],
+      "endExclusive": true,
+      "globalSchedulerNotInvoked": true
+    },
+    {
+      "name": "actual-ui-schedule-reopen-revision-conflict",
+      "status": "PASS",
+      "scheduleId": "66b60f5e-b592-44d1-b71e-2c7237b5202a",
+      "staleRevision": 1,
+      "actualRevision": 2,
+      "visibleConflict": "Planning niet opgeslagen. Iemand anders wijzigde deze planning. De actuele revisie is 2. Vernieuw de pagina en controleer de actuele periode.",
+      "preservedCommittedName": "S227 planning acceptatie 1792340149193 basis gewijzigd gewijzigd"
+    },
+    {
+      "name": "actual-ui-business-hours-save-reopen",
+      "status": "PASS",
+      "revision": 1,
+      "timezone": "Europe/Amsterdam",
+      "monday": "22:00–02:00",
+      "closedDate": "2026-10-20",
+      "temporaryOverride": "active",
+      "overrideUntilLocal": "2026-10-21T12:00",
+      "physicalWakeNotRequested": true
+    },
+    {
+      "name": "persisted-business-hours-contract-closed-override-midnight",
+      "status": "PASS",
+      "scope": "Production evaluator imported unchanged and applied to settings reloaded from actual Control/DB; no physical device execution inferred.",
+      "cases": [
+        {
+          "at": "2026-10-20T09:00:00Z",
+          "active": false,
+          "reason": "exception_closed",
+          "nextTransitionAt": "2026-10-20T22:00:00.000Z",
+          "shouldPrepareWake": false
+        },
+        {
+          "at": "2026-10-19T19:00:00Z",
+          "active": true,
+          "reason": "temporary_active",
+          "nextTransitionAt": "2026-10-19T22:00:00.000Z",
+          "shouldPrepareWake": false
+        },
+        {
+          "at": "2026-10-21T11:00:00Z",
+          "active": true,
+          "reason": "weekly",
+          "nextTransitionAt": "2026-10-21T21:00:00.000Z",
+          "shouldPrepareWake": false
+        },
+        {
+          "at": "2026-10-26T22:30:00Z",
+          "active": true,
+          "reason": "weekly",
+          "nextTransitionAt": "2026-10-27T01:00:00.000Z",
+          "shouldPrepareWake": false
+        },
+        {
+          "at": "2026-10-27T00:30:00Z",
+          "active": true,
+          "reason": "weekly",
+          "nextTransitionAt": "2026-10-27T01:00:00.000Z",
+          "shouldPrepareWake": false
+        },
+        {
+          "at": "2026-10-26T20:30:00Z",
+          "active": false,
+          "reason": "outside_schedule",
+          "nextTransitionAt": "2026-10-26T21:00:00.000Z",
+          "shouldPrepareWake": false
+        }
+      ]
+    },
+    {
+      "name": "actual-ui-open-exception-save-reopen-and-precedence",
+      "status": "PASS",
+      "revision": 2,
+      "cases": [
+        {
+          "at": "2026-10-20T09:00:00Z",
+          "active": true,
+          "reason": "exception_open",
+          "nextTransitionAt": "2026-10-20T10:00:00.000Z",
+          "shouldPrepareWake": false
+        },
+        {
+          "at": "2026-10-20T11:00:00Z",
+          "active": false,
+          "reason": "exception_open",
+          "nextTransitionAt": "2026-10-21T10:00:00.000Z",
+          "shouldPrepareWake": false
+        },
+        {
+          "at": "2026-10-19T20:00:00Z",
+          "active": false,
+          "reason": "temporary_paused",
+          "nextTransitionAt": "2026-10-20T08:00:00.000Z",
+          "shouldPrepareWake": false
+        }
+      ],
+      "scope": "Actual own saved exception; production evaluator on database-loaded settings. No physical wake command."
+    }
+  ],
+  "screenId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+  "preservation": {
+    "flags": {
+      "previousRowCount": 3,
+      "allPreexistingUnchanged": true
+    },
+    "releases": {
+      "previousRowCount": 7,
+      "allPreexistingUnchanged": true
+    },
+    "releaseItems": {
+      "previousRowCount": 7,
+      "allPreexistingUnchanged": true
+    },
+    "authoring": {
+      "previousRowCount": 7,
+      "allPreexistingUnchanged": true
+    },
+    "schedules": {
+      "previousRowCount": 0,
+      "allPreexistingUnchanged": true
+    },
+    "automationSettings": {
+      "previousRowCount": 0,
+      "allPreexistingUnchanged": true
+    },
+    "automationPeriods": {
+      "previousRowCount": 0,
+      "allPreexistingUnchanged": true
+    },
+    "automationExceptions": {
+      "previousRowCount": 0,
+      "allPreexistingUnchanged": true
+    },
+    "screenBindings": {
+      "previousRowCount": 7,
+      "allPreexistingUnchanged": true
+    }
+  },
+  "schedules": [
+    {
+      "id": "66b60f5e-b592-44d1-b71e-2c7237b5202a",
+      "name": "S227 planning acceptatie 1792340149193 basis gewijzigd gewijzigd",
+      "endsAt": "2026-10-20T10:00:00+00:00",
+      "source": "publisher",
+      "enabled": true,
+      "priority": 150,
+      "revision": 2,
+      "startsAt": "2026-10-20T08:00:00+00:00",
+      "targetId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+      "deletedAt": null,
+      "snapshotId": "1f8f5abd-0f1f-4218-8605-02a8ea8833a5",
+      "targetKind": "screen"
+    },
+    {
+      "id": "4fc1a1c2-c6d2-4ca0-9a68-a71f774803dd",
+      "name": "S227 planning acceptatie 1792340149193 eenklik",
+      "endsAt": "2026-10-21T10:00:00+00:00",
+      "source": "publisher",
+      "enabled": true,
+      "priority": 50,
+      "revision": 0,
+      "startsAt": "2026-10-21T08:00:00+00:00",
+      "targetId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+      "deletedAt": null,
+      "snapshotId": "86b17d01-02d3-4828-882d-2b09a5d6ac9f",
+      "targetKind": "screen"
+    },
+    {
+      "id": "8a446f14-2c07-4b3b-8906-a59d40693544",
+      "name": "S227 planning acceptatie 1792340149193 override",
+      "endsAt": "2026-10-20T10:00:00+00:00",
+      "source": "override",
+      "enabled": true,
+      "priority": 1,
+      "revision": 0,
+      "startsAt": "2026-10-20T08:00:00+00:00",
+      "targetId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+      "deletedAt": null,
+      "snapshotId": "cd240c3f-7cdb-4154-9606-03a11d86f091",
+      "targetKind": "screen"
+    },
+    {
+      "id": "1bb574ef-a7f0-42ad-adeb-8ef19152072b",
+      "name": "S227 planning acceptatie 1792340149193 prioriteit",
+      "endsAt": "2026-10-20T10:00:00+00:00",
+      "source": "publisher",
+      "enabled": true,
+      "priority": 200,
+      "revision": 0,
+      "startsAt": "2026-10-20T08:00:00+00:00",
+      "targetId": "bc7a7a4f-1851-49a9-842d-29875f1028c4",
+      "deletedAt": null,
+      "snapshotId": "7e73caa7-a08a-4ad2-b4db-22cb9154f953",
+      "targetKind": "screen"
+    }
+  ],
+  "finishedAt": "2026-10-18T16:25:52.005Z",
+  "verification": {
+    "regressionBefore": "New single-click regression failed with zero create commands; explicit overlap case passed.",
+    "regressionAfter": "20/20 actual production-component Chromium wizard checks PASS.",
+    "lintAndTypes": "Both targeted ESLint invocations and Control tsc exit 0.",
+    "proofFiles": {
+      "regressionBefore": {
+        "path": "/tmp/veyocast-planning-acceptance-regression-before.log",
+        "sha256": "7d3164feb5c00f49a3b1511bf3ca4db6621d776596f20488e9a367f0b8caaeb1"
+      },
+      "regressionAfter": {
+        "path": "/tmp/veyocast-planning-acceptance-regression-after.log",
+        "sha256": "217d66c2c1eabf5bfbe8fab86198af24b369f6f1db1aaa022b10cf1f737ab843"
+      },
+      "productionComponentLint": {
+        "path": "/tmp/veyocast-planning-acceptance-lint.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "regressionTestLint": {
+        "path": "/tmp/veyocast-planning-acceptance-test-lint.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "controlTypes": {
+        "path": "/tmp/veyocast-planning-acceptance-types.log",
+        "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+      }
+    }
+  },
+  "limitations": [
+    "Planning priority was read back using actual stored rows, target snapshots and existing private.content_schedule_is_due; the global scheduler was not invoked because it mutates all screens.",
+    "No screen-group or venue-zone membership was mutated; no group/zone runtime precedence acceptance is inferred. Venue Twin remains disabled as independently proved earlier.",
+    "Business-hours evaluation used the unchanged production contract function on settings reloaded from the actual saved database via Control, without a physical wake command or hardware acceptance."
+  ]
+}

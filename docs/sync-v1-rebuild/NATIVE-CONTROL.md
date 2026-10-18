@@ -72,3 +72,25 @@ Dezelfde editorcontrole herstelt de mobiele semantische labeltypografie en het
 Licht-keuzelabelcontrast met de locked InkBlack-token; werkelijk Axe0 en geen
 overflow. Overige bekende geometrieverschillen zijn expliciet verklaard in
 `studio-editor-geometry-notes.json`, geen algemene pixelpariteitsclaim.
+
+De aanvullende Interactiecontrole vond ontbrekende runtimeconfiguratie en te
+vroege after_close-resultaten. De server-only keyresolver behoudt een expliciete
+Engage-key bytegelijk; alleen bij afwezigheid leidt HMAC-SHA256 een aparte key af
+uit de bestaande persistente serveractions-root met vaste Engage-context.
+Ontbrekende/korte root of expliciet ongeldige override blijft fail-closed.
+Rootrotatie verandert fallback-stemidentiteiten; behoud die root tijdens een
+actieve campagne, of gebruik een stabiele aparte Engage-key. Er worden geen
+nieuwe GitHubsettings of credentials vereist.
+
+Forwardmigratie `20261018162300_sync_engage_result_privacy.sql` begrenst de
+bestaande private payload centraal: after_close verbergt boolean, totaal en
+optietellingen tot closed, ook in stemreceipts en identity-reads. Geen data-,
+RPCsignature-, ACL- of immutable releasewijziging. Een webrollback kan deze
+compatibele privacyfix behouden; terugzetten van de lekkende functie is geen
+vereiste voor herstel. Een late stem na sluiting krijgt HTTP409.
+
+De planningswizard laat de gecontroleerde definitieve submit direct naar de
+bestaande serveractie gaan. Zo wordt met één klik opgeslagen; de expliciete
+overlapbevestiging en serverrechten/CAS/nonce blijven dezelfde. De responsive
+Source-harness wacht begrensd op toepassing van zijn bestaande mobiele
+tegenmetings-CSS; ruwe productiemetingen, Source en toleranties blijven intact.

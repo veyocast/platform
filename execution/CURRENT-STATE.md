@@ -3,7 +3,7 @@
 PR252 is normaal gemerged als848ab297d04cf36891881d27a1da7e8456e16b04. Alle6
 finaleCI-workflows op1a44 zijn groen;282PlayerPASS/15opt-inSKIP en548strikte
 Sourcecases plus aanvullende starters/backgrounds/category-off zijn bevestigd.
-Stagingrun39142862287 bouwt die immutable release. De productiepromotie volgt
+Stagingrun39142862287 is SUCCESS inclusief pairing/LG-herstel en cleanup; beide publieke healthchecks tonen exact848ab297. De productiepromotie volgt
 met de getoetste S227-aanvulling; nog geen productieclaim op deze snapshot.
 
 S227 native vervolg: lokale softwaregates en echte V3/MFA-/receipt-/worker-/
@@ -889,3 +889,6 @@ revisie 4 blijven gelijk; nul extra releases. Bewijs:
 evidence/product-browser-receipt-recovery.json. Poging1 vond uitsluitend een te
 brede testselector die ook de Next-route-announcer selecteerde; deze is nu op
 de daadwerkelijke productmelding gericht. Geen retry maakt een tweede mutatie.
+
+
+Aanvullende S227-fixes: planning bewaart met één definitieve klik; Engage gebruikt een afgescheiden server-only fallbackkey en verbergt after_close-tellingen tot sluiten. Echte verse accepted200/dedup/close/late409- en planning/CAS/bedrijfstijdenproeven groen. Nieuwe compatibele privacyforwardmigratie: verse reset130bestanden/3629assertions PASS, DB-errors0; foundation30/30, Control823/34bestaandeSKIP en productiebuild groen. Finale eigen CI en eindstaging/productie volgen.

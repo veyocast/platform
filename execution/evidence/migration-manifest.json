@@ -1,9 +1,9 @@
 {
-  "recordedAt": "2026-10-18T15:14:46.361019+00:00",
+  "recordedAt": "2026-10-18T16:28:00.124388+00:00",
   "baseline": "20729be35d38dc8eb67b836160632ac7c3ea5153",
-  "migrationCount": 27,
+  "migrationCount": 28,
   "freshReset": "PASS",
-  "rlsChecks": 3596,
+  "rlsChecks": 3629,
   "migrations": [
     {
       "path": "supabase/migrations/20261017195749_sync_marketing_inquiries.sql",
@@ -112,6 +112,11 @@
     {
       "path": "supabase/migrations/20261018150124_sync_studio_nonretryable_conflicts.sql",
       "sha256": "d451a24ac79655d5ec92f4608f90ec2c1601135ef0fc887bc996b25c0fe069bd"
+    },
+    {
+      "path": "supabase/migrations/20261018162300_sync_engage_result_privacy.sql",
+      "sha256": "3d98c60c99bdec23d7409ebc5dfbf5c7cac1c5756d2a670b26494011792cd315"
     }
-  ]
+  ],
+  "rlsFiles": 130
 }

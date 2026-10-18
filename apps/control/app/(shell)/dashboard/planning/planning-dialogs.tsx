@@ -61,11 +61,13 @@ export function ContentScheduleDialog({defaultOpen=false,defaultStartAt,defaultT
  async function onSubmit(event:FormEvent<HTMLFormElement>){
   ensureIdempotencyKey(idempotencyKey.current);
   if(bypassCheck.current){bypassCheck.current=false;return;}
+  // A reviewed final submit must reach the existing server action directly.
+  // requestSubmit during this submit event is ignored by the browser.
+  if(step===2&&conflictCheck&&!conflictCheck.error&&conflictCheck.conflicts.length===0)return;
   event.preventDefault();const currentForm=event.currentTarget;
   const panel=currentForm.querySelector<HTMLElement>(`[data-wizard-step="${step}"]`);
   const invalid=Array.from(panel?.querySelectorAll<HTMLInputElement|HTMLSelectElement>("input,select")??[]).find(input=>!input.checkValidity());if(invalid){invalid.reportValidity();return;}
   if(step===0){if(!targetCount){setConflictCheck({conflicts:[],error:"Kies minimaal één actief scherm. Er is niets opgeslagen."});return;}setStep(1);return;}
-  if(step===2&&conflictCheck&&!conflictCheck.error&&conflictCheck.conflicts.length===0){bypassCheck.current=true;currentForm.requestSubmit();return;}
   setChecking(true);
   try{
    const values=new FormData(currentForm);const targetParts=target.split(":");
