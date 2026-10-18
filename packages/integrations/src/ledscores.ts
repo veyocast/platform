@@ -241,6 +241,23 @@ export type LedScoresObservation =
       reason: LedScoresIgnoredReason;
     };
 
+type LedScoresPrimitiveType = "boolean" | "null" | "number" | "string";
+type LedScoresPrimitiveField = {
+  key: "active" | "id" | "name" | "type";
+  type: LedScoresPrimitiveType;
+};
+type LedScoresTeamShape =
+  | { type: LedScoresPrimitiveType | "array" | "missing" }
+  | {
+      primitiveFields: readonly LedScoresPrimitiveField[];
+      type: "object";
+    };
+type LedScoresValidationIssue = {
+  code: string;
+  path: string;
+  shape?: LedScoresTeamShape;
+};
+
 export class LedScoresProtocolError extends Error {
   constructor(
     readonly code:
@@ -248,11 +265,54 @@ export class LedScoresProtocolError extends Error {
       | "LEDSCORES_MESSAGE_TOO_LARGE"
       | "LEDSCORES_SLUG_INVALID",
     message: string,
-    readonly validationIssues: readonly { code: string; path: string }[] = []
+    readonly validationIssues: readonly LedScoresValidationIssue[] = []
   ) {
     super(message);
     this.name = "LedScoresProtocolError";
   }
+}
+
+function primitiveType(value: unknown): LedScoresPrimitiveType | undefined {
+  if (value === null) return "null";
+  const type = typeof value;
+  if (type === "boolean" || type === "number" || type === "string") {
+    return type;
+  }
+  return undefined;
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function rejectedTeamShape(
+  parsed: unknown,
+  issue: { code: string; path: readonly PropertyKey[] }
+): LedScoresTeamShape | undefined {
+  if (issue.code !== "invalid_union" || issue.path.length !== 3
+    || issue.path[0] !== "message" || issue.path[1] !== "teams"
+    || (issue.path[2] !== "away" && issue.path[2] !== "home")
+    || !isJsonObject(parsed) || !isJsonObject(parsed.message)
+    || !isJsonObject(parsed.message.teams)) return undefined;
+
+  const teams = parsed.message.teams;
+  const side = issue.path[2];
+  if (!Object.hasOwn(teams, side)) return { type: "missing" };
+  const value = teams[side];
+  const type = primitiveType(value);
+  if (type) return { type };
+  if (Array.isArray(value)) return { type: "array" };
+  if (!isJsonObject(value)) return undefined;
+
+  const primitiveFields: LedScoresPrimitiveField[] = [];
+  // Report only fixed protocol field names and primitive type enums. Never
+  // enumerate arbitrary keys, retain values or descend into object/array data.
+  for (const key of ["id", "name", "type", "active"] as const) {
+    if (!Object.hasOwn(value, key)) continue;
+    const fieldType = primitiveType(value[key]);
+    if (fieldType) primitiveFields.push({ key, type: fieldType });
+  }
+  return { type: "object", primitiveFields };
 }
 
 export function normalizeLedScoresClubSlug(value: string) {
@@ -306,15 +366,22 @@ export function parseLedScoresMessage(raw: string | ArrayBuffer | Uint8Array) {
   }
   const result = scoresMessageSchema.safeParse(parsed);
   if (!result.success) {
+    const shapedPaths = new Set<string>();
     throw new LedScoresProtocolError(
       "LEDSCORES_MESSAGE_INVALID",
       "LED Scores gaf geen ondersteund scorebericht terug.",
       // Zod paths identify schema fields, never their rejected values. Keep
       // diagnostics bounded and hide roster/scorer indices as well.
-      result.error.issues.slice(0, 10).map((issue) => ({
-        code: issue.code,
-        path: issue.path.map((part) => typeof part === "number" ? "[]" : String(part)).join(".")
-      }))
+      result.error.issues.slice(0, 10).map((issue): LedScoresValidationIssue => {
+        const path = issue.path.map((part) => typeof part === "number" ? "[]" : String(part)).join(".");
+        const shape = shapedPaths.has(path) || shapedPaths.size >= 2
+          ? undefined : rejectedTeamShape(parsed, issue);
+        if (shape) {
+          shapedPaths.add(path);
+          return { code: issue.code, path, shape };
+        }
+        return { code: issue.code, path };
+      })
     );
   }
   const message = result.data.message;
