@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React,{ useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
 import {
@@ -8,6 +8,9 @@ import {
   EditorialArenaRenderer
 } from "@veyocast/content-templates";
 import { Button } from "@veyocast/ui";
+import {syncDynamicConfigurationSchema,syncSlidePageCount} from '@veyocast/contracts';
+import {projectSyncDynamicSnapshot} from '@veyocast/content-templates/sync-dynamic-projector';
+import {SyncSlideStaticView} from '@veyocast/content-templates/sync-slide-static-view';
 
 import styles from "../../dynamic-content.module.css";
 import type { DynamicSlidePreviewResult } from "../actions";
@@ -22,11 +25,16 @@ export function DynamicSlideLivePreview({
   result: DynamicSlidePreviewResult | null;
 }) {
   const [pageIndex, setPageIndex] = useState(0);
+  const source=useMemo(()=>{
+    if(!result?.ok||!Object.hasOwn(result.payload.data,'syncConfiguration'))return null;
+    const cfg=syncDynamicConfigurationSchema.safeParse(result.payload.data.syncConfiguration);
+    return cfg.success?projectSyncDynamicSnapshot(result.payload,cfg.data.seed):{ok:false}as const;
+  },[result]);
   const view = useMemo(
-    () => result?.ok ? createDynamicTemplateView(result.payload) : null,
-    [result]
+    () => result?.ok&&!source ? createDynamicTemplateView(result.payload) : null,
+    [result,source]
   );
-  const pageCount = view?.pages.length ?? 0;
+  const pageCount = source?.ok?syncSlidePageCount(source.presentation):view?.pages.length ?? 0;
 
   useEffect(() => {
     setPageIndex(0);
@@ -50,7 +58,7 @@ export function DynamicSlideLivePreview({
         ) : null}
       </header>
 
-      {result?.ok && view ? (
+      {result?.ok && (view||source?.ok) ? (
         <>
           <div className={dualOrientation ? styles.livePreviewOrientations : undefined}>
             {(dualOrientation
@@ -63,7 +71,7 @@ export function DynamicSlideLivePreview({
                   className={styles.livePreviewStage}
                   data-orientation={orientation}
                 >
-                  <EditorialArenaRenderer
+                  {source?.ok?<SyncSlideStaticView presentation={{...source.presentation,orientation}} page={pageIndex} resolveAsset={asset=>asset.kind==='system'?asset.path:result.payload.assets?.[asset.mediaAssetId]?.url}/>:view?<EditorialArenaRenderer
                     embedded
                     item={{
                       accessibilityName: `Preview ${view.title} ${orientation}`,
@@ -77,7 +85,7 @@ export function DynamicSlideLivePreview({
                     }}
                     pageIndex={pageIndex}
                     passive
-                  />
+                  />:null}
                 </div>
               </div>
             ))}
@@ -121,7 +129,7 @@ export function DynamicSlideLivePreview({
             ) : null}
           </footer>
         </>
-      ) : result && !result.ok ? (
+      ) : source&&!source.ok?<div className={styles.livePreviewMessage}role="status"><strong>Bronvoorbeeld niet beschikbaar</strong><span>De Source-gegevens konden niet volledig worden gecontroleerd. Controleer de bronselectie en open het ontwerp opnieuw.</span></div>:result && !result.ok ? (
         <div className={styles.livePreviewMessage} role="status">
           <strong>Preview niet beschikbaar</strong>
           <span>{result.message}</span>

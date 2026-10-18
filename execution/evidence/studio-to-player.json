@@ -1,0 +1,47 @@
+{
+  "scope": "isolated-local-real-studio-to-player",
+  "studioProjectId": "c0e1d6b1-8501-4c44-93f8-1582d91f8fdb",
+  "renderJobId": "6b15938b-0dfa-4334-88cb-32ad85e15016",
+  "assetId": "af1b3ec3-8edf-4213-b0ea-a8883b79e002",
+  "sha256": "2ead6c3648927eafeee85b9257f80ef3c3572a44673e77b108589c73a64aca19",
+  "screenId": "19170000-0000-4000-8000-000000000021",
+  "playlistId": "111f1436-023a-4f60-b9f4-8d1f1cd3eaba",
+  "release": {
+    "bytes": 2513933,
+    "width": 1920,
+    "height": 1080,
+    "sha256": "2ead6c3648927eafeee85b9257f80ef3c3572a44673e77b108589c73a64aca19",
+    "assetId": "af1b3ec3-8edf-4213-b0ea-a8883b79e002",
+    "version": 1,
+    "releaseId": "599a00ae-01a6-4ac3-a11d-df4a13df3ee0"
+  },
+  "firstFrame": {
+    "releaseId": "599a00ae-01a6-4ac3-a11d-df4a13df3ee0",
+    "runtimeState": "PLAYING",
+    "trace": {
+      "revision": "2",
+      "publicationId": "111f1436-023a-4f60-b9f4-8d1f1cd3eaba",
+      "configRevision": "1",
+      "assignmentSource": "default",
+      "committedAt": null,
+      "correlationId": "c56edfd2-3551-42d0-b7d2-506309f0503f",
+      "generation": 1,
+      "releaseId": "599a00ae-01a6-4ac3-a11d-df4a13df3ee0",
+      "signalReceivedAt": null,
+      "resolvedAt": "2026-10-17T22:20:55.381Z",
+      "targetWrittenAt": "2026-10-17T22:20:45.502465+00:00",
+      "targetRevision": "2",
+      "assetsReadyAt": "2026-10-17T22:20:57.033Z",
+      "firstFrameAt": "2026-10-17T22:20:57.137Z"
+    },
+    "serverStatus": 200
+  },
+  "readback": {
+    "phase": "active",
+    "lastSeenAt": "2026-10-17T22:20:57.161944+00:00",
+    "lastErrorCode": null,
+    "activeReleaseId": "599a00ae-01a6-4ac3-a11d-df4a13df3ee0",
+    "desiredReleaseId": "599a00ae-01a6-4ac3-a11d-df4a13df3ee0"
+  },
+  "offlineVisible": true
+}

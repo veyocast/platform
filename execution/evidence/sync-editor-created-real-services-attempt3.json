@@ -1,0 +1,10 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T02:11:01.683Z",
+  "scope": "actual Next Source template creation, committed response loss, reload, original receipt replay and editor save",
+  "beforeProjects": 2,
+  "beforeReleases": 0,
+  "pageErrors": [],
+  "dialogs": [],
+  "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    document: {\n      artboard: {\n        background: {\n          color: '#FAFAF7',\n...\n        fontRegistryVersion: '2026-09-09.1',\n-       templateId: '$undefined',\n        tenantBrandApplied: false\n      },\n      motion: {\n        durationMs: 12000,\n        enabled: false,\n...\n        club: {\n-         logo: '$undefined',\n          name: 'Duindorp SV',\n          tagline: ''\n        },\n        family: 'fixtures',\n        footer: '',\n"
+}

@@ -1,0 +1,168 @@
+{
+  "source": "Exact Sites Sync V1 brand vectors; packaging and padding only",
+  "background": "#0D1725",
+  "foregroundFraction": 0.56,
+  "legacyFraction": 0.76,
+  "generator": {
+    "node": "v24.19.0",
+    "sharp": "0.35.5",
+    "librsvg": "2.63.2"
+  },
+  "files": [
+    {
+      "path": "android/res/drawable-anydpi-v26/veyocast_launcher_icon_round.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "android/res/drawable-anydpi-v26/veyocast_launcher_icon.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "android/res/drawable-nodpi/veyocast_launcher_icon_round.png",
+      "bytes": 16086,
+      "sha256": "2e7037bff4384db79cd8023f7b092620be826cf0b821a99e259d5d4ba6a0b1ca"
+    },
+    {
+      "path": "android/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "bytes": 7781,
+      "sha256": "c6418ab1d3305f4e8fc9b3fa5c0449859364c014214ccc6cbe45cec952ffa5e9"
+    },
+    {
+      "path": "android/res/drawable-nodpi/veyocast_tv_banner.png",
+      "bytes": 5643,
+      "sha256": "c76e2fdba7d3e679e58138459778a2117b8a3244e0b7e9fb92304f03f54a5cc2"
+    },
+    {
+      "path": "android/res/drawable/veyocast_icon_foreground.xml",
+      "bytes": 996,
+      "sha256": "7cd44ce607cac323f0470c65d7baa7e84ec6a0e865210f2c6be9961499f07ab1"
+    },
+    {
+      "path": "android/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "android/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "android/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "bytes": 1861,
+      "sha256": "90de7a06dc33910f35126a6ce3df2ce03c6d3be1bcf9833f3643bcdc42e3648a"
+    },
+    {
+      "path": "android/res/mipmap-hdpi/ic_launcher_round.png",
+      "bytes": 2146,
+      "sha256": "8c0e11c8cd7eb0f19850a18fd566a69bb4f42428f7d6f4369dafc97186412767"
+    },
+    {
+      "path": "android/res/mipmap-hdpi/ic_launcher.png",
+      "bytes": 1236,
+      "sha256": "b185c6272dd850e9c20392bf963a57e7201ad17e5fd80c5cd6fd2eb86072a425"
+    },
+    {
+      "path": "android/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "bytes": 1310,
+      "sha256": "39c115c4790b0395b2b59f705733e32dfad1e04e6e277b3182532d9f61ae01c1"
+    },
+    {
+      "path": "android/res/mipmap-mdpi/ic_launcher_round.png",
+      "bytes": 1457,
+      "sha256": "e4d728485f9942ef0e8b0172dd576c7e82bb6563ed83ba6211798182bbda84fe"
+    },
+    {
+      "path": "android/res/mipmap-mdpi/ic_launcher.png",
+      "bytes": 866,
+      "sha256": "4c08bb278dd6705a78e647e1c3cd7326309c4d5bd6f8f908819d8d8ab1ae003d"
+    },
+    {
+      "path": "android/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "bytes": 2493,
+      "sha256": "8c561a3ecf1e5416ac58932d903ddd32fbbfa184f1517eed824147839b205b09"
+    },
+    {
+      "path": "android/res/mipmap-xhdpi/ic_launcher_round.png",
+      "bytes": 2760,
+      "sha256": "4e3a4d0427e00f5a3f387ea0592cec165234b342e08e879aa1bdc1cc28285705"
+    },
+    {
+      "path": "android/res/mipmap-xhdpi/ic_launcher.png",
+      "bytes": 1565,
+      "sha256": "01351b28cd4cb74a41c83951cbddd7d4185a1d8a034be46edb7e856ac71954fa"
+    },
+    {
+      "path": "android/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "bytes": 3684,
+      "sha256": "80d03a5df10bebae4300c9314cb4b23da6282f3f1ae51688140e38c5ba402f5b"
+    },
+    {
+      "path": "android/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "bytes": 4135,
+      "sha256": "b982ea0065fce1d1da5176f17795d481937dff606ef29813be774a358be232ea"
+    },
+    {
+      "path": "android/res/mipmap-xxhdpi/ic_launcher.png",
+      "bytes": 2254,
+      "sha256": "39040e1932800a1c924b41e885d3acb82c1c547bcc5d3694ba9408b391cd9eb8"
+    },
+    {
+      "path": "android/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "bytes": 4813,
+      "sha256": "0f9dfbf948d71dc63b6a31b06aa0e9c3b90956618de607914ebc093789df847f"
+    },
+    {
+      "path": "android/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "bytes": 5448,
+      "sha256": "69c36cee0073e73518c1292bc34117c108bb49e851c9f398c3b624eaa240ec78"
+    },
+    {
+      "path": "android/res/mipmap-xxxhdpi/ic_launcher.png",
+      "bytes": 2914,
+      "sha256": "ad940fb7a9790864702491e680ca2dd7a04df2bef0b0453f6fbb734581d404c9"
+    },
+    {
+      "path": "android/res/values/veyocast_icon_colors.xml",
+      "bytes": 117,
+      "sha256": "27b5026671b0a4e18d7845a4170ba27eeb1ff2726aca21ee5de6f0fe01902fa1"
+    },
+    {
+      "path": "expo/adaptive-foreground-1024.png",
+      "bytes": 13163,
+      "sha256": "c46ee5385a4477f19b0ae2f35f72b55fc0691c6f6b1890163a03a04dfdaa48c0"
+    },
+    {
+      "path": "expo/icon-1024.png",
+      "bytes": 17752,
+      "sha256": "ab6d3dc9deb7c4c51590d03c93ad982bb8d9955497271514f988a35fd28f42b1"
+    },
+    {
+      "path": "generate-icons.cjs",
+      "bytes": 5477,
+      "sha256": "dbcc1f89f5d31b0d2ff7e87c03beccc641f08046ba6cff7076e0451ee4454708"
+    },
+    {
+      "path": "source/adaptive-foreground.svg",
+      "bytes": 920,
+      "sha256": "3c9375797d34e2dd1894612c75928beb5de0d55cb6ebd7cd379276c3d984f72c"
+    },
+    {
+      "path": "source/brand-icon.svg",
+      "bytes": 812,
+      "sha256": "dc63b70f43d4f721c5f87d51c64f9f5660a6aa22c69f9245f3f4d711113c0fd3"
+    },
+    {
+      "path": "source/full-light.svg",
+      "bytes": 10592,
+      "sha256": "877dac00409543e4699c39116b508ad5096e2f2fd3b361d32ae674044c9fef9e"
+    },
+    {
+      "path": "source/tv-banner.svg",
+      "bytes": 10694,
+      "sha256": "03bf0bdb8619868c4dd6006e2451e814e61bd2e6f518de29f136a365e2c5d615"
+    }
+  ]
+}

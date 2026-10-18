@@ -49,6 +49,7 @@ import styles from "./screens-overview.module.css";
 import { loadCompositionWorkspace } from "./screen-composition-data";
 import { ScreenCompositionEditor } from "./screen-composition-editor";
 import { ScreenSetupDialog } from "./screen-setup-dialog";
+import { SyncFleet } from "./sync-fleet";
 
 type ScreensPageProps = {
   searchParams: Promise<{
@@ -151,6 +152,15 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       </div>
     );
   }
+
+  if (view === "overview" && !visualReference) return <>
+    {query.fout ? <p className="notice notice--critical" role="alert">Actie mislukt. {query.fout}</p> : null}
+    {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
+    <SyncFleet tenantId={session.tenantId} data={data} screens={filteredScreens} devices={devicesByScreen} query={query.q ?? ""} status={statusFilter} group={selectedGroup}
+      setup={<ScreenSetupDialog disabled={!canManage || data.screens.length >= data.limit} groups={data.groups} releases={data.assignableReleases} previews={compositionData.playlists} settings={data.settings} triggerLabel="Scherm koppelen" />}
+      advanced={<><div className="row"><ScreenCompositionEditor canPublish={canManage && canPublish} data={compositionData} groups={data.groups} initialTarget={selectedGroup ? `group:${selectedGroup}` : "all"} screens={data.screens.filter(screen => screen.status === "active")} /><Link className="btn btn-secondary" href="/dashboard/screens/groups">Schermgroepen beheren</Link><Link className="btn btn-secondary" href="/dashboard/screens?view=health">Gezondheid</Link></div><ScreenBulkForm addToGroupAction={addBulkScreensToGroup} assignReleaseAction={assignBulkScreenRelease} canPublish={canPublish} groups={data.groups} idempotencyKey={randomUUID()} playlists={playlistOptions(data.assignableReleases)} syncAction={requestBulkScreenSyncRetry}><CompactFleetTable canManage={canManage} data={data} devicesByScreen={devicesByScreen} releaseById={releaseById} screens={filteredScreens} visualReference={false} /></ScreenBulkForm></>}
+    />
+  </>;
 
   return (
     <div

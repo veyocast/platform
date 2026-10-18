@@ -1,0 +1,890 @@
+[
+  {
+    "id": "experience.parity",
+    "area": "Ervaring en toegang",
+    "label": "Eén definitieve Sync-werkplek",
+    "acceptance": "Alle V1-routes zijn vanuit één vaste navigatie bereikbaar. De andere vier ontwerprichtingen zijn vervallen."
+  },
+  {
+    "id": "experience.mock_state",
+    "area": "Ervaring en toegang",
+    "label": "Werkend prototype met bewaarde demo-invoer",
+    "acceptance": "Opslaan, wijzigen en publiceren veranderen gedeelde mockdata en blijven na navigeren/herladen bestaan; reset herstelt de demo."
+  },
+  {
+    "id": "experience.auth",
+    "area": "Ervaring en toegang",
+    "label": "Inloggen en sessie",
+    "acceptance": "Demo-login opent een rolgebonden sessie; uitloggen en opnieuw inloggen zijn klikbaar zonder echte credentials."
+  },
+  {
+    "id": "experience.tenant",
+    "area": "Ervaring en toegang",
+    "label": "Organisatie en platformcontext wisselen",
+    "acceptance": "Tenantwissel verandert data en branding; platform is een afzonderlijke context zonder vermenging van clubnavigatie."
+  },
+  {
+    "id": "experience.permissions",
+    "area": "Ervaring en toegang",
+    "label": "Rollen en MFA zichtbaar doorlopen",
+    "acceptance": "Kies owner/editor/viewer/support; verboden acties zijn geblokkeerd en toegelicht; gevoelige acties tonen een gesimuleerde MFA-stap."
+  },
+  {
+    "id": "experience.states",
+    "area": "Ervaring en toegang",
+    "label": "Volledige laad-, leeg-, fout- en successtates",
+    "acceptance": "Belangrijke lijsten/forms demonstreren loading/empty/error/permission/success met werkende herstelactie en behouden invoer."
+  },
+  {
+    "id": "overview.attention",
+    "area": "Overzicht",
+    "label": "Aandacht en herstelacties",
+    "acceptance": "Klik op bron-, upload- of schermprobleem voor oorzaak/gevolg; passende actie verandert de status en audit."
+  },
+  {
+    "id": "overview.screens",
+    "area": "Overzicht",
+    "label": "Wat speelt waar",
+    "acceptance": "Scherm toont juiste bevestigde playlistpreview, gewenste versie, laatste contact en bronversheid; oude actieve release blijft vindbaar."
+  },
+  {
+    "id": "overview.status",
+    "area": "Overzicht",
+    "label": "Bereikbaar, gesynchroniseerd en zichtbaar apart",
+    "acceptance": "Online/offline/onbekend, downloadstatus en actief bevestigd zijn afzonderlijk; een online maar vastgelopen scherm is reproduceerbaar."
+  },
+  {
+    "id": "overview.today",
+    "area": "Overzicht",
+    "label": "Vandaag gepland en snelle acties",
+    "acceptance": "Open komende/plande items en start content/upload/pairing/publicatie vanuit het overzicht."
+  },
+  {
+    "id": "overview.preview",
+    "area": "Overzicht",
+    "label": "Eerlijke inhoudspreview",
+    "acceptance": "Klikbare preview gebruikt bevestigde publicatie en tijdstip; geen stockfoto of claim van een live screenshot."
+  },
+  {
+    "id": "content.library",
+    "area": "Content en media",
+    "label": "Eén zoekbare bibliotheek",
+    "acceptance": "Media, vrije ontwerpen, menu, alle dynamische families en reeksen delen zoeken/filteren; telling en resultaatverzameling kloppen."
+  },
+  {
+    "id": "content.upload",
+    "area": "Content en media",
+    "label": "Beeld- en videoupload",
+    "acceptance": "Selecteer lokaal bestand of demo-upload; toon queue, thumbnail, formaat, voortgang en klaarstatus."
+  },
+  {
+    "id": "content.upload_recovery",
+    "area": "Content en media",
+    "label": "Upload pauzeren, hervatten en herstellen",
+    "acceptance": "Simuleer onderbreking/fout; hervatten of retry werkt zonder dubbel media-item."
+  },
+  {
+    "id": "content.processing",
+    "area": "Content en media",
+    "label": "Verwerking en opnieuw verwerken",
+    "acceptance": "Toon pending/verwerken/gereed/mislukt met oorzaak; retry verwerkt hetzelfde item tot gereed."
+  },
+  {
+    "id": "content.inspector",
+    "area": "Content en media",
+    "label": "Metadata en gebruiksimpact",
+    "acceptance": "Inspector bewerkt titel en toont type, maten, duur, gebruikte playlists en betrokken schermen."
+  },
+  {
+    "id": "content.archive",
+    "area": "Content en media",
+    "label": "Archiveren, herstellen en veilig verwijderen",
+    "acceptance": "Impactdialoog noemt verwijzingen; actief gebruikte media kan niet onveilig definitief weg, archiveren/herstellen verandert de lijst."
+  },
+  {
+    "id": "studio.create",
+    "area": "Studio",
+    "label": "Vrij ontwerp of template maken",
+    "acceptance": "Templatekeuze of leeg canvas creëert een bewerkbaar ontwerp met titel, inhoudstype en bronbinding."
+  },
+  {
+    "id": "studio.content",
+    "area": "Studio",
+    "label": "Tekst, beeld en clubbranding bewerken",
+    "acceptance": "Tekst/beelden/logo kiezen verandert canvas direct en is na bewaren/heropenen gelijk."
+  },
+  {
+    "id": "studio.design",
+    "area": "Studio",
+    "label": "Zichtbare ontwerpinstellingen werken",
+    "acceptance": "Accent, tekstschaal, uitlijning, veilige marge, achtergrond en ondersteunde motion veranderen de preview; onondersteunde opties ontbreken."
+  },
+  {
+    "id": "studio.orientation",
+    "area": "Studio",
+    "label": "16:9 en 9:16",
+    "acceptance": "Wissel landscape/portrait; canvas schaalt proportioneel zonder afgesneden inhoud."
+  },
+  {
+    "id": "studio.series",
+    "area": "Studio",
+    "label": "Reeksen samenstellen",
+    "acceptance": "Slides toevoegen, herordenen, dupliceren en verwijderen; reeks kan als selectie aan playlist worden toegevoegd."
+  },
+  {
+    "id": "studio.revisions",
+    "area": "Studio",
+    "label": "Bewaren, heropenen en revisieconflict",
+    "acceptance": "Autosave/opslaan, ongedaan/opnieuw waar ondersteund, heropenen en conflict met tweede editor zijn betekenisvol gesimuleerd."
+  },
+  {
+    "id": "studio.output",
+    "area": "Studio",
+    "label": "Preview en uitvoer gereedmaken",
+    "acceptance": "Preview speelt alle pagina’s; render/genereren toont voortgang, fout/herstel en gereed resultaat in bibliotheek."
+  },
+  {
+    "id": "studio.version",
+    "area": "Studio",
+    "label": "Ontwerpversies en gebruik",
+    "acceptance": "Nieuwe versie laat gepubliceerde plaatsingen intact; gebruiker bekijkt wijzigingen en kiest waar die worden bijgewerkt."
+  },
+  {
+    "id": "playlist.crud",
+    "area": "Playlists",
+    "label": "Playlists maken, bewerken, dupliceren en archiveren",
+    "acceptance": "Maak/zoek/open/dupliceer/hernoem een playlist; lege en gebruikte playlist hebben correcte acties en impact."
+  },
+  {
+    "id": "playlist.add",
+    "area": "Playlists",
+    "label": "Gemengde inhoud toevoegen",
+    "acceptance": "Media, Studio/reeks, Sportlink/menu/RSS, YouTube en Engage zijn selecteerbaar en worden echte playlistitems."
+  },
+  {
+    "id": "playlist.order",
+    "area": "Playlists",
+    "label": "Volgorde en secties",
+    "acceptance": "Drag of verplaatsknoppen, secties, kopiëren en verwijderen wijzigen de loop en overleven heropenen."
+  },
+  {
+    "id": "playlist.duration",
+    "area": "Playlists",
+    "label": "Duur en bulkduur",
+    "acceptance": "Wijzig losse of geselecteerde duren; totaaltijd past mee en video-/pagingminima worden uitgelegd."
+  },
+  {
+    "id": "playlist.presentation",
+    "area": "Playlists",
+    "label": "Crop, fit en veilige presentatie",
+    "acceptance": "Iteminstellingen tonen crop/focus, vullen/passend en achtergrond; wijziging raakt alleen deze plaatsing."
+  },
+  {
+    "id": "playlist.av",
+    "area": "Playlists",
+    "label": "Trim, geluid en zichtbaarheid",
+    "acceptance": "Video start/einde, mute/volume en itemzichtbaarheid werken in preview; apparaatbeperkingen zijn duidelijk."
+  },
+  {
+    "id": "playlist.theme",
+    "area": "Playlists",
+    "label": "Thema per plaatsing, playlist en bulk",
+    "acceptance": "Themaselectie verandert geselecteerde plaatsingen; gedeelde bronontwerpen en andere playlists veranderen niet ongemerkt."
+  },
+  {
+    "id": "playlist.preview",
+    "area": "Playlists",
+    "label": "Volledige afspeelpreview",
+    "acceptance": "Play/pause/next/back en paginateller doorlopen exact de volgorde, inhoud, duur en thema’s; terug naar item bewerken."
+  },
+  {
+    "id": "publish.preflight",
+    "area": "Publiceren",
+    "label": "Gereedheid en apparaatcompatibiliteit",
+    "acceptance": "Checklist toont ontbrekende media/brondata/themaprofiel/opslag; blokkade kan worden opgelost en opnieuw gecontroleerd."
+  },
+  {
+    "id": "publish.target",
+    "area": "Publiceren",
+    "label": "Doelen en moment kiezen",
+    "acceptance": "Selecteer schermen/groepen en nu/later; samenvatting noemt playlist, versie, targets en planningimpact."
+  },
+  {
+    "id": "publish.progress",
+    "area": "Publiceren",
+    "label": "Publicatie en bevestiging per scherm",
+    "acceptance": "Doorloop concept/gecontroleerd/gepubliceerd/ophalen/verifiëren/wachten/actief; schermen kunnen afzonderlijk achterlopen."
+  },
+  {
+    "id": "publish.history",
+    "area": "Publiceren",
+    "label": "Historie en verschillen",
+    "acceptance": "Open immutable versiehistorie vanuit playlist/scherm en vergelijk inhoud of instellingen met huidige versie."
+  },
+  {
+    "id": "publish.restore",
+    "area": "Publiceren",
+    "label": "Herstellen en opnieuw toewijzen",
+    "acceptance": "Herstel oude versie naar nieuw concept of wijs publicatie opnieuw toe; bestaande historische versie blijft intact."
+  },
+  {
+    "id": "publish.safe_failure",
+    "area": "Publiceren",
+    "label": "Fout of onvolledige kandidaat",
+    "acceptance": "Download-, verificatie- of stale-targetfout houdt actieve publicatie zichtbaar; retry herstelt zonder cache/pairingverlies."
+  },
+  {
+    "id": "planning.calendar",
+    "area": "Planning",
+    "label": "Agenda en planning beheren",
+    "acceptance": "Dag/weekkalender met filters; afspraak maken/openen/verplaatsen/bewerken/uitschakelen/verwijderen verandert de planning."
+  },
+  {
+    "id": "planning.repeat",
+    "area": "Planning",
+    "label": "Eenmalig, dagelijks, wekelijks of aangepaste herhaling",
+    "acceptance": "Begin/einde, dagen en tijdvensters zijn bewerkbaar; preview toont concrete komende uitvoeringen."
+  },
+  {
+    "id": "planning.targets",
+    "area": "Planning",
+    "label": "Scherm, groep of alle schermen",
+    "acceptance": "Doelkeuze werkt en overzicht noemt alle betrokken schermen en playlist."
+  },
+  {
+    "id": "planning.conflict",
+    "area": "Planning",
+    "label": "Prioriteit en overlap oplossen",
+    "acceptance": "Overlappende regels tonen winnaar, oorzaak en alternatieven; expliciete oplossing wordt bewaard."
+  },
+  {
+    "id": "planning.timezone",
+    "area": "Planning",
+    "label": "Tijdzone, overrides en defaultterugval",
+    "acceptance": "Tenanttijdzone en DST-demo zijn zichtbaar; tijdelijke override loopt af; hoofdzone keert terug naar standaard terwijl zij-/onderzone behouden blijven."
+  },
+  {
+    "id": "screens.inventory",
+    "area": "Schermen en apparaten",
+    "label": "Schermlijst en detail",
+    "acceptance": "Zoek/filter op platform, locatie/groep en status; detail toont active/desired, opslag, runtime en gebeurtenissen."
+  },
+  {
+    "id": "screens.pair",
+    "area": "Schermen en apparaten",
+    "label": "Scherm koppelen met code/QR",
+    "acceptance": "Nieuwe Player toont code; beheer claimt deze en koppelt tenant/scherm; ongeldige of verlopen code is herstelbaar."
+  },
+  {
+    "id": "screens.lifecycle",
+    "area": "Schermen en apparaten",
+    "label": "Naam, locatie en device-lifecycle",
+    "acceptance": "Hernoemen, deactiveren, logisch verwijderen en opnieuw koppelen hebben impactdialoog en correcte status."
+  },
+  {
+    "id": "screens.groups",
+    "area": "Schermen en apparaten",
+    "label": "Schermgroepen beheren",
+    "acceptance": "Groep maken/hernoemen en lidmaatschap wijzigen werkt door in publicatiedoelen en planning."
+  },
+  {
+    "id": "screens.remote",
+    "area": "Schermen en apparaten",
+    "label": "Begrensde herstelopdrachten",
+    "acceptance": "Force-sync, herladen en pairingherstel tonen verstuurd/ontvangen/uitgevoerd of verlopen; normale sync behoudt identiteit/cache."
+  },
+  {
+    "id": "screens.diagnostics",
+    "area": "Schermen en apparaten",
+    "label": "Diagnostics en supportinformatie",
+    "acceptance": "Toon foutoorzaak, eventtijd, platformprofiel en hersteladvies; supportbundel/downloadactie geeft bruikbaar demoresultaat."
+  },
+  {
+    "id": "screens.hardware",
+    "area": "Schermen en apparaten",
+    "label": "Apparaatprofielen en beperkingen",
+    "acceptance": "Web/PWA, Android/TV en specifiek LG-profiel tonen ondersteunde media/motion/power/audio en nog te bevestigen hardwarebewijs."
+  },
+  {
+    "id": "automation.week",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Weekvensters en tijdzone",
+    "acceptance": "Bewerk open-/speeltijden per dag met juiste tenanttijdzone; actieve toestand en volgende overgang veranderen."
+  },
+  {
+    "id": "automation.exceptions",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Datumuitzonderingen",
+    "acceptance": "Voeg gesloten dag of afwijkend openvenster toe; planningvoorvertoning laat effect zien."
+  },
+  {
+    "id": "automation.override",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Tijdelijk aan/uit en expiry",
+    "acceptance": "Override bevat eindtijd; commandostatus en automatische terugval zijn zichtbaar."
+  },
+  {
+    "id": "automation.power",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Power, sleep, wake en autostart",
+    "acceptance": "Alleen ondersteund apparaatprofiel biedt deze opties; LG/Android/web tonen eerlijke verschillen en gesimuleerde bevestiging."
+  },
+  {
+    "id": "composition.layout",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Vier vaste indelingen",
+    "acceptance": "Full/sidebar/bottom/three met landscape/portrait en begrensde percentages zijn zichtbaar te configureren."
+  },
+  {
+    "id": "composition.binding",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Playlist per contentzone",
+    "acceptance": "Hoofd-/zij-/onderzone kiezen elk playlist en fallback; geluid alleen hoofdzone; LED/sponsor schermbreed."
+  },
+  {
+    "id": "composition.publish",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Compositie publiceren en offline herstarten",
+    "acceptance": "Preview toont alle zones; nieuwe compositie activeert pas compleet; simuleer ontbrekende zone zonder huidige output te verliezen."
+  },
+  {
+    "id": "venues.map",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Locaties, plattegrond en fysieke zones",
+    "acceptance": "Locatie/plattegrond/zone maken of kiezen en scherm plaatsen; onderscheid fysieke zones en contentzones helder."
+  },
+  {
+    "id": "venues.inspect",
+    "area": "Bedrijfstijden en schermindeling",
+    "label": "Scherm op locatie openen",
+    "acceptance": "Klik schermpin voor detail/status, verplaats pin en bewaar positie."
+  },
+  {
+    "id": "sources.catalog",
+    "area": "Bronnen algemeen",
+    "label": "Bronnenoverzicht en koppelen",
+    "acceptance": "Sportlink, Twelve-import, RSS, LED Scores en YouTube hebben eigen detail/configuratie zonder dubbele contentbibliotheek."
+  },
+  {
+    "id": "sources.health",
+    "area": "Bronnen algemeen",
+    "label": "Sync, versheid en herstel",
+    "acceptance": "Laatste poging/succes, nieuwe data, lege feed, ontbrekend recht en fout zijn apart; testverbinding/sync/retry wijzigt mockstatus."
+  },
+  {
+    "id": "sources.binding",
+    "area": "Bronnen algemeen",
+    "label": "Bronbinding gescheiden van stijl",
+    "acceptance": "Datasets/teams/poule/feed/producten veranderen inhoud; themawissel behoudt binding en selectie."
+  },
+  {
+    "id": "sources.live",
+    "area": "Bronnen algemeen",
+    "label": "Live data los van publicatie",
+    "acceptance": "Nieuwe mockdata verschijnt in bestaande gepubliceerde selectie; identieke sync creëert geen extra release; fout behoudt laatste geldige data."
+  },
+  {
+    "id": "sportlink.connection",
+    "area": "Sportlink",
+    "label": "Clientkoppeling en rechten",
+    "acceptance": "Maak of bewerk gesimuleerde verbinding; toon datasets/toegang/versheid en simuleer ontbrekend recht zonder echte credentials."
+  },
+  {
+    "id": "sportlink.selection",
+    "area": "Sportlink",
+    "label": "Teams, seizoen, competitie, poule en clubscope",
+    "acceptance": "Selectie bepaalt voorbeelddata; eigen club en poulebreed zijn onderscheidbaar, ongeldige context verbreedt niet stilzwijgend."
+  },
+  {
+    "id": "sportlink.batch",
+    "area": "Sportlink",
+    "label": "Bulk team × type wizard",
+    "acceptance": "Kies meerdere teams/families, zie aantallen en previews; opslaan maakt alle geselecteerde ontwerpen als bewerkbare reeks."
+  },
+  {
+    "id": "sportlink.availability",
+    "area": "Sportlink",
+    "label": "Eerlijke beschikbaarheid per familie",
+    "acceptance": "Alle 17 families zijn zichtbaar; mockdata, providerpad-onbevestigd en handmatige fallback zijn gelabeld, vooral training/vrijwilligers/sponsors/periodestand."
+  },
+  {
+    "id": "sport_program",
+    "area": "Sportlink-families",
+    "label": "Programma",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; club/poule, datum/tijd, teamlogo’s en wedstrijdinformatie; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_results",
+    "area": "Sportlink-families",
+    "label": "Uitslagen",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; uitslagen, eigen team/poule, score en datum; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_standing",
+    "area": "Sportlink-families",
+    "label": "Stand",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; ranglijst, punten, gespeelde wedstrijden en eigen team; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_period_standing",
+    "area": "Sportlink-families",
+    "label": "Periodestand",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; gekozen periode/poule en ranglijst; bronbeschikbaarheid expliciet; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_match_of_the_day",
+    "area": "Sportlink-families",
+    "label": "Wedstrijd van de dag",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; gekozen wedstrijd, teams, tijd, locatie en sponsorcontext; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_next_match",
+    "area": "Sportlink-families",
+    "label": "Volgende wedstrijd",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; team en eerstvolgende wedstrijd met datum/tijd/tegenstander; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_cancellations",
+    "area": "Sportlink-families",
+    "label": "Afgelastingen",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; afgelaste wedstrijden en betekenisvolle lege toestand; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_dressing_rooms",
+    "area": "Sportlink-families",
+    "label": "Kleedkamers",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; thuis/uit, kleedkamernummers, veld en wedstrijdtijd; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_officials",
+    "area": "Sportlink-families",
+    "label": "Officials",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; wedstrijd, officials en beschikbare wedstrijdinformatie; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_team",
+    "area": "Sportlink-families",
+    "label": "Teaminformatie",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; teamidentiteit, teamleden/metadata voor zover beschikbaar; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_sponsor",
+    "area": "Sportlink-families",
+    "label": "Sponsors",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; team-/clubpartners met logo en gegevens; bronstatus zichtbaar; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_activities",
+    "area": "Sportlink-families",
+    "label": "Clubactiviteiten",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; agenda, datum/tijd, titel en locatie; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_trainings",
+    "area": "Sportlink-families",
+    "label": "Trainingen",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; teams, trainingsmomenten en veld; eventuele handmatige bron gelabeld; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_volunteers",
+    "area": "Sportlink-families",
+    "label": "Vrijwilligers",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; rollen/oproepen, contactinformatie indien bedoeld, bronstatus; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_birthdays",
+    "area": "Sportlink-families",
+    "label": "Verjaardagen",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; datum en namen, leeftijd alleen indien toegestaan/beschikbaar; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_visitor_arrivals",
+    "area": "Sportlink-families",
+    "label": "Bezoekende teams",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; bezoeker, ontvangstvenster, wedstrijd, veld en kleedkamer; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "sport_referee_arrivals",
+    "area": "Sportlink-families",
+    "label": "Scheidsrechters ontvangen",
+    "acceptance": "Openen, mockbron selecteren, bewerken, bewaren/heropenen, thema en 16:9/9:16-preview, aan playlist toevoegen; scheidsrechter, wedstrijd en aankomstvenster; lege/foutstate en volledige paging."
+  },
+  {
+    "id": "products.import",
+    "area": "Twelve en menu",
+    "label": "Excel/CSV-import",
+    "acceptance": "Upload of laad voorbeeldbestand; preview toont kolommen en herkende productrijen; geen live Twelve-API claim."
+  },
+  {
+    "id": "products.mapping",
+    "area": "Twelve en menu",
+    "label": "Kolommapping, productidentiteit en fouten",
+    "acceptance": "Map naam/id/categorie/prijs; foutregels kunnen worden gecorrigeerd/overgeslagen; importupdate dupliceert dezelfde product-ID niet."
+  },
+  {
+    "id": "products.catalog",
+    "area": "Twelve en menu",
+    "label": "Handmatige catalogus en categorieën",
+    "acceptance": "Maak/bewerk product en categorie met prijs/beschikbaarheid; zoeken/filteren en heropenen werken."
+  },
+  {
+    "id": "menu.editor",
+    "area": "Twelve en menu",
+    "label": "Menu/prijslijst samenstellen",
+    "acceptance": "Selecteer categorieën/producten/beeld, orden en stel kolommen/titel in; lange namen blijven leesbaar in beide oriëntaties."
+  },
+  {
+    "id": "menu.price_update",
+    "area": "Twelve en menu",
+    "label": "Prijzen bewust bijwerken",
+    "acceptance": "Nieuwe catalogusprijs verandert TV niet direct; actie Prijzen bijwerken toont impact/diff en maakt nieuw te publiceren concept."
+  },
+  {
+    "id": "menu.paging",
+    "area": "Twelve en menu",
+    "label": "Alle menu-items tonen",
+    "acceptance": "Meerdere pagina’s, prijsnotatie, categorieën en lege producten zijn correct; preview doorloopt hele selectie."
+  },
+  {
+    "id": "rss.feeds",
+    "area": "RSS",
+    "label": "Meerdere nieuwsfeeds",
+    "acceptance": "Feed toevoegen/bewerken/testen; selectie en artikellimiet worden bewaard."
+  },
+  {
+    "id": "rss.rotation",
+    "area": "RSS",
+    "label": "Nieuws met foto en artikel-QR",
+    "acceptance": "Preview doorloopt ten minste zes artikelen met juiste titel/intro/foto/index; QR verwijst naar actief artikel of ontbreekt zonder URL."
+  },
+  {
+    "id": "rss.recovery",
+    "area": "RSS",
+    "label": "Leeg, verouderd en fout",
+    "acceptance": "Simuleer leegte of storing; laatste succes en bewaarde laatste geldige inhoud blijven duidelijk."
+  },
+  {
+    "id": "led.connection",
+    "area": "LED Scores",
+    "label": "Live scorekoppeling en tenantvrijgave",
+    "acceptance": "Flag toont niet-geactiveerd of geactiveerd; verbinding/eigen team/doelgroepen instellen met verse of stale mockevents."
+  },
+  {
+    "id": "led.design",
+    "area": "LED Scores",
+    "label": "Scorebord en goalintro ontwerpen",
+    "acceptance": "Eigen/tegenstander-variant, huisstijl en schermtargets bewerken; preview laat gekozen content zien."
+  },
+  {
+    "id": "led.event",
+    "area": "LED Scores",
+    "label": "Doelpunt, ontdubbelen en hervatten",
+    "acceptance": "Trigger demo-goal; overlay onderbreekt tijdelijk en hervat resterende itemtijd; dubbel of verlopen event speelt niet opnieuw."
+  },
+  {
+    "id": "youtube.sources",
+    "area": "YouTube",
+    "label": "Video en playlist toevoegen",
+    "acceptance": "Geldige videolink of playlist selecteren/bewaren; bron kan aan gewone playlist toegevoegd."
+  },
+  {
+    "id": "youtube.playback",
+    "area": "YouTube",
+    "label": "Officiële online playback",
+    "acceptance": "Preview toont online-/autoplaybeperkingen en gebruikt toegestane weergave; prototype claimt geen gedownloade offlinevideo."
+  },
+  {
+    "id": "youtube.fallback",
+    "area": "YouTube",
+    "label": "Lokale fallback bij offline/fout",
+    "acceptance": "Kies beeld/video-fallback; simuleer provider-/netwerkfout en terugkeer zonder zwart scherm."
+  },
+  {
+    "id": "themes.catalog",
+    "area": "Thema’s",
+    "label": "FieldFlow en OnzeTrots TV",
+    "acceptance": "Afzonderlijke themakaarten met varianten, versie, ondersteunde families/formaten en preview."
+  },
+  {
+    "id": "themes.brand",
+    "area": "Thema’s",
+    "label": "Clubinstellingen en veilige defaults",
+    "acceptance": "Kleurrollen, fonts, logo, achtergrond/decoratie en toegestane motion zijn bewerkbaar; tweede tenant zonder logo heeft neutrale fallback."
+  },
+  {
+    "id": "themes.precedence",
+    "area": "Thema’s",
+    "label": "Voorrang per toepassing",
+    "acceptance": "Plaatsing > playlist > ontwerp > tenant > platform is te inspecteren; reset naar geërfde waarde verandert preview correct."
+  },
+  {
+    "id": "themes.version",
+    "area": "Thema’s",
+    "label": "Versies en compatibiliteit",
+    "acceptance": "Thema-update verandert actieve publicatie niet automatisch; inkompatibele familie/formaat/Playercombinatie wordt vóór publiceren uitgelegd."
+  },
+  {
+    "id": "themes.registry",
+    "area": "Thema’s",
+    "label": "Nieuw goedgekeurd themapakket",
+    "acceptance": "Platform kan een demo-pakket registreren/publiceren met ID/versie/profielen; het verschijnt in bestaande editors, zonder vrije scripts of marketplace."
+  },
+  {
+    "id": "sponsors.records",
+    "area": "Sponsors",
+    "label": "Sponsors en toegelaten media",
+    "acceptance": "Sponsorrecord maken/bewerken en media toelaten; creatives komen uit ready tenantmedia."
+  },
+  {
+    "id": "sponsors.campaign",
+    "area": "Sponsors",
+    "label": "Campagne met looptijd en gewicht",
+    "acceptance": "Maak/bewerk campagne, periode, gewicht en oriëntatie; opslaan werkt door in overzicht."
+  },
+  {
+    "id": "sponsors.positions",
+    "area": "Sponsors",
+    "label": "Creatives en semantische posities",
+    "acceptance": "Koppel creative aan fullscreen/hoek/footer/wedstrijdsponsor/balsponsor/presented-by; preview toont plaatsing."
+  },
+  {
+    "id": "sponsors.approval",
+    "area": "Sponsors",
+    "label": "Indienen, goedkeuren en publiceren",
+    "acceptance": "Rolgebonden review voert draft→submitted→approved→published uit; publicatie maakt vaste planversie."
+  },
+  {
+    "id": "sponsors.proof",
+    "area": "Sponsors",
+    "label": "Rotatie en technische afspeelregistratie",
+    "acceptance": "Preview roteert eligible sponsors; demo-device-event toont campagne/versie/duur zonder publieksbereikclaim."
+  },
+  {
+    "id": "sponsors.crm",
+    "area": "Sponsors",
+    "label": "Pipeline en taken bekijken",
+    "acceptance": "Bestaande kans-/takenweergave filteren/openen; label dit als beperkt overzicht, geen volledig CRM dat stil als huidige functie wordt toegevoegd."
+  },
+  {
+    "id": "engage.campaign",
+    "area": "Engage",
+    "label": "Poll of man/vrouw van de wedstrijd",
+    "acceptance": "Maak/bewerk titel, vraag, 2–24 opties, periode en resultaatbeleid; tenantflag en rol bepalen beschikbaarheid."
+  },
+  {
+    "id": "engage.lifecycle",
+    "area": "Engage",
+    "label": "Concept, gepland, live, gesloten en archief",
+    "acceptance": "Start/plan/sluit/archiveer; sluiting verhindert nieuwe stemmen en bewaart resultaten."
+  },
+  {
+    "id": "engage.vote",
+    "area": "Engage",
+    "label": "Publieke QR-stemervaring",
+    "acceptance": "Open demo-QR/link, stem geldig en test herhaalde/ongeldige stem; feedback werkt en telling wordt bijgewerkt."
+  },
+  {
+    "id": "engage.results",
+    "area": "Engage",
+    "label": "Resultaatbeleid en schermweergave",
+    "acceptance": "Live/na stem/na sluiten respecteren gekozen moment; QR-oproep/resultaat kan in content/playlist worden gebruikt."
+  },
+  {
+    "id": "team.members",
+    "area": "Team en support",
+    "label": "Team en uitnodigingen",
+    "acceptance": "Nodig demo-gebruiker uit, herzend/intrek en wijzig rol/verwijder lid met impact."
+  },
+  {
+    "id": "team.roles",
+    "area": "Team en support",
+    "label": "Standaardrollen en eigen rollen",
+    "acceptance": "Capabilitymatrix is bewerkbaar voor custom role; editor/viewer/publiceerrechten leveren zichtbaar verschillende bediening."
+  },
+  {
+    "id": "team.audit",
+    "area": "Team en support",
+    "label": "Activiteit en audit",
+    "acceptance": "Filter acties en open detail met actor, object, tijd en resultaat; demoacties vullen audit."
+  },
+  {
+    "id": "support.tickets",
+    "area": "Team en support",
+    "label": "Tickets en onderwerp",
+    "acceptance": "Maak ticket met onderwerp/prioriteit, tenantcontext en bevoegde bestemming; lijst/detail/status veranderen."
+  },
+  {
+    "id": "support.messages",
+    "area": "Team en support",
+    "label": "Berichten en bijlagen",
+    "acceptance": "Antwoord toevoegen, bijlage selecteren, status sluiten/heropenen; onbevoegde rol ziet geen gevoelige inhoud."
+  },
+  {
+    "id": "support.routing",
+    "area": "Team en support",
+    "label": "Afdelingen, supportrollen en toewijzing",
+    "acceptance": "Platform beheert afdeling/rol/toewijzing; nieuw ticket bereikt juiste mockwerkvoorraad."
+  },
+  {
+    "id": "billing.account",
+    "area": "Billing",
+    "label": "Abonnement en billingaccount",
+    "acceptance": "Juridische naam/factuurmail bewaren; schermgebruik, trial, facturen en betaalstatus bekijken zonder vast tarief als live waarheid te claimen."
+  },
+  {
+    "id": "billing.flags",
+    "area": "Billing",
+    "label": "Afzonderlijke rolloutflags",
+    "acceptance": "Engine, recurring collection, entitlement enforcement, warning en restriction zijn afzonderlijk te demonstreren; extern bewijs vereist vóór echte activering."
+  },
+  {
+    "id": "billing.test_payment",
+    "area": "Billing",
+    "label": "Testbetaling en mandate",
+    "acceptance": "Doorloop gesimuleerde klant→first payment→providerreadback→geldig mandate; annuleer/fail/success geven correcte terugkeer."
+  },
+  {
+    "id": "billing.cycle",
+    "area": "Billing",
+    "label": "Recurring, webhook en reconciliation",
+    "acceptance": "Simuleer cyclus/verified webhook, mismatch of chargeback; factuur-/betaalstatus en reconciliationlijst veranderen gecontroleerd."
+  },
+  {
+    "id": "billing.entitlement",
+    "area": "Billing",
+    "label": "Grace, waarschuwing, restrictie en override",
+    "acceptance": "Demo toont trial/grace/restricted/verification en tijdelijk platformoverride; niet-actieve flags beperken Player niet."
+  },
+  {
+    "id": "platform.tenants",
+    "area": "Platform",
+    "label": "Organisaties provisionen en lifecycle",
+    "acceptance": "Tenant aanmaken/inviteren, pauzeren/heractiveren/archiveren en schermlimiet instellen met reden."
+  },
+  {
+    "id": "platform.users",
+    "area": "Platform",
+    "label": "Platformgebruikers en rollen",
+    "acceptance": "Owner/admin/support/viewer beheren met eigen capabilities; tenantbeheer blijft aparte context."
+  },
+  {
+    "id": "platform.features",
+    "area": "Platform",
+    "label": "Featurevrijgave per tenant",
+    "acceptance": "Engage/LED/billing en demo-registryvrijgave veranderen alleen gekozen tenant; audit en status zichtbaar."
+  },
+  {
+    "id": "platform.templates",
+    "area": "Platform",
+    "label": "Centrale templates en versies",
+    "acceptance": "Template maken/bewerken, versie aanmaken/publiceren/intrekken; bestaande publicatie blijft leesbaar."
+  },
+  {
+    "id": "platform.health",
+    "area": "Platform",
+    "label": "Systeem en beheerherstel",
+    "acceptance": "Bron/worker/schermproblemen en open reconciliation tonen; drilldown, retry en supportactie geven afgebakend resultaat."
+  },
+  {
+    "id": "mobile.cockpit",
+    "area": "Mobiel beheer",
+    "label": "Mobiele dagelijkse cockpit",
+    "acceptance": "Zelfde betekenis/data als web; bottomnav en sequential task flow werken op telefoonbreedte."
+  },
+  {
+    "id": "mobile.authoring",
+    "area": "Mobiel beheer",
+    "label": "Camera, upload, Studio en publiceren",
+    "acceptance": "Mobiele flow kan afbeelding kiezen, toevoegen, bewerken, bewaren en publiceren; gesloten paneel verliest invoer niet."
+  },
+  {
+    "id": "mobile.security",
+    "area": "Mobiel beheer",
+    "label": "Biometrie en notificatievoorkeuren",
+    "acceptance": "Toon expliciete simulatie van app-lock en voorkeuren; organisatie-/sessiewissel, unlock en categorie-instellingen werken in mockstate."
+  },
+  {
+    "id": "marketing.site",
+    "area": "Marketing",
+    "label": "Publieke productpagina’s en login",
+    "acceptance": "Klikbare marketingnavigatie met product, gebruik, demo/contact en doorstap naar beheer."
+  },
+  {
+    "id": "marketing.configurator",
+    "area": "Marketing",
+    "label": "Opstelling samenstellen",
+    "acceptance": "Kies organisatie, schermen/locaties en bronnen; vervolgaanvraag behoudt deze setup-intent."
+  },
+  {
+    "id": "marketing.lead",
+    "area": "Marketing",
+    "label": "Contact- en demoaanvraag",
+    "acceptance": "Valideer formulier; lokale demo-opslag toont aanvraag plus bevestiging of herstelbare fout; maak duidelijk dat geen echte mail wordt verzonden."
+  },
+  {
+    "id": "player.boot",
+    "area": "Player-demo",
+    "label": "Boot en splash",
+    "acceptance": "Open web/Android/LG-demo; merk-splash→initialiseren→opslagcontrole toont voortgang zonder fictieve certificering."
+  },
+  {
+    "id": "player.unpaired",
+    "area": "Player-demo",
+    "label": "Niet gekoppeld en pairingcode",
+    "acceptance": "Niet gekoppelde Player toont QR/code, vervaldatum, vernieuwen en contact; koppelen vanuit beheer verandert deze Player."
+  },
+  {
+    "id": "player.waiting",
+    "area": "Player-demo",
+    "label": "Gekoppeld, wacht op inhoud",
+    "acceptance": "Zonder release toont rustige wachtstate; nieuwe publicatie start automatisch ophalen terwijl heartbeat online blijft."
+  },
+  {
+    "id": "player.download",
+    "area": "Player-demo",
+    "label": "Downloaden en verifiëren",
+    "acceptance": "Voortgang per kandidaat met bytes/items; corrupte/ontbrekende media blokkeert activatie en biedt retry."
+  },
+  {
+    "id": "player.activate",
+    "area": "Player-demo",
+    "label": "Veilige overgang en zichtbaar bevestigd",
+    "acceptance": "Gevalideerde kandidaat wacht op item-/loopgrens; zichtbare activatie verandert bevestigde versie op dashboard."
+  },
+  {
+    "id": "player.play",
+    "area": "Player-demo",
+    "label": "Afspeelbediening en schermcontent",
+    "acceptance": "Volledige preview met 16:9/9:16, zones, paginering, audio-profiel en sponsor/goaloverlay; diagnose staat apart van gewone playback."
+  },
+  {
+    "id": "player.offline",
+    "area": "Player-demo",
+    "label": "Offline met laatste goede inhoud",
+    "acceptance": "Netwerk uit laat huidige content doorlopen; offline herstart kiest lokale goede release en toont compacte status."
+  },
+  {
+    "id": "player.no_cache",
+    "area": "Player-demo",
+    "label": "Offline zonder bruikbare cache",
+    "acceptance": "Aparte herstelbare splash legt wachten op netwerk uit; probeer opnieuw of herstel verbinding, zonder succesvolle playback te veinzen."
+  },
+  {
+    "id": "player.recovery",
+    "area": "Player-demo",
+    "label": "Video-, cache- en transportherstel",
+    "acceptance": "Simuleer terminale video versus download/corruptie; bounded retry/skip/LKG-herstel kan nieuwe gezonde release activeren."
+  },
+  {
+    "id": "player.identity",
+    "area": "Player-demo",
+    "label": "Herstart/update/herinstallatie en recovery",
+    "acceptance": "Demoflow bewaart identiteit waar bestaand contract dit ondersteunt; force-sync wist pairing/cache niet, expliciet ontkoppelen vraagt impact."
+  },
+  {
+    "id": "player.billing_splash",
+    "area": "Player-demo",
+    "label": "Grace-, restricted- en verificatiesplash",
+    "acceptance": "Beschikbare entitlementflags laten juiste waarschuwing/wacht-/restrictiestate zien; herstelbetaling/override keert terug naar bewaarde content."
+  }
+]

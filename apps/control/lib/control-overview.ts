@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createControlSupabaseClient } from "./supabase/server";
+import { missingOverviewReleaseIds } from "./overview-release-references";
 
 export type TenantOverview = Awaited<ReturnType<typeof loadTenantOverview>>;
 
@@ -29,7 +30,7 @@ export async function loadTenantOverview(tenantId: string) {
       .order("created_at", { ascending: true }),
     supabase
       .from("player_devices")
-      .select("id, screen_id, status, active_release_id, desired_release_id, last_seen_at, storage_used_bytes, storage_quota_bytes, last_error_code, last_error_at")
+      .select("id, screen_id, status, active_release_id, desired_release_id, last_seen_at, storage_used_bytes, storage_quota_bytes, last_error_code, last_error_at, current_sync_phase, current_sync_detail")
       .eq("tenant_id", tenantId)
       .neq("status", "revoked"),
     supabase
@@ -80,7 +81,7 @@ export async function loadTenantOverview(tenantId: string) {
       .limit(250),
     supabase
       .from("dynamic_data_sources")
-      .select("id, name, kind, status, provider_status, last_successful_sync_at, last_attempt_at, last_error_code")
+      .select("id, name, kind, status, provider_status, last_successful_sync_at, last_attempt_at, last_error_code, config_json")
       .eq("tenant_id", tenantId)
       .neq("status", "archived"),
     supabase
@@ -90,6 +91,19 @@ export async function loadTenantOverview(tenantId: string) {
       .neq("status", "revoked")
   ]);
 
+  const allReleases = [...(releases.data ?? [])];
+  const missingReleaseIds = missingOverviewReleaseIds({
+    devices: devices.data ?? [], heartbeats: heartbeats.data ?? [], screens: screens.data ?? []
+  }, allReleases);
+  let referencedReleaseError = false;
+  for (let offset = 0; offset < missingReleaseIds.length; offset += 100) {
+    const referenced = await supabase.from("playlist_releases")
+      .select("id, playlist_id, version, published_at")
+      .eq("tenant_id", tenantId).in("id", missingReleaseIds.slice(offset, offset + 100));
+    referencedReleaseError ||= Boolean(referenced.error);
+    allReleases.push(...(referenced.data ?? []));
+  }
+  allReleases.sort((a, b) => b.published_at.localeCompare(a.published_at));
   const overviewAudit = audit.data ?? [];
   const actorIds = [...new Set(overviewAudit.flatMap((event) =>
     event.actor_user_id ? [event.actor_user_id] : []
@@ -119,7 +133,7 @@ export async function loadTenantOverview(tenantId: string) {
   ]));
   const auditTargets = new Map<string, string>([
     ...(playlists.data ?? []).map((row) => [`playlists:${row.id}`, row.name] as const),
-    ...(releases.data ?? []).map((row) => [
+    ...allReleases.map((row) => [
       `playlist_releases:${row.id}`,
       `Release versie ${row.version}`
     ] as const),
@@ -136,7 +150,7 @@ export async function loadTenantOverview(tenantId: string) {
     integrations: !dynamicSources.error && !sportlinkConnections.error,
     media: !media.error,
     members: !invitations.error && !members.error,
-    playlists: !playlists.error && !playlistItems.error && !releases.error,
+    playlists: !playlists.error && !playlistItems.error && !releases.error && !referencedReleaseError,
     screens: !screens.error,
     telemetry: !heartbeats.error,
     tenant: !tenant.error
@@ -175,7 +189,7 @@ export async function loadTenantOverview(tenantId: string) {
     media: media.data ?? [],
     playlistItems: playlistItems.data ?? [],
     playlists: playlists.data ?? [],
-    releases: releases.data ?? [],
+    releases: allReleases,
     screenLimit: tenant.data?.screen_limit ?? 0,
     devices: devices.data ?? [],
     screens: screens.data ?? [],

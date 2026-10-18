@@ -1,0 +1,58 @@
+{
+  "sourcePath": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/manrope.woff2",
+  "sourceSha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+  "tool": "fontTools 4.60.1",
+  "operation": "WOFF2 decoding and static weight instancing at default remaining axes; unchanged glyph set",
+  "license": "Manrope-OFL.txt",
+  "fonts": [
+    {
+      "path": "SyncManrope-400.ttf",
+      "weight": 400,
+      "bytes": 35648,
+      "sha256": "7e7f827199402b9397ec03430add0ae7976c0392ab62c89e3491546edc03e5f1",
+      "glyphCount": 280
+    },
+    {
+      "path": "SyncManrope-450.ttf",
+      "weight": 450,
+      "bytes": 35624,
+      "sha256": "483a3e65ee9ec39880da74c806dfd8c2fb733a81ded027d403e91e7e6523434d",
+      "glyphCount": 280
+    },
+    {
+      "path": "SyncManrope-500.ttf",
+      "weight": 500,
+      "bytes": 35664,
+      "sha256": "a14ef38054e97ee80ff4ec566c6a4bb31a88259e84ea4c6140352297881a3cfe",
+      "glyphCount": 280
+    },
+    {
+      "path": "SyncManrope-600.ttf",
+      "weight": 600,
+      "bytes": 35640,
+      "sha256": "d1fe6585a12cb6d4f05142e84d61fdeb7af87232f9d69ed23a0e2fee1b85fbf3",
+      "glyphCount": 280
+    },
+    {
+      "path": "SyncManrope-650.ttf",
+      "weight": 650,
+      "bytes": 35576,
+      "sha256": "cc82b6b4ea27aac09d154a59071ce9da6e697c9a523c98b4286ffa58d3c35e83",
+      "glyphCount": 280
+    },
+    {
+      "path": "SyncManrope-700.ttf",
+      "weight": 700,
+      "bytes": 35584,
+      "sha256": "5c508154b25d45d06ccb67d174cdba68fe7de309dde1667dfe44ffb2c6b9177c",
+      "glyphCount": 280
+    },
+    {
+      "path": "SyncManrope-750.ttf",
+      "weight": 750,
+      "bytes": 35692,
+      "sha256": "b3b29e69747e52caaf6a06056050b78e7fb3eb7f4451353d173732491b5835c7",
+      "glyphCount": 280
+    }
+  ]
+}

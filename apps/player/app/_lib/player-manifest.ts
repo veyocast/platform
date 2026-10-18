@@ -5,6 +5,9 @@ import type {
   PlayerDynamicTemplatePayload,
   PlayerDynamicTemplateAsset,
   SitesPresentation,
+  SyncSlidePresentation,
+  SyncDynamicPlayback,
+  SyncDynamicBinaryPlayback,
   PlayerEngagePlayback,
   PlayerPlaybackItem,
   PlayerSponsorPlan,
@@ -77,6 +80,12 @@ export type PlayerManifestItem = PlayerPlaybackItem & {
   sitesPresentation?:PlayerSitesMarkup;
   sitesStudioPresentation?:Extract<SitesPresentation,{kind:"studio"}>;
   sitesStudioAssets?:Record<string,PlayerDynamicTemplateAsset>;
+  syncStudioPresentation?:SyncSlidePresentation;
+  syncStudioDurationMs?:number;
+  syncStudioAssets?:Record<string,PlayerDynamicTemplateAsset>;
+  syncDynamic?:SyncDynamicPlayback;
+  syncDynamicBinary?:SyncDynamicBinaryPlayback;
+  syncSystemAssetUrls?:Record<string,string>;
   source: {
     url: string;
     fallbackUrl?: string;
@@ -103,6 +112,7 @@ export type PlayerReleaseManifest = {
   presentationDefaults?: PlayerManifestPresentationDefaults;
   sponsorPlan?: PlayerSponsorPlan;
   systemAssets?:Array<{path:string;checksumSha256:string;bytes:number;mimeType:string}>;
+  syncSystemAssets?:Array<{path:string;checksumSha256:string;bytes:number;mimeType:string}>;
   items: PlayerManifestItem[];
 };
 

@@ -1,0 +1,33 @@
+{
+  "scope": "after paged catalog, accessible field labels, exact Source button aliases and deterministic worker test; before later S226 edits",
+  "runtimeInput": {
+    "files": 2539,
+    "sha256": "5f38d1ae15f16f7711a0c65ca1ecf5d4a68283d3aad8fba3d49e47e29ea657d0"
+  },
+  "foundation": {
+    "lint": "30/30 PASS",
+    "typecheck": "30/30 PASS",
+    "test": "30/30 PASS",
+    "build": "18/18 PASS (1m10.681s)"
+  },
+  "database": {
+    "files": 113,
+    "assertions": 3164,
+    "reset": "PASS",
+    "rls": "PASS",
+    "lintErrors": 0
+  },
+  "catalog": {
+    "transportCases": "6/6 PASS (9.3s)",
+    "realAal2": "catalog-paging-real-services.json",
+    "visualAndAxe": "catalog-ui-source-mapping.json"
+  },
+  "workerDeadlineTest": "115/115 PASS; controlled upload-start abort, same exact 1 failed/99 skipped assertions; production timeout unchanged",
+  "logHashes": {
+    "lint": "754c3499e77e5d1633f64c4676eb421a7312341f41e8e1a4b74e92ebacbf1569",
+    "typecheck": "93de472a19422c007fabe82f8afa7e9623f075f306489b1f2ec629bd8c7c7255",
+    "test": "26858635605131cb23772d188a2f3c5abb0fb3659e2ef573c63ceb8d10522b1f",
+    "build": "e0797f303a623fc7a7ef44bdc45fc3da5acbabb0d9500eec5fcc1e4e79e767fb"
+  },
+  "limitations": "No commit/deployment or complete V1/148 scenario acceptance claim. Current Source UI parity and old responsive CI-reference adaptation remain open."
+}

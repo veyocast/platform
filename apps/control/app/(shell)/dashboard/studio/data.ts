@@ -360,7 +360,7 @@ type StudioDataClient = NonNullable<
   Awaited<ReturnType<typeof createControlSupabaseClient>>
 >;
 
-async function loadStudioMediaAssets(
+export async function loadStudioMediaAssets(
   supabase: StudioDataClient,
   tenantId: string,
   includeAssetIds: readonly string[]

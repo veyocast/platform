@@ -1,0 +1,33 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T10:13:43.439Z",
+  "playerBuildId": "Vp7Qn_24oM7HcZ78I2D6u",
+  "scope": "actual AAL2 Source library choice, existing Engage placement, preflight, immutable release, own new screen, first frame, anonymous secure-cookie vote/deduplication, public visibility transition, offline fallback and older binary client; local QA, no hosted/hardware claim",
+  "projectId": "418e83dd-319d-4313-82f0-b581ddbdba8e",
+  "assetId": "2d88ed0d-17ec-4cd8-a2ac-df2b9516be8f",
+  "publicId": "1b0e5085-6725-45c8-9980-59dd02c1d85d",
+  "campaignId": "894c0aba-532f-4b81-a86e-abe3e0c1d960",
+  "sha256": "c90cc28f31dd9630e1a820865d24340ac757708362c452c0448b8acb0b71b44b",
+  "name": "S226 Source-publieksvraag 1792318225329",
+  "screenId": "87d3f25a-de24-4526-b7b8-74952abde7d5",
+  "playlistId": "13666aaf-8f0b-4ebe-9bb1-7a9c7882cdbb",
+  "libraryOwnPublicCampaignResolved": true,
+  "placement": {
+    "id": "4194bb29-43fd-4124-985b-cfdd7afadf9f",
+    "assetId": "2d88ed0d-17ec-4cd8-a2ac-df2b9516be8f",
+    "seconds": 5,
+    "campaignId": "894c0aba-532f-4b81-a86e-abe3e0c1d960"
+  },
+  "release": {
+    "family": "engage",
+    "sha256": "c90cc28f31dd9630e1a820865d24340ac757708362c452c0448b8acb0b71b44b",
+    "assetId": "2d88ed0d-17ec-4cd8-a2ac-df2b9516be8f",
+    "version": 1,
+    "publicId": "1b0e5085-6725-45c8-9980-59dd02c1d85d",
+    "releaseId": "88a34d25-07ae-4c14-b56b-eda648477485",
+    "durationMs": 5000,
+    "sourcePublicId": "1b0e5085-6725-45c8-9980-59dd02c1d85d"
+  },
+  "error": "Command failed: docker exec -i supabase_db_veyocast-s226 psql -U postgres -d postgres -At -v ON_ERROR_STOP=1\nERROR:  relation \"public.studio_project_revisions\" does not exist\nLINE 1: ...dio_render_jobs),'revisions',(select count(*)from public.stu...\n                                                             ^\n",
+  "finishedAt": "2026-10-18T10:13:48.904Z"
+}

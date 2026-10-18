@@ -1,0 +1,64 @@
+{
+  "status": "PARTIAL",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "scope": "Source Studio Slides chooser, immutable export reload, per-placement theme/duration render and Source placement safety; collection implementation follows in the same task",
+  "gates": {
+    "controlUnit": {
+      "passed": 759,
+      "skipped": 34,
+      "status": "PASS",
+      "scope": "library cohort before Source collections"
+    },
+    "libraryDirectedUnit": {
+      "passed": 23,
+      "status": "PASS"
+    },
+    "controlLintTypeBuild": {
+      "status": "PASS",
+      "scope": "library cohort before Source collections"
+    },
+    "playlistBrowser": {
+      "passed": 118,
+      "status": "PASS",
+      "scope": "includes three new Source picker cases and all previous workflow/state cases"
+    },
+    "freshDatabase": {
+      "files": 116,
+      "assertions": 3284,
+      "status": "PASS",
+      "scope": "fresh reset through migration 050; subsequent trim and metadata changes separately scoped"
+    },
+    "sourceTrimSql": {
+      "passed": 16,
+      "status": "PASS"
+    },
+    "sourceMetadataSql": {
+      "passed": 12,
+      "status": "PASS"
+    },
+    "playerUnit": {
+      "passed": 420,
+      "status": "PASS"
+    },
+    "playerBrowser": {
+      "passed": 11,
+      "seconds": 27.4,
+      "status": "PASS"
+    },
+    "playerLintType": {
+      "status": "PASS"
+    }
+  },
+  "actualServices": "execution/evidence/sync-library-playlist-real-services.json",
+  "harnessHistory": [
+    "First attempt selected a different owned fixture named Programma because the harness used a document label. Its single queued job 45b0e0ee-91d7-440a-ab78-6b99c0c9e07d was cancelled with the authenticated existing command; the history remains. The same empty playlist was reused.",
+    "Second attempt selected and saved the correct existing Source export, then a duplicated hidden label made the reload assertion ambiguous. No new collection or render was created.",
+    "Third attempt reused that exact confirmed placement, validated both pages, rendered the separate theme/duration fork, reopened it and verified authenticated private bytes."
+  ],
+  "limits": [
+    "current local Player build precedes the latest fit/crop/trim component change; the eleven browser cases execute the latest component directly",
+    "Source collections and library filmstrip require their own actual-service acceptance",
+    "live Source provider binding, complete visual comparison and all 148 scenario acceptances remain open",
+    "no hosted deploy, signed native update, physical device or 24-hour claim"
+  ]
+}

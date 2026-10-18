@@ -3,7 +3,7 @@ import { useWindowDimensions } from "react-native";
 
 import {
   PremiumTabBar,
-  premiumRailBreakpoint
+  premiumRailBreakpoint,
 } from "../../src/navigation/premium-tab-bar";
 
 export default function TabsLayout() {
@@ -14,38 +14,37 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarHideOnKeyboard: true,
-        tabBarPosition:
-          width >= premiumRailBreakpoint ? "left" : "bottom"
+        tabBarPosition: width >= premiumRailBreakpoint ? "left" : "bottom",
       }}
     >
       <Tabs.Screen
         name="vandaag"
         options={{
-          title: "Vandaag"
+          title: "Overzicht",
         }}
       />
       <Tabs.Screen
         name="schermen"
         options={{
-          title: "Schermen"
+          title: "Schermen",
         }}
       />
       <Tabs.Screen
         name="content"
         options={{
-          title: "Content"
+          title: "Content",
         }}
       />
       <Tabs.Screen
         name="maken"
         options={{
-          title: "Maken"
+          title: "Maken",
         }}
       />
       <Tabs.Screen
         name="meer"
         options={{
-          title: "Meer"
+          title: "Meer",
         }}
       />
     </Tabs>

@@ -10,15 +10,9 @@ test("keeps the documented local demo pilot traceable across product planes", as
 }) => {
   await page.goto(marketingURL);
 
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Maak van iederscherm eenverhaal.");
   await expect(
-    page.getByRole("heading", {
-      exact: true,
-      level: 1,
-      name: "Van clubverhaal naar ieder scherm."
-    })
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Je boodschap vindt vanzelf de juiste weg." })
+    page.getByRole("heading", { name: "Mooi op het scherm. Rustig achter de schermen." })
   ).toBeVisible();
 
   await page.goto("/login");
@@ -48,13 +42,13 @@ test("keeps the documented local demo pilot traceable across product planes", as
   await expect(
     page.getByRole("status").filter({ hasText: "Configureer Supabase en log in om echte playlists te maken en bewerken." })
   ).toBeVisible();
-  await expect(page.locator("#control-content").getByRole("heading", { name: "Playlists", exact: true })).toBeVisible();
+  await expect(page.locator("#control-content").getByRole("heading", { name: "Je playlists", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Nieuwe playlist", exact: true })).toBeDisabled();
 
   await page.goto("/dashboard/screens");
-  await expect(
-    page.getByRole("status").filter({ hasText: "geen fictieve schermen" })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Jouw club. Overal in beeld." })).toBeVisible();
+  await expect(page.locator(".px-screen-card")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Scherm koppelen", exact: true })).toBeDisabled();
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
   await page.goto("/dashboard/screens/new");
   const setup = page.getByRole("dialog", { name: "Nieuw scherm instellen" });

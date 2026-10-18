@@ -1,0 +1,10 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T06:59:22.516Z",
+  "controlBuildId": "vCVDfFxm9ZVKmoXWzH1wa",
+  "scope": "actual Source dynamic editor, existing AAL2 version and read-only canonical preview, exact lost-save receipt recovery, explicit complete worker output; no Source create/team/pool selector, provider, hardware or hosted deployment claim",
+  "slideId": "2e4becaa-7f1a-4513-9065-fa165eb720ae",
+  "versionId": "6ec0ef97-0694-4545-b45b-b5e127722ec9",
+  "previewReadOnly": true,
+  "error": "expect(locator).toContainText(expected) failed\n\nLocator: getByRole('alert')\nExpected substring: \"antwoord is verloren\"\nReceived string:    \"VeyoCast Control\"\nTimeout: 30000ms\n\nCall log:\n  - Expect \"to.have.text\" with timeout 30000ms\n  - waiting for getByRole('alert')\n    5 × locator resolved to <div role=\"alert\" aria-live=\"assertive\" id=\"__next-route-announcer__\"></div>\n      - unexpected value \"\"\n    59 × locator resolved to <div role=\"alert\" aria-live=\"assertive\" id=\"__next-route-announcer__\">VeyoCast Control</div>\n       - unexpected value \"VeyoCast Control\"\n"
+}

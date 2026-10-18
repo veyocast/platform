@@ -1,0 +1,8 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T09:23:51.619Z",
+  "controlBuildId": "eLES1fqneU5xg52f-BsBk",
+  "scope": "actual AAL2 Source LED choice, existing leased normalized-state ingestion RPC over an explicit owned fixture, canonical preview, exact lost create recovery and complete private worker output; no external websocket/provider, Player stream, hardware or hosted deployment claim",
+  "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ {\n+   code: 'PGRST202',\n+   details: 'Searched for the function public.set_tenant_feature_flag_v2 with parameters p_enabled, p_expected_revision, p_flag_key, p_idempotency_key, p_reason, p_tenant_id or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.',\n+   hint: 'Perhaps you meant to call the function public.set_tenant_feature_flag_v2(p_enabled, p_expected_revision, p_flag_key, p_reason, p_request_id, p_tenant_id)',\n+   message: 'Could not find the function public.set_tenant_feature_flag_v2(p_enabled, p_expected_revision, p_flag_key, p_idempotency_key, p_reason, p_tenant_id) in the schema cache'\n+ }\n- null\n",
+  "browserErrors": []
+}

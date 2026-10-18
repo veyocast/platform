@@ -104,6 +104,15 @@ export type ControlSession = {
 };
 
 const controlNavigation: readonly ControlNavigationItem[] = [
+
+  {
+    description: "Websiteaanvragen en ontvangststatus",
+    href: "/platform/requests",
+    label: "Aanvragen & website",
+    requiredCapability: "platform.ticket.read",
+    section: "support",
+    scope: "platform"
+  },
   {
     description: "Systeemstatus en tenantgezondheid",
     href: "/platform",
@@ -174,6 +183,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     label: "Vandaag",
     requiredCapability: "tenant.overview.read",
     section: "today",
+    scope: "tenant"
+  },
+  {
+    description: "Ontwerpen, media en dynamische content in één bibliotheek",
+    href: "/dashboard/content",
+    label: "Content",
+    requiredCapability: "tenant.overview.read",
+    section: "content",
     scope: "tenant"
   },
   {
@@ -278,6 +295,22 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     label: "Bronnen",
     requiredCapability: "tenant.data_source.read",
     section: "sources",
+    scope: "tenant"
+  },
+  {
+    description: "Producten, categorieën en gecontroleerde prijslijsten",
+    href: "/dashboard/products",
+    label: "Producten",
+    requiredCapability: "tenant.product.read",
+    section: "sources",
+    scope: "tenant"
+  },
+  {
+    description: "Schermtelling, facturen en beveiligde betaalmethode",
+    href: "/dashboard/settings/billing",
+    label: "Abonnement",
+    requiredCapability: "tenant.billing.read",
+    section: "organization",
     scope: "tenant"
   },
   {
@@ -459,6 +492,12 @@ export function getControlRoutePresentation(
     paths: readonly string[];
     title: string;
   }>[] = [
+    {
+      description: "Beheer je producten. Werk prijzen bewust bij op je schermen.",
+      family: "integrations",
+      paths: ["/dashboard/products", "/dashboard/sources/twelve/products", "/dashboard/integrations/twelve-products"],
+      title: "Producten"
+    },
     {
       description: "Maak menu’s en prijslijsten voor je schermen.",
       family: "slides",

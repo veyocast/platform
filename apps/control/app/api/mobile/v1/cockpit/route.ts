@@ -3,13 +3,12 @@ import {
   requireMobileTenant
 } from "../../../../../lib/mobile-api/context";
 import { mobileCockpitMediaStatuses } from "../../../../../lib/mobile-api/cockpit";
+import { syncPlaybackEvidence } from "../../../../../lib/sync-playback-evidence";
 import {
   mobileContextFailure,
   mobileData,
   mobileFailure
 } from "../../../../../lib/mobile-api/response";
-
-const offlineAfterMs = 5 * 60_000;
 
 export async function GET(request: Request) {
   try {
@@ -28,7 +27,7 @@ export async function GET(request: Request) {
           .is("deleted_at", null),
         context.supabase
           .from("player_devices")
-          .select("screen_id, status, last_seen_at, last_error_code, last_error_at")
+          .select("screen_id,status,last_seen_at,last_error_code,last_error_at,active_release_id,desired_release_id,current_sync_detail")
           .eq("tenant_id", tenant.id)
           .eq("status", "paired"),
         context.supabase
@@ -96,15 +95,18 @@ export async function GET(request: Request) {
         });
         continue;
       }
-      const lastSeen = device.last_seen_at
-        ? Date.parse(device.last_seen_at)
-        : Number.NaN;
-      if (!Number.isFinite(lastSeen) || now.getTime() - lastSeen >= offlineAfterMs) {
+      const proof = syncPlaybackEvidence(device, now.getTime());
+      if (proof.contact === "online" && device.desired_release_id && !proof.desiredConfirmed) {
+        signals.push({ actionHref: `/screens/${screen.id}`, actionLabel: "Synchronisatie bekijken",
+          id: `publication-pending:${screen.id}`, message: "De gewenste publicatie is nog niet met een zichtbaar frame bevestigd.",
+          occurredAt: device.last_seen_at ?? screen.created_at, title: screen.name, tone: "warning" });
+      }
+      if (proof.contact !== "online") {
         signals.push({
           actionHref: `/screens/${screen.id}`,
           actionLabel: "Scherm bekijken",
           id: `screen-offline:${screen.id}`,
-          message: "De laatste heartbeat is ouder dan vijf minuten. Lokale content blijft beschikbaar.",
+          message: "Recent contact is niet bevestigd. Een geldige lokale release blijft beschikbaar. Controleer de verbinding en de apparaatklok.",
           occurredAt: device.last_seen_at ?? screen.created_at,
           title: screen.name,
           tone: "warning"
@@ -124,18 +126,8 @@ export async function GET(request: Request) {
         title: asset.title,
         tone: "critical" as const
       }));
-    const screensOnline = activeScreens.filter((screen) => {
-      const device = devices.get(screen.id);
-      const lastSeen = device?.last_seen_at
-        ? Date.parse(device.last_seen_at)
-        : Number.NaN;
-      return (
-        device?.status === "paired" &&
-        !device.last_error_code &&
-        Number.isFinite(lastSeen) &&
-        now.getTime() - lastSeen < offlineAfterMs
-      );
-    }).length;
+    const screensOnline = activeScreens.filter(screen => syncPlaybackEvidence(devices.get(screen.id), now.getTime()).contact === "online").length;
+    const screensAttention = activeScreens.filter(screen => syncPlaybackEvidence(devices.get(screen.id), now.getTime()).needsAttention).length;
 
     return mobileData(
       {
@@ -146,7 +138,7 @@ export async function GET(request: Request) {
         pendingPublications: (playlistResult.data ?? []).filter(
           (playlist) => playlist.status === "draft"
         ).length,
-        screensAttention: activeScreens.length - screensOnline,
+        screensAttention,
         screensOnline,
         signals: [...signals, ...failedMediaSignals].slice(0, 20)
       },

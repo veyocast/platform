@@ -1,0 +1,21 @@
+{
+  "startedAt": "2026-10-18T00:16:48.500Z",
+  "scope": "actual Next browser command, committed response lost, independent AAL2 edit, fresh catalog read and original receipt replay",
+  "tenant": "19170000-0000-4000-8000-000000000010",
+  "productId": "2f69010b-3e2c-40bf-b051-870413a6b003",
+  "before": {
+    "id": "2f69010b-3e2c-40bf-b051-870413a6b003",
+    "name": "S226 browserproduct",
+    "description": null,
+    "category": "Nieuwe categorie",
+    "price_cents": 235,
+    "vat_rate": null,
+    "unit": "stuk",
+    "barcode": null,
+    "source_external_id": "S226-browserproduct",
+    "active": true,
+    "revision": 1
+  },
+  "status": "FAIL",
+  "error": "expect(locator).toContainText(expected) failed\n\nLocator: getByRole('alert')\nExpected substring: \"catalogus kan al zijn bijgewerkt\"\nError: strict mode violation: getByRole('alert') resolved to 2 elements:\n    1) <div role=\"alert\" class=\"notice notice--critical\" id=\"availability-error-2f69010b-3e2c-40bf-b051-870413a6b003\">…</div> aka getByText('S226 browserproduct · De')\n    2) <div role=\"alert\" aria-live=\"assertive\" id=\"__next-route-announcer__\"></div> aka locator('[id=\"__next-route-announcer__\"]')\n\nCall log:\n  - Expect \"to.have.text\" with timeout 5000ms\n  - waiting for getByRole('alert')\n    8"
+}

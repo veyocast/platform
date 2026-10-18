@@ -233,10 +233,10 @@ test("player pairing becomes static when reduced motion is requested", async ({
   const brandIcon = page.locator(".pairing-brand-scene img");
   await expect(brandIcon).toBeVisible();
   await expect(brandIcon).toHaveCSS("animation-name", "none");
-  await expect(page.locator(".pairing-brand-accent--orange")).toHaveCSS(
-    "animation-name",
-    "none"
-  );
+  await expect(brandIcon).toHaveAttribute("src", "/assets/brand-hero-800.webp");
+  await expect(brandIcon).toHaveCSS("object-fit", "contain");
+  await expect(brandIcon).toHaveCSS("transform", "none");
+  expect(await brandIcon.evaluate((image: HTMLImageElement) => image.naturalWidth === image.naturalHeight && image.naturalWidth > 0)).toBe(true);
 });
 
 test("recovers automatically when pairing creation is temporarily rate limited", async ({

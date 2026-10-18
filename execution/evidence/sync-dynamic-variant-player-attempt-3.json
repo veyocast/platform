@@ -1,0 +1,13 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T08:10:28.850Z",
+  "playerBuildId": "IyFEjVS94DIhCfvF6AeI1",
+  "scope": "actual AAL2 reviewed Source placement variant through Control preflight/publication, frozen theme/duration, first-frame and DOM/binary offline reload with existing pairing; no live binary refresh, external provider, hardware or hosted deployment claim",
+  "slideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+  "assetId": "83228b4d-e1ba-5cfe-8849-60750da57863",
+  "screenId": "19170000-0000-4000-8000-000000000022",
+  "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9",
+  "playlistId": "c5d2f44f-9aac-4948-91c1-cbc5658c4965",
+  "error": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
+}

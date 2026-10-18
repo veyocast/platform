@@ -1,0 +1,63 @@
+{
+  "startedAt": "2026-10-18T00:18:57.697Z",
+  "scope": "actual Next browser command, committed response lost, independent AAL2 edit, fresh catalog read and original receipt replay",
+  "tenant": "19170000-0000-4000-8000-000000000010",
+  "productId": "2f69010b-3e2c-40bf-b051-870413a6b003",
+  "before": {
+    "id": "2f69010b-3e2c-40bf-b051-870413a6b003",
+    "name": "S226 browserproduct",
+    "description": null,
+    "category": "Nieuwe categorie",
+    "price_cents": 235,
+    "vat_rate": null,
+    "unit": "stuk",
+    "barcode": null,
+    "source_external_id": "S226-browserproduct",
+    "active": false,
+    "revision": 2
+  },
+  "afterLoss": {
+    "id": "2f69010b-3e2c-40bf-b051-870413a6b003",
+    "name": "S226 browserproduct",
+    "description": null,
+    "category": "Nieuwe categorie",
+    "price_cents": 235,
+    "vat_rate": null,
+    "unit": "stuk",
+    "barcode": null,
+    "source_external_id": "S226-browserproduct",
+    "active": true,
+    "revision": 3
+  },
+  "afterConcurrentEdit": {
+    "id": "2f69010b-3e2c-40bf-b051-870413a6b003",
+    "name": "S226 later bewaarde productnaam",
+    "description": null,
+    "category": "Nieuwe categorie",
+    "price_cents": 275,
+    "vat_rate": null,
+    "unit": "stuk",
+    "barcode": null,
+    "source_external_id": "S226-browserproduct",
+    "active": true,
+    "revision": 4
+  },
+  "afterReplay": {
+    "id": "2f69010b-3e2c-40bf-b051-870413a6b003",
+    "name": "S226 later bewaarde productnaam",
+    "description": null,
+    "category": "Nieuwe categorie",
+    "price_cents": 275,
+    "vat_rate": null,
+    "unit": "stuk",
+    "barcode": null,
+    "source_external_id": "S226-browserproduct",
+    "active": true,
+    "revision": 4
+  },
+  "commandsIdentical": true,
+  "originalExpectedRevision": 2,
+  "recoveredWithoutNewRevision": true,
+  "afterReleases": 0,
+  "status": "PASS"
+}

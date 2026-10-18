@@ -10,3 +10,4 @@ export * from "./templates";
 export * from "./text-layout";
 
 export * from "./sites";
+export * from "./sync";

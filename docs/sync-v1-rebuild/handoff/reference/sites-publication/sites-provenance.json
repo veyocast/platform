@@ -1,0 +1,30 @@
+[
+  {
+    "role": "prototype",
+    "project_id": "appgprj_6ad36684ebd881919a11a4391cd413bc",
+    "title": "VeyoCast \u2014 Sync V1 \u00b7 Complete handover",
+    "url": "https://veyocast-v1-design-lab.dgwebserv.chatgpt.site",
+    "access_mode": "custom",
+    "version": 2,
+    "version_id": "appgprj_6ad36684ebd881919a11a4391cd413bc~appgver_3b7130af3ce081919728be302fa9bdf2",
+    "commit": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+    "deployment_id": "appgdep_6ad39571fffc81918dfea1d44f050d37",
+    "source_snapshot": "reference/sites-sync"
+  },
+  {
+    "role": "marketing",
+    "project_id": "appgprj_6ad391e59c348191867f51239cec9fbd",
+    "title": "VeyoCast \u2014 Narrowcasting die jouw verhaal laat zien",
+    "url": "https://veyocast.dgwebserv.chatgpt.site",
+    "access_mode": "public",
+    "version": 1,
+    "version_id": "appgprj_6ad391e59c348191867f51239cec9fbd~appgver_023753e5741481919ced06610a29e64a",
+    "commit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "deployment_id": "appgdep_6ad3955441cc8191b27cd10ddc5406cc",
+    "source_snapshot": "reference/marketing-publication"
+  },
+  {
+    "publication_screenshot": "marketing-sites-publication.png",
+    "scope": "Sites publicatiecapture van root-marketingpagina, geen eigen browseracceptatie, geen app-interieur/routebewijs."
+  }
+]

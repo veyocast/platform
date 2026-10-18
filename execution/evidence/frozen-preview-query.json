@@ -1,0 +1,9 @@
+{
+  "result": "PASS",
+  "releaseId": "be649c7f-1891-4cc2-a2e5-dd2d5b8cdadb",
+  "returnedReleases": 1,
+  "firstItemsPerRelease": [
+    1
+  ],
+  "scope": "isolated local database; bounded nested release-item read; RLS checked separately"
+}

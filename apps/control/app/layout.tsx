@@ -10,6 +10,8 @@ import "@fontsource/roboto/900.css";
 import "@veyocast/ui/styles.css";
 import "./globals.css";
 import "./fieldflow.css";
+import "./sync-source.css";
+import "./sync-adapter.css";
 import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
 
 export const metadata: Metadata = {
@@ -22,10 +24,10 @@ export const metadata: Metadata = {
     title: "VeyoCast"
   },
   icons: {
-    apple: "/brand/veyocast-apple-touch-icon-180.png",
+    apple: "/assets/sync-icon-192.png",
     icon: [
-      { sizes: "any", type: "image/svg+xml", url: "/brand/veyocast-favicon.svg" },
-      { sizes: "32x32", type: "image/png", url: "/brand/veyocast-favicon-32.png" }
+      { sizes: "any", type: "image/svg+xml", url: "/assets/brand-icon.svg" },
+      { sizes: "192x192", type: "image/png", url: "/assets/sync-icon-192.png" }
     ]
   }
 };

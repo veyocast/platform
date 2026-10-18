@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-10-18T15:14:46.361019+00:00",
+  "status": "PASS",
+  "scope": "Owned local PostgREST14 HTTP and real PostgreSQL; no hosted/hardware claim",
+  "problem": "Business SQLSTATE40001 retried indefinitely at PostgREST14 HTTP boundary, including after client abort. Direct pgTAP did not expose this.",
+  "officialReference": "https://supabase.com/docs/guides/troubleshooting/high-cpu-and-infinite-transaction-retries-when-using-custom-error-codes-in-rpc-functions-77326b",
+  "migration": "supabase/migrations/20261018150124_sync_studio_nonretryable_conflicts.sql",
+  "solution": "Seven original public signatures delegate to inaccessible private bases retaining auth/RLS/receipt/CAS and translate serialization_failure into PT409 only at public boundary.",
+  "actualHttp": {
+    "ms": 53,
+    "status": 409,
+    "errorCode": "PT409",
+    "outcome": null,
+    "seriesId": null
+  },
+  "activeSeriesQueriesAfterProof": 0,
+  "ownedRestRestart": "Only supabase_rest_veyocast-s226 restarted to stop abandoned pre-fix HTTP requests; all DB/Auth/Storage data retained.",
+  "freshReset": true,
+  "fullRls": {
+    "files": 129,
+    "checks": 3596,
+    "result": "PASS"
+  },
+  "foundation": {
+    "lint": "30/30 PASS,29cached",
+    "typecheck": "30/30 PASS,29cached",
+    "unit": "30/30 PASS,28cached"
+  },
+  "proof": {
+    "rls": {
+      "logSha256": "50ad3cfd861550283564ad2774bd3bfc53f7054413d6a94c425572159d187b71",
+      "tail": [
+        "/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_studio_playback.sql ................. ok",
+        "psql:/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_studio_series.sql:2: NOTICE:  extension \"pgtap\" already exists, skipping",
+        "/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_studio_series.sql ................... ok",
+        "psql:/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_youtube.sql:2: NOTICE:  extension \"pgtap\" already exists, skipping",
+        "/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_youtube.sql ......................... ok",
+        "All tests successful.",
+        "Files=129, Tests=3596, 40 wallclock secs ( 0.66 usr  0.22 sys +  0.98 cusr  0.91 csys =  2.77 CPU)",
+        "Result: PASS"
+      ]
+    },
+    "dbLint": {
+      "logSha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297",
+      "tail": [
+        "Connecting to local database...",
+        "Linting schema: public",
+        "Linting schema: private",
+        "{\"results\":[],\"message\":\"db lint\"}"
+      ]
+    }
+  },
+  "rollback": "Leave forward migration/private bases present; previous app accepts HTTP409 as rejection. Never restore direct grants to bases or restore custom40001 HTTP boundary."
+}

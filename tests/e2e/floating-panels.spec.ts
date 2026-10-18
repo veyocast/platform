@@ -27,7 +27,7 @@ async function openDashboard(page: Page) {
     await page.waitForLoadState("networkidle");
 
     await expect(
-      page.getByRole("heading", { level: 1, name: /Goedemorgen,/ })
+      page.getByRole("heading", { level: 1, name: /Mooi dat je er bent,/ })
     ).toBeVisible();
 
     const contextTrigger = page.getByRole("button", {
@@ -113,40 +113,37 @@ test("floating panels stay above clipped containers at every Control breakpoint"
   }
 });
 
-test("het volledige Meer-paneel blijft bereikbaar op echte mobiele viewports", async ({ page }) => {
+test("het volledige Beheer-paneel blijft bereikbaar op echte mobiele viewports", async ({page}) => {
   test.setTimeout(90_000);
-  const mobileViewports = [
-    { height: 640, width: 360 },
-    { height: 844, width: 390 },
-    { height: 915, width: 412 },
-    { height: 1024, width: 768 }
-  ];
-
-  for (const viewport of mobileViewports) {
+  for (const viewport of [{height: 640, width: 360}, {height: 844, width: 390}, {height: 915, width: 412}, {height: 1024, width: 768}]) {
     await page.setViewportSize(viewport);
     await openDashboard(page);
-    const more = page.getByRole("button", { exact: true, name: "Meer" });
-    if (await more.isVisible()) {
-      await more.click();
-    } else {
-      // Sites keeps a visible desktop rail from 768px onward. Its More
-      // section expands in that rail instead of opening a mobile drawer.
-      await page.getByRole("button", { name: "Meer onderdelen", exact: true }).click();
-    }
-
-    const sidebar = page.locator("#control-sidebar-navigation");
+    if (viewport.width <= 760) await page.getByRole("button", {name: "Navigatie openen"}).click();
+    const sidebar = page.getByLabel("Control navigatie");
     await expect(sidebar).toBeVisible();
-    if (viewport.width < 768) {
-      await expect(sidebar).toHaveClass(/\bopen\b/);
-    } else {
-      await expect(page.locator("#control-secondary-navigation")).toBeVisible();
-    }
     const footer = sidebar.locator(".vx-side-footer");
     await footer.scrollIntoViewIfNeeded();
     await expect(footer).toBeVisible();
-    const bounds = await footer.boundingBox();
-    expect(bounds).not.toBeNull();
-    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height + 1);
+    const footerBox = await footer.boundingBox();
+    expect(footerBox!.y + footerBox!.height).toBeLessThanOrEqual(viewport.height + 1);
+    const trigger = sidebar.getByRole("button", {name: "Beheer", exact: true});
+    await trigger.scrollIntoViewIfNeeded();
+    await trigger.click();
+    const panel = page.getByRole("dialog", {name: "Beheer", exact: true});
+    await expect(panel).toBeVisible();
+    const last = panel.getByRole("link").last();
+    await last.scrollIntoViewIfNeeded();
+    await expect(last).toBeVisible();
+    const lastBox = await last.boundingBox();
+    expect(lastBox!.y + lastBox!.height).toBeLessThanOrEqual(viewport.height + 1);
     await page.keyboard.press("Escape");
+    await expect(panel).not.toBeVisible();
+    await expect(trigger).toBeFocused();
+    if (viewport.width <= 760) {
+      await expect(sidebar).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(sidebar).not.toBeVisible();
+      await expect(page.getByRole("button", {name: "Navigatie openen"})).toBeFocused();
+    }
   }
 });

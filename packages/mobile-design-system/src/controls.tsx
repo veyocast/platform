@@ -66,7 +66,7 @@ export function Button({
     primary: {
       background: theme.colors.action,
       border: theme.colors.action,
-      foreground: mobilePalette.brand.onAction
+      foreground: theme.colors.onAction
     },
     secondary: {
       background: theme.colors.raised,

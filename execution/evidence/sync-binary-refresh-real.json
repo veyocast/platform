@@ -1,0 +1,218 @@
+{
+  "status": "PARTIAL",
+  "startedAt": "2026-10-18T10:57:00.758Z",
+  "playerBuildId": "f7Ss3Leh8QrQnLHC8BE0a",
+  "scope": "real existing published-data coalescer and dynamic worker, complete private Source MP4 for current owned facts, actual qualified binary browser activation at natural end and offline cold reload, same release/configuration/pairing; no provider/hardware/hosted claim",
+  "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+  "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+  "initial": {
+    "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9",
+    "dataRevision": 0,
+    "durationSeconds": 24
+  },
+  "dataPasses": [
+    {
+      "snapshotId": "dcae3a55-edd5-48f5-ab96-ba6102f237b3",
+      "status": "completed",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    },
+    {
+      "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+      "status": "completed",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    },
+    {
+      "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+      "status": "completed",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    },
+    {
+      "status": "idle"
+    }
+  ],
+  "renderPasses": [
+    {
+      "jobId": "dcae3a55-edd5-48f5-ab96-ba6102f237b3",
+      "mediaAssetId": "052c45a4-7f3f-4916-aed5-50014de863e3",
+      "status": "completed"
+    },
+    {
+      "jobId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+      "mediaAssetId": "30b8d809-badf-4b19-9d22-4fbf7a662a3c",
+      "status": "completed"
+    },
+    {
+      "jobId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+      "mediaAssetId": "a9eb8f5c-1b65-479c-897e-4eb35f179390",
+      "status": "completed"
+    }
+  ],
+  "currentArtifact": {
+    "contentHash": "71a71e6fd654776a5fab5ffa82a13e94c410292a3ad7283fe376abb6c5d7f159",
+    "dataRevision": 2,
+    "slotCount": 3,
+    "bytes": 3183886,
+    "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6",
+    "durationMs": 24000,
+    "rows": 9,
+    "firstPrice": "\u20ac\u00a04,95",
+    "privateShaVerified": true
+  },
+  "unknownProfileRetainsFrozenFallback": true,
+  "playbackEvents": [
+    {
+      "type": "playing",
+      "at": 1792321021856,
+      "currentTime": 0.00086,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321021937,
+      "currentTime": 0.075606,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321026606,
+      "currentTime": 0.000393,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321026689,
+      "currentTime": 0.073828,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321036624,
+      "currentTime": 0.000321,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321036705,
+      "currentTime": 0.070147,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321056640,
+      "currentTime": 0.000368,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321056717,
+      "currentTime": 0.069613,
+      "duration": 24
+    },
+    {
+      "type": "ended",
+      "at": 1792321080648,
+      "currentTime": 24,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321080669,
+      "currentTime": 0.000318,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321080747,
+      "currentTime": 0.07357,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321096662,
+      "currentTime": 0.000271,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321096748,
+      "currentTime": 0.079279,
+      "duration": 24
+    },
+    {
+      "type": "ended",
+      "at": 1792321120669,
+      "currentTime": 24,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321120689,
+      "currentTime": 0.00023,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321120761,
+      "currentTime": 0.068242,
+      "duration": 24
+    },
+    {
+      "type": "ended",
+      "at": 1792321144694,
+      "currentTime": 24,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321144713,
+      "currentTime": 0.000262,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321144795,
+      "currentTime": 0.07642,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321156675,
+      "currentTime": 0.00037,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321156765,
+      "currentTime": 0.085804,
+      "duration": 24
+    },
+    {
+      "type": "ended",
+      "at": 1792321180680,
+      "currentTime": 24,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321180707,
+      "currentTime": 0.000236,
+      "duration": 24
+    },
+    {
+      "type": "playing",
+      "at": 1792321180792,
+      "currentTime": 0.080588,
+      "duration": 24
+    }
+  ],
+  "naturalBoundary": false,
+  "latestCompleteBinaryOfflineColdReload": true,
+  "pairingPreserved": true,
+  "noReleaseVersionSnapshotRenderJobOrProductMutation": true,
+  "browserErrors": [],
+  "finishedAt": "2026-10-18T10:59:42.036Z",
+  "timingAudit": {
+    "status": "OPEN",
+    "finding": "Complete private bytes, current binary activation and offline cold reload pass, but playback events include restarts at apparent manifest retry intervals. Initial some-ended assertion does not establish uninterrupted timing. Investigate and measure the exact fresh-frame transition."
+  }
+}

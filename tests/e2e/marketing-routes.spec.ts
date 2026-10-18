@@ -3,6 +3,13 @@ import { expect, test } from "@playwright/test";
 const marketingURL = `http://127.0.0.1:${process.env.MARKETING_PORT ?? 3108}`;
 
 const representativeRoutes = [
+  "/",
+  "/narrowcasting",
+  "/functies",
+  "/koppelingen",
+  "/players",
+  "/oplossingen/horeca",
+  "/oplossingen/bedrijven",
   "/product",
   "/functies/playlists",
   "/oplossingen/sportverenigingen",
@@ -41,7 +48,7 @@ test("publishes complete metadata and one H1 across every page template", async 
     );
     await expect(page.locator('link[rel="canonical"]'), pathname).toHaveAttribute(
       "href",
-      `https://veyocast.nl${pathname}`
+      `https://veyocast.nl${pathname === "/" ? "" : pathname}`
     );
     await expect(page.locator('meta[name="robots"]'), pathname).toHaveAttribute(
       "content",
@@ -54,31 +61,17 @@ test("publishes complete metadata and one H1 across every page template", async 
   }
 });
 
-test("mobile menu opens, traps interaction and resolves a product route", async ({
-  page
-}) => {
+test("Sync mobile navigation opens and resolves the platform route", async ({ page }) => {
   await page.setViewportSize({ height: 844, width: 390 });
   await page.goto(marketingURL);
-
-  await page.getByRole("button", { name: "Menu openen" }).click();
-  const dialog = page.getByRole("dialog", { name: "Menu" });
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Menu sluiten" })).toBeFocused();
-
-  const last = dialog.getByRole("button", { name: "Open beheeromgeving" });
-  await last.focus();
-  await page.keyboard.press("Tab");
-  await expect(dialog.getByRole("button", { name: "VeyoCast startpagina" })).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
-  await expect(last).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(dialog).toBeHidden();
-  await expect(page.getByRole("button", { name: "Menu openen" })).toBeFocused();
-  await page.getByRole("button", { name: "Menu openen" }).click();
-  await dialog.getByRole("button", { name: "Mogelijkheden", exact: true }).click();
-  await expect(page).toHaveURL(/#mogelijkheden$/);
-  await expect(dialog).toBeHidden();
-  await expect(page.getByRole("heading", { name: "Direct zien wat er speelt." })).toBeVisible();
+  const button = page.getByRole("button", { name: "Menu openen" });
+  await button.click();
+  const nav = page.getByRole("navigation", { name: "Publieke hoofdnavigatie" });
+  await expect(nav).toBeVisible();
+  await expect(page.getByRole("button", { name: "Menu sluiten" })).toHaveAttribute("aria-expanded", "true");
+  await nav.getByRole("link", { name: "Platform", exact: true }).click();
+  await expect(page).toHaveURL(/\/functies\/?$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Alles voor je schermen.");
 });
 
 test("FAQ accordion works with keyboard input", async ({ page }) => {
@@ -102,11 +95,10 @@ test("demo form validates server-side and reports no false delivery", async ({
   page
 }) => {
   await page.goto(`${marketingURL}/demo`);
-  await page.getByRole("button", { name: "Demo aanvragen" }).click();
+  await page.locator("form").evaluate(form => { (form as HTMLFormElement).noValidate = true; });
+  await page.getByRole("button", { name: "Demo aanvragen", exact: true }).click();
 
-  await expect(page.locator(".form-message[role='alert']")).toContainText(
-    "Controleer je gegevens"
-  );
+  await expect(page.locator(".mk-form-error[role='alert']")).toContainText("Controleer de gemarkeerde velden");
   await expect(page.getByText("Vul een geldig e-mailadres in.")).toBeVisible();
 });
 

@@ -1,0 +1,69 @@
+{
+  "status": "PARTIAL",
+  "scope": "Source Motion contract/editor/export/Player; actual animated publication and offline reload verified locally; full V1 acceptance remains open",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "gates": {
+    "studio": {
+      "tests": 33,
+      "status": "PASS"
+    },
+    "sourceAuthoringAndPlaybackSql": {
+      "files": 2,
+      "assertions": 98,
+      "status": "PASS"
+    },
+    "actualChromiumCapture": {
+      "tests": 9,
+      "seconds": 85.88,
+      "status": "PASS"
+    },
+    "editorBrowser": {
+      "tests": 17,
+      "seconds": 41.5,
+      "status": "PASS"
+    },
+    "playerBrowser": {
+      "tests": 8,
+      "seconds": 25.8,
+      "status": "PASS"
+    },
+    "typecheck": {
+      "packages": [
+        "control",
+        "player",
+        "media-worker"
+      ],
+      "status": "PASS"
+    },
+    "dependency": {
+      "status": "PASS",
+      "mode": "offline frozen install; only existing locked motion 12.42.2 added to Control importer; no upgrades"
+    },
+    "changedPackageRegression": {
+      "packages": [
+        "contracts",
+        "content-templates",
+        "media-worker",
+        "player",
+        "control"
+      ],
+      "testsPassed": 1834,
+      "status": "PASS",
+      "scope": "Motion cohort before Source library changes"
+    },
+    "freshLocalDatabase": {
+      "files": 115,
+      "assertions": 3262,
+      "status": "PASS",
+      "scope": "Motion cohort before Source library migration 050"
+    }
+  },
+  "actualWorker": "execution/evidence/sync-motion-real-worker.json",
+  "limits": [
+    "no claim of complete live provider pipeline or visual parity",
+    "Source library changes after this cohort require their own verification",
+    "no hosted deployment, signed native update or physical/24-hour claim"
+  ],
+  "actualPublication": "execution/evidence/sync-motion-to-player.json",
+  "latestRuntimeRecheck": "execution/evidence/sync-motion-runtime-recheck.json"
+}

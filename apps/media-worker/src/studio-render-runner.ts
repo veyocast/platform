@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import sharp from "sharp";
+import { createSyncSlideCapture } from "./sync-dom-capture";
 
 import {
   studioFps,
@@ -90,6 +91,7 @@ export async function runStudioRenderOnce({
   config,
   encodeMp4 = encodeStudioMp4,
   sitesCaptureFactory = createSitesStudioCapture,
+  syncCaptureFactory = createSyncSlideCapture,
   renderer,
   signal,
   validateMp4 = probeAndValidateStudioMp4
@@ -98,6 +100,7 @@ export async function runStudioRenderOnce({
   config: StudioRenderWorkerConfig;
   encodeMp4?: StudioMp4Encoder;
   sitesCaptureFactory?: typeof createSitesStudioCapture;
+  syncCaptureFactory?: typeof createSyncSlideCapture;
   renderer: StudioExternalRenderer;
   signal?: AbortSignal;
   validateMp4?: StudioMp4Validator;
@@ -121,7 +124,8 @@ export async function runStudioRenderOnce({
         workingDirectory
       });
       const { assetSources, backgroundVideo } = preparedAssets;
-      if(job.document.sitesPresentation)sitesCapture=await sitesCaptureFactory({document:job.document,assetSources,signal});
+      if(job.document.syncPresentation)sitesCapture=await syncCaptureFactory({presentation:job.document.syncPresentation,durationMs:job.document.motion.durationMs,assetSources,signal});
+      else if(job.document.sitesPresentation)sitesCapture=await sitesCaptureFactory({document:job.document,assetSources,signal});
       const renderPng=(input:Parameters<typeof renderStudioPng>[0])=>sitesCapture?sitesCapture.renderPng(input.timeMs??1200):renderStudioPng(input);
       const paths = studioRenderArtifactPaths(job);
       const outputPath = join(
@@ -484,7 +488,7 @@ async function prepareStudioAssets({
       }
       const source =
         `data:${asset.mimeType};base64,${(await readFile(destination)).toString("base64")}`;
-      if(job.document.sitesPresentation)sources[asset.assetId]={height:asset.height,href:source,width:asset.width};
+      if(job.document.sitesPresentation||job.document.syncPresentation)sources[asset.assetId]={height:asset.height,href:source,width:asset.width};
       for (const element of job.document.elements) {
         if (element.type === "image" && element.mediaAssetId === asset.assetId) {
           sources[element.id] = {

@@ -10,8 +10,10 @@ import React, {
 
 import {
   engagePublicCampaignSchema,
+  type SyncSlidePresentation,
   type EngagePublicCampaign
 } from "@veyocast/contracts";
+import {projectSyncEngageCampaign} from '@veyocast/content-templates/sync-engage-projector';
 
 import type { PlayerManifestItem } from "../_lib/player-manifest";
 import {
@@ -29,7 +31,7 @@ export function EngagePlaybackMedia({
   item: PlayerManifestItem;
   onFailure: (itemId: string, code: "VIDEO_ERROR") => void;
   onReady: (itemId: string) => void;
-  renderFallback?: (onReady: (itemId: string) => void) => ReactNode;
+  renderFallback?: (onReady: (itemId: string) => void,presentation?:SyncSlidePresentation) => ReactNode;
   passive: boolean;
   paused?: boolean;
 }) {
@@ -53,9 +55,10 @@ export function EngagePlaybackMedia({
         const parsed = engagePublicCampaignSchema.safeParse(
           response.ok ? await response.json() : null
         );
-        if (!disposed && parsed.success) {
+        const source=item.syncStudioPresentation?.family==='engage'?item.syncStudioPresentation:null;
+        if (!disposed && parsed.success&&(!source||projectSyncEngageCampaign(source,parsed.data,binding.publicId))) {
           setCampaign(parsed.data);
-          onReady(item.id);
+          if(!item.syncStudioPresentation)onReady(item.id);
           return;
         }
       } catch {
@@ -68,8 +71,12 @@ export function EngagePlaybackMedia({
       disposed = true;
       window.clearInterval(interval);
     };
-  }, [binding, item.id, onReady, passive, paused]);
+  }, [binding, item.id, item.syncStudioPresentation, onReady, passive, paused]);
 
+  if(item.syncStudioPresentation?.family==='engage'&&renderFallback){
+    const presentation=campaign&&binding?projectSyncEngageCampaign(item.syncStudioPresentation,campaign,binding.publicId):null;
+    return renderFallback(onReady,presentation??undefined);
+  }
   if (!campaign || !binding) {
     if (renderFallback) return renderFallback(onReady);
     // The immutable release poster remains the authority while live data is

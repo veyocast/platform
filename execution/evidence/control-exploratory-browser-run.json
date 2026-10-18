@@ -1,0 +1,21 @@
+{
+  "status": "FAILED; focused remediation still in progress",
+  "observedAt": "2026-10-17T23:17Z",
+  "inventory": 883,
+  "passed": 278,
+  "failed": 23,
+  "skipped": 563,
+  "notRunAfterSetupOrSerialFailure": 19,
+  "duration": "25.0m",
+  "runner": "same discovered Control inventory; local Webpack polling due host Turbopack file limit",
+  "logSha256": "d065dbe06e475bbcc75413d97934587365973c3cbd5dc83aaa53eaa0c063db20",
+  "limitations": "Tests and app fixes were edited during this exploratory run. Some original collected titles became unavailable in later workers; this is not immutable-version acceptance. The final fixed-version run and focused proofs must be reported separately.",
+  "remediation": [
+    "18 Media/Screen states PASS (23.7s)",
+    "106 Playlist workflows PASS (2.4m; separate from failed shared state setup)",
+    "21 Shell cases PASS plus fixed desktop management case PASS (2.0s)",
+    "9 actual Studio component states PASS, including identical save retries",
+    "real mobile bottom inset fixed; exact original end-reachability assertion rechecked PASS",
+    "two measured text foreground contrast fixes; final Axe recheck pending"
+  ]
+}

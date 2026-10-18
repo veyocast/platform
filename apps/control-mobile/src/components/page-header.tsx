@@ -4,14 +4,9 @@ import {
   PressableSurface,
   mobileRadius,
   mobileSpacing,
-  useMobileTheme
+  useMobileTheme,
 } from "@veyocast/mobile-design-system";
-import {
-  Bell,
-  Building2,
-  ChevronDown,
-  UserRound
-} from "lucide-react-native";
+import { Bell, Building2, ChevronDown, UserRound } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
 
@@ -20,7 +15,7 @@ import { useTenant } from "../tenant/tenant-provider";
 
 export function PageHeader({
   eyebrow,
-  title
+  title,
 }: {
   eyebrow?: string;
   title: string;
@@ -39,7 +34,7 @@ export function PageHeader({
     <View
       style={[
         styles.header,
-        compact ? styles.headerCompact : styles.headerWide
+        compact ? styles.headerCompact : styles.headerWide,
       ]}
     >
       <View style={styles.copy}>
@@ -62,19 +57,23 @@ export function PageHeader({
               styles.organization,
               {
                 backgroundColor: theme.colors.raised,
-                borderColor: theme.colors.line
-              }
+                borderColor: theme.colors.line,
+              },
             ]}
           >
             <View
               style={[
                 styles.organizationIcon,
-                { backgroundColor: theme.colors.canvas }
+                { backgroundColor: theme.colors.canvas },
               ]}
             >
               <Building2 color={theme.colors.secondaryInk} size={16} />
             </View>
-            <AppText numberOfLines={1} variant="label" style={styles.tenantName}>
+            <AppText
+              numberOfLines={1}
+              variant="label"
+              style={styles.tenantName}
+            >
               {activeTenant.name}
             </AppText>
             <ChevronDown color={theme.colors.secondaryInk} size={16} />
@@ -89,8 +88,8 @@ export function PageHeader({
               styles.headerAction,
               {
                 backgroundColor: theme.colors.raised,
-                borderColor: theme.colors.line
-              }
+                borderColor: theme.colors.line,
+              },
             ]}
             variant="secondary"
           />
@@ -98,7 +97,10 @@ export function PageHeader({
             accessibilityLabel="Account openen"
             icon={
               session?.user.email ? (
-                <AppText variant="label" style={styles.avatarText}>
+                <AppText
+                  variant="label"
+                  style={[styles.avatarText, { color: theme.colors.onAction }]}
+                >
                   {userInitial}
                 </AppText>
               ) : (
@@ -106,10 +108,7 @@ export function PageHeader({
               )
             }
             onPress={() => router.push("/more/account")}
-            style={[
-              styles.avatar,
-              { backgroundColor: theme.colors.action }
-            ]}
+            style={[styles.avatar, { backgroundColor: theme.colors.action }]}
           />
         </View>
       </View>
@@ -121,40 +120,40 @@ const styles = StyleSheet.create({
   actions: {
     alignItems: "center",
     flexDirection: "row",
-    gap: mobileSpacing.compact
+    gap: mobileSpacing.compact,
   },
   avatar: {
     borderRadius: mobileRadius.full,
     minHeight: 44,
-    minWidth: 44
+    minWidth: 44,
   },
   avatarText: {
     color: "#0A0A0A",
-    fontWeight: "700"
+    fontWeight: "700",
   },
   context: {
     alignItems: "center",
     flexDirection: "row",
-    gap: mobileSpacing.compact
+    gap: mobileSpacing.compact,
   },
   copy: {
     flex: 1,
-    gap: 2
+    gap: 2,
   },
   header: {
-    gap: mobileSpacing.compact
+    gap: mobileSpacing.compact,
   },
   headerAction: {
     borderWidth: 1,
     minHeight: 44,
-    minWidth: 44
+    minWidth: 44,
   },
   headerCompact: {
-    alignItems: "stretch"
+    alignItems: "stretch",
   },
   headerWide: {
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   organization: {
     alignItems: "center",
@@ -165,16 +164,16 @@ const styles = StyleSheet.create({
     gap: mobileSpacing.compact,
     minWidth: 0,
     minHeight: 44,
-    paddingHorizontal: mobileSpacing.inline
+    paddingHorizontal: mobileSpacing.inline,
   },
   organizationIcon: {
     alignItems: "center",
     borderRadius: mobileRadius.chip,
     height: 28,
     justifyContent: "center",
-    width: 28
+    width: 28,
   },
   tenantName: {
-    flexShrink: 1
-  }
+    flexShrink: 1,
+  },
 });

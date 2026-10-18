@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T08:38:27.638Z",
+  "controlBuildId": "OOUsluem1Dbvzq8tjWv5s",
+  "scope": "actual AAL2 Source pool/team/period choices over owned persisted provider fixtures, current-user server options/canonical preview, lost create ACK and complete existing-worker output; fixture connection has automatic sync disabled and no external provider verification, credential or integration claim; no hardware or hosted deployment claim",
+  "fixture": {
+    "sourceId": "5819a79c-840d-4ada-bc09-8fde60fade7f",
+    "connectionId": "b3b7c824-1060-4e6f-976b-ae103a49f37e",
+    "storedMatches": 6,
+    "allowedTeam": "s226-team-a",
+    "selectedPool": "s226-pool",
+    "selectedPeriod": "2",
+    "automaticProviderSyncDisabled": true,
+    "externalProviderVerified": false
+  },
+  "slideId": "a4f231f6-9a71-4ba8-a371-1019fa61b39a",
+  "exactCreateReceiptRecovered": true,
+  "transportWritesThisRun": 1,
+  "canonical": {
+    "rows": 5,
+    "jobId": "297112e7-5b5a-49ef-8c76-3ddbaa061aab",
+    "seedRows": 0,
+    "sourceId": "5819a79c-840d-4ada-bc09-8fde60fade7f",
+    "jobStatus": "queued",
+    "slideCount": 1,
+    "snapshotId": "b28a3fd7-45f1-4dd6-8bd4-0a181cafafff"
+  },
+  "completeOutput": {
+    "rows": 5,
+    "bytes": 1514855,
+    "sha256": "d6e30d345c2568d7c85b5983975389b7df3ed8323aa85dfa2342855a1f75b40a",
+    "status": "ready",
+    "assetId": "a188a1df-e95d-5cf0-8d01-12d2dbd985b5",
+    "durationMs": 10000
+  },
+  "detailAxeViolations": 0,
+  "existingReleasesUnchanged": true,
+  "recoveredStages": [
+    "sync-sportlink-binding-attempt-1.json",
+    "sync-sportlink-binding-attempt-2.json"
+  ],
+  "selectionEvidence": {
+    "readOnlyCanonicalPreviewRows": 5,
+    "excludedUnselectedTeam": true,
+    "excludedOtherPoolMatch": true,
+    "editorAxeViolations": 0,
+    "recordedIn": "sync-sportlink-binding-attempt-2.json"
+  }
+}

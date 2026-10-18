@@ -358,6 +358,12 @@ export function createDynamicTemplateView(
   return createDynamicTemplateViewInternal(value, false, now, contentHeight);
 }
 
+/** Complete bounded row input for the new Sync projector only. Historical renderer
+ * entrypoints retain their original limits, pagination and eligibility policies. */
+export function createCompleteDynamicTemplateView(value: unknown, now = new Date()): DynamicTemplateView | null {
+  return createDynamicTemplateViewInternal(value, false, now, undefined, 200);
+}
+
 /** Fixture-only entrypoint for typed families without a live provider gate. */
 export function createDynamicTemplateFixtureView(
   value: unknown,
@@ -370,7 +376,8 @@ function createDynamicTemplateViewInternal(
   value: unknown,
   allowFixtureOnly: boolean,
   now: Date,
-  contentHeight?: number
+  contentHeight?: number,
+  completeRowLimit?: number
 ): DynamicTemplateView | null {
   const payload = parseDynamicTemplatePayload(value);
   if (!payload) return null;
@@ -457,7 +464,7 @@ function createDynamicTemplateViewInternal(
 
   if (payload.slideType === "menu") {
     const menu = readRecord(data.menu) ?? readRecord(data.data);
-    const items = readArray(menu?.products)
+    const items = readArray(menu?.products, completeRowLimit ?? 40)
       .map((item) => toMenuItem(item, payload))
       .filter((item): item is DynamicTemplateMenuItem => item !== null);
     return {
@@ -532,8 +539,8 @@ function createDynamicTemplateViewInternal(
         title: menuDocument.data.title || "Menu"
       };
     }
-    const sections = readArray(priceList?.sections)
-      .map((section) => toPriceListSection(section, payload))
+    const sections = readArray(priceList?.sections, completeRowLimit ?? 40)
+      .map((section) => toPriceListSection(section, payload, completeRowLimit ?? 40))
       .filter((section): section is ResolvedPriceListSection => section !== null);
     const pages = paginatePriceList(sections, payload.orientation);
     return {
@@ -560,8 +567,8 @@ function createDynamicTemplateViewInternal(
 
   if (payload.slideType === "news") {
     const news = readRecord(data.news) ?? readRecord(data.data);
-    const articles = uniqueLatestNewsItems(readArray(news?.articles)
-      .map((article) => toNewsItem(article, news, payload))
+    const articles = uniqueLatestNewsItems(readArray(news?.articles, completeRowLimit ?? 40)
+      .map((article) => toNewsItem(article, news, payload, completeRowLimit ? 4000 : 500))
       .filter((item): item is DynamicTemplateNewsItem => item !== null));
     const secondsPerSlide = safeInteger(news?.secondsPerSlide, 5, 120, 5);
     return {
@@ -631,10 +638,8 @@ function createDynamicTemplateViewInternal(
     showSportpark: displayConfig?.showSportpark !== false,
     showTime: displayConfig?.showTime !== false
   };
-  const sportItemLimit = payload.slideType === "sport_program" ||
-    payload.slideType === "sport_results"
-    ? 100
-    : 40;
+  const sportItemLimit = completeRowLimit ?? (payload.slideType === "sport_program" ||
+    payload.slideType === "sport_results" ? 100 : 40);
   const mappedItems = readArray(sport?.items, sportItemLimit)
     .map((item) => toListItem(item, payload))
     .filter((item): item is DynamicTemplateListItem => item !== null)
@@ -666,7 +671,8 @@ function createDynamicTemplateViewInternal(
       configuration,
       now,
       payload,
-      sport
+      sport,
+      maximum: completeRowLimit ?? 40
     });
     const configuredPageSize = payload.orientation === "portrait"
       ? configuration.presentation.maxPerPortraitPage
@@ -764,7 +770,7 @@ function createDynamicTemplateViewInternal(
     payload.slideType === "sport_standing" ||
     payload.slideType === "sport_period_standing"
   ) {
-    const standingItems = readArray(sport?.items)
+    const standingItems = readArray(sport?.items, completeRowLimit ?? 40)
       .map((item) => toStandingItem(item, payload))
       .filter((item): item is DynamicTemplateStandingItem => item !== null);
     const competition = readRecord(sport?.competition);
@@ -945,8 +951,10 @@ function resolveBirthdayItems({
   configuration,
   now,
   payload,
-  sport
+  sport,
+  maximum
 }: {
+  maximum: number;
   configuration: SportlinkBirthdayConfiguration;
   now: Date;
   payload: PlayerDynamicTemplatePayload;
@@ -960,7 +968,7 @@ function resolveBirthdayItems({
   const maximumDays = configuration.emptyBehavior === "today_only"
     ? 0
     : configuration.period.days - 1;
-  return readArray(sport?.birthdays ?? sport?.items).flatMap((value) => {
+  return readArray(sport?.birthdays ?? sport?.items, maximum).flatMap((value) => {
     const birthday = readRecord(value);
     const displayName = safeText(birthday?.displayName ?? birthday?.primary, "");
     const month = safeInteger(birthday?.month, 1, 12, 0);
@@ -1147,7 +1155,8 @@ function safeArrivalMotionPreset(value: unknown): SportlinkArrivalMotionPreset {
 
 function toPriceListSection(
   value: unknown,
-  payload: PlayerDynamicTemplatePayload
+  payload: PlayerDynamicTemplatePayload,
+  maximumProducts = 40
 ): ResolvedPriceListSection | null {
   const section = readRecord(value);
   if (!section || (section.column !== "left" && section.column !== "right")) {
@@ -1156,7 +1165,7 @@ function toPriceListSection(
   const id = safeText(section.id, "");
   const name = safeText(section.name, "");
   if (!id || !name) return null;
-  const products = readArray(section.products)
+  const products = readArray(section.products, maximumProducts)
     .map((product) => toPriceListItem(product, payload))
     .filter((product): product is ResolvedPriceListItem => product !== null);
   if (!products.length) return null;
@@ -1587,7 +1596,8 @@ function toMenuItem(
 function toNewsItem(
   value: unknown,
   feed: Record<string, unknown> | null,
-  payload: PlayerDynamicTemplatePayload
+  payload: PlayerDynamicTemplatePayload,
+  maximumIntroLength = 500
 ): DynamicTemplateNewsItem | null {
   const item = readRecord(value);
   if (!item) return null;
@@ -1599,7 +1609,7 @@ function toNewsItem(
     heroUrl: dynamicAssetUrl(item.heroMediaAssetId, payload),
     id: safeText(item.externalId, title),
     imageFocalPoint: readEditorialNewsFocalPoint(payload.data.editorial),
-    intro: safeText(item.intro, ""),
+    intro: safeText(item.intro, "", maximumIntroLength),
     link: safePublicLink(item.link),
     qrUrl: dynamicAssetUrl(item.qrMediaAssetId, payload),
     source: safeText(item.sourceName, safeText(feed?.sourceName, "Clubnieuws")),
@@ -2150,10 +2160,10 @@ function safeColor(value: unknown, fallback: string) {
     : fallback;
 }
 
-function safeText(value: unknown, fallback: string) {
+function safeText(value: unknown, fallback: string, maximum = 500) {
   if (typeof value !== "string") return fallback;
   const normalized = value.replace(/\s+/g, " ").trim();
-  return normalized ? normalized.slice(0, 500) : fallback;
+  return normalized ? normalized.slice(0, maximum) : fallback;
 }
 
 function readRecord(value: unknown): Record<string, unknown> | null {

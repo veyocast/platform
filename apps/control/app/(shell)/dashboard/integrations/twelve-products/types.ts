@@ -29,3 +29,21 @@ export type ProductImportView = Readonly<{
   status: "applied" | "cancelled" | "draft";
   validCount: number;
 }>;
+
+export type ProductAvailabilityCommand = Readonly<{
+  productId: string;
+  expectedRevision: number;
+  active: boolean;
+  idempotencyKey: string;
+  values: Pick<
+    ProductView,
+    | "name"
+    | "description"
+    | "category"
+    | "priceCents"
+    | "vatRate"
+    | "unit"
+    | "barcode"
+    | "externalId"
+  >;
+}>;

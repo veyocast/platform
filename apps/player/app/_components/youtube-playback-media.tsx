@@ -192,7 +192,8 @@ export function YouTubePlaybackMedia({
     return () => window.removeEventListener("offline", offline);
   }, []);
 
-  useEffect(()=>{if(!fallback||!fallbackReady||passive||paused||item.kind!=="image"&&!renderFallback)return;const start=performance.now();const timer=window.setTimeout(()=>onEnded(item.id),Math.max(1,fallbackRemaining.current));return()=>{window.clearTimeout(timer);fallbackRemaining.current=Math.max(1,fallbackRemaining.current-(performance.now()-start));};},[fallback,fallbackReady,item.id,item.kind,onEnded,passive,paused,renderFallback]);
+  const sourceOwnsFallbackBoundary=Boolean(item.syncDynamic||item.syncStudioPresentation&&item.kind==='video');
+  useEffect(()=>{if(!fallback||!fallbackReady||passive||paused||sourceOwnsFallbackBoundary||item.kind!=="image"&&!renderFallback)return;const start=performance.now();const timer=window.setTimeout(()=>onEnded(item.id),Math.max(1,fallbackRemaining.current));return()=>{window.clearTimeout(timer);fallbackRemaining.current=Math.max(1,fallbackRemaining.current-(performance.now()-start));};},[fallback,fallbackReady,item.id,item.kind,onEnded,passive,paused,renderFallback,sourceOwnsFallbackBoundary]);
   if (fallback) {
     if (renderFallback) return renderFallback((itemId) => {
       setFallbackReady(true);

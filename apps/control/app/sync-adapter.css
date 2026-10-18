@@ -1,0 +1,89 @@
+/* Runtime adapters for the authenticated shell; source geometry is in sync-source.css. */
+html[data-design-system="fieldflow"] .sync-control { --vc-font-display:Manrope,Inter,sans-serif; --vc-font-ui:Manrope,Inter,sans-serif; }
+.sync-control svg { display:inline; vertical-align:baseline; }
+.sync-control .nav-panel { border-radius: 0; gap:normal; margin: 0; transform: none; box-shadow: none; }
+.sync-control .ov-page svg,.sync-control .topbar svg { stroke-width:1.7; }
+.sync-control .vx-brand { padding:0 12px 26px; margin:0; min-height:auto; flex-shrink:0; }
+.sync-control .vx-brand img { width:153px; height:auto; }
+.sync-control .vx-collapse { display: none; }
+.sync-control .vx-tenant-anchor { width:100%; margin-bottom:22px; padding-inline:2px; }
+.sync-control .vx-tenant.workspace-button { position:static; padding:12px 8px; margin:0; background:none; border:1px solid var(--line); border-radius:11px; }
+.sync-control .vx-tenant.workspace-button strong { color: var(--text); }
+.sync-control .vx-tenant.workspace-button .vx-avatar { color: var(--accent); }
+.sync-control .vx-side-footer { margin-top: auto; }
+.sync-control .vx-main { margin: 0; padding: 0; min-width: 0; width: auto; }
+.sync-control .vx-header.topbar { min-height: 79px; margin: 0; border-radius: 0; box-shadow: none; }
+.sync-control .vx-content.main-content { max-width:1760px; margin:0 auto; padding:32px 36px 36px; }
+.sync-control .vx-sidebar.nav-panel { min-width:0; width:auto; }
+@media (min-width:1700px) { .sync-control .vx-content.main-content { padding-top:44px; } }
+@media (min-width:761px) and (max-width:1200px) { .sync-control .vx-content.main-content { padding:26px 24px; } }
+.sync-control .sync-management-expanded { display: none; }
+.sync-control .vx-health { display: none; }
+.sync-control .vx-search.search-trigger { height:auto; min-height:44px; width:auto; padding:1px 6px; gap:10px; border:0; border-radius:0; background:none; font-size:11px; color:var(--muted); }
+.sync-control .vx-search.search-trigger kbd { display:inline; margin-left:0; padding:2px 5px; border:1px solid var(--line); border-radius:5px; background:none; font-size:9px; }
+.sync-control .topbar .sync-topbar-icon { width:44px; height:44px; margin-inline:-4.5px; padding:0; border:0; border-radius:9px; background:none; color:var(--muted); }
+.sync-control .vx-account.sync-avatar-trigger { display:grid; place-items:center; width:44px; min-width:44px; height:44px; min-height:44px; margin-inline:-5px; padding:5px; border:0; border-radius:50%; background:none; }
+.sync-control .sync-avatar-trigger .vx-account-copy,.sync-control .sync-avatar-trigger>svg { display:none; }
+.sync-control .vx-account .avatar-button { padding:1px 6px; }
+.sync-control.app-shell :is(.btn,.vc-button) { min-height:44px; }
+.sync-control .vc-button { line-height:inherit; }
+.sync-control .vc-library-search button { padding:1px 6px; }
+@media (max-width: 760px) {
+  /* Source padding/border around the canon's 44px minimum touch target. */
+  .sync-control { --sync-bottomnav-height:calc(65px + env(safe-area-inset-bottom, 0px)); }
+  .sync-control.vx-shell, .sync-control.vx-shell.collapsed { display: block; }
+  .sync-control .vx-main { padding-bottom:var(--sync-bottomnav-height); scroll-padding-bottom:var(--sync-bottomnav-height); }
+  .sync-control .vx-bottomnav { height:var(--sync-bottomnav-height); }
+  .sync-control .vx-sidebar.nav-panel { display:none; width:235px; }
+  .sync-control .vx-content.main-content { padding:24px 17px 35px; }
+  .sync-control .vx-sidebar.nav-panel.open { display: flex; }
+  .sync-control .vx-header.topbar { min-height: 65px; height: 65px; gap:5px; }
+  .sync-control .vx-search.search-trigger { min-width:44px; padding:7px; margin-inline:0; }
+  .sync-control .vx-search.search-trigger kbd { display:none; }
+  .sync-control .topbar .sync-topbar-icon,.sync-control .vx-account.sync-avatar-trigger { margin-inline:0; }
+  .sync-control .sync-management-expanded { display: flex; flex-direction: column; }
+}
+.sync-control .sync-content-placeholder { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; height:100%; background:var(--surface-2); color:var(--muted); }
+.sync-control .mobile-bottom ul { grid-column:1 / -1; width:100%; }
+.sync-control .mobile-bottom a { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:8px; font-weight:650; padding:1px 6px; color:var(--muted); }
+.sync-control .mobile-bottom a.active { color:var(--accent); }
+.sync-control .mobile-bottom a.active::before { content:none; }
+.sync-control .mobile-bottom svg { width:20px; height:20px; }
+.sync-control .ov-sources-strip a { display:flex; align-items:center; gap:7px; color:var(--ov-muted); font-size:10px; padding:5px 0; }
+.sync-control .sync-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+.sync-control .mobile-bottom a { min-width:44px; min-height:44px; justify-content:center; }
+.sync-control .vx-main { background:var(--bg); }
+.sync-control .vx-main::after { display:none; }
+.sync-control .sync-library-options { margin:12px 0; flex-wrap:wrap; }
+.sync-control .sync-playlist-list { grid-template-columns:1fr; }
+.sync-control .playlist-cover > img { width:100%; height:100%; object-fit:contain; }
+.sync-control .px-screen-art { display:flex; text-decoration:none; }
+.sync-control .px-device-frame { display:flex; align-items:center; justify-content:center; background:var(--text); }
+.sync-control .sync-fleet-advanced { margin-top:24px; }
+.sync-control .sync-fleet-advanced > summary { display:flex; align-items:center; gap:8px; cursor:pointer; padding:12px 0; }
+.sync-control .sync-planning .px-day-heading > a { display:flex; color:var(--muted); margin-left:auto; }
+.sync-control .sync-planning .px-planning-tip h2 { font-size:16px; margin:0 0 12px; }
+.sync-control .sync-planning-advanced { margin:0; }
+.sync-control .sync-planning-toolbar-filter { display:contents; }
+.sync-control .sync-planning-advanced summary { cursor:pointer; color:var(--muted); font-size:12px; }
+.sync-control .px-calendar-footer .sync-planning-advanced > summary { display:flex; align-items:center; gap:7px; font-size:inherit; line-height:inherit; }
+.sync-control .sync-planning-advanced form { flex-wrap:wrap; margin-top:12px; }
+.sync-control .sync-planning-advanced label { display:flex; flex-direction:column; gap:6px; font-size:12px; }
+.sync-control .sync-ticket-row { color:var(--text); }
+.sync-control .sync-team .team-tabs { gap:20px; min-width:0; grid-template-columns:minmax(0,1fr); }
+.sync-control .sync-team .team-tab-panels { min-width:0; }
+.sync-control .sync-team .ad-tabs { justify-self:start; }
+@media(max-width:600px) { .sync-control .sync-team .ad-tabs { justify-self:stretch; } }
+.sync-control .sync-team .vc-data-table caption { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+/* The retained dismiss layer stays below the original Sync drawer (z-index 60). */
+@media (max-width:760px) { .sync-control .vx-backdrop.open { z-index:50; } }
+.sync-control .ad-campaign-art { width:100%; border:0; text-align:left; cursor:pointer; }
+.sync-control .admin-page .sync-campaign-title { font-size:16px; letter-spacing:-.2px; }
+.sync-control .sync-content-playlist-choice { color:var(--text); }
+.sync-control .sync-studio-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+.sync-control #control-content:has(.sync-studio-frame) > .section-header { display:none; }
+/* Source controls keep their own measured geometry inside the retained app shell. */
+.sync-control .sync-studio-frame .vc-studio-properties .field { font-size:11px; }
+.sync-control .sync-studio-frame .vc-studio-properties .field :is(input,select,textarea) { min-height:0; height:auto; }
+.sync-control .sync-studio-frame .vc-studio-properties .field textarea { min-height:90px; }
+@media(max-width:760px) { .sync-control .sync-studio-frame .vc-studio-properties .field { font-size:12px; } }

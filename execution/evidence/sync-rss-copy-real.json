@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T09:13:20.119Z",
+  "controlBuildId": "fr92zEN4P5nfnqFN0YUca",
+  "scope": "actual AAL2 manual Source RSS project to explicit bound copy, stored tenant RSS fixtures/canonical preview, lost create response recovery and full worker/private SHA; original manual document remains unchanged; automatic RSS acquisition disabled for the fixture, no external feed, hardware or hosted deployment claim",
+  "manualOrigin": {
+    "projectId": "38941a5e-7aa2-464f-b3d8-1f921020caed",
+    "newsItems": 1,
+    "theme": "onzetrots-tv"
+  },
+  "fixture": {
+    "sourceId": "67c8ee21-7000-46ca-a4c1-20d2dcadf6b9",
+    "cachedArticles": 3,
+    "automaticRssAcquisitionDisabled": true,
+    "externalFeedVerified": false
+  },
+  "slideId": "635a65c9-58b2-4274-84f9-494497e8502d",
+  "exactCreateReceiptRecovered": true,
+  "transportWritesThisRun": 0,
+  "canonical": {
+    "rows": 3,
+    "jobId": "22d03a37-41a2-47a9-bd46-f7753839f953",
+    "seedRows": 0,
+    "sourceId": "67c8ee21-7000-46ca-a4c1-20d2dcadf6b9",
+    "jobStatus": "completed",
+    "slideCount": 1,
+    "snapshotId": "3046fc6c-2446-4382-9e5c-39938d65363d"
+  },
+  "completeOutput": {
+    "rows": 3,
+    "bytes": 5818337,
+    "sha256": "7d8dc376f05dca9c4682cf59fbfc5b902776cd5d62946e7ce53764a30a831e6b",
+    "status": "ready",
+    "assetId": "081eea20-31d7-5e40-88ad-6cc24df2e8a2",
+    "durationMs": 15000
+  },
+  "detailAxeViolations": 0,
+  "originalManualDocumentUnchanged": true,
+  "existingReleasesUnchanged": true
+}

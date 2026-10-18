@@ -3,7 +3,6 @@ import { Button, StatusPill, SummaryStrip } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../../../../lib/control-session";
 import { PageHeader } from "../../../../../_components/shell-primitives";
-import { applyProductImport, remapProductImport } from "../../actions";
 import { loadProductImport } from "../../data";
 import styles from "../../products.module.css";
 
@@ -27,7 +26,7 @@ export default async function ProductImportPage({
   return (
     <>
       <PageHeader
-        actions={<a className="button-link button-link--secondary" href="/dashboard/integrations/twelve-products">Terug naar Twelve Producten</a>}
+        actions={<a className="button-link button-link--secondary" href="/dashboard/sources/twelve/products">Terug naar Twelve Producten</a>}
         description={`Tabblad ${data.sheetName} uit ${data.fileName}. Controleer mapping en voorbeeld vóór toepassen.`}
         eyebrow={session.tenant}
         status={{
@@ -65,8 +64,9 @@ export default async function ProductImportPage({
             </p>
           </div>
         </div>
-        <form action={remapProductImport}>
+        <form action={`/api/products/import/${data.id}`} method="post">
           <input name="importId" type="hidden" value={data.id} />
+          <input name="intent" type="hidden" value="mapping" />
           <div className={styles.mappingGrid}>
             {data.headers.map((header, index) => {
               const current = String(data.columnMapping[header] ?? "");
@@ -140,8 +140,9 @@ export default async function ProductImportPage({
               </p>
             </div>
           </div>
-          <form action={applyProductImport} className={styles.applyBar}>
+          <form action={`/api/products/import/${data.id}`} method="post" className={styles.applyBar}>
             <input name="importId" type="hidden" value={data.id} />
+            <input name="intent" type="hidden" value="apply" />
             <label>
               <span>Importmethode</span>
               <select defaultValue="merge" name="mode">

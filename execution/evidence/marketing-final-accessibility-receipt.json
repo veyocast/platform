@@ -1,0 +1,73 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl",
+    "violations": []
+  },
+  {
+    "route": "/narrowcasting",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/narrowcasting",
+    "violations": []
+  },
+  {
+    "route": "/functies",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/functies",
+    "violations": []
+  },
+  {
+    "route": "/koppelingen",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/koppelingen",
+    "violations": []
+  },
+  {
+    "route": "/players",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/players",
+    "violations": []
+  },
+  {
+    "route": "/demo",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/demo",
+    "violations": []
+  },
+  {
+    "route": "/oplossingen/sportverenigingen",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/oplossingen/sportverenigingen",
+    "violations": []
+  },
+  {
+    "route": "/oplossingen/horeca",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/oplossingen/horeca",
+    "violations": []
+  },
+  {
+    "route": "/oplossingen/bedrijven",
+    "status": 200,
+    "h1": 1,
+    "canonical": "https://veyocast.nl/oplossingen/bedrijven",
+    "violations": []
+  },
+  {
+    "receipt": [
+      "Zo begint een goed gesprek.Je aanvraag is veilig ontvangen. We nemen contact met je op; er is nog geen afspraak ingepland.Je aanvraag is ontvangen."
+    ],
+    "errors": [
+      ""
+    ]
+  }
+]

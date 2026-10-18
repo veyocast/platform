@@ -2,14 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabasePublicConfig } from "./lib/supabase/config";
-import { resolveFieldflowRedirect } from "./lib/fieldflow-redirects";
+import { fieldflowRedirectUrl, resolveFieldflowRedirect } from "./lib/fieldflow-redirects";
 import { createRequestDeadline, controlMiddlewareBudgetMs } from "./lib/supabase/request-deadline";
 
 export async function middleware(request: NextRequest) {
   const fieldflowTarget = resolveFieldflowRedirect(request.nextUrl.pathname);
   if (fieldflowTarget) {
-    const target = request.nextUrl.clone();
-    target.pathname = fieldflowTarget;
+    const target = fieldflowRedirectUrl(request.nextUrl.toString(), request.headers.get("host"), fieldflowTarget);
     return NextResponse.redirect(target, 308);
   }
 

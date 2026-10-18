@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "scope": "Source collection functional commands and actual local series-to-playlist acceptance; complete V1/visual/provider acceptance remains separate",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "gates": {
+    "collectionSql": {
+      "tests": 32,
+      "status": "PASS",
+      "includes": "original preparation receipt after collection revision and membership changed"
+    },
+    "freshDatabaseBeforeReceiptAdjustment": {
+      "files": 118,
+      "assertions": 3325,
+      "status": "PASS",
+      "dbLintErrors": 0,
+      "throughMigration": "20261018006000"
+    },
+    "controlUnit": {
+      "passed": 763,
+      "skipped": 34,
+      "status": "PASS",
+      "scope": "collection cohort before filmstrip read extension"
+    },
+    "editorBrowser": {
+      "passed": 21,
+      "seconds": 50.1,
+      "status": "PASS",
+      "includes": "lost collection ACK/reload, later rejection preserving unknown command, order/copy/removal, viewer navigation and five widths"
+    },
+    "controlLintType": {
+      "status": "PASS"
+    },
+    "localControlAndPlayerBuilds": {
+      "status": "PASS",
+      "scope": "collection cohort before filmstrip read extension"
+    },
+    "fullRlsAfterReceiptAdjustment": {
+      "files": 118,
+      "assertions": 3330,
+      "status": "PASS",
+      "scope": "full existing gate schema plus applied 065; fresh reset through 060 recorded separately"
+    },
+    "additionalNameValidationBrowser": {
+      "passed": 1,
+      "status": "PASS",
+      "scope": "incomplete internal name survives reload; no writer"
+    }
+  },
+  "actualServices": "execution/evidence/sync-series-real-services.json",
+  "actualLatestPlayerRuntime": "execution/evidence/sync-motion-runtime-recheck.json",
+  "harnessHistory": [
+    "First attempt reached the intentionally lost, committed collection answer, then an unscoped alert selector also matched the Next route announcer. The exact original command and same two projects were recovered on the second attempt; no additional add command was created."
+  ],
+  "limits": [
+    "the filmstrip reads a bounded first Source library page plus current collection; the complete library remains available through its existing page",
+    "no claim of complete visual parity or live Source provider binding",
+    "no hosted deployment or physical/signed-update/24-hour claim"
+  ],
+  "actualFilmstripRead": "execution/evidence/sync-filmstrip-real-services.json"
+}

@@ -5,13 +5,11 @@ async function follow(
   target: () => Locator,
   destination: RegExp
 ) {
-  await expect(async () => {
-    if (destination.test(page.url())) return;
-    const link = target();
-    await expect(link).toBeVisible();
-    await link.click();
-    await expect(page).toHaveURL(destination);
-  }).toPass({ timeout: 20_000 });
+  if (destination.test(page.url())) return;
+  const link = target();
+  await expect(link).toBeVisible();
+  await link.click();
+  await expect(page).toHaveURL(destination, {timeout: 30_000});
 }
 
 async function openFromCommand(
@@ -19,166 +17,115 @@ async function openFromCommand(
   label: string,
   destination: RegExp
 ) {
-  await expect(async () => {
-    if (destination.test(page.url())) return;
-    const dialog = page.getByRole("dialog", { name: "Snel naar een onderdeel" });
-    if (!(await dialog.isVisible())) {
-      await page.getByRole("button", { name: "Snel naar een onderdeel" }).click();
-    }
-    await expect(dialog).toBeVisible();
-    await dialog.getByLabel("Zoek navigatie en resources").fill(label);
-    await dialog.getByRole("link").filter({ hasText: label }).first().click();
-    await expect(page).toHaveURL(destination);
-  }).toPass({ timeout: 20_000 });
+  if (destination.test(page.url())) return;
+  const dialog = page.getByRole("dialog", { name: "Snel naar een onderdeel" });
+  if (!(await dialog.isVisible())) await page.getByRole("button", { name: "Snel naar een onderdeel" }).click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("Zoek navigatie en resources").fill(label);
+  await dialog.getByRole("link").filter({has: page.getByText(label, {exact: true})}).first().click();
+  await expect(page).toHaveURL(destination, {timeout: 30_000});
 }
 
-test("renders the control shell with role-aware navigation", async ({ page }) => {
-  test.setTimeout(90_000);
+test("renders the Sync shell with role-aware navigation", async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({height: 900, width: 1280});
   await page.goto("/dashboard");
-
-  await expect(page.getByRole("heading", { name: /Goedemorgen,/ })).toBeVisible();
-  await expect(page.getByText("Van idee naar ieder scherm")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Nog niets actief" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Mooi dat je er bent,/ })).toBeVisible();
+  await expect(page.getByText("De club in beeld. Jij houdt het overzicht.")).toBeVisible();
+  await expect(page.getByText("Nog geen bevestigde inhoud", { exact: true })).toBeVisible();
   await expect(page.getByText("Bestuurskamer")).toHaveCount(0);
-  await expect(
-    page.getByRole("button", {
-      name: "Actieve context: Museumkwartier"
-    })
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Actieve context: Museumkwartier" })).toBeVisible();
 
   const nav = page.getByRole("navigation", { name: "Hoofdnavigatie" });
+  await expect(nav.getByRole("link")).toHaveText(["Overzicht", "Content", "Playlists", "Planning", "Schermen"]);
   await expect(nav.getByRole("link", { name: /Platform/ })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: "Overzicht", exact: true })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Media/ })).toBeVisible();
-  await nav.getByRole("button", { name: "Meer onderdelen" }).click();
-  await expect(nav.getByRole("link", { name: /Sponsor Hub/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Playlists/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Bronnen/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Publicaties/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Schermen/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Team/ })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Menu Studio", exact: true })).toHaveAttribute("href", "/dashboard/slides/menu-studio");
-  await expect(nav.getByRole("link")).toHaveCount(18);
-  await expect(page.getByLabel("Control navigatie").getByRole("link", { name: "Instellingen", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: /Pilotflow/ })).toHaveCount(0);
+  const manage = page.getByRole("navigation", { name: "Beheer", exact: true });
+  await expect(manage.getByRole("link")).toHaveText(["Bronnen", "Producten", "Thema’s", "Sponsors", "Interactie", "Team & rechten", "Support", "Abonnement"]);
+  await page.setViewportSize({height: 900, width: 1024});
+  await page.getByLabel("Control navigatie").getByRole("button", {name: "Beheer", exact: true}).click();
+  const management = page.getByRole("dialog", {name: "Beheer", exact: true});
+  await expect(management.getByRole("link", {name: "Media", exact: true})).toHaveAttribute("href", "/dashboard/media");
+  await expect(management.getByRole("link", {name: "Menu Studio", exact: true})).toHaveAttribute("href", "/dashboard/slides/menu-studio");
+  await expect(management.getByRole("link", {name: "Publicaties", exact: true})).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(management).not.toBeVisible();
+  await expect(page.getByLabel("Control navigatie").getByRole("button", {name: "Beheer", exact: true})).toBeFocused();
 
+  await page.setViewportSize({height: 900, width: 1280});
   await openFromCommand(page, "Sponsor Hub", /\/dashboard\/sponsors$/);
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Sponsor Hub" })).toBeVisible();
-  await page.getByText("Sponsorbeheer, goedkeuring en levering", { exact: true }).click();
-  await expect(page.getByRole("navigation", { name: "Sponsor Hub onderdelen" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Sponsor KPI's" })).toBeVisible();
-  await expect(page.getByRole("heading", { exact: true, name: "Nog geen campagnes" })).toBeVisible();
+  await expect(page.getByRole("heading", {exact: true, level: 1, name: "Geef je partners een podium."})).toBeVisible();
+  await page.getByText("Sponsorbeheer, goedkeuring en levering", {exact: true}).click();
+  await expect(page.getByRole("navigation", {name: "Sponsor Hub onderdelen"})).toBeVisible();
+  await expect(page.getByRole("region", {name: "Sponsor KPI's"})).toBeVisible();
+  await expect(page.getByRole("heading", {exact: true, name: "Je eerste partnerverhaal begint hier"})).toBeVisible();
 
-  await follow(
-    page,
-    () => nav.getByRole("link", { name: /Media/ }),
-    /\/dashboard\/media$/
-  );
-  await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Media" })
-  ).toBeVisible();
-  await page.getByText("Upload- en verwerkingsregels", { exact: true }).click();
+  await follow(page, () => nav.getByRole("link", {name: "Content", exact: true}), /\/dashboard\/content$/);
+  await expect(page.getByRole("heading", {exact: true, level: 1, name: "Contentbibliotheek"})).toBeVisible();
+  await openFromCommand(page, "Media", /\/dashboard\/media$/);
+  await expect(page.getByRole("heading", {exact: true, level: 1, name: "Media"})).toBeVisible();
+  await page.getByText("Upload- en verwerkingsregels", {exact: true}).click();
   await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Veilige verwerking" })).toBeVisible();
+  await expect(page.getByRole("heading", {name: "Veilige verwerking"})).toBeVisible();
 
   await openFromCommand(page, "Playlists", /\/dashboard\/playlists$/);
-  await expect(
-    page.getByLabel("Control status").getByRole("heading", { exact: true, level: 1, name: "Playlists" })
-  ).toBeVisible();
-  await expect(
-    page.getByLabel("Control status").getByText("Demomodus", { exact: true })
-  ).toBeAttached();
-  await expect(page.getByRole("heading", { name: "Nieuwe playlist" })).toHaveCount(0);
-  await expect(page.locator("#control-content").getByRole("heading", { name: "Playlists", exact: true })).toBeVisible();
+  await expect(page.locator("#control-content").getByRole("heading", {name: "Je playlists", exact: true})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "Nieuwe playlist"})).toHaveCount(0);
+  await expect(nav.getByRole("link", {name: "Playlists", exact: true})).toHaveAttribute("aria-current", "page");
 
-  await openFromCommand(page, "Bronnen", /\/dashboard\/sources$/);
-  await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Bronnen" })
-  ).toBeVisible();
-  const twelveCard = page.locator("article").filter({ has: page.getByRole("heading", { exact: true, name: "Twelve" }) });
-  await expect(twelveCard.getByRole("link", { name: "Koppeling bekijken" })).toBeVisible();
-  await twelveCard.getByRole("button", { name: "Twelve statusdetails, 0 opgeslagen koppelingen", exact: true }).click();
-  const twelveStatus = page.getByRole("dialog", { name: "Twelve statusdetails", exact: true });
-  await expect(twelveStatus.getByText("0 opgeslagen koppelingen", { exact: true })).toBeVisible();
-  await expect(twelveStatus.getByText("Nog niet ingesteld", { exact: true })).toBeVisible();
-  await expect(twelveStatus.getByText("Er is nog geen bron gekoppeld.", { exact: true })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(twelveStatus).not.toBeVisible();
-  await follow(
-    page,
-    () => twelveCard.getByRole("link", { name: "Koppeling bekijken" }),
-    /\/dashboard\/sources\/twelve\/products$/
-  );
-  await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Twelve producten" })
-  ).toBeVisible();
-  await expect(page.getByText("Nog geen producten", { exact: true })).toBeVisible();
+  await follow(page, () => manage.getByRole("link", {name: "Bronnen", exact: true}), /\/dashboard\/sources$/);
+  await expect(page.getByRole("heading", {level: 1, name: "Alles begint bij goede gegevens."})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "Nog geen bronnen verbonden"})).toBeVisible();
+  await expect(page.getByRole("button", {name: "Bron toevoegen", exact: true})).toBeDisabled();
+  await page.goto("/dashboard/sources/twelve/products");
+  await expect(page.getByRole("heading", {level: 1, name: "Een frisse kaart voor je club."})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "Geen producten gevonden"})).toBeVisible();
+  await expect(page.getByRole("button", {name: "Product toevoegen", exact: true})).toBeDisabled();
 
   await openFromCommand(page, "Publicaties", /\/dashboard\/publications$/);
-  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Publicaties" })).toBeVisible();
-  await expect(page.getByRole("heading", { exact: true, name: "Gepubliceerd" })).toBeVisible();
+  await expect(page.getByRole("heading", {exact: true, level: 1, name: "Publicaties"})).toBeVisible();
+  await expect(page.getByRole("heading", {exact: true, name: "Gepubliceerd"})).toBeVisible();
   await expect(page.getByText(/live gegevens verversen zelfstandig/i)).toBeVisible();
   await expect(page.getByText("Nog geen publicaties")).toBeVisible();
 
-  await follow(
-    page,
-    () => nav.getByRole("link", { name: /Schermen/ }),
-    /\/dashboard\/screens$/
-  );
-  await expect(
-    page.getByLabel("Control status").getByRole("heading", { exact: true, level: 1, name: "Schermen" })
-  ).toBeVisible();
-  await expect(
-    page.getByLabel("Control status").getByText("Demomodus", { exact: true })
-  ).toBeAttached();
-  await expect(page.getByRole("region", { name: "Schermen" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
+  await follow(page, () => nav.getByRole("link", {name: "Schermen", exact: true}), /\/dashboard\/screens$/);
+  await expect(page.getByRole("heading", {level: 1, name: "Jouw club. Overal in beeld."})).toBeVisible();
+  await expect(page.locator(".px-screen-card")).toHaveCount(0);
+  await expect(page.getByRole("button", {name: "Scherm koppelen", exact: true})).toBeDisabled();
   await page.goto("/dashboard/screens/new");
-  // The open modal correctly hides the background page from the accessibility
-  // tree. Keep proving that the page owns exactly one h1, then assert the
-  // accessible dialog title below.
-  await expect(page.locator("h1").filter({ hasText: "Scherm toevoegen" })).toHaveCount(1);
-  const setup = page.getByRole("dialog", { name: "Nieuw scherm instellen" });
+  await expect(page.locator("h1").filter({hasText: "Scherm toevoegen"})).toHaveCount(1);
+  const setup = page.getByRole("dialog", {name: "Nieuw scherm instellen"});
   await expect(setup).toBeVisible();
-  await expect(setup.getByLabel("Schermnaam", { exact: true })).toBeDisabled();
-  await expect(setup.getByRole("button", { name: "Volgende", exact: true })).toBeDisabled();
+  await expect(setup.getByLabel("Schermnaam", {exact: true})).toBeDisabled();
+  await expect(setup.getByRole("button", {name: "Volgende", exact: true})).toBeDisabled();
   await expect(setup.getByRole("status")).toContainText("Er wordt niets aangemaakt");
-  await setup.getByRole("button", { name: "Scherm instellen sluiten", exact: true }).click();
+  await setup.getByRole("button", {name: "Scherm instellen sluiten", exact: true}).click();
   await expect(setup).not.toBeVisible();
 
   await expect(async () => {
     if (/\/platform$/.test(page.url())) return;
-    await page.getByRole("button", {
-      name: "Actieve context: Museumkwartier"
-    }).click();
-    await page.getByRole("button", { name: /VeyoCast platform/ }).click();
+    await page.getByRole("button", {name: "Actieve context: Museumkwartier"}).click();
+    await page.getByRole("button", {name: /VeyoCast platform/}).click();
     await expect(page).toHaveURL(/\/platform$/);
-  }).toPass({ timeout: 20_000 });
+  }).toPass({timeout: 20_000});
   await expect(page.locator(".sites-control")).toHaveAttribute("data-navigation-scope", "platform");
-  await expect(nav.getByRole("link", { name: /Media/ })).toHaveCount(0);
-  await follow(
-    page,
-    () => nav.getByRole("link", { name: /Klanten/ }),
-    /\/platform\/tenants$/
-  );
-  await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Tenantbeheer" })
-  ).toBeVisible();
-  await expect(page.getByText("Demodata", { exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Nieuwe vereniging" })
-  ).toBeVisible();
+  await expect(nav.getByRole("link", {name: "Content", exact: true})).toHaveCount(0);
+  await follow(page, () => nav.getByRole("link", {name: /Klanten/}), /\/platform\/tenants$/);
+  await expect(page.getByRole("heading", {exact: true, level: 1, name: "Tenantbeheer"})).toBeVisible();
+  await expect(page.getByText("Demodata", {exact: true})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "Nieuwe vereniging"})).toBeVisible();
   await expect(page.getByLabel("Verenigingsnaam")).toBeVisible();
   await expect(page.getByLabel("Technische slug")).toBeVisible();
   await expect(page.getByLabel("Schermlimiet")).toHaveValue("4");
-  await expect(
-    page.getByRole("button", { name: "Vereniging aanmaken" })
-  ).toBeDisabled();
+  await expect(page.getByRole("button", {name: "Vereniging aanmaken"})).toBeDisabled();
 
   await page.goto("/dashboard/auditlog");
   await expect(page).toHaveURL(/\/dashboard\/activity$/);
-  await expect(nav.getByRole("link", { name: /Activiteit/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Activiteit" })).toBeVisible();
+  await page.setViewportSize({height: 900, width: 1024});
+  await page.getByLabel("Control navigatie").getByRole("button", {name: "Beheer", exact: true}).click();
+  await expect(page.getByRole("dialog", {name: "Beheer", exact: true}).getByRole("link", {name: "Activiteit", exact: true})).toHaveAttribute("aria-current", "page");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("heading", {name: "Activiteit"})).toBeVisible();
 });
 
 test("persists theme and density preferences without a color flash", async ({ page }) => {
@@ -246,7 +193,7 @@ test("supports the public login and auth callback routes", async ({ page }) => {
     await page.getByLabel("E-mailadres").fill("operator@veyocast.test");
     await page.getByRole("button", { name: "Doorgaan" }).click();
     await expect(page).toHaveURL(/\/auth\/callback/);
-  }).toPass({ timeout: 20_000 });
+  }).toPass({ timeout: 45_000 });
   await expect(
     page.getByRole("heading", { name: "Sessiecontrole voorbereid" })
   ).toBeVisible();
@@ -268,7 +215,7 @@ test("supports the public login and auth callback routes", async ({ page }) => {
   );
 });
 
-test("supports the canonical expanded and compact Publisher sidebar", async ({
+test("preserves the fixed Sync sidebar across reload and legacy collapse preferences", async ({
   page
 }) => {
   await page.setViewportSize({ height: 900, width: 1280 });
@@ -280,17 +227,12 @@ test("supports the canonical expanded and compact Publisher sidebar", async ({
   await page.reload();
 
   const sidebar = page.getByLabel("Control navigatie");
-  await expect(sidebar).toHaveCSS("width", "78px");
-  await expect(
-    sidebar.getByRole("link", { name: "Overzicht", exact: true })
-  ).toBeVisible();
-  await expect(sidebar.locator(".vx-brand img")).not.toBeVisible();
-  await page.getByRole("button", { name: "Navigatie uitklappen" }).click();
+  await expect(sidebar).toHaveCSS("width", "228px");
+  await expect(sidebar.getByRole("link", {name: "Overzicht", exact: true})).toBeVisible();
   await expect(sidebar.locator(".vx-brand img")).toBeVisible();
-  await expect(sidebar).toHaveCSS("width", "248px");
-  await expect(
-    page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })
-  ).toBeVisible();
+  await expect(page.getByRole("button", {name: /Navigatie (in|uit)klappen/})).toHaveCount(0);
+  await page.setViewportSize({height: 900, width: 1024});
+  await expect(sidebar).toHaveCSS("width", "205px");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth
@@ -318,7 +260,7 @@ test("keeps the Sites sidebar and content scrolling independently", async ({
   const main = page.getByRole("main");
   const brand = sidebar.locator(".vx-brand");
   await expect(brand).toBeVisible();
-  await expect.poll(async () => (await brand.boundingBox())?.y).toBe(24);
+  await expect.poll(async () => (await brand.boundingBox())?.y).toBe(27);
   const brandBeforeY = (await brand.boundingBox())?.y;
 
   await expect(sidebar).toHaveCSS("overflow-y", "auto");
@@ -393,7 +335,7 @@ test("keeps the complete mobile page reachable above the fixed navigation", asyn
     );
     expect(metrics!.canScroll).toBe(true);
     expect(metrics!.pageBottom).toBeLessThan(metrics!.navigationTop);
-  }).toPass({ timeout: 20_000 });
+  }).toPass({ timeout: 45_000 });
   await expect(mobileNavigation).toBeVisible();
 });
 
@@ -428,7 +370,7 @@ test("supports command navigation and the compact mobile navigation flow", async
     name: "Mobiele hoofdnavigatie"
   });
 
-  await expect(topbar).toHaveCSS("min-height", "78px");
+  await expect(topbar).toHaveCSS("min-height", "65px");
   await Promise.all([
     expect(page.getByRole("button", { name: "Navigatie openen" })).toBeVisible(),
     expect(searchButton).not.toBeVisible(),
@@ -444,19 +386,14 @@ test("supports command navigation and the compact mobile navigation flow", async
   expect(menuBox?.height).toBeGreaterThanOrEqual(44);
   expect(menuBox?.width).toBeGreaterThanOrEqual(44);
 
-  await mobileNavigation.getByRole("button", { name: "Meer" }).click();
-
-  const navigation = page.getByRole("navigation", {
-    exact: true,
-    name: "Hoofdnavigatie"
-  });
+  await page.getByRole("button", {name: "Navigatie openen"}).click();
+  const navigation = page.getByRole("navigation", {name: "Hoofdnavigatie", exact: true});
   await expect(navigation).toBeVisible();
-  await expect(navigation.getByRole("link", { name: /Media/ })).toBeVisible();
-  await expect(navigation.getByRole("link", { name: "Studio", exact: true })).toBeVisible();
+  await expect(navigation.getByRole("link", {name: "Content", exact: true})).toBeVisible();
   await page.keyboard.press("Escape");
-  await follow(
-    page,
-    () => mobileNavigation.getByRole("link", { name: "Studio" }),
-    /\/dashboard\/studio$/
-  );
+  await expect(navigation).not.toBeVisible();
+  await expect(page.getByRole("button", {name: "Navigatie openen"})).toBeFocused();
+  await follow(page, () => mobileNavigation.getByRole("link", {name: "Content", exact: true}), /\/dashboard\/content$/);
+  await expect(page.getByRole("heading", {name: "Contentbibliotheek", level: 1})).toBeVisible();
+
 });

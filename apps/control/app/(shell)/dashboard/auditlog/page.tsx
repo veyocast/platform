@@ -56,7 +56,7 @@ export default async function AuditLogPage({ searchParams }: AuditLogPageProps) 
         </p>
       ) : null}
 
-      <form method="get" role="search">
+      <form action="/dashboard/auditlog" method="get" role="search">
         <FilterBar
           activeCount={auditFilterCount(filter)}
           clearHref="/dashboard/auditlog"

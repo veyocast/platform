@@ -4,18 +4,21 @@ import {resolveSitesStudioSlide}from"@veyocast/content-templates/sites-presentat
 import {buildSitesPresentationFromDynamicPayload}from"@veyocast/content-templates/sites-dynamic-projector";
 import {createControlSupabaseClient}from"../../../../lib/supabase/server";
 import {createControlAdminClient}from"../../../../lib/supabase/admin";
-import type {DynamicDesign,Media,StudioProject,StudioSlide}from"./_components/sites/model";
+import type {DynamicDesign,Media,StudioProject,StudioSlide,SyncDynamicLibraryDesign}from"./_components/sites/model";
 import {chunkPlaylistStudioIds} from "./playlist-studio-query-scope";
+import {safeParseStudioDocument} from '@veyocast/studio';
+import {readPublisherSyncDynamic,type PublisherSyncMedia} from "./sync-dynamic-library";
+import type {SyncStudioLibraryProject} from './_components/sites/model';
 
 export type PublisherLibraryFilter={tab:"media"|"slides"|"studio"|"dynamic";source?:"all"|"studio"|"sportlink"|"led-scores"|"menu";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string};
-export type PublisherLibraryPage={media:Media[];projects:StudioProject[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableDesigns?:Array<{id:string;name:string;status:string;processing:boolean;href:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
+export type PublisherLibraryPage={media:Media[];projects:StudioProject[];syncProjects?:SyncStudioLibraryProject[];syncDesigns?:SyncDynamicLibraryDesign[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableDesigns?:Array<{id:string;name:string;status:string;processing:boolean;href:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
 const empty:PublisherLibraryPage={media:[],projects:[],designs:[],total:0,hasMore:false,folders:[],collections:[]};
 const pageSize=48;
 
 export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibraryFilter,access={studio:true,dynamic:true}):Promise<PublisherLibraryPage>{
  if(filter.tab==="slides"){
   const pages=await Promise.all([access.studio&&(!filter.source||["all","studio"].includes(filter.source))?loadPublisherLibrary(tenantId,{...filter,tab:"studio"}):Promise.resolve(empty),access.dynamic&&filter.source!=="studio"?loadPublisherLibrary(tenantId,{...filter,tab:"dynamic"}):Promise.resolve(empty)]);
-  return {...empty,projects:pages[0]!.projects,designs:pages[1]!.designs,total:pages.reduce((sum,page)=>sum+page.total,0),hasMore:pages.some(page=>page.hasMore),unavailableDesigns:pages[1]!.unavailableDesigns};
+  return {...empty,projects:pages[0]!.projects,syncProjects:pages[0]!.syncProjects,syncDesigns:pages[1]!.syncDesigns,designs:pages[1]!.designs,total:pages.reduce((sum,page)=>sum+page.total,0),hasMore:pages.some(page=>page.hasMore),unavailableDesigns:pages[1]!.unavailableDesigns};
  }
  const supabase=await createControlSupabaseClient();if(!supabase)throw new Error("De beveiligde datasessie ontbreekt.");
  const offset=filter.offset??0;
@@ -52,18 +55,24 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
   else if(filter.source==="led-scores")query=query.eq("slide_type","ledscores_live_match");
   else if(filter.source==="sportlink")query=query.not("slide_type","in","(menu,price_list,ledscores_live_match)");
   if(filter.query)query=query.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
-  let unavailableQuery=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,status").eq("tenant_id",tenantId).not("status","in","(ready,archived)").is("archived_at",null).order("updated_at",{ascending:false}).limit(12);
+  let unavailableQuery=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,status,configuration_json").eq("tenant_id",tenantId).not("status","in","(ready,archived)").is("archived_at",null).order("updated_at",{ascending:false}).limit(12);
   if(filter.source==="menu")unavailableQuery=unavailableQuery.in("slide_type",["menu","price_list"]);else if(filter.source==="led-scores")unavailableQuery=unavailableQuery.eq("slide_type","ledscores_live_match");else if(filter.source==="sportlink")unavailableQuery=unavailableQuery.not("slide_type","in","(menu,price_list,ledscores_live_match)");
   if(filter.query)unavailableQuery=unavailableQuery.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
   const unavailable=await unavailableQuery;if(unavailable.error)throw new Error("De ontwerpstatus kon niet worden gecontroleerd. Probeer opnieuw.");
 
   const slides=await query;if(slides.error)throw new Error("De opgeslagen ontwerpen konden niet worden geladen.");
   const ids=(slides.data??[]).flatMap(slide=>slide.current_snapshot_id?[slide.current_snapshot_id]:[]);
-  const snapshots=ids.length?await supabase.from("dynamic_slide_snapshots").select("id,dynamic_slide_id,template_version_id,source_revision_hash,snapshot_data_json,output_media_asset_id,status").eq("tenant_id",tenantId).in("id",ids).eq("status","ready"):{data:[],error:null};
+  const snapshots=ids.length?await supabase.from("dynamic_slide_snapshots").select("id,dynamic_slide_id,dynamic_slide_version_id,template_version_id,source_revision_hash,snapshot_data_json,output_media_asset_id,status,sync_render_result_json").eq("tenant_id",tenantId).in("id",ids).eq("status","ready"):{data:[],error:null};
   if(snapshots.error)throw new Error("De vaste ontwerpinhoud kon niet worden geladen.");
-  const snapshotAssets=await loadCanonicalSnapshotAssets(tenantId,(snapshots.data??[]).map(snapshot=>snapshot.snapshot_data_json));
+  const sourceSnapshots=(snapshots.data??[]).filter(snapshot=>Object.hasOwn(snapshot.snapshot_data_json as object,'syncConfiguration'));
+  const sourceMediaIds=sourceSnapshots.flatMap(snapshot=>snapshot.output_media_asset_id?[snapshot.output_media_asset_id]:[]);
+  const sourceMedia=sourceMediaIds.length?await supabase.from('media_assets').select('id,status,kind,mime_type,checksum_sha256,file_size_bytes,duration_seconds,width,height').eq('tenant_id',tenantId).in('id',sourceMediaIds).is('deleted_at',null):{data:[],error:null};
+  if(sourceMedia.error)throw Error('De volledige Source-afspeeluitvoer kon niet worden gecontroleerd. Vernieuw de bibliotheek.');
+  const snapshotAssets=await loadCanonicalSnapshotAssets(tenantId,(snapshots.data??[]).flatMap(snapshot=>[snapshot.snapshot_data_json,snapshot.sync_render_result_json]));
+  const syncDesigns:SyncDynamicLibraryDesign[]=[];
   const designs=(slides.data??[]).flatMap((slide):DynamicDesign[]=>{
    const snapshot=snapshots.data?.find(item=>item.id===slide.current_snapshot_id);if(!snapshot)return[];if(snapshot.dynamic_slide_id!==slide.id)throw new Error("De opgeslagen broninhoud hoort niet bij het gekozen ontwerp.");
+   if(Object.hasOwn(snapshot.snapshot_data_json as object,'syncConfiguration')){syncDesigns.push(readPublisherSyncDynamic({snapshot,definition:slide,assets:snapshotAssets,media:sourceMedia.data?.find(media=>media.id===snapshot.output_media_asset_id)as PublisherSyncMedia|undefined}));return[];}
    const payload=playerDynamicTemplatePayloadSchema.safeParse({schemaVersion:1,slideType:slide.slide_type,orientation:slide.orientation,snapshotHash:snapshot.source_revision_hash,snapshotId:snapshot.id,templateVersionId:snapshot.template_version_id,templateSlug:slide.slide_type.replaceAll("_","-"),data:snapshot.snapshot_data_json,assets:Object.fromEntries(collectCanonicalSnapshotAssetIds(snapshot.snapshot_data_json).flatMap(id=>snapshotAssets[id]?[[id,snapshotAssets[id]]]:[]))});
    if(!payload.success)throw new Error("De opgeslagen slide-inhoud is ongeldig. Open het bronontwerp om dit te herstellen.");
    const provider=slide.slide_type==="ledscores_live_match"?"led-scores":["menu","price_list"].includes(slide.slide_type)?"menu":"sportlink";
@@ -71,10 +80,14 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
    if(!configuration.success)throw new Error("De vormgeving van een opgeslagen slide kon niet worden gelezen.");const cfg=configuration.data;const presentation=buildSitesPresentationFromDynamicPayload(payload.data,cfg);
    return[{...cfg,id:slide.id,name:slide.name,kind:presentation?.kind==="dynamic"?presentation.content.kind:"generic",background:cfg.background?.kind==="system"?cfg.background.path:"",rows:presentation?.kind==="dynamic"?presentation.content.rows:[],config:cfg,screenIds:[],groupNames:[],snapshotId:snapshot.id,payload:payload.data,sitesConfiguration:cfg}];
   });
-  return{...empty,designs,unavailableDesigns:(unavailable.data??[]).map(slide=>({id:slide.id,name:slide.name,status:slide.status,processing:slide.status==="rendering",href:["menu","price_list"].includes(slide.slide_type)?`/dashboard/slides/menu-studio/${slide.id}`:`/dashboard/slides/${slide.id}`})),total:slides.count??designs.length,hasMore:offset+dynamicPageSize<(slides.count??0)};
+  return{...empty,designs,syncDesigns,unavailableDesigns:(unavailable.data??[]).map(slide=>({id:slide.id,name:slide.name,status:slide.status,processing:slide.status==="rendering",href:slide.configuration_json&&Object.hasOwn(slide.configuration_json as object,'syncConfiguration')?`/dashboard/slides/${slide.id}`:["menu","price_list"].includes(slide.slide_type)?`/dashboard/slides/menu-studio/${slide.id}`:`/dashboard/slides/${slide.id}`})),total:slides.count??designs.length+syncDesigns.length,hasMore:offset+dynamicPageSize<(slides.count??0)};
  }
- const series=await supabase.rpc("list_publisher_studio_series_v2",{p_tenant_id:tenantId,p_offset:offset,p_search:filter.query||null});
+ const [series,syncSeries]=await Promise.all([
+  supabase.rpc("list_publisher_studio_series_v2",{p_tenant_id:tenantId,p_offset:offset,p_search:filter.query||null}),
+  supabase.rpc('list_publisher_sync_studio_v1',{p_tenant_id:tenantId,p_offset:offset,p_search:filter.query||null})
+ ]);
  if(series.error)throw new Error("De actuele Studio-reeksen konden niet worden geladen. Probeer opnieuw.");
+ if(syncSeries.error)throw new Error('De actuele Source-ontwerpen konden niet worden geladen. Probeer opnieuw.');
  const response=series.data as {total:number;series:Array<{id:string;name:string;revision:number;members:Array<{projectId:string;name:string;document:unknown;draftRevision:number;exportId:string|null;mediaAssetId:string|null;outputKind:string|null}>}>};
  const presentations=response.series.flatMap(row=>row.members.flatMap(member=>{const parsed=sitesPresentationSchema.safeParse((member.document as {sitesPresentation?:unknown})?.sitesPresentation);return parsed.success?[parsed.data]:[];}));
  const assetUrls=await loadSitesAssetUrls(tenantId,presentations);
@@ -91,7 +104,45 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
   }
   if(slides.length===row.members.length&&slides.length)result.push({id:row.id,name:row.name,revision:Number(row.revision),slides});
  }
- return{...empty,projects:result,total:Number(response.total),hasMore:offset+8<Number(response.total)};
+ const rawSync=syncSeries.data as {total:number;projects:Array<{id:string;name:string;revision:number;kind:'project'|'series';members:Array<{projectId:string;name:string;document:unknown;draftRevision:number;exportId:string|null;mediaAssetId:string|null;outputKind:string|null;checksumSha256:string|null;bytes:number|null}>}>};
+ if(!rawSync||!Number.isSafeInteger(rawSync.total)||rawSync.total<0||!Array.isArray(rawSync.projects)||rawSync.projects.length>8)throw new Error('De Source-bibliotheek gaf een onbruikbaar antwoord. Probeer opnieuw.');
+ const sourceDocuments=rawSync.projects.flatMap(group=>group.members.map(member=>{
+  const parsed=safeParseStudioDocument(member.document);if(!parsed.success||!parsed.data.syncPresentation)throw new Error('Een Source-ontwerp kon niet veilig worden gelezen. Open het ontwerp om dit te herstellen.');return parsed.data.syncPresentation;
+ }));
+ const sourceAssetUrls=await loadSitesAssetUrls(tenantId,sourceDocuments);
+ const publicCampaignIds=[...new Set(sourceDocuments.flatMap(source=>source.family==='engage'&&source.poll?[source.poll.id]:[]))];
+ const campaignPages=await Promise.all(chunkPlaylistStudioIds(publicCampaignIds,40).map(ids=>supabase.from('engage_campaigns').select('id,public_id').eq('tenant_id',tenantId).in('public_id',ids).in('status',['scheduled','live','closed'])));
+ if(campaignPages.some(page=>page.error))throw Error('De Source-campagnebinding kon niet worden bevestigd. Je huidige playlist blijft behouden; controleer Engage en je rechten.');
+ const campaigns=campaignPages.flatMap(page=>page.data??[]);
+ const youtubeUrls=[...new Set(sourceDocuments.flatMap(source=>source.family==='youtube'&&source.youtubeUrl?[source.youtubeUrl]:[]))];
+ const youtubePages=await Promise.all(chunkPlaylistStudioIds(youtubeUrls,40).map(urls=>{
+  const ids=urls.map(url=>new URL(url).searchParams.get('v')).filter((value):value is string=>Boolean(value));
+  const playlists=urls.map(url=>new URL(url).searchParams.get('list')).filter((value):value is string=>Boolean(value));
+  const query=supabase.from('youtube_sources').select('id,video_id,playlist_id').eq('tenant_id',tenantId).eq('status','active').eq('validation_status','verified').eq('embeddable',true);
+  // Exact canonical URLs are admitted at save/render. Values are still checked
+  // before entering PostgREST's filter grammar.
+  if(ids.some(id=>!/^[A-Za-z0-9_-]{11}$/.test(id))||playlists.some(id=>!/^[A-Za-z0-9_-]{12,160}$/.test(id)))throw Error('De Source-videobinding is ongeldig. Controleer het bronontwerp.');
+  const clauses=[...(ids.length?['video_id.in.('+ids.join(',')+')']:[]),...(playlists.length?['playlist_id.in.('+playlists.join(',')+')']:[])];
+  if(!clauses.length)throw Error('De Source-videobinding is niet bevestigd. Kies een gecontroleerde bron.');
+  return query.or(clauses.join(','));
+ }));
+ if(youtubePages.some(page=>page.error))throw Error('De Source-videobinding kon niet worden gelezen. Je playlist blijft behouden; probeer opnieuw.');
+ const youtubeSources=youtubePages.flatMap(page=>page.data??[]),youtubeUrl=(source:{video_id:string;playlist_id:string|null})=>source.playlist_id?'https://www.youtube.com/playlist?list='+source.playlist_id:'https://www.youtube.com/watch?v='+source.video_id;
+ if(youtubeUrls.some(url=>!youtubeSources.some(source=>youtubeUrl(source)===url)))throw Error('Een Source-video is niet meer beschikbaar binnen deze vereniging. Controleer het bronontwerp.');
+ if(publicCampaignIds.some(id=>!campaigns.some(campaign=>campaign.public_id===id)))throw Error('Een Source-campagne is niet meer beschikbaar binnen deze vereniging. Open het bronontwerp om de keuze te controleren.');
+ const syncProjects:SyncStudioLibraryProject[]=rawSync.projects.map(group=>{
+  if(!['project','series'].includes(group.kind)||!group.members.length||group.members.length>20)throw new Error('De Source-selectie is onvolledig. Vernieuw de bibliotheek.');
+  return {id:group.id,name:group.name,revision:Number(group.revision),kind:group.kind,members:group.members.map(member=>{
+   const parsed=safeParseStudioDocument(member.document);if(!parsed.success||!parsed.data.syncPresentation)throw new Error('Een Source-ontwerp kon niet veilig worden gelezen. Open het ontwerp om dit te herstellen.');
+   const document=parsed.data,kind=document.motion.enabled?'video':'image';
+   const ready=!!member.exportId;
+   if(ready&&(!member.mediaAssetId||member.outputKind!==(kind==='video'?'mp4':'png')||!member.checksumSha256||! /^[a-f0-9]{64}$/.test(member.checksumSha256)||!(Number(member.bytes)>0)))throw new Error('De Source-uitvoer kon niet volledig worden gecontroleerd. Vernieuw de bibliotheek.');
+   const source=document.syncPresentation!,campaign=source.family==='engage'&&source.poll?campaigns.find(campaign=>campaign.public_id===source.poll!.id):null;
+   const youtube=source.family==='youtube'&&source.youtubeUrl?youtubeSources.find(video=>youtubeUrl(video)===source.youtubeUrl):null;
+   return {id:member.projectId,name:member.name,draftRevision:Number(member.draftRevision),presentation:parsed.data.syncPresentation,assetUrls:sourceAssetUrls,durationSeconds:Math.ceil(document.motion.durationMs/1000),exportKind:kind,exportId:member.exportId??undefined,exportAssetId:member.mediaAssetId??undefined,checksumSha256:member.checksumSha256??undefined,...(campaign?{onlineSource:{kind:'engage' as const,id:campaign.id}}:youtube?{onlineSource:{kind:'youtube' as const,id:youtube.id}}:{})};
+  })};
+ });
+ return{...empty,projects:result,syncProjects,total:Number(response.total)+rawSync.total,hasMore:offset+8<Number(response.total)||offset+8<rawSync.total};
 }
 
 /** Existing placements retain their exact snapshot, including archived definitions. */

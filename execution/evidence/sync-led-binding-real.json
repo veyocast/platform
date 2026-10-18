@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T09:24:15.084Z",
+  "controlBuildId": "eLES1fqneU5xg52f-BsBk",
+  "scope": "actual AAL2 Source LED choice, existing leased normalized-state ingestion RPC over an explicit owned fixture, canonical preview, exact lost create recovery and complete private worker output; no external websocket/provider, Player stream, hardware or hosted deployment claim",
+  "fixture": {
+    "sourceId": "5d86d5ae-778e-4344-b133-5ab5eb24a29a",
+    "connectionId": "b99d7964-2216-4e78-a32d-7a323fafb6f2",
+    "existingLeasedIngestion": true,
+    "observedScore": "2–1",
+    "externalProviderVerified": false
+  },
+  "previewReadOnly": true,
+  "editorAxeViolations": 0,
+  "slideId": "23ea0738-ed15-4fd2-8c22-c684269fadb2",
+  "exactCreateReceiptRecovered": true,
+  "transportWritesThisRun": 2,
+  "canonical": {
+    "home": "Eigen QA-thuis",
+    "jobId": "838e1b27-43df-4520-8983-efca32ae1852",
+    "sourceId": "5d86d5ae-778e-4344-b133-5ab5eb24a29a",
+    "jobStatus": "queued",
+    "slideCount": 1,
+    "snapshotId": "dcae3a55-edd5-48f5-ab96-ba6102f237b3",
+    "seedHasHome": false
+  },
+  "completeOutput": {
+    "home": "Eigen QA-thuis",
+    "bytes": 773192,
+    "score": "2",
+    "sha256": "e9b0847b3ce1ff6fb24f9c9b4e5e0b10d7810bd29f6696a43a992dc8b666b682",
+    "status": "ready",
+    "assetId": "716a5305-d79f-53e5-866d-ffc655bba96e",
+    "mimeType": "video/mp4",
+    "durationMs": 5000
+  },
+  "detailAxeViolations": 0,
+  "existingReleasesUnchanged": true
+}

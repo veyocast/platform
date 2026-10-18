@@ -24,7 +24,7 @@ test.beforeAll(() => {
 
 async function mount(page: Page, variant = "ready") {
   let requestCount = 0;
-  const css = ["tokens/veyocast-design-tokens.css", "packages/ui/src/styles.css", "apps/control/app/globals.css", "apps/control/app/fieldflow.css"].map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
+  const css = ["tokens/veyocast-design-tokens.css", "packages/ui/src/styles.css", "apps/control/app/globals.css", "apps/control/app/fieldflow.css", "apps/control/app/sync-source.css", "apps/control/app/sync-adapter.css"].map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
   await page.route("**/__sites-test/shell?*", route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><style>${css}\n${bundle.css}</style></head><body><div id="root"></div><script>${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>` }));
   await page.route("**/api/search?*", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ results: [] }) }));
   await page.route("**/api/control/notifications", async route => {
@@ -41,6 +41,7 @@ async function mount(page: Page, variant = "ready") {
     const bytes = readFileSync(join(process.cwd(), "apps/control/public", asset.path)); expect(bytes.byteLength).toBe(asset.bytes); expect(createHash("sha256").update(bytes).digest("hex")).toBe(asset.sha256);
     return route.fulfill({ contentType: asset.mimeType, body: bytes });
   });
+  for (const asset of ["full-dark.svg", "full-light.svg", "manrope.woff2", "inter.woff2"]) await page.route(`**/assets/${asset}`, route => route.fulfill({ contentType: asset.endsWith("svg") ? "image/svg+xml" : "font/woff2", body: readFileSync(join(process.cwd(), "apps/control/public/assets", asset)) }));
   await page.goto(`${origin}/__sites-test/shell?variant=${variant}`);
   await expect(page.locator("#control-content")).toBeVisible();
   await expect(page.locator('button[aria-label="Navigatie openen"]')).toBeEnabled();
@@ -71,7 +72,7 @@ test.afterAll(() => {
   mkdirSync(directory, { recursive: true }); const path = join(directory, "case-readback.json"), merged = new Map<string, Record<string, unknown>>();
   if (existsSync(path)) for (const row of JSON.parse(readFileSync(path, "utf8")).results as Record<string, unknown>[]) merged.set(String(row.caseId), row);
   for (const row of readbacks) merged.set(String(row.caseId), row);
-  writeFileSync(path, JSON.stringify({ schemaVersion: 1, sourceRevision: "b1cae899af19fc39908217253094c5240d7359fc", fixtureVersion: "QA-01-SHELL-20261011-v1", browser: "Chromium1228 / Linux / DPR1", fixedTime: "2026-10-11T10:00:00Z", timezone: "Europe/Amsterdam", scope: "Actual ControlShell/portals/shared primitives with controlled Next/read HTTP boundary. Genuine actor/tenant/capability/RLS endpoint guards separately unit-tested; actual authenticated routes separate. No sourcepixel parity or production server receipt inferred.", results: [...merged.values()].sort((a, b) => String(a.caseId).localeCompare(String(b.caseId))) }, null, 2));
+  writeFileSync(path, JSON.stringify({ schemaVersion: 1, sourceRevision: "b1cae899af19fc39908217253094c5240d7359fc", fixtureVersion: "QA-01-SHELL-20261011-v1", browser: "Chromium1228 / Linux / DPR1", fixedTime: "2026-10-11T10:00:00Z", timezone: "Europe/Amsterdam", scope: "Actual Sync ControlShell/portals/shared primitives with controlled Next/read HTTP boundary. Original case IDs retained; fixed Sync sidebar and Beheer dialog replace legacy collapse/more controls. Genuine actor/tenant/capability/RLS endpoint guards separately unit-tested; actual authenticated routes separate. No sourcepixel parity or production server receipt inferred.", results: [...merged.values()].sort((a, b) => String(a.caseId).localeCompare(String(b.caseId))) }, null, 2));
 });
 
 for (const row of cases) test(`original ${row.case_id} ${row.viewport} ${row.state}`, async ({ page }) => {
@@ -79,7 +80,7 @@ for (const row of cases) test(`original ${row.case_id} ${row.viewport} ${row.sta
   if (row.state === "reduced-motion") await page.emulateMedia({ reducedMotion: "reduce" });
   await mount(page); const mobile = width! < 768, sidebar = page.getByLabel("Control navigatie"), main = page.getByRole("main");
   await expect(page.locator(".vx-header")).toHaveCount(1); await expect(page.getByRole("button", { name: "Accountmenu openen" })).toHaveCount(1); await expect(page.locator(".vx-account .vx-avatar")).toHaveText("Qb");
-  if (mobile) { await expect(page.getByRole("navigation", { name: "Mobiele hoofdnavigatie" }).locator("a,button")).toHaveText(["Overzicht", "Playlists", "Studio", "Schermen", "Meer"]); await expect(page.getByRole("navigation", { name: "Mobiele hoofdnavigatie" }).getByRole("link", { name: "Overzicht", exact: true })).toHaveAttribute("aria-current", "page"); }
+  if (mobile) { await expect(page.getByRole("navigation", { name: "Mobiele hoofdnavigatie" }).locator("a,button")).toHaveText(["Overzicht", "Content", "Playlists", "Planning", "Schermen"]); await expect(page.getByRole("navigation", { name: "Mobiele hoofdnavigatie" }).getByRole("link", { name: "Overzicht", exact: true })).toHaveAttribute("aria-current", "page"); }
   else { await expect(sidebar.getByRole("link", { name: "Overzicht", exact: true })).toHaveAttribute("aria-current", "page"); await expect(page.getByRole("navigation", { name: "Mobiele hoofdnavigatie" })).not.toBeVisible(); }
   let surface = main;
   if (row.state === "search" || row.state === "keyboard-focus") {
@@ -89,15 +90,15 @@ for (const row of cases) test(`original ${row.case_id} ${row.viewport} ${row.sta
   } else if (row.state === "account") {
     await page.getByRole("button", { name: "Accountmenu openen" }).click(); surface = page.getByRole("dialog", { name: "QA beheerder" }); await expect(surface).toBeVisible(); await expect(surface.getByText("Eigenaar", { exact: true })).toBeVisible(); await expect(surface.getByRole("link", { name: "Accountbeveiliging en MFA" })).toBeVisible(); await trap(page, surface);
   } else if (row.state === "tenant") {
-    if (mobile) await page.getByRole("button", { name: "Meer", exact: true }).click(); const trigger = page.getByRole("button", { name: "Actieve context: Duindorp SV" }); await trigger.scrollIntoViewIfNeeded(); await trigger.click(); surface = page.getByRole("group", { name: "Werkcontext wisselen" }); await expect(surface).toBeVisible(); await expect(surface.locator('button[aria-current="true"]')).toContainText("Duindorp SV"); await expect(surface.locator('button[aria-current="true"]')).toContainText("Actief"); expect(await surface.evaluate(element => element.parentElement === document.body)).toBe(true);
+    if (mobile) await page.getByRole("button", { name: "Navigatie openen", exact: true }).click(); const trigger = page.getByRole("button", { name: "Actieve context: Duindorp SV" }); await trigger.scrollIntoViewIfNeeded(); await trigger.click(); surface = page.getByRole("group", { name: "Werkcontext wisselen" }); await expect(surface).toBeVisible(); await expect(surface.locator('button[aria-current="true"]')).toContainText("Duindorp SV"); await expect(surface.locator('button[aria-current="true"]')).toContainText("Actief"); expect(await surface.evaluate(element => element.parentElement === document.body)).toBe(true);
   } else if (row.state === "notifications") {
     if (mobile) { await page.getByRole("button", { name: "Accountmenu openen" }).focus(); await page.keyboard.press("Control+Shift+n"); } else await page.getByRole("button", { name: "Meldingen openen" }).click();
     surface = page.getByRole("dialog", { name: "Meldingen", exact: true }); await expect(surface.getByRole("button", { name: /Playlist gepubliceerd/ })).toBeVisible(); await expect(surface).toContainText("Duindorp SV"); await expect(surface.locator("time")).toHaveText("11 okt, 12:00"); await trap(page, surface);
   } else if (row.state === "navigation-more") {
-    if (mobile) await page.getByRole("button", { name: "Meer", exact: true }).click(); await sidebar.getByRole("button", { name: "Meer onderdelen" }).click(); await expect(sidebar.getByRole("link", { name: "Playlists", exact: true })).toBeVisible(); await expect(sidebar.getByRole("link", { name: "Instellingen", exact: true })).toBeVisible(); surface = sidebar;
+    if (mobile) { await page.getByRole("button", { name: "Navigatie openen", exact: true }).click(); await sidebar.getByRole("button", { name: "Beheer", exact: true }).click(); surface = page.getByRole("dialog", { name: "Beheer", exact: true }); await expect(surface.getByRole("link", { name: "Studio", exact: true })).toBeVisible(); await expect(surface.getByRole("link", { name: "Instellingen", exact: true })).toBeVisible(); await trap(page, surface); } else { surface = sidebar; await expect(sidebar.getByRole("navigation", { name: "Beheer", exact: true }).getByRole("link")).toHaveText(["Bronnen", "Producten", "Thema’s", "Sponsors", "Interactie", "Team & rechten", "Support", "Abonnement"]); await expect(sidebar.getByRole("link", { name: "Instellingen", exact: true })).toBeVisible(); }
   } else if (row.state === "sidebar-collapsed") {
     if (mobile) { await page.getByRole("button", { name: "Navigatie openen" }).click(); await expect(sidebar).toHaveClass(/\bopen\b/); await page.keyboard.press("Escape"); await expect(sidebar).not.toHaveClass(/\bopen\b/); await expect(page.getByRole("button", { name: "Navigatie openen" })).toBeFocused(); await page.getByRole("button", { name: "Navigatie openen" }).click(); }
-    else { await page.getByRole("button", { name: "Navigatie inklappen" }).click(); await expect(page.locator(".vx-shell")).toHaveClass(/\bcollapsed\b/); await expect.poll(async () => Number.parseFloat(await sidebar.evaluate(element => getComputedStyle(element).width))).toBe(78); } surface = sidebar;
+    else { await expect(page.getByRole("button", { name: /Navigatie (in|uit)klappen/ })).toHaveCount(0); await expect(page.locator(".vx-shell")).not.toHaveClass(/\bcollapsed\b/); await expect(sidebar).toHaveCSS("width", width! <= 1200 ? "205px" : "228px"); } surface = sidebar;
   } else if (row.state === "reduced-motion") {
     expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
     if (mobile) await page.getByRole("button", { name: "Navigatie openen" }).click(); surface = sidebar; expect(await surface.evaluate(element => Number.parseFloat(getComputedStyle(element).transitionDuration))).toBeLessThanOrEqual(0.00001);

@@ -1,5 +1,6 @@
 const productionOrigin = "https://veyocast.nl";
 const productionControlOrigin = "https://control.veyocast.nl";
+const productionPlayerOrigin = "https://player.veyocast.nl";
 
 function validatedHttpsOrigin(value: string | undefined, fallback: string) {
   if (!value) return fallback;
@@ -26,6 +27,7 @@ export const siteConfig = {
   environment: process.env.VEYOCAST_ENVIRONMENT?.trim() ?? "development",
   name: "VeyoCast",
   origin: validatedHttpsOrigin(process.env.NEXT_PUBLIC_APP_URL, productionOrigin),
+  playerOrigin: validatedHttpsOrigin(process.env.NEXT_PUBLIC_PLAYER_URL, productionPlayerOrigin),
   privacyEmail: "privacy@veyocast.nl",
   productionOrigin
 } as const;

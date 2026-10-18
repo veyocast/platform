@@ -19,7 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   owner: "veyocast",
   version: process.env.VEYOCAST_CONTROL_VERSION_NAME ?? "1.0.0",
   orientation: "default",
-  icon: "../../assets/brand/veyocast-social-avatar-1024.png",
+  icon: "../../assets/brand/sync/icon-1024.png",
   scheme: "veyocast-control",
   userInterfaceStyle: "automatic",
   experiments: {
@@ -30,8 +30,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: packageName,
     versionCode,
     adaptiveIcon: {
-      foregroundImage: "../../assets/brand/veyocast-icon-512.png",
-      backgroundColor: "#121212"
+      foregroundImage: "../../assets/brand/sync/adaptive-foreground-1024.png",
+      backgroundColor: "#0D1725"
     },
     permissions: [
       "android.permission.CAMERA",
@@ -76,12 +76,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       "expo-splash-screen",
       {
-        backgroundColor: "#F7F3EC",
-        image: "../../assets/brand/veyocast-icon-512.png",
+        backgroundColor: "#f3f7f6",
+        image: "../../assets/brand/sync/icon-1024.png",
         imageWidth: 152,
         dark: {
           backgroundColor: "#10100F",
-          image: "../../assets/brand/veyocast-icon-512.png"
+          image: "../../assets/brand/sync/icon-1024.png"
         }
       }
     ],
@@ -106,7 +106,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       "expo-notifications",
       {
-        color: "#FF5C20",
+        color: "#006d73",
         defaultChannel: "screen-status"
       }
     ],

@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T03:22:15.612Z",
+  "scope": "actual local AAL2 Source editor → image-upload validation/private Storage → save/authenticated readback/reload",
+  "projectId": "dd38316c-63b4-4a60-9d8c-3b8211de00ce",
+  "sourceOptionsSaved": {
+    "revision": 2,
+    "background": "stripes",
+    "font": "Arial"
+  },
+  "axeViolations": 0,
+  "widths": [
+    {
+      "width": 320,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "width": 768,
+      "overflow": 0
+    },
+    {
+      "width": 1024,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "overflow": 0
+    }
+  ],
+  "asset": {
+    "id": "7fa5e2e4-ddf3-4bbc-95bf-24349ab6700e",
+    "sha256": "2cfd9993a4528b5c467eb33d8fc49bb38568ccbde31ac526289b14b80d42eab9",
+    "bytes": 482,
+    "kind": "image",
+    "status": "ready"
+  },
+  "draftRevision": 3,
+  "privateStorageVerified": true,
+  "reopenedSameAsset": true,
+  "existingReleasesUnchanged": true
+}

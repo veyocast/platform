@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T08:03:14.620Z",
+  "controlBuildId": "sJOndIMi7EP1ogB-OeCJI",
+  "scope": "actual AAL2 pinned Source theme/duration choice, receipt recovery, one complete existing-worker variant, private SHA and reload; no publication, provider, hardware or hosted deployment claim",
+  "playlistId": "c5d2f44f-9aac-4948-91c1-cbc5658c4965",
+  "sourceSlideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "ownedDraftRecovery": "Existing latest-draft follower incorrectly adopted the first 21s variant before its authoring CAS. After the Source-only fence, the actual UI restored the original reviewed Source snapshot before this new 24s choice.",
+  "completeOutput": {
+    "rows": 9,
+    "bytes": 3183040,
+    "theme": "onzetrots-tv",
+    "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9",
+    "assetId": "83228b4d-e1ba-5cfe-8849-60750da57863",
+    "versionId": "3ad9f2fd-aa33-44fb-8981-8a377f474c0a",
+    "durationMs": 24000,
+    "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+    "secondsPerPage": "8"
+  },
+  "readback": {
+    "sites": null,
+    "duration": 24,
+    "sourceId": "9c91ee17-4616-4cce-bf3d-419187255052",
+    "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+    "mediaAssetId": "83228b4d-e1ba-5cfe-8849-60750da57863"
+  },
+  "editorAxeViolations": 0,
+  "widths": [
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "receiptRecovery": "actual browser retries the same prepare command",
+  "oneExistingQueueJob": true,
+  "recoveredStages": [
+    "sync-dynamic-placement-attempt-1.json",
+    "sync-dynamic-placement-attempt-2.json",
+    "sync-dynamic-placement-attempt-3.json"
+  ],
+  "mainSourceAndReleasesUnchanged": true
+}

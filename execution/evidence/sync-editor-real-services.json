@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-18T01:50:51.658Z",
+  "transport": "actual Next Source editor and AAL2 server actions on isolated local Supabase",
+  "projectId": "04c6421e-7150-4d7f-90bb-f0de44b0e010",
+  "axe": [],
+  "widths": [
+    {
+      "width": 320,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "width": 768,
+      "overflow": 0
+    },
+    {
+      "width": 1024,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "overflow": 0
+    }
+  ],
+  "project": {
+    "id": "04c6421e-7150-4d7f-90bb-f0de44b0e010",
+    "name": "S226 Source-editor browser",
+    "orientation": "portrait",
+    "width": 1080,
+    "height": 1920
+  },
+  "draftRevision": 1,
+  "rendererVersion": "sync-v1",
+  "unintendedReleases": 0
+}

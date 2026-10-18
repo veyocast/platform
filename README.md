@@ -1,5 +1,10 @@
 # VeyoCast Platform
 
+S226 voert de Sync V1-rebuild van 17 oktober 2026 uit. De originele overdracht,
+voorrang en actuele bewijsstatus staan in `docs/sync-v1-rebuild/` en
+`execution/`. Volledige V1-acceptatie volgt uit de afzonderlijke scenario- en releasebewijzen;
+de bestaande data, identiteiten, publicaties en deploymentcontracten blijven de basis.
+
 VeyoCast is a local-first MVP for a multi-tenant narrowcasting and ClubTV
 platform. This repository starts from the VeyoCast Codex Build Pack and follows
 the canon in `AGENTS.md`, `PLANS.md`, `TASK_LEDGER.md` and `docs/`.

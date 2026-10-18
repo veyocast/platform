@@ -1,0 +1,93 @@
+name: Probe publication runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Beschermde omgeving
+        required: true
+        type: choice
+        options: [staging, production]
+      expected_runtime_sha:
+        description: Volledige SHA van de momenteel gezonde runtime
+        required: true
+        type: string
+      tenant_id:
+        description: Bevestigd actief tenant-ID
+        required: true
+        type: string
+      quiesce_worker:
+        description: Stop de geverifieerde worker tijdelijk en herstel dezelfde container na de controle
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ inputs.quiesce_worker && 'deploy-veyocast-main' || format('probe-publication-runtime-{0}-{1}', inputs.target_environment, inputs.tenant_id) }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    # A bounded quiesce operation finishes restoration before ordinary cancellation.
+    if: ${{ always() && github.ref == 'refs/heads/main' && (inputs.quiesce_worker || !cancelled()) }}
+    environment: ${{ inputs.target_environment }}
+    runs-on: [self-hosted, linux, x64, veyocast, '${{ inputs.target_environment }}']
+    timeout-minutes: 5
+    steps:
+      - name: Record bounded diagnostic job start
+        if: ${{ success() && !cancelled() }}
+        run: printf 'QUIESCED_PROBE_JOB_STARTED_AT=%s\n' "$(date +%s)" >> "$GITHUB_ENV"
+      - name: Checkout trusted main revision
+        if: ${{ success() && !cancelled() }}
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Setup Node.js
+        if: ${{ success() && !cancelled() }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+      - name: Setup pnpm
+        if: ${{ success() && !cancelled() }}
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          dest: ${{ runner.temp }}/veyocast-pnpm-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          version: 11.5.2
+          run_install: false
+      - name: Install pinned diagnostic client
+        if: ${{ success() && !cancelled() }}
+        id: install_client
+        run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1
+      - name: Inspect fixed read-only publication plan and runtime statistics
+        if: ${{ always() && steps.install_client.outcome == 'success' && (inputs.quiesce_worker || !cancelled()) }}
+        run: |
+          case "$QUIESCE_WORKER" in
+            true) exec bash scripts/probe-with-quiesced-worker.sh publication "$TARGET_ENVIRONMENT" "$EXPECTED_RUNTIME_SHA" "$TENANT_ID" ;;
+            false) exec node scripts/probe-publication-runtime.mjs "$TARGET_ENVIRONMENT" "$EXPECTED_RUNTIME_SHA" "$TENANT_ID" ;;
+            *) echo 'PROBE_SCOPE_INVALID' >&2; exit 64 ;;
+          esac
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          EXPECTED_RUNTIME_SHA: ${{ inputs.expected_runtime_sha }}
+          TENANT_ID: ${{ inputs.tenant_id }}
+          QUIESCE_WORKER: ${{ inputs.quiesce_worker }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      - name: Preserve ordinary workflow cancellation
+        if: ${{ cancelled() && inputs.quiesce_worker }}
+        run: |
+          echo '{"event":"quiesced_worker_probe","phase":"workflow","code":"PROBE_WORKFLOW_CANCELLED"}' >&2
+          exit 1
+      - name: Retain sanitized result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: publication-runtime-${{ inputs.target_environment }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/publication-runtime-probe.json
+          if-no-files-found: ignore
+          retention-days: 14

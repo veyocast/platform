@@ -1,0 +1,1189 @@
+{
+  "format": 1,
+  "hash": "SHA-256",
+  "excluded": [
+    "manifests/package-files.json"
+  ],
+  "files": [
+    {
+      "path": "CODEX-STARTPROMPT.md",
+      "bytes": 10659,
+      "sha256": "855b06ac4c2eee728184d979b574af4c79649e120ea9cedacb243fbe7dd3f0bd"
+    },
+    {
+      "path": "START-HIER.md",
+      "bytes": 5504,
+      "sha256": "cf063dfa1f8ff9fdca96bc88ce74fa7ae2be7daa0d95810f554be384c19f3e3e"
+    },
+    {
+      "path": "archive/README.md",
+      "bytes": 1246,
+      "sha256": "9ce69da8d8b603851b32f7914d789113c2c79230aed4a2a23e2a6fee91a8f0aa"
+    },
+    {
+      "path": "assets/android-icon-kit/README.md",
+      "bytes": 4291,
+      "sha256": "51a88d8196e8c23b1108355931b1fc670d9daf2f03d3b05761a2f7527c603e0b"
+    },
+    {
+      "path": "assets/android-icon-kit/VALIDATION.json",
+      "bytes": 504,
+      "sha256": "1a11338cfe530a1b2c4bf6f5ac0897e97113d7d691f5de0986fa279f0536e137"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/drawable/veyocast_icon_foreground.xml",
+      "bytes": 996,
+      "sha256": "7cd44ce607cac323f0470c65d7baa7e84ec6a0e865210f2c6be9961499f07ab1"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/drawable-anydpi-v26/veyocast_launcher_icon.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/drawable-anydpi-v26/veyocast_launcher_icon_round.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "bytes": 7781,
+      "sha256": "c6418ab1d3305f4e8fc9b3fa5c0449859364c014214ccc6cbe45cec952ffa5e9"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/drawable-nodpi/veyocast_launcher_icon_round.png",
+      "bytes": 16086,
+      "sha256": "2e7037bff4384db79cd8023f7b092620be826cf0b821a99e259d5d4ba6a0b1ca"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/drawable-nodpi/veyocast_tv_banner.png",
+      "bytes": 5643,
+      "sha256": "c76e2fdba7d3e679e58138459778a2117b8a3244e0b7e9fb92304f03f54a5cc2"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "bytes": 261,
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-hdpi/ic_launcher.png",
+      "bytes": 1236,
+      "sha256": "b185c6272dd850e9c20392bf963a57e7201ad17e5fd80c5cd6fd2eb86072a425"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "bytes": 1861,
+      "sha256": "90de7a06dc33910f35126a6ce3df2ce03c6d3be1bcf9833f3643bcdc42e3648a"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-hdpi/ic_launcher_round.png",
+      "bytes": 2146,
+      "sha256": "8c0e11c8cd7eb0f19850a18fd566a69bb4f42428f7d6f4369dafc97186412767"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-mdpi/ic_launcher.png",
+      "bytes": 866,
+      "sha256": "4c08bb278dd6705a78e647e1c3cd7326309c4d5bd6f8f908819d8d8ab1ae003d"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "bytes": 1310,
+      "sha256": "39c115c4790b0395b2b59f705733e32dfad1e04e6e277b3182532d9f61ae01c1"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-mdpi/ic_launcher_round.png",
+      "bytes": 1457,
+      "sha256": "e4d728485f9942ef0e8b0172dd576c7e82bb6563ed83ba6211798182bbda84fe"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xhdpi/ic_launcher.png",
+      "bytes": 1565,
+      "sha256": "01351b28cd4cb74a41c83951cbddd7d4185a1d8a034be46edb7e856ac71954fa"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "bytes": 2493,
+      "sha256": "8c561a3ecf1e5416ac58932d903ddd32fbbfa184f1517eed824147839b205b09"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xhdpi/ic_launcher_round.png",
+      "bytes": 2760,
+      "sha256": "4e3a4d0427e00f5a3f387ea0592cec165234b342e08e879aa1bdc1cc28285705"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xxhdpi/ic_launcher.png",
+      "bytes": 2254,
+      "sha256": "39040e1932800a1c924b41e885d3acb82c1c547bcc5d3694ba9408b391cd9eb8"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "bytes": 3684,
+      "sha256": "80d03a5df10bebae4300c9314cb4b23da6282f3f1ae51688140e38c5ba402f5b"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "bytes": 4135,
+      "sha256": "b982ea0065fce1d1da5176f17795d481937dff606ef29813be774a358be232ea"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xxxhdpi/ic_launcher.png",
+      "bytes": 2914,
+      "sha256": "ad940fb7a9790864702491e680ca2dd7a04df2bef0b0453f6fbb734581d404c9"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "bytes": 4813,
+      "sha256": "0f9dfbf948d71dc63b6a31b06aa0e9c3b90956618de607914ebc093789df847f"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "bytes": 5448,
+      "sha256": "69c36cee0073e73518c1292bc34117c108bb49e851c9f398c3b624eaa240ec78"
+    },
+    {
+      "path": "assets/android-icon-kit/android/res/values/veyocast_icon_colors.xml",
+      "bytes": 117,
+      "sha256": "27b5026671b0a4e18d7845a4170ba27eeb1ff2726aca21ee5de6f0fe01902fa1"
+    },
+    {
+      "path": "assets/android-icon-kit/asset-manifest.json",
+      "bytes": 5774,
+      "sha256": "ef1babc62f7c3e73ec3bcb3e7690792577c2902c54143f83a10d4a1629aeed86"
+    },
+    {
+      "path": "assets/android-icon-kit/expo/adaptive-foreground-1024.png",
+      "bytes": 13163,
+      "sha256": "c46ee5385a4477f19b0ae2f35f72b55fc0691c6f6b1890163a03a04dfdaa48c0"
+    },
+    {
+      "path": "assets/android-icon-kit/expo/icon-1024.png",
+      "bytes": 17752,
+      "sha256": "ab6d3dc9deb7c4c51590d03c93ad982bb8d9955497271514f988a35fd28f42b1"
+    },
+    {
+      "path": "assets/android-icon-kit/generate-icons.cjs",
+      "bytes": 5477,
+      "sha256": "dbcc1f89f5d31b0d2ff7e87c03beccc641f08046ba6cff7076e0451ee4454708"
+    },
+    {
+      "path": "assets/android-icon-kit/source/adaptive-foreground.svg",
+      "bytes": 920,
+      "sha256": "3c9375797d34e2dd1894612c75928beb5de0d55cb6ebd7cd379276c3d984f72c"
+    },
+    {
+      "path": "assets/android-icon-kit/source/brand-icon.svg",
+      "bytes": 812,
+      "sha256": "dc63b70f43d4f721c5f87d51c64f9f5660a6aa22c69f9245f3f4d711113c0fd3"
+    },
+    {
+      "path": "assets/android-icon-kit/source/full-light.svg",
+      "bytes": 10592,
+      "sha256": "877dac00409543e4699c39116b508ad5096e2f2fd3b361d32ae674044c9fef9e"
+    },
+    {
+      "path": "assets/android-icon-kit/source/tv-banner.svg",
+      "bytes": 10694,
+      "sha256": "03bf0bdb8619868c4dd6006e2451e814e61bd2e6f518de29f136a365e2c5d615"
+    },
+    {
+      "path": "docs/ANDROID-UPDATE-CONTRACT.md",
+      "bytes": 16253,
+      "sha256": "9dcfd03bec86ab8ac84e9c8dfd6086b9b3ba5de0a7f329a4e554e1781d165f37"
+    },
+    {
+      "path": "docs/BRONNEN-EN-BEWIJS.md",
+      "bytes": 4820,
+      "sha256": "89658ac2afb618fe2f3820fa33e7706dac81de59c83aced70e6a7825947fac08"
+    },
+    {
+      "path": "docs/CONFLICTEN-EN-VOORRANG.md",
+      "bytes": 4552,
+      "sha256": "9b6ba5419e2881b1884f3983d7aecfceab4bc1568c276726bf9629fea56912b3"
+    },
+    {
+      "path": "docs/DEPLOY-EN-GITHUB-BEHOUD.md",
+      "bytes": 15054,
+      "sha256": "5b82c21fd77ed477999d272206f0d6c8c8307c4b5c4942b6ce60fb922c92679f"
+    },
+    {
+      "path": "docs/IMPLEMENTATIE-EN-ACCEPTATIE.md",
+      "bytes": 6368,
+      "sha256": "dbd944adb2c2458d6869b4192235234bba39ea338dd9fcfacd46b9d2cbb3891a"
+    },
+    {
+      "path": "docs/LOGICA-PARITEITSMATRIX.md",
+      "bytes": 41876,
+      "sha256": "67b56a9c317a0b38cc5fa5ef86da33b47ed68199856007615639176a31dc3d05"
+    },
+    {
+      "path": "docs/ONTWIKKELING-EN-OPRUIMING.md",
+      "bytes": 6169,
+      "sha256": "2c8fbad28c0e7c1663f0697745b6385d2506729baa877823a9d27225a7af82b4"
+    },
+    {
+      "path": "docs/OPDRACHTCANON.md",
+      "bytes": 6363,
+      "sha256": "23c5ae087fb7fd31efa8d385a8e8e702c00b969a1ae91ff02f45d0e12ca982d5"
+    },
+    {
+      "path": "docs/PAKKETCONTROLE.md",
+      "bytes": 3265,
+      "sha256": "334996c275cb7599c87c71ce3bde8999270ee7e9f9e8a48f93cda1c819f5a476"
+    },
+    {
+      "path": "docs/V1-REBUILD-CANON.md",
+      "bytes": 31309,
+      "sha256": "e8449a3d7f01449a67615498013fac3f6697ea9cb169ee04d1f8b94d3e549f79"
+    },
+    {
+      "path": "docs/VISUELE-OVERNAME.md",
+      "bytes": 6488,
+      "sha256": "0d012a6432ef11b7f9c1d135f6059758c158e6c77226e980bb076a3aa96603b2"
+    },
+    {
+      "path": "execution/README.md",
+      "bytes": 1175,
+      "sha256": "b65d25b31ebd90b644784fb987e97dfecc2e264aa1683c2f0e37179dfb3d0339"
+    },
+    {
+      "path": "execution/android-upgrade.csv",
+      "bytes": 206,
+      "sha256": "86adef743621832d873f390f896b136051d8d2bf7cc7202d041ce0979c73ea3a"
+    },
+    {
+      "path": "execution/configuratiebehoud.csv",
+      "bytes": 105,
+      "sha256": "64986fd061a7abbf33ad906681d71ed9d268d72bad692ea3896336e1467ea062"
+    },
+    {
+      "path": "execution/omgeving-inventaris.json",
+      "bytes": 749,
+      "sha256": "ff7de26a1a697aeb5fbcc7498aa822a2b03628bd787695c95836f14b7f616b22"
+    },
+    {
+      "path": "execution/opruimregister.csv",
+      "bytes": 167,
+      "sha256": "789fa3bd49d060d9c5aad09e1dd694f01ce6548555409b25ce40db992f4bc7fe"
+    },
+    {
+      "path": "execution/scenario-acceptatie.csv",
+      "bytes": 63365,
+      "sha256": "3fc267b2a3db4ef70140a35d89ca0284796eee0c580c6bb091acb8ca6716b009"
+    },
+    {
+      "path": "execution/visuele-acceptatie.csv",
+      "bytes": 172,
+      "sha256": "5456b6af195525cef3406a6ca098a2ff41fee904bf42d007fca31f533b9ef058"
+    },
+    {
+      "path": "manifests/assets.json",
+      "bytes": 9006,
+      "sha256": "2b2a9d7480068ca807c3c48e10087483a45ee8b9c2e67b81da44ca16d38d9273"
+    },
+    {
+      "path": "manifests/sites-files.json",
+      "bytes": 17063,
+      "sha256": "4fe8f74ad5569ca455147667b2583721c61718e30eb978db51cdc6b7626ba602"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/PLAY_STORE_GOOGLE_TV.md",
+      "bytes": 7793,
+      "sha256": "18f6bf781252dd1abb039bf42dd77fc2b76e6ee1e6f7290acdca5908533f12b4"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/PLAY_STORE_INTERNAL_TEST.md",
+      "bytes": 6793,
+      "sha256": "f7ddbf967430f84597022eae34613874355490237a8d555d115c15735d1a578b"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/build.gradle.kts",
+      "bytes": 5251,
+      "sha256": "51dc1eb0a46aa8c2dd415e11ba39968aea6d8e85ad8ed3d5c38787c674fcee28"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/AndroidManifest.xml",
+      "bytes": 2811,
+      "sha256": "7a50f50d901f8b8dfe4e21aaf528bdf0c4a83aa2f123c153ac613c75e71dbb35"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/AppPreferences.kt",
+      "bytes": 1690,
+      "sha256": "c017c935d7d01830e8fd521a4ba10f06ed75a0161f5f4737d99223a219d433d4"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/AutomationStore.kt",
+      "bytes": 6652,
+      "sha256": "84ceca8421c6bfb977da6dc0f35db15a4f153640987064e936144400e40505a7"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/BootCompletedReceiver.kt",
+      "bytes": 1972,
+      "sha256": "d89b85bd6a7c9835ad8d033562347c6996f79be9d870a6b32bc337300e9da90c"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/MainActivity.kt",
+      "bytes": 41963,
+      "sha256": "11345072e350aaab34b83c7a6c571e59d5ba7c3806231f0730208c3e4f6a551d"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/NativeRecoveryIdentity.kt",
+      "bytes": 2069,
+      "sha256": "479f3611084c3e8769aaa7554fa4518caec6d1d816f62f638d6849962cf89f26"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/NavigationPolicy.kt",
+      "bytes": 1537,
+      "sha256": "7d05f9992e402b95dd8255663aceb73489aaa8e60995900121695ed94e29a5f2"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/PlayerConfiguration.kt",
+      "bytes": 1154,
+      "sha256": "4441f255800a39399afc7121b768e67cb693f4e67b63a116f10eb36c09721c4c"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/VeyoCastWebViewClient.kt",
+      "bytes": 2458,
+      "sha256": "95334db3550a6bb7e3f2344672fbd99eac37d4ee830ddd1395e07acc23b001b9"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/app/src/main/java/nl/veyocast/player/WebPlaybackScripts.kt",
+      "bytes": 2989,
+      "sha256": "3ca2a1a00bab8d50cadcc7038ee3d26152da331a0bad627c03cff0392a68601f"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/tv/build.gradle.kts",
+      "bytes": 5534,
+      "sha256": "546e225696b634d86016cf4cd62d6eab2532526addb18f51d5afacb1a443a6ce"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/android-tv/tv/src/main/AndroidManifest.xml",
+      "bytes": 2817,
+      "sha256": "4f9311ffe16ea224a890a11f6245af91e5c2c796989fefd580cbd7204c7a365a"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/control-mobile/app.config.ts",
+      "bytes": 4016,
+      "sha256": "c19d8ee58f86dfe0ef34b9fc655bb02ce6c14ec021b6bbd04d2ec5ced5573ab4"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/control-mobile/eas.json",
+      "bytes": 426,
+      "sha256": "429347b2a86f43899b318a0c1594a6783fd7c7a03dbc10acbcf84bab13460f09"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/control-mobile/plugins/with-control-signing.cjs",
+      "bytes": 1829,
+      "sha256": "cb301a8ed44e172f6fdd6aa8fd94e8cd681c9b8b9806141a1ace2ec0580ca807"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/control-mobile/src/api/mobile-api.ts",
+      "bytes": 14290,
+      "sha256": "c9c85a49a2438831029a67dfe3ef523a8d90eead18be3c3c79d2a60b6e4f2089"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/control-mobile/src/auth/secure-storage.ts",
+      "bytes": 1028,
+      "sha256": "ef2f28546b5ff9dc5baa502f64b6d6fae34975f30df0c6d43e92015cbb01b77c"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/control-mobile/src/storage/tenant-cache.ts",
+      "bytes": 2416,
+      "sha256": "34bba957281f63d127f237b44380f198b2cc198089a953e9f78f7125df6168d1"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/control-mobile/src/storage/upload-queue.ts",
+      "bytes": 3753,
+      "sha256": "f703350f2ff0fa85e2332c5a440b2daae8dc768f6d466aed437612f3c37e27f6"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/player/app/_lib/player-cache.ts",
+      "bytes": 34984,
+      "sha256": "00e936a892151ce407e2c55049517525cfb7e1f415073c306eba209ffcb66910"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/player/app/_lib/player-manifest.ts",
+      "bytes": 14535,
+      "sha256": "e60cc543ce70a340163b2ed811c25c2d9f18d7301dc462a80c660424307dd5ae"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/player/app/_lib/player-native-recovery.ts",
+      "bytes": 623,
+      "sha256": "fd081dc6a36958769df8e978cd5777c299bb458cceca1f30397f942c55707528"
+    },
+    {
+      "path": "reference/legacy-baseline/android/baseline/apps/player/app/_lib/player-storage.ts",
+      "bytes": 1183,
+      "sha256": "04a87b368557c2eab370fa1f3b406e54d5096170102fee9c76f31963703434ad"
+    },
+    {
+      "path": "reference/legacy-baseline/android/evidence.json",
+      "bytes": 8300,
+      "sha256": "e16cdbded000d925d722a5ead2cba0ec1e1cc3c2132220e704d01fcdfff647ad"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/SOURCE-VERIFICATION.json",
+      "bytes": 101,
+      "sha256": "92f46344822f67f5cd02320c9980806c01e44a7e8f2ca1c96c8d8b9af1731325"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/additional-source-manifest.json",
+      "bytes": 1577,
+      "sha256": "f92dd7e777bdd4d13954e3caab09e49ac9bd3c55f5bf20ca813fbc51e8c8c621"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/android-google-tv-play-internal.yml",
+      "bytes": 10307,
+      "sha256": "06f7097becd16e3bff03cb9e8f77fc2d7aa8620ec329e1b250a86e73149477be"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/android-tv-play-internal.yml",
+      "bytes": 6999,
+      "sha256": "d79dbff1f627e1aee741562bfa52fcf7ebf889ef6679ccc2f2b719e8af6b2ffb"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/android-tv.yml",
+      "bytes": 4486,
+      "sha256": "ce2ad45dc548fc7c8cbadc7f9dcabe6847805dea2442ff8485a98ad88c3ccbe0"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/control-mobile-ci.yml",
+      "bytes": 7497,
+      "sha256": "cbc39a87f139c0d1844ed01a1c99df1d51ac6a088645fbb3364dd1fb53befae2"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/control-mobile-play-internal.yml",
+      "bytes": 10271,
+      "sha256": "4cc3ae8045e1be4910e8135d105b5fcbd9ff240caba7e60783af985c5503f4cc"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/control-mobile-play-production.yml",
+      "bytes": 4350,
+      "sha256": "9da0031687f9d2e9136601f6bf95f7aa1b2b464e4a13f1f2b900e31d7a84093b"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/current-publication-maintenance.yml",
+      "bytes": 3896,
+      "sha256": "d6970e714b8ca4c6a0c85e141a0dcf9900e66bb3c4b94f9419eb188135cf74a7"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/database-rls-gates.yml",
+      "bytes": 2489,
+      "sha256": "3dce82b0cc54eb098042eed8f26b1cdcce82c13440e48fd62c0d9699f4199496"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/deploy.yml",
+      "bytes": 15651,
+      "sha256": "cd79a40b5bdc1126b6a7df275be755036cafe419c6d687d8d08d1ec5d71bd2bb"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/fieldflow-royal-theme-reset.yml",
+      "bytes": 50948,
+      "sha256": "b94bdb2774fdf138f7f9ceffbc8dcd061d1c9873a3d6825207694cd9f8cee485"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/lg-webos-signage-ipk.yml",
+      "bytes": 7489,
+      "sha256": "f8cb3d066727bcfebdee00ab1fb2c9961b556ab55fed838b63d10879b94e543b"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/menu-studio-pilot-rollout.yml",
+      "bytes": 8300,
+      "sha256": "3a9a85aab875b7373390d739d69281b1fb4d50a58ce6d8d98c4f5c10a764875b"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/pr-gates.yml",
+      "bytes": 5070,
+      "sha256": "81f9ccfbfceabae34c918df5bb06c5d85dba250b9de728250e4f1e6aeccd88bf"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/probe-data-api-resources.yml",
+      "bytes": 2334,
+      "sha256": "c13fe7597dcb17dbb8919b02db83fc40999dd1b13e7aa635093101dda7cd3e3c"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/probe-goal-media.yml",
+      "bytes": 2233,
+      "sha256": "13c67fbac61d55e2d0d70fa076f04ed478bfa9c04d9f5969e8c322772e4ae3a8"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/probe-live-integrations.yml",
+      "bytes": 8371,
+      "sha256": "3b21e7a58e637189f24696e5ecd42746f1a56a94f42d7e744e8cd83f10905f45"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/probe-player-video.yml",
+      "bytes": 2670,
+      "sha256": "50d9b4566704bdcba1efd7a7c16d2e673c52ff50e93ae73d9b619eb03b98a769"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/probe-publication-runtime.yml",
+      "bytes": 4103,
+      "sha256": "1d902ad9f08218d5e14f11901786e1d501ee73c7c026a67f53fbf4d6398416af"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/probe-runtime-database.yml",
+      "bytes": 4139,
+      "sha256": "41098565d853554c429a4b633eb85d71045217421866adebcf97c682c4c62ba7"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/recover-data-api.yml",
+      "bytes": 2634,
+      "sha256": "e1d87c5b1b1b44d0b3cd25f9bb1af43f3cea68b0ae51586298225e381338e619"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/recovery-drill.yml",
+      "bytes": 1400,
+      "sha256": "122992b6dd4c3088e42e5938d25dbf314785ee9a3c62a4bf60166154325a8b46"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/retention-maintenance.yml",
+      "bytes": 1003,
+      "sha256": "6f8de187fed2fc897cbe1956b11ff52287317580b71743c2f69dce6b717ea9aa"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/sites-reference-gates.yml",
+      "bytes": 9009,
+      "sha256": "55d6f544501d3f2d6155495a31309aa39dce9ffaa99bf4c0299023ef2c6e72de"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/slack-alert-smoke.yml",
+      "bytes": 2627,
+      "sha256": "9a921ca2c389cda778a5a03182bca0728290d0ccb93e05901435b8377a5ea686"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.github/workflows/vector-v2-pilot-rollout.yml",
+      "bytes": 7719,
+      "sha256": "c15201587029c15d0c21d370fa352177e2e666f62b8c2f9a902d695323ea1713"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/.nvmrc",
+      "bytes": 3,
+      "sha256": "68ca3fba3b7e864770cb61aeb306d4bd4354b68ab4dd38450860c5d823e42a53"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/docs/deployment/deployment-audit.md",
+      "bytes": 10908,
+      "sha256": "be234fdbdf69b94ce9e9fdf57df3455705dd7ff0ad8b6cd913db4b8af3147c66"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/docs/deployment/github-environments.md",
+      "bytes": 8474,
+      "sha256": "13e56c484d20613fa0c96b46ba3893c6077a2d830b5754e26d92aa6093c8ad81"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/docs/deployment/rollback.md",
+      "bytes": 5081,
+      "sha256": "5aabc738904f1e45fb03c8c3b254fa88a69e0269de27d447a434d11518040a54"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/docs/deployment/s194-runner-toolchain-isolation.md",
+      "bytes": 2465,
+      "sha256": "2b8f7fd60f989c87c6715beb094f7d4ba185e28d2cadd94bec2b83915c7a949e"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/docs/deployment/vps-deployment.md",
+      "bytes": 16436,
+      "sha256": "6064b90923354d37aacd06d5530d128866092c9bef7b2f3efea955a3bd58ce81"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/docs/deployment-local-canon.md",
+      "bytes": 875,
+      "sha256": "245fbf06eb374498cf62a6988ba66ad8af4e41f45a22f65b89d8a67ea42e92bf"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/docs/vps-environments-runbook.md",
+      "bytes": 669,
+      "sha256": "b6ede764cf34a30504100b8fe26ab6be4e17a6b4e62675d22b25f08002c2ca77"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/infra/production/Dockerfile",
+      "bytes": 2468,
+      "sha256": "16bbae6cb45c13a2a28dcd96f23376856b10b44aff7c6fccf44d1a5b1dc103ac"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/infra/vps/app.env.example",
+      "bytes": 1682,
+      "sha256": "43f7413e446a50a9fafc86ac24993ac8e2ef32e5c1c43becbcca7c0a1e731083"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/infra/vps/compose.yaml",
+      "bytes": 3704,
+      "sha256": "04eb29d2f01ed93027cfd77ae34499223dbe8d36dec1d677aba72dc0e4762284"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/infra/vps/worker.compose.yaml",
+      "bytes": 2394,
+      "sha256": "f10673ad7c9a6ff72bce019b948885c141559d8578307c017bcb44298628e362"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/package.json",
+      "bytes": 1279,
+      "sha256": "7e22dcb7504e0bdc4c313e40e8c1c012fdf5f74f5a68aefe0010f9be4faedda6"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/pnpm-workspace.yaml",
+      "bytes": 714,
+      "sha256": "c4281743093af33fc98973ca2220c6d76f9d222259324cb3aacf05dbe9bdc436"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/check-migration-safety.mjs",
+      "bytes": 1682,
+      "sha256": "3db116b1e27c58168fab6dee71a594740f6c06837407bd4556fda60b2912b7b8"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/deploy-vps.sh",
+      "bytes": 38454,
+      "sha256": "da6d0538d92b2ae5a5ff998ee6dd2e6dd993cf3137b55d73f1c4a8fa524fd9a4"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/migrate-supabase.sh",
+      "bytes": 1915,
+      "sha256": "93986da2d95e4ce7cd9ec240a378770167fe924a8a0909666f1796e7792926b5"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/preflight-deployment.mjs",
+      "bytes": 3728,
+      "sha256": "80bd3b1af3ec2579959543f4b52ef898ce3f659d625118bd827b9fe30dde7840"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/smoke-player-pairing-recovery.sh",
+      "bytes": 5218,
+      "sha256": "7576ad5a949e708f89bb8aa645111bb057109ae0e1a32e3634d0f3c07fd20151"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/test-deployment-lifecycle.test.mjs",
+      "bytes": 27838,
+      "sha256": "c7f532dc8712ab16c9f7c43ebdd749fde6350f4ed4e714019076e2376d52c323"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/validate-compose-config.mjs",
+      "bytes": 2588,
+      "sha256": "7c564816f880c4656f35ee609c2c7e49e1bfd5bc2aea7ae02c00d9ec009b3207"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/validate-deploy-workflow-security.mjs",
+      "bytes": 15843,
+      "sha256": "197f9c40c62e3ce8fca5c51de1956d581258556c07ca91e85915afc30effef16"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/validate-vps-deployment.sh",
+      "bytes": 8087,
+      "sha256": "c8b3c3f2a2f949b23b889b6923272b7f96f8a60d13ee1e96d053272ad32f7945"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/validate-worker-compose-config.mjs",
+      "bytes": 4390,
+      "sha256": "e0f65cea12c9695c692d5567954c06870aa99fb4ac9529b9bed42ef2277494c1"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline/scripts/verify-deployment-health.mjs",
+      "bytes": 896,
+      "sha256": "9fe158d92d712c2d813fb0e55bfd6b1700f5f32b90d33624049286e0e30ee010"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/baseline-manifest.json",
+      "bytes": 52846,
+      "sha256": "0e0b476504b22dbe3ebe1ff55b0f36dd1c445c08e657296725865bc85c33b9b6"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/repository-tree.csv",
+      "bytes": 447413,
+      "sha256": "7b3e548d8cbef18cc8d65cd4b2d6ef863f5215291f72c6d389a916c5b45853f1"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/workflow-contracts.json",
+      "bytes": 8848,
+      "sha256": "b8339ef4c9fd5a92033afee67d6765f741917b7e8828c5736328f970750139dd"
+    },
+    {
+      "path": "reference/legacy-baseline/deploy/workflow-dependencies.txt",
+      "bytes": 2548,
+      "sha256": "cd5530ebd326b66e023d1e9c0eba2730877234ed5b3f7594e031bce21056b05a"
+    },
+    {
+      "path": "reference/marketing-publication/.openai/hosting.json",
+      "bytes": 106,
+      "sha256": "a4f675b538554ef5a81d1e278e8700d1ea9329016f5849ac8c8ad21b3d590c8c"
+    },
+    {
+      "path": "reference/marketing-publication/README.md",
+      "bytes": 395,
+      "sha256": "60cc887208ea1d1559747a2e787a7cbf40af7305442c7b601b9d39f46b3f6e3d"
+    },
+    {
+      "path": "reference/marketing-publication/dist/404.html",
+      "bytes": 823,
+      "sha256": "f76685f7c867d855da92490b43c823b258782447b3705b1ca4d937da9b7641b4"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/Manrope-OFL.txt",
+      "bytes": 4383,
+      "sha256": "d826ab6583b12c26807d8716a545bdbbb672df04f48608a364ba9efdbe501c30"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/brand-hero-1254.webp",
+      "bytes": 85782,
+      "sha256": "7badc69cca88b8bf9fbd770fb35e345108570318cf7d56e2f674813b8db5554a"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/brand-hero-480.webp",
+      "bytes": 21350,
+      "sha256": "fc6ff477c5ffaf8d220f2142d16b5e7a8e4cb5f88505ae03567b1678d052a007"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/brand-hero-800.webp",
+      "bytes": 43932,
+      "sha256": "f766151d506cd103fc83ab1597a73952be360f9040cc70b4dfa0a1f3b85ae656"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/brand-hero.png",
+      "bytes": 1794534,
+      "sha256": "3997e2d0c033636cba036749d0f771112122488b8992b75177ebeb384a5fddc0"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/brand-icon.svg",
+      "bytes": 812,
+      "sha256": "dc63b70f43d4f721c5f87d51c64f9f5660a6aa22c69f9245f3f4d711113c0fd3"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/clubmuur-wall.webp",
+      "bytes": 642098,
+      "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/full-dark.svg",
+      "bytes": 10592,
+      "sha256": "bb6075cfa4436f1ed8f8b3f41c29b41f53e1c12bcc76b62f4f14420846236e43"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/full-light.svg",
+      "bytes": 10592,
+      "sha256": "877dac00409543e4699c39116b508ad5096e2f2fd3b361d32ae674044c9fef9e"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/inter.woff2",
+      "bytes": 48256,
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/logo-pack.zip",
+      "bytes": 1120157,
+      "sha256": "8a3ad98ad791a3b8ce7f9acf8109580e09ac96238fc73a42c69cf4956cd5821a"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/manrope.woff2",
+      "bytes": 24836,
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/marketing-BGt2DGm6.css",
+      "bytes": 80508,
+      "sha256": "b76cd681ec9edc8a53652b4aab13d3741cabf2a945fc501fd91894b6b7141744"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/marketing-C9hvChpK.js",
+      "bytes": 329404,
+      "sha256": "f45766ef53e727b444e99aea30117612e98a790f97a6eb271a28b2c6b050f916"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/onzetrots-brush-Apache-2.0.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/onzetrots-brush.ttf",
+      "bytes": 73276,
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c"
+    },
+    {
+      "path": "reference/marketing-publication/dist/assets/onzetrots-licenses.txt",
+      "bytes": 238,
+      "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081"
+    },
+    {
+      "path": "reference/marketing-publication/dist/demo/index.html",
+      "bytes": 16777,
+      "sha256": "57263f1fdb16f45475437bcf03bf52636273c6b1a01ae55c17f12a58ff028941"
+    },
+    {
+      "path": "reference/marketing-publication/dist/functies/index.html",
+      "bytes": 30646,
+      "sha256": "f879ed524d2c4bd7ec0210233bfb8980a0e6ff8974da24cb3c5e807e5ae7f0e3"
+    },
+    {
+      "path": "reference/marketing-publication/dist/index.html",
+      "bytes": 39733,
+      "sha256": "5c1b891ebed91a769ff79bf18a911574a18aaa8961c2b4086cb6727575763fe5"
+    },
+    {
+      "path": "reference/marketing-publication/dist/koppelingen/index.html",
+      "bytes": 20212,
+      "sha256": "6065d96586dfb610ae77599243214dcd5851dad8945c5708a68e62da4eb64144"
+    },
+    {
+      "path": "reference/marketing-publication/dist/narrowcasting/index.html",
+      "bytes": 20576,
+      "sha256": "deedd4edaad2b47653048e6ae15a7cb5054be99e6638ad303a6381c89511d3ac"
+    },
+    {
+      "path": "reference/marketing-publication/dist/oplossingen/bedrijven/index.html",
+      "bytes": 18918,
+      "sha256": "4fdc3fe76ffb20b571872d0d0330f80b389473ee0b5727a1db4d835afa308c45"
+    },
+    {
+      "path": "reference/marketing-publication/dist/oplossingen/horeca/index.html",
+      "bytes": 19320,
+      "sha256": "5b74d936064814115797aba743d4cb3f3c0b71c5e1ea9213b346c366edb89e4d"
+    },
+    {
+      "path": "reference/marketing-publication/dist/oplossingen/sportverenigingen/index.html",
+      "bytes": 19893,
+      "sha256": "893b58e1003de27737a3ecb4f9d486b9935dd2508d7bf3d3fa74d7e18c67c53f"
+    },
+    {
+      "path": "reference/marketing-publication/dist/players/index.html",
+      "bytes": 19763,
+      "sha256": "7f7e98adb84be6175ee3ae2be5248cd95197b3238ea070df9b5f0b8bba0a6bac"
+    },
+    {
+      "path": "reference/marketing-publication/dist/robots.txt",
+      "bytes": 138,
+      "sha256": "70f1d60f2eb828cb69b48a0649eb0904519289681ae086457a9c46144b7b5f74"
+    },
+    {
+      "path": "reference/marketing-publication/dist/sitemap.xml",
+      "bytes": 1075,
+      "sha256": "0728a3b99b6bf1ab8d9d2a27508fdf1b884656e8bde69a17333194eba0ce029c"
+    },
+    {
+      "path": "reference/original/Repoanalyse-tekstextract.txt",
+      "bytes": 53492,
+      "sha256": "57f2c1cd4c5cba22aa2628ea7f38d27be6e3690263463b8ad7fb4eedbb37b8b0"
+    },
+    {
+      "path": "reference/original/VeyoCast-Repoanalyse-en-V1-Voorstel-2026-10-17.pdf",
+      "bytes": 128034,
+      "sha256": "663a1af7964a2f42e899e8ceb50180e0d045e8c290cf542ea5ef1070e8450a59"
+    },
+    {
+      "path": "reference/sites-publication/marketing-sites-publication.png",
+      "bytes": 85007,
+      "sha256": "08f66475754e0920c4a7c558117e1f2c9700120dec7b3bd847dce8565c09ddaf"
+    },
+    {
+      "path": "reference/sites-publication/sites-provenance.json",
+      "bytes": 1305,
+      "sha256": "dd1734cc289c2692b0ac1a79208ab8a44332c431dfcc25b675fa803439edc928"
+    },
+    {
+      "path": "reference/sites-sync/.gitignore",
+      "bytes": 57,
+      "sha256": "0913965b25fe1d1dbdf662cc4f5d755b5a811aecd95c7b0994119471bfb1f87f"
+    },
+    {
+      "path": "reference/sites-sync/.openai/hosting.json",
+      "bytes": 97,
+      "sha256": "fb4da267ab7974aabe00c97e6d7e8d111a1b25d2995e0be13cda12f9cbc8407f"
+    },
+    {
+      "path": "reference/sites-sync/README.md",
+      "bytes": 2739,
+      "sha256": "3349cd11e57a9ec9e8bcd99bf80e4db87abff3c6edfa9753271256b261514c79"
+    },
+    {
+      "path": "reference/sites-sync/docs/ACCEPTATIE.md",
+      "bytes": 37687,
+      "sha256": "083876ed3b73860b815b4cbc42771150755927185499ea45681ccddd4c69c31a"
+    },
+    {
+      "path": "reference/sites-sync/docs/CODEX-BOUWPROMPT.md",
+      "bytes": 10042,
+      "sha256": "5234b9aa7e2e6d60e36360a85745eaba7f9d75ab561d8abd74177fcb75403946"
+    },
+    {
+      "path": "reference/sites-sync/docs/README-OVERDRACHT.md",
+      "bytes": 7450,
+      "sha256": "8483c746d8ea80874a991c41569e1550212aedf0d353386fb54748f7a4cb5d78"
+    },
+    {
+      "path": "reference/sites-sync/docs/SEO-IMPLEMENTATIE.md",
+      "bytes": 9299,
+      "sha256": "3731b1ec315c05061043ebfceb44438c77ea02434cabdcda52094964b9617f85"
+    },
+    {
+      "path": "reference/sites-sync/docs/TESTRESULTATEN.md",
+      "bytes": 3421,
+      "sha256": "b9d7448bd0c6a39f5a253f7d0b473d1b5b3c3866c28ebf20e9b97e5571ba5164"
+    },
+    {
+      "path": "reference/sites-sync/docs/V1-SYNC-CANON.md",
+      "bytes": 20566,
+      "sha256": "c8632ffd32d75f958f130ad4f2e29eeaa85c10c27ff6d83f95e88d920da05f80"
+    },
+    {
+      "path": "reference/sites-sync/index.html",
+      "bytes": 537,
+      "sha256": "c3ad41078d26ad84523fba6f9b2f17deb5c891de9f67a5486fae3ab05b624d22"
+    },
+    {
+      "path": "reference/sites-sync/marketing.html",
+      "bytes": 577,
+      "sha256": "9fd944da834ee1d2006c34d80e79082ef460635e1ed8e5a57eafe57e824388c2"
+    },
+    {
+      "path": "reference/sites-sync/package-lock.json",
+      "bytes": 61189,
+      "sha256": "ffa991d269da219809951eb08ccd4ac7c14e3be592f05c139d2aac1b385772e6"
+    },
+    {
+      "path": "reference/sites-sync/package.json",
+      "bytes": 689,
+      "sha256": "3f5a98a200dc7f0de682df2a8aa868896489ecf79026a5d9761e3c0d90ba86ab"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/Manrope-OFL.txt",
+      "bytes": 4383,
+      "sha256": "d826ab6583b12c26807d8716a545bdbbb672df04f48608a364ba9efdbe501c30"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/VeyoCast-V1-Sync-Handover.zip",
+      "bytes": 3925587,
+      "sha256": "f4579d02aa63af031a75a338337d398c71afc7c12e7ea810fc1cdf9c60299ba6"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/brand-hero-1254.webp",
+      "bytes": 85782,
+      "sha256": "7badc69cca88b8bf9fbd770fb35e345108570318cf7d56e2f674813b8db5554a"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/brand-hero-480.webp",
+      "bytes": 21350,
+      "sha256": "fc6ff477c5ffaf8d220f2142d16b5e7a8e4cb5f88505ae03567b1678d052a007"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/brand-hero-800.webp",
+      "bytes": 43932,
+      "sha256": "f766151d506cd103fc83ab1597a73952be360f9040cc70b4dfa0a1f3b85ae656"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/brand-hero.png",
+      "bytes": 1794534,
+      "sha256": "3997e2d0c033636cba036749d0f771112122488b8992b75177ebeb384a5fddc0"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/brand-icon.svg",
+      "bytes": 812,
+      "sha256": "dc63b70f43d4f721c5f87d51c64f9f5660a6aa22c69f9245f3f4d711113c0fd3"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/clubmuur-wall.webp",
+      "bytes": 642098,
+      "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/full-dark.svg",
+      "bytes": 10592,
+      "sha256": "bb6075cfa4436f1ed8f8b3f41c29b41f53e1c12bcc76b62f4f14420846236e43"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/full-light.svg",
+      "bytes": 10592,
+      "sha256": "877dac00409543e4699c39116b508ad5096e2f2fd3b361d32ae674044c9fef9e"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/inter.woff2",
+      "bytes": 48256,
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/logo-pack.zip",
+      "bytes": 1120157,
+      "sha256": "8a3ad98ad791a3b8ce7f9acf8109580e09ac96238fc73a42c69cf4956cd5821a"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/manrope.woff2",
+      "bytes": 24836,
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/onzetrots-brush-Apache-2.0.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/onzetrots-brush.ttf",
+      "bytes": 73276,
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c"
+    },
+    {
+      "path": "reference/sites-sync/public/assets/onzetrots-licenses.txt",
+      "bytes": 238,
+      "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081"
+    },
+    {
+      "path": "reference/sites-sync/scripts/prerender-marketing.mjs",
+      "bytes": 5572,
+      "sha256": "268ac4a47e20d96e7fc82c150d9162cbe7cbd0ef04ffbb1a28c3e75888f9b152"
+    },
+    {
+      "path": "reference/sites-sync/scripts/qa-content.cjs",
+      "bytes": 3628,
+      "sha256": "817026b38f21e767f6166f43bba703aa1442b5ae26b381d06e1bafc2356d83f3"
+    },
+    {
+      "path": "reference/sites-sync/scripts/qa-flow.cjs",
+      "bytes": 6861,
+      "sha256": "e900a9a0c42256a6e2d7550215eefeef5dca12c99464ec5fdae97a8830f8d116"
+    },
+    {
+      "path": "reference/sites-sync/scripts/qa-handover.mjs",
+      "bytes": 9074,
+      "sha256": "0196e4cfd3a302c9ceb9a2a1dbdddf4f27fc5695fe4679590ba48306030f7311"
+    },
+    {
+      "path": "reference/sites-sync/scripts/qa-seo.mjs",
+      "bytes": 2823,
+      "sha256": "608a2808c67afb64ffb657386ab4fe276c6f75ef0dd01592e6a962e4dc3db9ed"
+    },
+    {
+      "path": "reference/sites-sync/scripts/qa-smoke.mjs",
+      "bytes": 20279,
+      "sha256": "a9dec66e259eb355a5c02d5699404e0e7ab51e2ab91f7241a67b077f7179b1a2"
+    },
+    {
+      "path": "reference/sites-sync/src/App.tsx",
+      "bytes": 14757,
+      "sha256": "a8ebf21d70b42dfa805b5d6a29a2e1c7e1003aa141ed70760a21805c41acc036"
+    },
+    {
+      "path": "reference/sites-sync/src/Marketing.tsx",
+      "bytes": 41514,
+      "sha256": "b3ed73234fa0e96435294a377d29beb3cbed67b550b4ff88acfa817a50f05c1f"
+    },
+    {
+      "path": "reference/sites-sync/src/coverage.json",
+      "bytes": 37896,
+      "sha256": "52e20c2131e6d6f93867069dc659b6bbb9ce569e44aa63039673a1595911989b"
+    },
+    {
+      "path": "reference/sites-sync/src/icons.ts",
+      "bytes": 2474,
+      "sha256": "03d21902a2357839477a04ae391f3ae5c0e15d3f5120a00eabd76d3cb4e9092a"
+    },
+    {
+      "path": "reference/sites-sync/src/main.tsx",
+      "bytes": 703,
+      "sha256": "d3abc2882b03df6cc7b237dad620ae6e9e78decbac98640828c87fa96e9a4f92"
+    },
+    {
+      "path": "reference/sites-sync/src/marketing-main.tsx",
+      "bytes": 545,
+      "sha256": "18c86e53f3a103b93a19969a9e8f4ddc75593a9026e2853b49216f44198d28ce"
+    },
+    {
+      "path": "reference/sites-sync/src/marketing.css",
+      "bytes": 61815,
+      "sha256": "beceaf1dbf7a66ffdbc3107d2065da2e7e8318b3dc9756aa2bf138b9ba3b80c5"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/Admin.tsx",
+      "bytes": 112878,
+      "sha256": "e7a2acdb2342660dfe83aad95baf99194f3023a23437574efc27d7363fecb428"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/Content.tsx",
+      "bytes": 74179,
+      "sha256": "1d58889620fd69ac436851dbd570b41789e9448171dab8d26c62e208bf1c5821"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/Handover.tsx",
+      "bytes": 9316,
+      "sha256": "cd7c58f82bfbae3e6bc8ccc0cf4b60816d9d23062699c26547222212e1fe23a0"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/Overview.tsx",
+      "bytes": 16914,
+      "sha256": "9bff80fed79f3e7bef9d387cfd939c33465408772c9101226f5738c5c0f957cd"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/Players.tsx",
+      "bytes": 88327,
+      "sha256": "a0e5a28c0e1fec80417c882f2e8f7613f8498da215093ada3f6c2934194a7819"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/Playlists.tsx",
+      "bytes": 33812,
+      "sha256": "2f0ba6b6f7d468c4c3c4ad0d34d8f1cee76740295609cb3e2c6d8b500b19ecf8"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/admin.css",
+      "bytes": 42196,
+      "sha256": "d5cf243fe55f07e11ba5adebb3d2f67463071d88e1be27d72b515f705fe592da"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/content.css",
+      "bytes": 48636,
+      "sha256": "dced9bd2ddf579bfe06a1ec0ded1f1cb6540d7d1549d01c25a91cb9f4a2201c6"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/handover.css",
+      "bytes": 5748,
+      "sha256": "78bfef17d0471882e089fbc2d0216775b9db3ab65fc66050423746ab642096f4"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/overview.css",
+      "bytes": 41142,
+      "sha256": "39751f71d6346003ce9623c051c8e138b03381f04fab3625c8ada7f6f0732fab"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/players.css",
+      "bytes": 61258,
+      "sha256": "cb2a48756902838f083eb9ad183abe752b7c4453da559e9a5d0aabcf29df8117"
+    },
+    {
+      "path": "reference/sites-sync/src/modules/playlists.css",
+      "bytes": 10729,
+      "sha256": "9a4d67a484c213a8aea7cf6add74ff6f15799e0225c9802e8d2486ab22ebc2b6"
+    },
+    {
+      "path": "reference/sites-sync/src/store.tsx",
+      "bytes": 17294,
+      "sha256": "aae56c3b907048dfd604e1d1d821ce9646dc7f920cc4676e817590e15b23cf7a"
+    },
+    {
+      "path": "reference/sites-sync/src/styles.css",
+      "bytes": 18731,
+      "sha256": "25ee45ccd86657e05894bff3da7a6800b1ac1a60de0bbcec720b5ce9708a904a"
+    },
+    {
+      "path": "reference/sites-sync/src/ui.tsx",
+      "bytes": 4111,
+      "sha256": "aa36d34e1e601b10074c5620fbec7ebcd4aed292853e5c3e3f417ccf18312303"
+    },
+    {
+      "path": "reference/sites-sync/tsconfig.json",
+      "bytes": 292,
+      "sha256": "a64bfe887c40bb9a64ff679242e58367c42a3011775ea167f4f29d91b267e4ff"
+    },
+    {
+      "path": "reference/sites-sync/vite.config.ts",
+      "bytes": 175,
+      "sha256": "9d7c000c0c8861a9e5ee0a7d81fffccc0039d6f22ce027470aadf19e12f8197b"
+    },
+    {
+      "path": "reference/sites-sync/vite.marketing.config.ts",
+      "bytes": 224,
+      "sha256": "06f1da299d6dd421ae8266b973a1cd0ba8d6c506fa0e72cfca002f7307b0e9e3"
+    },
+    {
+      "path": "scripts/verify-package.py",
+      "bytes": 4182,
+      "sha256": "82df667149e4574d90240b5ac198ff94bd69a3e196af0744fcbff1d60fdaa21c"
+    }
+  ]
+}

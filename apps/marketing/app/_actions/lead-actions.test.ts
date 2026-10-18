@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { receiveInquiry } from "../_lib/inquiries.server";
+vi.mock("../_lib/inquiries.server", () => ({ receiveInquiry: vi.fn() }));
 
 import type { LeadFormState } from "./lead-actions";
 import { submitLeadForm } from "./lead-actions";
@@ -18,10 +20,13 @@ function validDemoForm() {
   form.set("organizationType", "Sportvereniging");
   form.set("screens", "2–5 schermen");
   form.set("message", "Toon de workflow van media tot een gepubliceerde release.");
+  form.set("consent", "yes");
+  form.set("requestId", "20000000-0000-4000-8000-000000226001");
   return form;
 }
 
 describe("marketing lead form action", () => {
+  beforeEach(() => { vi.mocked(receiveInquiry).mockReset().mockResolvedValue({ received: false }); });
   it("returns field errors for incomplete input", async () => {
     const form = new FormData();
     form.set("kind", "demo");
@@ -31,7 +36,6 @@ describe("marketing lead form action", () => {
     expect(result.status).toBe("invalid");
     expect(result.errors).toMatchObject({
       email: expect.any(String),
-      message: expect.any(String),
       name: expect.any(String),
       organization: expect.any(String),
       organizationType: expect.any(String),
@@ -43,8 +47,23 @@ describe("marketing lead form action", () => {
     const result = await submitLeadForm(initialState, validDemoForm());
 
     expect(result.status).toBe("unavailable");
-    expect(result.message).toContain("niet opgeslagen");
+    expect(result.message).toContain("niet worden bevestigd");
     expect(result.message).toContain("support@veyocast.nl");
+  });
+
+  it("reports receipt only after the storage service confirms it", async () => {
+    vi.mocked(receiveInquiry).mockResolvedValue({ received: true });
+    const result = await submitLeadForm(initialState, validDemoForm());
+    expect(result.status).toBe("received");
+    expect(receiveInquiry).toHaveBeenCalledWith("20000000-0000-4000-8000-000000226001", expect.objectContaining({ email: "danny@example.nl", consent: "yes" }));
+    expect(result.message).toContain("nog geen afspraak");
+  });
+
+  it("does not contact storage for a missing consent", async () => {
+    const form = validDemoForm();
+    form.delete("consent");
+    expect((await submitLeadForm(initialState, form)).status).toBe("invalid");
+    expect(receiveInquiry).not.toHaveBeenCalled();
   });
 
   it("rejects honeypot submissions", async () => {

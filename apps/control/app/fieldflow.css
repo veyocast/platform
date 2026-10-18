@@ -137,7 +137,7 @@ html[data-design-system="fieldflow"] body {
   text-rendering: optimizeLegibility;
 }
 
-html[data-design-system="fieldflow"] :where(h1, h2, h3, .vc-page-header__title) {
+html[data-design-system="fieldflow"] :where(h1, h2, h3, .vc-page-header__title):not(:where(.sync-control *)) {
   font-family: "Manrope Variable", Manrope, "Inter Variable", sans-serif;
   font-variation-settings: "wght" 680;
   letter-spacing: -0.025em;
@@ -203,7 +203,7 @@ html[data-design-system="fieldflow"] :where(
   border-radius: 8px;
 }
 
-html[data-design-system="fieldflow"] .vc-button {
+html[data-design-system="fieldflow"] .vc-button:not(:where(.sync-control *)) {
   font-size: 0.875rem;
   font-weight: 680;
   height: 44px;
@@ -211,44 +211,44 @@ html[data-design-system="fieldflow"] .vc-button {
   min-height: 44px;
 }
 
-html[data-design-system="fieldflow"] .vc-button--primary {
+html[data-design-system="fieldflow"] .vc-button--primary:not(:where(.sync-control *)) {
   background: var(--ff-brand);
   color: #171714;
 }
 
-html[data-design-system="fieldflow"] .vc-button--primary:hover {
+html[data-design-system="fieldflow"] .vc-button--primary:not(:where(.sync-control *)):hover {
   background: color-mix(in srgb, var(--ff-brand) 88%, var(--ff-ink));
   box-shadow: none;
 }
 
-html[data-design-system="fieldflow"] .vc-button--secondary,
+html[data-design-system="fieldflow"] .vc-button--secondary:not(:where(.sync-control *)),
 html[data-design-system="fieldflow"] .vc-icon-button {
   background: var(--ff-surface);
   border-color: var(--ff-border);
   color: var(--ff-ink);
 }
 
-html[data-design-system="fieldflow"] .vc-button--secondary:hover,
+html[data-design-system="fieldflow"] .vc-button--secondary:not(:where(.sync-control *)):hover,
 html[data-design-system="fieldflow"] .vc-icon-button:hover {
   background: var(--ff-surface-muted);
   border-color: var(--ff-border-strong);
 }
 
-html[data-design-system="fieldflow"] .vc-button--ghost:hover {
+html[data-design-system="fieldflow"] .vc-button--ghost:not(:where(.sync-control *)):hover {
   background: var(--ff-surface-muted);
 }
 
-html[data-design-system="fieldflow"] .vc-button--destructive {
+html[data-design-system="fieldflow"] .vc-button--destructive:not(:where(.sync-control *)) {
   background: var(--ff-danger);
   color: #fffdfc;
 }
 
-html[data-design-system="fieldflow"] .vc-button--sm {
+html[data-design-system="fieldflow"] .vc-button--sm:not(:where(.sync-control *)) {
   height: 36px;
   min-height: 36px;
 }
 
-html[data-design-system="fieldflow"] .vc-button--lg {
+html[data-design-system="fieldflow"] .vc-button--lg:not(:where(.sync-control *)) {
   height: 48px;
   min-height: 48px;
 }
@@ -2934,16 +2934,16 @@ html[data-design-system="fieldflow"] {
 }
 
 /* Sites v11 presentation, with existing semantic props and Radix focus behavior. */
-html[data-design-system="fieldflow"] .vc-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 15px;border:1px solid var(--ff-border,var(--vc-border));border-radius:11px;background:var(--ff-surface,var(--vc-surface));color:var(--ff-petrol,var(--vc-text));font-size:13px;font-weight:650;line-height:1.3;letter-spacing:normal;transition:background 150ms,border-color 150ms}
-html[data-design-system="fieldflow"] .vc-button:hover{background:var(--ff-sites-button-hover-surface,var(--vc-surface-muted));border-color:var(--ff-sites-button-hover-border,var(--vc-border-strong))}
-html[data-design-system="fieldflow"] .vc-button--primary{background:var(--vx-orange,var(--vc-action));color:var(--ff-sites-button-primary-text,var(--vc-on-action));border-color:var(--vx-orange,var(--vc-action))}
-html[data-design-system="fieldflow"] .vc-button--primary:hover{background:var(--ff-sites-button-primary-hover,var(--vc-action))}
-html[data-design-system="fieldflow"] .vc-button--inverse{background:var(--ff-sites-button-inverse-surface,var(--vc-brand-ink-black));color:var(--vc-brand-paper-white);border-color:var(--ff-sites-button-inverse-surface,var(--vc-brand-ink-black))}
-html[data-design-system="fieldflow"] .vc-button--ghost{background:transparent;border-color:transparent}
-html[data-design-system="fieldflow"] .vc-button--destructive{background:var(--ff-sites-button-destructive-surface,var(--vc-semantic-critical-surface));color:var(--ff-sites-button-destructive-text,var(--vc-semantic-critical-text));border-color:var(--ff-sites-button-destructive-border,var(--vc-semantic-critical-solid))}
-html[data-design-system="fieldflow"] .vc-button svg{width:17px;height:17px}
-html[data-design-system="fieldflow"] .vc-button--sm{padding:8px 12px;min-height:36px}
-html[data-design-system="fieldflow"] .vc-button--lg{min-height:44px;padding:11px 20px}
+html[data-design-system="fieldflow"] .vc-button:not(:where(.sync-control *)){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 15px;border:1px solid var(--ff-border,var(--vc-border));border-radius:11px;background:var(--ff-surface,var(--vc-surface));color:var(--ff-petrol,var(--vc-text));font-size:13px;font-weight:650;line-height:1.3;letter-spacing:normal;transition:background 150ms,border-color 150ms}
+html[data-design-system="fieldflow"] .vc-button:not(:where(.sync-control *)):hover{background:var(--ff-sites-button-hover-surface,var(--vc-surface-muted));border-color:var(--ff-sites-button-hover-border,var(--vc-border-strong))}
+html[data-design-system="fieldflow"] .vc-button--primary:not(:where(.sync-control *)){background:var(--vx-orange,var(--vc-action));color:var(--ff-sites-button-primary-text,var(--vc-on-action));border-color:var(--vx-orange,var(--vc-action))}
+html[data-design-system="fieldflow"] .vc-button--primary:not(:where(.sync-control *)):hover{background:var(--ff-sites-button-primary-hover,var(--vc-action))}
+html[data-design-system="fieldflow"] .vc-button--inverse:not(:where(.sync-control *)){background:var(--ff-sites-button-inverse-surface,var(--vc-brand-ink-black));color:var(--vc-brand-paper-white);border-color:var(--ff-sites-button-inverse-surface,var(--vc-brand-ink-black))}
+html[data-design-system="fieldflow"] .vc-button--ghost:not(:where(.sync-control *)){background:transparent;border-color:transparent}
+html[data-design-system="fieldflow"] .vc-button--destructive:not(:where(.sync-control *)){background:var(--ff-sites-button-destructive-surface,var(--vc-semantic-critical-surface));color:var(--ff-sites-button-destructive-text,var(--vc-semantic-critical-text));border-color:var(--ff-sites-button-destructive-border,var(--vc-semantic-critical-solid))}
+html[data-design-system="fieldflow"] .vc-button:not(:where(.sync-control *)) svg{width:17px;height:17px}
+html[data-design-system="fieldflow"] .vc-button--sm:not(:where(.sync-control *)){padding:8px 12px;min-height:36px}
+html[data-design-system="fieldflow"] .vc-button--lg:not(:where(.sync-control *)){min-height:44px;padding:11px 20px}
 html[data-design-system="fieldflow"] .vc-icon-button{border:1px solid var(--ff-border,var(--vc-border));background:var(--ff-surface,var(--vc-surface));border-radius:12px;display:inline-grid;place-items:center;height:42px;width:42px;color:var(--ff-petrol,var(--vc-text));padding:0;flex-shrink:0}
 html[data-design-system="fieldflow"] .vc-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:20px;border:1px solid var(--ff-sites-badge-neutral-border,var(--vc-border));background:var(--ff-sites-badge-neutral-surface,var(--vc-surface-muted));color:var(--ff-sites-badge-neutral-text,var(--vc-text-muted));font-size:11px;font-weight:650;line-height:1.5;white-space:nowrap}
 html[data-design-system="fieldflow"] .vc-badge--success{border-color:var(--ff-sites-badge-success-border,var(--vc-semantic-success-solid));background:var(--ff-sites-badge-success-surface,var(--vc-semantic-success-surface));color:var(--ff-sites-badge-success-text,var(--vc-semantic-success-text))}
@@ -2954,7 +2954,7 @@ html[data-design-system="fieldflow"] .vc-dialog__overlay{background:var(--ff-sit
 html[data-design-system="fieldflow"] .vc-dialog__content{border:1px solid var(--ff-border,var(--vc-border));border-radius:22px;background:var(--ff-surface,var(--vc-surface));color:var(--ff-ink,var(--vc-text));padding:24px;box-shadow:var(--ff-sites-dialog-shadow,var(--vc-shadow-md));width:min(560px,calc(100% - 30px));max-height:90dvh;overflow:auto}
 html[data-design-system="fieldflow"] .vc-overlay-title{color:var(--ff-petrol,var(--vc-text));font-size:23px;letter-spacing:-.6px}
 html[data-design-system="fieldflow"] .vc-field-control{background:var(--ff-surface,var(--vc-surface));border:1px solid var(--ff-border,var(--vc-border));border-radius:10px;padding:11px 12px;min-height:43px;width:100%;font-size:14px;color:var(--ff-ink,var(--vc-text))}
-@media(max-width:767px){html[data-design-system="fieldflow"] .vc-button,html[data-design-system="fieldflow"] .vc-icon-button{min-height:44px}html[data-design-system="fieldflow"] .vc-field-control{font-size:16px;min-height:44px}html[data-design-system="fieldflow"] .vc-dialog__content{padding:20px;width:calc(100% - 16px);max-height:calc(100dvh - 24px)}html[data-design-system="fieldflow"] .vc-overlay-title{font-size:21px}}
+@media(max-width:767px){html[data-design-system="fieldflow"] .vc-button:not(:where(.sync-control *)),html[data-design-system="fieldflow"] .vc-icon-button{min-height:44px}html[data-design-system="fieldflow"] .vc-field-control{font-size:16px;min-height:44px}html[data-design-system="fieldflow"] .vc-dialog__content{padding:20px;width:calc(100% - 16px);max-height:calc(100dvh - 24px)}html[data-design-system="fieldflow"] .vc-overlay-title{font-size:21px}}
 
 /* Explicit dialog composition, so editor widths never depend on defaults. */
 html[data-design-system="fieldflow"] .vc-dialog__content--wide{width:min(1050px,calc(100% - 30px))}
@@ -3017,7 +3017,7 @@ html[data-design-system="fieldflow"] .vc-badge--neutral{color:var(--vc-text)}
 html[data-design-system="fieldflow"] .sites-control {
   --vc-font-display: "Manrope Variable", Manrope, "Inter Variable", sans-serif;
 }
-html[data-design-system="fieldflow"] .sites-control :where(h1,h2,h3) {
+html[data-design-system="fieldflow"] .sites-control :where(h1,h2,h3):not(:where(.sync-control *)) {
   font-family: "Manrope Variable", Manrope, "Inter Variable", sans-serif;
   font-variation-settings: normal;
   letter-spacing: -.025em;

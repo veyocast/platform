@@ -1,0 +1,19 @@
+{
+  "scope": "read-only actual AAL2 catalog form, exact Source button declarations and route metadata",
+  "formButton": {
+    "background": "rgb(0, 109, 115)",
+    "color": "rgb(255, 255, 255)",
+    "font": "Manrope, Inter, sans-serif",
+    "borderRadius": "10px"
+  },
+  "modalViolations": [],
+  "pageViolations": [],
+  "viewports": [
+    320,
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "status": "PASS"
+}

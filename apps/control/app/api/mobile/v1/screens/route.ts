@@ -10,6 +10,8 @@ import {
   mobileFailure
 } from "../../../../../lib/mobile-api/response";
 
+import { syncPlaybackEvidence } from "../../../../../lib/sync-playback-evidence";
+
 const pageLimit = 100;
 
 export async function GET(request: Request) {
@@ -20,69 +22,39 @@ export async function GET(request: Request) {
       context,
       "tenant.screen.read"
     );
-    const [screensResult, devicesResult, releasesResult, playlistsResult] =
-      await Promise.all([
-        context.supabase
-          .from("screens")
-          .select("id, name, location, status, assigned_release_id")
-          .eq("tenant_id", tenant.id)
-          .is("deleted_at", null)
-          .order("name")
-          .limit(pageLimit),
-        context.supabase
-          .from("player_devices")
-          .select("screen_id, status, app_version, last_seen_at, last_error_code")
-          .eq("tenant_id", tenant.id)
-          .eq("status", "paired")
-          .order("paired_at", { ascending: false }),
-        context.supabase
-          .from("playlist_releases")
-          .select("id, playlist_id, version")
-          .eq("tenant_id", tenant.id),
-        context.supabase
-          .from("playlists")
-          .select("id, name")
-          .eq("tenant_id", tenant.id)
-      ]);
-    const queryError = [
-      screensResult.error,
-      devicesResult.error,
-      releasesResult.error,
-      playlistsResult.error
-    ].find(Boolean);
-    if (queryError) {
-      console.error("Mobile screen list failed", {
-        code: queryError.code,
-        requestId: context.requestId
-      });
-      return mobileFailure({
-        code: "TEMPORARILY_UNAVAILABLE",
-        message: "De schermen konden niet worden geladen.",
-        recovery: "Controleer je verbinding en probeer het opnieuw.",
-        requestId: context.requestId,
-        status: 503
-      });
-    }
-
-    const devices = new Map(
-      (devicesResult.data ?? []).map((device) => [device.screen_id, device])
-    );
-    const playlistNames = new Map(
-      (playlistsResult.data ?? []).map((playlist) => [playlist.id, playlist.name])
-    );
-    const releases = new Map(
-      (releasesResult.data ?? []).map((release) => [
-        release.id,
-        `${playlistNames.get(release.playlist_id) ?? "Playlist"} · versie ${release.version}`
-      ])
-    );
-    const now = Date.now();
-    const items = (screensResult.data ?? []).map((screen) => {
+    const screensResult = await context.supabase.from("screens")
+      .select("id, name, location, status, assigned_release_id")
+      .eq("tenant_id", tenant.id).is("deleted_at", null).order("name").order("id").limit(pageLimit);
+    if (screensResult.error) throw new Error("screen read unavailable");
+    const screens = screensResult.data ?? [];
+    const devicesResult = screens.length ? await context.supabase.from("player_devices")
+      .select("screen_id,status,app_version,last_seen_at,last_error_code,active_release_id,desired_release_id,current_sync_detail")
+      .eq("tenant_id", tenant.id).eq("status", "paired").in("screen_id", screens.map(screen => screen.id))
+      .order("paired_at", { ascending: false }) : { data: [], error: null };
+    if (devicesResult.error) throw new Error("device read unavailable");
+    const devices = new Map((devicesResult.data ?? []).map(device => [device.screen_id, device]));
+    const referenceIds = [...new Set(screens.flatMap(screen => {
       const device = devices.get(screen.id);
+      return [screen.assigned_release_id, device?.active_release_id, device?.desired_release_id]
+        .filter((id): id is string => Boolean(id));
+    }))];
+    const releases = new Map<string, string>();
+    for (let offset = 0; offset < referenceIds.length; offset += 100) {
+      const result = await context.supabase.from("playlist_releases")
+        .select("id,version,playlist:playlists(name)").eq("tenant_id", tenant.id)
+        .in("id", referenceIds.slice(offset, offset + 100));
+      if (result.error) throw new Error("release read unavailable");
+      for (const release of result.data ?? []) {
+        const playlist = Array.isArray(release.playlist) ? release.playlist[0] : release.playlist;
+        releases.set(release.id, `${playlist?.name ?? "Playlist"} · versie ${release.version}`);
+      }
+    }
+    const now = Date.now();
+    const items = screens.map(screen => {
+      const device = devices.get(screen.id);
+      const proof = syncPlaybackEvidence(device, now);
       return {
-        activeReleaseLabel: screen.assigned_release_id
-          ? releases.get(screen.assigned_release_id) ?? null
-          : null,
+        activeReleaseLabel: proof.confirmedReleaseId ? releases.get(proof.confirmedReleaseId) ?? null : null,
         appVersion: device?.app_version ?? null,
         id: screen.id,
         lastErrorCode: device?.last_error_code ?? null,
@@ -166,7 +138,7 @@ function mapScreenStatus(
   const lastSeen = device.last_seen_at
     ? Date.parse(device.last_seen_at)
     : Number.NaN;
-  if (!Number.isFinite(lastSeen) || now - lastSeen > 5 * 60_000) {
+  if (!Number.isFinite(lastSeen) || lastSeen > now || now - lastSeen >= 5 * 60_000) {
     return "offline" as const;
   }
   if (status === "active" && device.status === "paired") {

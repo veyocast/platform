@@ -25,8 +25,8 @@ test.describe("Fieldflow shell and screen views", () => {
     await expect(page.locator("#control-sidebar-navigation.vx-sidebar")).toHaveCount(1);
     await expect(page.locator(".vector-context-rail")).toHaveCount(0);
     await expect(page.getByText("Operational cockpit", { exact: true })).toHaveCount(0);
-    await expect(page.getByText("Schermen online", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Nog niets actief" })).toBeVisible();
+    await expect(page.getByText("Schermen bereikbaar", { exact: true })).toBeVisible();
+    await expect(page.getByText("Nog geen bevestigde inhoud", {exact: true})).toBeVisible();
     await expect(
       page.getByRole("navigation", { name: "Hoofdnavigatie" }).getByRole("link", {
         name: "Schermgroepen"
@@ -34,15 +34,14 @@ test.describe("Fieldflow shell and screen views", () => {
     ).toHaveCount(0);
 
     await openControl(page, "/dashboard/screens");
-    const views = page.getByRole("navigation", {
-      name: "Weergave van de schermvloot"
-    });
+    await page.getByText("Indelingen en groepsacties", {exact: true}).click();
+    const views = page.locator(".sync-fleet-advanced");
     await expect(views).toBeVisible();
-    await expect(views.getByRole("link", { name: "Schermgroepen" })).toBeVisible();
-    // Without an authenticated tenant feature grant, both advanced views
-    // stay hidden and direct navigation explains the actual server gate.
+    await expect(views.getByRole("link", { name: "Schermgroepen beheren" })).toBeVisible();
+    // De geavanceerde taken blijven bereikbaar. Directe navigatie controleert
+    // de tenantfeature opnieuw en staat zonder grant geen Venue-mutatie toe.
     await expect(views.getByRole("link", { name: "Venue Twin" })).toHaveCount(0);
-    await expect(views.getByRole("link", { name: "Gezondheid" })).toHaveCount(0);
+    await expect(views.getByRole("link", { name: "Gezondheid" })).toBeVisible();
     await openControl(page, "/dashboard/screens?view=venue");
     await expect(
       page.getByRole("heading", { name: "Venue Twin staat voor deze organisatie uit" })
@@ -59,15 +58,14 @@ test.describe("Fieldflow shell and screen views", () => {
     await openControl(page, "/dashboard/screens");
 
     await expect(page.locator(".vector-context-rail")).toHaveCount(0);
-    const views = page.getByRole("navigation", {
-      name: "Weergave van de schermvloot"
-    });
+    await page.getByText("Indelingen en groepsacties", {exact: true}).click();
+    const views = page.locator(".sync-fleet-advanced");
     await expect(views).toBeVisible();
-    await expect(views.getByRole("link", { name: "Schermgroepen" })).toBeVisible();
-    // Without an authenticated tenant feature grant, both advanced views
-    // stay hidden and direct navigation explains the actual server gate.
+    await expect(views.getByRole("link", { name: "Schermgroepen beheren" })).toBeVisible();
+    // De geavanceerde taken blijven bereikbaar. Directe navigatie controleert
+    // de tenantfeature opnieuw en staat zonder grant geen Venue-mutatie toe.
     await expect(views.getByRole("link", { name: "Venue Twin" })).toHaveCount(0);
-    await expect(views.getByRole("link", { name: "Gezondheid" })).toHaveCount(0);
+    await expect(views.getByRole("link", { name: "Gezondheid" })).toBeVisible();
     await openControl(page, "/dashboard/screens?view=venue");
     await expect(
       page.getByRole("heading", { name: "Venue Twin staat voor deze organisatie uit" })

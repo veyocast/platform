@@ -1,0 +1,82 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T08:14:25.987Z",
+  "playerBuildId": "IyFEjVS94DIhCfvF6AeI1",
+  "scope": "actual AAL2 price change and existing published-data queue for a pinned Source placement variant; frozen OnzeTrots theme/8s pages, three complete old pages before activation, same release and offline reload; complete binary remains frozen; no binary freshness, provider, hardware or hosted deployment claim",
+  "sourceId": "d98978b2-786d-4fdf-9de8-c304ae380227",
+  "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+  "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+  "productReceiptReplayed": true,
+  "refreshResults": [
+    {
+      "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+      "status": "completed",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    },
+    {
+      "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+      "status": "completed",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    }
+  ],
+  "binaryStillFullFrozenFallback": true,
+  "observedEvents": [
+    {
+      "at": 1205.2000000029802,
+      "page": "0",
+      "productOnePrice": "€ 4,75"
+    },
+    {
+      "at": 8409,
+      "page": "1",
+      "productOnePrice": null
+    },
+    {
+      "at": 16408.79999999702,
+      "page": "2",
+      "productOnePrice": null
+    },
+    {
+      "at": 24529.5,
+      "page": "0",
+      "productOnePrice": "€ 4,75"
+    },
+    {
+      "at": 32559.09999999404,
+      "page": "1",
+      "productOnePrice": null
+    },
+    {
+      "at": 40558.20000000298,
+      "page": "2",
+      "productOnePrice": null
+    },
+    {
+      "at": 48687.70000000298,
+      "page": "0",
+      "productOnePrice": "€ 4,95"
+    }
+  ],
+  "boundary": {
+    "oldPageZeroAt": 24529.5,
+    "oldPageOneAt": 32559.09999999404,
+    "oldPageTwoAt": 40558.20000000298,
+    "newPageZeroAt": 48687.70000000298,
+    "lastOldPageMs": 8129.5
+  },
+  "data": {
+    "fromRevision": 1,
+    "toRevision": 2,
+    "fromRows": 9,
+    "toRows": 9,
+    "fromDurationMs": 24000,
+    "toDurationMs": 24000,
+    "originalPublicationRows": 9,
+    "originalPublicationDurationMs": 24000,
+    "configurationHash": "2c6dc17bcbf6d79119bc8c5fa57a58fb2fe98ba7f4f5360db4f5f3f948eaae0a",
+    "contentHash": "71a71e6fd654776a5fab5ffa82a13e94c410292a3ad7283fe376abb6c5d7f159"
+  },
+  "offlineReloadLatestData": true,
+  "pairingPreserved": true,
+  "noReleaseVersionSnapshotOrRenderJobCreated": true
+}

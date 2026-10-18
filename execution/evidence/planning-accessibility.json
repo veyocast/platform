@@ -1,0 +1,68 @@
+[
+  {
+    "route": "/dashboard/planning",
+    "url": "/dashboard/planning",
+    "h1": [
+      "Het juiste verhaal. Op het juiste moment."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/planning",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning",
+    "width": 1440,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=agenda",
+    "url": "/dashboard/planning",
+    "h1": [
+      "Het juiste verhaal. Op het juiste moment."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/planning?view=agenda",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=agenda",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=agenda",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=agenda",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning?view=agenda",
+    "width": 1440,
+    "overflow": false
+  }
+]

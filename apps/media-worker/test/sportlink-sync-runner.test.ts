@@ -1584,6 +1584,14 @@ describe("Sportlink sync worker", () => {
     });
 
     it.each(["transport", "deadline"])("bounds a %s storage failure to one upload even with 100 optional logos", async (failure) => {
+      // Trigger the deadline at the observed request. The 10 ms wall clock
+      // could previously expire during crypto or scheduler work before fetch,
+      // so the intended upload/abort path was never exercised under load.
+      const logoDeadline = new AbortController();
+      let deadlines = 0;
+      vi.spyOn(AbortSignal, "timeout").mockImplementation(() =>
+        ++deadlines === 1 ? logoDeadline.signal : new AbortController().signal
+      );
       const readWarnings = warnings();
       const current = batch(100);
       let uploads = 0;
@@ -1593,7 +1601,10 @@ describe("Sportlink sync worker", () => {
         if (url.pathname.startsWith("/storage/v1/object/")) {
           uploads++;
           uploadSignal = init?.signal;
-          if (failure === "deadline") return awaitAbort(uploadSignal);
+          if (failure === "deadline") {
+            queueMicrotask(() => logoDeadline.abort(new DOMException("Timeout", "TimeoutError")));
+            return awaitAbort(uploadSignal);
+          }
           throw new TypeError("PRIVATE_CONNECTION_STRING");
         }
         if (url.pathname === "/rest/v1/provider_asset_cache") return Response.json([]);
@@ -1716,7 +1727,14 @@ describe("Sportlink sync worker", () => {
       const backend = new SupabaseSportlinkSyncBackend("https://supabase.test", "test-only", undefined, 10);
       await expect(backend.complete(job, "worker:test", batch())).resolves.toBe(3);
       expect(cacheSignal?.aborted).toBe(true);
-      expect(fetchMock).toHaveBeenCalledTimes(3);
+      // The 10 ms logo budget may expire before storage-js starts its fetch.
+      // Cache fallback and committed ingest are required in either ordering;
+      // the optional storage circuit must still permit at most one request.
+      const paths=fetchMock.mock.calls.map(([input])=>new URL(input instanceof Request?input.url:input).pathname);
+      expect(paths.filter(path=>path==='/rest/v1/provider_asset_cache')).toHaveLength(1);
+      expect(paths.filter(path=>path==='/rest/v1/rpc/complete_sportlink_sync_v4')).toHaveLength(1);
+      expect(paths.filter(path=>path.startsWith('/storage/v1/object/')).length).toBeLessThanOrEqual(1);
+      expect(paths.every(path=>path.startsWith('/storage/v1/object/')||path==='/rest/v1/provider_asset_cache'||path==='/rest/v1/rpc/complete_sportlink_sync_v4')).toBe(true);
       expect(readWarnings()[0]).toMatchObject({ fields: { cacheLookupFailed: true, reusedTeamLogos: 0 } });
     });
 

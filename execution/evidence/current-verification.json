@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-18T15:14:46.361019+00:00",
+  "baselineSha": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "uncommittedWorktree": true,
+  "status": "PARTIAL",
+  "foundation": {
+    "lint": 30,
+    "typecheck": 30,
+    "unit": 30,
+    "status": "PASS",
+    "cacheReuse": {
+      "lint": 29,
+      "typecheck": 29,
+      "unit": 28
+    }
+  },
+  "database": {
+    "freshMigrations": true,
+    "rlsFiles": 129,
+    "checks": 3596,
+    "binaryChecks": 70,
+    "applicationSchemaErrors": 0,
+    "status": "PASS",
+    "warningScope": "Error-level application schema lint is empty; separate warning-level lint retains16 pre-existing/unused/type-coercion function warnings."
+  },
+  "controlledFeatureBrowser": {
+    "checks": 73,
+    "status": "PASS",
+    "scope": "Actual components with controlled transports; no provider/hardware/hosted claim"
+  },
+  "proof": {
+    "lint": {
+      "logSha256": "eeaa38d4e4c2957a705d85d4c82cb7edf4291ddd4fdd9ef0e31e79c8d85c18f7",
+      "tail": [
+        "@veyocast/control:lint: $ eslint . --max-warnings=0",
+        "@veyocast/media-worker:lint: cache hit, replaying logs 5e553b1e2e7a620f",
+        "@veyocast/media-worker:lint: $ eslint . --max-warnings=0",
+        "",
+        " Tasks:    30 successful, 30 total",
+        "Cached:    29 cached, 30 total",
+        "  Time:    7.439s ",
+        ""
+      ]
+    },
+    "typecheck": {
+      "logSha256": "250ad2f9607e9f6a3484dfa4d82428ed5c5f61a33826105655b7c23601cb1890",
+      "tail": [
+        "@veyocast/marketing:typecheck: $ tsc --noEmit",
+        "@veyocast/control-mobile:typecheck: cache hit, replaying logs 364dcdf41ccc7736",
+        "@veyocast/control-mobile:typecheck: $ tsc --noEmit",
+        "",
+        " Tasks:    30 successful, 30 total",
+        "Cached:    29 cached, 30 total",
+        "  Time:    23.881s ",
+        ""
+      ]
+    },
+    "unit": {
+      "logSha256": "791c4cc0a538a6574f9370bb11bc5e7646888ce54b474037c60ea44421de8f64",
+      "tail": [
+        "@veyocast/control:test:    Start at  17:09:57",
+        "@veyocast/control:test:    Duration  8.07s (transform 7.22s, setup 0ms, collect 43.18s, tests 4.65s, environment 20ms, prepare 9.55s)",
+        "@veyocast/control:test: ",
+        "",
+        " Tasks:    30 successful, 30 total",
+        "Cached:    28 cached, 30 total",
+        "  Time:    12.68s ",
+        ""
+      ]
+    },
+    "rls": {
+      "logSha256": "50ad3cfd861550283564ad2774bd3bfc53f7054413d6a94c425572159d187b71",
+      "tail": [
+        "/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_studio_playback.sql ................. ok",
+        "psql:/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_studio_series.sql:2: NOTICE:  extension \"pgtap\" already exists, skipping",
+        "/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_studio_series.sql ................... ok",
+        "psql:/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_youtube.sql:2: NOTICE:  extension \"pgtap\" already exists, skipping",
+        "/tmp/veyocast-s226-gates-db/supabase/tests/s226_sync_youtube.sql ......................... ok",
+        "All tests successful.",
+        "Files=129, Tests=3596, 40 wallclock secs ( 0.66 usr  0.22 sys +  0.98 cusr  0.91 csys =  2.77 CPU)",
+        "Result: PASS"
+      ]
+    },
+    "dbLint": {
+      "logSha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297",
+      "tail": [
+        "Connecting to local database...",
+        "Linting schema: public",
+        "Linting schema: private",
+        "{\"results\":[],\"message\":\"db lint\"}"
+      ]
+    },
+    "featureBrowser": {
+      "logSha256": "51270aa6f328e642d8093123699cb8b280cbe960633d531f27d640043e3a37d5",
+      "tail": [
+        "  ✓  71 [chromium] › tests/control/sync-studio-workflows.spec.ts:817:5 › Source Engage reads paginated owned choices and saves only an explicit campaign selection without preparing media (2.4s)",
+        "  ✓  72 [chromium] › tests/control/sync-studio-workflows.spec.ts:827:5 › an unconfirmed Source campaign change retains the previous complete choice and sends no save or render (1.4s)",
+        "  ✓  73 [chromium] › tests/control/sync-studio-workflows.spec.ts:834:5 › Source YouTube chooses an existing verified source without saving, rendering or changing the source (3.4s)",
+        "",
+        "  73 passed (2.4m)"
+      ]
+    },
+    "sourceComparison": {
+      "logSha256": "33862ce81e10e4ea2e86fd701303ea3b6f71525e118ad82ceba54ceb1d0fa096",
+      "tail": [
+        "  ✓  62 [chromium] › tests/control/sync-source-geometry-comparison.spec.ts:75:37 › original RESP-0062 chosen Sync 390x844 #/website (3.6s)",
+        "  ✓  63 [chromium] › tests/control/sync-source-geometry-comparison.spec.ts:75:37 › original RESP-0063 chosen Sync 412x915 #/website (3.5s)",
+        "  ✓  64 [chromium] › tests/control/sync-source-geometry-comparison.spec.ts:75:37 › original RESP-0064 chosen Sync 768x1024 #/website (3.6s)",
+        "  ✓  65 [chromium] › tests/control/sync-source-geometry-comparison.spec.ts:75:37 › original RESP-0065 chosen Sync 1024x768 #/website (3.8s)",
+        "  ✓  66 [chromium] › tests/control/sync-source-geometry-comparison.spec.ts:75:37 › original RESP-0066 chosen Sync 1440x900 #/website (3.8s)",
+        "",
+        "  66 passed (4.0m)"
+      ]
+    },
+    "sourceFingerprint": {
+      "logSha256": "a547cf4be18644600d40f53856e11020ee6450dfed66c66ef59adb73b754d30e",
+      "tail": [
+        "Running 1 test using 1 worker",
+        "",
+        "(node:1632641) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "  ✓  1 [chromium] › tests/control/sync-source-geometry-comparison.spec.ts:75:37 › original RESP-0001 chosen Sync 360x800 #/dashboard (3.8s)",
+        "",
+        "  1 passed (5.5s)"
+      ]
+    },
+    "controlViewports": {
+      "logSha256": "703964cc6a3ae3b6521d7f445409d9584f60b7eb95501772c62e602657a1284f",
+      "tail": [
+        "  ✓  2 [chromium] › tests/a11y/control-shell.spec.ts:134:6 › all Control overview routes remain inside the viewport at 390px (33.0s)",
+        "  ✓  3 [chromium] › tests/a11y/control-shell.spec.ts:134:6 › all Control overview routes remain inside the viewport at 768px (32.9s)",
+        "  ✓  4 [chromium] › tests/a11y/control-shell.spec.ts:134:6 › all Control overview routes remain inside the viewport at 1024px (27.9s)",
+        "  ✓  5 [chromium] › tests/a11y/control-shell.spec.ts:134:6 › all Control overview routes remain inside the viewport at 1100px (33.1s)",
+        "  ✓  6 [chromium] › tests/a11y/control-shell.spec.ts:134:6 › all Control overview routes remain inside the viewport at 1280px (29.2s)",
+        "",
+        "  6 passed (4.2m)"
+      ]
+    },
+    "controlDynamic": {
+      "logSha256": "78ff37729e76743fa9cf666729edcca861c16afaa6a9a7137e007be38ee27a65",
+      "tail": [
+        "Running 1 test using 1 worker",
+        "",
+        "(node:1733535) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "  ✓  1 [chromium] › tests/a11y/control-shell.spec.ts:182:5 › dynamic content workspaces remain usable on mobile and desktop (1.0m)",
+        "",
+        "  1 passed (1.0m)"
+      ]
+    },
+    "playerOffline": {
+      "logSha256": "bce29be445475c2b8edde5ab9839e798e540883b4b32714db7a9dd70fa611c85",
+      "tail": [
+        "  ✓  5 [chromium] › tests/player-offline/range-service-worker.spec.ts:85:5 › normalizes a cached response before serving a Range request (829ms)",
+        "  ✓  6 [chromium] › tests/player-offline/range-service-worker.spec.ts:121:5 › removes obsolete player shell caches on service-worker activation (1.4s)",
+        "  ✓  7 [chromium] › tests/player-offline/range-service-worker.spec.ts:149:5 › leaves uncached native video Range requests usable without storing partial MP4 responses (856ms)",
+        "  ✓  8 [chromium] › tests/player-offline/range-service-worker.spec.ts:163:5 › rechecks source bytes after a rejected download instead of retaining them in the app shell cache (1.1s)",
+        "  ✓  9 [chromium] › tests/player-offline/startup.spec.ts:5:5 › unpaired player startup is visible without a network-backed release (496ms)",
+        "",
+        "  9 passed (10.3s)"
+      ]
+    },
+    "controlBuild": {
+      "logSha256": "6b110d8ed024d6db3b3318f7b16ee0ebea31133eec13f9803616ffc0abc929c1",
+      "tail": [
+        "",
+        "ƒ Middleware                                                    93.1 kB",
+        "",
+        "○  (Static)   prerendered as static content",
+        "ƒ  (Dynamic)  server-rendered on demand",
+        "",
+        "Control authcontrole: beveiligde routes zijn dynamisch."
+      ]
+    },
+    "deploymentDefinitions": {
+      "logSha256": "2e47ac9fc245b99d968c2162d6b6a2b2aef7d9776e14951b390dff5caeed1407",
+      "tail": [
+        "ℹ suites 0",
+        "ℹ pass 226",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 21932.323494"
+      ]
+    },
+    "workflows": {
+      "logSha256": "d79b1f87464a8f8f0064bd183620482a4b43b2d71e48dc900faf41776291fcb2",
+      "tail": [
+        "Android SDK setup: 5 explicit supported package declarations; five rejection fixtures passed."
+      ]
+    },
+    "productImport": {
+      "logSha256": "c4931432879840ead0ad86e4b4cb52b90000263cc301a1e0cd7f2f11b8ad1713",
+      "tail": [
+        "{\"phase\":\"begin\",\"extension\":\"csv\",\"at\":\"2026-10-18T13:57:55.476Z\"}",
+        "{\"phase\":\"begin\",\"extension\":\"xlsx\",\"at\":\"2026-10-18T13:57:55.477Z\"}",
+        "{\"phase\":\"remap\",\"extension\":\"xlsx\",\"at\":\"2026-10-18T13:57:56.112Z\"}",
+        "{\"phase\":\"remap-response\",\"extension\":\"xlsx\",\"status\":303,\"navigation\":true,\"location\":\"http://localhost:3240/dashboard/sources/twelve/imports/2f406a07-29d0-4460-8658-54f2b3047fbf?succes=mapping\",\"redirect\":null,\"contentType\":null,\"bodyBytes\":0,\"bodyHasSuccess\":false,\"bodyHasLogin\":false,\"path\":\"/dashboard/sources/twelve/imports/2f406a07-29d0-4460-8658-54f2b3047fbf\",\"host\":\"localhost\",\"browserErrorCount\":0,\"actionApplyFailureCount\":0}",
+        "{\"phase\":\"apply\",\"extension\":\"xlsx\",\"at\":\"2026-10-18T13:57:56.815Z\"}",
+        "{\"phase\":\"persisted\",\"extension\":\"xlsx\",\"at\":\"2026-10-18T13:58:03.798Z\"}",
+        "{\"status\":\"PASS\",\"formats\":[\"csv\",\"xlsx\"],\"newProducts\":2,\"stableIds\":true,\"publicationHistoryUnchanged\":true}"
+      ]
+    }
+  },
+  "localCredentialRecovery": {
+    "qa": "PASS",
+    "gates": "PASS",
+    "oldLocalCredentialsRejected": true,
+    "databaseVolumesPreserved": true,
+    "asymmetricAuthKeyPreserved": true,
+    "productionConfigurationUnchanged": true
+  },
+  "remaining": [
+    "PR/CI/staging/production and signed existing Player artifacts",
+    "remaining exact filled/provider/native/hardware scenario acceptance remains individually PARTIAL where recorded; physical/24h/SendGrid explicitly deferred",
+    "no broad178-branch cleanup claim; preserve68 distinct graph commit SHAs"
+  ],
+  "chosenSyncResponsive": {
+    "status": "PASS",
+    "cases": 66,
+    "fingerprint": "d46f943559c452c64d865a3c5d1e5c0af338b9c333530e03257332c4071c6297",
+    "proof": "execution/evidence/sync-responsive/case-readback.json",
+    "scope": "Explicit empty read-model geometry/typography/navigation/assets, raw Axe0/touch/overflow; disclosed counterfactual hit areas, factualcopy, canonical EmptyState and Settings shell-only N_A. No general pixel or functional scenario PASS."
+  },
+  "controlViewportGate": {
+    "status": "PASS",
+    "viewports": [
+      320,
+      390,
+      768,
+      1024,
+      1100,
+      1280
+    ],
+    "routesPerViewport": 21,
+    "dynamicDialogFocusEscapeOverflow": "PASS on320/390/768/1280"
+  },
+  "playerBrowser": {
+    "status": "PASS across original broad run and the necessary targeted closures",
+    "passedDistinctCases": 274,
+    "intentionalSkips": 15,
+    "offlinePassed": 9,
+    "scope": "Actual production Player build; staging demo/devicelab fixture flags explicit; no physical/hosted claim."
+  },
+  "controlBrowser": {
+    "passed": 201,
+    "conditionalSkips": 437,
+    "featurePassed": 73,
+    "newTeamWorkflowPassed": 1,
+    "scope": "Controlled actual components/HTTP plus separate real-service evidence; opt-in acceptance is separate."
+  },
+  "controlBuild": {
+    "status": "PASS",
+    "buildId": "ZsLFVASFYpsd1gJljwsim",
+    "output": ".next-qa",
+    "authBoundary": "PASS",
+    "clientSecretScan": "PASS"
+  },
+  "productImport": {
+    "status": "PASS",
+    "formats": [
+      "CSV",
+      "XLSX"
+    ],
+    "newProducts": 2,
+    "sameProductIdsAfterMerge": true,
+    "immutablePublicationHistoryUnchanged": true,
+    "receipt": "execution/evidence/product-import-real-services.json",
+    "scope": "Actual AAL2 production-build browser and PostgreSQL; deliberately generated exports, no external Twelve API/customer-export claim."
+  },
+  "crossPilot": {
+    "status": "PASS",
+    "actualSameOriginDemoPlanes": true,
+    "logSha256": "a178f50655162ea398bb2522564e8ecd76692ab7ec6364b317e83c9d335d8adf",
+    "tail": [
+      "(Use `node --trace-warnings ...` to show where the warning was created)",
+      "  ✓  1 [chromium] › tests/e2e/pilot-readiness.spec.ts:8:5 › keeps the documented local demo pilot traceable across product planes (34.8s)",
+      "",
+      "  1 passed (35.5s)"
+    ],
+    "scope": "Existing fixture-only demo trace, disabledwrites and actual staging Player fixture; not an authenticated hosted pilot."
+  },
+  "implementationCommit": "24e121ee6a920d6e70b184bc64e895ac2da20614",
+  "pr": "https://github.com/veyocast/platform/pull/252",
+  "ci": "Previous head26a94d17: Control376PASS/629opt-inSKIP inclall9Studio cases. Final conflict-boundary cohort follows new commit; do not merge previous head.",
+  "legacyRendererFinal": {
+    "evidence": "execution/evidence/legacy-renderer-final.json",
+    "uniqueCaseIds": 548,
+    "frames": 644,
+    "exactFrames": 644,
+    "broadPassed": 545,
+    "broadTimeouts": 3,
+    "exactRecheckPassed": 3
+  },
+  "studioCiBaselineClosure": {
+    "status": "PASS",
+    "files": 3,
+    "tests": 9,
+    "scope": "Source36 disabled choices in NoDB plus preserved legacy four-step wizard, editor, RSS prerequisite and error forwarding. Prior CI371PASS/3 stale picker assertions; local full three-file recheck9PASS."
+  },
+  "nonretryableConflicts": {
+    "status": "PASS",
+    "evidence": "execution/evidence/nonretryable-conflicts.json",
+    "publicBoundaries": 7,
+    "httpStatus": 409,
+    "sqlstate": "PT409",
+    "measuredMilliseconds": 53,
+    "activeSeriesQueriesAfterProof": 0
+  }
+}

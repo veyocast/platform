@@ -6,6 +6,7 @@ export default [
   {
     ignores: [
       "**/.next/**",
+      "**/.next-qa/**",
       "**/coverage/**",
       "**/dist/**",
       "**/next-env.d.ts",

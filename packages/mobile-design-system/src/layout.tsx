@@ -70,7 +70,7 @@ export function SurfaceCard({
       style={[
         styles.card,
         {
-          backgroundColor: theme.colors.raised,
+          backgroundColor: theme.colors.surface,
           borderColor: theme.colors.line
         },
         style
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: mobileRadius.card,
     borderWidth: 1,
-    padding: mobileSpacing.inline
+    padding: mobileSpacing.card
   },
   screenContent: {
     alignSelf: "center",

@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T09:13:03.614Z",
+  "controlBuildId": "fr92zEN4P5nfnqFN0YUca",
+  "scope": "actual manual-to-bound RSS navigation and twice-replayed already committed create, first reply deliberately lost; exact same command/entity/artifact, no new history or original-document change; no external feed or hosted deployment claim",
+  "exactReplays": 2,
+  "noNewEntityVersionSnapshotJobOrRelease": true,
+  "manualDocumentUnchanged": true,
+  "browserErrors": []
+}

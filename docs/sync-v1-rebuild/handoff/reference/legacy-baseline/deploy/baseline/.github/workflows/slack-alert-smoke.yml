@@ -1,0 +1,84 @@
+name: Test Slack alert delivery
+
+run-name: Slack alert test for ${{ inputs.environment }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Environment met de te testen webhook
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      confirmation:
+        description: Typ exact TEST SLACK
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: slack-alert-smoke-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Send controlled test notification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Validate explicit confirmation and webhook
+        shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          SLACK_ALERT_WEBHOOK_URL: ${{ secrets.SLACK_ALERT_WEBHOOK_URL }}
+        run: |
+          set -Eeuo pipefail
+          if [[ ${CONFIRMATION} != "TEST SLACK" ]]; then
+            echo "::error::Typ exact TEST SLACK om de gecontroleerde melding te versturen."
+            exit 1
+          fi
+          if [[ -z ${SLACK_ALERT_WEBHOOK_URL:-} ]]; then
+            echo "::error::Environment-secret SLACK_ALERT_WEBHOOK_URL ontbreekt."
+            exit 1
+          fi
+          echo "::add-mask::${SLACK_ALERT_WEBHOOK_URL}"
+
+      - name: Send Slack smoke notification
+        shell: bash
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          SLACK_ALERT_WEBHOOK_URL: ${{ secrets.SLACK_ALERT_WEBHOOK_URL }}
+        run: |
+          set -Eeuo pipefail
+          echo "::add-mask::${SLACK_ALERT_WEBHOOK_URL}"
+          payload=$(
+            printf \
+              '{"text":"🧪 VeyoCast %s: handmatige Slack-alarmtest geslaagd. Dit is geen storing."}' \
+              "${TARGET_ENVIRONMENT}"
+          )
+          response_file=$(mktemp)
+          trap 'rm -f "${response_file}"' EXIT
+          status=$(
+            curl \
+              --fail-with-body \
+              --max-time 15 \
+              --output "${response_file}" \
+              --silent \
+              --show-error \
+              --write-out '%{http_code}' \
+              --header 'Content-Type: application/json' \
+              --data "${payload}" \
+              "${SLACK_ALERT_WEBHOOK_URL}"
+          )
+          if [[ ${status} != 2* ]]; then
+            echo "::error::Slack accepteerde de testmelding niet (HTTP ${status})."
+            exit 1
+          fi
+          echo "Slack testmelding geaccepteerd voor ${TARGET_ENVIRONMENT}."

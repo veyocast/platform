@@ -23,3 +23,14 @@ export * from "./youtube";
 export * from "./billing";
 
 export * from "./publisher-library";
+
+export * from "./sync-product-catalog";
+export * from "./sync-content-families";
+export * from "./sync-system-assets";
+export * from "./sync-slide-presentation";
+
+export * from "./sync-dynamic-configuration";
+export * from './sync-dynamic-authoring';
+export * from './sync-dynamic-artifact';
+export * from "./sync-dynamic-playback";
+export * from './sync-dynamic-placement';

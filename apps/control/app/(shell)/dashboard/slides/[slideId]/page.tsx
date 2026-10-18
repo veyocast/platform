@@ -41,7 +41,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
     ? await loadDynamicSlideVersionState(session.tenantId!, slideId)
     : null;
   const canWrite = hasCapability(session.capabilities, "tenant.dynamic_slide.write");
-  const isVersionedSportlink = slideEditorKind(data.slide.configuration_json) === "sportlink";
+  const isVersionedSportlink = ['sportlink','sync'].includes(slideEditorKind(data.slide.configuration_json));
   const activeVersion = versionState?.versions.find((version) =>
     version.id === versionState.activeDraftVersionId
   );
@@ -126,6 +126,8 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
                   <small>{data.newsPreview.meta}</small>
                 </article>
               </div>
+            ) : data.previewUrl&&data.previewMimeType?.startsWith('video/') ? (
+              <video aria-label={`Volledige offline fallback van ${data.slide.name}`} controls playsInline muted preload="metadata" src={data.previewUrl} style={{width:'100%',height:'100%',objectFit:'contain'}}/>
             ) : data.previewUrl ? (
               <Image alt={`Offline fallback van ${data.slide.name}`} fill sizes="70vw" src={data.previewUrl} unoptimized />
             ) : (
@@ -224,6 +226,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     ...currentVersion.data
   } : slideResult.data;
   let previewUrl: string | null = null;
+  let previewMimeType:string|null=null;
   let newsPreview: {
     articleTitle: string;
     heroUrl: string | null;
@@ -246,13 +249,14 @@ async function loadSlide(slideId: string, tenantId: string) {
   if (slide.current_snapshot_id) {
     const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id, snapshot_data_json").eq("id", slide.current_snapshot_id).maybeSingle();
     if (snapshot.data?.output_media_asset_id) {
-      const variant = await supabase.from("media_variants").select("storage_path").eq("asset_id", snapshot.data.output_media_asset_id).eq("variant_type", "original").maybeSingle();
+      const variant = await supabase.from("media_variants").select("storage_bucket,storage_path,mime_type").eq('tenant_id',tenantId).eq("asset_id", snapshot.data.output_media_asset_id).eq("variant_type", "original").maybeSingle();
       if (variant.data?.storage_path) {
-        const signed = await supabase.storage.from("tenant-media").createSignedUrl(variant.data.storage_path, 600);
+        const signed = await supabase.storage.from(variant.data.storage_bucket).createSignedUrl(variant.data.storage_path, 600);
         previewUrl = signed.data?.signedUrl ?? null;
+        previewMimeType=variant.data.mime_type;
       }
     }
-    if (slide.slide_type === "news" && snapshot.data) {
+    if (slide.slide_type === "news" && slideEditorKind(slide.configuration_json)!=='sync'&&snapshot.data) {
       const snapshotData = readRecord(snapshot.data.snapshot_data_json);
       const news = readRecord(snapshotData?.news);
       const brand = readRecord(snapshotData?.brand);
@@ -323,6 +327,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     newsPreview,
     playlists: playlistsResult.data ?? [],
     previewUrl,
+    previewMimeType,
     slide,
     sportSelection
   };

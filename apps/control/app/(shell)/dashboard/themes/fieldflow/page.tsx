@@ -14,13 +14,14 @@ import { retryTenantThemeRollout, updateTenantTheme } from "./actions";
 import { ThemeRolloutRefresh } from "./theme-rollout-refresh";
 
 type PageProps = {
-  searchParams: Promise<{ fout?: string; succes?: string }>;
+  searchParams: Promise<{ fout?: string; succes?: string; theme?: string }>;
 };
 
 export default async function FieldFlowThemePage({ searchParams }: PageProps) {
   const session = await requireControlSession();
   const query = await searchParams;
-  const data = await loadTheme(session.tenantId, session.isLive);
+  const selectedTheme = query.theme === "fieldflow" || query.theme === "onzetrots-tv" ? query.theme : undefined;
+  const data = await loadTheme(session.tenantId, session.isLive, selectedTheme);
   const canManage = session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.settings.manage") &&
@@ -130,7 +131,7 @@ function rolloutRecoveryCopy(errorCode: string) {
   return "De immutable theme-uitrol is niet voltooid. De oude release blijft veilig spelen. Probeer de uitrol opnieuw en neem contact op met een platformbeheerder als dit terugkomt.";
 }
 
-async function loadTheme(tenantId: string | null, isLive: boolean) {
+async function loadTheme(tenantId: string | null, isLive: boolean, selectedTheme?: "fieldflow" | "onzetrots-tv") {
   const fallback = resolveTenantThemeAuthority({
     default_theme_id: "fieldflow",
     default_theme_version: "1.0.0",
@@ -159,12 +160,13 @@ async function loadTheme(tenantId: string | null, isLive: boolean) {
     supabase.from("screens").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).neq("status", "disabled").is("deleted_at", null)
   ]);
   const error = settings.error ?? profile.error ?? rollout.error ?? slides.error ?? screens.error;
-  const activeThemeId = settings.data?.default_theme_id === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow";
+  const activeThemeId = selectedTheme ?? (settings.data?.default_theme_id === "onzetrots-tv" ? "onzetrots-tv" : "fieldflow");
   const activeProfile = profile.data?.find((entry) => entry.theme_id === activeThemeId);
   const missingThemeAuthority = !settings.data || !activeProfile;
   const selection = record(activeProfile?.selection_json);
   const combined = {
     ...(settings.data ?? {}),
+    default_theme_id: activeThemeId,
     appearance_config: activeProfile?.appearance_config,
     default_theme_version: activeProfile?.theme_version ?? settings.data?.default_theme_version,
     theme_accent: selection?.accent ?? settings.data?.theme_accent,

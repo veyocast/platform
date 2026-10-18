@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertCircle, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Send } from "lucide-react";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import {
   type LeadFormState,
@@ -47,10 +47,24 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
     initialLeadFormState
   );
   const isDemo = kind === "demo";
+  const [requestId, setRequestId] = useState("");
+  const [values, setValues] = useState<Record<string, string>>({
+    name: "", email: "", organization: "", subject: "", message: "",
+    organizationType: organizationTypeForSetup(setupIntent), screens: screenBandForSetup(setupIntent)
+  });
+  const field = (name: string) => ({ value: values[name] ?? "", onChange: () => {} });
 
   return (
-    <form action={action} className="lead-form" noValidate>
+    <form action={action} className="lead-form" noValidate onChange={(event) => {
+      const input = event.target;
+      if (input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement || input instanceof HTMLSelectElement) {
+        setValues(current => ({ ...current, [input.name]: input.value }));
+        setRequestId(crypto.randomUUID());
+      }
+    }}>
       <input name="kind" type="hidden" value={kind} />
+      <input name="requestId" type="hidden" value={requestId} />
+      <input name="consent" type="hidden" value="yes" />
       {setupIntentToken ? <input name="setupIntent" type="hidden" value={setupIntentToken} /> : null}
       <div aria-hidden className="lead-form__honeypot">
         <label htmlFor={`${kind}-website`}>Website</label>
@@ -60,13 +74,13 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
       {state.status !== "idle" ? (
         <div
           className={`form-message form-message--${state.status}`}
-          role="alert"
+          role={state.status === "received" ? "status" : "alert"}
           tabIndex={-1}
         >
-          <AlertCircle aria-hidden size={20} />
+          {state.status === "received" ? <CheckCircle2 aria-hidden size={20} /> : <AlertCircle aria-hidden size={20} />}
           <div>
             <strong>
-              {state.status === "invalid"
+              {state.status === "received" ? "Je aanvraag is ontvangen" : state.status === "invalid"
                 ? "Controleer je gegevens"
                 : "Aflevering nog niet beschikbaar"}
             </strong>
@@ -91,6 +105,7 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
             autoComplete="name"
             id={`${kind}-name`}
             name="name"
+            {...field("name")}
             required
           />
           <FieldError error={state.errors.name} id={`${kind}-name-error`} />
@@ -105,6 +120,7 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
             id={`${kind}-email`}
             inputMode="email"
             name="email"
+            {...field("email")}
             required
             type="email"
           />
@@ -119,6 +135,7 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
             autoComplete="organization"
             id={`${kind}-organization`}
             name="organization"
+            {...field("organization")}
             required={isDemo}
           />
           <FieldError
@@ -138,9 +155,9 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
                     : undefined
                 }
                 aria-invalid={Boolean(state.errors.organizationType)}
-                defaultValue={organizationTypeForSetup(setupIntent)}
                 id={`${kind}-organization-type`}
                 name="organizationType"
+            {...field("organizationType")}
                 required
               >
                 <option disabled value="">Maak een keuze</option>
@@ -162,9 +179,9 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
               <select
                 aria-describedby={state.errors.screens ? `${kind}-screens-error` : undefined}
                 aria-invalid={Boolean(state.errors.screens)}
-                defaultValue={screenBandForSetup(setupIntent)}
                 id={`${kind}-screens`}
                 name="screens"
+            {...field("screens")}
                 required
               >
                 <option disabled value="">Maak een keuze</option>
@@ -185,6 +202,7 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
               aria-invalid={Boolean(state.errors.subject)}
               id={`${kind}-subject`}
               name="subject"
+            {...field("subject")}
               required
             />
             <FieldError error={state.errors.subject} id={`${kind}-subject-error`} />
@@ -199,6 +217,7 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
           aria-invalid={Boolean(state.errors.message)}
           id={`${kind}-message`}
           name="message"
+            {...field("message")}
           required
           rows={6}
         />
@@ -215,7 +234,7 @@ export function LeadForm({ kind, setupIntent, setupIntentToken }: LeadFormProps)
           <Link href="/privacy">privacyverklaring</Link>.
         </p>
         <button className="button button--primary" disabled={pending} type="submit">
-          <span>{pending ? "Controleren…" : isDemo ? "Demo aanvragen" : "Bericht controleren"}</span>
+          <span>{pending ? "Controleren…" : isDemo ? "Demo aanvragen" : "Bericht verzenden"}</span>
           <Send aria-hidden size={18} />
         </button>
       </div>

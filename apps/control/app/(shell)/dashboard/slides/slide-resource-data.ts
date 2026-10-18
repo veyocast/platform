@@ -285,7 +285,7 @@ function editorHref(slideId: string, _slideType: string, configuration: unknown)
   if (record(configuration)?.schemaVersion === "menu-document.v2") {
     return `/dashboard/slides/menu-studio/${slideId}`;
   }
-  if (slideEditorKind(configuration) === "sportlink") return `/dashboard/slides/${slideId}/edit`;
+  if (['sportlink','sync'].includes(slideEditorKind(configuration))) return `/dashboard/slides/${slideId}/edit`;
   return `/dashboard/slides/${slideId}`;
 }
 

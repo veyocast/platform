@@ -1,0 +1,37 @@
+{
+  "scope": "isolated-local-real-studio-worker",
+  "name": "S226 Studio 1792275205343",
+  "title": "Deze Studio-publicatie is echt gerenderd",
+  "api": "http://127.0.0.1:57621",
+  "draft": {
+    "title": "Deze Studio-publicatie is echt gerenderd",
+    "projectId": "c0e1d6b1-8501-4c44-93f8-1582d91f8fdb",
+    "projectRevision": 1
+  },
+  "rendered": {
+    "jobId": "6b15938b-0dfa-4334-88cb-32ad85e15016",
+    "mediaAssetId": "af1b3ec3-8edf-4213-b0ea-a8883b79e002",
+    "status": "completed"
+  },
+  "media": {
+    "title": "S226 Studio 1792275205343",
+    "width": 1920,
+    "height": 1080,
+    "status": "ready",
+    "assetId": "af1b3ec3-8edf-4213-b0ea-a8883b79e002",
+    "variants": [
+      {
+        "mime": "image/png",
+        "type": "original",
+        "bytes": 2513933,
+        "sha256": "2ead6c3648927eafeee85b9257f80ef3c3572a44673e77b108589c73a64aca19"
+      },
+      {
+        "mime": "image/png",
+        "type": "thumbnail",
+        "bytes": 2513933,
+        "sha256": "2ead6c3648927eafeee85b9257f80ef3c3572a44673e77b108589c73a64aca19"
+      }
+    ]
+  }
+}

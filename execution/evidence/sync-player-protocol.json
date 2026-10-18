@@ -1,0 +1,35 @@
+{
+  "scope": "independent Source release columns, capability-gated API, complete cache union, actual component and real local publication-to-browser/offline-reload journey; hosted/native/hardware acceptance remains open",
+  "status": "PARTIAL",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "database": {
+    "files": 2,
+    "assertions": 26,
+    "status": "PASS",
+    "scope": "new Source snapshot/timing/immutability/tenant boundaries and old Sites playback regression; local migration only"
+  },
+  "apiAndCache": {
+    "tests": 20,
+    "status": "PASS",
+    "scope": "capability-specific ETag/Vary, revoked credential, strict independent Source assets, old binary cache profile pinning, immutable readback"
+  },
+  "browser": {
+    "tests": 5,
+    "status": "PASS",
+    "durationSeconds": 17.9,
+    "scope": "actual component with all real public assets verified by WebCrypto before Blob URL use; three pages, pause, unsupported CSS, font failure, passive last frame, frame receipt and page clock only after visible frame"
+  },
+  "legacyCache": "execution/evidence/sync-legacy-cache-compatibility.json",
+  "actualLocalPublication": "execution/evidence/sync-to-player.json",
+  "packageRegression": {
+    "playerUnitTests": 418,
+    "contentTemplateUnitTests": 198,
+    "status": "PASS",
+    "typecheckAndLint": "PASS for Player and content-templates; production-mode local Control/Player builds and client-secret gates PASS"
+  },
+  "limits": [
+    "not yet a complete live Source provider pipeline",
+    "actual first-frame journey is a production-mode local browser, not an installed native Player or physical device",
+    "no hosted deployment or hardware/24-hour claim"
+  ]
+}
