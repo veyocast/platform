@@ -49,16 +49,16 @@ test.describe("Vector Studio journeys", () => {
     });
   });
 
-  test("keeps the honest RSS prerequisite reachable from Studio", async ({
+  test("guards the Source RSS choice and retains the legacy RSS prerequisite", async ({
     page
   }) => {
     await page.goto("/dashboard/studio/new");
-    const newsCard = page
-      .getByRole("heading", { name: "Nieuws & RSS" })
-      .locator("xpath=ancestor::article[1]");
-    const newsLink = newsCard.getByRole("link", { name: "Openen" });
-    await expect(newsLink).toHaveAttribute("href", "/dashboard/slides/new?family=news");
-    await newsLink.click();
+    const picker = page.getByRole("dialog", {name: "Wat wil je maken?"});
+    await expect(picker).toBeVisible();
+    await expect(picker.getByRole("button", {name: /^Nieuws & RSS /})).toBeDisabled();
+    // The authenticated Source flow binds the real feed. This NoDB check keeps
+    // the legacy deeplink and its truthful provider prerequisite covered.
+    await page.goto("/dashboard/slides/new?family=news");
     await expect(page).toHaveURL(/\/dashboard\/slides\/new\?family=news$/);
     await expect(
       page.getByRole("heading", { level: 1, name: "Nieuwsslide maken" })

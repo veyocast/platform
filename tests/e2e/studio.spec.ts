@@ -25,19 +25,15 @@ test("Studio overview and creation journey use real responsive controls", async 
   await expect(navigation.getByRole("link", {name: /^Studio/}).first()).toHaveAttribute("href", "/dashboard/studio");
   await page.keyboard.press("Escape");
 
-  await expect(async () => {
-    if (/\/dashboard\/studio\/new$/.test(page.url())) return;
-    await page.getByRole("link", { name: "Nieuwe slide" }).click();
+  await page.getByRole("link", { name: "Nieuwe slide" }).click();
   await expect(page).toHaveURL(/\/dashboard\/studio\/new$/);
-  await expect(
-    page.locator("article").filter({
-      has: page.getByRole("heading", { name: "Nieuws & RSS" })
-    })
-  ).toBeVisible();
-  }).toPass({ timeout: 20_000 });
-  await page.locator("article").filter({
-    has: page.getByRole("heading", { name: "Vrij ontwerp" })
-  }).getByRole("link", { name: "Openen" }).click();
+  const picker = page.getByRole("dialog", {name: "Wat wil je maken?"});
+  await expect(picker).toBeVisible();
+  await expect(picker.locator(".vc-template-card")).toHaveCount(36);
+  await expect(picker.getByRole("button", {name: /^Vrij ontwerp /})).toBeDisabled();
+  // Exercise the retained advanced wizard directly. The Source picker correctly
+  // disallows creation without a live session; this does not simulate a click.
+  await page.goto("/dashboard/studio/new?family=free");
   await expect(page).toHaveURL(/\/dashboard\/studio\/new\?family=free$/);
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Nieuw ontwerp" })

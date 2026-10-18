@@ -16,25 +16,21 @@ test("stuurt de oude slideflow door naar de Unified Studio", async ({ page }) =>
   await expect(page).toHaveURL(/\/dashboard\/studio\/new$/, {
     timeout: 30_000
   });
-  await expect(page.getByRole("heading", { level: 1, name: "Nieuwe slide" })).toBeVisible();
-  await expect(
-    page.locator("#control-content").getByRole("link", {
-      exact: true,
-      name: "Openen"
-    })
-  ).toHaveCount(5);
-  for (const destination of [
-    "/dashboard/studio/new?family=free",
-    "/dashboard/slides/menu-studio/new",
-    "/dashboard/slides/new?family=news",
-    "/dashboard/studio/sportlink/new",
-    "/dashboard/studio/sportlink/birthdays/new"
-  ]) {
-    await expect(page.locator(`a[href="${destination}"]`)).toBeVisible();
+  const picker = page.getByRole("dialog", {name: "Wat wil je maken?"});
+  await expect(picker).toBeVisible();
+  for (const name of ["Alles", "Sport", "Kantine", "Club", "Media", "Vrij"]) {
+    await expect(picker.locator(".vc-modal-family-tabs").getByRole("button", {name, exact: true})).toBeVisible();
   }
-  await expect(
-    page.getByRole("heading", { name: "Sportlink", exact: true })
-  ).toBeVisible();
+  await expect(picker.locator(".vc-template-card")).toHaveCount(36);
+  // NoDB has no authenticated writer. The genuine Source choices stay visible
+  // while every write is denied; authenticated creation is a separate gate.
+  await expect(picker.locator(".vc-template-card:disabled")).toHaveCount(36);
+  for (const name of [/^Programma /, /^Kantinemenu /, /^Nieuws & RSS /, /^Verjaardagen /, /^YouTube /, /^Vrij ontwerp /]) {
+    await expect(picker.getByRole("button", {name})).toBeVisible();
+  }
+  await page.keyboard.press("Escape");
+  await expect(picker).not.toBeVisible();
+  await expect(page.getByRole("heading", {level: 1, name: "Nieuw ontwerp", exact: true})).toBeVisible();
   await expect(page.getByRole("heading", { name: "Dynamische slide maken" })).toHaveCount(0);
 });
 

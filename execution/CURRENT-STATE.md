@@ -1,5 +1,19 @@
 # Werkstand S226
 
+## Aanvullende CI- en rendererafsluiting
+
+CI op c26096f bevestigt foundation, database/RLS/concurrency en de echte
+upload/TUS/publicatie/first-frameketen, Android Player, native bundel en LG.
+Gekozen Sync66/66 is ook extern groen. Drie Controlasserts verwezen nog naar
+het oude vijfkaartenmenu; alle drie bestanden zijn na de feitelijke
+Source36-keuzedialoog/NoDB-guard plus behouden advanced/RSS-controles opnieuw
+volledig groen:9/9. Nieuwe CI volgt op de correctie; nog geen hosted uitrol.
+De strikte lokale historische renderercohort telt na exacte hercontrole van
+slechts drie time-outs548 unieke cases en644 frames met nul pixeldiff. De
+brede run bleef545PASS/3timeout; dat is geen ononderbroken548PASS-run.
+Zie evidence/legacy-renderer-final.json. Native Sync-documentkoppeling en
+concrete native UI/recoveryresten worden geïsoleerd in S227 aangepakt.
+
 ## Lokale releasecohort — 2026-10-18T14:00:50.161047+00:00
 
 Lint, TypeScript en unit elk30/30 groen. Verse DB/RLS128 bestanden/3.588
