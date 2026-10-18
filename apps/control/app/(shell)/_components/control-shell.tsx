@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogPortalProvider,
   DialogTitle,
   DialogTrigger,
   IconButton,
@@ -23,8 +24,15 @@ import {
   BadgeCheck,
   Building2,
   CalendarDays,
+  CreditCard,
+  LifeBuoy,
+  MessageCircle,
+  Plug,
+  ShoppingBasket,
   ChevronDown,
+  ChevronsUpDown,
   ChevronLeft,
+  ChevronRight,
   ExternalLink,
   FileImage,
   FileStack,
@@ -37,7 +45,6 @@ import {
   Menu,
   Monitor,
   MonitorSmartphone,
-  MoreHorizontal,
   PackageCheck,
   Palette,
   PanelLeftClose,
@@ -92,11 +99,18 @@ type ControlShellProps = {
 
 const navigationIcons: Record<string, LucideIcon> = {
   Account: BadgeCheck,
-  Support: ShieldCheck,
+  Support: LifeBuoy,
   Activiteit: Activity,
-  Bronnen: ServerCog,
+  Bronnen: Plug,
+  Producten: ShoppingBasket,
+  Abonnement: CreditCard,
+  Sponsors: Handshake,
+  Interactie: MessageCircle,
+  "Team & rechten": Users,
+  "Thema’s": Palette,
   Instellingen: Settings,
   Media: FileImage,
+  Content: Layers3,
   Overzicht: LayoutDashboard,
   Vandaag: Home,
   Platform: MonitorSmartphone,
@@ -118,12 +132,12 @@ const navigationIcons: Record<string, LucideIcon> = {
   Klanten: Building2
 };
 const sidebarStorageKey = "veyocast-control-sidebar-collapsed";
-const managementStorageKey = "veyocast-control-management-open";
 const previousSidebarStorageKey = `${String.fromCharCode(99, 97, 115, 116, 105, 118, 111)}-control-sidebar-collapsed`;
 const mobilePrimaryLabels = [
   "Vandaag",
+  "Content",
   "Playlists",
-  "Studio",
+  "Planning",
   "Schermen"
 ] as const;
 
@@ -138,6 +152,7 @@ export function ControlShell({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isInteractive, setInteractive] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
@@ -183,11 +198,7 @@ export function ControlShell({
   const displayUserName = visualReference ? "Danny Groen" : session.userName;
   const isImmersiveEditor = isImmersiveEditorPath(pathname);
   const shellOwnsHeading = [
-    "/dashboard",
-    "/dashboard/planning",
-    "/dashboard/playlists",
     "/dashboard/media",
-    "/dashboard/screens",
     "/dashboard/studio"
   ].includes(pathname) || (
     isImmersiveEditor && pathname.startsWith("/dashboard/studio/")
@@ -233,9 +244,6 @@ export function ControlShell({
     setSidebarCollapsed(
       (currentPreference ?? previousPreference) === "true"
     );
-    setManagementOpen(
-      window.localStorage.getItem(managementStorageKey) === "true"
-    );
     setInteractive(true);
 
     function handleShortcut(event: KeyboardEvent) {
@@ -267,6 +275,8 @@ export function ControlShell({
     firstFocusable?.focus();
 
     function handleDrawerKeyDown(event: KeyboardEvent) {
+      // A nested dialog owns its focus and Escape key until it closes.
+      if (event.defaultPrevented || (event.target instanceof HTMLElement && event.target.closest('[role="dialog"]'))) return;
       if (event.key === "Escape") {
         event.preventDefault();
         setMobileNavOpen(false);
@@ -379,13 +389,6 @@ export function ControlShell({
     }
   }
 
-  function toggleManagement() {
-    setManagementOpen((current) => {
-      const next = !current;
-      window.localStorage.setItem(managementStorageKey, String(next));
-      return next;
-    });
-  }
 
   function navigateFromCommandPalette(href: string) {
     router.push(href);
@@ -395,47 +398,43 @@ export function ControlShell({
   }
 
   const availableItems = visibleNavigationGroups.flatMap((group) => group.items);
-  const primaryLabels = ["Vandaag", "Studio", "Schermen", "Planning", "Media"];
+  const primaryLabels = ["Vandaag", "Content", "Playlists", "Planning", "Schermen"];
   const primaryNavigation = hasTenantNavigationContext
     ? primaryLabels.flatMap((label) => availableItems.filter((item) => item.label === label))
     : availableItems;
+  const syncManagePaths = ["/dashboard/sources", "/dashboard/products", "/dashboard/themes", "/dashboard/sponsors", "/dashboard/engage", "/dashboard/team", "/dashboard/support", "/dashboard/settings/billing"];
   const secondaryNavigation = hasTenantNavigationContext
-    ? availableItems.filter((item) => !primaryLabels.includes(item.label) && item.label !== "Instellingen")
-    : [];
-  const secondaryOpen = isManagementOpen || secondaryNavigation.some((item) => isActive(pathname, item));
+    ? syncManagePaths.flatMap(href => availableItems.filter(item => item.href === href)) : [];
+  const managementItems = hasTenantNavigationContext ? availableItems.filter(item => !primaryLabels.includes(item.label)) : [];
   const navigation = (items: ControlNavigationItem[]) => items.map((item) => {
-    const label = item.label === "Vandaag" ? "Overzicht" : item.label;
+    const label = ({ Vandaag: "Overzicht", "Sponsor Hub": "Sponsors", Engage: "Interactie", Team: "Team & rechten", "Thema's": "Thema’s" } as Record<string, string>)[item.label] ?? item.label;
     const Icon = navigationIcons[label] ?? LayoutDashboard;
     const active = isActive(pathname, item);
-    return <Link aria-current={active ? "page" : undefined} className={active ? "active" : undefined} href={item.href} key={item.href} onClick={() => closeMobileNavigation(false)} title={isSidebarCollapsed ? label : undefined}><Icon aria-hidden="true" /><span>{label}</span></Link>;
+    return <Link aria-current={active ? "page" : undefined} className={`nav-link${active ? " active" : ""}`} href={item.href} key={item.href} onClick={() => { closeMobileNavigation(false); setManagementOpen(false); }} title={isSidebarCollapsed ? label : undefined}><Icon size={18} strokeWidth={1.7} aria-hidden="true" /><span>{label}</span></Link>;
   });
 
   return (
+    <DialogPortalProvider container={portalContainer}>
     <Dialog onOpenChange={handleSearchOpenChange} open={isSearchOpen}>
       <ControlThemeBootstrap />
       <div
-        className={`sites-control vx-shell${isSidebarCollapsed ? " collapsed" : ""}`}
+        className={`sites-control vx-shell app-shell design-sync sync-control${isMobileNavOpen ? " nav-is-open" : ""}`}
         data-fieldflow="v3"
         data-navigation-scope={activeNavigationScope}
         data-route-family={pagePresentation.family}
         data-route-layout={pagePresentation.layout}
         data-shell-heading={shellOwnsHeading ? "true" : "false"}
         data-shell-mode={isImmersiveEditor ? "immersive" : "standard"}
+        ref={setPortalContainer}
       >
         <a className="vx-skip" href="#control-content">Naar inhoud</a>
         <button aria-label="Navigatie sluiten" className={`vx-backdrop${isMobileNavOpen ? " open" : ""}`} onClick={() => closeMobileNavigation()} type="button" />
-        <aside aria-label="Control navigatie" className={`vx-sidebar${isMobileNavOpen ? " open" : ""}`} data-scope={activeNavigationScope} id="control-sidebar-navigation" ref={sidebarRef}>
-          <div className="vx-brand">
-            <Link href={hasTenantNavigationContext ? "/dashboard" : "/platform"} onClick={() => closeMobileNavigation(false)}><Image alt="VeyoCast" height={30} priority src="/brand/veyocast-logo-monochrome-white.svg" width={119} /></Link>
+        <aside aria-label="Control navigatie" className={`vx-sidebar nav-panel${isMobileNavOpen ? " open" : ""}`} data-scope={activeNavigationScope} id="control-sidebar-navigation" ref={sidebarRef}>
+          <div className="vx-brand brand-button">
+            <Link href={hasTenantNavigationContext ? "/dashboard" : "/platform"} onClick={() => closeMobileNavigation(false)}><Image alt="VeyoCast" className="brand" height={30} priority src="/assets/full-dark.svg" width={153} /></Link>
             <button aria-controls="control-sidebar-navigation" aria-expanded={!isSidebarCollapsed} aria-label={isSidebarCollapsed ? "Navigatie uitklappen" : "Navigatie inklappen"} className="vx-collapse" disabled={!isInteractive} onClick={toggleSidebar} type="button">{isSidebarCollapsed ? <PanelLeftOpen size={21} aria-hidden="true" /> : <PanelLeftClose size={21} aria-hidden="true" />}</button>
             <button aria-label="Menu sluiten" className="demo-icon vx-mobile-close" disabled={!isInteractive} onClick={() => closeMobileNavigation()} type="button"><X aria-hidden="true" /></button>
           </div>
-          <nav aria-label="Hoofdnavigatie" className="vx-nav">
-            {navigation(primaryNavigation)}
-            {secondaryNavigation.length ? <><button aria-controls="control-secondary-navigation" aria-expanded={secondaryOpen} className="vx-more" onClick={toggleManagement} type="button"><MoreHorizontal aria-hidden="true" /><span>Meer onderdelen</span><ChevronDown aria-hidden="true" style={{ transform: secondaryOpen ? "rotate(180deg)" : undefined }} /></button>{secondaryOpen ? <div className="vx-secondary" id="control-secondary-navigation">{navigation(secondaryNavigation)}</div> : null}</> : null}
-          </nav>
-          <div className="vx-side-footer">
-            {hasTenantNavigationContext && tenantSettingsItem ? <Link aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined} className="vx-side-settings" href={tenantSettingsItem.href}><Settings size={17} aria-hidden="true" /><span>Instellingen</span></Link> : null}
           <FloatingPanel
             align="start"
             className="vx-tenant-anchor"
@@ -446,10 +445,10 @@ export function ControlShell({
             disabled={!isInteractive}
             role="group"
             trigger={
-              <><span className="vx-avatar" aria-hidden="true">{initials(displayContextName)}</span><strong>{displayContextName}</strong><ChevronDown size={15} aria-hidden="true" /></>
+              <><span className="vx-avatar workspace-avatar" aria-hidden="true">{initials(displayContextName)}</span><span><strong>{displayContextName}</strong><small>{hasTenantNavigationContext ? "Clubomgeving" : "Platformomgeving"}</small></span><ChevronsUpDown size={15} strokeWidth={1.7} aria-hidden="true" /></>
             }
             triggerAriaLabel={`Actieve context: ${displayContextName}`}
-            triggerClassName="vx-tenant"
+            triggerClassName="vx-tenant workspace-button"
             triggerTitle={isSidebarCollapsed ? displayContextName : undefined}
           >
             <>
@@ -488,23 +487,29 @@ export function ControlShell({
               </Link>
             </>
           </FloatingPanel>
+          <div className="nav-heading">WERKPLEK</div>
+          <nav aria-label="Hoofdnavigatie" className="main-nav">{navigation(primaryNavigation)}</nav>
+          {secondaryNavigation.length ? <><div className="nav-heading">BEHEREN</div><nav aria-label="Beheer" className="secondary-nav sidebar-manage">{navigation(secondaryNavigation)}</nav><Dialog open={isManagementOpen} onOpenChange={setManagementOpen}><DialogTrigger asChild><button className={`nav-link vx-more manage-trigger${managementItems.some(item=>isActive(pathname,item))?" active":""}`} type="button"><Settings2 size={18} strokeWidth={1.7} aria-hidden="true" /><span>Beheer</span><ChevronDown size={14} strokeWidth={1.7} aria-hidden="true" /></button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Beheer</DialogTitle><DialogDescription>Onderdelen die je met je huidige rol kunt openen.</DialogDescription></DialogHeader><DialogBody><nav className="secondary-nav" aria-label="Meer beheeronderdelen">{navigation(managementItems)}</nav></DialogBody></DialogContent></Dialog></> : null}
+          <div className="vx-side-footer">
+            {hasTenantNavigationContext && tenantSettingsItem ? <Link aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined} className="vx-side-settings" href={tenantSettingsItem.href}><Settings size={17} aria-hidden="true" /><span>Instellingen</span></Link> : null}
+
             <a className="vx-website" href="https://veyocast.nl"><ChevronLeft size={15} aria-hidden="true" /><span>Terug naar website</span></a>
           </div>
         </aside>
-        <main className="vx-main" ref={mainRef}>
-          <header aria-label="Control status" className="vx-header">
-            <div className="vx-title">
-              <button aria-controls="control-sidebar-navigation" aria-expanded={isMobileNavOpen} aria-label="Navigatie openen" className="demo-icon vx-menu-trigger" disabled={!isInteractive} onClick={openMobileNavigation} type="button"><Menu aria-hidden="true" /></button>
-              <div>{hasTenantNavigationContext ? <small className="vx-eyebrow">VeyoCast FieldFlow</small> : null}{shellOwnsHeading ? <h1>{pagePresentation.title}</h1> : <p className="vx-page-title">{pagePresentation.title}</p>}<p>{shellDescription}</p></div>
+        <main className="vx-main app-body" ref={mainRef}>
+          <header aria-label="Control status" className="vx-header topbar">
+            <div className="vx-title topbar-left">
+              <button aria-controls="control-sidebar-navigation" aria-expanded={isMobileNavOpen} aria-label="Navigatie openen" className="demo-icon icon-button mobile-menu vx-menu-trigger sync-topbar-icon" disabled={!isInteractive} onClick={openMobileNavigation} type="button"><Menu size={18} strokeWidth={1.7} aria-hidden="true" /></button>
+              <div className="topbar-identity"><Image alt="VeyoCast" src="/assets/full-dark.svg" width={125} height={32} /></div><div className="breadcrumb-current"><span>{hasTenantNavigationContext ? "Werkplek" : "Platform"}</span><ChevronRight aria-hidden="true" size={14} /><strong>{pagePresentation.title}</strong></div>
             </div>
-            <div className="vx-header-actions">
+            <div className="vx-header-actions topbar-actions">
               <span className="vx-health" data-tone={topbarStatusTone}><StatusDot status={topbarStatusTone} />{visualReference ? "Alles werkt" : session.isLive ? session.tenantStatus === "paused" ? "Alleen lezen" : "Vereniging actief" : "Demomodus"}</span>
-              <DialogTrigger asChild><button aria-label="Snel naar een onderdeel" aria-keyshortcuts="Control+K Meta+K" className="vx-search" disabled={!isInteractive} type="button"><Search size={17} aria-hidden="true" /><span>Zoeken</span><kbd>⌘ K</kbd></button></DialogTrigger>
+              <DialogTrigger asChild><button aria-label="Snel naar een onderdeel" aria-keyshortcuts="Control+K Meta+K" className="vx-search search-trigger" disabled={!isInteractive} type="button"><Search size={18} strokeWidth={1.7} aria-hidden="true" /><span>Zoeken of navigeren</span><kbd>⌘ K</kbd></button></DialogTrigger>
               <ControlNotificationsDialog canRead={session.isLive && hasTenantNavigationContext && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.audit.read")} tenantId={hasTenantNavigationContext ? session.tenantId : null} tenantName={displayContextName} timezoneName={session.timezoneName} />
               <AccountMenu activeScope={activeNavigationScope} displayName={displayUserName} displayRole={visualReference ? "Beheerder" : undefined} session={session} variant="topbar" />
             </div>
           </header>
-          <div className={`vx-content${pathname === "/dashboard" ? " overview" : ""}${isImmersiveEditor ? " vx-content--editor" : ""}`} id="control-content" tabIndex={-1}>{children}</div>
+          <div className={`vx-content main-content${pathname === "/dashboard" ? " overview" : ""}${isImmersiveEditor ? " vx-content--editor" : ""}`} id="control-content" tabIndex={-1}>{shellOwnsHeading ? <header className="section-header"><div><h1>{pagePresentation.title}</h1><p>{shellDescription}</p></div></header> : null}{children}</div>
         </main>
         {hasTenantNavigationContext ? <GlobalUploadTray items={uploadQueue} /> : null}
         {hasTenantNavigationContext ? <MobileBottomNav groups={visibleNavigationGroups} isInteractive={isInteractive} isMoreOpen={isMobileNavOpen} onMore={openMobileNavigation} pathname={pathname} /> : null}
@@ -581,6 +586,7 @@ export function ControlShell({
         </DialogContent>
       </div>
     </Dialog>
+    </DialogPortalProvider>
   );
 }
 
@@ -609,8 +615,8 @@ function AccountMenu({
     <Dialog>
       <DialogTrigger asChild>
         {variant === "topbar" ? (
-          <button aria-label="Accountmenu openen" className="vx-account" type="button">
-            <span className="vx-avatar" aria-hidden="true">
+          <button aria-label="Accountmenu openen" className="vx-account sync-avatar-trigger" type="button">
+            <span className="vx-avatar avatar-button" aria-hidden="true">
               {initials(triggerName)}
             </span>
             <span className="vx-account-copy">
@@ -736,7 +742,7 @@ function MobileBottomNav({
   return (
     <nav
       aria-label="Mobiele hoofdnavigatie"
-      className="vx-bottomnav"
+      className="vx-bottomnav mobile-bottom"
     >
       <ul className="vx-bottomnav-list">
         {items.map((item) => {
@@ -753,13 +759,13 @@ function MobileBottomNav({
                 className={active ? "active" : undefined}
                 href={item.href}
               >
-                <Icon aria-hidden="true" />
+                <Icon size={20} strokeWidth={1.7} aria-hidden="true" />
                 <span>{visibleLabel}</span>
               </Link>
             </li>
           );
         })}
-        <li>
+        {items.length < 5 ? <li>
           <button
             aria-controls="control-sidebar-navigation"
             aria-expanded={isMoreOpen}
@@ -772,13 +778,15 @@ function MobileBottomNav({
             <Menu aria-hidden="true" />
             <span>Meer</span>
           </button>
-        </li>
+        </li> : null}
       </ul>
     </nav>
   );
 }
 
 function isActive(pathname: string, item: ControlNavigationItem) {
+  if (item.href === "/dashboard/products") return pathname === item.href || pathname.startsWith("/dashboard/integrations/twelve-products") || pathname.startsWith("/dashboard/sources/twelve/");
+  if (item.href === "/dashboard/sources" && pathname.startsWith("/dashboard/sources/twelve/")) return false;
   if(item.href==="/dashboard/slides"&&pathname.startsWith("/dashboard/slides/menu-studio"))return false;
   if (item.href === "/dashboard" || item.href === "/platform") {
     return pathname === item.href || (item.href === "/dashboard" && pathname === "/dashboard/pilot");

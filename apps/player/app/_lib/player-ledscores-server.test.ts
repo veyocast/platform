@@ -374,6 +374,7 @@ describe("LED Scores Player server boundary", () => {
           underlayPolicy: "pause"
         }],
         deviceId: "40000000-0000-4000-8000-000000001321",
+        screenOrientation: "portrait",
         enabled: true,
         pendingDeliveries: [{
           alert_version_id: "22222222-2222-4222-8222-222222222222",
@@ -391,7 +392,7 @@ describe("LED Scores Player server boundary", () => {
     });
     const admin = {
       rpc,
-      from: vi.fn(() => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { orientation: "portrait" }, error: null }) }) }) }) })),
+      from: vi.fn(() => { throw Error("Player bootstrap cannot directly select a tenant screen"); }),
       storage: { from: vi.fn(() => ({ createSignedUrl })) }
     };
 
@@ -433,6 +434,7 @@ describe("LED Scores Player server boundary", () => {
             underlayPolicy: "pause"
           }],
           deviceId: "40000000-0000-4000-8000-000000001321",
+        screenOrientation: "portrait",
           enabled: true,
           pendingDeliveries: [],
           screenId: "30000000-0000-4000-8000-000000001321",
@@ -440,7 +442,7 @@ describe("LED Scores Player server boundary", () => {
         },
         error: null
       }),
-      from: vi.fn(() => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { orientation: "portrait" }, error: null }) }) }) }) })),
+      from: vi.fn(() => { throw Error("Player bootstrap cannot directly select a tenant screen"); }),
       storage: { from: vi.fn(() => ({ createSignedUrl })) }
     };
 

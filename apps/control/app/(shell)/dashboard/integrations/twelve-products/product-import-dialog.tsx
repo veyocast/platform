@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import {Upload} from "lucide-react";
 
 import {
   Button,
@@ -35,7 +36,7 @@ export function ProductImportDialog({ disabled = false }: { disabled?: boolean }
         return;
       }
       formRef.current?.reset();
-      router.push(`/dashboard/integrations/twelve-products/imports/${body.importId}`);
+      router.push(`/dashboard/sources/twelve/imports/${body.importId}`);
       router.refresh();
     } catch {
       setMessage(
@@ -49,7 +50,7 @@ export function ProductImportDialog({ disabled = false }: { disabled?: boolean }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={disabled}>CSV of Excel importeren</Button>
+        <Button disabled={disabled} variant="secondary"><Upload size={18}/>Twelve importeren</Button>
       </DialogTrigger>
       <DialogContent aria-describedby="product-import-description">
         <DialogHeader>

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseCaseInventory, validateCaseInventory } from "./sites-case-inventory.mjs";
 import { expectedFixturePages, verifyComparisonReadbacks } from "./verify-sites-comparison.mjs";
+import { verifySyncComparison } from "./verify-sync-comparison.mjs";
 
 const original = readFileSync("docs/sites-v11-overname/handoff/VISUAL-CASES.original.csv", "utf8");
 const current = readFileSync("docs/sites-v11-overname/inventory/VISUAL-CASES.csv", "utf8");
@@ -55,6 +56,41 @@ test("rejects claimed PASS with a failed criterion, missing case or obsolete ass
   for (const mutate of [report => { report.results[0].criteria.primaryAction.passed = false; }, report => { report.results.pop(); }, report => { report.results[0].assertionVersion = "outer-geometry-only"; }]) {
     const report = completeResponsiveReport(); mutate(report);
     assert.throws(() => verifyComparisonReadbacks("responsive", report, parseCaseInventory(original)), /complete passing criteria/u);
+  }
+});
+
+function chosenSyncReport() {
+  return {
+    schemaVersion: 1, sourceRevision: "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a", sourceFilesUnchanged: true,
+    assertionVersion: "s226-sync-responsive-v4", comparisonFingerprint: "a".repeat(64),
+    results: parseCaseInventory(original).filter(row => row.case_id.startsWith("RESP-")).map(row => ({
+      caseId: row.case_id, viewport: row.viewport, originalRoute: row.reference_route, status: "PASS",
+      criteria: Object.fromEntries(["noHorizontalOverflow", "assetsLoaded", "shellAndControlGeometry", "activeNavigation", "sourceHeadingOrder", "sourceSectionGeometry", "mobileTouchTargets", "browserErrors", "accessibility"].map(key => [key, true])),
+      unmet: [], errors: [], differences: [], headingDifferences: [], accessibility: { source: [], current: [] },
+      source: { overflow: 0 }, current: { overflow: 0, images: [{ loaded: true }], mobileTargets: [{ width: 44, height: 44 }] },
+      sourceContentAvailable: row.reference_route !== "#/dashboard/settings", scope: "Settings content parity is N_A",
+      touchCanonComparison: { scope: "Counterfactual Source hit areas; raw measurements separate", measurement: {} },
+      referenceState: { kind: "canonical-Source-EmptyState" },
+      copyComparisons: [{ selector: ".ad-demo-label", production: "Opgeslagen bronstatus", reference: "Interactieve demo · geen externe verbindingen" }]
+    }))
+  };
+}
+test("chosen Sync retains all original IDs with explicit empty/shell scope and raw accessibility", () => {
+  assert.doesNotThrow(() => verifySyncComparison(chosenSyncReport(), parseCaseInventory(original)));
+});
+test("chosen Sync rejects stale/missing cases and fabricated PASS despite raw accessibility or geometry failure", () => {
+  for (const mutate of [
+    report => { report.results.pop(); },
+    report => { report.sourceRevision = "b1cae899af19fc39908217253094c5240d7359fc"; },
+    report => { report.results[0].criteria.shellAndControlGeometry = false; },
+    report => { report.results[0].current.mobileTargets[0].width = 32; },
+    report => { report.results[0].accessibility.current = [{ id: "color-contrast" }]; },
+    report => { report.results[0].sourceContentAvailable = false; },
+    report => { delete report.results[0].touchCanonComparison; },
+    report => { report.results.find(row => row.originalRoute === "#/dashboard/sources").referenceState.kind = "original-route"; }
+  ]) {
+    const report = chosenSyncReport(); mutate(report);
+    assert.throws(() => verifySyncComparison(report, parseCaseInventory(original)), /Incomplete chosen Sync comparison/u);
   }
 });
 

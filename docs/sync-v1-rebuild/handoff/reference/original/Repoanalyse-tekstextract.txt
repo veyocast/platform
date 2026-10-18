@@ -1,0 +1,1057 @@
+ VEYOCAST / REBUILD V1 / 01
+
+
+ VeyoCast: een duidelijke V1 met behoud van
+ mogelijkheden
+
+ Repoanalyse en rebuildvoorstel
+ Peildatum: 17 oktober 2026
+ Bron: veyocast/platform, main
+ Vastgelegde commit: 20729be35d38dc8eb67b836160632ac7c3ea5153
+
+
+   Hoofdadvies
+   Bouw de beheerervaring en de samenhang opnieuw op. Behoud de devicekoppelingen, bewezen
+   playerregels, bronadapters, beveiliging en herstelkennis. V1 wordt een functioneel brede, eenduidige
+   versie: minder verschillende manieren om hetzelfde te doen, met behoud van de bestaande
+   mogelijkheden.
+
+
+ De klacht is onderbouwd door concrete codebevindingen. Het dashboard gebruikt een vaste sfeerfoto bij
+ “Nu actief”, kan oudere actieve publicaties missen en hanteert niet overal dezelfde statusdefinities als
+ de mobiele app. De Studio telt inhoud die in haar eigen lijst ontbreekt. Thema’s en geavanceerde
+ playlistopties zijn slechts gedeeltelijk bereikbaar via de huidige interface.
+
+
+    Inventaris                               Omvang op deze commit
+
+
+    Apps / gedeelde packages                 7 apps / 13 packages
+
+
+    Beheerroutes                             78 shell-pagina’s
+
+
+    Databasegeschiedenis                     167 SQL-migraties; 110 SQL-testbestanden
+
+
+    Documentatie                             288 Markdown-documenten onder docs/
+
+
+    Grote onderdelen                         LG-runtime 10.652 regels; Studio-editor 4.112; moderne Player-runtime 3.698
+
+
+ Deze aantallen zijn geen kwaliteitsmeting op zichzelf. Ze verklaren wel waarom een nieuwe visuele laag
+ alleen onvoldoende is. Domeinregels, documentatie en meerdere rendergeneraties moeten tegelijk weer
+ een duidelijke eigenaar krijgen.
+
+ Onderzoeksgrens. De actuele broncode, relevante migraties, tests, canons, recente herstelrapporten en de overdracht van 11
+ oktober zijn onderzocht. De GitHub-uitrolrun op deze SHA staat op success. De applicatie, live database en fysieke televisies zijn
+ in deze analyse niet opnieuw end-to-end getest. Een codepad of groene pipeline is geen bewijs dat iedere functie op een fysieke
+ LG werkt. Bronnen staan achterin.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                               1
+ VEYOCAST / REBUILD V1 / 02
+
+
+ Wat er concreet misgaat in het beheer
+    Bevinding                              Gevolg en V1-correctie
+
+
+    1. “Nu actief” toont een vaste         De dashboardkaart gebruikt FF-PHOTO-06, niet de actuele scherminhoud. Toon een
+    foto                                   preview van de bevestigde publicatie met tijdstip; noem dit geen live screenshot.
+                                           [R01]
+
+
+    2. Actief-overzicht kijkt naar         De overzichtquery beperkt releases tot de twintig nieuwste. Een heartbeat naar een
+    20 releases                            oudere actieve release vindt dan geen playlist. Lees de exacte actieve release-ID’s;
+                                           recente historie is een andere query. [R02]
+
+
+    3. Studio-telling en bibliotheek       Datagedreven ontwerpen tellen mee in het totaal, maar de lijst en zoekfunctie
+    verschillen                            doorzoeken alleen Studio-projecten. Het filter “Vrij ontwerp” heeft geen eigen
+                                           filtervoorwaarde. Eén volledige bibliotheek met echte typefilters. [R03]
+
+
+    4. Playlist ontbreekt in de            De desktopnavigatie zet Playlists bij secundaire items; de dashboardflow gaat van
+    hoofdroute                             Studio naar Planning naar Publiceren. Maak Playlists primair en verbind maken,
+                                           samenstellen en publiceren. [R04]
+
+
+    5. Opgeslagen opties zijn niet         Secties, crop, audio en visibility blijven behouden in minimale patches, maar de
+    bedienbaar                             huidige playlisteditor biedt die rijkere opties niet volledig aan. Herstel ze in één
+                                           paneel “Iteminstellingen”. [R05]
+
+
+    6. Thema-overzicht is geen             FieldFlow en OnzeTrots TV staan in één rij met één bewerklink; de profielquery leest
+    echte catalogus                        alleen fieldflow. Toon afzonderlijke themapakketten en versiegebonden
+                                           tenantinstellingen. [R06]
+
+
+    7. Web en mobiel tellen anders         De native cockpit noemt conceptplaylists “Publicaties gereed” zonder
+                                           publicatiegereedheid te berekenen. Online-status wordt ook verschillend afgeleid.
+                                           Eén gedeeld overzichtscontract en dezelfde terminologie. [R07]
+
+
+ Dit zijn broncodebevindingen. De gevolgen bij specifieke klantdata moeten met fixtures en vervolgens op staging worden
+ bevestigd. De vaste foto en beperkte Studio-filtering zijn rechtstreeks uit de huidige componenten af te leiden.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                           2
+ VEYOCAST / REBUILD V1 / 03
+
+
+ Ook de slide-output vraagt functioneel herstel
+ De nieuwste Sites v17-presentatielaag bevat concrete afwijkingen tussen aangeboden bediening en
+ gerenderde inhoud. Deze bevindingen zijn gecontroleerd in de routekeuze, projectie, paginaberekening
+ en renderer; ze zijn niet op een live televisie gereproduceerd. [R18]
+
+
+    Bevinding in v17               Concreet effect                                  V1-acceptatie
+
+
+    Ontwerpvelden niet             De gewone v17-route gebruikt onder meer          Iedere zichtbare instelling verandert
+    doorgegeven                    accent, tekstschaal, uitlijning, veilige marge   aantoonbaar de relevante preview en
+                                   en gekozen achtergrond niet in de                output; niet ondersteunde velden
+                                   canvasopmaak. Menuwidgets en specifieke          verdwijnen uit dat template.
+                                   LED-callers hebben eigen uitzonderingen.
+
+
+    Eén pagina, begrensde          De paginafunctie geeft voor v17 één pagina       13 jarigen, 11 sponsors, 8 vacatures en 7
+    lijsten                        terug, behalve menuPages.                        bezoekers moeten allemaal in de loop
+                                   Verjaardagen/partners nemen de eerste zes,       verschijnen. Duur houdt rekening met
+                                   vacatures drie en bezoekers het ingestelde       alle pagina’s.
+                                   beperkte aantal.
+
+
+    Nieuws blijft bij artikel 1    RSS-renderer kiest items[0]; de accordion        Minimaal zes artikelen doorlopen met
+                                   opent steeds het eerste bericht. Het normale     juiste titel, beeld, introductie en index;
+                                   v17-scrollpad betreft alleen sportlijsten.       geen verborgen laatste berichten.
+
+
+    Artikel-QR raakt los van       De nieuwsprojectie bewaart geen artikel-URL      De QR bij ieder actief artikel leidt naar
+    nieuws                         in de row; renderer gebruikt algemene qrUrl,     precies dat artikel. Geen aanwezige URL
+                                   met generieke default.                           betekent geen misleidende QR.
+
+
+    Clubbranding zit in            V17 kan bij ontbrekend logo een                  Tweede tenant zonder logo krijgt een
+    fallback                       Duindorp/OnzeTrots-asset tonen; specifieke       neutrale fallback; themadecoratie en
+                                   clubbeelden zitten in generieke                  clubidentiteit zijn afzonderlijk.
+                                   welkom-/vrije content.
+
+
+ Dit betekent niet dat elke bestaande slide onbruikbaar is. Oude renderers en speciale menu-/LED-paden
+ kunnen ander gedrag hebben. Het maakt juist duidelijk waarom “template bestaat” of “CSS is exact
+ overgenomen” geen voldoende oplevercriterium is.
+
+
+   Functionele norm voor V1
+   Iedere gekozen rij, ieder artikel en iedere zichtbare instelling krijgt een aantoonbaar effect in de
+   afspeeluitvoer. Preview, moderne Player en LG-adapter worden met dezelfde inhoud en versie
+   beoordeeld.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                          3
+ VEYOCAST / REBUILD V1 / 04
+
+
+ De structurele oorzaak en de waarde die blijft
+ Er zijn meerdere productgeneraties over elkaar heen gebouwd
+ De repo bevat de oorspronkelijke Publisher, FieldFlow, de eerdere theme engine, Sites v11 en Sites v17,
+ algemene Studio, Sportlink-wizards en Menu Studio. Een deel is zinvolle compatibiliteit voor bestaande
+ publicaties; een ander deel is achtergebleven beheercomplexiteit. De oude Publisher-editor bestaat nog,
+ terwijl de actuele route al één Sites-editor gebruikt. De Studio heeft nog een afzonderlijk geavanceerd
+ overzicht. [R03, R05, R08]
+
+ Documentatie geeft geen enkel actueel productbeeld
+ De oude MVP-scope noemt één desktop-PWA als pilotdoel. De technische canon noemt onder meer
+ webOS en volledige integraties buiten de oorspronkelijke MVP, terwijl de huidige code LG, Android,
+ Sportlink en schermcomposities bevat. Latere scoped wijzigingen verklaren veel, maar een bouwer moet
+ de huidige waarheid uit een lange wijzigingsketen reconstrueren. Publiceer één V1-canon en markeer
+ oudere productrichtlijnen als historisch; behoud technische incidentkennis. [R08, R09]
+
+ De problemen gaan ook over betrouwbaarheid
+ Het herstelrapport van 13 oktober beschrijft een eerdere databaseoverbelasting door onder meer
+ herhaalde opslagwrites, telemetry/pruning en ontbrekende toegangspaden. Dit is historische,
+ gedocumenteerde productie-evidence, geen actuele meting in deze audit. De daaropvolgende
+ bescherming en schone cutover mogen niet worden vervangen door opnieuw onbeperkt loggen of
+ steeds nieuwe releases genereren. [R10]
+
+ Op 16 oktober was bij de LG een terminale videoweigering geregistreerd. Een nieuwe, al geverifieerde
+ afbeelding wachtte vervolgens op een itemgrens die door de videofout niet meer kwam. De actuele
+ commit herstelt die vastloper; de precieze fysieke videoweigering is daarmee niet bewezen opgelost.
+ [R11]
+
+
+    Behouden                                              Waarom
+
+
+    Deviceauth, pairing en recovery                       Dit is opgebouwd rond echte installaties, apparaatidentiteit en
+                                                          herinstallatie.
+
+
+    Offlinecache en geverifieerde activatie               Een dashboardrebuild mag nooit werkende lokale playback afbreken.
+
+
+    Immutable publicaties en onafhankelijke               Ontwerp wijzigen, gegevens verversen en software uitrollen zijn
+    live data                                             verschillende gebeurtenissen.
+
+
+    RLS, capabilities, MFA en audit                       Tenant- en platformrechten zijn al als fundamentele grenzen ingericht.
+
+
+    Regressietests, CI en hardware-incidenten             Behoud het bewijs voor moeilijke fouten; verbeter vooral de complete
+                                                          gebruikersjourneys.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                            4
+ VEYOCAST / REBUILD V1 / 05
+
+
+ V1-productstructuur: één ingang per taak
+ Mijn voorstel is een V1 met functiebehoud. Een kleine technische MVP die alleen foto’s en video’s
+ afspeelt past niet bij jouw vraag. De beperking zit in consistente workflows, een beperkt aantal goed
+ uitgewerkte thema’s en duidelijke apparaatprofielen.
+
+
+    Hoofdmenu                     Inhoud
+
+
+    Overzicht                     Wat speelt waar, welke updates wachten, welke bron of verwerking faalt, wat staat vandaag
+                                  gepland.
+
+
+    Content                       Eén bibliotheek voor media, ontwerpen, dynamische slides en reeksen; Studio als
+                                  maak-/bewerkactie.
+
+
+    Playlists                     Samenstellen, volgorde, duur, secties, iteminstellingen, preview en publiceren.
+
+
+    Planning                      Agenda, herhaling, tijdvakken, prioriteit, conflictcontrole en terugval naar de
+                                  standaardplaylist.
+
+
+    Schermen                      Devices koppelen, groepen, fysieke locaties, schermindelingen, status en herstel.
+
+
+    Beheer                        Bronnen, thema’s, producten, sponsors, interactie, team, rollen en instellingen.
+                                  Platformbeheer blijft een eigen context.
+
+
+
+
+ Drie dagelijkse routes
+ • Iets op de televisie zetten: Content maken of uploaden → aan playlist toevoegen → voorbeeld
+ controleren → doel en moment kiezen → publiceren → schermbevestiging zien.
+
+ • Automatische clubinformatie: bron koppelen → dataset en teams kiezen → inhoudstype en thema
+ kiezen → opslaan → playlist gebruiken. Nieuwe brondata verversen binnen de gepubliceerde selectie.
+
+ • Een probleem oplossen: Overzicht toont oorzaak en gevolg → scherm- of brondetail toont actuele
+ status → één passende herstelactie → resultaat apart bevestigd.
+
+ Dashboard dat antwoord geeft
+ Bovenaan staan problemen die aandacht vragen. Daarna volgt een schermlijst met bereikbaarheid,
+ bevestigd afspelende publicatie, gewenste publicatie, laatste contact en bronversheid. “Online”,
+ “gedownload”, “actief bevestigd” en “beeld gecontroleerd” betekenen verschillende dingen. Een
+ apparaat kan online zijn terwijl zijn beeld vaststaat. Een scherm zonder recente telemetry krijgt “status
+ onbekend”.
+
+ Publicatiehistorie blijft bereikbaar vanuit een playlist of scherm. Dat is waardevol voor diagnose, maar
+ geen extra verplicht station in iedere dagelijkse handeling. Op mobiel blijft dezelfde taakvolgorde
+ behouden met opeenvolgende schermen en één duidelijk actiepaneel.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                   5
+ VEYOCAST / REBUILD V1 / 06
+
+
+ Functiebehoud: content, publicatie en
+ schermen
+ Onderstaande scope hoort in de complete V1. “Aanwezig” betekent hier aantoonbare broncode, geen
+ nieuwe live-certificering.
+
+
+    Onderdeel                        V1 bevat
+
+
+    Media                            Bestaande toegestane beeld- en videoformaten, hervatbare uploads, verwerking, echte
+                                     foutstatus, opnieuw verwerken, thumbnails, gebruiksimpact en veilig
+                                     archiveren/verwijderen.
+
+
+    Ontwerpen / Studio               Bestaande vrije ontwerpen en templates, tekst/beeld/branding, 16:9 en 9:16, reeksen,
+                                     bewaren/heropenen, revisieconflicten, undo/redo waar ondersteund en consistente
+                                     previews.
+
+
+    Dynamische slides                Sportlink, RSS, menu’s/producten, LED Scores, clubcontent en sponsorweergaven in
+                                     dezelfde contentbibliotheek; bronselectie blijft apart van opmaak.
+
+
+    Playlisteditor                   Gemengde selectie, herordenen, kopiëren, bulkduur en bulkthema, secties, crop/fit,
+                                     trim/audio, zichtbaarheid en expliciet bijwerken naar een nieuwe ontwerpversie.
+
+
+    Publiceren                       Concept versus gepubliceerde versie, readiness en apparaatcompatibiliteit, gekozen
+                                     schermen/groepen, betrouwbare voortgang, opnieuw toewijzen en herstellen naar
+                                     concept.
+
+
+    Planning                         Eenmalig en herhalend, lokale tijdzone, begin/einde, prioriteiten, overlapcontrole,
+                                     scherm-/groeptargets en herstel van defaultcontent na afloop.
+
+
+    Schermbeheer                     Pairing, groepen/locaties, opslag/runtime, status en herstel. Ook bedrijfstijden,
+                                     weekvensters, datumuitzonderingen, tijdzone en tijdelijke overrides; power/sleep/wake
+                                     uitsluitend waar het apparaat dit ondersteunt.
+
+
+    Schermindelingen                 De aanwezige indelingen full/sidebar/bottom/three behouden, met eigen playlists per
+                                     zone en correcte audio-/fallbackregels. Geen nieuwe vrije layoutdesigner nodig.
+
+
+    Fysieke locaties                 Bestaande venue-zones en plattegrondfuncties behouden onder Schermen; duidelijk
+                                     onderscheiden van contentzones binnen één televisie.
+
+
+    Platform en mobiel               Tenantbeheer, limieten, uitnodigingen, rollen, audit/support, bestaande native
+                                     beheerapp en compatibele API’s blijven onderdeel van de productgrens.
+
+
+ Een functie die nog in de database bestaat maar nergens bedienbaar is, telt niet als behouden. De nieuwe V1 moet de volledige
+ handeling afmaken: maken, bewaren, heropenen, publiceren, afspelen en herstellen. [R05, R09, R12]
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                          6
+ VEYOCAST / REBUILD V1 / 07
+
+
+ Bestaande aanvullende modules blijven
+ onderdeel van V1
+ Deze modules hoeven het dagelijks dashboard niet te domineren. Ze mogen evenmin stil verdwijnen
+ omdat de eerste MVP-documentatie ze ooit uitsloot. Behoud hun code, data en bedienbare scope;
+ activeer omgevingsafhankelijke functies pas na hun eigen bewijs. [R19-R21]
+
+
+    Module                         V1-bestemming en maturiteit
+
+
+    Sponsors                       Sponsorrecords, campagnes, periode/gewicht, creatives, posities, goedkeuring, publicatie
+                                   en technische afspeelregistratie. Proof-of-play zegt dat een apparaat content meldde; het
+                                   is geen gemeten publieksbereik.
+
+
+    Sponsor-CRM                    De actuele pipeline/takenweergave behouden. In de onderzochte Sponsor-actions is geen
+                                   volledige CRM-bewerkflow gevonden; een compleet verkoop-CRM is dus aanvullende
+                                   scope, geen bewezen huidige capability.
+
+
+    Publieksinteractie             Engage-polls en man/vrouw van de wedstrijd, QR, stemmen, periode, resultatenbeleid,
+                                   starten/sluiten/archiveren. Bestaande tenantflag en stem-, lifecycle- en autorisatiegrenzen
+                                   behouden.
+
+
+    Native beheer                  Cockpit, uploadqueue/camera, schermen/pairing, playlist- en Studiofuncties, biometrie,
+                                   notificatievoorkeuren en bestaande API v1/v2. Geen Store- of fysieke acceptatieclaim
+                                   vanuit deze audit.
+
+
+    Platformbeheer                 Tenantlifecycle, limieten, uitnodigingen, custom rollen, aparte platformrollen, features en
+                                   centrale templateversies/publicatie. Een aparte context houdt dagelijkse clubtaken
+                                   overzichtelijk.
+
+
+    Support                        Tickets, berichten, status, attachments en platformtoewijzingen/afdelingen. Behouden
+                                   onder Help/Beheer.
+
+
+    Abonnement / Mollie            Echte Customer/Payment/recurring-/webhook-/reconciliationcode bestaat. Behouden
+                                   achter bestaande rolloutflags; testbetaling en externe readback zijn vereist voordat
+                                   inning/toegangsbeperking aangaan.
+
+
+    Marketing                      Bestaande publieke pagina’s, configurator en setup-intent behouden. Contact/demo is nu
+                                   geen werkende aanvraagflow: geldige invoer eindigt expliciet unavailable en wordt niet
+                                   opgeslagen/verzonden. Dit afmaken vóór V1 als publiek product wordt aangeboden.
+
+
+
+
+ Wat wél later kan
+ Nieuwe integratieproviders, een live Twelve-API boven op de bestaande import, een openbare
+ themamarktplaats, onbeperkte eigen scripts/layouts en een nieuw advertentienetwerk. Dit zijn
+ uitbreidingen. De huidige vier schermindelingen, sponsorpublicatie, YouTube-playlists en Engage zijn dat
+ niet.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                          7
+ VEYOCAST / REBUILD V1 / 08
+
+
+ Bronnen: eerlijk onderscheid tussen type en
+ werking
+    Bron                Aangetroffen situatie                           V1-afspraak
+
+
+    Sportlink           17 slidefamilies en een uitgebreide             Per familie vastleggen: benodigde dataset,
+                        artikelregistry. De huidige worker heeft niet   werkelijke providerrechten, syncpad, status, lege
+                        voor iedere registry-dataset een fetchpad.      toestand en fallback.
+
+
+    Twelve              Excel/CSV-import en handmatige                  Import preview, kolommapping, foutregels,
+                        productcatalogus; geen live                     productidentiteit, prijzen en menu’s volwaardig
+                        Twelve-API-adapter aangetroffen.                leveren. Een API is een aparte uitbreiding.
+
+
+    RSS                 Serververwerking en opgeslagen                  Meerdere feeds, selectie en limieten, foto’s/QR waar
+                        nieuwsdata, gekoppeld aan dynamische            beschikbaar, laatste succes en behoud van laatst
+                        slides.                                         geldige data bij fout.
+
+
+    LED Scores          Realtime score/events en goalintro’s achter     Bronstatus en eventleeftijd zichtbaar, juiste eigen
+                        tenantvrijgave. Actieve verbinding en           team, events ontdubbelen, pauze/hervatten en
+                        productiegedrag niet vastgesteld.               stale events overslaan.
+
+
+    YouTube             Video- én playlistpaden zijn inmiddels          Officiële online playback en lokale fallback;
+                        aanwezig.                                       beperkingen vooraf tonen. Geen
+                                                                        offline-video-belofte.
+
+
+    Sponsors /          Sponsorcampagnes en interactie zijn meer        Bestaande functies behouden onder Beheer met
+    Engage              dan slideplaatjes; onderdelen hebben eigen      dezelfde content-/publicatieketen; geen verborgen
+                        workflows en flags.                             tweede systeem.
+
+
+
+
+ De 17 Sportlink-families blijven in de functiematrix
+ Programma, uitslagen, stand, periodestand, wedstrijd van de dag, volgende wedstrijd, afgelastingen,
+ kleedkamers, officials, teaminformatie, sponsors, clubactiviteiten, trainingen, vrijwilligers, verjaardagen,
+ bezoekende teams en scheidsrechters. Dit zijn authoringmogelijkheden; de aanwezigheid van een
+ template is geen bewijs dat de bijbehorende live data geleverd worden. [R13]
+
+ De huidige worker behandelt clubprofiel, teams, wedstrijden, wedstrijddetails, activiteiten, publieke
+ personen/verjaardagen en competitiestanden. Andere datasetgroepen eindigen in
+ SPORTLINK_DATASET_DISABLED. Trainingen, vrijwilligers, teamsponsors en periodestanden vragen een
+ aparte innamecontrole. Teammetadata of historische publieke-personendata kunnen wel inhoud
+ leveren; dat bewijst geen actuele artikelinname. [R14]
+
+ Voor V1: werk ontbrekende fetch- en normalisatiepaden af waar de provider toegang biedt. Waar
+ gegevens niet geleverd worden, toon dat vooraf en bied uitsluitend een duidelijk gemarkeerde
+ handmatige bron als die zinvol is. Presenteer deze gevallen niet als gereedstaande automatische
+ koppeling.
+
+ Prijzen: de bestaande menu’s bewaren productsnapshots. Een cataloguswijziging is dus niet vanzelf
+ een gewijzigde prijs op de televisie. Mijn V1-default is een expliciete actie “Prijzen bijwerken”, met
+ preview van getroffen menu’s en publicatie. Automatisch actuele catalogusprijzen volgen kan later als
+ expliciete opt-in; maak dat niet onbedoeld het migratiegedrag. [R22]
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                       8
+ VEYOCAST / REBUILD V1 / 09
+
+
+ Thema’s en Studio: uitbreidbaar zonder nieuwe
+ wirwar
+ Drie zaken krijgen een afzonderlijke verantwoordelijkheid
+
+    Laag                      Bevat                                              Verandert niet
+
+
+    Inhoudstype               Programma, stand, nieuws, prijslijst, welkom,      Welke inhoud de gebruiker bewerkt.
+                              sponsor, vrij ontwerp.
+
+
+    Bronbinding               Teams/poule, feed, productselectie, wedstrijd of   De betekenis van de gegevens bij een
+                              handmatige invoer.                                 themawissel.
+
+
+    Themapakket               Layoutvarianten, kleurrollen, fonts,               De bron, gegevensidentiteit en bestaande
+                              achtergrond, decoratie en motion.                  gepubliceerde versie.
+
+
+ V1 levert twee complete families: FieldFlow en OnzeTrots TV. Iedere ondersteunde inhoudsfamilie
+ krijgt een geteste landscape- én portraituitvoering. Light/dark of wit/blauw zijn expliciete varianten van
+ hetzelfde pakket. Historische thema’s blijven decodeerbaar voor nog gebruikte oude publicaties; ze
+ hoeven niet allemaal terug in de nieuwe keuzelijst.
+
+ Een nieuw thema is een geregistreerd pakket
+ • Een stabiele ID en versie; ondersteunde slidefamilies, oriëntaties, motion- en apparaatprofielen.
+
+ • Lokale fonts en assets met vaste identiteit; veilige defaults; leesbaarheid en lange-inhoudgevallen.
+
+ • Een gedeeld inhoudscontract voor preview en playback, met een gecontroleerde
+ LG-compatibiliteitsuitvoer of geverifieerde posterfallback.
+
+ • Publicatievalidatie blokkeert combinaties die niet ondersteund worden. Een nieuw thema wordt
+ toegevoegd zonder een nieuwe Sportlink-, menu- of RSS-editor te bouwen.
+
+ Voorgestelde voorrang en versiegedrag
+ Plaatsingsoverride → playliststandaard → ontwerpstandaard → tenantstandaard → platformfallback. Deze
+ voorrang wordt bij publicatie opgelost en bevroren. Een bulkthemawijziging verandert de gekozen
+ plaatsingen, niet ongemerkt een gedeeld bronontwerp in andere playlists. Een nieuw
+ themaversienummer verandert bestaande schermen pas na een bewuste publicatie.
+
+ De huidige renderer/source-identiteiten v11 en v17 blijven tijdens migratie leesbaar. Gedeelde
+ broncomponenten zijn nuttig, maar gelijke CSS-bytes bewijzen nog geen gelijke pixels op oude
+ LG-engines. Test inhoud, fontload, clipping, paging en daadwerkelijke zichtbaarheid. [R06, R08, R15]
+
+
+   V1-grens
+   Een beheerder kan goedgekeurde thema’s kiezen en toegestane clubinstellingen aanpassen. Een
+   onbeperkte visuele themabouwer met eigen JavaScript/CSS of een marketplace is geen vereiste om
+   meerdere thema’s te ondersteunen.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                     9
+ VEYOCAST / REBUILD V1 / 10
+
+
+ Android en LG: kennis en koppelingen
+ beschermen
+    Target                      Huidige kennis                             V1-besluit
+
+
+    Web/PWA                     Hosted Player, deviceauth, geverifieerde   Behouden als gedeelde functionele basis;
+                                cache en veilige publicatiewissel.         protocol en cachegedrag versioneren.
+
+
+    Android / TV                Kotlin WebView-host; normale en            Behoud app-ID, signingcontinuïteit, origin
+                                TV-launchers, remote/touch, herstel en     en recoverycontract. Geen tweede
+                                native installatie-identiteit.             onafhankelijke player bouwen.
+
+
+    LG webOS / Signage          Eigen legacy HTML/ES5-route plus           Aparte adapter en ondersteund
+                                IPK-wrapper; oude CSS-/mediagedragingen    model-/firmwareprofiel. Geen generieke
+                                vereisen specifieke code.                  “werkt op alle LG’s”-claim.
+
+
+    Native beheerapp            React Native/Expo en eigen v1/v2           Afzonderlijk van Android Player
+                                beheers-API’s.                             behandelen; API-compatibiliteit en
+                                                                           noodzakelijke bedieningen behouden.
+
+
+
+
+ Bij de eerste rebuild blijven deze identiteiten stabiel
+ App package en signing, vertrouwde Player-origin, device- en schermidentiteit, recoverycookiecontract,
+ lokale opslag-/cachenamespaces en leesbaarheid van actieve publicaties. Een wijziging krijgt een
+ expliciete migratie met terugval; “schone code” mag niet onbedoeld opnieuw koppelen of lokale media
+ verliezen betekenen. [R16]
+
+ LG-kennis die als regressieproef moet blijven bestaan
+ • Geen afhankelijkheid van moderne CSS zoals aspect-ratio of inset voor een zichtbaar basiscanvas;
+ expliciete native maten en proportionele schaling.
+
+ • Controleer bruikbare framematen en zichtbare inhoud vóór bevestiging; een heartbeat of twee
+ animation frames alleen zijn onvoldoende.
+
+ • Behoud geverifieerde Blob-/lokale-cacheroutes, Range-requestgedrag en onderscheid tussen
+ cachefout, transportfout en decoderweigering.
+
+ • Herstel een terminale video zonder eindeloze wacht op een verdwenen itemtimer; een gezonde video
+ en goal-overlay houden hun natuurlijke overgang.
+
+ • Bewaar de vorige goede publicatie en start daarmee offline op. Een force-sync wist geen cache of
+ apparaatkoppeling. [R11, R15, R16]
+
+ Historisch apparaatprofiel: de repo noemt LG 43UL3J-EP, webOS Signage 6.0 en firmware 03.24.90.
+ Bevestig eerst dat dit nog het actuele model-/firmwareprofiel is. [R16]
+
+ Open fysiek bewijs: de recente LG-media code 4 en het effect van de laatste herstelpatch moeten op
+ het gebruikte model en firmware worden bevestigd. Leg langdurig afspelen, herstart, netwerkverlies en
+ mediawissels vast. Een browserproef op een oude Chromium-engine blijft een andere bewijsvorm dan de
+ echte televisie.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                 10
+ VEYOCAST / REBUILD V1 / 11
+
+
+ Publiceren, live data en planning uit elkaar
+ houden
+ Dit is een van de sterkste bestaande ontwerpkeuzes en moet de basis van V1 blijven. Een bronupdate
+ mag geen lawine aan nieuwe ontwerpen, playlists of releases veroorzaken. [R17]
+
+
+    Gebeurtenis                    Wat verandert                                   Wat gelijk blijft
+
+
+    Tekst/layout bewust            Conceptrevisie; na publiceren een nieuwe        Bestaande actieve publicatie tot de
+    aangepast                      immutable configuratie.                         nieuwe kandidaat veilig klaarstaat.
+
+
+    Sportlink/RSS                  Datarevisie binnen de gepubliceerde             Ontwerpversie, playlistvolgorde en
+    vernieuwd                      bronselectie, alleen bij werkelijk gewijzigde   afspeeltimer.
+                                   inhoud.
+
+
+    Andere playlist gepland        Effectieve schermopdracht met eigen             Ongewijzigde media- en
+                                   volgorde/revisie.                               configuratiebytes.
+
+
+    Nieuwe software                Runtimeversie en eventueel compatibele          Gepubliceerde inhoud en lokale fallback.
+    uitgerold                      adapter.
+
+
+    Doelpunt ontvangen             Kortlevend event met gepubliceerde              Onderliggende publicatie; hervatten op de
+                                   overlay en geldige targets.                     juiste plek.
+
+
+
+
+ Publicatiestatus die een beheerder begrijpt
+ Concept → gecontroleerd → gepubliceerd → ophalen → verifiëren → wachten op veilige
+ overgang → actief bevestigd. Daarbij staat welk scherm achterloopt en waarom. Een serverpublicatie
+ betekent dat het doel is vastgelegd; pas het apparaat kan melden dat het die versie zichtbaar heeft
+ geactiveerd. Een menselijke beeldcontrole kan dit aanvullend bevestigen.
+
+ Planning heeft één beslisregel
+ Leg volgorde en prioriteit vast tussen standaardplaylist, geplande uitzondering, sponsorplaatsing en
+ tijdelijke overlay. Een gewone nieuwe publicatie mag een lopende planning niet uitschakelen. Bij afloop
+ keert het scherm voorspelbaar terug naar zijn default. Schermgroepen en individuele uitzonderingen
+ krijgen een expliciete conflictuitkomst.
+
+ Gebruik de tenanttijdzone voor dagen en tijdvakken; test zomer-/wintertijd, doordeweekse herhaling en
+ een scherm dat tijdens een overgang offline is. Voor schermcomposities heeft iedere zone een
+ publicatiebinding en lokale fallback, terwijl de hele nieuwe compositie pas compleet en gevalideerd
+ actief wordt.
+
+ Behoud de huidige compositiesemantiek expliciet: planning wisselt de hoofdzone; zij- en onderzone
+ blijven gekoppeld. LED- en sponsorlagen zijn schermbreed. Normaal geluid komt alleen uit de hoofdzone
+ en alleen als het apparaatprofiel het ondersteunt. LG-video is in het huidige gewone videopad muted;
+ dat is een te behouden of expliciet te wijzigen platformverschil.
+
+ Bewaren en opruimen
+ Oude versies mogen pas weg wanneer geen actieve, gewenste, geplande, rollback- of
+ offlinebeschermde verwijzing ze nodig heeft. Begrens de opruimbatches en houd een dry-run
+ beschikbaar. De actieve configuratie en de laatst goede lokale content zijn geen wegwerpbare cache.
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                       11
+ VEYOCAST / REBUILD V1 / 12
+
+
+ Technische rebuild: heldere grenzen,
+ bestaande basis
+ Een frameworkwissel is niet de hoofdoplossing. De repo heeft al Next.js App Router, TypeScript, React,
+ pnpm, Supabase en aparte native apps. Houd die basis voorlopig vast; koppel een eventuele
+ versie-upgrade aan een afzonderlijke compatibiliteitstaak.
+
+
+    Onderdeel                                Verantwoordelijkheid in V1
+
+
+    Control-web en native beheer             Presentatie en taakbediening; dezelfde getypeerde services, capabilitychecks en
+                                             statusdefinities.
+
+
+    Content- en publicatiedomein             Contentidentiteit, conceptrevisies, plaatsingen, planning, immutable publicaties
+                                             en targetselectie.
+
+
+    Bronverwerking                           Provideradapters, normalisatie, caching en freshness. Sportlink/RSS/LED via de
+                                             server; officiële online YouTube-playback blijft een expliciete uitzondering.
+
+
+    Media-/renderwerkers                     Begrensde uploadverwerking en compatibiliteitsrenders. Zwaar renderwerk
+                                             blokkeert geen live score of eenvoudige sync.
+
+
+    Renderer en themaregistry                Eén inhoudscontract en vaste themaversie; gedeelde semantiek,
+                                             platformgeschikte uitvoer.
+
+
+    Player met platformadapters              Sync, verificatie, activatie, local-first playback, telemetry en herstel; LG- en
+                                             Androidkennis expliciet geïsoleerd.
+
+
+    Database en beveiliging                  Tenantgrenzen, transactionele mutaties, revisiecontrole, idempotentie, audit en
+                                             referentie-veilige retentie.
+
+
+
+
+ Eén logisch contentmodel, niet per se één grote tabel
+ De gebruiker ziet één contentitem met type, titel, concept, bronbinding en weergave. Onderliggend
+ mogen media, Studio-documenten en dynamische ontwerpen verschillende gespecialiseerde opslag
+ hebben. Een kleine applicatielaag verenigt zoeken, thumbnails, gebruik en publiceerbaarheid. Zo kan de
+ nieuwe UI landen zonder eerst iedere historische tabel te vervangen.
+
+ Gericht hergebruiken en vervangen
+ Hergebruiken: deviceprotocol, bronnormalisatie waar werkend, mediavalidatie,
+ release-/cachegaranties, rechten en herstelproeven. Opnieuw organiseren: dashboardqueries,
+ navigatie, contentbibliotheek, editorcompositie, thema-instellingen en mobiele projecties. Later
+ verwijderen: ongebruikte oude UI pas na import-/routecontrole; oude renderdecoders pas wanneer
+ geen gebruikte publicatie ze nodig heeft.
+
+ Nieuwe code krijgt kleine modules en duidelijke verantwoordelijkheden; splits de grote bestanden langs
+ concrete grenzen zoals sync, local cache, video, zones en overlays. Dit hoeft geen
+ microservicesprogramma te worden. Een modulaire codebasis met afzonderlijke workercapaciteit is
+ voldoende.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                         12
+ VEYOCAST / REBUILD V1 / 13
+
+
+ Migratie en uitvoering zonder opnieuw kennis
+ te verliezen
+    Fase                Resultaat                                         Voorwaarde om verder te gaan
+
+
+    0. V1               Functiematrix, bronmaturiteit,                    Elke huidige mogelijkheid heeft een eigenaar
+    vastleggen          hardwareprofielen, actuele canon en concrete      en V1-bestemming; oude canonconflicten zijn
+                        schermflows.                                      gemarkeerd.
+
+
+    1. Veilige          Staging met representatieve data; inventaris      Backup/herstelplan en baseline-tests; geen
+    basislijn           van schermen, koppelingen, actieve releases en    productie-reset als standaardstap.
+                        thema’s.
+
+
+    2. Eén              Media + één dynamisch ontwerp via nieuwe          Bewaren/heropenen, publiceren, offline starten
+    complete            bibliotheek/playlist naar web, Android en LG.     en herstellen werken als één journey.
+    keten
+
+
+    3. Alle             Overige bronnen, menu, thema’s, LED, zones,       Pariteitsmatrix sluit per functie; geen verborgen
+    bestaande           sponsor/interactie, mobiel en platformfuncties.   oude editor nodig voor normale bediening.
+    capabilities
+
+
+    4. Stabiliteit      Meetbaar dashboard, bronfouten, racecondities,    Afgesproken apparaatmatrix en werkelijke
+    en pilot            langdurige playback en fysieke tests.             bevestigingen groen.
+
+
+    5.                  Eerst één schermgroep/tenant, dan                 Data-/devicekoppeling intact, rollback
+    Gefaseerde i        gecontroleerd uitbreiden; oude weergave           geoefend, geen blokkerende verschillen.
+    ngebruiknam         tijdelijk als terugval.
+    e
+
+
+
+
+ Datamigratie is een afzonderlijke afspraak
+ De vorige schone database-cutover was een expliciete keuze voor die situatie. Dit voorstel veronderstelt
+ geen nieuwe toestemming om content, media, accounts of koppelingen te verwijderen. Start bij
+ voorkeur op de huidige opslag achter nieuwe services, nadat de baseline gezond is bevonden. Als een
+ nieuwe database later nodig is, eerst identiteitmapping, checksumcontrole, proefmigratie, vergelijking
+ en rollback bepalen. [R10]
+
+ Geen langdurige dubbele waarheid
+ Laat tijdens migratie één systeem de records schrijven. De nieuwe UI leest en schrijft via een adapter
+ naar dezelfde canonieke services. Bij een latere opslagverhuizing geldt een korte gecontroleerde
+ omschakeling; langdurige ongedefinieerde dubbele writes leveren opnieuw afwijkingen op.
+
+ Volgorde van investering
+ Begin met de juiste begrippen, dashboardstatus en één volledige publicatieketen. Maak daarna alle
+ functies af in dezelfde structuur. Een nieuw premium dashboard dat nog steeds verkeerde data toont is
+ geen afgeronde fase. Een betrouwbare doorlooptijd kan pas worden bepaald na de functie- en
+ hardwarebaseline; een volledige pariteitsrebuild is geen kleine cosmetische sprint.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                  13
+ VEYOCAST / REBUILD V1 / 14
+
+
+ V1-acceptatie: wat aantoonbaar moet werken
+    Gebied                     Concrete opleverproef
+
+
+    Dashboard                  Een oude nog actieve release buiten de laatste 20 verschijnt correct. Ontbrekende telemetry
+                               toont onbekend; geen stockbeeld als bewijs van actuele content.
+
+
+    Bibliotheek                Media, Studio, menu en Sportlink staan in dezelfde zoekbare lijst; totaal, filters en
+                               resultaatverzameling stemmen overeen.
+
+
+    Opslaan                    Concept bewaren, herladen en op tweede apparaat openen geeft dezelfde waarden. Twee
+                               editors krijgen een expliciet revisieconflict.
+
+
+    Playlist                   Gemengde selectie, reeksen, bulkduur/thema, secties, crop/trim/audio en zichtbaarheid blijven
+                               bedienbaar én opgeslagen.
+
+
+    Publicatie                 Alleen complete geverifieerde media activeren. Downloadfout, corrupte bytes of stale target
+                               laat de laatst goede versie spelen.
+
+
+    Live data                  Gewijzigde brondata verschijnen zonder nieuwe playlistrelease; identieke bronrespons
+                               veroorzaakt geen nieuwe versie of onnodige assetwrite.
+
+
+    Sportlink                  Per aangeboden familie een echte geldige dataset, een lege feed en een fout/ontbrekend
+                               recht testen; geen verzonnen scores of statistieken.
+
+
+    Menu / Twelve              Import met fouten, wijzigende prijzen, categorieën, lange productnamen, beide oriëntaties en
+                               heropenen zijn gecontroleerd.
+
+
+    Thema’s en paging          Alle families in beide V1-thema’s/formaat; alle rijen zichtbaar, RSS roteert met artikel-QR,
+                               ieder instelveld werkt; tweede tenant toont geen andere clubbranding.
+
+
+    Schermzones                Full/sidebar/bottom/three, meerdere playlists, video/audio, overlay en atomische activatie met
+                               offline herstart.
+
+
+    Planning                   Groep versus individueel, herhaling, DST, verlopen uitzondering en terugval naar default;
+                               publiceren breekt geen lopend tijdvak.
+
+
+    Deviceherstel              Android-update/herinstallatie volgens bestaand recoverycontract; LG-fout gevolgd door
+                               nieuwe geldige release; force-sync behoudt pairing en cache.
+
+
+    Beveiliging                Tenant A kan geen B-data lezen/schrijven; viewer kan niet muteren; publiceren en
+                               platformacties vereisen hun eigen rechten.
+
+
+    Fysieke pilot              Web + gekozen Android + exacte LG model/firmware; minimaal 24 uur gemengde playback,
+                               netwerkonderbreking, reboot en doelpuntinterventie.
+
+
+ Bevestig resultaten per codeversie, apparaat en dataset. Bestaande browser-/RLS-regressies blijven; voeg de complete journeys
+ toe waar de huidige tests een losse stap toetsen. Een overgeslagen hardwareproef wordt niet als geslaagd geteld.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                       14
+ VEYOCAST / REBUILD V1 / 15
+
+
+ Aanvullende acceptatie en vast te leggen
+ keuzes
+    Onderdeel                      Vereist resultaat
+
+
+    Schermautomatisering           Weekvensters en uitzonderingen volgen de juiste tijdzone. Een tijdelijk aan/uit-verzoek
+                                   heeft expiry en ontvangst/uitvoering. Autostart en wake zijn fysiek per ondersteund profiel
+                                   beproefd.
+
+
+    Sponsors                       Campagne maken, creative toelaten, goedkeuren, plaatsen en publiceren; het device
+                                   rapporteert de juiste versie. Rotatie, prioriteit, looptijd en technische afspeelregistratie
+                                   blijven kloppen.
+
+
+    Engage                         QR openen, geldig stemmen, herhaalde/ongeldige stem correct behandelen, resultaten op
+                                   het gekozen moment tonen; campagne sluiten stopt nieuwe stemmen.
+
+
+    Native beheer                  Bestaande API v1/v2-cliënt kan inloggen, de juiste tenant kiezen, uploaden, opslaan en
+                                   publiceren. Sessies/biometrie en notificatievoorkeuren behouden hun werking.
+
+
+    Billing                        Achter gecontroleerde flags: testbetaling, mandate, recurring, webhook/providerreadback
+                                   en reconciliation. Incasso en Player-beperking blijven uit zolang de vereiste externe keten
+                                   niet is bewezen.
+
+
+    Marketing en support           Geldige aanvraag aantoonbaar opgeslagen/afgeleverd met eerlijke foutuitkomst;
+                                   supportticket met bericht/bijlage bereikt de bevoegde rol en blijft tenantgescheiden.
+
+
+    Databasebelasting              Identieke bronresultaten en heartbeats maken geen herhaalde inhoudsversies of onnodige
+                                   assetwrites. Begrensde queues/retentie blijven ook bij bronstoring en veel schermen
+                                   bestuurbaar.
+
+
+
+
+ Werkbare defaults voor de V1-canon
+ • Thema’s: FieldFlow en OnzeTrots TV compleet opleveren; uitbreiding via een gevalideerd pakket. De
+ exacte lijst ondersteunde combinaties staat bij de release.
+
+ • Prijzen: expliciet bijwerken en publiceren; geen onverwachte automatische prijswijziging door alleen
+ een import.
+
+ • Schermondersteuning: web/PWA, de bestaande Android-app en het exact bevestigde LG-profiel.
+ Modelspecifieke beperkingen staan in preflight.
+
+ • Rebuild: nieuwe beheer-/contentlaag tegen compatibele services; geen nieuwe database of opnieuw
+ koppelen als standaardvereiste.
+
+ • Gereed: iedere V1-functie heeft codebewijs, een volledige gebruikersproef en waar nodig
+ fysieke/provideracceptatie. “Nog niet bewezen” blijft een open punt.
+
+ Deze keuzes maken het voorstel uitvoerbaar zonder opnieuw een onbegrensde lijst uitzonderingen te
+ creëren. Bij afwijkingen wordt de betreffende functie expliciet aangepast in de V1-matrix, met behoud
+ van de rest van de scope.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                           15
+ VEYOCAST / REBUILD V1 / 16
+
+
+ Bronnen en bewijs: dashboard, inhoud en
+ integraties
+ Alle onderstaande repositorylinks zijn vastgezet op de onderzochte commit. De regelnummers zijn vindplaatsen in die
+ bronversie. Historische incidentdocumenten blijven historische rapportages; actuele runtimewerking vraagt eigen bewijs.
+
+ R01 · Vaste afbeelding bij actieve publicatie
+ apps/control/app/(shell)/dashboard/page.tsx · regel 280
+
+ R02 · Laatste 20 releases en actieve mapping
+ apps/control/lib/control-overview.ts · regel 49
+ Ook dashboard/sites-active-playlists.ts, regels 10 en 23-24; dashboard/page.tsx, 129-140.
+
+ R03 · Studio tellen, zoeken en filteren
+ apps/control/app/(shell)/dashboard/studio/sites-studio-overview.tsx · regel 16
+ Telling/lijst 22-23; studio/data.ts:106 beperkt de geladen projecten tot 100; studio/page.tsx:102-111 kiest geavanceerd
+ overzicht.
+
+ R04 · Primaire navigatie
+ apps/control/app/(shell)/_components/control-shell.tsx · regel 398
+ Dashboard publicatiestroom: dashboard/page.tsx:270-276.
+
+ R05 · Playlistopties in minimale patch
+ apps/control/app/(shell)/dashboard/playlists/_components/sites/playlist-command-plan.ts · regel 10
+ Actieve itemeditor: _components/sites/playlist-editor.tsx:271-292; contract packages/contracts/src/playlist.ts:14-88.
+
+ R06 · Thema-overzicht en profielquery
+ apps/control/app/(shell)/dashboard/themes/page.tsx · regel 38
+ Authorable IDs: packages/contracts/src/theme-engine.ts:3; thema-actie onder themes/fieldflow/actions.ts:26-39,78-95.
+
+ R07 · Native cockpitstatistieken
+ apps/control/app/api/mobile/v1/cockpit/route.ts · regel 127
+ Webdefinitie: apps/control/lib/control-operations.ts:353-356; native label: apps/control-mobile/app/(tabs)/vandaag.tsx:189-195.
+
+ R08 · Sites v17, provenance en families
+ docs/sites-v17-source-integration.md · regel 1
+ Historisch herstel/samenvoeging: docs/s218-library-player-live-recovery.md; actuele route rendert SitesPlaylistWorkspace.
+
+ R09 · Echte schermcomposities
+ packages/contracts/src/screen-composition.ts · regel 3
+ Publiceren: dashboard/screens/screen-composition-actions.ts:34-101; semantiek docs/sites-v11-overname/README.md:62-75.
+
+ R12 · Huidig rol-/capabilitymodel
+ packages/auth/src/capabilities.ts · regel 144
+ Servercontext: apps/control/lib/control-session.ts:123-365; data is niet alleen via UI beschermd.
+
+ R13 · 17 Sportlink-slidefamilies
+ packages/contracts/src/dynamic-content.ts · regel 5
+
+ R14 · Daadwerkelijke Sportlink-fetchpaden
+ apps/media-worker/src/sportlink-sync-runner.ts · regel 581
+ Fallthrough SPORTLINK_DATASET_DISABLED:724-727. Registry: packages/integrations/src/sportlink-registry.ts:83-126.
+
+ R18 · V17 output, lijsten en RSS
+ packages/content-templates/src/sites-unified-v17-markup.tsx · regel 87
+ RSS:132-136; slices:138-144; canvas/background:154-167. Paging: sites-presentation-model.ts:6-15. Nieuwsprojectie:
+ sites-dynamic-projector.ts:59-71. Route: sites-presentation.tsx:17-26.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                            16
+ VEYOCAST / REBUILD V1 / 17
+
+
+ Bronnen en bewijs: apparaten, operatie en
+ scope
+ R10 · Historische database-overbelasting/cutover
+ docs/deployment/s210-clean-database-cutover.md · regel 19
+ S211-status is tevens vastgelegd in TASK_LEDGER.md. Geen nieuwe toestemming voor een reset afgeleid.
+
+ R11 · Recente LG-videoweigering en vastgelopen wissel
+ docs/s225-lg-media-recovery.md · regel 5
+ Implementatie: apps/player/app/_lib/lg-legacy-page.ts:5599-5622; actuele fysieke bevestiging blijft apart.
+
+ R15 · LG geometrie en zichtbaar-frameherstel
+ docs/s221-lg-menu-black-screen.md · regel 1
+ V17-provenance en CSS-identiteit staan in docs/sites-v17-source-integration.md; dat is geen algemene hardwarecertificering.
+
+ R16 · Android installatie-identiteit
+ apps/android-tv/app/src/main/java/nl/veyocast/player/NativeRecoveryIdentity.kt · regel 8
+ Server: apps/player/app/api/player/installation/route.ts:27-99. LG-routing: app/lg/page.tsx:21-26. Historisch LG-profiel:
+ docs/platforms/lg-webos-43ul3j-ep-recovery.md:8-34.
+
+ R17 · Publicatie, target en live data
+ docs/s185-current-publication.md · regel 89
+ Huidige architectuurcontracten: docs/technical-canon.md: release model; checksumcache
+ apps/player/app/_lib/player-cache.ts:153-248.
+
+ R19 · Sponsors, interactie, support en mobiel
+ apps/control/app/(shell)/dashboard/sponsors/actions.ts · regel 20
+ Engage: dashboard/engage/actions.ts:11-118. Support: dashboard/support/actions.ts:13-111. Native API:
+ apps/control-mobile/src/api/mobile-api.ts:58-290.
+
+ R20 · Billing heeft echte provider-aanroepen
+ apps/control/app/api/internal/billing/outbox/route.ts · regel 27
+ Readback: lib/billing/verify-mollie-payment.ts:28-58. Externe gates/flags:
+ docs/vector-v2/evidence/phase-11-billing-entitlements.md:40-45 en docs/runbooks/billing-mollie-entitlements.md:25-49.
+
+ R21 · Marketingformulier levert nog niet af
+ apps/marketing/app/_actions/lead-actions.ts · regel 82
+
+ R22 · Twelve-import en prijs-/menusnapshots
+ apps/control/app/(shell)/dashboard/integrations/twelve-products/actions.ts · regel 17
+ Productmapping: packages/integrations/src/product-import.ts:390-406; snapshotverversing:
+ dashboard/slides/menu-studio/menu-widget-document.ts:24-45; huidig gebruikersgedrag:
+ integrations/twelve-products/page.tsx:46-48.
+
+ R23 · YouTube video en playlists
+ apps/control/app/(shell)/dashboard/integrations/youtube/actions.ts · regel 17
+ Player: apps/player/app/_components/youtube-playback-media.tsx en _lib/youtube-playlist.ts. Oude handoff-gap is inmiddels
+ achterhaald.
+
+ R24 · RSS en LED-bronverwerking
+ packages/integrations/src/rss.ts · regel 24
+ RSS-worker: apps/media-worker/src/rss-sync-runner.ts:145-212; LED: apps/media-worker/src/ledscores-connector-runner.ts.
+
+ Overige geraadpleegde bron. VeyoCast-Sites-Exact-Overdracht-2026-10-11.zip, canon 1.0. Sites v11-bron
+ b1cae899af19fc39908217253094c5240d7359fc en toenmalige GitHub-basis 6fcc26f02c8050b7244e3660a93b85f02491e121.
+ Het pakket is een historische referentie; de huidige repo bevat inmiddels v17 en nieuwere herstelwerkzaamheden.
+
+ Workflowstatus. Deploy VeyoCast op onderzochte main-SHA: success. De recente PR-, Sites-, Android- en LG-buildruns op
+ voorliggende branch-SHA 6dc97f20 waren eveneens groen bij het uitlezen. De integrale testsuite is voor dit rapport niet opnieuw
+ uitgevoerd.
+
+
+   Aanbevolen besluit
+   Stel deze V1 vast als rebuild met functiebehoud. Bouw eerst één betrouwbare
+   content-naar-schermketen, consolideer daarna de resterende mogelijkheden en schakel pas over na
+   pariteitscontrole en fysieke Android-/LG-acceptatie.
+
+
+
+
+VeyoCast / repoanalyse en V1-voorstel / 17 oktober 2026                                                                        17
+

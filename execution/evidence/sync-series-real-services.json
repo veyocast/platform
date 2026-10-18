@@ -1,0 +1,88 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T04:39:29.393Z",
+  "scope": "actual disposable AAL2 Source collection commands, lost response/reload recovery, private PNG renders and atomic playlist placement; no provider/publication/device claim",
+  "originalProjectId": "c770b178-f250-4d87-be1d-d2763d2d250c",
+  "exactLostReceiptRecovered": true,
+  "editorAxeViolations": 0,
+  "widths": [
+    {
+      "width": 320,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "width": 768,
+      "overflow": 0
+    },
+    {
+      "width": 1024,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "overflow": 0
+    }
+  ],
+  "renders": [
+    {
+      "jobId": "bfbe8333-fb10-4913-8124-6a082d886a9d",
+      "mediaAssetId": "8670fcb3-9466-43fd-81fa-de086c39866c",
+      "status": "completed"
+    },
+    {
+      "jobId": "d49a409c-7c55-4d12-8d16-d527d0710080",
+      "mediaAssetId": "2b15ca75-b3e2-4e47-9a6e-c2b5309c78bb",
+      "status": "completed"
+    }
+  ],
+  "placements": [
+    {
+      "id": "49713a5c-8f35-4672-b9f0-90f3e80d1a11",
+      "assetId": "2b15ca75-b3e2-4e47-9a6e-c2b5309c78bb",
+      "checksum": "13ee9f64492d9b7eefc293a69aa203e5c1693e3ad2aee58c567c59d28361db96",
+      "duration": 3,
+      "projectId": "16a1de10-8d1b-49a1-b6ec-02d5b9c5744d"
+    },
+    {
+      "id": "19e65888-cab1-4eb6-9c0a-bffe2d6446a9",
+      "assetId": "8670fcb3-9466-43fd-81fa-de086c39866c",
+      "checksum": "13ee9f64492d9b7eefc293a69aa203e5c1693e3ad2aee58c567c59d28361db96",
+      "duration": 3,
+      "projectId": "c770b178-f250-4d87-be1d-d2763d2d250c"
+    }
+  ],
+  "verifiedMedia": [
+    {
+      "assetId": "2b15ca75-b3e2-4e47-9a6e-c2b5309c78bb",
+      "bytes": 1971024,
+      "sha256": "13ee9f64492d9b7eefc293a69aa203e5c1693e3ad2aee58c567c59d28361db96"
+    },
+    {
+      "assetId": "8670fcb3-9466-43fd-81fa-de086c39866c",
+      "bytes": 1971024,
+      "sha256": "13ee9f64492d9b7eefc293a69aa203e5c1693e3ad2aee58c567c59d28361db96"
+    }
+  ],
+  "seriesId": "fe3ec670-deaa-4951-8651-351918a4787e",
+  "members": [
+    {
+      "id": "16a1de10-8d1b-49a1-b6ec-02d5b9c5744d",
+      "name": "S226 eigen reeks 1792298319192 · slide 2",
+      "title": "Bevestigde eigen reeks",
+      "draftRevision": 0
+    },
+    {
+      "id": "c770b178-f250-4d87-be1d-d2763d2d250c",
+      "name": "S226 eigen reeks 1792298319192",
+      "title": "Bevestigde eigen reeks",
+      "draftRevision": 1
+    }
+  ],
+  "playlistId": "c01e0745-a97c-453c-8a8c-28a1037ab867",
+  "archivedDuplicate": "2b88a756-e3fe-455b-bb45-639ac91915bb",
+  "existingReleasesUnchanged": true
+}

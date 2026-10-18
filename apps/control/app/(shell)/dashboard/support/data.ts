@@ -4,7 +4,7 @@ import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
 export async function loadTenantSupport(tenantId: string) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return { departments: [], tickets: [] };
+  if (!supabase) return { departments: [], tickets: [], error: true };
   const [departments, tickets] = await Promise.all([
     supabase.from("support_departments")
       .select("id, name, description").eq("active", true).order("sort_order"),
@@ -15,6 +15,7 @@ export async function loadTenantSupport(tenantId: string) {
   ]);
   return {
     departments: departments.data ?? [],
+    error: Boolean(departments.error || tickets.error),
     tickets: tickets.data ?? []
   };
 }

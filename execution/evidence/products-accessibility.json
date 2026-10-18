@@ -1,0 +1,35 @@
+[
+  {
+    "route": "/dashboard/products",
+    "url": "/dashboard/sources/twelve/products",
+    "h1": [
+      "Een frisse kaart voor je club."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/products",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/products",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/products",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/products",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/products",
+    "width": 1440,
+    "overflow": false
+  }
+]

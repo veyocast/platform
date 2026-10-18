@@ -1,0 +1,38 @@
+[
+  {
+    "route": "/",
+    "violations": []
+  },
+  {
+    "route": "/narrowcasting",
+    "violations": []
+  },
+  {
+    "route": "/functies",
+    "violations": []
+  },
+  {
+    "route": "/koppelingen",
+    "violations": []
+  },
+  {
+    "route": "/players",
+    "violations": []
+  },
+  {
+    "route": "/demo",
+    "violations": []
+  },
+  {
+    "route": "/oplossingen/sportverenigingen",
+    "violations": []
+  },
+  {
+    "route": "/oplossingen/horeca",
+    "violations": []
+  },
+  {
+    "route": "/oplossingen/bedrijven",
+    "violations": []
+  }
+]

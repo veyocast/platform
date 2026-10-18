@@ -1,0 +1,68 @@
+[
+  {
+    "route": "/dashboard/team",
+    "url": "/dashboard/team",
+    "h1": [
+      "Samen aan het stuur."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/team",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/team",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/team",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/team",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/team",
+    "width": 1440,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/support",
+    "url": "/dashboard/support",
+    "h1": [
+      "We helpen je verder."
+    ],
+    "violations": []
+  },
+  {
+    "route": "/dashboard/support",
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/support",
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/support",
+    "width": 768,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/support",
+    "width": 1024,
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/support",
+    "width": 1440,
+    "overflow": false
+  }
+]

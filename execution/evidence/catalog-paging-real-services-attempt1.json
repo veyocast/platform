@@ -1,0 +1,20 @@
+{
+  "environment": "disposable local Supabase + actual Next Control",
+  "transport": "real AAL2 SSR/server actions, no mocked responses",
+  "tenant": "19170000-0000-4000-8000-000000000010",
+  "fixtureProducts": 1005,
+  "initial": {
+    "rows": 50,
+    "total": 1005,
+    "available": 1004
+  },
+  "secondPageFirst": "S226 catalogus 0051",
+  "deepSearch": {
+    "name": "S226 catalogus 1005",
+    "category": "Buiten de eerste pagina",
+    "active": true,
+    "revision": 2
+  },
+  "status": "FAIL",
+  "error": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Product toevoegen' }).getByLabel('Categorie', { exact: true })\u001b[22m\n"
+}

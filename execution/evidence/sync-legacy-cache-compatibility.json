@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-18T02:48:29.447Z",
+  "baseline": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "baselineCacheSha256": "00e936a892151ce407e2c55049517525cfb7e1f415073c306eba209ffcb66910",
+  "scope": "actual frozen baseline cache module and actual current cache, controlled identical manifest input; current local dependency graph; no full old binary/hardware acceptance",
+  "binaryCount": 1,
+  "sourceCount": 12,
+  "hybridOldCount": 81,
+  "hybridNewCount": 88,
+  "oldMediaFallbackRetained": true,
+  "strictError": "SITES_ASSET_MANIFEST_INVALID"
+}

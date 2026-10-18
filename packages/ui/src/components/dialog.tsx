@@ -7,13 +7,20 @@ import type {
   HTMLAttributes,
   ReactNode
 } from "react";
-import { forwardRef } from "react";
+import { createContext, forwardRef, useContext } from "react";
 
 import { cn } from "../utils";
 
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
+
+const PortalContainer = createContext<HTMLElement | null>(null);
+
+/** Keep an application's overlays inside its own theme and CSS scope. */
+export function DialogPortalProvider({ container, children }: { container: HTMLElement | null; children: ReactNode }) {
+  return <PortalContainer.Provider value={container}>{children}</PortalContainer.Provider>;
+}
 
 export type DialogContentProps = ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
   closeLabel?: string;
@@ -28,8 +35,9 @@ export const DialogContent = forwardRef<
   { children, className, closeLabel = "Sluiten", size = "standard", showClose = true, ...props },
   ref
 ) {
+  const container = useContext(PortalContainer);
   return (
-    <DialogPrimitive.Portal>
+    <DialogPrimitive.Portal container={container ?? undefined}>
       <DialogPrimitive.Overlay className="vc-overlay vc-dialog__overlay" />
       <DialogPrimitive.Content
         className={cn("vc-dialog__content", `vc-dialog__content--${size}`, className)}

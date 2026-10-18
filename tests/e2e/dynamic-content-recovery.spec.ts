@@ -1,15 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test("maakt Sportlink vindbaar vanuit databronnen", async ({
-  page
-}) => {
-  await page.goto("/dashboard/data-sources", { waitUntil: "networkidle" });
-
-  const card=page.getByRole("article").filter({has:page.getByRole("heading",{name:"Sportlink",exact:true})});
-  await expect(card).toBeVisible();
-  await expect(card.locator('a[href="/dashboard/sources/sportlink"]')).toBeVisible();
-  await expect(page.getByRole("heading",{name:"Clubinformatie die gezien mag worden."})).toBeVisible();
-  await expect(page.getByRole("textbox",{name:"Zoek een gegevensbron"})).toBeVisible();
+test("onderscheidt opgeslagen bronnen van een nog niet verbonden provider", async ({page}) => {
+  await page.goto("/dashboard/data-sources", {waitUntil: "networkidle"});
+  await expect(page.getByRole("heading", {name: "Alles begint bij goede gegevens."})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "Nog geen bronnen verbonden"})).toBeVisible();
+  await expect(page.getByRole("button", {name: "Bron toevoegen", exact: true})).toBeDisabled();
+  await expect(page.locator(".ad-source-grid .ad-source")).toHaveCount(0);
+  await page.goto("/dashboard/sources/sportlink");
+  await expect(page.getByRole("heading", {name: "Sportlink Club.Dataservice", exact: true})).toBeVisible();
 });
 
 test("stuurt de oude slideflow door naar de Unified Studio", async ({ page }) => {

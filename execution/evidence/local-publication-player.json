@@ -1,0 +1,26 @@
+{
+    "scope": "isolated-local-browser-publication",
+    "screenId": "40000000-0000-4000-8000-000000000101",
+    "lastSeenAt": "2026-10-17T21:33:06.205226+00:00",
+    "lastErrorCode": null,
+    "releaseVersion": 1,
+    "activeReleaseId": "32714873-5054-47a8-b6d5-f54fe400c2e4",
+    "desiredReleaseId": "32714873-5054-47a8-b6d5-f54fe400c2e4",
+    "frozenAssetCount": 2,
+    "publicationTrace": {
+        "releaseId": "32714873-5054-47a8-b6d5-f54fe400c2e4",
+        "boundaryAt": null,
+        "generation": 1,
+        "resolvedAt": "2026-10-17T21:33:05.104Z",
+        "committedAt": null,
+        "firstFrameAt": "2026-10-17T21:33:05.157Z",
+        "assetsReadyAt": "2026-10-17T21:33:05.119Z",
+        "correlationId": "b37be186-e2dc-4d88-80d2-01f8026ec861",
+        "publicationId": "392db53d-4364-448e-8787-4fd56b3f7e18",
+        "configRevision": "1",
+        "targetRevision": "2",
+        "targetWrittenAt": "2026-10-17T21:32:53.257Z",
+        "signalReceivedAt": null,
+        "frameAfterBoundaryMs": null
+    }
+}

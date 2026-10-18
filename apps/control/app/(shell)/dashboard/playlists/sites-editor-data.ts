@@ -7,7 +7,9 @@ import type { PlaylistStudioData } from "./data";
 import { loadPublisherLibrary, loadSitesAssetUrls, loadCanonicalSnapshotAssets,loadBoundPublisherDynamicDefinitions,collectCanonicalSnapshotAssetIds,type PublisherLibraryPage } from "./library";
 import type { DynamicDesign, Group, Media, Playlist, Screen, Slide, StudioSlide } from "./_components/sites/model";
 import { chunkPlaylistStudioIds } from "./playlist-studio-query-scope";
+import {readPublisherSyncDynamic,type PublisherSyncMedia} from "./sync-dynamic-library";
 import { playlistPlacementPages } from "./_components/sites/playlist-command-plan";
+import {safeParseStudioDocument} from '@veyocast/studio';
 
 export async function loadSitesPlaylistEditor(tenantId: string, data: PlaylistStudioData, access: { media: boolean; studio: boolean; dynamic: boolean }) {
   const supabase = await createControlSupabaseClient();
@@ -19,17 +21,25 @@ export async function loadSitesPlaylistEditor(tenantId: string, data: PlaylistSt
   const exportResults = await Promise.all(chunkPlaylistStudioIds(data.items.map(item=>item.mediaAssetId),40).map(ids=>supabase.from("studio_exports").select("id,project_id,revision_id,media_asset_id,output_kind").eq("tenant_id",tenantId).in("media_asset_id",ids)));
   if(exportResults.some(result=>result.error))throw new Error("De vaste Studio-versies konden niet worden geladen.");
   const exports=exportResults.flatMap(result=>result.data??[]);
-  const snapshotResults=await Promise.all(chunkPlaylistStudioIds(data.items.map(item=>item.dynamicSnapshotId),40).map(ids=>supabase.from("dynamic_slide_snapshots").select("id,dynamic_slide_id,template_version_id,source_revision_hash,snapshot_data_json").eq("tenant_id",tenantId).in("id",ids)));
-  const revisionResults=await Promise.all(chunkPlaylistStudioIds(exports.map(item=>item.revision_id),40).map(ids=>supabase.from("studio_revisions").select("id,document_json").eq("tenant_id",tenantId).in("id",ids)));
+  const snapshotResults=await Promise.all(chunkPlaylistStudioIds(data.items.map(item=>item.dynamicSnapshotId),40).map(ids=>supabase.from("dynamic_slide_snapshots").select("id,dynamic_slide_id,dynamic_slide_version_id,template_version_id,source_revision_hash,snapshot_data_json,status,output_media_asset_id,sync_render_result_json").eq("tenant_id",tenantId).in("id",ids)));
+  const revisionResults=await Promise.all(chunkPlaylistStudioIds(exports.map(item=>item.revision_id),40).map(ids=>supabase.from("studio_revisions").select("id,draft_revision,document_json").eq("tenant_id",tenantId).in("id",ids)));
   if([...snapshotResults,...revisionResults].some(result=>result.error))throw new Error("De onveranderlijke ontwerpinhoud kon niet worden geladen.");
   const snapshots=snapshotResults.flatMap(result=>result.data??[]),revisions=revisionResults.flatMap(result=>result.data??[]);
   const boundDefinitions=await loadBoundPublisherDynamicDefinitions(tenantId,data.items.map(item=>item.dynamicSlideId));
-  const snapshotAssets=await loadCanonicalSnapshotAssets(tenantId,snapshots.map(snapshot=>snapshot.snapshot_data_json));
+  const snapshotAssets=await loadCanonicalSnapshotAssets(tenantId,snapshots.flatMap(snapshot=>[snapshot.snapshot_data_json,snapshot.sync_render_result_json]));
   const assetUrls=await loadSitesAssetUrls(tenantId,revisions.map(revision=>revision.document_json));
   const slides:Slide[]=data.items.map(item=>{
     const slide:Slide={mediaChecksumSha256:item.asset?.variant?.checksumSha256,id:item.id,name:item.displayTitle||item.asset?.title||"Playlistitem",image:item.asset?.variant?.previewUrl??"",seconds:item.durationSeconds,mediaId:item.mediaAssetId,kind:item.asset?.kind,sourceKind:item.youtubeSourceId?"youtube":item.engageCampaignId?"engage":undefined,sourceId:item.youtubeSourceId??item.engageCampaignId??undefined,fallbackAssetId:item.mediaAssetId};
     const exported=exports.find(value=>value.media_asset_id===item.mediaAssetId);
-    const document=exported?revisions.find(value=>value.id===exported.revision_id)?.document_json:null;
+    const revision=exported?revisions.find(value=>value.id===exported.revision_id):null;
+    const document=revision?.document_json;
+    if(exported&&(document as {syncPresentation?:unknown}|null)?.syncPresentation){
+      const parsedSource=safeParseStudioDocument(document);
+      if(!parsedSource.success||!parsedSource.data.syncPresentation||!item.asset?.variant?.checksumSha256||exported.output_kind!==(parsedSource.data.motion.enabled?'mp4':'png'))throw new Error('De vaste Studio-uitvoer kon niet volledig worden gecontroleerd. Open het bronontwerp en selecteer een gereedstaande versie.');
+      const source=parsedSource.data;
+      slide.syncStudio={id:exported.project_id,name:source.syncPresentation!.name,draftRevision:Number(revision!.draft_revision),presentation:source.syncPresentation!,assetUrls,durationSeconds:Math.ceil(source.motion.durationMs/1000),exportKind:source.motion.enabled?'video':'image',exportId:exported.id,exportAssetId:exported.media_asset_id,checksumSha256:item.asset.variant.checksumSha256};
+      slide.orientation=source.syncPresentation!.orientation;
+    }
     const parsed=sitesPresentationSchema.safeParse((document as{sitesPresentation?:unknown}|null)?.sitesPresentation);
     if(exported&&parsed.success&&parsed.data.kind==='studio'){
       const presentation=parsed.data;
@@ -40,7 +50,12 @@ export async function loadSitesPlaylistEditor(tenantId: string, data: PlaylistSt
     const snapshot=snapshots.find(value=>value.id===item.dynamicSnapshotId);
     const definition=boundDefinitions.find(value=>value.id===item.dynamicSlideId);
     if(item.dynamicSlideId&&(!snapshot||!definition||snapshot.dynamic_slide_id!==item.dynamicSlideId))throw new Error("De vaste broninhoud hoort niet bij deze plaatsing of is niet meer toegankelijk.");
-    if(snapshot&&definition){
+    if(snapshot&&definition&&Object.hasOwn(snapshot.snapshot_data_json as object,'syncConfiguration')){
+      if(item.sitesConfiguration!=null)throw Error('Deze Source-plaatsing bevat een ander presentatiecontract. De opgeslagen afspeelbron blijft behouden; selecteer de volledige Source-versie opnieuw.');
+      const asset=item.asset,variant=asset?.variant;
+      const media:PublisherSyncMedia|undefined=asset&&variant?{id:asset.id,status:asset.status,kind:asset.kind,mime_type:variant.mimeType,checksum_sha256:variant.checksumSha256,file_size_bytes:variant.fileSizeBytes,duration_seconds:variant.durationSeconds,width:variant.width,height:variant.height}:undefined;
+      slide.syncDynamic=readPublisherSyncDynamic({snapshot,definition,assets:snapshotAssets,media});slide.designId=definition.id;slide.orientation=slide.syncDynamic.presentation.orientation;
+    }else if(snapshot&&definition){
       const payload=playerDynamicTemplatePayloadSchema.safeParse({schemaVersion:1,slideType:definition.slideType,orientation:definition.orientation,snapshotHash:snapshot.source_revision_hash,snapshotId:snapshot.id,templateVersionId:snapshot.template_version_id,templateSlug:definition.slideType.replaceAll('_','-'),data:snapshot.snapshot_data_json,assets:Object.fromEntries(collectCanonicalSnapshotAssetIds(snapshot.snapshot_data_json).flatMap(id=>snapshotAssets[id]?[[id,snapshotAssets[id]]]:[]))});
       const provider=definition.slideType==='ledscores_live_match'?'led-scores':['menu','price_list'].includes(definition.slideType)?'menu':'sportlink';
       const cfg=sitesDynamicConfigurationSchema.safeParse(item.sitesConfiguration??(snapshot.snapshot_data_json as Record<string,unknown>)?.sitesConfiguration??{schemaVersion:1,rendererVersion:sitesPresentationVersion,sourceRevision:sitesPresentationSourceRevision,themeId:'fieldflow',provider,orientation:definition.orientation,title:definition.name});
@@ -62,5 +77,5 @@ export async function loadSitesPlaylistEditor(tenantId: string, data: PlaylistSt
   if(groupRows.error||memberPages.some(page=>page.error))warnings.push('De schermgroepen konden niet volledig worden geladen. Individuele schermkeuzes blijven beschikbaar.');
   inventory.forEach(screen=>{screen.group=groups.filter(group=>group.members.includes(screen.id)).map(group=>group.name).join(', ');});
   const media:Media[]=[...(libraries.media?.media??[]),...data.youtubeSources.map(source=>({id:source.id,name:source.title,checksumSha256:source.fallbackAsset.variant?.checksumSha256,image:source.fallbackAsset.variant?.previewUrl??'',kind:'image' as const,folder:'YouTube',size:'',sourceKind:'youtube' as const,sourceId:source.id,fallbackAssetId:source.fallbackAsset.id})),...data.engageCampaigns.filter(campaign=>['scheduled','live','closed'].includes(campaign.status)).map(campaign=>({id:campaign.id,name:campaign.title,image:'',kind:'image'as const,folder:'Engage',size:'',sourceKind:'engage'as const,sourceId:campaign.id}))];
-  return{playlist,inventory,groups,media,designs:libraries.dynamic?.designs??[],projects:libraries.studio?.projects??[],warnings,revision:data.playlist.revision};
+  return{playlist,inventory,groups,media,designs:libraries.dynamic?.designs??[],syncDesigns:libraries.dynamic?.syncDesigns??[],projects:libraries.studio?.projects??[],warnings,revision:data.playlist.revision};
 }

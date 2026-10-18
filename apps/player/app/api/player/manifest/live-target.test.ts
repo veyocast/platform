@@ -14,8 +14,8 @@ const target = { tenant_id: "tenant-A", device_id: "device-A", screen_id: "scree
   device_status: "paired", screen_status: "active", active_release_id: "old", desired_release_id: "current",
   target_revision: "12", publication_id: "playlist-A", config_revision: "100", assignment_source: "default",
   target_changed_at: "2026-09-19T12:00:00Z", data_key: "binding-A:2", sponsor_key: "" };
-const request = (etag?: string) => new Request("https://player.veyocast.nl/api/player/manifest", {
-  headers: { Authorization: "Bearer device-secret-fixture", ...(etag ? { "If-None-Match": etag } : {}) }
+const request = (etag?: string,renderer?:string,dynamic?:string) => new Request("https://player.veyocast.nl/api/player/manifest", {
+  headers: { Authorization: "Bearer device-secret-fixture", ...(etag ? { "If-None-Match": etag } : {}),...(renderer?{"X-VeyoCast-Sync-Renderer":renderer}:{}),...(dynamic?{'X-VeyoCast-Sync-Dynamic':dynamic}:{}) }
 });
 
 describe("authorized current-target API", () => {
@@ -40,8 +40,24 @@ describe("authorized current-target API", () => {
     expect(next.status).toBe(304);
     expect(adminRpc).toHaveBeenCalledOnce();
     expect(loadEnvelope).not.toHaveBeenCalled();
-    expect(next.headers.get("vary")).toBe("Authorization");
+    expect(next.headers.get("vary")).toBe("Authorization, X-VeyoCast-Sync-Renderer, X-VeyoCast-Sync-Dynamic");
     expect(await next.text()).toBe("");
+  });
+  it("negotiates Source before conditional caching without sharing the binary profile ETag",async()=>{
+    const binary=await GET(request());expect(loadEnvelope).toHaveBeenLastCalledWith(expect.objectContaining({enableSyncStudio:false}));
+    const source=await GET(request(binary.headers.get("etag")!,"sync-v1"));expect(source.status).toBe(200);expect(loadEnvelope).toHaveBeenLastCalledWith(expect.objectContaining({enableSyncStudio:true}));expect(source.headers.get("etag")).not.toBe(binary.headers.get("etag"));
+    loadEnvelope.mockClear();const unchanged=await GET(request(source.headers.get("etag")!,"sync-v1"));expect(unchanged.status).toBe(304);expect(loadEnvelope).not.toHaveBeenCalled();
+    const unsupported=await GET(request(binary.headers.get("etag")!,"unknown-renderer"));expect(unsupported.status).toBe(304);
+  });
+  it("an advertised Source renderer cannot bypass credential revocation",async()=>{
+    const first=await GET(request(undefined,"sync-v1"));adminRpc.mockResolvedValue({data:null,error:null});anonRpc.mockResolvedValue({data:"DEVICE_REVOKED",error:null});expect((await GET(request(first.headers.get("etag")!,"sync-v1"))).status).toBe(403);
+  });
+  it('keeps Source dynamic DOM, new binary and old binary profiles independently authorized and cached',async()=>{
+    const old=await GET(request());const dom=await GET(request(old.headers.get('etag')!,undefined,'sync-dynamic-v1'));
+    expect(dom.status).toBe(200);expect(loadEnvelope).toHaveBeenLastCalledWith(expect.objectContaining({enableSyncStudio:false,syncDynamicMode:'dom'}));
+    const binary=await GET(request(dom.headers.get('etag')!,undefined,'sync-dynamic-binary-v1'));expect(binary.status).toBe(200);expect(loadEnvelope).toHaveBeenLastCalledWith(expect.objectContaining({syncDynamicMode:'binary'}));expect(binary.headers.get('etag')).not.toBe(old.headers.get('etag'));expect(binary.headers.get('etag')).not.toBe(dom.headers.get('etag'));
+    loadEnvelope.mockClear();expect((await GET(request(binary.headers.get('etag')!,undefined,'sync-dynamic-binary-v1'))).status).toBe(304);expect(loadEnvelope).not.toHaveBeenCalled();
+    adminRpc.mockResolvedValue({data:null,error:null});anonRpc.mockResolvedValue({data:'DEVICE_REVOKED',error:null});expect((await GET(request(dom.headers.get('etag')!,undefined,'sync-dynamic-v1'))).status).toBe(403);
   });
   it("rejects a revoked credential despite a previously valid target ETag", async () => {
     const first = await GET(request());

@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T07:39:48.400Z",
+  "controlBuildId": "_pws_g82uzWOms8vh-9Y3",
+  "scope": "actual AAL2 independent Source library/selection, one complete dynamic placement and pinned Source reload; no new render/publication or per-placement variant, provider, hardware or hosted deployment claim",
+  "sourceSlideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "playlistId": "c5d2f44f-9aac-4948-91c1-cbc5658c4965",
+  "independentLibrary": {
+    "snapshotId": "8e0649ee-0d20-44c1-a32b-49b2ade98bd4",
+    "versionId": "d7bd6909-f22a-4e7c-9a1b-6428e44e74fc",
+    "mediaAssetId": "d5a87273-23c3-5db3-873a-8fc3e6620790",
+    "rows": 9,
+    "durationSeconds": 15
+  },
+  "readback": {
+    "id": "64ddfb38-8a38-4a89-b252-821eea49a5d7",
+    "sites": null,
+    "assetId": "d5a87273-23c3-5db3-873a-8fc3e6620790",
+    "duration": 15,
+    "sourceId": "9c91ee17-4616-4cce-bf3d-419187255052",
+    "snapshotId": "8e0649ee-0d20-44c1-a32b-49b2ade98bd4"
+  },
+  "editorAxeViolations": 0,
+  "widths": [
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "noVersionSnapshotRenderOrReleaseCreated": true
+}

@@ -1,0 +1,21 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T10:10:25.524Z",
+  "controlBuildId": "J2Lbz5-N-MXQGRhRsWoyF",
+  "scope": "actual AAL2 Engage campaign, real Source Studio selection and explicit save/render, public privacy authority, secure QR and complete verified private output; local QA, no hosted or hardware claim",
+  "campaignId": "894c0aba-532f-4b81-a86e-abe3e0c1d960",
+  "publicId": "1b0e5085-6725-45c8-9980-59dd02c1d85d",
+  "projectId": "418e83dd-319d-4313-82f0-b581ddbdba8e",
+  "previewReadOnly": true,
+  "widths": [
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "editorAxeViolations": 0,
+  "error": "Cannot read properties of undefined (reading 'id')",
+  "browserErrors": [],
+  "finishedAt": "2026-10-18T10:10:29.824Z"
+}

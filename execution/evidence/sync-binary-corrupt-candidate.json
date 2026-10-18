@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T11:30:52.473Z",
+  "playerBuildId": "bdxQ7X0HdiQeUZNLvkTSE",
+  "scope": "real owned paired Player, actual qualified binary manifest/private complete bytes; only candidate transport bytes are deliberately corrupted at identical length to test SHA rejection, LKG/offline/recovery. No altered server publication, provider or physical-device claim",
+  "candidateSha256": "95bd4939f16b70749446e3ed50bc3b546e33fba9eec964ddf02f149e1ee60924",
+  "corruptDownloads": 1,
+  "browserErrors": [],
+  "lastKnownGoodSha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9",
+  "corruptBytes": 3183585,
+  "corruptCandidateNeverActivated": true,
+  "retryBudgetRetained": true,
+  "faultMedia": [
+    {
+      "type": "playing",
+      "at": 1792323052911,
+      "time": 0.000621,
+      "duration": 24,
+      "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9"
+    },
+    {
+      "type": "playing",
+      "at": 1792323052990,
+      "time": 0.069879,
+      "duration": 24,
+      "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9"
+    }
+  ],
+  "oldCompleteBinaryOfflineColdReload": true,
+  "recoveryMedia": [
+    {
+      "type": "playing",
+      "at": 1792323070749,
+      "time": 0.004532,
+      "duration": 24,
+      "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9"
+    },
+    {
+      "type": "ended",
+      "at": 1792323094746,
+      "time": 24,
+      "duration": 24,
+      "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9"
+    },
+    {
+      "type": "playing",
+      "at": 1792323094803,
+      "time": 0.004758,
+      "duration": 24,
+      "sha256": "95bd4939f16b70749446e3ed50bc3b546e33fba9eec964ddf02f149e1ee60924"
+    },
+    {
+      "type": "playing",
+      "at": 1792323094866,
+      "time": 0.062561,
+      "duration": 24,
+      "sha256": "95bd4939f16b70749446e3ed50bc3b546e33fba9eec964ddf02f149e1ee60924"
+    }
+  ],
+  "samePairingAndPublicationHistory": true,
+  "validCandidateRecoveredAtNaturalEnd": true,
+  "finishedAt": "2026-10-18T11:31:39.357Z"
+}

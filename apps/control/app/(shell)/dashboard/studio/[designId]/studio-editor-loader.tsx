@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import {useRef} from "react";
 
 import type {
   StudioEditorPermissions,
@@ -11,8 +12,10 @@ import type {
   StudioSeriesDetail
 } from "../types";
 import {StudioLoadingState} from "../studio-route-states";
+import type {SyncStudioLibraryProject} from '../../playlists/_components/sites/model';
 
 const SitesStudioEditor=dynamic(()=>import("./sites-studio-editor").then(module=>module.SitesStudioEditor),{ssr:false,loading:()=> <StudioLoadingState/>});
+const SyncStudioEditor=dynamic(()=>import("./sync-studio-editor").then(module=>module.SyncStudioEditor),{ssr:false,loading:()=> <StudioLoadingState/>});
 
 const StudioEditorWorkspace = dynamic(
   () =>
@@ -27,6 +30,7 @@ const StudioEditorWorkspace = dynamic(
 
 export function StudioEditorLoader(props: {
   series?:StudioSeriesDetail|null;
+  sourceLibrary?:SyncStudioLibraryProject[];
   assets: StudioMediaAsset[];
   error: string | null;
   initialRenderId: string | null;
@@ -42,5 +46,11 @@ export function StudioEditorLoader(props: {
   } | null;
   tenantId: string;
 }) {
+  const contextKey=`${props.tenantId}:${props.project.id}`;
+  const sourceEditor=useRef({contextKey,selected:Boolean(props.project.document.syncPresentation)});
+  if(sourceEditor.current.contextKey!==contextKey)sourceEditor.current={contextKey,selected:Boolean(props.project.document.syncPresentation)};
+  // A background read must not unmount a Source form with unconfirmed input.
+  // Loading a different canonical format is an explicit action in its controller.
+  if(sourceEditor.current.selected)return <SyncStudioEditor key={contextKey} {...props}/>;
   return props.project.document.sitesPresentation?<SitesStudioEditor key={`${props.project.id}:${props.project.draftRevision}`} {...props}/>:<StudioEditorWorkspace {...props} />;
 }

@@ -33,13 +33,13 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
     loadSponsorHub(session.tenantId ?? ""),
     loadTenantStyleData(session.tenantId, session.isLive)
   ]);
-  const canWrite = session.isLive && hasCapability(session.capabilities, "tenant.sponsor.write");
-  const canApprove = session.isLive && hasCapability(session.capabilities, "tenant.sponsor.approve");
-  const canPublish = session.isLive && hasCapability(session.capabilities, "tenant.sponsor.publish");
+  const canWrite = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities, "tenant.sponsor.write");
+  const canApprove = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities, "tenant.sponsor.approve");
+  const canPublish = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities, "tenant.sponsor.publish");
   const activeCampaigns = data.campaigns.filter((campaign) => ["approved", "published", "submitted"].includes(campaign.status));
   const totalPlayedMs = data.events.reduce((sum, event) => sum + Number(event.played_ms), 0);
 
-  const primaryCampaigns=data.campaigns.map(campaign=>({id:campaign.id,name:campaign.name,partner:data.sponsors.find(sponsor=>sponsor.id===campaign.sponsor_id)?.name??"Sponsor",status:campaign.status,endsAt:campaign.ends_at,positions:[...new Set(data.creatives.filter(creative=>creative.campaign_id===campaign.id).map(creative=>positionLabels[creative.position_key]??creative.position_key))],previewUrl:data.creatives.find(creative=>creative.campaign_id===campaign.id&&creative.preview_url)?.preview_url??null}));
+  const primaryCampaigns=data.campaigns.map(campaign=>({id:campaign.id,name:campaign.name,partner:data.sponsors.find(sponsor=>sponsor.id===campaign.sponsor_id)?.name??"Sponsor",status:campaign.status,endsAt:campaign.ends_at,startsAt:campaign.starts_at,weight:Number(campaign.weight),positions:[...new Set(data.creatives.filter(creative=>creative.campaign_id===campaign.id).map(creative=>positionLabels[creative.position_key]??creative.position_key))],previewUrl:data.creatives.find(creative=>creative.campaign_id===campaign.id&&creative.preview_url)?.preview_url??null}));
   const creationForm=data.sponsors.length?<form action={createCampaign} className={styles.form} style={{ marginTop: "1.25rem" }}><div className={styles.formGrid}>
         <label className={styles.field}><span>Sponsor</span><select name="sponsorId" required>{data.sponsors.map((sponsor) => <option value={sponsor.id} key={sponsor.id}>{sponsor.name}</option>)}</select></label>
         <label className={styles.field}><span>Campagnenaam</span><input name="name" required maxLength={180} /></label>
@@ -47,14 +47,15 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
         <label className={styles.field}><span>Einde</span><input name="endsAt" type="datetime-local" required /></label>
         <label className={styles.field}><span>Gewicht</span><input name="weight" type="number" min="0.1" max="1000" step="0.1" defaultValue="1" required /></label>
       </div><Button type="submit" variant="primary">Campagne maken</Button></form>:<p>Voeg eerst een sponsor toe in het sponsorbeheer voordat je een campagne maakt.</p>;
-  return <div className={styles.shell}><h1 className="sr-only">Sponsor Hub</h1>
-    <SitesSponsorsPrimary campaigns={primaryCampaigns} canWrite={canWrite} creationForm={creationForm}/>
+  const sponsorForm=<form action={createSponsor} className={styles.form}><label className={styles.field}><span>Naam</span><input name="name" required maxLength={160} /></label><label className={styles.field}><span>Website (optioneel)</span><input name="websiteUrl" type="url" maxLength={500} /></label><label className={styles.field}><span>Interne notitie</span><textarea name="notes" maxLength={4000} /></label><Button type="submit" variant="primary">Sponsor opslaan</Button></form>;
+  return <div className={styles.shell}>
+    {params.succes ? <p className={styles.banner} role="status">Wijziging opgeslagen: {params.succes}.</p> : null}
+    {params.fout ? <p className={styles.banner} role="alert"><strong>Opslaan mislukt.</strong> Controleer rechten, vier-ogen-goedkeuring en verplichte media/plaatsing. Fout: {params.fout}.</p> : null}
+    <SitesSponsorsPrimary campaigns={primaryCampaigns} canWrite={canWrite} creationForm={creationForm} sponsorForm={sponsorForm} sponsorCount={data.sponsors.length} playCount={data.events.length} unavailable={data.error}/>
     <details className={sites.advanced} id="sponsor-advanced"><summary>Sponsorbeheer, goedkeuring en levering</summary>
     <nav aria-label="Sponsor Hub onderdelen" className={styles.tabs}>
       {[["#actie","Actiecentrum"],["#sponsors","Sponsors"],["#campagnes","Campagnes"],["#media","Media"],["#kansen","Kansen"],["#schermen","Schermgroepen"],["#rapporten","Rapporten"],["#activiteit","Activiteit"]].map(([href,label]) => <a href={href} key={href}>{label}</a>)}
     </nav>
-    {params.succes ? <p className={styles.banner} role="status">Wijziging opgeslagen: {params.succes}.</p> : null}
-    {params.fout ? <p className={styles.banner} role="alert"><strong>Opslaan mislukt.</strong> Controleer rechten, vier-ogen-goedkeuring en verplichte media/plaatsing. Fout: {params.fout}.</p> : null}
     <section aria-label="Sponsor KPI's" className={styles.metrics}>
       <Metric label="Actieve sponsors" value={data.sponsors.filter((item) => item.status === "active").length} />
       <Metric label="Campagnes in operatie" value={activeCampaigns.length} />

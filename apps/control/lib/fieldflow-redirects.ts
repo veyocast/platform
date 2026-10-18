@@ -38,3 +38,14 @@ export function resolveFieldflowRedirect(pathname: string) {
   }
   return null;
 }
+
+/** Preserve a loopback host which NextURL normalizes to localhost in development. */
+export function fieldflowRedirectUrl(currentUrl: string, hostHeader: string | null, pathname: string) {
+  const target = new URL(currentUrl);
+  target.pathname = pathname;
+  if (target.hostname === "localhost" && hostHeader && /^(127\.0\.0\.1|\[::1\])(?::\d+)?$/.test(hostHeader)) {
+    const inbound = new URL(`${target.protocol}//${hostHeader}`);
+    if (inbound.port === target.port) target.hostname = inbound.hostname;
+  }
+  return target;
+}

@@ -1,0 +1,249 @@
+{
+  "build": "lint test assembleStagingDebug assembleProductionDebug :tv:assembleStagingDebug :tv:assembleProductionDebug --no-daemon --max-workers=1",
+  "result": "PASS",
+  "java": "existing local JDK 21; Java source/target 17 unchanged",
+  "sdk": "android-37.1; build-tools 36.0.0",
+  "apks": [
+    {
+      "path": "/home/codex/repos/castivo-s226/apps/android-tv/app/build/outputs/apk/production/debug/app-production-debug.apk",
+      "package": "package: name='nl.veyocast.player.debug' versionCode='100000001' versionName='1.0.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+      "sha256": "97514fa9e9a8ca574eb27447db3443592d257493adc1ba1ca79fb6cceb3b517d",
+      "signingCertificateSha256": [
+        "717953a5ce5c62cb254d6ac41a1db76f3575631379833c82772743d129897f04"
+      ],
+      "status": "debug build; separate .debug package as in existing build policy; not a production update"
+    },
+    {
+      "path": "/home/codex/repos/castivo-s226/apps/android-tv/app/build/outputs/apk/staging/debug/app-staging-debug.apk",
+      "package": "package: name='nl.veyocast.player.staging.debug' versionCode='100000001' versionName='1.0.0-staging' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+      "sha256": "03ec075f58ad9071e3879cd43847e1046895ba1aa3201ba1fa0f7b5018a2b561",
+      "signingCertificateSha256": [
+        "717953a5ce5c62cb254d6ac41a1db76f3575631379833c82772743d129897f04"
+      ],
+      "status": "debug build; separate .debug package as in existing build policy; not a production update"
+    },
+    {
+      "path": "/home/codex/repos/castivo-s226/apps/android-tv/tv/build/outputs/apk/production/debug/tv-production-debug.apk",
+      "package": "package: name='nl.veyocast.player.debug' versionCode='200000001' versionName='1.0.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+      "sha256": "99b9f4c5022e9235e087197f8a47b9bc03bc6a71cef1d8d1591310c4d0f7dc97",
+      "signingCertificateSha256": [
+        "717953a5ce5c62cb254d6ac41a1db76f3575631379833c82772743d129897f04"
+      ],
+      "status": "debug build; separate .debug package as in existing build policy; not a production update"
+    },
+    {
+      "path": "/home/codex/repos/castivo-s226/apps/android-tv/tv/build/outputs/apk/staging/debug/tv-staging-debug.apk",
+      "package": "package: name='nl.veyocast.player.staging.debug' versionCode='200000001' versionName='1.0.0-staging' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+      "sha256": "e06ba7319a2c0ca7d2834e7490d7145facce74d5a941501becf84f5ecd145c96",
+      "signingCertificateSha256": [
+        "717953a5ce5c62cb254d6ac41a1db76f3575631379833c82772743d129897f04"
+      ],
+      "status": "debug build; separate .debug package as in existing build policy; not a production update"
+    }
+  ],
+  "unitTests": [
+    {
+      "module": "apps/android-tv",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "module": "apps/android-tv",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "lastGithubInternalCodes": {
+    "general": 100000601,
+    "tv": 200001401
+  },
+  "installedDistribution": "physical verification explicitly deferred by user",
+  "releaseSigning": "existing GitHub protected release flow; no signing secret copied locally",
+  "controlRelease": "User confirmed only Player and website were previously installed/deployed. Native Control has no historical installation/signing identity to recover; first Play/store configuration is still required. No request for old signing keys remains pending."
+}

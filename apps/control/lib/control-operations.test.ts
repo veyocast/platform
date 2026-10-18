@@ -63,6 +63,7 @@ describe("deriveOperationalDashboard", () => {
   it("derives onboarding and playback only from real resource state", () => {
     const result = deriveOperationalDashboard(source({
       devices: [{
+        current_sync_detail: { publicationTrace: { releaseId: "release-1", firstFrameAt: "2026-07-20T11:58:00.000Z" } },
         active_release_id: "release-1", desired_release_id: "release-1", id: "device-1",
         last_error_at: null, last_error_code: null, last_seen_at: "2026-07-20T11:59:00.000Z",
         screen_id: "screen-1", status: "paired", storage_quota_bytes: null, storage_used_bytes: null
@@ -129,6 +130,7 @@ describe("deriveOperationalDashboard", () => {
     }), now);
     const offline = deriveOperationalDashboard(source({
       devices: [{
+        current_sync_detail: { publicationTrace: { releaseId: "release-1", firstFrameAt: "2026-07-20T11:58:00.000Z" } },
         active_release_id: "release-1", desired_release_id: "release-1", id: "device-1",
         last_error_at: null, last_error_code: null, last_seen_at: "2026-07-20T10:00:00.000Z",
         screen_id: "screen-1", status: "paired", storage_quota_bytes: null, storage_used_bytes: null
@@ -141,6 +143,7 @@ describe("deriveOperationalDashboard", () => {
   });
   it("derives degraded, stale and full-error states without claiming health", () => {
     const onlineDevice = {
+      current_sync_detail: { publicationTrace: { releaseId: "release-1", firstFrameAt: "2026-07-20T11:58:00.000Z" } },
       active_release_id: "release-1",
       desired_release_id: "release-1",
       id: "device-1",

@@ -1,0 +1,133 @@
+name: Probe live integrations
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Beschermde omgeving
+        required: true
+        type: choice
+        options: [staging, production]
+      tenant_id:
+        description: Bevestigd actief tenant-ID
+        required: true
+        type: string
+      release_sha:
+        description: Volledige gedeployde main-SHA, gelijk aan deze workflowrevisie
+        required: true
+        type: string
+      birthday_provider_probe:
+        description: Optionele read-only verjaardagenprobe binnen de worker
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: probe-live-integrations-${{ inputs.target_environment }}-${{ inputs.tenant_id }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.ref == 'refs/heads/main'
+    environment: ${{ inputs.target_environment }}
+    runs-on: [self-hosted, linux, x64, veyocast, '${{ inputs.target_environment }}']
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+      - name: Read-only scoped worker diagnostics
+        shell: bash
+        env:
+          TARGET: ${{ inputs.target_environment }}
+          TENANT_ID: ${{ inputs.tenant_id }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          WORKFLOW_SHA: ${{ github.sha }}
+          BIRTHDAY_PROBE: ${{ inputs.birthday_provider_probe }}
+        run: |
+          set -euo pipefail
+          runtime_file="$RUNNER_TEMP/live-integration-runtime.jsonl"
+          probe_file="$RUNNER_TEMP/live-integration-probe.jsonl"
+          raw_file="$RUNNER_TEMP/live-integration-probe.tmp"
+          trap 'rm -f "$raw_file"' EXIT
+          : > "$runtime_file"
+          rm -f "$probe_file"
+          fail() {
+            printf '{"event":"live_integration_probe_failed","code":"%s"}\n' "$1" | tee -a "$runtime_file"
+            exit 1
+          }
+          [[ "$TARGET" =~ ^(staging|production)$ ]] || fail PROBE_SCOPE_INVALID
+          [[ "$TENANT_ID" =~ ^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$ ]] || fail PROBE_SCOPE_INVALID
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ && "$RELEASE_SHA" == "$WORKFLOW_SHA" ]] || fail PROBE_REVISION_MISMATCH
+          [[ "$BIRTHDAY_PROBE" =~ ^(true|false)$ ]] || fail PROBE_SCOPE_INVALID
+          if ! containers=$(docker ps -aq --filter "label=com.docker.compose.project=veyocast-${TARGET}-worker" --filter 'label=com.docker.compose.service=media-worker' 2>/dev/null); then
+            fail PROBE_RUNTIME_READ_FAILED
+          fi
+          running=()
+          ordinal=0
+          while IFS= read -r container; do
+            [[ -n "$container" ]] || continue
+            [[ "$container" =~ ^[0-9a-f]{12,64}$ ]] || fail PROBE_RUNTIME_INVALID
+            ordinal=$((ordinal + 1))
+            if ! runtime=$(docker inspect --format '{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} {{.RestartCount}}' "$container" 2>/dev/null); then
+              fail PROBE_RUNTIME_READ_FAILED
+            fi
+            read -r status health restarts remainder <<< "$runtime"
+            [[ "$status" =~ ^(created|running|paused|restarting|removing|exited|dead)$ && "$health" =~ ^(none|starting|healthy|unhealthy)$ && "$restarts" =~ ^[0-9]{1,10}$ && -z "$remainder" ]] || fail PROBE_RUNTIME_INVALID
+            printf '{"event":"live_integration_worker_runtime","containerOrdinal":%s,"status":"%s","health":"%s","restartCount":%s}\n' "$ordinal" "$status" "$health" "$restarts" | tee -a "$runtime_file"
+            if [[ "$status" == running ]]; then running+=("$container"); fi
+          done <<< "$containers"
+          [[ ${#running[@]} -eq 1 ]] || fail PROBE_WORKER_NOT_RUNNING
+          if ! image=$(docker inspect --format '{{.Config.Image}}' "${running[0]}" 2>/dev/null); then fail PROBE_RUNTIME_READ_FAILED; fi
+          [[ "$image" == "veyocast-media-worker:${RELEASE_SHA}" ]] || fail PROBE_IMAGE_MISMATCH
+          provider_mode=disabled
+          if [[ "$BIRTHDAY_PROBE" == true ]]; then provider_mode=enabled; fi
+          result=0
+          docker exec "${running[0]}" node --import tsx apps/media-worker/src/ops-probe-live-integrations.ts "$TENANT_ID" "$RELEASE_SHA" "$TARGET" "$provider_mode" > "$raw_file" 2>/dev/null || result=$?
+          # Never upload unvalidated process output, including Node startup errors.
+          if ! node --input-type=module - "$raw_file" "$probe_file" <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const raw = readFileSync(process.argv[2], 'utf8');
+          if (!raw.trim() || Buffer.byteLength(raw) > 1000000) process.exit(1);
+          const events = new Set(['live_integration_diagnostics','live_integration_birthday_probe','live_integration_probe_failed']);
+          const keys = new Set(['event','code','databaseCode','tenantId','releaseSha','environment','readinessFresh','diagnostic','schemaVersion','observedAt',
+            'sources','sourceId','sourceKind','status','providerStatus','revision','lastAttemptAt','lastSuccessAt','errorCode','ledScores',
+            'connectionId','health','lastValidMessageAt','lastConnectedAt','lastDisconnectedAt','leaseActive','leaseExpiresAt','reconnectCount',
+            'invalidMessageCount','lastTestAt','lastTestStatus','lastHealthCode','lastEventAt','persistedMessageEventCount24h','goalCount24h',
+            'lastGoalAt','liveStateSequence','liveStateObservedAt','liveStateSourceUpdatedAt','messageCountsIncludePersistedEventsOnly','sportlink',
+            'nextSyncAt','staleAfter','stale','birthdayModuleEnabled','birthdayProbeAllowed','activeBirthdayCount','datasets','datasetGroup','enabled','frequency','due',
+            'freshness','latestRunStatus','latestRunStartedAt','latestRunFinishedAt','readCount','changedCount','skippedCount','publishedBindings',
+            'snapshotId','slideType','dataRevision','sourceRevision','checkedAt','changedAt','liveReferenceCount','liveItemCount','refreshQueued',
+            'refreshDue','refreshLeased','refreshAttemptCount','refreshErrorCode','queues','publishedData','count','dueCount','leasedCount','errorCount',
+            'oldestRequestedAt','versionPrune','pendingCount','counts','playlistReleases','playlistPublications','slideVersions','snapshots','renderJobs',
+            'queuedRenderJobs','failedRenderJobs','liveBindings','players','dataRevisionReportingAvailable','dataRevisionReports','reports','deviceId',
+            'screenId','lastSeenAt','activeReleaseId','desiredReleaseId','targetRevision','configRevision','httpStatus','recordCount','validCount',
+            'invalidCount','outOfWindowCount','selectedCount']);
+          function safe(value, depth = 0) {
+            if (depth > 12) return false;
+            if (value === null || typeof value === 'boolean') return true;
+            if (typeof value === 'number') return Number.isFinite(value) && value >= 0;
+            if (typeof value === 'string') return value.length <= 100 && /^[A-Za-z0-9_.:+-]+$/.test(value);
+            if (Array.isArray(value)) return value.length <= 500 && value.every(item => safe(item, depth + 1));
+            return typeof value === 'object' && Object.entries(value).every(([key, item]) => keys.has(key) && safe(item, depth + 1));
+          }
+          try {
+            const entries = raw.trim().split('\n').map(line => JSON.parse(line));
+            if (!entries.every(entry => events.has(entry.event) && safe(entry))) process.exit(1);
+            writeFileSync(process.argv[3], entries.map(entry => JSON.stringify(entry)).join('\n') + '\n');
+          } catch { process.exit(1); }
+          NODE
+          then fail PROBE_OUTPUT_INVALID; fi
+          cat "$probe_file"
+          [[ "$result" -eq 0 ]] || fail PROBE_EXECUTION_FAILED
+      - name: Retain sanitized readback
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: live-integrations-${{ inputs.target_environment }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/live-integration-*.jsonl
+          if-no-files-found: ignore
+          retention-days: 14

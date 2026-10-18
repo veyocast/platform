@@ -1942,3 +1942,21 @@ video.playback-media::-webkit-media-controls-start-playback-button {
     transition: none !important;
   }
 }
+
+/* Exact supplied Sync artwork; local shell asset, independent of release media. */
+.sync-boot-hero {
+  display: block;
+  height: auto;
+  margin: 0 auto 24px;
+  max-height: 44vh;
+  object-fit: contain;
+  width: min(100%, 440px);
+}
+.pairing-brand-scene .sync-pairing-hero {
+  animation: none;
+  filter: none;
+  height: 100%;
+  object-fit: contain;
+  opacity: 1;
+  width: 100%;
+}

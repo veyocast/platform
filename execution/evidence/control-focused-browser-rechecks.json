@@ -1,0 +1,51 @@
+{
+  "status": "PASS_FOR_FOCUSED_CASES",
+  "scope": "Actual Next Control routes, explicit prior failures and whole-page accessibility; no full V1/scenario acceptance claim",
+  "navigation": {
+    "startedAt": "2026-10-17T23:49:17.326Z",
+    "finishedAt": "2026-10-17T23:50:19.622Z",
+    "before": {
+      "sha256": "7208381d58efbfe92e3b0d03ee353d4d965a3552d2c64374b8c4bfd4a89c8113",
+      "files": 2539
+    },
+    "after": {
+      "sha256": "7208381d58efbfe92e3b0d03ee353d4d965a3552d2c64374b8c4bfd4a89c8113",
+      "files": 2539
+    },
+    "unchanged": true,
+    "fileLimit": "65536",
+    "compiler": "webpack-polling",
+    "exitCode": 0
+  },
+  "remaining": {
+    "startedAt": "2026-10-17T23:50:37.156Z",
+    "finishedAt": "2026-10-17T23:52:38.665Z",
+    "before": {
+      "sha256": "7208381d58efbfe92e3b0d03ee353d4d965a3552d2c64374b8c4bfd4a89c8113",
+      "files": 2539
+    },
+    "after": {
+      "sha256": "7208381d58efbfe92e3b0d03ee353d4d965a3552d2c64374b8c4bfd4a89c8113",
+      "files": 2539
+    },
+    "unchanged": true,
+    "fileLimit": "65536",
+    "compiler": "webpack-polling",
+    "exitCode": 0
+  },
+  "results": {
+    "navigation": {
+      "passed": 1,
+      "duration": "1.0m"
+    },
+    "remaining": {
+      "passed": 13,
+      "duration": "2.0m"
+    }
+  },
+  "logHashes": {
+    "navigation-recheck": "cc44284a1a23a59f19680286e6eeb7341d5a0fb19d605e0d1b066c1e7692f1b8",
+    "remaining-browser": "ef9a7acc9f1f7f988c806b7cc17bee255ae73b8758bade9ac99a01fdabdb9007"
+  },
+  "localCompiler": "Webpack polling; per-process limit65536 did not resolve shared host watcher failure; CI compiler and host settings unchanged"
+}

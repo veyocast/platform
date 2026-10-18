@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {readFileSync,statSync,writeFileSync} from 'node:fs';
+import {chromium,expect as playwrightExpect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+assert.equal(process.env.VEYOCAST_S226_LOCAL_ACCEPTANCE,'1');assert.equal(process.cwd(),'/home/codex/repos/castivo-s226');
+const auth='/tmp/veyocast-s226-qa-auth-state.json',cfgFile='/tmp/veyocast-s226-local-status.json';for(const path of[auth,cfgFile])assert.equal(statSync(path).mode&0o777,0o600);
+const cfg=JSON.parse(readFileSync(cfgFile));assert.equal(cfg.API_URL,'http://127.0.0.1:57621');assert.equal(new URL(cfg.DB_URL).port,'57622');
+const container='supabase_db_veyocast-s226',tenant='19170000-0000-4000-8000-000000000010',base='http://127.0.0.1:3220';assert.equal(execFileSync('docker',['inspect','--format','{{.Name}} {{ index .Config.Labels "com.supabase.cli.project" }}',container],{encoding:'utf8'}).trim(),'/'+container+' veyocast-s226');
+const sql=query=>execFileSync('docker',['exec','-i',container,'psql','-U','postgres','-d','postgres','-At','-v','ON_ERROR_STOP=1'],{input:query,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();
+const proof=JSON.parse(readFileSync('execution/evidence/sync-series-real-services.json'));assert.equal(proof.status,'PASS');const project=proof.members[0].id,target='dd38316c-63b4-4a60-9d8c-3b8211de00ce';assert.equal(project,'16a1de10-8d1b-49a1-b6ec-02d5b9c5744d');
+const before=sql(`select jsonb_build_object('jobs',(select count(*)from public.studio_render_jobs),'drafts',(select jsonb_agg(jsonb_build_object('id',project_id,'hash',document_hash,'revision',draft_revision)order by project_id)from public.studio_project_drafts where tenant_id='${tenant}'),'releases',(select jsonb_agg(jsonb_build_object('id',id,'hash',manifest_hash)order by id)from public.playlist_releases where tenant_id='${tenant}'))`);
+const browser=await chromium.launch(),context=await browser.newContext({storageState:auth,ignoreHTTPSErrors:true,reducedMotion:'reduce',viewport:{width:1440,height:1100}}),page=await context.newPage(),expect=playwrightExpect.configure({timeout:30000}),errors=[];page.on('pageerror',error=>errors.push(error.message));await context.addCookies([{name:'veyocast-tenant-context',value:'duindorp-sites-local-qa',url:base,httpOnly:true,sameSite:'Lax'}]);
+const report={status:'RUNNING',startedAt:new Date().toISOString(),scope:'actual AAL2 Source library filmstrip, private asset preview and navigation without authoring or rendering',projectId:project};
+try{
+ await page.goto(base+'/dashboard/studio/'+project,{waitUntil:'domcontentloaded',timeout:120000});const strip=page.locator('.vc-filmstrip-items');await expect(strip.getByRole('button',{name:'Ontwerp openen: S226 echt aangemaakt in Sync',exact:true})).toBeVisible();report.previewCount=await strip.getByRole('button').count();assert.ok(report.previewCount>proof.members.length);
+ report.previewNames=await strip.getByRole('button').allTextContents();const scan=await new AxeBuilder({page}).analyze();assert.deepEqual(scan.violations,[]);report.axeViolations=0;report.widths=[];
+ for(const width of[320,390,768,1024,1440]){await page.setViewportSize({width,height:1100});const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);assert.ok(overflow<=1);report.widths.push({width,overflow});}await page.screenshot({path:'execution/evidence/sync-filmstrip-real-services.png',fullPage:true});
+ await strip.getByRole('button',{name:'Ontwerp openen: S226 echt aangemaakt in Sync',exact:true}).click();await expect(page).toHaveURL(base+'/dashboard/studio/'+target);await expect(page.getByLabel('Ontwerpnaam',{exact:true})).toHaveValue('S226 echt aangemaakt in Sync');
+ const after=sql(`select jsonb_build_object('jobs',(select count(*)from public.studio_render_jobs),'drafts',(select jsonb_agg(jsonb_build_object('id',project_id,'hash',document_hash,'revision',draft_revision)order by project_id)from public.studio_project_drafts where tenant_id='${tenant}'),'releases',(select jsonb_agg(jsonb_build_object('id',id,'hash',manifest_hash)order by id)from public.playlist_releases where tenant_id='${tenant}'))`);assert.equal(after,before);assert.deepEqual(errors,[]);report.navigatedToProject=target;report.noAuthoringOrRenderWrites=true;report.status='PASS';
+}catch(error){report.status='FAIL';report.error=error.message;await page.screenshot({path:'/tmp/veyocast-s226-filmstrip-real-failure.png',fullPage:true}).catch(()=>{});throw error;
+}finally{await context.storageState({path:auth});await browser.close();writeFileSync('execution/evidence/sync-filmstrip-real-services.json',JSON.stringify(report,null,2)+'\n');}
+console.log(JSON.stringify(report));

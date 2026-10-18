@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "environment": "disposable local Supabase",
+  "transport": "actual authenticated AAL2 PostgREST; one real response withheld after commit",
+  "tenant": "19170000-0000-4000-8000-000000000010",
+  "product": "eba4a064-d0ef-4580-9018-890f2728d006",
+  "droppedResponseCount": 1,
+  "afterLoss": {
+    "id": "eba4a064-d0ef-4580-9018-890f2728d006",
+    "name": "S226 product ontvangstbewijs",
+    "price_cents": 235,
+    "active": false,
+    "revision": 2
+  },
+  "concurrentRevision": 3,
+  "recoveredReceipt": {
+    "outcome": "updated",
+    "revision": 2,
+    "productId": "eba4a064-d0ef-4580-9018-890f2728d006"
+  },
+  "afterReplay": {
+    "id": "eba4a064-d0ef-4580-9018-890f2728d006",
+    "name": "Bewaard door tweede sessie",
+    "price_cents": 275,
+    "active": false,
+    "revision": 3
+  },
+  "conclusion": "Original receipt recovered without overwriting a later edit or incrementing the revision; no browser or hosted acceptance claim"
+}

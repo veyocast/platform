@@ -1,0 +1,19 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T08:32:48.393Z",
+  "controlBuildId": "_TwpS_ErHbqJHDJ3WoRID",
+  "scope": "actual AAL2 Source pool/team/period choices over owned persisted provider fixtures, current-user server options/canonical preview, lost create ACK and complete existing-worker output; fixture connection has automatic sync disabled and no external provider verification, credential or integration claim; no hardware or hosted deployment claim",
+  "fixture": {
+    "sourceId": "5819a79c-840d-4ada-bc09-8fde60fade7f",
+    "connectionId": "b3b7c824-1060-4e6f-976b-ae103a49f37e",
+    "storedMatches": 6,
+    "allowedTeam": "s226-team-a",
+    "selectedPool": "s226-pool",
+    "selectedPeriod": "2",
+    "automaticProviderSyncDisabled": true,
+    "externalProviderVerified": false
+  },
+  "editorAxeViolations": 0,
+  "previewReadOnly": true,
+  "error": "expect(page).toHaveURL(expected) failed\n\nExpected pattern: /\\/dashboard\\/slides\\/[a-f0-9-]{36}$/\nReceived string:  \"http://127.0.0.1:3220/dashboard/slides/new/sync?family=pool-program\"\nTimeout: 30000ms\n\nCall log:\n  - Expect \"to.have.url\" with timeout 30000ms\n    63 × unexpected value \"http://127.0.0.1:3220/dashboard/slides/new/sync?family=pool-program\"\n"
+}

@@ -1,0 +1,81 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T08:12:40.453Z",
+  "playerBuildId": "IyFEjVS94DIhCfvF6AeI1",
+  "scope": "actual AAL2 reviewed Source placement variant through Control preflight/publication, frozen theme/duration, first-frame and DOM/binary offline reload with existing pairing; no live binary refresh, external provider, hardware or hosted deployment claim",
+  "slideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+  "assetId": "83228b4d-e1ba-5cfe-8849-60750da57863",
+  "screenId": "19170000-0000-4000-8000-000000000022",
+  "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9",
+  "playlistId": "c5d2f44f-9aac-4948-91c1-cbc5658c4965",
+  "release": {
+    "kind": "video",
+    "bytes": 3183040,
+    "sha256": "3357d937464f9838182ba3dcd9c3fb0cbcdafec41dab7179731a900a01a2cbf9",
+    "assetId": "83228b4d-e1ba-5cfe-8849-60750da57863",
+    "version": 2,
+    "mimeType": "video/mp4",
+    "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+    "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+    "durationSeconds": 24,
+    "liveDataEnabled": true
+  },
+  "firstFrame": {
+    "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+    "trace": {
+      "revision": "4",
+      "publicationId": "c5d2f44f-9aac-4948-91c1-cbc5658c4965",
+      "configRevision": "2",
+      "assignmentSource": "default",
+      "committedAt": null,
+      "correlationId": "9e8bc6c5-1e4b-4f93-b64c-1bff8224252e",
+      "generation": 1,
+      "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+      "signalReceivedAt": null,
+      "resolvedAt": "2026-10-18T08:12:43.974Z",
+      "targetWrittenAt": "2026-10-18T08:12:43.275989+00:00",
+      "targetRevision": "4",
+      "assetsReadyAt": "2026-10-18T08:12:44.117Z",
+      "boundaryAt": "2026-10-18T08:12:52.993Z",
+      "firstFrameAt": "2026-10-18T08:12:53.121Z",
+      "frameAfterBoundaryMs": 129
+    },
+    "serverStatus": 200
+  },
+  "profiles": {
+    "domAssets": 11,
+    "binaryAssets": 0,
+    "oldAssets": 0,
+    "distinctEtags": 3,
+    "sourceDurationMs": 24000
+  },
+  "onlinePages": [
+    0,
+    1,
+    2
+  ],
+  "domCache": {
+    "assets": 13,
+    "shellControlled": true
+  },
+  "offlinePages": [
+    0,
+    1,
+    2
+  ],
+  "domOfflineReload": true,
+  "pairingPreserved": true,
+  "binaryCache": {
+    "assets": 1,
+    "shellControlled": true
+  },
+  "binaryOfflineReload": true,
+  "readback": {
+    "lastErrorCode": null,
+    "activeReleaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+    "desiredReleaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725"
+  },
+  "existingReleasesUnchanged": true,
+  "recoveredPublication": "The original pinned policy produced a frozen-only version 1. It remains immutable; unchanged content correctly reused it. After an explicit playlist label change, a new version 2 uses the private Source variant live binding; ordinary pinned snapshots stay frozen."
+}

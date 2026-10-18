@@ -1,12 +1,23 @@
 import {
   dynamicTemplateManifestSchema,
+  syncDynamicConfigurationSchema,
+  syncSlideAssets,
   playerDynamicTemplateAssetSchema,
   type PlayerDynamicTemplateAsset,
+  type SyncSlidePresentation,
   type DynamicTemplateManifest
 } from "@veyocast/contracts";
+import {createHash} from 'node:crypto';
 import { createClient } from "@supabase/supabase-js";
 
 export type ClaimedDynamicRenderJob = {
+  publishedRefresh?: boolean;
+  /** Present on the additive claim path; never inferred from another UUID. */
+  templateVersionId?:string;
+  templateSlug?:string;
+  snapshotHash?:string;
+  slideVersionId?:string;
+  leaseToken?:string;
   css: string;
   jobId: string;
   manifest: DynamicTemplateManifest;
@@ -20,6 +31,10 @@ export type ClaimedDynamicRenderJob = {
 };
 
 export type DynamicRenderArtifact = {
+  sync?: {
+    mimeType:'image/png'|'video/mp4';durationMs:number;presentation:SyncSlidePresentation;
+    poster:{bytes:Uint8Array;byteLength:number;checksumSha256:string;storagePath:string};
+  };
   byteLength: number;
   bytes: Uint8Array;
   checksumSha256: string;
@@ -29,6 +44,7 @@ export type DynamicRenderArtifact = {
 };
 
 export interface DynamicRenderBackend {
+  renewJob?(job:ClaimedDynamicRenderJob,workerId:string):Promise<boolean>;
   claimJob(
     workerId: string,
     lockTimeoutSeconds: number,
@@ -65,6 +81,8 @@ type DynamicRpcClient = {
         bytes: Uint8Array,
         options: Record<string, unknown>
       ): Promise<{ error: { message?: string } | null }>;
+      list?(prefix:string,options:{limit:number}):Promise<{data:Array<{name:string}>|null;error:unknown}>;
+      remove?(paths:string[]):Promise<{error:unknown}>;
     };
   };
 };
@@ -83,6 +101,7 @@ export class DynamicRenderBackendError extends Error {
 export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
   private readonly client: DynamicRpcClient;
   private readonly assetClient: ReturnType<typeof createClient> | null;
+  private readonly binaryClient: DynamicRpcClient;
 
   constructor(
     supabaseUrl: string,
@@ -95,6 +114,10 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     this.assetClient = client ? null : createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
+    this.binaryClient=client??createClient(supabaseUrl,serviceRoleKey,{
+      auth:{autoRefreshToken:false,persistSession:false},
+      global:{fetch:(input,init)=>fetch(input,{...init,signal:init?.signal?AbortSignal.any([init.signal,AbortSignal.timeout(15_000)]):AbortSignal.timeout(15_000)})},
+    }) as unknown as DynamicRpcClient;
   }
 
   async resolveAssets(job: ClaimedDynamicRenderJob) {
@@ -147,7 +170,7 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     maxAttempts: number
   ) {
     const { data, error } = await this.client.rpc(
-      "claim_dynamic_render_job_v1",
+      "claim_dynamic_render_job_v3",
       {
         p_lock_timeout_seconds: lockTimeoutSeconds,
         p_max_attempts: maxAttempts,
@@ -162,26 +185,55 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
       );
     }
     if (!Array.isArray(data) || data.length === 0) return null;
-    return parseClaimedDynamicRenderJob(data[0]);
+    if(isRecord(data[0])&&data[0].cleanup_only===true){
+      await this.cleanupRetiredBinary(data[0],workerId);
+      return null;
+    }
+    const job=parseClaimedDynamicRenderJob(data[0]);
+    if(!job.leaseToken)throw invalidClaim();
+    return job;
+  }
+
+  async renewJob(job:ClaimedDynamicRenderJob,workerId:string){
+    const {data,error}=await(job.publishedRefresh?this.binaryClient:this.client).rpc(job.publishedRefresh?'renew_sync_binary_render_v1':'renew_dynamic_render_lease_v2',job.publishedRefresh?{p_tenant_id:job.tenantId,p_snapshot_id:job.snapshotId,p_worker_id:workerId,p_lease_token:job.leaseToken}:{p_job_id:job.jobId,p_worker_id:workerId,p_lease_token:job.leaseToken});
+    if(error)throw new DynamicRenderBackendError('dynamic_lease_renewal_failed',true,'De renderopdracht kon tijdelijk niet worden verlengd.');
+    return data===true;
   }
 
   async uploadArtifact(
     job: ClaimedDynamicRenderJob,
     artifact: DynamicRenderArtifact
   ) {
-    assertArtifactPath(job, artifact.storagePath);
-    const { error } = await this.client.storage
+    assertArtifactPath(job, artifact.storagePath,artifact.sync?.mimeType,artifact.checksumSha256);
+    if(job.publishedRefresh){
+      if(!artifact.sync||artifact.byteLength>64*1024*1024||artifact.sync.poster.byteLength>16*1024*1024)throw new DynamicRenderBackendError('binary_cache_artifact_budget_exceeded',false,'De volledige uitvoer past niet binnen het begrensde Player-cachebudget. De laatste goede uitzending blijft behouden.');
+      await this.clearBinarySlot(job.tenantId,job.outputMediaAssetId,job);
+    }
+    if(artifact.sync){
+      assertSourceArtifactBytes(artifact.bytes,artifact.byteLength,artifact.checksumSha256);
+      const poster=artifact.sync.poster;
+      assertArtifactPath(job,poster.storagePath,'image/png',poster.checksumSha256);
+      assertSourceArtifactBytes(poster.bytes,poster.byteLength,poster.checksumSha256);
+      // Refresh paths include a never-reused lease UUID as well as the SHA.
+      // Even identical bytes from a later attempt have a different name.
+      if(poster.storagePath!==artifact.storagePath)await this.uploadBytes(poster.storagePath,poster.bytes,'image/png',job.publishedRefresh);
+    }
+    await this.uploadBytes(artifact.storagePath,artifact.bytes,artifact.sync?.mimeType??'image/png',job.publishedRefresh);
+  }
+
+  private async uploadBytes(path:string,bytes:Uint8Array,mimeType:'image/png'|'video/mp4',publishedRefresh=false){
+    const { error } = await (publishedRefresh?this.binaryClient:this.client).storage
       .from("tenant-media")
-      .upload(artifact.storagePath, artifact.bytes, {
+      .upload(path, bytes, {
         cacheControl: "31536000",
-        contentType: "image/png",
+        contentType: mimeType,
         upsert: true
       });
     if (error) {
       throw new DynamicRenderBackendError(
         "dynamic_artifact_upload_failed",
         true,
-        "De dynamische PNG kon tijdelijk niet naar mediaopslag worden geschreven."
+        "De volledige dynamische weergave kon tijdelijk niet naar mediaopslag worden geschreven."
       );
     }
   }
@@ -191,16 +243,14 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     workerId: string,
     artifact: Omit<DynamicRenderArtifact, "bytes">
   ) {
-    const { error } = await this.client.rpc(
-      "complete_dynamic_render_job_v1",
+    const { error } = await (job.publishedRefresh?this.binaryClient:this.client).rpc(
+      job.publishedRefresh?"complete_sync_binary_render_v1":"complete_dynamic_render_job_v2",
       {
-        p_checksum_sha256: artifact.checksumSha256,
-        p_file_size_bytes: artifact.byteLength,
-        p_height: artifact.height,
-        p_job_id: job.jobId,
-        p_storage_path: artifact.storagePath,
-        p_width: artifact.width,
-        p_worker_id: workerId
+        ...(job.publishedRefresh?{p_tenant_id:job.tenantId,p_snapshot_id:job.snapshotId}:{p_job_id:job.jobId}),
+        p_worker_id: workerId,
+        p_lease_token:job.leaseToken,
+        p_artifact:{byteLength:artifact.byteLength,checksumSha256:artifact.checksumSha256,height:artifact.height,width:artifact.width,storagePath:artifact.storagePath,
+          ...(artifact.sync?{mimeType:artifact.sync.mimeType,durationMs:artifact.sync.durationMs,presentation:artifact.sync.presentation,poster:{byteLength:artifact.sync.poster.byteLength,checksumSha256:artifact.sync.poster.checksumSha256,storagePath:artifact.sync.poster.storagePath}}:{})}
       }
     );
     if (error) {
@@ -219,24 +269,54 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     workerId: string,
     failure: { code: string; message: string; retryable: boolean }
   ) {
-    const { data, error } = await this.client.rpc(
-      "fail_dynamic_render_job_v1",
+    const { data, error } = await (job.publishedRefresh?this.binaryClient:this.client).rpc(
+      job.publishedRefresh?"fail_sync_binary_render_v1":"fail_dynamic_render_job_v2",
       {
         p_error_code: failure.code.slice(0, 80),
-        p_error_detail: failure.message.replace(/[\r\n]+/g, " ").slice(0, 500),
-        p_job_id: job.jobId,
+        ...(job.publishedRefresh?{p_tenant_id:job.tenantId,p_snapshot_id:job.snapshotId}:{p_error_detail:failure.message.replace(/[\r\n]+/g, " ").slice(0,500),p_job_id:job.jobId}),
+        p_lease_token:job.leaseToken,
         p_retryable: failure.retryable,
         p_worker_id: workerId
       }
     );
     if (error || (data !== "queued" && data !== "failed")) {
       throw new DynamicRenderBackendError(
-        "dynamic_failure_report_failed",
-        true,
+        error?.code==='55000'?'dynamic_render_lease_lost':"dynamic_failure_report_failed",
+        error?.code!=='55000',
         "De mislukte dynamische render kon niet worden geregistreerd."
       );
     }
     return data;
+  }
+
+  private async clearBinarySlot(tenantId:string,slotId:string,job?:ClaimedDynamicRenderJob){
+    if(!uuidPattern.test(tenantId)||!uuidPattern.test(slotId))throw invalidClaim();
+    const prefix=`tenants/${tenantId}/assets/${slotId}/sync-dynamic`,bucket=this.binaryClient.storage.from('tenant-media');
+    if(!bucket.list||!bucket.remove)throw new DynamicRenderBackendError('binary_cleanup_unavailable',true,'De begrensde Player-cache kan tijdelijk niet worden gecontroleerd.');
+    // Only the inactive server-owned slot is eligible. It has no Media row and
+    // cannot be an upload destination for a browser. Unexpected entries fail
+    // closed; no recursive/bucket deletion or tenant-wide listing is used.
+    const result=await bucket.list(prefix,{limit:100});
+    if(result.error||!result.data||result.data.length>=100||result.data.some(file=>!/^(?:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}-)?[a-f0-9]{64}\.(png|mp4)$/.test(file.name)))throw new DynamicRenderBackendError('binary_storage_cleanup_failed',true,'De oude cachebestanden konden niet veilig worden gecontroleerd.');
+    // Capture first, validate second. A stalled listing may see a successor's
+    // current files, in which case validation must reject before deletion.
+    // After successful validation, a future successor's unique names cannot
+    // be in this immutable deletion set, even if this worker pauses again.
+    if(job){
+      const checked=await this.binaryClient.rpc('validate_sync_binary_storage_v1',{p_tenant_id:tenantId,p_snapshot_id:job.snapshotId,p_lease_token:job.leaseToken,p_slot_id:slotId});
+      if(checked.error||checked.data!==true)throw new DynamicRenderBackendError('dynamic_render_lease_lost',false,'De renderopdracht is door een andere poging overgenomen.');
+    }
+    if(result.data.length){const removed=await bucket.remove(result.data.map(file=>prefix+'/'+file.name));if(removed.error)throw new DynamicRenderBackendError('binary_storage_cleanup_failed',true,'De oude cachebestanden konden tijdelijk niet worden verwijderd.');}
+  }
+
+  private async cleanupRetiredBinary(value:Record<string,unknown>,workerId:string){
+    if(![value.tenant_id,value.snapshot_id,value.lease_token].every(id=>typeof id==='string'&&uuidPattern.test(id))||!Array.isArray(value.slot_ids)||value.slot_ids.length!==3||value.slot_ids.some(id=>typeof id!=='string'||!uuidPattern.test(id)))throw invalidClaim();
+    const args={p_tenant_id:value.tenant_id,p_snapshot_id:value.snapshot_id,p_worker_id:workerId,p_lease_token:value.lease_token};
+    try{
+      for(const slot of value.slot_ids)await this.clearBinarySlot(value.tenant_id as string,slot);
+      const result=await this.binaryClient.rpc('finish_sync_binary_cleanup_v1',{...args,p_success:true});
+      if(result.error||result.data!==true)throw new DynamicRenderBackendError('dynamic_render_lease_lost',false,'De oude cache is door een andere poging overgenomen.');
+    }catch(error){await this.binaryClient.rpc('finish_sync_binary_cleanup_v1',{...args,p_success:false}).catch(()=>undefined);throw error;}
   }
 }
 
@@ -329,8 +409,14 @@ function assetResolutionFailure() {
 }
 
 export function dynamicRenderStoragePath(
-  job: Pick<ClaimedDynamicRenderJob, "outputMediaAssetId" | "tenantId">
+  job: Pick<ClaimedDynamicRenderJob, "outputMediaAssetId" | "tenantId" | "publishedRefresh" | "leaseToken">,
+  mimeType?:'image/png'|'video/mp4',checksumSha256?:string,
 ) {
+  if(mimeType){
+    if(!checksumSha256||!/^[a-f0-9]{64}$/.test(checksumSha256))throw new DynamicRenderBackendError('dynamic_storage_path_invalid',false,'Het gecontroleerde bronbestand mist een geldige checksum.');
+    if(job.publishedRefresh&&(!job.leaseToken||!uuidPattern.test(job.leaseToken)))throw invalidClaim();
+    return `tenants/${job.tenantId}/assets/${job.outputMediaAssetId}/sync-dynamic/${job.publishedRefresh?job.leaseToken+'-':''}${checksumSha256}.${mimeType==='video/mp4'?'mp4':'png'}`;
+  }
   return `tenants/${job.tenantId}/assets/${job.outputMediaAssetId}/dynamic-slide.png`;
 }
 
@@ -338,6 +424,7 @@ export function parseClaimedDynamicRenderJob(
   value: unknown
 ): ClaimedDynamicRenderJob {
   if (!isRecord(value)) throw invalidClaim();
+  if(value.published_refresh!==undefined&&(value.published_refresh!==true||value.job_id!==value.snapshot_id||![value.tenant_id,value.snapshot_id,value.output_media_asset_id].every(id=>typeof id==='string'&&uuidPattern.test(id))))throw invalidClaim();
   const manifest = dynamicTemplateManifestSchema.safeParse(value.manifest_json);
   const orientation = value.orientation;
   if (
@@ -354,6 +441,8 @@ export function parseClaimedDynamicRenderJob(
     throw invalidClaim();
   }
   return {
+    ...(value.published_refresh===true?{publishedRefresh:true}:{}),
+    ...parseModernClaimIdentity(value),
     css: value.css,
     jobId: value.job_id,
     manifest: manifest.data,
@@ -369,15 +458,25 @@ export function parseClaimedDynamicRenderJob(
 
 function assertArtifactPath(
   job: ClaimedDynamicRenderJob,
-  storagePath: string
+  storagePath: string,mimeType?:'image/png'|'video/mp4',checksumSha256?:string,
 ) {
-  if (storagePath !== dynamicRenderStoragePath(job)) {
+  if (storagePath !== dynamicRenderStoragePath(job,mimeType,checksumSha256)) {
     throw new DynamicRenderBackendError(
       "dynamic_storage_path_invalid",
       false,
       "Het dynamische renderpad valt buiten de verwachte tenantresource."
     );
   }
+}
+
+function assertSourceArtifactBytes(bytes:Uint8Array,length:number,sha:string){
+ if(bytes.byteLength!==length||createHash('sha256').update(bytes).digest('hex')!==sha)throw new DynamicRenderBackendError('sync_dynamic_artifact_integrity_invalid',false,'De volledige bronweergave kon niet worden geverifieerd.');
+}
+function parseModernClaimIdentity(value:Record<string,unknown>){
+ const fields=['template_version_id','template_slug','source_revision_hash','dynamic_slide_version_id','lease_token'];
+ if(!fields.some(field=>value[field]!==undefined))return {};
+ if(![value.template_version_id,value.dynamic_slide_version_id,value.lease_token].every(id=>typeof id==='string'&&uuidPattern.test(id))||typeof value.template_slug!=='string'||!value.template_slug||typeof value.source_revision_hash!=='string'||!/^[a-f0-9]{64}$/.test(value.source_revision_hash))throw invalidClaim();
+ return {templateVersionId:value.template_version_id as string,templateSlug:value.template_slug,snapshotHash:value.source_revision_hash,slideVersionId:value.dynamic_slide_version_id as string,leaseToken:value.lease_token as string};
 }
 
 function invalidClaim(): never {
@@ -401,6 +500,8 @@ export function collectDynamicRenderAssetIds(snapshot: unknown) {
   const add = (value: unknown) => {
     if (typeof value === "string" && uuidPattern.test(value)) ids.add(value);
   };
+  const sync=syncDynamicConfigurationSchema.safeParse(snapshot.syncConfiguration);
+  if(sync.success)for(const asset of syncSlideAssets(sync.data.seed))if(asset.kind==='tenant')add(asset.mediaAssetId);
   const brand = isRecord(snapshot.brand) ? snapshot.brand : null;
   add(brand?.logoMediaAssetId);
   const menu = isRecord(snapshot.menu) ? snapshot.menu : null;

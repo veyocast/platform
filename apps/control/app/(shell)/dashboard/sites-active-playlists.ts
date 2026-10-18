@@ -1,13 +1,15 @@
 import type { TenantOverview } from "../../../lib/control-overview";
+import { syncPlaybackEvidence } from "../../../lib/sync-playback-evidence";
 
 /** Counts scoped playlist identities from the latest confirmed screen frames. */
 export function countConfirmedActivePlaylists(
-  data: Pick<TenantOverview, "heartbeats" | "screens" | "releases" | "playlists">,
+  data: Pick<TenantOverview, "devices" | "heartbeats" | "screens" | "releases" | "playlists">,
   nowMs = Date.now()
 ): number {
   const screens = new Set(data.screens.filter(screen => screen.status === "active").map(screen => screen.id));
   const playlists = new Set(data.playlists.map(playlist => playlist.id));
   const releases = new Map(data.releases.map(release => [release.id, release.playlist_id]));
+  const devices = new Map(data.devices.filter(device => device.status === "paired").map(device => [device.screen_id, device]));
   const latest = new Map<string, TenantOverview["heartbeats"][number]>();
   for (const heartbeat of data.heartbeats) {
     const timestamp = Date.parse(heartbeat.created_at);
@@ -20,6 +22,8 @@ export function countConfirmedActivePlaylists(
     const age = nowMs - Date.parse(heartbeat.created_at);
     if (age < 0 || age >= 5 * 60_000 || !heartbeat.active_release_id ||
         !["PLAYING", "OFFLINE_PLAYING", "READY"].includes(heartbeat.runtime_state)) continue;
+    const evidence = syncPlaybackEvidence(devices.get(heartbeat.screen_id), nowMs);
+    if (evidence.contact !== "online" || evidence.confirmedReleaseId !== heartbeat.active_release_id) continue;
     const playlistId = releases.get(heartbeat.active_release_id);
     if (playlistId && playlists.has(playlistId)) active.add(playlistId);
   }

@@ -1,0 +1,86 @@
+name: Database and RLS Gates
+
+on:
+  pull_request:
+    paths:
+      - "packages/database/**"
+      - "supabase/**"
+      - ".github/workflows/database-rls-gates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-rls-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database:
+    name: Database and RLS gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start local Supabase
+        run: pnpm db:start
+
+      - name: Reset database from migrations
+        run: pnpm db:reset
+
+      - name: Prove RLS isolation
+        run: pnpm test:rls
+
+      - name: Prove concurrent composition publication and stale acknowledgement
+        run: node scripts/verify-composition-concurrency.mjs
+
+      - name: Prove concurrent metadata edit and tag deletion
+        run: node scripts/verify-media-metadata-concurrency.mjs
+
+      - name: Install Chromium for real publication gate
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Ensure actual video processing tools are available
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if ! command -v ffmpeg > /dev/null || ! command -v ffprobe > /dev/null; then
+            sudo apt-get update
+            sudo apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version
+          ffprobe -version
+
+      - name: Verify real uploads, retained selections, TUS resume, immutable publication and first frame
+        run: node scripts/run-local-publisher-gate.mjs
+
+      - name: Retain sanitized publication readback
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: local-publisher-readback
+          path: ${{ runner.temp }}/publisher-evidence/*.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm db:stop

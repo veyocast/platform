@@ -1,0 +1,1058 @@
+name: FieldFlow ROYAL CURRENT RESET
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Omgeving met de tenant
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      tenant_name:
+        description: Exacte zichtbare tenantnaam
+        required: true
+        type: string
+        default: Duindorp SV
+      release_sha:
+        description: Volledige reeds gedeployde actuele main-SHA
+        required: true
+        type: string
+      reason:
+        description: Auditreden van 10 tot 240 tekens
+        required: true
+        type: string
+      confirmation:
+        description: Typ ROYAL CURRENT RESET
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fieldflow-royal-theme-reset-${{ inputs.target_environment }}
+  cancel-in-progress: false
+
+jobs:
+  reset-theme:
+    name: Reset one tenant and await immutable rollout
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: ${{ inputs.target_environment }}
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - veyocast
+      - ${{ inputs.target_environment }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout trusted release tooling
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          clean: true
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Remove stale workspace files
+        shell: bash
+        run: git clean -ffdx
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          dest: ${{ runner.temp }}/veyocast-pnpm-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+          version: 11.5.2
+          run_install: false
+          cache: true
+
+      - name: Install pinned database tooling
+        run: pnpm --filter veyocast-platform install --frozen-lockfile --child-concurrency=1 --network-concurrency=8 --package-import-method=copy
+
+      - name: Verify release, reset tenant theme and await rollout
+        shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          EXPECTED_RELEASE_SHA: ${{ inputs.release_sha }}
+          GH_TOKEN: ${{ github.token }}
+          OPERATOR: github:${{ github.actor }}
+          REASON: ${{ inputs.reason }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          TENANT_NAME: ${{ inputs.tenant_name }}
+          WORKFLOW_REF: ${{ github.ref }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+
+          if [[ ${WORKFLOW_REF} != "refs/heads/main" ]]; then
+            echo "Deze tenantreset mag uitsluitend vanaf main draaien." >&2
+            exit 1
+          fi
+          if [[ ${TARGET_ENVIRONMENT} != staging && ${TARGET_ENVIRONMENT} != production ]]; then
+            echo "De doelomgeving is ongeldig." >&2
+            exit 1
+          fi
+          if [[ ${CONFIRMATION} != "ROYAL CURRENT RESET" ]]; then
+            echo "De expliciete bevestiging ROYAL CURRENT RESET ontbreekt." >&2
+            exit 1
+          fi
+          if [[ ! ${EXPECTED_RELEASE_SHA} =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Een volledige lowercase release-SHA is verplicht." >&2
+            exit 1
+          fi
+          if [[ ${EXPECTED_RELEASE_SHA} != "${WORKFLOW_SHA}" ]]; then
+            echo "De workflow-SHA wijkt af van de bevestigde release-SHA." >&2
+            exit 1
+          fi
+          if [[ ${#TENANT_NAME} -lt 2 || ${#TENANT_NAME} -gt 120 \
+            || ${TENANT_NAME} == *[[:cntrl:]]* \
+            || ${TENANT_NAME} != "${TENANT_NAME#"${TENANT_NAME%%[![:space:]]*}"}" \
+            || ${TENANT_NAME} != "${TENANT_NAME%"${TENANT_NAME##*[![:space:]]}"}" ]]
+          then
+            echo "De tenantnaam is ongeldig of bevat buitenste witruimte." >&2
+            exit 1
+          fi
+          if [[ ${#REASON} -lt 10 || ${#REASON} -gt 240 \
+            || ${REASON} == *[[:cntrl:]]* \
+            || ${REASON} != "${REASON#"${REASON%%[![:space:]]*}"}" \
+            || ${REASON} != "${REASON%"${REASON##*[![:space:]]}"}" ]]
+          then
+            echo "De auditreden is ongeldig of bevat buitenste witruimte." >&2
+            exit 1
+          fi
+          if [[ ! ${OPERATOR} =~ ^github:[A-Za-z0-9-]{1,39}$ ]]; then
+            echo "De GitHub-operator is ongeldig." >&2
+            exit 1
+          fi
+          if [[ ! ${RUN_URL} =~ ^https://github\.com/veyocast/platform/actions/runs/[0-9]+$ ]]; then
+            echo "De workflowrun-URL is ongeldig." >&2
+            exit 1
+          fi
+          if [[ -z ${SUPABASE_DB_URL:-} ]]; then
+            echo "De databaseverbinding ontbreekt in de beschermde omgeving." >&2
+            exit 1
+          fi
+
+          auth_header="$(
+            printf 'x-access-token:%s' "${GH_TOKEN}" |
+              base64 |
+              tr -d '\n'
+          )"
+          git \
+            -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth_header}" \
+            fetch \
+            --no-tags \
+            --prune \
+            origin \
+            "+refs/heads/main:refs/remotes/origin/main"
+          unset auth_header
+          current_main_sha="$(git rev-parse refs/remotes/origin/main)"
+          if [[ ${current_main_sha} != "${EXPECTED_RELEASE_SHA}" ]]; then
+            echo "Main is verder gegaan; de bevestigde release is verouderd." >&2
+            exit 1
+          fi
+          unset current_main_sha GH_TOKEN
+
+          health_directory="$(mktemp -d)"
+          control_health="${health_directory}/control.json"
+          player_health="${health_directory}/player.json"
+          trap 'rm -rf -- "${health_directory}"' EXIT
+          if [[ ${TARGET_ENVIRONMENT} == production ]]; then
+            control_health_url="https://control.veyocast.nl/api/health"
+            player_health_url="https://player.veyocast.nl/healthz"
+          else
+            control_health_url="https://staging-control.veyocast.nl/api/health"
+            player_health_url="https://staging-player.veyocast.nl/healthz"
+          fi
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --proto '=https' \
+            --tlsv1.2 \
+            --connect-timeout 10 \
+            --max-time 20 \
+            --output "${control_health}" \
+            "${control_health_url}"
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --proto '=https' \
+            --tlsv1.2 \
+            --connect-timeout 10 \
+            --max-time 20 \
+            --output "${player_health}" \
+            "${player_health_url}"
+          node scripts/verify-deployment-health.mjs \
+            "${control_health}" control "${TARGET_ENVIRONMENT}" "${EXPECTED_RELEASE_SHA}"
+          node scripts/verify-deployment-health.mjs \
+            "${player_health}" player "${TARGET_ENVIRONMENT}" "${EXPECTED_RELEASE_SHA}"
+          rm -rf -- "${health_directory}"
+          trap - EXIT
+          unset control_health control_health_url health_directory player_health player_health_url
+
+          encode_base64() {
+            printf '%s' "$1" | base64 | tr -d '\n'
+          }
+          tenant_name_b64="$(encode_base64 "${TENANT_NAME}")"
+          reason_b64="$(encode_base64 "${REASON}")"
+          operator_b64="$(encode_base64 "${OPERATOR}")"
+          run_url_b64="$(encode_base64 "${RUN_URL}")"
+
+          classify_database_error() {
+            DATABASE_STDOUT_FILE="$1" DATABASE_STDERR_FILE="$2" node <<'NODE'
+          const fs = require('node:fs');
+          let text = '';
+          try {
+            text = `${fs.readFileSync(process.env.DATABASE_STDOUT_FILE, 'utf8')}\n${
+              fs.readFileSync(process.env.DATABASE_STDERR_FILE, 'utf8')
+            }`.slice(0, 131072).toLowerCase();
+          } catch {}
+          const match = [
+            ['atomic_readback_mismatch', /division by zero/],
+            ['concurrent_change', /tenant theme revision is unavailable|revision.*(replaced|no longer current)|theme-revision.*vervangen/],
+            ['rollout_source', /rollout source|source (slide|version).*unavailable|snapshot (could not|is unavailable|not found)|target snapshot is unavailable|no ready (published )?snapshot/],
+            ['integrity', /constraint|foreign key|duplicate key|not-null|onvolledige vertakkingen|rollouttellers zijn ongeldig|rolloutstatus is ongeldig/],
+            ['publication', /active slide publication/],
+            ['tenant', /tenant (not found|name is not unique|is not active)/],
+            ['provisioning', /tenant settings not found|profile not found/],
+            ['conflict', /deadlock|serialize|lock timeout/],
+            ['database_permission', /permission denied|insufficient privilege|must be owner/],
+            ['credentials', /authentication|password|pg_hba/],
+            ['connection', /connection refused|could not connect|failed to connect|timed out|dial error|econnrefused|enotfound|unexpected eof|broken pipe|connection reset|server closed the connection|connection terminated/],
+            ['schema', /schema_migrations|reset_tenant_fieldflow_royal_v2|undefined function|does not exist/]
+          ].find(([, pattern]) => pattern.test(text));
+          process.stdout.write(match?.[0] ?? 'unknown');
+          NODE
+          }
+
+          fail_reset() {
+            local phase="$1"
+            local category="$2"
+            local cause
+            local recovery
+            case "${category}" in
+              publication) cause="een slidepublicatie is actief of na de voorcontrole gestart"; recovery="wacht tot publicatie klaar is en probeer opnieuw" ;;
+              tenant) cause="de tenantselectie is intussen ongeldig geworden"; recovery="controleer omgeving, exacte naam en actieve status" ;;
+              tenant_missing) cause="de exact opgegeven tenant is niet gevonden"; recovery="controleer doelomgeving en zichtbare tenantnaam" ;;
+              tenant_duplicate) cause="de tenantnaam is niet uniek"; recovery="maak tenantnamen uniek" ;;
+              tenant_name_mismatch) cause="de opgegeven hoofdletters en kleine letters wijken af van de opgeslagen tenantnaam"; recovery="neem de zichtbare tenantnaam exact over uit Control" ;;
+              tenant_inactive) cause="de gevonden tenant is niet actief"; recovery="heractiveer de bedoelde tenant of kies een actieve tenant" ;;
+              settings_invalid) cause="er is niet exact één tenant_settings-record"; recovery="herstel de tenantprovisioning" ;;
+              profile_invalid) cause="er is meer dan één FieldFlow-profiel"; recovery="herstel de dubbele profieldata" ;;
+              active_publishing) cause="er is minstens één actieve slidepublicatie"; recovery="wacht tot alle publicaties klaar zijn" ;;
+              provisioning) cause="vereiste tenantinstellingen of het FieldFlow-profiel ontbreken"; recovery="herstel de tenantprovisioning" ;;
+              conflict) cause="een gelijktijdige databasewijziging blokkeert de transactie"; recovery="wacht en probeer opnieuw met de actuele main-SHA" ;;
+              concurrent_change) cause="de theme-revision is niet meer actueel of beschikbaar"; recovery="controleer de nieuwste tenantrevision en gebruik de actuele main-SHA" ;;
+              rollout_source) cause="een vereiste rolloutbron of snapshot is niet beschikbaar"; recovery="herstel de brondata en controleer de rolloutstatus" ;;
+              integrity) cause="een rollout- of database-integriteitscontrole is afgewezen"; recovery="onderzoek de betrokken snapshot-, release- en constraintstatus" ;;
+              database_permission) cause="de databaserol heeft onvoldoende rechten voor deze opdracht"; recovery="herstel de minimale uitvoerrechten van de beschermde runner" ;;
+              credentials) cause="databaseaanmelding vanuit de beschermde runner mislukt"; recovery="herstel of roteer het omgevingssecret" ;;
+              connection) cause="de database is niet bereikbaar"; recovery="herstel netwerk- of databasebereikbaarheid" ;;
+              schema|release_schema) cause="de S161-migratie of veilig uitvoerbare resetfunctie ontbreekt of wijkt af"; recovery="deploy de volledige release inclusief migraties en herstel het functiebeveiligingscontract" ;;
+              atomic_readback_mismatch) cause="de atomaire resetreadback wijkt af van het verwachte contract"; recovery="onderzoek migratie, resetfunctie en transactionele readback" ;;
+              invalid_readback) cause="de voorcontrole gaf geen exact getypeerd JSON-contract"; recovery="controleer CLI-versie en databaseschema" ;;
+              *) cause="de databaseopdracht gaf geen veilig classificeerbare fout"; recovery="onderzoek de beschermde runner- en databaselogboeken" ;;
+            esac
+            echo "Oorzaak (${phase}): ${cause}." >&2
+            echo "Gevolg: de reset wordt als niet uitgevoerd behandeld; er worden geen ruwe databasegegevens gelogd." >&2
+            echo "Herstelactie: ${recovery} en start daarna de workflow opnieuw." >&2
+          }
+
+          fail_after_commit() {
+            local phase="$1"
+            local category="$2"
+            local cause
+            local recovery
+            case "${category}" in
+              concurrent_change|conflict) cause="de tenantrevision wijzigde tijdens de verificatie"; recovery="controleer de nieuwste revision en bijbehorende rollout" ;;
+              rollout_source) cause="een rolloutbron of snapshot is niet beschikbaar"; recovery="controleer brondata, snapshots en rolloutstatus" ;;
+              integrity) cause="een rollout- of database-integriteitscontrole faalde"; recovery="onderzoek constraints en releasevertakkingen" ;;
+              credentials|database_permission|connection) cause="de verificatieverbinding of databaserol kon de readback niet voltooien"; recovery="herstel de beschermde databaseverbinding en minimale rechten" ;;
+              command_transport_unknown) cause="het mutatieantwoord ging verloren of was niet classificeerbaar"; recovery="voer eerst een alleen-lezen reconciliatie van audit-event, tenantrevision en rollout uit" ;;
+              atomic_readback_mismatch) cause="de atomaire of post-commit readback wijkt af van het verwachte contract"; recovery="onderzoek migratie, audit-event, tenantrevision en rollout" ;;
+              *) cause="de post-commit readback kon niet veilig worden bevestigd"; recovery="controleer audit-event, tenantrevision en rollout in de database" ;;
+            esac
+            echo "Oorzaak (${phase}): ${cause}." >&2
+            echo "Gevolg: de reset kan zijn gecommit, maar is niet volledig geverifieerd; start geen productie-uitrol en probeer niet blind opnieuw." >&2
+            echo "Herstelactie: ${recovery}; bepaal daarna idempotent of hervatten of opnieuw uitvoeren veilig is." >&2
+          }
+
+          database_diagnostics_directory="$(mktemp -d)"
+          trap 'rm -rf -- "${database_diagnostics_directory}"' EXIT
+          preflight_output="${database_diagnostics_directory}/preflight-output.json"
+          preflight_error="${database_diagnostics_directory}/preflight-error.log"
+
+          if pnpm exec supabase db query \
+            --db-url "${SUPABASE_DB_URL}" \
+            --agent no \
+            --output-format json \
+            >"${preflight_output}" 2>"${preflight_error}" <<SQL
+          with request as materialized (
+            select convert_from(
+              decode('${tenant_name_b64}', 'base64'),
+              'UTF8'
+            ) as tenant_name
+          ), tenant_matches as materialized (
+            select tenant.id, tenant.name, tenant.status
+            from public.tenants tenant
+            cross join request
+            where lower(btrim(tenant.name)) = lower(request.tenant_name)
+          )
+          select
+            (
+              select count(*)::integer
+              from supabase_migrations.schema_migrations migration
+              where migration.version = '20260909174500'
+            ) as migration_count,
+            (
+              select count(*)::integer
+              from pg_catalog.pg_proc routine
+              join pg_catalog.pg_namespace namespace
+                on namespace.oid = routine.pronamespace
+              where namespace.nspname = 'private'
+                and routine.proname = 'reset_tenant_fieldflow_royal_v2'
+                and routine.prokind = 'f'
+                and routine.proargtypes = '25 25 25 25'::pg_catalog.oidvector
+                and routine.proowner = (
+                  select role.oid
+                  from pg_catalog.pg_roles role
+                  where role.rolname = current_user
+                )
+                and routine.prosecdef
+                and routine.proconfig @> array['search_path=""']::text[]
+                and pg_catalog.has_function_privilege(
+                  current_user,
+                  routine.oid,
+                  'EXECUTE'
+                )
+            ) as secure_function_count,
+            (select count(*)::integer from tenant_matches) as tenant_count,
+            (
+              select count(*)::integer
+              from tenant_matches tenant
+              cross join request
+              where tenant.name = request.tenant_name
+            ) as canonical_name_count,
+            (
+              select count(*)::integer
+              from tenant_matches tenant
+              where tenant.status = 'active'::public.tenant_status
+            ) as active_tenant_count,
+            (
+              select count(*)::integer
+              from public.tenant_settings settings
+              join tenant_matches tenant on tenant.id = settings.tenant_id
+            ) as tenant_settings_count,
+            (
+              select count(*)::integer
+              from public.tenant_theme_profiles profile
+              join tenant_matches tenant on tenant.id = profile.tenant_id
+              where profile.theme_id = 'fieldflow'
+            ) as fieldflow_profile_count,
+            (
+              select count(*)::integer
+              from public.dynamic_slides slide
+              join tenant_matches tenant on tenant.id = slide.tenant_id
+              join public.dynamic_slide_versions version
+                on version.tenant_id = slide.tenant_id
+               and version.id = slide.active_draft_version_id
+               and version.status = 'publishing'
+              where slide.status <> 'archived'
+            ) as active_publishing_count;
+          SQL
+          then
+            preflight_readback="$(<"${preflight_output}")"
+          else
+            preflight_category="$(classify_database_error "${preflight_output}" "${preflight_error}")"
+            fail_reset "voorcontrole" "${preflight_category}"
+            exit 1
+          fi
+
+          preflight_state="$(
+            PREFLIGHT_READBACK="${preflight_readback}" node <<'NODE'
+          const required = [
+            'migration_count',
+            'secure_function_count',
+            'tenant_count',
+            'canonical_name_count',
+            'active_tenant_count',
+            'tenant_settings_count',
+            'fieldflow_profile_count',
+            'active_publishing_count'
+          ];
+          let category = 'invalid_readback';
+          let profileState = 'unknown';
+          let values = Object.fromEntries(required.map((key) => [key, -1]));
+          try {
+            const rows = JSON.parse(process.env.PREFLIGHT_READBACK ?? 'null');
+            if (!Array.isArray(rows) || rows.length !== 1) {
+              throw new Error('shape');
+            }
+            const row = rows[0];
+            if (row === null || typeof row !== 'object' || Array.isArray(row)) {
+              throw new Error('row');
+            }
+            if (
+              Object.keys(row).length !== required.length ||
+              required.some((key) => !Object.hasOwn(row, key))
+            ) {
+              throw new Error('keys');
+            }
+            for (const key of required) {
+              if (!Number.isInteger(row[key]) || row[key] < 0) {
+                throw new Error('count');
+              }
+              values[key] = row[key];
+            }
+            profileState = values.fieldflow_profile_count === 0 ? 'initialize' : 'present';
+            if (values.migration_count !== 1) category = 'release_schema';
+            else if (values.secure_function_count !== 1) category = 'release_schema';
+            else if (values.tenant_count === 0) category = 'tenant_missing';
+            else if (values.tenant_count !== 1) category = 'tenant_duplicate';
+            else if (values.canonical_name_count !== 1) category = 'tenant_name_mismatch';
+            else if (values.active_tenant_count !== 1) category = 'tenant_inactive';
+            else if (values.tenant_settings_count !== 1) category = 'settings_invalid';
+            else if (values.fieldflow_profile_count > 1) category = 'profile_invalid';
+            else if (values.active_publishing_count > 0) category = 'active_publishing';
+            else category = 'ready';
+          } catch {
+            category = 'invalid_readback';
+            profileState = 'unknown';
+          }
+          process.stdout.write([
+            category,
+            profileState
+          ].join('\t'));
+          NODE
+          )"
+          unset preflight_readback
+          IFS=$'\t' read -r \
+            preflight_category \
+            profile_state <<<"${preflight_state}"
+          unset preflight_state
+
+          if [[ ${preflight_category} != ready ]]; then
+            fail_reset "voorcontrole" "${preflight_category}"
+            exit 1
+          elif [[ ${profile_state} == initialize ]]; then
+            echo "Voorcontrole gereed: exact één actieve tenant; instellingen aanwezig; profiel wordt veilig geïnitialiseerd; 0 actieve publicaties."
+          else
+            echo "Voorcontrole gereed: exact één actieve tenant; instellingen en profiel aanwezig; 0 actieve publicaties."
+          fi
+          unset preflight_category profile_state
+
+          command_output="${database_diagnostics_directory}/command-output.json"
+          command_error="${database_diagnostics_directory}/command-error.log"
+          if pnpm exec supabase db query \
+              --db-url "${SUPABASE_DB_URL}" \
+              --agent no \
+              --output-format json \
+              >"${command_output}" 2>"${command_error}" <<SQL
+          with migration_guard as materialized (
+            select count(*) = 1 as migration_ready
+            from supabase_migrations.schema_migrations
+            where version = '20260909174500'
+          ), request as materialized (
+            select
+              convert_from(decode('${tenant_name_b64}', 'base64'), 'UTF8') as tenant_name,
+              convert_from(decode('${reason_b64}', 'base64'), 'UTF8') as reason,
+              convert_from(decode('${operator_b64}', 'base64'), 'UTF8') as operator,
+              convert_from(decode('${run_url_b64}', 'base64'), 'UTF8') as run_url
+          ), command_result as materialized (
+            select
+              guard.migration_ready,
+              request.tenant_name,
+              case when guard.migration_ready then
+                private.reset_tenant_fieldflow_royal_v2(
+                  request.tenant_name,
+                  request.reason,
+                  request.operator,
+                  request.run_url
+                )
+              else null::jsonb end as result
+            from migration_guard guard
+            cross join request
+          ), readback as (
+            select
+              migration_ready,
+              tenant_name,
+              result,
+              result ->> 'outcome' in ('applied', 'noop')
+                and result -> 'verified' = 'true'::jsonb
+                and result ->> 'tenantName' = tenant_name
+                and coalesce(result ->> 'tenantId', '') ~*
+                  '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                and coalesce(result ->> 'revision', '') ~ '^[0-9]+$'
+                and coalesce(result ->> 'snapshotCount', '') ~ '^[0-9]+$'
+                and coalesce(result ->> 'releaseTargetCount', '') ~ '^[0-9]+$'
+                and result ->> 'status' in ('queued', 'rendering', 'ready', 'failed')
+                and case result ->> 'outcome'
+                  when 'applied' then
+                    coalesce(result ->> 'auditId', '') ~*
+                      '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                    and coalesce(result ->> 'rolloutId', '') ~*
+                      '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                  when 'noop' then
+                    result -> 'auditId' = 'null'::jsonb
+                    and (
+                      result -> 'rolloutId' = 'null'::jsonb
+                      or coalesce(result ->> 'rolloutId', '') ~*
+                        '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                    )
+                  else false
+                end as command_matches
+            from command_result
+          )
+          select
+            result ->> 'outcome' as outcome,
+            result ->> 'auditId' as audit_id,
+            result ->> 'rolloutId' as rollout_id,
+            result ->> 'status' as status,
+            result ->> 'tenantId' as tenant_id,
+            coalesce((result ->> 'revision')::bigint, -1) as revision,
+            coalesce((result ->> 'snapshotCount')::integer, -1) as snapshot_count,
+            coalesce((result ->> 'releaseTargetCount')::integer, -1) as release_target_count,
+            migration_ready,
+            result -> 'verified' = 'true'::jsonb as function_verified,
+            (
+              1 / case when migration_ready and command_matches
+                then 1 else 0 end
+            ) = 1 as transaction_verified
+          from readback;
+          SQL
+          then
+            command_readback="$(<"${command_output}")"
+          else
+            command_category="$(classify_database_error "${command_output}" "${command_error}")"
+            if [[ ${command_category} == connection || ${command_category} == unknown ]]; then
+              fail_after_commit "mutatieantwoord" command_transport_unknown
+            else
+              fail_reset "mutatie" "${command_category}"
+            fi
+            exit 1
+          fi
+
+          command_parse_error="${database_diagnostics_directory}/command-parse-error.log"
+          if command_state="$(
+            COMMAND_READBACK="${command_readback}" node \
+              2>"${command_parse_error}" <<'NODE'
+          const rows = JSON.parse(process.env.COMMAND_READBACK ?? "null");
+          if (!Array.isArray(rows) || rows.length !== 1) {
+            throw new Error("De atomische resetcommand leverde niet exact één rij op.");
+          }
+          const row = rows[0];
+          if (
+            row.migration_ready !== true ||
+            row.function_verified !== true ||
+            row.transaction_verified !== true
+          ) {
+            throw new Error("De migratie of interne atomaire resetreadback wijkt af.");
+          }
+          const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          if (!uuid.test(row.tenant_id ?? "")) {
+            throw new Error("De reset gaf geen geldige tenant-id.");
+          }
+          if (row.outcome !== "applied" && row.outcome !== "noop") {
+            throw new Error("De reset gaf geen ondersteunde uitkomst.");
+          }
+          if (
+            row.outcome === "applied" &&
+            (!uuid.test(row.rollout_id ?? "") || !uuid.test(row.audit_id ?? ""))
+          ) {
+            throw new Error("De toegepaste reset gaf geen geldige rollout- of audit-id.");
+          }
+          if (
+            row.outcome === "noop" &&
+            (
+              row.audit_id !== null ||
+              (row.rollout_id !== null && !uuid.test(row.rollout_id))
+            )
+          ) {
+            throw new Error("De no-op gaf een ongeldige audit- of rollout-id.");
+          }
+          for (const field of ['revision', 'snapshot_count', 'release_target_count']) {
+            if (!Number.isInteger(row[field]) || row[field] < 0) {
+              throw new Error("De reset gaf een ongeldige revision of teller.");
+            }
+          }
+          process.stdout.write([
+            row.outcome,
+            row.audit_id ?? "none",
+            row.rollout_id ?? "none",
+            row.status,
+            row.tenant_id,
+            row.revision,
+            row.snapshot_count,
+            row.release_target_count
+          ].join("\t"));
+          NODE
+          )"
+          then
+            :
+          else
+            fail_after_commit "atomaire commandreadback" atomic_readback_mismatch
+            exit 1
+          fi
+          unset command_readback
+          IFS=$'\t' read -r outcome audit_id rollout_id rollout_status tenant_id revision snapshot_count release_target_count <<<"${command_state}"
+          unset command_state
+
+          outcome_b64="$(encode_base64 "${outcome}")"
+          audit_id_b64="$(encode_base64 "${audit_id}")"
+          rollout_id_b64="$(encode_base64 "${rollout_id}")"
+          rollout_status_b64="$(encode_base64 "${rollout_status}")"
+          tenant_id_b64="$(encode_base64 "${tenant_id}")"
+          revision_b64="$(encode_base64 "${revision}")"
+          snapshot_count_b64="$(encode_base64 "${snapshot_count}")"
+          release_target_count_b64="$(encode_base64 "${release_target_count}")"
+
+          state_output="${database_diagnostics_directory}/state-output.json"
+          state_error="${database_diagnostics_directory}/state-error.log"
+          if pnpm exec supabase db query \
+              --db-url "${SUPABASE_DB_URL}" \
+              --agent no \
+              --output-format json \
+              >"${state_output}" 2>"${state_error}" <<SQL
+          with migration_guard as materialized (
+            select count(*) = 1 as migration_ready
+            from supabase_migrations.schema_migrations
+            where version = '20260909174500'
+          ), request as materialized (
+            select
+              convert_from(decode('${tenant_name_b64}', 'base64'), 'UTF8') as tenant_name,
+              convert_from(decode('${reason_b64}', 'base64'), 'UTF8') as reason,
+              convert_from(decode('${operator_b64}', 'base64'), 'UTF8') as operator,
+              convert_from(decode('${run_url_b64}', 'base64'), 'UTF8') as run_url,
+              convert_from(decode('${outcome_b64}', 'base64'), 'UTF8') as outcome,
+              convert_from(decode('${audit_id_b64}', 'base64'), 'UTF8') as audit_id,
+              convert_from(decode('${rollout_id_b64}', 'base64'), 'UTF8') as rollout_id,
+              convert_from(decode('${rollout_status_b64}', 'base64'), 'UTF8') as rollout_status,
+              convert_from(decode('${tenant_id_b64}', 'base64'), 'UTF8') as tenant_id,
+              convert_from(decode('${revision_b64}', 'base64'), 'UTF8') as revision,
+              convert_from(decode('${snapshot_count_b64}', 'base64'), 'UTF8') as snapshot_count,
+              convert_from(decode('${release_target_count_b64}', 'base64'), 'UTF8') as release_target_count
+          ), reset_result as materialized (
+            select
+              guard.migration_ready,
+              case when guard.migration_ready then pg_catalog.jsonb_build_object(
+                'auditId', case when request.audit_id = 'none'
+                  then null else request.audit_id end,
+                'outcome', request.outcome,
+                'releaseTargetCount', request.release_target_count::integer,
+                'revision', request.revision::bigint,
+                'rolloutId', case when request.rollout_id = 'none'
+                  then null else request.rollout_id end,
+                'snapshotCount', request.snapshot_count::integer,
+                'status', request.rollout_status,
+                'tenantId', request.tenant_id,
+                'tenantName', request.tenant_name,
+                'verified', true
+              ) else null::jsonb end as result
+            from migration_guard guard
+            cross join request
+          ), verified as (
+            select
+              request.tenant_name as requested_tenant_name,
+              reset_result.migration_ready,
+              reset_result.result,
+              tenant.id as tenant_id,
+              tenant.name as tenant_name,
+              profile.revision as profile_revision,
+              rollout.id as rollout_id,
+              rollout.created_at as rollout_created_at,
+              rollout.status as rollout_status,
+              rollout.snapshot_count,
+              rollout.release_target_count,
+              profile.theme_id = 'fieldflow'
+                and profile.theme_version = '1.0.0'
+                and profile.selection_json = '{
+                  "accent":"#2459ED",
+                  "categoryOverrides":[],
+                  "modePolicy":{"kind":"fixed","mode":"dark"},
+                  "ref":{"catalog":"v2","id":"fieldflow","version":"1.0.0"},
+                  "support":null
+                }'::jsonb
+                and profile.appearance_config = '{
+                  "designRevision":"royal-current-v8",
+                  "motionEnabled":true,
+                  "palette":{
+                    "background":"club",
+                    "primary":"#2459ED",
+                    "secondary":null,
+                    "version":1
+                  },
+                  "schemaVersion":2,
+                  "surfaces":{
+                    "clubLogoBackground":"#FFFFFF",
+                    "homeLogoBackground":"#FFFFFF"
+                  },
+                  "typography":{
+                    "baseScale":1.05,
+                    "bodyFontRef":"vc-roboto-v1",
+                    "displayFontRef":"vc-roboto-v1",
+                    "sportScale":1.4
+                  }
+                }'::jsonb
+                and profile.color_overrides = '{}'::jsonb as profile_matches,
+              settings.default_theme_id = 'fieldflow'
+                and settings.default_theme_version = '1.0.0'
+                and settings.theme_mode_policy = '{"kind":"fixed","mode":"dark"}'::jsonb
+                and settings.theme_accent = '#2459ED'
+                and settings.theme_support is null
+                and settings.theme_color_overrides = '{}'::jsonb
+                and settings.theme_settings_revision = profile.revision as mirror_matches,
+              case when reset_result.result ->> 'outcome' = 'applied' then exists (
+                select 1
+                from public.audit_events event
+                where event.tenant_id = tenant.id
+                  and event.actor_user_id is null
+                  and event.actor_device_id is null
+                  and event.action = 'tenant.theme.royal_current_reset'
+                  and event.target_type = 'tenant_theme_profiles'
+                  and event.target_id = tenant.id
+                  and event.result = 'success'
+                  and event.id::text = reset_result.result ->> 'auditId'
+                  and event.metadata -> 'immutable' = 'true'::jsonb
+                  and event.metadata ->> 'operator' = request.operator
+                  and event.metadata ->> 'reason' = request.reason
+                  and event.metadata ->> 'workflowRun' = request.run_url
+                  and event.metadata ->> 'rolloutId' = reset_result.result ->> 'rolloutId'
+                  and (event.metadata ->> 'settingsRevision')::bigint = profile.revision
+                  and (event.metadata ->> 'snapshotCount')::integer =
+                    (reset_result.result ->> 'snapshotCount')::integer
+                  and (event.metadata ->> 'releaseTargetCount')::integer =
+                    (reset_result.result ->> 'releaseTargetCount')::integer
+              ) else true end as audit_matches,
+              case reset_result.result ->> 'outcome'
+                when 'applied' then
+                  reset_result.result -> 'verified' = 'true'::jsonb
+                  and reset_result.result ->> 'tenantId' = tenant.id::text
+                  and reset_result.result ->> 'tenantName' = tenant.name
+                  and (reset_result.result ->> 'revision')::bigint = profile.revision
+                  and coalesce(reset_result.result ->> 'auditId', '') ~*
+                    '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                  and reset_result.result ->> 'rolloutId' = rollout.id::text
+                  and reset_result.result ->> 'status' = rollout.status
+                  and (reset_result.result ->> 'snapshotCount')::integer = rollout.snapshot_count
+                  and (reset_result.result ->> 'releaseTargetCount')::integer = rollout.release_target_count
+                when 'noop' then
+                  reset_result.result -> 'verified' = 'true'::jsonb
+                  and reset_result.result -> 'auditId' = 'null'::jsonb
+                  and reset_result.result ->> 'tenantId' = tenant.id::text
+                  and reset_result.result ->> 'tenantName' = tenant.name
+                  and (reset_result.result ->> 'revision')::bigint = profile.revision
+                  and (
+                    (
+                      reset_result.result -> 'rolloutId' = 'null'::jsonb
+                      and reset_result.result ->> 'status' = 'ready'
+                      and (reset_result.result ->> 'snapshotCount')::integer = 0
+                      and (reset_result.result ->> 'releaseTargetCount')::integer = 0
+                      and rollout.id is null
+                    )
+                    or (
+                      reset_result.result ->> 'rolloutId' = rollout.id::text
+                      and reset_result.result ->> 'status' = rollout.status
+                      and (reset_result.result ->> 'snapshotCount')::integer = rollout.snapshot_count
+                      and (reset_result.result ->> 'releaseTargetCount')::integer = rollout.release_target_count
+                      and not exists (
+                        select 1
+                        from public.tenant_theme_rollouts newer
+                        where newer.tenant_id = tenant.id
+                          and newer.theme_id = 'fieldflow'
+                          and newer.settings_revision = profile.revision
+                          and (
+                            newer.created_at > rollout.created_at
+                            or (
+                              newer.created_at = rollout.created_at
+                              and newer.id > rollout.id
+                            )
+                          )
+                      )
+                    )
+                  )
+                else false
+              end as result_matches
+            from request
+            cross join reset_result
+            join public.tenants tenant
+              on lower(btrim(tenant.name)) = lower(request.tenant_name)
+            join public.tenant_theme_profiles profile
+              on profile.tenant_id = tenant.id
+             and profile.theme_id = 'fieldflow'
+            join public.tenant_settings settings
+              on settings.tenant_id = tenant.id
+            left join public.tenant_theme_rollouts rollout
+              on rollout.tenant_id = tenant.id
+             and rollout.theme_id = 'fieldflow'
+             and rollout.settings_revision = profile.revision
+             and rollout.id = case
+               when coalesce(reset_result.result ->> 'rolloutId', '') ~*
+                 '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+               then (reset_result.result ->> 'rolloutId')::uuid
+               else null::uuid
+             end
+          ), readback as (
+            select
+              reset_result.result,
+              reset_result.migration_ready,
+              count(verified.tenant_id)::integer as verified_row_count,
+              coalesce(bool_and(verified.profile_matches), false) as profile_matches,
+              coalesce(bool_and(verified.mirror_matches), false) as mirror_matches,
+              coalesce(bool_and(verified.audit_matches), false) as audit_matches,
+              coalesce(bool_and(verified.result_matches), false) as result_matches
+            from reset_result
+            left join verified on true
+            group by reset_result.result, reset_result.migration_ready
+          )
+          select
+            result ->> 'outcome' as outcome,
+            result ->> 'auditId' as audit_id,
+            result ->> 'rolloutId' as rollout_id,
+            result ->> 'status' as status,
+            coalesce((result ->> 'snapshotCount')::integer, -1) as snapshot_count,
+            coalesce((result ->> 'releaseTargetCount')::integer, -1) as release_target_count,
+            migration_ready,
+            profile_matches,
+            mirror_matches,
+            audit_matches,
+            result_matches,
+            (
+              1 / case when
+                migration_ready
+                and verified_row_count = 1
+                and profile_matches
+                and mirror_matches
+                and audit_matches
+                and result_matches
+              then 1 else 0 end
+            ) = 1 as transaction_verified
+          from readback;
+          SQL
+          then
+            state_readback="$(<"${state_output}")"
+          else
+            state_category="$(classify_database_error "${state_output}" "${state_error}")"
+            fail_after_commit "post-commit databasereadback" "${state_category}"
+            exit 1
+          fi
+          unset reason_b64 operator_b64 run_url_b64
+
+          state_parse_error="${database_diagnostics_directory}/state-parse-error.log"
+          if reset_state="$(
+            RESET_READBACK="${state_readback}" node \
+              2>"${state_parse_error}" <<'NODE'
+          const rows = JSON.parse(process.env.RESET_READBACK ?? "null");
+          if (!Array.isArray(rows) || rows.length !== 1) {
+            throw new Error("De post-commit tenantreadback leverde niet exact één rij op.");
+          }
+          const row = rows[0];
+          if (
+            row.migration_ready !== true ||
+            row.profile_matches !== true ||
+            row.mirror_matches !== true ||
+            row.audit_matches !== true ||
+            row.result_matches !== true ||
+            row.transaction_verified !== true
+          ) {
+            throw new Error("De migratie-, profiel-, mirror- of resultaatreadback wijkt af.");
+          }
+          if (row.outcome !== "applied" && row.outcome !== "noop") {
+            throw new Error("De reset gaf geen ondersteunde uitkomst.");
+          }
+          const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          if (
+            row.outcome === "applied" &&
+            (!uuid.test(row.rollout_id ?? "") || !uuid.test(row.audit_id ?? ""))
+          ) {
+            throw new Error("De toegepaste reset gaf geen geldige rollout- of audit-id.");
+          }
+          if (
+            row.outcome === "noop" &&
+            (
+              row.audit_id !== null ||
+              (row.rollout_id !== null && !uuid.test(row.rollout_id))
+            )
+          ) {
+            throw new Error("De no-op-readback gaf een ongeldige audit- of rollout-id.");
+          }
+          if (!Number.isInteger(row.snapshot_count) || row.snapshot_count < 0) {
+            throw new Error("Het snapshot-aantal is ongeldig.");
+          }
+          if (!Number.isInteger(row.release_target_count) || row.release_target_count < 0) {
+            throw new Error("Het release-aantal is ongeldig.");
+          }
+          process.stdout.write([
+            row.outcome,
+            row.rollout_id ?? "none",
+            row.status,
+            row.snapshot_count,
+            row.release_target_count
+          ].join("\t"));
+          NODE
+          )"
+          then
+            :
+          else
+            fail_after_commit "post-commit JSON-readback" atomic_readback_mismatch
+            exit 1
+          fi
+          unset state_readback
+          IFS=$'\t' read -r outcome rollout_id rollout_status snapshot_count release_target_count <<<"${reset_state}"
+          unset reset_state
+
+          if [[ ${outcome} == noop && ${rollout_id} == none ]]; then
+            echo "Het ROYAL CURRENT RESET-profiel stond al exact goed; er is geen nieuwe immutable uitrol aangemaakt."
+            exit 0
+          fi
+          if [[ ! ${rollout_id} =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$ \
+            || ( ${rollout_status} != queued && ${rollout_status} != rendering \
+              && ${rollout_status} != ready && ${rollout_status} != failed ) ]]
+          then
+            fail_after_commit "rollout-identificatie" integrity
+            exit 1
+          fi
+
+          rollout_id_b64="$(encode_base64 "${rollout_id}")"
+          poll_output="${database_diagnostics_directory}/poll-output.json"
+          poll_error="${database_diagnostics_directory}/poll-error.log"
+          poll_parse_error="${database_diagnostics_directory}/poll-parse-error.log"
+          for attempt in $(seq 1 72); do
+            if pnpm exec supabase db query \
+                --db-url "${SUPABASE_DB_URL}" \
+                --agent no \
+                --output-format json \
+                >"${poll_output}" 2>"${poll_error}" <<SQL
+          with request as materialized (
+            select
+              convert_from(decode('${tenant_name_b64}', 'base64'), 'UTF8') as tenant_name,
+              convert_from(decode('${rollout_id_b64}', 'base64'), 'UTF8')::uuid as rollout_id
+          ), selected_tenant as materialized (
+            select tenant.id
+            from public.tenants tenant
+            cross join request
+            where lower(btrim(tenant.name)) = lower(request.tenant_name)
+          ), refreshed as materialized (
+            select private.refresh_theme_rollout_progress_v1(
+              selected_tenant.id,
+              request.rollout_id
+            )
+            from selected_tenant
+            cross join request
+          )
+          select
+            rollout.status,
+            rollout.snapshot_count,
+            rollout.ready_snapshot_count,
+            rollout.release_count,
+            rollout.release_target_count,
+            (
+              select count(*)::integer
+              from private.tenant_theme_rollout_release_branches branch
+              where branch.tenant_id = rollout.tenant_id
+                and branch.rollout_id = rollout.id
+                and branch.status in ('ready', 'superseded')
+            ) as terminal_release_count,
+            profile.revision = rollout.settings_revision as revision_matches
+          from request
+          cross join selected_tenant
+          cross join refreshed
+          join public.tenant_theme_rollouts rollout
+            on rollout.tenant_id = selected_tenant.id
+           and rollout.id = request.rollout_id
+          join public.tenant_theme_profiles profile
+            on profile.tenant_id = rollout.tenant_id
+           and profile.theme_id = rollout.theme_id;
+          SQL
+            then
+              poll_readback="$(<"${poll_output}")"
+            else
+              poll_category="$(classify_database_error "${poll_output}" "${poll_error}")"
+              fail_after_commit "rollout-databasereadback" "${poll_category}"
+              exit 1
+            fi
+            if poll_state="$(
+              POLL_READBACK="${poll_readback}" node \
+                2>"${poll_parse_error}" <<'NODE'
+          const rows = JSON.parse(process.env.POLL_READBACK ?? "null");
+          if (!Array.isArray(rows) || rows.length !== 1) {
+            throw new Error("De rolloutreadback leverde niet exact één rij op.");
+          }
+          const row = rows[0];
+          if (row.revision_matches !== true) {
+            throw new Error("De theme-revision is tijdens de rollout vervangen.");
+          }
+          const fields = [
+            "snapshot_count",
+            "ready_snapshot_count",
+            "release_count",
+            "release_target_count",
+            "terminal_release_count"
+          ];
+          for (const field of fields) {
+            if (!Number.isInteger(row[field]) || row[field] < 0) {
+              throw new Error("De rollouttellers zijn ongeldig.");
+            }
+          }
+          if (!['queued', 'rendering', 'ready', 'failed'].includes(row.status)) {
+            throw new Error("De rolloutstatus is ongeldig.");
+          }
+          if (
+            row.status === "ready" &&
+            (
+              row.ready_snapshot_count !== row.snapshot_count ||
+              row.release_count !== row.release_target_count ||
+              row.terminal_release_count !== row.release_target_count
+            )
+          ) {
+            throw new Error("Een ready-rollout heeft onvolledige vertakkingen.");
+          }
+          process.stdout.write([
+            row.status,
+            row.ready_snapshot_count,
+            row.snapshot_count,
+            row.terminal_release_count,
+            row.release_target_count
+          ].join("\t"));
+          NODE
+            )"
+            then
+              :
+            else
+              poll_category="$(classify_database_error "${poll_output}" "${poll_parse_error}")"
+              fail_after_commit "rollout-JSON-readback" "${poll_category}"
+              exit 1
+            fi
+            unset poll_readback
+            IFS=$'\t' read -r status ready_snapshots total_snapshots terminal_releases total_releases <<<"${poll_state}"
+            unset poll_state
+
+            if [[ ${status} == ready ]]; then
+              echo "De ROYAL CURRENT RESET is volledig gereed: ${ready_snapshots}/${total_snapshots} snapshots en ${terminal_releases}/${total_releases} releasevertakkingen."
+              exit 0
+            fi
+            if [[ ${status} == failed ]]; then
+              echo "De immutable theme-uitrol is mislukt; actieve releases en Player-LKG zijn niet vervangen." >&2
+              exit 1
+            fi
+            if (( attempt == 72 )); then
+              break
+            fi
+            echo "Wachten op immutable theme-uitrol (${attempt}/72): ${ready_snapshots}/${total_snapshots} snapshots, ${terminal_releases}/${total_releases} releasevertakkingen."
+            sleep 5
+          done
+
+          unset tenant_name_b64 rollout_id_b64
+          echo "De begrensde wachttijd is verstreken; controleer de rolloutstatus voordat productie wordt gestart." >&2
+          exit 1

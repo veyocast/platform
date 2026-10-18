@@ -1,0 +1,30 @@
+[
+  {
+    "route": "/dashboard/sources",
+    "dialog": "radix-_R_11slritqbnabkndlbH1_",
+    "title": "Een bron verbinden",
+    "inScope": true,
+    "violations": [],
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/team",
+    "dialog": "radix-_R_8clritqbnabkndlbH1_",
+    "title": "Teamlid uitnodigen",
+    "inScope": true,
+    "violations": [],
+    "overflow": false
+  },
+  {
+    "route": "/dashboard/planning",
+    "dialog": "radix-_r_1_",
+    "title": "Nieuw moment plannen",
+    "inScope": true,
+    "violations": [],
+    "overflow": false
+  },
+  {
+    "case": "management-dialog-keyboard",
+    "focusRestored": true
+  }
+]

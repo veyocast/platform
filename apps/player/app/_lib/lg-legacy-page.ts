@@ -168,7 +168,7 @@ export function renderLgLegacyHtml() {
     .default-waiting-footer{position:absolute;z-index:1;right:2vw;bottom:2vw;left:2vw;display:flex;justify-content:space-between;color:#65718c;font-size:clamp(9px,.62vw,13px);font-weight:800;letter-spacing:.12em;text-transform:uppercase}
     #default-waiting[data-theme="dark"] .default-waiting-footer{color:#aeb9d3}
     .panel{width:min(860px,90vw);padding:clamp(28px,4vw,58px);border:1px solid #47706a;border-radius:24px;background:#0d2927}
-    .logo{display:block;width:min(290px,48vw);height:auto;margin:0 0 42px}
+    .logo{display:block;width:240px;max-width:70vw;max-height:32vh;height:auto;object-fit:contain;margin:0 0 24px}
     .kicker{margin:0 0 14px;color:#ff5a1f;font-size:clamp(15px,1.5vw,22px);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
     h1{margin:0;font-size:clamp(42px,6vw,82px);line-height:.98;letter-spacing:-.045em}
     #detail{max-width:720px;margin:24px 0 0;color:#d6d3cc;font-size:clamp(18px,2vw,28px);line-height:1.45}
@@ -177,7 +177,7 @@ export function renderLgLegacyHtml() {
     #pairing-code{display:inline-block;padding:18px 26px;border:2px solid #ff5a1f;border-radius:14px;color:#fff;font-size:clamp(42px,7vw,84px);font-weight:800;letter-spacing:.12em}
     #error-code{margin:18px 0 0;color:#ffb28f;font:700 clamp(14px,1.4vw,20px)/1.4 monospace}
     #diagnostics{margin:18px 0 0;color:#aaa69d;font:400 clamp(12px,1.2vw,17px)/1.45 monospace;white-space:pre-wrap}
-    #watermark{position:absolute;z-index:90;left:2.2vw;bottom:2.2vh;display:none;width:clamp(100px,9vw,180px);height:auto;opacity:.4;pointer-events:none}
+    #watermark{position:absolute;z-index:90;left:2.2vw;bottom:2.2vh;display:none;width:160px;width:clamp(100px,9vw,180px);height:auto;opacity:.4;pointer-events:none}
     #watermark.visible{display:block}
     #offline{position:absolute;right:2vw;bottom:2vh;display:none;padding:8px 12px;border-radius:999px;background:rgba(7,7,7,.76);color:#f4c15d;font-size:16px;font-weight:700}
     #offline.visible{display:block}
@@ -972,11 +972,11 @@ export function renderLgLegacyHtml() {
 <body>
   <main id="media-root" aria-label="VeyoCast afspeeloppervlak"></main>
   <section id="goal-overlay" aria-live="assertive" hidden></section>
-  <img id="watermark" src="/brand/veyocast-logo-inverse.svg" alt="">
+  <img id="watermark" src="/assets/full-light.svg" alt="">
   <div id="offline" role="status">Offline · lokale release</div>
   <section id="status" aria-live="polite">
     <div class="panel">
-      <img class="logo" src="/brand/veyocast-logo-inverse.svg" alt="VeyoCast">
+      <img class="logo" src="/assets/brand-hero-800.webp" alt="VeyoCast">
       <p class="kicker" id="kicker">LG Legacy Player</p>
       <h1 id="title">Player starten</h1>
       <p id="detail">De eenvoudige LG-runtime controleert de installatie en de laatste geldige release.</p>
@@ -996,7 +996,7 @@ export function renderLgLegacyHtml() {
         <h1 id="default-waiting-title">Wachten op content</h1>
         <p class="default-waiting-welcome" id="default-waiting-welcome"></p>
         <img class="default-waiting-tenant-logo" id="default-waiting-tenant-logo" alt="">
-        <img class="default-waiting-veyocast-logo" id="default-waiting-veyocast-logo" src="/brand/veyocast-logo-primary.svg" alt="VeyoCast">
+        <img class="default-waiting-veyocast-logo" id="default-waiting-veyocast-logo" src="/assets/full-dark.svg" alt="VeyoCast">
         <p class="default-waiting-payoff">Narrowcasting voor sportverenigingen!</p>
       </div>
       <footer class="default-waiting-footer">
@@ -1269,7 +1269,7 @@ export function renderLgLegacyHtml() {
         tenantLogo.hidden = true;
       }
       byId("default-waiting-veyocast-logo").src = theme === "light"
-        ? "/brand/veyocast-logo-primary.svg" : "/brand/veyocast-logo-inverse.svg";
+        ? "/assets/full-dark.svg" : "/assets/full-light.svg";
       var updateClock = function () {
         setText("default-waiting-clock", formatDefaultWaitingClock(new Date(), timezone));
         runtime.defaultWaitingTimer = window.setTimeout(updateClock, 60000 - (now() % 60000) + 100);

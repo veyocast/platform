@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-10-18T01:16:09.466897+00:00",
+  "worktree": "/home/codex/repos/castivo-s226",
+  "commit": "uncommitted S226 worktree",
+  "runtimeFileCount": 2299,
+  "runtimeSha256": "70cf15a3f8fe86daac646f20bf8e46a4511de8d0e17457abe52018673dd8dfa0",
+  "gates": {
+    "lint": "30/30 PASS; 12 cached",
+    "typecheck": "30/30 PASS; 18 cached",
+    "test": "30/30 PASS; 28 cached",
+    "build": "18/18 PASS; 12 cached; 1m12.247s"
+  },
+  "logs": {
+    "lint": {
+      "path": "/tmp/veyocast-s226-sync-foundation-lint.log",
+      "sha256": "5ca1acf418a8c3e4d2cddf9b9bfd4c6ef1af2b058637b7c7e4df5daf4a9fbaa5"
+    },
+    "typecheck": {
+      "path": "/tmp/veyocast-s226-sync-foundation-typecheck.log",
+      "sha256": "3d2401be7bc93acd01f7cb3cef0b5b52c70caca5acfe0228d1aba0785e5a5e77"
+    },
+    "test": {
+      "path": "/tmp/veyocast-s226-sync-foundation-test-attempt2.log",
+      "sha256": "d0a1c5a4a01bf70682bf8b5f1c4e9f634ea75f6a337f4744a9033e93192f1e94"
+    },
+    "build": {
+      "path": "/tmp/veyocast-s226-sync-foundation-build.log",
+      "sha256": "34f6c7f789f5ba60126ac58f352360349e471fe1a330f8c6f29d9f595f704880"
+    }
+  },
+  "priorFailure": {
+    "path": "/tmp/veyocast-s226-sync-foundation-test.log",
+    "reason": "Two testkit import-boundary scans exceeded 5 seconds during concurrent Source browser comparison; no boundary violation was reported.",
+    "focusedRecheck": "29/29 PASS",
+    "fullSequentialRecheck": "30/30 PASS"
+  },
+  "sourceComparison": "144/144 geometry/typography comparisons PASS; actual latest Source/port browser comparison",
+  "database": "48 directed pgTAP assertions PASS after two locally applied additive migrations; fresh full reset/RLS still pending",
+  "realWorker": "actual AAL2 create/render, portrait PNG and two-page landscape MP4, private Storage hashes; separate evidence retains failed attempts",
+  "limits": "No full editor, provider/Player parity, pixel comparison, signed update or hosted deployment claim."
+}

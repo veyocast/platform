@@ -19,11 +19,11 @@ test("Studio overview and creation journey use real responsive controls", async 
   await expect(
     page.getByRole("region", { name: "Studio-ontwerpen" })
   ).toBeVisible();
-  await expect(
-    page.getByRole("navigation", { name: "Hoofdnavigatie" }).getByRole("link", {
-      name: /Studio/
-    })
-  ).toHaveAttribute("aria-current", "page");
+  await page.getByRole("button", {name: "Snel naar een onderdeel"}).click();
+  const navigation = page.getByRole("dialog", {name: "Snel naar een onderdeel"});
+  await navigation.getByLabel("Zoek navigatie en resources").fill("Studio");
+  await expect(navigation.getByRole("link", {name: /^Studio/}).first()).toHaveAttribute("href", "/dashboard/studio");
+  await page.keyboard.press("Escape");
 
   await expect(async () => {
     if (/\/dashboard\/studio\/new$/.test(page.url())) return;

@@ -4147,6 +4147,7 @@ html[data-density="compact"] .control-nav__link {
 
 .team-tab-panels[data-active="members"] > :not([data-team-panel="members"]),
 .team-tab-panels[data-active="roles"] > :not([data-team-panel="roles"]),
+.team-tab-panels[data-active="activity"] > :not([data-team-panel="activity"]),
 .team-tab-panels[data-active="invitations"] > :not([data-team-panel="invitations"]) {
   display: none;
 }

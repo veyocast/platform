@@ -1,0 +1,121 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
+import {existsSync,readFileSync,statSync,writeFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {chromium,expect as baseExpect} from '@playwright/test';
+import {PublishedDataRefreshRunner} from '../../apps/media-worker/src/published-data-refresh-runner';
+
+process.umask(0o077);
+assert.equal(process.env.VEYOCAST_S226_LOCAL_ACCEPTANCE,'1');
+assert.equal(process.cwd(),'/home/codex/repos/castivo-s226');
+const expect=baseExpect.configure({timeout:30000});
+const tenant='19170000-0000-4000-8000-000000000010',container='supabase_db_veyocast-s226';
+const base='http://127.0.0.1:3222',configFile='/tmp/veyocast-s226-local-status.json',authFile='/tmp/veyocast-s226-qa-auth-state.json';
+const checkpoint='/tmp/veyocast-s226-dynamic-live-boundary-state.json',profile='/tmp/veyocast-s226-dynamic-player-profile';
+for(const path of[configFile,authFile])assert.equal(statSync(path).mode&0o777,0o600);
+const cfg=JSON.parse(readFileSync(configFile,'utf8')),auth=JSON.parse(readFileSync(authFile,'utf8'));
+assert.equal(cfg.API_URL,'http://127.0.0.1:57621');assert.equal(new URL(cfg.DB_URL).port,'57622');
+assert.equal(execFileSync('docker',['inspect','--format','{{index .Config.Labels "com.supabase.cli.project"}}',container],{encoding:'utf8'}).trim(),'veyocast-s226');
+function sql(query:string){return execFileSync('docker',['exec','-i',container,'psql','-U','postgres','-d','postgres','-At','-v','ON_ERROR_STOP=1'],{input:query,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();}
+const worker=JSON.parse(readFileSync('execution/evidence/sync-dynamic-real-worker.json','utf8'));
+const publication=JSON.parse(readFileSync('execution/evidence/sync-dynamic-to-player.json','utf8'));
+assert.equal(worker.status,'PASS');assert.equal(publication.status,'PASS');
+for(const id of[worker.snapshotId,worker.sourceId,worker.slideId,publication.release.releaseId])assert.match(id,/^[a-f0-9-]{36}$/);
+function guardQueue(){const entries=JSON.parse(sql("select coalesce(json_agg(json_build_object('tenant',tenant_id,'snapshot',snapshot_id)),'[]'::json)from private.published_data_refresh_queue"));assert.ok(entries.every((row:{tenant:string;snapshot:string})=>row.tenant===tenant&&row.snapshot===worker.snapshotId),'Never claim unrelated published-data work');return entries.length;}
+const require=createRequire(process.cwd()+'/apps/control/package.json'),{createServerClient}=require('@supabase/ssr');
+const cookies=new Map(auth.cookies.map((cookie:{name:string})=>[cookie.name,cookie]));
+const client=createServerClient(cfg.API_URL,cfg.ANON_KEY,{cookies:{getAll:()=>[...cookies.values()],setAll:(values:Array<{name:string}>)=>values.forEach(cookie=>cookies.set(cookie.name,cookie))}});
+assert.equal((await client.auth.getUser()).data.user?.id,'19170000-0000-4000-8000-000000000001');
+assert.equal((await client.auth.mfa.getAuthenticatorAssuranceLevel()).data.currentLevel,'aal2');
+const {createClient}=require('@supabase/supabase-js');
+const service=createClient(cfg.API_URL,cfg.SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+const runner=new PublishedDataRefreshRunner(service,{workerId:'s226-source-live-proof'});
+async function drain(){const results=[];for(let i=0;guardQueue()&&i<4;i++){const result=await runner.runOnce();assert.equal(result.status,'completed');results.push(result);}assert.equal(guardQueue(),0);return results;}
+await drain();
+const historyQuery=`select jsonb_build_object('releases',(select md5(coalesce(string_agg(row_to_json(r)::text,','order by id),''))from public.playlist_releases r where tenant_id='${tenant}'),'items',(select md5(coalesce(string_agg(row_to_json(i)::text,','order by id),''))from public.playlist_release_items i where tenant_id='${tenant}'),'renderJobs',(select count(*)from public.dynamic_render_jobs where tenant_id='${tenant}'),'snapshots',(select count(*)from public.dynamic_slide_snapshots where tenant_id='${tenant}'),'versions',(select count(*)from public.dynamic_slide_versions where tenant_id='${tenant}'))`;
+const beforeHistory=JSON.parse(sql(historyQuery));
+const product=JSON.parse(sql(`select row_to_json(p)from public.tenant_products p where tenant_id='${tenant}'and data_source_id='${worker.sourceId}'and source_external_id='S226-REAL-1'`));
+type State={updateKey:string;expectedRevision:number;productId:string;priceCents:number};
+if(existsSync(checkpoint))assert.equal(statSync(checkpoint).mode&0o777,0o600);
+const state:State=existsSync(checkpoint)?JSON.parse(readFileSync(checkpoint,'utf8')):{updateKey:randomUUID(),expectedRevision:Number(product.revision),productId:product.id,priceCents:475};
+assert.equal(state.productId,product.id);writeFileSync(checkpoint,JSON.stringify(state),{mode:0o600});
+const report:Record<string,unknown>={status:'RUNNING',startedAt:new Date().toISOString(),playerBuildId:readFileSync('apps/player/.next/BUILD_ID','utf8').trim(),scope:'actual AAL2 catalog mutation and existing published-data refresh runner; same publication and complete verified DOM staged at natural boundary, grown page count and offline reload; explicit binary remains complete frozen publication fallback; no Source binding editor, external provider, hardware or hosted deployment claim',sourceId:worker.sourceId,snapshotId:worker.snapshotId,releaseId:publication.release.releaseId};
+let context:Awaited<ReturnType<typeof chromium.launchPersistentContext>>|undefined;
+let held=true;const blocked:Array<()=>void>=[];
+try{
+ context=await chromium.launchPersistentContext(profile,{ignoreHTTPSErrors:true,viewport:{width:1920,height:1080}});
+ const page=context.pages()[0]??await context.newPage();
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message.slice(0,200)));
+ await page.route('**/api/player/manifest',async route=>{if(held)await new Promise<void>(resolve=>blocked.push(resolve));await route.continue();});
+ await page.goto(base,{waitUntil:'domcontentloaded',timeout:120000});
+ const frame=page.locator('.playback-sync[data-sync-ready="true"]').last();
+ await expect(frame).toBeVisible({timeout:90000});
+ const token=await page.evaluate(()=>localStorage.getItem('veyocast.player.deviceToken'));assert.ok(token);
+ const manifest=async(profile:string)=>{const response=await context!.request.get(base+'/api/player/manifest',{headers:{Authorization:'Bearer '+token,'X-VeyoCast-Sync-Dynamic':profile}});assert.equal(response.status(),200);return response.json();};
+ const initial=await page.evaluate(`(async()=>{const database=await new Promise((resolve,reject)=>{const request=indexedDB.open('veyocast-player-cache-v1',2);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});try{return await new Promise((resolve,reject)=>{const request=database.transaction('activeReleases','readonly').objectStore('activeReleases').getAll();request.onsuccess=()=>resolve(request.result.find(row=>row.envelope.manifest.releaseId==='${publication.release.releaseId}').envelope);request.onerror=()=>reject(request.error);});}finally{database.close();}})()`),oldItem=initial.manifest.items[0];
+ assert.equal(oldItem.syncDynamic.presentation.rows.length,9,'Retain the actual grown data from the preceding guarded mutation');
+ assert.equal(oldItem.syncDynamic.durationMs,9000);
+ held=true;
+ const values={name:product.name,description:product.description,category:product.category,priceCents:state.priceCents,vatRate:product.vat_rate,unit:product.unit,barcode:product.barcode,externalId:product.source_external_id,active:product.active};
+ const update=await client.rpc('manage_tenant_product_v2',{p_tenant_id:tenant,p_product_id:state.productId,p_data_source_id:worker.sourceId,p_expected_revision:state.expectedRevision,p_action:'update',p_values:values,p_idempotency_key:state.updateKey});
+ assert.equal(update.error,null);assert.equal(update.data.outcome,'updated');
+ const replay=await client.rpc('manage_tenant_product_v2',{p_tenant_id:tenant,p_product_id:state.productId,p_data_source_id:worker.sourceId,p_expected_revision:state.expectedRevision,p_action:'update',p_values:values,p_idempotency_key:state.updateKey});
+ assert.equal(replay.error,null);assert.deepEqual(replay.data,update.data);report.productReceiptReplayed=true;
+ const refreshResults=await drain();report.refreshResults=refreshResults;
+ if(refreshResults.length===0){const prior=JSON.parse(readFileSync('execution/evidence/sync-dynamic-live-player-attempt-1.json','utf8'));assert.equal(prior.productReceiptReplayed,true);assert.equal(prior.refreshResults[0].status,'completed');report.recoveredCompletedRefresh=prior.refreshResults;}
+ const fresh=await manifest('sync-dynamic-v1'),nextItem=fresh.manifest.items[0];
+ assert.equal(fresh.manifest.releaseId,initial.manifest.releaseId);assert.equal(nextItem.id,oldItem.id);
+ assert.equal(nextItem.syncDynamic.presentation.rows.length,9);assert.equal(nextItem.syncDynamic.durationMs,9000);
+ assert.ok(nextItem.syncDynamic.dataRevision>(oldItem.syncDynamic.dataRevision??1));
+ assert.notEqual(nextItem.syncDynamic.contentHash,oldItem.syncDynamic.contentHash);
+ assert.equal(nextItem.syncDynamic.configurationHash,oldItem.syncDynamic.configurationHash);
+ assert.equal(nextItem.syncDynamic.fallbackChecksumSha256,oldItem.syncDynamic.fallbackChecksumSha256);
+ assert.ok(JSON.stringify(nextItem.syncDynamic.presentation.rows).includes('4,75'));
+ const binary=await manifest('sync-dynamic-binary-v1');
+ assert.equal(binary.manifest.items[0].source.checksumSha256,worker.media.checksum_sha256);
+ assert.equal(binary.manifest.items[0].syncDynamicBinary.contentHash,sql(`select source_revision_hash from public.dynamic_slide_snapshots where tenant_id='${tenant}'and id='${worker.snapshotId}'`));
+ assert.equal(binary.manifest.items[0].syncDynamicBinary.durationMs,6000);report.binaryStillFullFrozenFallback=true;
+ // Start observing at a known beginning of the old two-page loop. Only HTTP
+ // delivery is briefly held; all responses and data are the actual services.
+ await page.evaluate(`(()=>{
+  const entries=[];
+  let previous='';const sample=()=>{const root=[...document.querySelectorAll('.playback-sync[data-sync-ready="true"]')].at(-1);if(!root)return;const key=root.dataset.syncPage+'|'+root.textContent;if(key!==previous){previous=key;const row=[...root.querySelectorAll('.vc-menu-row')].find(row=>row.querySelector('strong')?.textContent==='Bronproduct 1');entries.push({at:performance.now(),page:root.dataset.syncPage??null,text:root.textContent??'',price:row?.querySelector('b')?.textContent??null});}};
+  const observer=new MutationObserver(sample);observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['data-sync-page','data-sync-ready']});sample();
+  Object.assign(globalThis,{s226SourceEvents:entries,s226SourceObserver:observer});
+ })()`);
+ await expect(frame).toHaveAttribute('data-sync-page','2');
+ await expect.poll(()=>frame.getAttribute('data-sync-page'),{intervals:[25],timeout:5000}).toBe('0');
+ const openedAt=await page.evaluate(()=>performance.now());
+ const received=page.waitForResponse(async response=>{if(!response.url().endsWith('/api/player/manifest')||response.status()!==200)return false;try{return(await response.json()).manifest?.items[0]?.syncDynamic?.contentHash===nextItem.syncDynamic.contentHash;}catch{return false;}},{timeout:45000});
+ held=false;for(const release of blocked.splice(0))release();
+ await page.evaluate(()=>window.dispatchEvent(new Event('veyocast:sync-requested')));
+ await received;
+ await expect(frame.locator('.vc-menu-row').filter({hasText:'Bronproduct 1'}).locator('b')).toContainText('4,75',{timeout:25000});
+ const events=await page.evaluate(()=>Reflect.get(globalThis,'s226SourceEvents'));
+ report.observedEvents=events.map((entry:{at:number;page:string;price:string|null})=>({at:entry.at,page:entry.page,productOnePrice:entry.price}));
+ const firstNew=events.find((entry:{at:number;page:string;price:string|null})=>entry.at>=openedAt&&entry.page==='0'&&entry.price?.includes('4,75'));
+ const oldZero=events.filter((entry:{at:number;page:string})=>entry.page==='0'&&entry.at<=openedAt).at(-1);
+ const oldOne=events.find((entry:{at:number;page:string})=>entry.at>=openedAt&&entry.page==='1');
+ const oldTwo=events.find((entry:{at:number;page:string})=>entry.at>=openedAt&&entry.page==='2');
+ assert.ok(firstNew&&oldZero&&oldOne&&oldTwo,'All three full old pages precede the newly projected data');
+ assert.ok(oldOne.at-oldZero.at>=2850,'Page zero was not restarted or cut by data preparation');
+ assert.ok(oldTwo.at-oldOne.at>=2850,'Page one completed before activation');
+ assert.ok(firstNew.at-oldTwo.at>=2850,'The last old page completed before activation');
+ report.boundary={oldPageZeroAt:oldZero.at,oldPageOneAt:oldOne.at,oldPageTwoAt:oldTwo.at,newPageZeroAt:firstNew.at,lastOldPageMs:firstNew.at-oldTwo.at};
+ report.data={fromRevision:oldItem.syncDynamic.dataRevision??1,toRevision:nextItem.syncDynamic.dataRevision,fromRows:9,toRows:9,fromDurationMs:9000,toDurationMs:9000,originalPublicationRows:5,originalPublicationDurationMs:6000,configurationHash:nextItem.syncDynamic.configurationHash,contentHash:nextItem.syncDynamic.contentHash};
+ await expect(frame).toHaveAttribute('data-sync-page','1');await expect(frame).toContainText('Bronproduct 5');
+ await expect(frame).toHaveAttribute('data-sync-page','2');await expect(frame).toContainText('Bronproduct 9');
+ await page.screenshot({path:'execution/evidence/sync-dynamic-live-online.png'});
+ await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));});
+ await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded',timeout:60000});
+ const offline=page.locator('.playback-sync[data-sync-ready="true"]').last();await expect(offline).toBeVisible({timeout:45000});
+ await expect(offline.locator('.vc-menu-row').filter({hasText:'Bronproduct 1'}).locator('b')).toContainText('4,75');await expect(offline).toHaveAttribute('data-sync-page','1');await expect(offline).toHaveAttribute('data-sync-page','2');await expect(offline).toContainText('Bronproduct 9');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('veyocast.player.deviceToken')),token);
+ await page.screenshot({path:'execution/evidence/sync-dynamic-live-offline.png'});
+ report.offlineReloadLatestData=true;report.pairingPreserved=true;
+ assert.deepEqual(JSON.parse(sql(historyQuery)),beforeHistory);report.noReleaseVersionSnapshotOrRenderJobCreated=true;
+ assert.deepEqual(errors,[]);report.status='PASS';
+}catch(error){report.status='FAIL';report.error=error instanceof Error?error.message.replace(/([?&]token=)[^\s"<>]+/g,'$1[redacted]').slice(0,1600):'proof failed';throw Error(String(report.error));}
+finally{held=false;for(const release of blocked.splice(0))release();await context?.close();writeFileSync('execution/evidence/sync-dynamic-live-player.json',JSON.stringify(report,null,2)+'\n');}
+console.log(JSON.stringify(report));

@@ -20,7 +20,7 @@ describe("Royal Current Static LG", () => {
     expect(html).toContain("Narrowcasting voor sportverenigingen!");
     expect(html).toContain("showDefaultWaiting(envelope)");
     expect(html).toContain("default-waiting-clock");
-    expect(html).toContain("/brand/veyocast-logo-primary.svg");
+    expect(html).toContain("/assets/full-dark.svg");
   });
 
   it("rendert verjaardagkaarten per kaart met vaste 1/2/4/6 rasters", () => {

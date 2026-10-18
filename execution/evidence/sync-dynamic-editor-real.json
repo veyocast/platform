@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T07:02:38.214Z",
+  "controlBuildId": "vCVDfFxm9ZVKmoXWzH1wa",
+  "scope": "actual Source dynamic editor, existing AAL2 version and read-only canonical preview, exact lost-save receipt recovery, explicit complete worker output; no Source create/team/pool selector, provider, hardware or hosted deployment claim",
+  "slideId": "2e4becaa-7f1a-4513-9065-fa165eb720ae",
+  "versionId": "6ec0ef97-0694-4545-b45b-b5e127722ec9",
+  "previewReadOnly": true,
+  "exactSaveReceiptRecovered": true,
+  "savedDraft": {
+    "name": "S226 gekoppelde bewerking 1792306762351",
+    "rows": 0,
+    "revision": 4,
+    "seedName": "S226 gekoppelde bewerking 1792306762351"
+  },
+  "axeViolations": 0,
+  "widths": [
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "completeOutput": {
+    "rows": 9,
+    "bytes": 1021732,
+    "sha256": "3409fe8260f232d36bfa2b5cb031d008980813c0ee626c517e679feaa258abda",
+    "status": "ready",
+    "assetId": "5d4df260-34a8-5885-8776-f19734889896",
+    "durationMs": 9000
+  },
+  "existingReleasesUnchanged": true,
+  "explicitRenderJobsCreated": 1
+}

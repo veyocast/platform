@@ -42,6 +42,10 @@ export function buildDynamicTemplatePayloadMap({
   const result = new Map<string, PlayerDynamicTemplatePayload>();
 
   for (const snapshot of snapshots) {
+    // This is the historical dynamic DOM profile. A Source configuration
+    // cannot borrow a Sites template identity: unsupported clients play its
+    // complete, checksum-verified PNG/MP4 through the normal binary path.
+    if(Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'))continue;
     const version = versionById.get(snapshot.template_version_id);
     const template = version ? templateById.get(version.template_id) : null;
     if (!version || !template) continue;

@@ -1,10 +1,5 @@
 import type { PropsWithChildren } from "react";
-import {
-  StyleSheet,
-  Text,
-  type TextProps,
-  type TextStyle
-} from "react-native";
+import { StyleSheet, Text, type TextProps, type TextStyle } from "react-native";
 import { mobileFontFamilyForWeight, mobileType } from "./tokens";
 import { useMobileTheme } from "./theme";
 
@@ -44,9 +39,14 @@ export function AppText({
         roleStyle,
         {
           color: muted ? theme.colors.secondaryInk : theme.colors.ink,
-          fontFamily: mobileFontFamilyForWeight(resolvedStyle.fontWeight)
         },
-        style
+        style,
+        // The static file already contains the exact source weight (including
+        // 650/750). Do not ask Android/iOS to synthesize another weight on it.
+        {
+          fontFamily: mobileFontFamilyForWeight(resolvedStyle.fontWeight),
+          fontWeight: "normal",
+        },
       ]}
     >
       {children}

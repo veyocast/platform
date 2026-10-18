@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T08:32:30.647Z",
+  "controlBuildId": "_TwpS_ErHbqJHDJ3WoRID",
+  "scope": "actual AAL2 Source pool/team/period choices over owned persisted provider fixtures, current-user server options/canonical preview, lost create ACK and complete existing-worker output; fixture connection has automatic sync disabled and no external provider verification, credential or integration claim; no hardware or hosted deployment claim",
+  "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ {\n+   code: 'PGRST202',\n+   details: 'Searched for the function public.upsert_sportlink_connection_v1 with parameters p_client_id_suffix, p_detected_club_name, p_encrypted_client_id, p_encryption_iv, p_encryption_tag, p_name, p_tenant_id or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.',\n+   hint: 'Perhaps you meant to call the function public.upsert_sportlink_connection_v1(p_client_id_suffix, p_data_source_name, p_detected_club_name, p_encrypted_client_id, p_encryption_iv, p_encryption_tag, p_tenant_id)',\n+   message: 'Could not find the function public.upsert_sportlink_connection_v1(p_client_id_suffix, p_detected_club_name, p_encrypted_client_id, p_encryption_iv, p_encryption_tag, p_name, p_tenant_id) in the schema cache'\n+ }\n- null\n"
+}

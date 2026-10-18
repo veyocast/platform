@@ -1,0 +1,171 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T11:19:48.798Z",
+  "playerBuildId": "bdxQ7X0HdiQeUZNLvkTSE",
+  "scope": "actual AAL2 owned QA price updates, same published-data queue and full FFmpeg worker, hash-correlated complete binary activation, real five-minute cooldown, fixed slots, latest offline cold reload; no provider, physical device or hosted acceptance",
+  "snapshotId": "e5a5ce2b-2af4-4474-ad3a-ec727e62df57",
+  "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+  "updates": [
+    {
+      "priceCents": 515,
+      "expectedRevision": 4,
+      "receiptReplayed": true
+    },
+    {
+      "priceCents": 535,
+      "expectedRevision": 5,
+      "receiptReplayed": true
+    }
+  ],
+  "renders": [],
+  "boundaries": [],
+  "browserErrors": [],
+  "manifests": [
+    {
+      "at": 1792322389958,
+      "status": 200,
+      "sha256": "67eadb628222179645201478edf07a43bf6c91dba1da0818f7d70ed62682ff79",
+      "dataRevision": 3
+    }
+  ],
+  "initial": {
+    "artifact": {
+      "width": 1920,
+      "height": 1080,
+      "poster": {
+        "byteLength": 1640248,
+        "storagePath": "tenants/19170000-0000-4000-8000-000000000010/assets/a9eb8f5c-1b65-479c-897e-4eb35f179390/sync-dynamic/6e62f73fb0df1b2e207ded719a7e6e0f154cdd18b9ea5a184d9ae22fe07357d7.png",
+        "checksumSha256": "6e62f73fb0df1b2e207ded719a7e6e0f154cdd18b9ea5a184d9ae22fe07357d7"
+      },
+      "mimeType": "video/mp4",
+      "byteLength": 3183886,
+      "durationMs": 24000,
+      "storagePath": "tenants/19170000-0000-4000-8000-000000000010/assets/a9eb8f5c-1b65-479c-897e-4eb35f179390/sync-dynamic/d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6.mp4",
+      "presentation": {
+        "body": "",
+        "club": {
+          "name": "Duindorp SV",
+          "tagline": ""
+        },
+        "name": "S226 Source UI-aanmaak 1792307566121",
+        "news": [],
+        "rows": [
+          [
+            "Bronproduct 1",
+            "€ 4,95",
+            "Eigen werkelijk opgeslagen product 1",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 2",
+            "€ 2,75",
+            "Eigen werkelijk opgeslagen product 2",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 3",
+            "€ 3,00",
+            "Eigen werkelijk opgeslagen product 3",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 4",
+            "€ 3,25",
+            "Eigen werkelijk opgeslagen product 4",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 5",
+            "€ 3,50",
+            "Eigen werkelijk opgeslagen product 5",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 6",
+            "€ 4,00",
+            "Eigen werkelijk opgeslagen product 6",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 7",
+            "€ 4,25",
+            "Eigen werkelijk opgeslagen product 7",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 8",
+            "€ 4,50",
+            "Eigen werkelijk opgeslagen product 8",
+            "Eigen testselectie"
+          ],
+          [
+            "Bronproduct 9",
+            "€ 4,75",
+            "Eigen werkelijk opgeslagen product 9",
+            "Eigen testselectie"
+          ]
+        ],
+        "state": "ready",
+        "style": {
+          "font": "Inter, sans-serif",
+          "scale": 100,
+          "accent": "#1763ed",
+          "motion": "rustig",
+          "showLogo": true,
+          "alignment": "left",
+          "background": "stadium",
+          "safeMargin": 5,
+          "showFooter": true,
+          "fontChanged": false,
+          "backgroundPosition": "center"
+        },
+        "theme": "onzetrots-tv",
+        "title": "EVEN NAAR DE KANTINE",
+        "family": "menu",
+        "footer": "",
+        "lineup": [],
+        "subline": "",
+        "category": "",
+        "headline": "",
+        "subtitle": "",
+        "topLabel": "CLUB TV",
+        "footerRight": "",
+        "orientation": "landscape",
+        "rowsPerPage": 4,
+        "imageCaption": "",
+        "ownRowIndexes": [],
+        "schemaVersion": 1,
+        "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+        "rendererVersion": "sync-v1"
+      },
+      "checksumSha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    "slotCount": 3,
+    "currentSlot": 0,
+    "dataRevision": 2,
+    "previousSlot": null,
+    "lastStartedAt": "2026-10-18T10:57:40.300351+00:00"
+  },
+  "resumedExactReceiptsAfterBootstrapIdentityFix": true,
+  "firstDataPasses": [],
+  "error": "Expected values to be strictly equal:\n\n0 !== 1\n",
+  "media": [
+    {
+      "type": "emptied",
+      "at": 1792322389123,
+      "time": 0,
+      "duration": null,
+      "element": 1,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    },
+    {
+      "type": "playing",
+      "at": 1792322389160,
+      "time": 0.0131,
+      "duration": 24,
+      "element": 1,
+      "sha256": "d747a12489d317c5b93a577a66804c8a421ccc0bb23f339569635278ac6511a6"
+    }
+  ],
+  "finishedAt": "2026-10-18T11:19:49.990Z"
+}

@@ -4,7 +4,7 @@ import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
 export async function loadSponsorHub(tenantId: string) {
   const supabase = await createControlSupabaseClient();
-  if (!supabase) return emptySponsorHub;
+  if (!supabase) return { ...emptySponsorHub, error: Boolean(tenantId) };
   const [sponsors, campaigns, positions, creatives, assets, sponsorMedia, plans, screens, events, tasks, opportunities, audit] = await Promise.all([
     supabase.from("sponsors").select("id,name,status,website_url,updated_at").eq("tenant_id", tenantId).order("name"),
     supabase.from("sponsor_campaigns").select("id,sponsor_id,name,status,starts_at,ends_at,weight,submitted_by,approved_by,updated_at").eq("tenant_id", tenantId).order("updated_at", { ascending: false }),
@@ -48,6 +48,7 @@ export async function loadSponsorHub(tenantId: string) {
   if (results.some((result) => result.error)) console.error("Sponsor Hub laden mislukt", results.map((result) => result.error).filter(Boolean));
   return {
     assets: (assets.data ?? []).filter((asset) => (sponsorMedia.data ?? []).some((item) => item.media_asset_id === asset.id)),
+    error: results.some(result => result.error),
     audit: audit.data ?? [], campaigns: campaigns.data ?? [], creatives: linkedCreatives,
     events: events.data ?? [], opportunities: opportunities.data ?? [], plans: plans.data ?? [], positions: positions.data ?? [],
     screens: screens.data ?? [], sponsorMedia: sponsorMedia.data ?? [], sponsors: sponsors.data ?? [], tasks: tasks.data ?? [],

@@ -177,13 +177,21 @@ export async function encodeStudioMp4({
     { shell: false, stdio: ["pipe", "pipe", "pipe"] }
   );
   const completion = waitForEncoder(child, timeoutMs, signal);
+  // A DOM frame can take longer than a failed process launch. Observe failure
+  // immediately, then surface it at the next frame boundary inside this try.
+  let encoderFailure: unknown;
+  void completion.catch(error => { encoderFailure = error; });
+  const assertEncoderRunning = () => { if (encoderFailure) throw encoderFailure; };
 
   try {
     for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
       throwIfAborted(signal);
+      assertEncoderRunning();
       await onFrame?.(frameIndex, frameCount);
+      assertEncoderRunning();
       const timeMs = frameIndex * (1_000 / studioFps);
       const frame = Buffer.from(renderFrame ? await renderFrame(timeMs) : await renderer.renderRgba({height,signal,svg:renderStudioSvg({assetSources,document,timeMs}),width}));
+      assertEncoderRunning();
       if (frame.byteLength !== expectedFrameBytes) {
         throw new StudioVideoRenderError(
           "frame_invalid",
@@ -191,7 +199,10 @@ export async function encodeStudioMp4({
         );
       }
       if (!child.stdin.write(frame)) {
-        await once(child.stdin, "drain");
+        await Promise.race([
+          once(child.stdin, "drain"),
+          completion.then(() => { throw new StudioVideoRenderError("encoding_failed", "FFmpeg stopte voordat alle frames waren aangeleverd."); })
+        ]);
       }
     }
     child.stdin.end();
@@ -517,6 +528,12 @@ function waitForEncoder(
       rejectOnce(new StudioVideoRenderError(
         "encoding_failed",
         `Kon FFmpeg niet starten: ${safeCommandMessage(error.message)}`
+      ));
+    });
+    child.stdin.on("error", (error) => {
+      rejectOnce(new StudioVideoRenderError(
+        "encoding_failed",
+        `FFmpeg-invoer werd onderbroken: ${safeCommandMessage(error.message)}`
       ));
     });
     child.on("close", (exitCode) => {

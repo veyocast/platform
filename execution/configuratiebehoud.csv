@@ -1,0 +1,43 @@
+environment_of_scope,soort,naam,aanwezig_voor,aanwezig_na,contract_bewaard,bewijs_zonder_geheime_waarde
+android-google-tv-internal,environment,android-google-tv-internal,ja,ja,ja,Naam en protection-ruletypen/branchpolicy voor/na gelijk
+android-google-tv-internal,secret,ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_BASE64,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+android-google-tv-internal,secret,ANDROID_GOOGLE_TV_UPLOAD_KEYSTORE_PASSWORD,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+android-tv-internal,environment,android-tv-internal,ja,ja,ja,Naam en protection-ruletypen/branchpolicy voor/na gelijk
+android-tv-internal,secret,ANDROID_TV_UPLOAD_KEYSTORE_BASE64,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+android-tv-internal,secret,ANDROID_TV_UPLOAD_KEYSTORE_PASSWORD,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+android-tv-internal,secret,ANDROID_TV_UPLOAD_KEY_ALIAS,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+android-tv-internal,secret,ANDROID_TV_UPLOAD_KEY_PASSWORD,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+android-tv-internal,variable,GOOGLE_PLAY_SERVICE_ACCOUNT,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+android-tv-internal,variable,GOOGLE_WORKLOAD_IDENTITY_PROVIDER,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+lg-webos-signage-release,environment,lg-webos-signage-release,ja,ja,ja,Naam en protection-ruletypen/branchpolicy voor/na gelijk
+production,environment,production,ja,ja,ja,Naam en protection-ruletypen/branchpolicy voor/na gelijk
+production,secret,DEVICE_LAB_ACCESS_TOKEN,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,secret,DEVICE_LAB_SESSION_SECRET,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,secret,NEXT_PUBLIC_SUPABASE_ANON_KEY,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,secret,NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,secret,SLACK_ALERT_WEBHOOK_URL,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,secret,SUPABASE_DB_URL,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,secret,SUPABASE_SERVICE_ROLE_KEY,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,CONTROL_BIND_PORT,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,CONTROL_HOST,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,MARKETING_BIND_PORT,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,MARKETING_HOST,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,NEXT_PUBLIC_SUPABASE_URL,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,PLAYER_BIND_PORT,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,PLAYER_HOST,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+production,variable,SUPABASE_PROJECT_REF,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,environment,staging,ja,ja,ja,Naam en protection-ruletypen/branchpolicy voor/na gelijk
+staging,secret,DEVICE_LAB_ACCESS_TOKEN,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,secret,DEVICE_LAB_SESSION_SECRET,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,secret,NEXT_PUBLIC_SUPABASE_ANON_KEY,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,secret,NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,secret,SLACK_ALERT_WEBHOOK_URL,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,secret,SUPABASE_DB_URL,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,secret,SUPABASE_RESTORE_DRILL_DB_URL,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,secret,SUPABASE_SERVICE_ROLE_KEY,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,variable,CONTROL_BIND_PORT,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,variable,CONTROL_HOST,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,variable,NEXT_PUBLIC_SUPABASE_URL,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,variable,PLAYER_BIND_PORT,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,variable,PLAYER_HOST,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen
+staging,variable,SUPABASE_PROJECT_REF,ja,ja,ja,GitHub API names-only voor/na gelijk; waarden niet opgenomen; geheime waarden niet uitgelezen

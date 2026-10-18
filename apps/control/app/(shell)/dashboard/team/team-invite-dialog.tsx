@@ -13,6 +13,7 @@ import {
 } from "@veyocast/ui";
 
 import { inviteTenantMember } from "./actions";
+import { UserPlus } from "lucide-react";
 
 type InviteRole = {
   id: string;
@@ -28,7 +29,7 @@ export function TeamInviteDialog({
 }) {
   return (
     <Dialog>
-      <DialogTrigger asChild><Button>Teamlid uitnodigen</Button></DialogTrigger>
+      <DialogTrigger asChild><button className="btn btn-primary" type="button"><UserPlus size={18} strokeWidth={1.7} aria-hidden="true" />Iemand uitnodigen</button></DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Teamlid uitnodigen</DialogTitle>

@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "scope": "actual Source controller/frame/CSS with controlled server-action transport; database and real AAL2 evidence are separate",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "command": "PLAYWRIGHT_EXTERNAL_SERVERS=1 pnpm exec playwright test tests/control/sync-studio-workflows.spec.ts --project=chromium",
+  "tests": 17,
+  "durationSeconds": 41.5,
+  "cases": [
+    "name/title/orientation saved and reloaded",
+    "lost Save receipt, reload, newer canonical edit, exact original command",
+    "confirmed Save with failed current read",
+    "incomplete rows survive reload",
+    "incomplete YouTube URL never reaches writer",
+    "viewer read-only and preview focus restoration",
+    "Axe zero and five widths without overflow",
+    "lost Render receipt across reload and later draft, verified output becomes stale after editing",
+    "lost Copy receipt across reload preserves newer local input",
+    "lost Restore receipt across reload keeps original version and command",
+    "confirmed Restore with failed read across reload performs no second write",
+    "a first atomic rejection preserves editable input and permits a new corrected intent",
+    "a later rejected replay retains the earlier unknown full command across reload",
+    "a failed output read retains the confirmed job and retries verification without requesting another render",
+    "verified private background selected, saved and reopened with unchanged identity",
+    "unconfirmed image upload preserves the current design and never automatically repeats",
+    "Motion save/reload requests full MP4 and can explicitly return a single-page design to PNG"
+  ],
+  "earlierAttempt": {
+    "passed": 9,
+    "failed": 2,
+    "reason": "test tried the output control outside the Settings tab and queried a background control while the versions modal was open; original failures retained in local logs"
+  },
+  "notInferred": [
+    "real provider acceptance",
+    "full Source pixel parity",
+    "device/24-hour playback",
+    "staging or production deployment"
+  ],
+  "realBackgroundEvidence": "execution/evidence/sync-editor-background-real-services.json",
+  "editorVisualComparison": "execution/evidence/sync-editor-source-comparison.json"
+}

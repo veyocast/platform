@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T04:20:28.584Z",
+  "scope": "actual disposable AAL2 Slides chooser → immutable export placement/reload → separate theme/duration render → authenticated private bytes; no publication or provider claim",
+  "sourceProjectId": "a3753b6d-609b-44af-b70c-b4c90b24a4f9",
+  "sourceAssetId": "c202f2fe-0ee8-4e36-b794-b5c6572313b6",
+  "playlistId": "7c482c8d-84d9-43df-8067-01267fd6d584",
+  "frozenPagesReopened": true,
+  "actualRender": {
+    "jobId": "ad227504-adce-4af2-b790-c41ba18a3f9a",
+    "projectId": "4138d6da-5f48-45b8-8eaf-c2f7e5a1fbaf",
+    "assetId": "8a30fea1-c689-43fd-8c82-5185e4e91263"
+  },
+  "media": {
+    "bytes": 1148800,
+    "sha256": "584171bd17d83d9a632fcd559fe3d79381e3b11775414e6ff63972eb58d76555",
+    "durationSeconds": 8
+  },
+  "themedPagesReopened": true,
+  "privateBytesVerified": true,
+  "widths": [
+    {
+      "width": 320,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "width": 768,
+      "overflow": 0
+    },
+    {
+      "width": 1024,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "overflow": 0
+    }
+  ],
+  "originalDraftUnchanged": true,
+  "existingReleasesUnchanged": true
+}

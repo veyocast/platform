@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-18T03:34:17.631Z",
+  "scope": "actual AAL2 create/render receipt, Chromium timed Source capture, FFmpeg encoding/validation and authenticated private Storage bytes; no publication/device/deployment claim",
+  "projectId": "ff08733e-e5b7-4536-a6a0-31378d03af35",
+  "jobId": "9bdb5f70-c78e-4e3c-81f7-c11466ec5571",
+  "assetId": "0fe0396d-5071-4c26-a119-d2dcd1011e6d",
+  "media": {
+    "id": "0fe0396d-5071-4c26-a119-d2dcd1011e6d",
+    "status": "ready",
+    "kind": "video",
+    "width": 1920,
+    "height": 1080,
+    "duration_seconds": 3,
+    "checksum_sha256": "d73c45cfe18f60f20c123791c9ba6ec71e823956bdd244e7bcb8dc15c16147a7"
+  },
+  "sha256": "d73c45cfe18f60f20c123791c9ba6ec71e823956bdd244e7bcb8dc15c16147a7",
+  "bytes": 531140,
+  "renderElapsedMs": 17180,
+  "selectedMotion": "dynamisch",
+  "durationMs": 3000,
+  "decodedFrames": [
+    {
+      "time": 0,
+      "mean": 255,
+      "sha256": "0184a5e1653c1f01fdb573c25c7a80905cf4c5b9f184f2ef44815b88f98b2855"
+    },
+    {
+      "time": 0.2,
+      "mean": 137.28306407536007,
+      "sha256": "ccb96cfd62a6a0fcc90e8070853666137f85c03cb44f4d28a77d63d486452f2c"
+    },
+    {
+      "time": 1.2,
+      "mean": 82.09306182484568,
+      "sha256": "52bcff356f3295677d5fda75f1aedff43cae08c22f049ea830cf030672f3ec4d"
+    }
+  ],
+  "unintendedReleases": 0
+}

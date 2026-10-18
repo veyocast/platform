@@ -1,0 +1,19 @@
+import {beforeEach,expect,it,vi} from 'vitest';
+import {createSyncStudioStarter,createSyncStudioDocument} from '@veyocast/studio';
+import {loadSitesPlaylistEditor} from './sites-editor-data';
+import type {PlaylistStudioData} from './data';
+const f=vi.hoisted(()=>({document:{} as unknown,output:'mp4',queries:[] as Array<{table:string;filters:Array<[string,unknown]>}>}));
+const tenant='10000000-0000-4000-8000-000000000226',asset='20000000-0000-4000-8000-000000000226',revision='30000000-0000-4000-8000-000000000226',project='40000000-0000-4000-8000-000000000226',exportId='50000000-0000-4000-8000-000000000226';
+vi.mock('./library',()=>({loadPublisherLibrary:vi.fn(),loadSitesAssetUrls:async()=>({}),loadCanonicalSnapshotAssets:async()=>({}),loadBoundPublisherDynamicDefinitions:async()=>[],collectCanonicalSnapshotAssetIds:()=>[]}));
+vi.mock('../../../../lib/supabase/server',()=>({createControlSupabaseClient:async()=>({from:(table:string)=>{const query={table,filters:[] as Array<[string,unknown]>};f.queries.push(query);const builder={select:()=>builder,eq:(field:string,value:unknown)=>{query.filters.push([field,value]);return builder;},in:(field:string,value:unknown)=>{query.filters.push([field,value]);return builder;},order:()=>builder,limit:()=>builder,then:(resolve:(value:unknown)=>unknown)=>Promise.resolve({error:null,data:table==='studio_exports'?[{id:exportId,project_id:project,revision_id:revision,media_asset_id:asset,output_kind:f.output}]:table==='studio_revisions'?[{id:revision,draft_revision:2,document_json:f.document}]:[]}).then(resolve)};return builder;}})}));
+const data=()=>({playlist:{id:project,name:'Vaste playlist',description:null,status:'draft',revision:2,updatedAt:'2026-10-18T10:00:00Z'},items:[{id:exportId,mediaAssetId:asset,displayTitle:'Eigen playlistlabel',durationSeconds:6,asset:{title:'Oude export',kind:'video',variant:{checksumSha256:'a'.repeat(64),previewUrl:'https://private.invalid/export'}}}],screens:[],youtubeSources:[],engageCampaigns:[]} as unknown as PlaylistStudioData);
+beforeEach(()=>{const source=createSyncStudioStarter({family:'fixtures',tenantName:'Eigen club'}).syncPresentation!;f.document=createSyncStudioDocument({...source,name:'Vast bronontwerp',rows:Array.from({length:5},(_,i)=>[`Thuis ${i+1}`,'Uit','12:00','Veld 1']),rowsPerPage:4,style:{...source.style,motion:'geen'}},3);f.output='mp4';f.queries=[];});
+it('reloads the immutable Source export and every page without reading the newer mutable draft',async()=>{
+ const result=await loadSitesPlaylistEditor(tenant,data(),{media:false,studio:false,dynamic:false});
+ expect(result.playlist.slides[0]).toMatchObject({name:'Eigen playlistlabel',seconds:3,mediaId:asset,orientation:'landscape',syncStudio:{id:project,name:'Vast bronontwerp',draftRevision:2,durationSeconds:6,exportId,exportAssetId:asset,checksumSha256:'a'.repeat(64),presentation:{rendererVersion:'sync-v1',rows:expect.any(Array)}}});
+ expect(result.playlist.slides[0]!.syncStudio!.presentation.rows).toHaveLength(5);expect(f.queries.some(query=>query.table==='studio_project_drafts')).toBe(false);
+ expect(f.queries.every(query=>query.filters.some(([field,value])=>field==='tenant_id'&&value===tenant))).toBe(true);
+ expect(f.queries.find(query=>query.table==='studio_revisions')!.filters).toContainEqual(['id',[revision]]);
+});
+it('fails closed instead of replacing an invalid Source export with a photo',async()=>{f.output='png';await expect(loadSitesPlaylistEditor(tenant,data(),{media:false,studio:false,dynamic:false})).rejects.toThrow('vaste Studio-uitvoer');});
+it('does not reconstruct Source content without the playback checksum',async()=>{const selected=data();selected.items[0]!.asset!.variant!.checksumSha256='';await expect(loadSitesPlaylistEditor(tenant,selected,{media:false,studio:false,dynamic:false})).rejects.toThrow('vaste Studio-uitvoer');});

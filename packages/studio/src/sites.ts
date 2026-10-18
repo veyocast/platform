@@ -1,7 +1,7 @@
 import {
  sitesCurrentPresentationSourceRevision,sitesCurrentPresentationVersion,sitesLegacyPresentationSourceRevision,sitesLegacyPresentationVersion,
  sitesStudioSlideSchema,sitesPresentationSchema,sitesSystemImageChecksums,
- type SitesAssetReference,type SitesPresentation,type SitesStudioSlide,type SitesTvContent,type SitesUnifiedKind
+ syncSlideAssets,type SitesAssetReference,type SitesPresentation,type SitesStudioSlide,type SitesTvContent,type SitesUnifiedKind
 } from "@veyocast/contracts";
 import literalStarters from "./sites-literal-starters.json";
 import { createEmptyStudioDocument } from "./document";
@@ -13,11 +13,11 @@ const rowsPerPage:Record<string,number>={programma:8,uitslagen:8,stand:8,kantine
 export function studioSitesPages(slide:SitesStudioSlide){if(slide.unifiedKind)return 1;return slide.themeId==="onzetrots-tv"&&slide.tv?Math.max(1,Math.ceil(slide.tv.rows.length/(rowsPerPage[slide.tv.kind]??12))):1;}
 export function studioSitesDurationMs(slide:SitesStudioSlide){return slide.duration*studioSitesPages(slide)*1000;}
 export function studioSitesAssetReferences(input:SitesPresentation|StudioDocument):SitesAssetReference[]{
- const presentation="sitesPresentation" in input?input.sitesPresentation:input;
+ const presentation="artboard" in input?input.sitesPresentation:input;
  const refs:SitesAssetReference[]=[];const visit=(value:unknown)=>{if(!value||typeof value!=="object")return;if(Array.isArray(value)){value.forEach(visit);return;}const object=value as Record<string,unknown>;if(object.kind==="system"||object.kind==="tenant"){refs.push(value as SitesAssetReference);return;}Object.values(object).forEach(visit);};visit(presentation);
  return [...new Map(refs.map(ref=>[ref.kind==="tenant"?ref.mediaAssetId:ref.path,ref])).values()];
 }
-export function studioDocumentAssetIds(document:StudioDocument){return [...new Set([...document.elements.flatMap(e=>e.type==="image"||e.type==="video"?[e.mediaAssetId]:[]),...studioSitesAssetReferences(document).flatMap(ref=>ref.kind==="tenant"?[ref.mediaAssetId]:[])])];}
+export function studioDocumentAssetIds(document:StudioDocument){return [...new Set([...document.elements.flatMap(e=>e.type==="image"||e.type==="video"?[e.mediaAssetId]:[]),...studioSitesAssetReferences(document).flatMap(ref=>ref.kind==="tenant"?[ref.mediaAssetId]:[]),...(document.syncPresentation?syncSlideAssets(document.syncPresentation).flatMap(ref=>ref.kind==="tenant"?[ref.mediaAssetId]:[]):[])])];}
 type SitesDocumentIdentity={rendererVersion:typeof sitesLegacyPresentationVersion|typeof sitesCurrentPresentationVersion;sourceRevision:typeof sitesLegacyPresentationSourceRevision|typeof sitesCurrentPresentationSourceRevision};
 export function createSitesStudioDocument(slide:SitesStudioSlide,motionEnabled=false,identity?:SitesDocumentIdentity):StudioDocument{
  const resolved=identity??(slide.unifiedKind?{rendererVersion:sitesCurrentPresentationVersion,sourceRevision:sitesCurrentPresentationSourceRevision}:{rendererVersion:sitesLegacyPresentationVersion,sourceRevision:sitesLegacyPresentationSourceRevision});

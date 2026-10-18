@@ -35,7 +35,6 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
   const canWrite = tenantIsMutable && hasCapability(session.capabilities, "tenant.playlist.write");
   return (
     <>
-      <h1 className="sr-only">Playlists</h1>
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Actie mislukt.</strong> {params.fout}</p> : null}
       {params.succes ? <p className="notice notice--success" role="status">{params.succes}</p> : null}
       {data.error ? <p className="notice notice--critical" role="alert"><strong>Playlists niet geladen.</strong> {data.error}</p> : null}

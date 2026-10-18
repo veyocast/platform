@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sitesPresentationSchema } from "@veyocast/contracts";
+import { sitesPresentationSchema, syncSlidePresentationSchema, syncSlidePageCount } from "@veyocast/contracts";
 
 import {
   studioAnimationPresets,
@@ -237,6 +237,7 @@ export const studioDocumentSchema = z.object({
   }),
   elements: z.array(studioElementSchema).max(studioLimits.maxElements),
   sitesPresentation: sitesPresentationSchema.optional(),
+  syncPresentation: syncSlidePresentationSchema.optional(),
   metadata: z.object({
     templateId: z.string().trim().max(120).optional(),
     createdFromRevisionId: uuidSchema.optional(),
@@ -244,11 +245,19 @@ export const studioDocumentSchema = z.object({
     tenantBrandApplied: z.boolean().default(false)
   })
 }).superRefine((document, context) => {
+  if(document.syncPresentation){
+    const name=document.syncPresentation.name.trim();
+    if(name.length<1||name.length>120)context.addIssue({code:"custom",path:["syncPresentation","name"],message:"Geef je ontwerp een naam van één tot 120 tekens."});
+    if(document.sitesPresentation||document.elements.length!==0||document.syncPresentation.orientation!==document.artboard.orientation)context.addIssue({code:"custom",path:["syncPresentation"],message:"Een Sync-document gebruikt één renderer, een bijpassend canvas en geen vrije lagen."});
+    if(document.motion.durationMs/syncSlidePageCount(document.syncPresentation)<3000)context.addIssue({code:"custom",path:["motion","durationMs"],message:"Elke gegevenspagina heeft minimaal drie seconden nodig."});
+    if(syncSlidePageCount(document.syncPresentation)>1&&!document.motion.enabled)context.addIssue({code:"custom",path:["motion","enabled"],message:"Meerdere gegevenspagina’s vereisen een volledige video-export."});
+    if(document.syncPresentation.style.motion&&document.syncPresentation.style.motion!=="geen"&&!document.motion.enabled)context.addIssue({code:"custom",path:["motion","enabled"],message:"Een bewegend ontwerp vereist een volledige video-export."});
+  }
   if(document.sitesPresentation){
     const presentation=document.sitesPresentation;
     if(presentation.kind!=="studio"||presentation.slide.orientation!==document.artboard.orientation||document.elements.length!==0)context.addIssue({code:"custom",path:["sitesPresentation"],message:"Sites documents require their own matching artboard and no free layers."});
   }
-  if(!document.sitesPresentation&&document.motion.durationMs>studioLimits.maxDocumentDurationMs)context.addIssue({code:"custom",path:["motion","durationMs"],message:"Vrije documenten behouden maximaal 30 seconden."});
+  if(!document.sitesPresentation&&!document.syncPresentation&&document.motion.durationMs>studioLimits.maxDocumentDurationMs)context.addIssue({code:"custom",path:["motion","durationMs"],message:"Vrije documenten behouden maximaal 30 seconden."});
   const ids = new Set<string>();
   for (const [index, element] of document.elements.entries()) {
     if (ids.has(element.id)) {

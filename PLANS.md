@@ -1,5 +1,13 @@
 # VeyoCast MVP Plan
 
+S226 volgt de actuele opdracht voor de volledige Sync V1-rebuild. Zie
+`execution/PLAN.md` en `prompts/sprints/S226-sync-v1-rebuild.md`. Deze opdracht
+behoudt bestaande data, identiteiten, publicaties en migratiehistorie. De
+hieronder beschreven historische S211-reset is geen toestemming voor een
+nieuwe database-cutover. Fysieke acceptatie en SendGrid-configuratie zijn door
+de gebruiker uitgesteld; functionele en visuele pariteit blijven expliciete
+uitvoeringsgates.
+
 S222 herstelt MP4-verwerking na een geslaagde upload met een eindig
 duurafhankelijk transcodebudget en een bijpassende mediajoblease. Bestaande
 bronnen kunnen opnieuw worden verwerkt zonder upload; media-, tenant- en

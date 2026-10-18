@@ -141,9 +141,10 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(settingsCategories).toContain('{ id: "huisstijl", label: "Huisstijl"');
     expect(settings).toContain('id="huisstijl"');
     expect(settings).toContain('href="/dashboard/themes/fieldflow"');
-    expect(themes).toContain('title="Thema\'s"');
-    expect(themes).toContain('href="/dashboard/themes/fieldflow"');
-    expect(themes).toContain("Kleuren, typografie en logo-oppervlakken horen bij het theme");
+    expect(themes).toContain("Eén club. Meerdere stijlen.");
+    expect(themes).toContain("/dashboard/themes/fieldflow?theme=${theme.id}");
+    expect(themes).toContain("themeCatalogOptions.map");
+    expect(themes).toContain("Een nieuwe themaversie wijzigt bestaande publicaties niet.");
     expect(fieldflowTheme).toContain("<TenantThemeEditor");
     expect(fieldflowTheme).toContain("Veilige live-uitrol");
     expect(fieldflowTheme).toContain("last-known-good blijft");

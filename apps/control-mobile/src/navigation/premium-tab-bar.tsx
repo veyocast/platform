@@ -9,7 +9,7 @@ import {
   Library,
   MoreHorizontal,
   Monitor,
-  type LucideIcon
+  type LucideIcon,
 } from "lucide-react-native";
 
 import {
@@ -17,7 +17,7 @@ import {
   mobilePalette,
   mobileRadius,
   mobileSpacing,
-  useMobileTheme
+  useMobileTheme,
 } from "@veyocast/mobile-design-system";
 
 import { useAuth } from "../auth/auth-provider";
@@ -35,7 +35,7 @@ const tabPresentation: Record<
   maken: { icon: CirclePlus, label: "Maken" },
   meer: { icon: MoreHorizontal, label: "Meer" },
   schermen: { icon: Monitor, label: "Schermen" },
-  vandaag: { icon: LayoutDashboard, label: "Vandaag" }
+  vandaag: { icon: LayoutDashboard, label: "Overzicht" },
 };
 
 export const premiumRailBreakpoint = 768;
@@ -52,14 +52,12 @@ export function PremiumTabBar(props: PremiumTabBarProps) {
 function PhoneNavigationDock({
   descriptors,
   navigation,
-  state
+  state,
 }: PremiumTabBarProps) {
   const insets = useSafeAreaInsets();
   const theme = useMobileTheme();
-  const dockBackground =
-    theme.mode === "dark" ? theme.colors.raised : theme.colors.ink;
-  const dockForeground =
-    theme.mode === "dark" ? theme.colors.secondaryInk : theme.colors.canvas;
+  const dockBackground = theme.colors.surface;
+  const dockForeground = theme.colors.secondaryInk;
 
   return (
     <View
@@ -67,8 +65,8 @@ function PhoneNavigationDock({
         styles.phoneBar,
         {
           backgroundColor: theme.colors.canvas,
-          paddingBottom: Math.max(insets.bottom, mobileSpacing.micro)
-        }
+          paddingBottom: Math.max(insets.bottom, mobileSpacing.micro),
+        },
       ]}
     >
       <View
@@ -76,11 +74,8 @@ function PhoneNavigationDock({
           styles.phoneDock,
           {
             backgroundColor: dockBackground,
-            borderColor:
-              theme.mode === "dark"
-                ? theme.colors.strongLine
-                : theme.colors.ink
-          }
+            borderColor: theme.colors.line,
+          },
         ]}
       >
         {state.routes.map((route, index) => {
@@ -99,14 +94,14 @@ function PhoneNavigationDock({
               onLongPress={() =>
                 navigation.emit({
                   target: route.key,
-                  type: "tabLongPress"
+                  type: "tabLongPress",
                 })
               }
               onPress={() => {
                 const event = navigation.emit({
                   canPreventDefault: true,
                   target: route.key,
-                  type: "tabPress"
+                  type: "tabPress",
                 });
                 if (!selected && !event.defaultPrevented) {
                   navigation.navigate(route.name, route.params);
@@ -114,7 +109,7 @@ function PhoneNavigationDock({
               }}
               style={({ pressed }) => [
                 styles.phoneItem,
-                { opacity: pressed ? 0.72 : 1 }
+                { opacity: pressed ? 0.72 : 1 },
               ]}
               testID={descriptors[route.key]?.options.tabBarButtonTestID}
             >
@@ -124,19 +119,19 @@ function PhoneNavigationDock({
                   createAction && styles.createIcon,
                   createAction && {
                     backgroundColor: theme.colors.action,
-                    borderColor: dockBackground
+                    borderColor: dockBackground,
                   },
                   selected &&
                     !createAction && {
                       backgroundColor:
                         theme.mode === "dark"
                           ? theme.colors.surface
-                          : "#302D29"
-                    }
+                          : mobilePalette.brand.accentSoft,
+                    },
                 ]}
               >
                 <Icon
-                  color={createAction ? "#0A0A0A" : color}
+                  color={createAction ? theme.colors.onAction : color}
                   size={createAction ? 23 : 21}
                   strokeWidth={selected || createAction ? 2.35 : 1.9}
                 />
@@ -148,8 +143,8 @@ function PhoneNavigationDock({
                   styles.phoneLabel,
                   {
                     color: selected ? theme.colors.action : dockForeground,
-                    fontWeight: selected ? "700" : "500"
-                  }
+                    fontWeight: selected ? "700" : "500",
+                  },
                 ]}
               >
                 {presentation.label}
@@ -165,22 +160,26 @@ function PhoneNavigationDock({
 function TabletNavigationRail({
   descriptors,
   navigation,
-  state
+  state,
 }: PremiumTabBarProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const theme = useMobileTheme();
   const { session } = useAuth();
   const { activeTenant } = useTenant();
+  const { width } = useWindowDimensions();
   const email = session?.user.email ?? "Account";
   const initial = email.slice(0, 1).toLocaleUpperCase("nl-NL");
   const rail = {
-    background: mobilePalette.dark.canvas,
-    border: mobilePalette.dark.line,
-    foreground: mobilePalette.dark.ink,
-    muted: mobilePalette.dark.secondaryInk,
-    raised: mobilePalette.dark.raised,
-    surface: mobilePalette.dark.surface
+    background: theme.colors.surface,
+    border: theme.colors.line,
+    foreground: theme.colors.ink,
+    muted: theme.colors.secondaryInk,
+    raised:
+      theme.mode === "dark"
+        ? theme.colors.raised
+        : mobilePalette.brand.accentSoft,
+    surface: theme.colors.raised,
   };
 
   return (
@@ -190,18 +189,14 @@ function TabletNavigationRail({
         {
           backgroundColor: rail.background,
           borderColor: rail.border,
+          width: width <= 1200 ? 205 : 228,
           paddingBottom: Math.max(insets.bottom, mobileSpacing.default),
-          paddingTop: Math.max(insets.top, mobileSpacing.card)
-        }
+          paddingTop: Math.max(insets.top, mobileSpacing.card),
+        },
       ]}
     >
       <View style={styles.railBrand}>
-        <View
-          style={[
-          styles.railLogo,
-            { backgroundColor: rail.surface }
-          ]}
-        >
+        <View style={[styles.railLogo, { backgroundColor: rail.surface }]}>
           <BrandMark size={34} />
         </View>
         <View style={styles.railBrandCopy}>
@@ -224,17 +219,20 @@ function TabletNavigationRail({
             {
               backgroundColor: rail.surface,
               borderColor: rail.border,
-              opacity: pressed ? 0.76 : 1
-            }
+              opacity: pressed ? 0.76 : 1,
+            },
           ]}
         >
           <View
             style={[
               styles.tenantAvatar,
-              { backgroundColor: theme.colors.action }
+              { backgroundColor: theme.colors.action },
             ]}
           >
-            <AppText variant="label" style={styles.darkText}>
+            <AppText
+              variant="label"
+              style={[styles.darkText, { color: theme.colors.onAction }]}
+            >
               {activeTenant.name.slice(0, 1).toLocaleUpperCase("nl-NL")}
             </AppText>
           </View>
@@ -278,14 +276,14 @@ function TabletNavigationRail({
               onLongPress={() =>
                 navigation.emit({
                   target: route.key,
-                  type: "tabLongPress"
+                  type: "tabLongPress",
                 })
               }
               onPress={() => {
                 const event = navigation.emit({
                   canPreventDefault: true,
                   target: route.key,
-                  type: "tabPress"
+                  type: "tabPress",
                 });
                 if (!selected && !event.defaultPrevented) {
                   navigation.navigate(route.name, route.params);
@@ -294,14 +292,10 @@ function TabletNavigationRail({
               style={({ pressed }) => [
                 styles.railItem,
                 {
-                  backgroundColor: selected
-                    ? rail.raised
-                    : "transparent",
-                  borderColor: selected
-                    ? rail.border
-                    : "transparent",
-                  opacity: pressed ? 0.72 : 1
-                }
+                  backgroundColor: selected ? rail.raised : "transparent",
+                  borderColor: selected ? rail.border : "transparent",
+                  opacity: pressed ? 0.72 : 1,
+                },
               ]}
               testID={descriptors[route.key]?.options.tabBarButtonTestID}
             >
@@ -311,23 +305,19 @@ function TabletNavigationRail({
                   {
                     backgroundColor: selected
                       ? theme.colors.action
-                      : "transparent"
-                  }
+                      : "transparent",
+                  },
                 ]}
               />
               <Icon
-                color={
-                  selected ? theme.colors.action : rail.muted
-                }
+                color={selected ? theme.colors.action : rail.muted}
                 size={21}
                 strokeWidth={selected ? 2.4 : 1.9}
               />
               <AppText
                 variant="bodyStrong"
                 style={{
-                  color: selected
-                    ? rail.foreground
-                    : rail.muted
+                  color: selected ? rail.foreground : rail.muted,
                 }}
               >
                 {presentation.label}
@@ -345,17 +335,20 @@ function TabletNavigationRail({
           styles.accountCard,
           {
             borderColor: rail.border,
-            opacity: pressed ? 0.76 : 1
-          }
+            opacity: pressed ? 0.76 : 1,
+          },
         ]}
       >
         <View
           style={[
             styles.accountAvatar,
-            { backgroundColor: theme.colors.action }
+            { backgroundColor: theme.colors.action },
           ]}
         >
-          <AppText variant="label" style={styles.darkText}>
+          <AppText
+            variant="label"
+            style={[styles.darkText, { color: theme.colors.onAction }]}
+          >
             {initial}
           </AppText>
         </View>
@@ -386,7 +379,7 @@ const styles = StyleSheet.create({
     borderRadius: mobileRadius.full,
     height: 36,
     justifyContent: "center",
-    width: 36
+    width: 36,
   },
   accountCard: {
     alignItems: "center",
@@ -394,37 +387,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: mobileSpacing.inline,
     marginTop: "auto",
-    paddingTop: mobileSpacing.default
+    paddingTop: mobileSpacing.default,
   },
   createIcon: {
-    borderRadius: mobileRadius.full,
-    borderWidth: 2,
-    height: 40,
-    marginTop: -7,
-    width: 40
+    borderRadius: mobileRadius.control,
+    height: 32,
+    width: 38,
   },
   darkText: {
     color: "#0A0A0A",
-    fontWeight: "700"
+    fontWeight: "700",
   },
   phoneBar: {
-    paddingHorizontal: mobileSpacing.inline,
-    paddingTop: mobileSpacing.micro
+    paddingHorizontal: 0,
+    paddingTop: 0,
   },
   phoneDock: {
-    borderRadius: mobileRadius.hero,
-    borderWidth: 1,
+    borderTopWidth: 1,
     flexDirection: "row",
     minHeight: 58,
-    paddingHorizontal: mobileSpacing.micro,
-    boxShadow: "0 5px 14px rgba(0, 0, 0, 0.16)"
+    paddingHorizontal: 6,
   },
   phoneIcon: {
     alignItems: "center",
     borderRadius: mobileRadius.control,
     height: 32,
     justifyContent: "center",
-    width: 38
+    width: 38,
   },
   phoneItem: {
     alignItems: "center",
@@ -433,32 +422,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 56,
     paddingHorizontal: 2,
-    paddingVertical: mobileSpacing.micro
+    paddingVertical: mobileSpacing.micro,
   },
   phoneLabel: {
     fontSize: 10,
     lineHeight: 13,
-    textAlign: "center"
+    textAlign: "center",
   },
   rail: {
     borderRightWidth: 1,
     paddingHorizontal: mobileSpacing.inline,
-    width: 208
+    width: 208,
   },
   railActiveMark: {
     borderRadius: mobileRadius.full,
     height: 24,
     marginLeft: -mobileSpacing.inline,
-    width: 3
+    width: 3,
   },
   railBrand: {
     alignItems: "center",
     flexDirection: "row",
     gap: mobileSpacing.inline,
-    paddingHorizontal: mobileSpacing.compact
+    paddingHorizontal: mobileSpacing.compact,
   },
   railBrandCopy: {
-    gap: 1
+    gap: 1,
   },
   railItem: {
     alignItems: "center",
@@ -467,34 +456,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: mobileSpacing.inline,
     minHeight: 46,
-    paddingHorizontal: mobileSpacing.inline
+    paddingHorizontal: mobileSpacing.inline,
   },
   railItemCopy: {
     flex: 1,
-    gap: 1
+    gap: 1,
   },
   railLogo: {
     alignItems: "center",
     borderRadius: mobileRadius.control,
     height: 44,
     justifyContent: "center",
-    width: 44
+    width: 44,
   },
   railNavigation: {
     gap: mobileSpacing.compact,
-    marginTop: mobileSpacing.section
+    marginTop: mobileSpacing.section,
   },
   railSectionLabel: {
     letterSpacing: 0.6,
     paddingHorizontal: mobileSpacing.inline,
-    textTransform: "uppercase"
+    textTransform: "uppercase",
   },
   tenantAvatar: {
     alignItems: "center",
     borderRadius: mobileRadius.control,
     height: 36,
     justifyContent: "center",
-    width: 36
+    width: 36,
   },
   tenantCard: {
     alignItems: "center",
@@ -503,6 +492,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: mobileSpacing.compact,
     marginTop: mobileSpacing.section,
-    padding: mobileSpacing.compact
-  }
+    padding: mobileSpacing.compact,
+  },
 });

@@ -1,0 +1,53 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-18T05:39:29.727Z",
+  "scope": "actual AAL2 catalog and canonical source creation, same dynamic queue with lease fencing, complete Source Chromium/FFmpeg artifact and authenticated private original/video/poster bytes; no external provider, Source binding UI, live refresh, publication, hardware or deployment claim",
+  "slideId": "2e4becaa-7f1a-4513-9065-fa165eb720ae",
+  "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+  "jobId": "84b5b32f-3f15-40fc-a272-6b5bcc18a19b",
+  "sourceId": "d98978b2-786d-4fdf-9de8-c304ae380227",
+  "assetId": "41f6c19f-448d-571c-89d1-407395c56865",
+  "templateVersionId": "43ffa138-08fe-4aeb-8883-972402a002ce",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "canonicalRows": 5,
+  "pages": 2,
+  "durationMs": 6000,
+  "renderElapsedMs": 14801,
+  "media": {
+    "id": "41f6c19f-448d-571c-89d1-407395c56865",
+    "status": "ready",
+    "kind": "video",
+    "mime_type": "video/mp4",
+    "width": 1920,
+    "height": 1080,
+    "duration_seconds": 6,
+    "checksum_sha256": "f2c675c7c3e90d9bfc128f367ea0c51eabe3d01607f948419db480ff2ae34054"
+  },
+  "downloaded": {
+    "player_1080p": {
+      "bytes": 669573,
+      "sha256": "f2c675c7c3e90d9bfc128f367ea0c51eabe3d01607f948419db480ff2ae34054"
+    },
+    "thumbnail": {
+      "bytes": 1579516,
+      "sha256": "f17d989c797486823f404795a1e5cfd674db566c54e0da7da13e22298397948b"
+    },
+    "original": {
+      "bytes": 669573,
+      "sha256": "f2c675c7c3e90d9bfc128f367ea0c51eabe3d01607f948419db480ff2ae34054"
+    }
+  },
+  "decodedFrames": [
+    {
+      "time": 1.2,
+      "sha256": "65da5b668b319f23fda725682affd4968aec8445023677a18ebb2c4ec4fee935",
+      "path": "execution/evidence/sync-dynamic-real-page-1.png"
+    },
+    {
+      "time": 4.2,
+      "sha256": "fd0d3a57874c1526f913503ade6a483428dbf4110849adda2dff607978facc1b",
+      "path": "execution/evidence/sync-dynamic-real-page-2.png"
+    }
+  ],
+  "existingReleasesUnchanged": true
+}

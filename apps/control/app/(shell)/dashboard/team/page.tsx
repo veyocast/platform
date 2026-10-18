@@ -22,7 +22,8 @@ import {
   RevokeInvitationDialog
 } from "./team-action-dialogs";
 import { TeamInviteDialog } from "./team-invite-dialog";
-import { TeamSearch, TeamTabs } from "./team-tabs";
+import { TeamTabs } from "./team-tabs";
+import AuditLogPage from "../auditlog/page";
 
 type TeamPageProps = Readonly<{
   searchParams: Promise<{ fout?: string; succes?: string; waarschuwing?: string }>;
@@ -50,13 +51,8 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   const customRoleNames = new Map(customRoles.map((role) => [role.id, role.name]));
 
   return (
-    <div className={`${sites.page} ${sites.teamPage}`}>
-      <h1 className="sr-only">Team</h1>
-      {canManage ? (
-        <header className={sites.actionHeading}>
-          <TeamInviteDialog canManageOwners={canManageOwners} customRoles={activeCustomRoles} />
-        </header>
-      ) : null}
+    <div className="admin-page sync-team">
+      <header className="section-header"><div><div className="eyebrow">BEHEER / TEAM</div><h1>Samen aan het stuur.</h1><p>Iedereen de juiste rol. Veranderingen blijven zichtbaar in de activiteit.</p></div><div className="header-actions">{canManage ? <TeamInviteDialog canManageOwners={canManageOwners} customRoles={activeCustomRoles} /> : <button className="btn btn-primary" disabled type="button">Iemand uitnodigen</button>}</div></header>
 
       {!session.isLive ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte teamleden en rollen te beheren.</p> : null}
       {session.tenantStatus === "paused" ? <p className="notice notice--warning" role="status">Deze vereniging is gepauzeerd. Toegang blijft zichtbaar, maar wijzigingen zijn databasebreed geblokkeerd.</p> : null}
@@ -65,7 +61,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       {query.waarschuwing === "bezorging" ? <p className="notice notice--warning" role="status"><strong>Uitnodiging veilig geregistreerd.</strong> De e-mailprovider bevestigde de bezorging nog niet. Verstuur een nieuwe link om de oude token in te trekken.</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{teamSuccess[query.succes] ?? "De teamwijziging is opgeslagen en geaudit."}</p> : null}
 
-      <TeamTabs memberCount={data.members.length}>
+      <TeamTabs canReadActivity={hasCapability(session.capabilities, "tenant.audit.read")}>
       <section className={`${sites.surface} workspace-section`} aria-labelledby="custom-roles-title" data-team-panel="roles">
         <div className={sites.roleGrid}>{[["Eigenaar","Alle instellingen, teamleden en publicaties beheren."],["Beheerder","Content, schermen, planning en teamleden beheren."],["Editor","Content maken, aanpassen en publicaties voorbereiden."],["Kijker","Content, schermen en planning bekijken."]].map(([title,description])=><section className={sites.surface} key={title}><header><h2>{title}</h2></header><ShieldCheck aria-hidden="true" className={sites.roleIcon}/><p>{description}</p><StatusPill label="Standaardrol" tone="neutral"/></section>)}</div>
         <div className="workspace-section__header">
@@ -120,15 +116,9 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         )}
       </section>
 
-      <section className={`${sites.surface} workspace-section`} aria-labelledby="team-table-title" data-team-panel="members">
-        <div className={sites.surfaceHeading}>
-          <h2 id="team-table-title">Gebruikers en rollen</h2>
-          <p>Iedereen heeft de juiste toegang tot de club.</p>
-        </div>
-        <TeamSearch panel="members" />
-        {data.members.length ? (
-          <DataTable caption="Toegang binnen de actieve vereniging." tableKey="tenant-team-members">
-              <thead><tr><th scope="col">Gebruiker</th><th scope="col">Rol</th><th scope="col">Toegevoegd</th><th scope="col">Beheer</th></tr></thead>
+      <section className="card ad-table-scroll" tabIndex={0} aria-label="Teamleden en uitnodigingen" data-team-panel="members">
+          <table className="ad-table"><caption className="sync-sr-only">Toegang binnen de actieve vereniging.</caption>
+              <thead><tr><th scope="col">Teamlid</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col"><span className="sync-sr-only">Beheer</span></th></tr></thead>
               <tbody>
                 {data.members.map((member) => {
                   const isSelf = member.user_id === session.userId;
@@ -140,10 +130,10 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                   return (
                     <tr key={member.user_id}>
                       <td data-label="Gebruiker">
-                        <div className={sites.person}><span>{String(member.display_name||"Gebruiker").split(" ").map(word=>word[0]).slice(0,2).join("")}</span><div><strong title={member.display_name||undefined}>{member.display_name||`Gebruiker ${member.user_id.slice(0,8)}`}</strong><small>{isSelf?"Jij · ":""}Toegevoegd {formatDate(member.created_at)}</small></div></div>
+                        <div className="row"><span className="ad-avatar">{String(member.display_name||"Gebruiker").split(" ").map(word=>word[0]).slice(0,2).join("")}</span><div><strong title={member.display_name||undefined}>{member.display_name||`Gebruiker ${member.user_id.slice(0,8)}`}</strong><small>{isSelf?"Jij · ":""}Toegevoegd {formatDate(member.created_at)}</small></div></div>
                       </td>
                       <td data-label="Rol">{accessLabel(member.role, member.custom_role_id, customRoleNames)}</td>
-                      <td data-label="Toegevoegd">{formatDate(member.created_at)}</td>
+                      <td data-label="Status"><StatusPill label="Actief" tone="success" /></td>
                       <td data-label="Beheer">
                         {canEditTarget ? (
                           <div className="table-actions">
@@ -172,19 +162,18 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
                     </tr>
                   );
                 })}
+                {data.invitations.filter(invitation => invitation.status === "pending" && new Date(invitation.expires_at) > new Date()).map(invitation => <tr key={invitation.id}><td><div className="row"><span className="ad-avatar">{invitation.email.slice(0,2).toUpperCase()}</span><div><strong>{invitation.email}</strong><small>{deliveryLabel(invitation.delivery_status)}</small></div></div></td><td>{accessLabel(invitation.role, invitation.custom_role_id, customRoleNames)}</td><td><StatusPill label="Uitgenodigd" tone="info" /></td><td>{canManage ? <div className="row"><form action={resendTenantInvitation}><input name="invitationId" type="hidden" value={invitation.id} /><button className="btn btn-ghost" type="submit">Herzenden</button></form><RevokeInvitationDialog invitationId={invitation.id} /></div> : null}</td></tr>)}
               </tbody>
-          </DataTable>
-        ) : <p className="notice" role="status">Nog geen teamleden binnen deze vereniging.</p>}
+          </table>
       </section>
 
-      <section className={`${sites.surface} workspace-section`} id="uitnodigingen" aria-labelledby="team-invitations-title" data-team-panel="invitations">
+      {data.invitations.length ? <details id="uitnodigingen" data-team-panel="members"><summary>Uitnodigingshistorie en bezorging</summary><section className={`${sites.surface} workspace-section`} aria-labelledby="team-invitations-title">
         <div className="workspace-section__header">
           <div><h2 className="workspace-section__title" id="team-invitations-title">Uitnodigingen</h2><p className="work-panel__meta">Pending, verlopen, geaccepteerd en ingetrokken blijven zichtbaar als beheerbewijs.</p></div>
           <StatusPill label={`${data.invitations.length} totaal`} tone="neutral" />
         </div>
-        <TeamSearch panel="invitations" />
         {data.invitations.length ? (
-          <DataTable caption="Persoonlijke tenantuitnodigingen." tableKey="tenant-team-invitations">
+          <DataTable className="ad-table" frameClassName="ad-table-scroll" responsive={false} caption="Persoonlijke tenantuitnodigingen." tableKey="tenant-team-invitations">
               <thead><tr><th scope="col">E-mail</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col">Bezorging</th><th scope="col">Actie</th></tr></thead>
               <tbody>
                 {data.invitations.map((invitation) => {
@@ -209,7 +198,8 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
               </tbody>
           </DataTable>
         ) : <p className="notice" role="status">Er zijn nog geen uitnodigingen verstuurd.</p>}
-      </section>
+      </section></details> : null}
+      {hasCapability(session.capabilities, "tenant.audit.read") ? <section data-team-panel="activity" aria-label="Teamactiviteit"><AuditLogPage searchParams={Promise.resolve({})} /></section> : null}
       </TeamTabs>
     </div>
   );

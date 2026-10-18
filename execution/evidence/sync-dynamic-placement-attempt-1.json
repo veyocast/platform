@@ -1,0 +1,9 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T07:54:14.077Z",
+  "controlBuildId": "3GpdD9LilNFTc7akq9e8g",
+  "scope": "actual AAL2 pinned Source theme/duration choice, receipt recovery, one complete existing-worker variant, private SHA and reload; no publication, provider, hardware or hosted deployment claim",
+  "playlistId": "c5d2f44f-9aac-4948-91c1-cbc5658c4965",
+  "sourceSlideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "error": "locator.fill: Error: strict mode violation: getByRole('dialog', { name: 'Playlist bewerken', exact: true }).getByLabel('Seconden per pagina', { exact: true }) resolved to 2 elements:\n    1) <input min=\"3\" max=\"40\" value=\"5\" type=\"number\" inputmode=\"numeric\"/> aka getByRole('spinbutton', { name: 'Seconden per pagina' })\n    2) <input min=\"3\" max=\"40\" value=\"5\" type=\"number\" inputmode=\"numeric\"/> aka getByRole('region', { name: 'Playlistvoorbeeld' }).getByLabel('Seconden per pagina')\n\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Playlist bewerken', exact: true }).getByLabel('Seconden per pagina', { exact: true })\u001b[22m\n"
+}

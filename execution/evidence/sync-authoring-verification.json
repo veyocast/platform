@@ -1,0 +1,91 @@
+{
+  "capturedAt": "2026-10-18T02:20:40.086814+00:00",
+  "worktree": "/home/codex/repos/castivo-s226",
+  "commit": "uncommitted S226 worktree",
+  "runtimeFileCount": 2598,
+  "runtimeSha256": "7db875c9266d3ac5e6a1038bea66a437c803f9c47be7782470e20618371ff1fc",
+  "fingerprintAlgorithm": "sorted nonignored Git cached+untracked existing files in explicit roots; SHA256(path + NUL + SHA256(bytes)), excluding deleted entries",
+  "fingerprintRoots": [
+    "apps",
+    "packages",
+    "scripts",
+    "supabase",
+    "tokens",
+    "tests",
+    ".github",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "turbo.json",
+    "tsconfig.json"
+  ],
+  "gates": {
+    "lint": "30/30 PASS; testkit preparation changed subsequently and scoped lint PASS",
+    "typecheck": "30/30 PASS; testkit preparation changed subsequently and scoped typecheck PASS",
+    "test": "30/30 PASS; 28 cached; 11.579s",
+    "build": "18/18 PASS; 11 cached; 77.166s",
+    "editorBrowser": "14/14 PASS; 34.4s",
+    "database": "fresh isolated reset PASS; 114 files / 3244 assertions PASS; db lint zero errors"
+  },
+  "logs": {
+    "lint": {
+      "path": "/tmp/veyocast-s226-sync-authoring-lint.log",
+      "sha256": "263e2f4547c580fa301e5e15d8193dc036380d6f37912568b03c8353bb87c557"
+    },
+    "typecheck": {
+      "path": "/tmp/veyocast-s226-sync-authoring-typecheck.log",
+      "sha256": "0797f670632a8733738afabe29fcbf0a7e4c72d987a8bdbcc48282dff4a54bce"
+    },
+    "unit": {
+      "path": "/tmp/veyocast-s226-sync-authoring-test-attempt2.log",
+      "sha256": "de8b66ff836fcbfe272590989a0a3dd4cc11bfd3d9d3d4b71964d96d5ab92303"
+    },
+    "build": {
+      "path": "/tmp/veyocast-s226-sync-authoring-build.log",
+      "sha256": "f20013c5cfa83e9f88527834c4a0d16f1da65fd5271cc92bb7b31fc03004124c"
+    },
+    "dbReset": {
+      "path": "/tmp/veyocast-s226-gates-db-reset.log",
+      "sha256": "ba0a84738c07817a506df950555fe1fc713f39d1c80e017c69534d4930bc8acd"
+    },
+    "fullRls": {
+      "path": "/tmp/veyocast-s226-gates-full-rls.log",
+      "sha256": "c399e4063e2eb21b3d9439fe2bd96c6182abb0d239bf19ce8ac3226d869a3d21"
+    },
+    "dbLint": {
+      "path": "/tmp/veyocast-s226-gates-db-lint.log",
+      "sha256": "8648f07fd32e83d09f252dd52fd3bf2041048c13e5f6fb959279a6318cdb564d"
+    },
+    "editorBrowser": {
+      "path": "/tmp/veyocast-s226-sync-studio-recovery-browser-final2.log",
+      "sha256": "9292904c105bf7c67e8316215306777d33cedb1c96bdb590b182451dce9e1c7b"
+    },
+    "boundarySnapshotLint": {
+      "path": "/tmp/veyocast-s226-boundary-snapshot-lint.log",
+      "sha256": "b543827ce56a63357c629028555ecec2cc964dda33dbbf2a9a2872b1a2ab20f8"
+    },
+    "boundarySnapshotTypecheck": {
+      "path": "/tmp/veyocast-s226-boundary-snapshot-typecheck.log",
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+    }
+  },
+  "priorFailure": {
+    "path": "/tmp/veyocast-s226-sync-authoring-test.log",
+    "reason": "Three 5-second import-boundary scanner preparation timeouts under concurrent database startup; no import violation",
+    "fix": "one complete source snapshot prepared once; all original source scans and import checks retained, assertion timeouts unchanged",
+    "focusedRecheck": "29/29 PASS; 2.90s",
+    "fullRecheck": "30/30 PASS"
+  },
+  "databaseIsolation": {
+    "project": "veyocast-s226-gates",
+    "root": "/tmp/veyocast-s226-gates-db",
+    "databasePort": 57722,
+    "preservedBrowserQaProject": "veyocast-s226 / 57622",
+    "startAttempt1": "local analytics default port conflict; explicit disabled unused services in disposable config; second start and fresh reset passed"
+  },
+  "limits": [
+    "full Source UI/provider/Player parity remains open",
+    "no signed device/hardware/24-hour acceptance inferred",
+    "no hosted deployment or final scenario PASS inferred"
+  ]
+}

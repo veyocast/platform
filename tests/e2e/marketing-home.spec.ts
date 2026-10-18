@@ -2,40 +2,21 @@ import { expect, test } from "@playwright/test";
 
 const marketingURL = `http://127.0.0.1:${process.env.MARKETING_PORT ?? 3108}`;
 
-test("renders the marketing homepage with canon-safe messaging", async ({ page }) => {
+test("renders the supplied Sync homepage and real workspace links", async ({ page }) => {
   await page.goto(marketingURL);
-
-  await expect(page).toHaveTitle(
-    "Van clubverhaal naar ieder scherm | VeyoCast"
-  );
-  await expect(
-    page.getByRole("heading", {
-      exact: true,
-      level: 1,
-      name: "Van clubverhaal naar ieder scherm."
-    })
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Start gratis", exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Bekijk hoe het werkt" }).first()).toBeVisible();
-  await expect(page.getByText("Binnen minuten live", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Direct zien wat er speelt." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Ieder moment voelt als maatwerk." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Eén platform voor de hele club." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Meer clubgevoel. Minder beheer." })).toBeVisible();
-  await expect(
-    page.locator('[data-sites="price-card"]').getByText("€ 5,95", { exact: true })
-  ).toBeVisible();
-  await expect(page.getByText("Verenigingscommunicatie die vanzelf stroomt.", { exact: true })).toBeVisible();
-
-  await page.getByRole("button", { name: "Bekijk hoe het werkt" }).first().click();
-  await expect(page).toHaveURL(/#opstelling$/);
-  await expect(page.locator("#opstelling")).toBeInViewport();
-  await expect(page.getByRole("heading", { name: "Bouw je VeyoCast-opstelling." })).toBeVisible();
+  await expect(page).toHaveTitle("VeyoCast — Narrowcasting die je verhaal laat zien");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Maak van iederscherm eenverhaal.");
+  await expect(page.getByRole("link", { name: "Ontdek het platform", exact: true })).toHaveAttribute("href", "https://control.veyocast.nl");
+  await expect(page.locator(".mk-hero-art img")).toHaveAttribute("src", /brand-hero/);
+  await expect(page.getByRole("heading", { name: "Mooi op het scherm. Rustig achter de schermen." })).toBeVisible();
+  await expect(page.locator(".mk-footer-bottom")).not.toContainText("Geen live dienst");
+  await page.goto(`${marketingURL}/players`);
+  await expect(page.getByRole("link", {name:"Beleef de player",exact:true})).toHaveAttribute("href", process.env.NEXT_PUBLIC_PLAYER_URL ?? "https://player.veyocast.nl");
 });
 
 test("keeps hero overlays in front and separates the setup columns", async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1440 });
-  await page.goto(`${marketingURL}/#opstelling`);
+  await page.goto(`${marketingURL}/opstelling#opstelling`);
 
   const geometry = await page.evaluate(() => {
     const stage = document.querySelector<HTMLElement>('[data-sites="hero-stage"]');
@@ -68,7 +49,7 @@ test("keeps hero overlays in front and separates the setup columns", async ({ pa
 });
 
 test("calculates and securely carries a venue setup into the demo journey", async ({ page }) => {
-  await page.goto(`${marketingURL}/#opstelling`);
+  await page.goto(`${marketingURL}/opstelling#opstelling`);
 
   const summary = page.getByRole("complementary", { name: "Samenvatting van je opstelling" });
   await expect(summary.getByRole("heading", { name: "1 scherm" })).toBeVisible();
@@ -80,22 +61,15 @@ test("calculates and securely carries a venue setup into the demo journey", asyn
 
   await summary.getByRole("button", { name: "Neem deze opstelling mee" }).click();
   await expect(page).toHaveURL(/\/demo\?setup=/);
-  await expect(
-    page.getByRole("heading", {
-      exact: true,
-      level: 3,
-      name: "Je opstelling staat klaar."
-    })
-  ).toBeVisible();
-  await expect(page.getByText("Sportvereniging · 2 schermen · 3 bronnen")).toBeVisible();
-  await expect(page.getByText("€ 11,90 per maand daarna")).toBeVisible();
-  await expect(page.getByLabel("Type organisatie")).toHaveValue("Sportvereniging");
-  await expect(page.getByLabel("Geschat aantal schermen")).toHaveValue("2–5 schermen");
+  await expect(page.getByText("Je opstelling is meegenomen: 2 schermen.")).toBeVisible();
+  await expect(page.locator('input[name="setupIntent"]')).toHaveValue(/.+/);
+  await expect(page.locator('select[name="organizationType"]')).toHaveValue("Sportvereniging");
+  await expect(page.locator('select[name="screens"]')).toHaveValue("1–3");
 });
 
 test("keeps the setup journey usable as a mobile stepper", async ({ page }) => {
   await page.setViewportSize({ height: 844, width: 390 });
-  await page.goto(`${marketingURL}/#opstelling`);
+  await page.goto(`${marketingURL}/opstelling#opstelling`);
 
   const stepper = page.getByRole("navigation", { name: "Stappen van de setup builder" });
   await expect(stepper.getByRole("button", { name: "1 Locatie" })).toHaveAttribute("aria-current", "step");

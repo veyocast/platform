@@ -1,8 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import process from "node:process";
+import console from "node:console";
 
 const appDirectory = resolve(process.argv[2] ?? "apps/control");
-const manifestPath = resolve(appDirectory, ".next/prerender-manifest.json");
+const nextOutput = process.env.VEYOCAST_QA_OUTPUT === "1" ? ".next-qa" : ".next";
+const manifestPath = resolve(appDirectory, nextOutput, "prerender-manifest.json");
 
 let manifest;
 try {

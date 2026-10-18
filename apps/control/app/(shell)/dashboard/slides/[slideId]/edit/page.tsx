@@ -13,6 +13,8 @@ import { createOrResumeDynamicSlideVersion } from "../../version-actions";
 import { slideEditorKind } from "../../slide-management";
 import { SportlinkVersionEditor } from "./sportlink-version-editor";
 import { prepareSportlinkVersionEditorDraft } from "./sportlink-version-editor-state";
+import {loadSyncDynamicEditorData} from '../../sync-dynamic-data';
+import {SyncDynamicEditor} from '../../sync-dynamic-editor';
 
 type PageProps = { params: Promise<{ slideId: string }>; searchParams: Promise<{ succes?: string }> };
 
@@ -28,7 +30,7 @@ export default async function EditSportlinkSlidePage({ params, searchParams }: P
   const slide = slideResult.data;
   if (!slide) notFound();
   const editorKind = slideEditorKind(slide.configuration_json);
-  if (editorKind !== "sportlink" || slide.status === "archived") redirect(`/dashboard/slides/${slideId}`);
+  if (!['sportlink','sync'].includes(editorKind) || slide.status === "archived") redirect(`/dashboard/slides/${slideId}`);
   if (!slide.active_draft_version_id) return <>
     <PageHeader eyebrow={session.tenant} title={slide.library_name ?? slide.name}
       description="Open deze slide om de inhoud en vormgeving te wijzigen. Je schermen blijven de gepubliceerde versie tonen totdat je opnieuw publiceert."
@@ -38,6 +40,11 @@ export default async function EditSportlinkSlidePage({ params, searchParams }: P
       <Button type="submit">Slide bewerken</Button>
     </form>
   </>;
+  if(editorKind==='sync'){
+    const sourceData=await loadSyncDynamicEditorData(session.tenantId!,slideId);
+    if(!sourceData)return <><p className="notice notice--warning" role="status">De bronversie is in verwerking of kon niet volledig worden gelezen. Je gepubliceerde inhoud blijft behouden.</p><Button asChild variant="secondary"><Link href={`/dashboard/slides/${slideId}`}>Versiestatus bekijken</Link></Button></>;
+    return <SyncDynamicEditor {...sourceData} tenantId={session.tenantId!}/>;
+  }
   const [data, tenantStyle] = await Promise.all([
     loadEditorData(session.tenantId!, slideId),
     loadTenantStyleData(session.tenantId, session.isLive)

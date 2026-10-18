@@ -1,0 +1,1016 @@
+{
+  "capturedAt": "2026-10-18T01:11:38.822Z",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "scope": "144 actual Source/port geometry and typography comparisons. Generic initials replace fabricated club crests; QR pixel comparison and end-to-end publication are separate gates.",
+  "bundleSha256": "13f1a8bdb1a0880a1b452cd3c6e4e91c44cb5a9b1145b2ee7dc3b833b5cad1c2",
+  "results": [
+    {
+      "family": "fixtures",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "results",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "period-standings",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "cancellations",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "officials",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-info",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "activities",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "training",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "volunteers",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "visitors",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "matchday",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-program",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-program",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-program",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-results",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-results",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-results",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "standings",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "welcome",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "referees",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "next-match",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "birthdays",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "lineup",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "goal",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "menu",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "engage",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "rss",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "sponsors",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "agenda",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-story",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "youtube",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "free",
+      "orientation": "landscape",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "fixtures",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "results",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "period-standings",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "cancellations",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "officials",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-info",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "activities",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "training",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "volunteers",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "visitors",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "matchday",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-program",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-program",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-program",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-results",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-results",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-results",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "standings",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "welcome",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "referees",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "next-match",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "birthdays",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "lineup",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "goal",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "menu",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "engage",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "rss",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "sponsors",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "agenda",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-story",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "youtube",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "free",
+      "orientation": "landscape",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "fixtures",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "results",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "period-standings",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "cancellations",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "officials",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-info",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "activities",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "training",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "volunteers",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "visitors",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "matchday",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-program",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-program",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-program",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-results",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-results",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-results",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "standings",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "welcome",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "referees",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "next-match",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "birthdays",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "lineup",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "goal",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "menu",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "engage",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "rss",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "sponsors",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "agenda",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-story",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "youtube",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "free",
+      "orientation": "portrait",
+      "theme": "fieldflow",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "fixtures",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "results",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "period-standings",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "cancellations",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "officials",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-info",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "activities",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "training",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "volunteers",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "visitors",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "matchday",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-program",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-program",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-program",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-results",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-results",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "pool-results",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "standings",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "welcome",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "referees",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "next-match",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "birthdays",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "lineup",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "goal",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "menu",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "engage",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "rss",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "sponsors",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "agenda",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "club-story",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "youtube",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    },
+    {
+      "family": "free",
+      "orientation": "portrait",
+      "theme": "onzetrots-tv",
+      "status": "PASS",
+      "differences": []
+    }
+  ]
+}

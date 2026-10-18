@@ -1,3 +1,10 @@
+> S226: de vaste Sync V1-bron is leidend voor de werkplek. De nieuwe native
+> mapping gebruikt Manrope (400/450/500/600/650/700/750), de bronkleuren, 18 px
+> kaarten en 10 px controls. De onderstaande oudere native keuzes zijn
+> compatibiliteitsachtergrond, geen tweede werkplekontwerp. De bestaande donkere
+> systeemvoorkeur blijft behouden; de Sync-bron definieert alleen een lichte
+> werkplek. Fysieke vergelijking blijft uitgesteld volgens gebruikersopdracht.
+
 # VeyoCast Control Mobile — Atelier Ivory Native
 
 ## Visuele regels

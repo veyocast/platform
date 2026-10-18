@@ -7,7 +7,12 @@ const recent = "2026-10-11T09:59:00Z";
 const heartbeat = (screen: string, release = "release-a", state = "PLAYING", at = recent) => ({
   screen_id: screen, active_release_id: release, runtime_state: state, created_at: at
 });
-const fixture = (): Pick<TenantOverview, "heartbeats" | "screens" | "releases" | "playlists"> => ({
+const fixture = (): Pick<TenantOverview, "devices" | "heartbeats" | "screens" | "releases" | "playlists"> => ({
+  devices: ["screen-a", "screen-b", "screen-c"].map((screen_id) => ({
+    id: `device-${screen_id}`, screen_id, status: "paired", active_release_id: "release-a", desired_release_id: "release-a",
+    last_error_at: null, last_error_code: null, last_seen_at: recent, storage_quota_bytes: null, storage_used_bytes: null,
+    current_sync_phase: "active", current_sync_detail: { publicationTrace: { releaseId: "release-a", firstFrameAt: recent } }
+  })),
   screens: ["screen-a", "screen-b", "screen-c"].map(id => ({id,name:id,status:"active",location:null,assigned_playlist_id:"playlist-a",assigned_release_id:"release-a",created_at:recent})),
   playlists: ["playlist-a", "playlist-b"].map(id => ({id,name:"Dezelfde zichtbare naam",status:"published",updated_at:recent})),
   releases: [{id:"release-a",playlist_id:"playlist-a",version:1,published_at:recent},{id:"release-b",playlist_id:"playlist-b",version:1,published_at:recent}],
@@ -19,10 +24,14 @@ describe("Nu actief telt bevestigde afspeellijsten", () => {
   });
   it("onderscheidt playlist-identiteiten met dezelfde zichtbare naam", () => {
     const data=fixture();data.heartbeats[1]=heartbeat("screen-b","release-b","READY");
+    data.devices[1]!.active_release_id="release-b";
+    data.devices[1]!.current_sync_detail={ publicationTrace: { releaseId: "release-b", firstFrameAt: recent } };
     expect(countConfirmedActivePlaylists(data,now)).toBe(2);
   });
   it("accepteert recente READY- en offline LKG-frames", () => {
     const data=fixture();data.heartbeats=[heartbeat("screen-a","release-a","READY"),heartbeat("screen-b","release-b","OFFLINE_PLAYING")];
+    data.devices[1]!.active_release_id="release-b";
+    data.devices[1]!.current_sync_detail={ publicationTrace: { releaseId: "release-b", firstFrameAt: recent } };
     expect(countConfirmedActivePlaylists(data,now)).toBe(2);
   });
   it("laat de laatste ongesorteerde STARTING-status een oudere PLAYING-status vervangen", () => {

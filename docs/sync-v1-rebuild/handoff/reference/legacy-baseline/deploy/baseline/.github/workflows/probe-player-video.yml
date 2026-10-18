@@ -1,0 +1,68 @@
+name: Probe published player video
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Beschermde omgeving
+        type: choice
+        required: true
+        options: [staging, production]
+      tenant_id:
+        description: Actieve tenant UUID
+        type: string
+        required: true
+      screen_id:
+        description: Gekoppeld scherm UUID
+        type: string
+        required: true
+      asset_id:
+        description: Video UUID in de actuele gewenste release
+        type: string
+        required: true
+      release_sha:
+        description: Exact gedeployde main SHA
+        type: string
+        required: true
+      confirmation:
+        description: Typ PROBE PLAYER VIDEO
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: player-video-probe-${{ inputs.target_environment }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.ref == 'refs/heads/main'
+    environment: ${{ inputs.target_environment }}
+    runs-on: [self-hosted, linux, x64, veyocast, '${{ inputs.target_environment }}']
+    timeout-minutes: 5
+    steps:
+      - name: Inspect only the requested published video inside its healthy worker
+        shell: bash
+        env:
+          TARGET: ${{ inputs.target_environment }}
+          TENANT_ID: ${{ inputs.tenant_id }}
+          SCREEN_ID: ${{ inputs.screen_id }}
+          ASSET_ID: ${{ inputs.asset_id }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          [[ ${TARGET} == staging || ${TARGET} == production ]]
+          [[ ${CONFIRMATION} == 'PROBE PLAYER VIDEO' ]]
+          for identifier in "$TENANT_ID" "$SCREEN_ID" "$ASSET_ID"; do
+            [[ $identifier =~ ^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$ ]]
+          done
+          [[ ${RELEASE_SHA} =~ ^[0-9a-f]{40}$ && ${RELEASE_SHA} == "${WORKFLOW_SHA}" ]]
+          mapfile -t containers < <(docker ps -q \
+            --filter "label=com.docker.compose.project=veyocast-${TARGET}-worker" \
+            --filter 'label=com.docker.compose.service=media-worker')
+          [[ ${#containers[@]} == 1 ]]
+          container_id=${containers[0]}
+          [[ $(docker inspect --format '{{.Config.Image}}' "${container_id}") == "veyocast-media-worker:${RELEASE_SHA}" ]]
+          [[ $(docker inspect --format '{{.State.Health.Status}}' "${container_id}") == healthy ]]
+          docker exec "${container_id}" node --import tsx \
+            apps/media-worker/src/ops-probe-player-video.ts "$TENANT_ID" "$SCREEN_ID" "$ASSET_ID" "$RELEASE_SHA" "$TARGET"

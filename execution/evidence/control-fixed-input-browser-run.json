@@ -1,0 +1,27 @@
+{
+  "before": {
+    "sha256": "8c6c2b29cc76cabfd22e50b40d8210ca06a84ca4b8e5a5bcf36299357bf56458",
+    "files": 2534
+  },
+  "after": {
+    "sha256": "8c6c2b29cc76cabfd22e50b40d8210ca06a84ca4b8e5a5bcf36299357bf56458",
+    "files": 2534
+  },
+  "unchanged": true,
+  "exitCode": 130,
+  "finishedAt": "2026-10-17T23:44:23.039Z",
+  "status": "INTERRUPTED_AFTER_LOCAL_SERVER_EXIT",
+  "passed": 29,
+  "failed": 4,
+  "interrupted": 1,
+  "notRun": 8,
+  "duration": "15.3m",
+  "logSha256": "70657588159a713d2eb46a187b8553c6ae711bb064e8381828e65c25e949658d",
+  "observations": [
+    "All runtime input files remained byte-identical.",
+    "All 21 a11y cases and both 126-navigation/30-mobile-scroll matrices passed.",
+    "First navigation helper retried clicks after its 5-second URL timeout while the local dev response took 9.9 seconds.",
+    "Local Next RSS rose above 9 GB; the server exited and free memory increased by approximately 9 GB. Later connection failures cannot establish product behavior.",
+    "Stopped the remaining runner after the server had exited. Focused reruns on fresh compiler processes remain required."
+  ]
+}

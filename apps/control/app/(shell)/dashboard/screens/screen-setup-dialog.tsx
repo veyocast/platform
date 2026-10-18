@@ -8,16 +8,17 @@ import { CompositionPreview } from "./screen-composition-editor";
 import type { CompositionPlaylistOption } from "./screen-composition-data";
 import styles from "./screens-overview.module.css";
 
-export function ScreenSetupDialog({ disabled, defaultOpen = false, groups, releases, previews, settings, pairingCode = "" }: {
+export function ScreenSetupDialog({ disabled, defaultOpen = false, groups, releases, previews, settings, pairingCode = "", triggerLabel = "Nieuw scherm" }: {
   disabled: boolean; defaultOpen?: boolean;
   groups: readonly { id: string; name: string }[];
   releases: readonly { id: string; playlistId: string; playlistName: string }[];
   previews: readonly CompositionPlaylistOption[];
   settings: { width: number; height: number; orientation: string };
   pairingCode?: string;
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button disabled={disabled}><Plus aria-hidden="true" size={16} />Nieuw scherm</Button></DialogTrigger>
+  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button disabled={disabled}><Plus aria-hidden="true" size={17} />{triggerLabel}</Button></DialogTrigger>
     <DialogContent className={styles.sourceDialog} closeLabel="Scherm instellen sluiten" size="wide"><DialogHeader><DialogTitle>Nieuw scherm instellen</DialogTitle></DialogHeader><DialogBody data-screen-setup-surface>
       {open ? <ScreenSetup disabled={disabled} groups={groups} releases={releases} previews={previews} settings={settings} pairingCode={pairingCode} onClose={() => setOpen(false)} /> : null}
     </DialogBody></DialogContent>

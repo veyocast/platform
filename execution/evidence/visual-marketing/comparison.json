@@ -1,0 +1,924 @@
+[
+  {
+    "route": "/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/home-1440-reference.png",
+      "height": 6378,
+      "overflow": false,
+      "h1": "Maak van ieder\nscherm een\nverhaal.",
+      "geometry": [
+        {
+          "selector": "mk-hero",
+          "x": 28,
+          "y": 96,
+          "width": 1384,
+          "height": 692,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "14px",
+          "lineHeight": "21.7px"
+        },
+        {
+          "selector": "h1",
+          "x": 94,
+          "y": 207.5,
+          "width": 594,
+          "height": 255.796875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "82px",
+          "lineHeight": "85.28px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/home-1440-rebuild.png",
+      "height": 6378,
+      "overflow": false,
+      "h1": "Maak van ieder\nscherm een\nverhaal.",
+      "geometry": [
+        {
+          "selector": "mk-hero",
+          "x": 28,
+          "y": 96,
+          "width": 1384,
+          "height": 692,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "14px",
+          "lineHeight": "21.7px"
+        },
+        {
+          "selector": "h1",
+          "x": 94,
+          "y": 207.5,
+          "width": 594,
+          "height": 255.796875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "82px",
+          "lineHeight": "85.28px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/home-1440-diff.png",
+    "changedPixels": 22977,
+    "changedFraction": 0.002501763875823142,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/narrowcasting/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/narrowcasting-1440-reference.png",
+      "height": 3239,
+      "overflow": false,
+      "h1": "Je scherm kan meer dan aanstaan.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/narrowcasting-1440-rebuild.png",
+      "height": 3239,
+      "overflow": false,
+      "h1": "Je scherm kan meer dan aanstaan.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/narrowcasting-1440-diff.png",
+    "changedPixels": 12916,
+    "changedFraction": 0.0027692017426503377,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/functies/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/functies-1440-reference.png",
+      "height": 4443,
+      "overflow": false,
+      "h1": "Alles voor je schermen. Logisch bij elkaar.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 204.09375,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/functies-1440-rebuild.png",
+      "height": 4443,
+      "overflow": false,
+      "h1": "Alles voor je schermen. Logisch bij elkaar.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 204.09375,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/functies-1440-diff.png",
+    "changedPixels": 23066,
+    "changedFraction": 0.0036052342011153623,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/koppelingen/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/koppelingen-1440-reference.png",
+      "height": 2733,
+      "overflow": false,
+      "h1": "Bekende bronnen. Eén helder verhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/koppelingen-1440-rebuild.png",
+      "height": 2733,
+      "overflow": false,
+      "h1": "Bekende bronnen. Eén helder verhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/koppelingen-1440-diff.png",
+    "changedPixels": 15902,
+    "changedFraction": 0.004040635036793105,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/players/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/players-1440-reference.png",
+      "height": 2955,
+      "overflow": false,
+      "h1": "Een sterke eerste indruk. Vanaf het opstarten.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 668.0625,
+          "height": 204.09375,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/players-1440-rebuild.png",
+      "height": 2955,
+      "overflow": false,
+      "h1": "Een sterke eerste indruk. Vanaf het opstarten.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 668.0625,
+          "height": 204.09375,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/players-1440-diff.png",
+    "changedPixels": 11418,
+    "changedFraction": 0.0026833051325437112,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/demo/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/demo-1440-reference.png",
+      "height": 2299,
+      "overflow": false,
+      "h1": "Ontdek jouw volgende schermverhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 260.515625,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/demo-1440-rebuild.png",
+      "height": 2299,
+      "overflow": false,
+      "h1": "Ontdek jouw volgende schermverhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 260.515625,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/demo-1440-diff.png",
+    "changedPixels": 52311,
+    "changedFraction": 0.015801254168479047,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/oplossingen/sportverenigingen/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-sportverenigingen-1440-reference.png",
+      "height": 3494,
+      "overflow": false,
+      "h1": "Laat zien wat jouw club bijzonder maakt.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 243.25,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-sportverenigingen-1440-rebuild.png",
+      "height": 3494,
+      "overflow": false,
+      "h1": "Laat zien wat jouw club bijzonder maakt.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 243.25,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/oplossingen-sportverenigingen-1440-diff.png",
+    "changedPixels": 11357,
+    "changedFraction": 0.0022572425745722826,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/oplossingen/horeca/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-horeca-1440-reference.png",
+      "height": 3494,
+      "overflow": false,
+      "h1": "Je aanbod verdient een mooi podium.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 243.25,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-horeca-1440-rebuild.png",
+      "height": 3494,
+      "overflow": false,
+      "h1": "Je aanbod verdient een mooi podium.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 243.25,
+          "width": 625.265625,
+          "height": 136.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/oplossingen-horeca-1440-diff.png",
+    "changedPixels": 11810,
+    "changedFraction": 0.0023472778731794186,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/oplossingen/bedrijven/",
+    "width": 1440,
+    "height": 1000,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-bedrijven-1440-reference.png",
+      "height": 3529,
+      "overflow": false,
+      "h1": "Een goed verhaal begint bij de ontvangst.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 204.09375,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-bedrijven-1440-rebuild.png",
+      "height": 3529,
+      "overflow": false,
+      "h1": "Een goed verhaal begint bij de ontvangst.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 108,
+          "y": 226.875,
+          "width": 625.265625,
+          "height": 204.09375,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "63px",
+          "lineHeight": "68.04px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/oplossingen-bedrijven-1440-diff.png",
+    "changedPixels": 12160,
+    "changedFraction": 0.0023928717609647053,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/home-390-reference.png",
+      "height": 7190,
+      "overflow": false,
+      "h1": "Maak van ieder\nscherm eenverhaal.",
+      "geometry": [
+        {
+          "selector": "mk-hero",
+          "x": 12,
+          "y": 79,
+          "width": 366,
+          "height": 829.453125,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "14px",
+          "lineHeight": "21.7px"
+        },
+        {
+          "selector": "h1",
+          "x": 42,
+          "y": 155.390625,
+          "width": 306,
+          "height": 203.8125,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "49px",
+          "lineHeight": "50.96px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/home-390-rebuild.png",
+      "height": 7190,
+      "overflow": false,
+      "h1": "Maak van ieder\nscherm eenverhaal.",
+      "geometry": [
+        {
+          "selector": "mk-hero",
+          "x": 12,
+          "y": 79,
+          "width": 366,
+          "height": 829.453125,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "14px",
+          "lineHeight": "21.7px"
+        },
+        {
+          "selector": "h1",
+          "x": 42,
+          "y": 155.390625,
+          "width": 306,
+          "height": 203.8125,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "49px",
+          "lineHeight": "50.96px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/home-390-diff.png",
+    "changedPixels": 10850,
+    "changedFraction": 0.0038693341892229237,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/narrowcasting/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/narrowcasting-390-reference.png",
+      "height": 4225,
+      "overflow": false,
+      "h1": "Je scherm kan meer dan aanstaan.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/narrowcasting-390-rebuild.png",
+      "height": 4225,
+      "overflow": false,
+      "h1": "Je scherm kan meer dan aanstaan.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/narrowcasting-390-diff.png",
+    "changedPixels": 8357,
+    "changedFraction": 0.005071764527385829,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/functies/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/functies-390-reference.png",
+      "height": 5844,
+      "overflow": false,
+      "h1": "Alles voor je schermen. Logisch bij elkaar.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/functies-390-rebuild.png",
+      "height": 5844,
+      "overflow": false,
+      "h1": "Alles voor je schermen. Logisch bij elkaar.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/functies-390-diff.png",
+    "changedPixels": 12973,
+    "changedFraction": 0.0056920093367731975,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/koppelingen/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/koppelingen-390-reference.png",
+      "height": 3537,
+      "overflow": false,
+      "h1": "Bekende bronnen. Eén helder verhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/koppelingen-390-rebuild.png",
+      "height": 3537,
+      "overflow": false,
+      "h1": "Bekende bronnen. Eén helder verhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/koppelingen-390-diff.png",
+    "changedPixels": 14443,
+    "changedFraction": 0.010470266704363396,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/players/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/players-390-reference.png",
+      "height": 3616,
+      "overflow": false,
+      "h1": "Een sterke eerste indruk. Vanaf het opstarten.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/players-390-rebuild.png",
+      "height": 3636,
+      "overflow": false,
+      "h1": "Een sterke eerste indruk. Vanaf het opstarten.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/players-390-diff.png",
+    "changedPixels": 109429,
+    "changedFraction": 0.07716919127810216,
+    "sameDimensions": false,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/demo/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/demo-390-reference.png",
+      "height": 2866,
+      "overflow": false,
+      "h1": "Ontdek jouw volgende schermverhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/demo-390-rebuild.png",
+      "height": 2795,
+      "overflow": false,
+      "h1": "Ontdek jouw volgende schermverhaal.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/demo-390-diff.png",
+    "changedPixels": 177242,
+    "changedFraction": 0.158571760874622,
+    "sameDimensions": false,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/oplossingen/sportverenigingen/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-sportverenigingen-390-reference.png",
+      "height": 4454,
+      "overflow": false,
+      "h1": "Laat zien wat jouw club bijzonder maakt.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-sportverenigingen-390-rebuild.png",
+      "height": 4454,
+      "overflow": false,
+      "h1": "Laat zien wat jouw club bijzonder maakt.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/oplossingen-sportverenigingen-390-diff.png",
+    "changedPixels": 8198,
+    "changedFraction": 0.004719468527281729,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/oplossingen/horeca/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-horeca-390-reference.png",
+      "height": 4322,
+      "overflow": false,
+      "h1": "Je aanbod verdient een mooi podium.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-horeca-390-rebuild.png",
+      "height": 4322,
+      "overflow": false,
+      "h1": "Je aanbod verdient een mooi podium.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 142.546875,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/oplossingen-horeca-390-diff.png",
+    "changedPixels": 6814,
+    "changedFraction": 0.00404252542151663,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  },
+  {
+    "route": "/oplossingen/bedrijven/",
+    "width": 390,
+    "height": 900,
+    "dpr": 1,
+    "state": "initial-public-no-storage",
+    "referenceCommit": "69461726f0d9e17b535dfaa0652cc18ed75c1fdd",
+    "reference": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-bedrijven-390-reference.png",
+      "height": 4472,
+      "overflow": false,
+      "h1": "Een goed verhaal begint bij de ontvangst.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "rebuild": {
+      "screenshot": "execution/evidence/visual-marketing/oplossingen-bedrijven-390-rebuild.png",
+      "height": 4472,
+      "overflow": false,
+      "h1": "Een goed verhaal begint bij de ontvangst.",
+      "geometry": [
+        {
+          "selector": "h1",
+          "x": 40,
+          "y": 175.59375,
+          "width": 310,
+          "height": 190.0625,
+          "font": "Manrope, Inter, sans-serif",
+          "fontSize": "44px",
+          "lineHeight": "47.52px"
+        }
+      ]
+    },
+    "diff": "execution/evidence/visual-marketing/oplossingen-bedrijven-390-diff.png",
+    "changedPixels": 8478,
+    "changedFraction": 0.004861015549745424,
+    "sameDimensions": true,
+    "result": "REVIEW_DIFFERENCES"
+  }
+]

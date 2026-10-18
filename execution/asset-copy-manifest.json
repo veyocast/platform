@@ -1,0 +1,347 @@
+{
+  "result": "PASS",
+  "records": [
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-480.webp",
+      "target": "apps/control/public/assets/brand-hero-480.webp",
+      "sha256": "fc6ff477c5ffaf8d220f2142d16b5e7a8e4cb5f88505ae03567b1678d052a007",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-brush-Apache-2.0.txt",
+      "target": "apps/control/public/assets/onzetrots-brush-Apache-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-brush.ttf",
+      "target": "apps/control/public/assets/onzetrots-brush.ttf",
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/full-dark.svg",
+      "target": "apps/control/public/assets/full-dark.svg",
+      "sha256": "bb6075cfa4436f1ed8f8b3f41c29b41f53e1c12bcc76b62f4f14420846236e43",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-icon.svg",
+      "target": "apps/control/public/assets/brand-icon.svg",
+      "sha256": "dc63b70f43d4f721c5f87d51c64f9f5660a6aa22c69f9245f3f4d711113c0fd3",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/manrope.woff2",
+      "target": "apps/control/public/assets/manrope.woff2",
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-1254.webp",
+      "target": "apps/control/public/assets/brand-hero-1254.webp",
+      "sha256": "7badc69cca88b8bf9fbd770fb35e345108570318cf7d56e2f674813b8db5554a",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-licenses.txt",
+      "target": "apps/control/public/assets/onzetrots-licenses.txt",
+      "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero.png",
+      "target": "apps/control/public/assets/brand-hero.png",
+      "sha256": "3997e2d0c033636cba036749d0f771112122488b8992b75177ebeb384a5fddc0",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-800.webp",
+      "target": "apps/control/public/assets/brand-hero-800.webp",
+      "sha256": "f766151d506cd103fc83ab1597a73952be360f9040cc70b4dfa0a1f3b85ae656",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/clubmuur-wall.webp",
+      "target": "apps/control/public/assets/clubmuur-wall.webp",
+      "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/Manrope-OFL.txt",
+      "target": "apps/control/public/assets/Manrope-OFL.txt",
+      "sha256": "d826ab6583b12c26807d8716a545bdbbb672df04f48608a364ba9efdbe501c30",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/inter.woff2",
+      "target": "apps/control/public/assets/inter.woff2",
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/full-light.svg",
+      "target": "apps/control/public/assets/full-light.svg",
+      "sha256": "877dac00409543e4699c39116b508ad5096e2f2fd3b361d32ae674044c9fef9e",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/mipmap-xxxhdpi/ic_launcher.png",
+      "target": "apps/control/public/assets/sync-icon-192.png",
+      "sha256": "ad940fb7a9790864702491e680ca2dd7a04df2bef0b0453f6fbb734581d404c9",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "target": "apps/control/public/assets/sync-icon-512.png",
+      "sha256": "c6418ab1d3305f4e8fc9b3fa5c0449859364c014214ccc6cbe45cec952ffa5e9",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-480.webp",
+      "target": "apps/marketing/public/assets/brand-hero-480.webp",
+      "sha256": "fc6ff477c5ffaf8d220f2142d16b5e7a8e4cb5f88505ae03567b1678d052a007",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-brush-Apache-2.0.txt",
+      "target": "apps/marketing/public/assets/onzetrots-brush-Apache-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-brush.ttf",
+      "target": "apps/marketing/public/assets/onzetrots-brush.ttf",
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/full-dark.svg",
+      "target": "apps/marketing/public/assets/full-dark.svg",
+      "sha256": "bb6075cfa4436f1ed8f8b3f41c29b41f53e1c12bcc76b62f4f14420846236e43",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-icon.svg",
+      "target": "apps/marketing/public/assets/brand-icon.svg",
+      "sha256": "dc63b70f43d4f721c5f87d51c64f9f5660a6aa22c69f9245f3f4d711113c0fd3",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/manrope.woff2",
+      "target": "apps/marketing/public/assets/manrope.woff2",
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-1254.webp",
+      "target": "apps/marketing/public/assets/brand-hero-1254.webp",
+      "sha256": "7badc69cca88b8bf9fbd770fb35e345108570318cf7d56e2f674813b8db5554a",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-licenses.txt",
+      "target": "apps/marketing/public/assets/onzetrots-licenses.txt",
+      "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero.png",
+      "target": "apps/marketing/public/assets/brand-hero.png",
+      "sha256": "3997e2d0c033636cba036749d0f771112122488b8992b75177ebeb384a5fddc0",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-800.webp",
+      "target": "apps/marketing/public/assets/brand-hero-800.webp",
+      "sha256": "f766151d506cd103fc83ab1597a73952be360f9040cc70b4dfa0a1f3b85ae656",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/clubmuur-wall.webp",
+      "target": "apps/marketing/public/assets/clubmuur-wall.webp",
+      "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/Manrope-OFL.txt",
+      "target": "apps/marketing/public/assets/Manrope-OFL.txt",
+      "sha256": "d826ab6583b12c26807d8716a545bdbbb672df04f48608a364ba9efdbe501c30",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/inter.woff2",
+      "target": "apps/marketing/public/assets/inter.woff2",
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/full-light.svg",
+      "target": "apps/marketing/public/assets/full-light.svg",
+      "sha256": "877dac00409543e4699c39116b508ad5096e2f2fd3b361d32ae674044c9fef9e",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/mipmap-xxxhdpi/ic_launcher.png",
+      "target": "apps/marketing/public/assets/sync-icon-192.png",
+      "sha256": "ad940fb7a9790864702491e680ca2dd7a04df2bef0b0453f6fbb734581d404c9",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "target": "apps/marketing/public/assets/sync-icon-512.png",
+      "sha256": "c6418ab1d3305f4e8fc9b3fa5c0449859364c014214ccc6cbe45cec952ffa5e9",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-480.webp",
+      "target": "apps/player/public/assets/brand-hero-480.webp",
+      "sha256": "fc6ff477c5ffaf8d220f2142d16b5e7a8e4cb5f88505ae03567b1678d052a007",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-brush-Apache-2.0.txt",
+      "target": "apps/player/public/assets/onzetrots-brush-Apache-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-brush.ttf",
+      "target": "apps/player/public/assets/onzetrots-brush.ttf",
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/full-dark.svg",
+      "target": "apps/player/public/assets/full-dark.svg",
+      "sha256": "bb6075cfa4436f1ed8f8b3f41c29b41f53e1c12bcc76b62f4f14420846236e43",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-icon.svg",
+      "target": "apps/player/public/assets/brand-icon.svg",
+      "sha256": "dc63b70f43d4f721c5f87d51c64f9f5660a6aa22c69f9245f3f4d711113c0fd3",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/manrope.woff2",
+      "target": "apps/player/public/assets/manrope.woff2",
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-1254.webp",
+      "target": "apps/player/public/assets/brand-hero-1254.webp",
+      "sha256": "7badc69cca88b8bf9fbd770fb35e345108570318cf7d56e2f674813b8db5554a",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/onzetrots-licenses.txt",
+      "target": "apps/player/public/assets/onzetrots-licenses.txt",
+      "sha256": "c0e1293bed318e9f50b423a6bc5f9a8c1f7cb3538da9e3a26796e9ef75eb4081",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero.png",
+      "target": "apps/player/public/assets/brand-hero.png",
+      "sha256": "3997e2d0c033636cba036749d0f771112122488b8992b75177ebeb384a5fddc0",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/brand-hero-800.webp",
+      "target": "apps/player/public/assets/brand-hero-800.webp",
+      "sha256": "f766151d506cd103fc83ab1597a73952be360f9040cc70b4dfa0a1f3b85ae656",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/clubmuur-wall.webp",
+      "target": "apps/player/public/assets/clubmuur-wall.webp",
+      "sha256": "fccf75c498bc84ea4c8d3febafa1645e065be047f470ba66671cfb6a51517310",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/Manrope-OFL.txt",
+      "target": "apps/player/public/assets/Manrope-OFL.txt",
+      "sha256": "d826ab6583b12c26807d8716a545bdbbb672df04f48608a364ba9efdbe501c30",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/inter.woff2",
+      "target": "apps/player/public/assets/inter.woff2",
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/reference/sites-sync/public/assets/full-light.svg",
+      "target": "apps/player/public/assets/full-light.svg",
+      "sha256": "877dac00409543e4699c39116b508ad5096e2f2fd3b361d32ae674044c9fef9e",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/mipmap-xxxhdpi/ic_launcher.png",
+      "target": "apps/player/public/assets/sync-icon-192.png",
+      "sha256": "ad940fb7a9790864702491e680ca2dd7a04df2bef0b0453f6fbb734581d404c9",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "target": "apps/player/public/assets/sync-icon-512.png",
+      "sha256": "c6418ab1d3305f4e8fc9b3fa5c0449859364c014214ccc6cbe45cec952ffa5e9",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-anydpi-v26/veyocast_launcher_icon_round.xml",
+      "target": "apps/android-tv/app/src/main/res/drawable-anydpi-v26/veyocast_launcher_icon_round.xml",
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-anydpi-v26/veyocast_launcher_icon.xml",
+      "target": "apps/android-tv/app/src/main/res/drawable-anydpi-v26/veyocast_launcher_icon.xml",
+      "sha256": "fcaa9c2152fde9d8656b2fe06d5d98c6325a4d28f0da7055b03f3db682fb3689",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable/veyocast_icon_foreground.xml",
+      "target": "apps/android-tv/app/src/main/res/drawable/veyocast_icon_foreground.xml",
+      "sha256": "7cd44ce607cac323f0470c65d7baa7e84ec6a0e865210f2c6be9961499f07ab1",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/values/veyocast_icon_colors.xml",
+      "target": "apps/android-tv/app/src/main/res/values/veyocast_icon_colors.xml",
+      "sha256": "27b5026671b0a4e18d7845a4170ba27eeb1ff2726aca21ee5de6f0fe01902fa1",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-nodpi/veyocast_tv_banner.png",
+      "target": "apps/android-tv/app/src/main/res/drawable-nodpi/veyocast_tv_banner.png",
+      "sha256": "c76e2fdba7d3e679e58138459778a2117b8a3244e0b7e9fb92304f03f54a5cc2",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "target": "apps/android-tv/app/src/main/res/drawable-nodpi/veyocast_launcher_icon.png",
+      "sha256": "c6418ab1d3305f4e8fc9b3fa5c0449859364c014214ccc6cbe45cec952ffa5e9",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/android/res/drawable-nodpi/veyocast_launcher_icon_round.png",
+      "target": "apps/android-tv/app/src/main/res/drawable-nodpi/veyocast_launcher_icon_round.png",
+      "sha256": "2e7037bff4384db79cd8023f7b092620be826cf0b821a99e259d5d4ba6a0b1ca",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/expo/icon-1024.png",
+      "target": "assets/brand/sync/icon-1024.png",
+      "sha256": "ab6d3dc9deb7c4c51590d03c93ad982bb8d9955497271514f988a35fd28f42b1",
+      "equal": true
+    },
+    {
+      "source": "docs/sync-v1-rebuild/handoff/assets/android-icon-kit/expo/adaptive-foreground-1024.png",
+      "target": "assets/brand/sync/adaptive-foreground-1024.png",
+      "sha256": "c46ee5385a4477f19b0ae2f35f72b55fc0691c6f6b1890163a03a04dfdaa48c0",
+      "equal": true
+    }
+  ]
+}

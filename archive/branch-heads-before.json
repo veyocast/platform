@@ -1,0 +1,1251 @@
+{
+  "baseline": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "branches": [
+    {
+      "name": "castivo/s00-foundation",
+      "protected": false,
+      "sha": "1d02f59f10ab32ecf67dce2b108deb19eec975e7",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "castivo/s11b-enterprise-control-ux",
+      "protected": false,
+      "sha": "e5aa7f4444a438a42053a2927d71e5b82cb51c65",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "castivo/s12-pilot-ready",
+      "protected": false,
+      "sha": "8d9a952e7c04fd7fa781e4f4e2a46fe57139647e",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "castivo/s17-vps-environments",
+      "protected": false,
+      "sha": "e456b02b373d24f73a6c18502a7096faca9b415e",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "main",
+      "protected": false,
+      "sha": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s18-rebrand",
+      "protected": false,
+      "sha": "60461a3c8af1fb3cbcfaad45b505c00cda57ec4b",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s19-migration-guard-bounded-delete",
+      "protected": false,
+      "sha": "1332d30ae8e6005a84da2da9765b01f9f24c9126",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s19-migration-tooling-install",
+      "protected": false,
+      "sha": "68100c9537c22494bd4b3d3aeb5aaef52ee03f81",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s19-platform-tenant-creation",
+      "protected": false,
+      "sha": "b7489b2346adcbee0083ffe024169e1937afc5b3",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s19-runner-concurrency-hardening",
+      "protected": false,
+      "sha": "fc14d552df2b59196affc909b97ced0a6afe7db0",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s19-sidebar-collapse-fix",
+      "protected": false,
+      "sha": "0cc5156052f6e94a7536c63c539d7b37ae691df1",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s19-staging-auth-guard",
+      "protected": false,
+      "sha": "a4eef09e17893e5775db831c7a2103f24003910c",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s19-vps-deployment-finalization",
+      "protected": false,
+      "sha": "19b207496bacd5b88acab519dd27ca78b2676d33",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s20-canon-application-boundaries",
+      "protected": false,
+      "sha": "b73a258c3a1b49f8de9c783de96ff163072ab4d9",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s21-identity-tenant-context-capabilities-mfa",
+      "protected": false,
+      "sha": "de31abae6ced5098d2d262b50566acdab30b09d3",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s22-platform-lifecycle-team",
+      "protected": false,
+      "sha": "999d6710251a8427482b890dc988b5a54e906405",
+      "unique_commits": 3,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s24-media-workspace-resumable-upload",
+      "protected": false,
+      "sha": "62ee385e7a3f28845bdb871a079cd726be7ddf2f",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s25-playlist-studio-readiness",
+      "protected": false,
+      "sha": "ac5b32a97af1143270017bf9de631a8b6dd51a0b",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s26-release-center-preflight",
+      "protected": false,
+      "sha": "a3fd0a43e4cd2981e061635913c06e406f1f43b3",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s28-android-pwa-offline-shell",
+      "protected": false,
+      "sha": "4d1b7b792d087fc82fda9e94e089cb65828b3319",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s28-player-pairing-premium-polish",
+      "protected": false,
+      "sha": "ea7de002a60e085dd7bd71f665de58fddfad629d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s29-media-worker-sla",
+      "protected": false,
+      "sha": "fb9e0dcd072bf8879595d3e78dc497918503754d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s29-observability-recovery-ux",
+      "protected": false,
+      "sha": "2745565d9c74e0077d4337e2f66ea1af7a3484ee",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s30-privacy-policy",
+      "protected": false,
+      "sha": "8d835c35c81db7f3578a9c5fcdb0e1f1049b46fc",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s38-marketing-pixelperfect",
+      "protected": false,
+      "sha": "cac2b4c89f2f4d782d1557789a2192fea4b9bb96",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s39-runner-node24-hotfix",
+      "protected": false,
+      "sha": "89f3e2d72da7d0246ad63fdb7dcba5d4301bd648",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s40-studio",
+      "protected": false,
+      "sha": "078e70e0c0f8c8b188f1dc1cf42cef0a6fb54b3b",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s41-launch-platform-operations",
+      "protected": false,
+      "sha": "6d17580e5e52fd59dc05216ab5d310735baf21a5",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s41-tv-track-fix",
+      "protected": false,
+      "sha": "95b985c3985584f056fb085ef83d6d3311e29b2d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s42-lg-webos-ipk",
+      "protected": false,
+      "sha": "0aeabb2cbaeebebf61052cfe4fbee1e863aee6e0",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s44-lg-webos-autostart",
+      "protected": false,
+      "sha": "183dd6fa9417d668bb304ea8208441de4046f680",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s46-device-playback-hardening",
+      "protected": false,
+      "sha": "c90fe3102c770f4ff8660ed27c787fc9a211a3a9",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s47-screen-automation",
+      "protected": false,
+      "sha": "444ef8c413567a9706827b5918c11d2727fa4d28",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s49-premium-control-dashboard",
+      "protected": false,
+      "sha": "765360a10744b98178712166f3414a80a5be7f53",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s51-dynamic-slides",
+      "protected": false,
+      "sha": "34b16c6b588aa02614e19c2a28ec5b15e5323d4d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s52-overlay-portals",
+      "protected": false,
+      "sha": "66035a8ab2bee8efa79f01608a27f9cb3223e3ee",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s53-android-reinstall-recovery",
+      "protected": false,
+      "sha": "369f600c822bdb89a0b23df7fb6358642f128190",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s53-deploy-smoke-cleanup",
+      "protected": false,
+      "sha": "1a701da0182012123ff6d5b8643202ef0206f516",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s55-control-mobile",
+      "protected": false,
+      "sha": "95598ce0dc6c27dd788985627252615b31378ac9",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s56-mobile-button-consistency",
+      "protected": false,
+      "sha": "69bdc52a22b00a1767aa68bc11715d75594dcf9e",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s57-dynamic-sources-recovery",
+      "protected": false,
+      "sha": "866a87e6207b65f00c9f5bfabb5c4741832a66b3",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s58-lg-pairing-api-hotfix",
+      "protected": false,
+      "sha": "c7efdae132586e1aa9aba39c4323fd880eb9dd3c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s59-android-wake-recovery",
+      "protected": false,
+      "sha": "12e9b611385858e2ec44a85948263c6d6408a8c9",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s61-lg-client-exception",
+      "protected": false,
+      "sha": "e4147f39dd9f8ae559ed0496f6a8ab6429987e3d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s62-lg-release-playback",
+      "protected": false,
+      "sha": "18eaa573fd9646fa00d71dac5990147e64dcdb56",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s63-media-playback-hotfix",
+      "protected": false,
+      "sha": "63f678b0d9f2787307fd64c54b582f4e91bc6493",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s65-portrait-image-orientation",
+      "protected": false,
+      "sha": "6a7fe9549df970fcf294ef9b709ee440af13314c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s66-worker-readiness",
+      "protected": false,
+      "sha": "8f94ae1c52804f24c27a99002b67c11573483d6f",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s67-worker-heartbeat",
+      "protected": false,
+      "sha": "73ca9f18c7e71bf8ecbbd9153dc51a9f3907c5c8",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s69-lg-legacy-player",
+      "protected": false,
+      "sha": "c3139d89e795905f438e588bc8e5cbc50cbd13da",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s70-lg-video-probe",
+      "protected": false,
+      "sha": "cb6f6b5c9a34bf7d5b77f4c70df6db7fcef0006c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s73-lg-command-clock-skew",
+      "protected": false,
+      "sha": "6abb6f9b1d1992582ec32852c1dd80fc0e84c28d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s74-portrait-video-normalization",
+      "protected": false,
+      "sha": "1ea67f48bd5593cca1221c57b5b525ff83aa1212",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s75-physical-acceptance",
+      "protected": false,
+      "sha": "b06fd81118cd994d3dcc60eebcaff322d27b93dd",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s78-android-video-handoff",
+      "protected": false,
+      "sha": "17c3239cba0bc3191e652e6fd75faf278897ce1f",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s79-media-safe-removal",
+      "protected": false,
+      "sha": "0fd43e7501e4f9f40ec90199899dedb66aa02684",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s81-control-guided-authoring",
+      "protected": false,
+      "sha": "d4da167cb6e72acfde5333b166e7d7a26d459d8c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s84-html-template-runtime",
+      "protected": false,
+      "sha": "b142ab600b9eec907dedd97fcfb488fb9481bb45",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s85-rss-portrait-template",
+      "protected": false,
+      "sha": "d546d44f6a4a92f37eed91212bdc0999e90b8d7d",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s86-rss-landscape-template",
+      "protected": false,
+      "sha": "56c095886a71953b651ff0aef725334ad5aa53e0",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s89-sportlink-team-competition",
+      "protected": false,
+      "sha": "87e0157561c29a7bfd2efda5ef03dc82e4f77685",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s90-sportlink-stand-season-theme",
+      "protected": false,
+      "sha": "cf794f99cc098f3b6d1e90073dc25b44e4abb038",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s91-editorial-arena",
+      "protected": false,
+      "sha": "2e60f42028911210892a2f67e458c06493a0990d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s92-lg-html-debug",
+      "protected": false,
+      "sha": "32b506161bdcd78831c820973ea96f20641a1f7d",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s93-lg-pairing-reload",
+      "protected": false,
+      "sha": "f62dde365112d82a08e878211edc24c783365ee8",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s94-lg-slide-viewport",
+      "protected": false,
+      "sha": "a6dfc31b20377e4c4fa0d08a70fc0eec89dc7aa5",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s95-news-layout-polish",
+      "protected": false,
+      "sha": "d7845ee0271bb9814184c83335c0f5854e7c4103",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s96-system-audit-fix",
+      "protected": false,
+      "sha": "dcf37a3d7bc03acd1bcddf9dda288b3e617f7129",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s97-playlist-variant-scope",
+      "protected": false,
+      "sha": "664a0cf715e6d9ca45d029d6732e73c39d26aa33",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s98-sportlink-data-aware-wizard",
+      "protected": false,
+      "sha": "97eb8d82ca0a8f2649ccb77350dce399b93a9856",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s99-dynamic-content-releases",
+      "protected": false,
+      "sha": "d7e124719b2992b90e28e0c248e7bc33ca03a8e8",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s100-editorial-slide-readability",
+      "protected": false,
+      "sha": "e3d3762787a69f7ec3f5aba6991817b111d62b8f",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s101-editorial-arena-slide-suite",
+      "protected": false,
+      "sha": "9ebd1a430ff57ee0b019e4ea62347792de073b9e",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s101-editorial-logo-header",
+      "protected": false,
+      "sha": "9fc6fcd2c1104ede48091d21a2b488b2b87fe068",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s102-lg-single-canvas",
+      "protected": false,
+      "sha": "ccb4e1b3a851db9d0b031eba2a0efb1332909966",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s103-editorial-pricelist",
+      "protected": false,
+      "sha": "bddde1c39d5ea37950bf19bc373d58cf68c63986",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s105-worker-fail-closed",
+      "protected": false,
+      "sha": "f2faafcfe34cc5c189016ec79907299695bcbd2d",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s106-security-definer-acl-hardening",
+      "protected": false,
+      "sha": "5ce8cf2a5ec7b533bff5f87b995e6d05cf701620",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s107-expo-57-patch-compatibility",
+      "protected": false,
+      "sha": "790a02ea7b009d3d740eb489d20b1f1535cee7fe",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s108-rls-auto-enable-acl",
+      "protected": false,
+      "sha": "a3d59eef47be6cae44a02d416e77f1b73969c4fd",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s109-theme-engine-v2",
+      "protected": false,
+      "sha": "0777ecedb6938e2ea7086d9116b3eadfaded263a",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s110-expo-57-current-patches",
+      "protected": false,
+      "sha": "884a02b4127d001f3acaa4e2af1e642089c79a1c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s111-media-lg-navigation-recovery",
+      "protected": false,
+      "sha": "65fca4a32c10152936c0ad9ab74e071a658f8800",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s112-menu-studio-v2",
+      "protected": false,
+      "sha": "72caf3eff73f3878da06a2151e661b8c923adad8",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s115-sponsor-hub",
+      "protected": false,
+      "sha": "0e714b9ea32df7477aad929f584356157ecac3bb",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s116-portrait-save-hotfix",
+      "protected": false,
+      "sha": "77af3b79cf913c228a91f948b8ca820f410ac1ea",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s117-menu-studio-authoring-ux",
+      "protected": false,
+      "sha": "74cd00808b089ade26135c5efec4b03d101cb5b4",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s118-lg-menu-studio-portrait",
+      "protected": false,
+      "sha": "cd8f5137cdc2ca1f7c94ea5955f6a79d6fd73c9c",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s119-unified-sportlink-studio",
+      "protected": false,
+      "sha": "c53a4fc916a57955a0d69f8146f5fb715f3feb7c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s120-studio-preview-picker-modals",
+      "protected": false,
+      "sha": "7ee57c23c2c3459038f6a0c577a55b38879f0f41",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s122-slide-versioning-theme-wizard",
+      "protected": false,
+      "sha": "b09b5f19d83f8e89c94cf023454fae8e71d2253c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s123-vector-v2-living-venue-os",
+      "protected": false,
+      "sha": "61377601f752527bf279da2b1a3ba23051eca844",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s124-vector-pilot-visible",
+      "protected": false,
+      "sha": "092314954f728f65997e7825aeecc0e093230495",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s125-menu-product-grouping",
+      "protected": false,
+      "sha": "f478d6a3552c693d96345ce6b464d0c733246908",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s126-product-logo-upload",
+      "protected": false,
+      "sha": "71954c79b975c1c4ccde4d7406af6258bf09b77d",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s127-pricelist-title-readability",
+      "protected": false,
+      "sha": "bdd3ac7669953da1dd57a3a18f2f77ded02e313c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s128-sportlink-birthdays",
+      "protected": false,
+      "sha": "e3ee1370319d3cbd52abf74e68ed97bf9759b410",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s129-home-match-welcome",
+      "protected": false,
+      "sha": "4fcb8a52c82573c6311456ea5aec960e2d344796",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s130-led-scores-live-url-test",
+      "protected": false,
+      "sha": "dc84f61fd83ac2a1fdd82770355f1fdbb07b80c2",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s131-news-slide-save-hotfix",
+      "protected": false,
+      "sha": "db52dd9b530d81ab4f54dc6d71ea21851f5041e1",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s132-ledscores-goal-alert",
+      "protected": false,
+      "sha": "2ef6d360b636031c8c2f81e86198c72fdf4f88d9",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s133-sportlink-sync-hotfix",
+      "protected": false,
+      "sha": "a8bdd32f1fd835b866211cefc710f78e7108887c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s134-sportlink-birthday-team-filter",
+      "protected": false,
+      "sha": "963d022ad5a82cab5a52f85fb469f69a64341123",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s135-ledscores-service-role-boundary",
+      "protected": false,
+      "sha": "3d362f0d5b6d9f491304ba3cb78f08c8db7988ef",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s136-sportlink-own-match-slides",
+      "protected": false,
+      "sha": "06ab13920be44b23be91f8951dbdb4926ecd23ea",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s138-birthday-wizard-readiness",
+      "protected": false,
+      "sha": "8b3d4298ac63725bdc639da3001e287eae19df11",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s139-ledscores-flag-rollout",
+      "protected": false,
+      "sha": "2fbaf72d4dc835fac487fafda2117e218e968d09",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s141-ledscores-live-match-experience",
+      "protected": false,
+      "sha": "24ae3f0e0ecb67f5f16b2aa97baf95cf4d5c7271",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s142-ledscores-canvas-editor",
+      "protected": false,
+      "sha": "ddbf3d0526771b65e1edae8c349c33a39c6b7e41",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s144-fieldflow-platform-redesign",
+      "protected": false,
+      "sha": "56b99e74b868676dca0b05b6d4bdf9848341d741",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s145-fieldflow-release-completion",
+      "protected": false,
+      "sha": "74d0f3f73d5f4eb6126beb2ebe171e05069e0a57",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s146-studio-publisher-recovery",
+      "protected": false,
+      "sha": "b5897a83f8b4ed9e80611b4035b166a5fa3e7cf7",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s147-welkomstschermen-vloeiend",
+      "protected": false,
+      "sha": "4bb665e967d68d0d4b3d9f8f1e798e887bddd95b",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s151-shared-multiselect",
+      "protected": false,
+      "sha": "6b037293d3d40adae9475424b2930977426f0caa",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s152-theme-editor-recovery",
+      "protected": false,
+      "sha": "3a3671abda8b7a70033685902f6bfdf50be69ad0",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s154-club-match-scope",
+      "protected": false,
+      "sha": "f435190be45c4b6ea2ebba9a00195aa14cf64a6a",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s155-welcome-news-layout",
+      "protected": false,
+      "sha": "1c2aa90ac6ee2cac57693a567d07f20417621d58",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s156-slide-layout-completion",
+      "protected": false,
+      "sha": "c18ca903ac749cd14dafc4ef56a705916ec77499",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s158-match-row-layout",
+      "protected": false,
+      "sha": "67a9e15f249e2484c97010de0b6edeb4aee2fa77",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s161-royal-current",
+      "protected": false,
+      "sha": "11b60fadff44dbef891197e0f5f85adf6a875f41",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s163-premium-slide-shell",
+      "protected": false,
+      "sha": "0704a807ae718b616136a7464c296b768a600e94",
+      "unique_commits": 3,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s164-slide-timing",
+      "protected": false,
+      "sha": "deb676fc7b82d7602b0d68e7a363c210e53d8762",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s165-dressing-room",
+      "protected": false,
+      "sha": "2a8fbb535295ab9ccf15cd0d4aa8791ad24b7a7b",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s169-playlist-delete-hotfix",
+      "protected": false,
+      "sha": "88ac027d887017f742ed2eab326887de0e17834c",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s170-default-sportpark",
+      "protected": false,
+      "sha": "be74df3bb975b9f048420518807f6f932878c1c4",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s170-default-waiting-arrival-slots",
+      "protected": false,
+      "sha": "6ae8750a160c419e9811f9de852189c37b54a673",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s171-birthday-sportlink-logo",
+      "protected": false,
+      "sha": "ff8d4c953d37f4eb2b07136a50272406cb997f36",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s172-news-title-header",
+      "protected": false,
+      "sha": "5b54d75b329db7e5653b86aa5aa2b725a8473f1e",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s173-lg-signed-url-refresh",
+      "protected": false,
+      "sha": "295952e5df33b818f918200b3aca3ac4cb755167",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s174-global-slide-mode-reset",
+      "protected": false,
+      "sha": "28761aed18e67e1f5657559c09a45c5d0d0ac587",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s175-goal-overlay-2",
+      "protected": false,
+      "sha": "6014bde27aca8d0939a94943d81f78be98d29d54",
+      "unique_commits": 4,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s176-style-recovery-match-kickoff",
+      "protected": false,
+      "sha": "ed27a97db68bf040d1270b66ccce5487e65ad0c1",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s177-dynamic-slide-management",
+      "protected": false,
+      "sha": "e74b34c47d1d4308d5f3b378d0cee856924ec18a",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s178-standing-team-identity",
+      "protected": false,
+      "sha": "c7dce1d2a000d4e1b3526b5afb92d7002f987a17",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s179-standing-catalog-team-ids",
+      "protected": false,
+      "sha": "d75d4d76c6dad55639e9c2b9dc8de256f0ebf7a0",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s180-player-celebrations-layout",
+      "protected": false,
+      "sha": "034b14df4db1d9d805a4e74ef95faa35e3e12171",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s181-goal-native-delivery",
+      "protected": false,
+      "sha": "0957710266e58d6eed04155200d06962c71878c6",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s182-goal-intro-fullscreen",
+      "protected": false,
+      "sha": "c4148cc9897ea78f9be7dfe517fc80ed8725bef6",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s183-goal-intro-source-mapping",
+      "protected": false,
+      "sha": "7dea6dd01ee7c98ffa937df289a0847af4fd4090",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s184-goal-video-no-crop",
+      "protected": false,
+      "sha": "7832d32e455c47ea1c70ec9f4d4dcebfe3f35462",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s185-current-publication",
+      "protected": false,
+      "sha": "39467cd023750cad967431a01a66ebf81ac6d3ec",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s186-egress-prevention",
+      "protected": false,
+      "sha": "09770f41d5814e9918e98ad6329aaae1814c3fe8",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s187-sport-row-portrait-parity",
+      "protected": false,
+      "sha": "0c0c06acd8021d67fd432f7c37c47d7423f439c6",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s189-standing-form-all-teams",
+      "protected": false,
+      "sha": "8d660b00a87a21f63d04d0018da12c4e1aa918d8",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s190-live-integrations-recovery",
+      "protected": false,
+      "sha": "3b000dac1fd4c93bec36fab9694638a59103e61c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s191-sites-exact-transfer",
+      "protected": false,
+      "sha": "032551a9c1b1e015bd94a29f7adace8e4c605ce6",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s192-production-deployment-recovery",
+      "protected": false,
+      "sha": "b2b115cb6e241a7d23b509325e848eb7dbbf8b2f",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s193-database-acquisition-recovery",
+      "protected": false,
+      "sha": "0c125af8c4b08d055929870c60d828b80400579e",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s194-runner-toolchain-isolation",
+      "protected": false,
+      "sha": "e499fbad4bf75d13f4fa7c79ddf3922148aa7e59",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s195-publication-runtime-diagnosis",
+      "protected": false,
+      "sha": "cd25bec5ffdd91252aa46630f8b4019298983ef9",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s196-sportlink-media-resilience",
+      "protected": false,
+      "sha": "491a834bfd88852a932289475d522d3235125a0b",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s197-publication-plan-diagnosis",
+      "protected": false,
+      "sha": "644390e71fd521d6fcec4930db8eb0b83fbc1f5c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s198-publication-recovery",
+      "protected": false,
+      "sha": "eff2466e144a9b77b0e9eafdb7992813d2a7480b",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s199-publication-reclamation-evidence",
+      "protected": false,
+      "sha": "e0c6bcaa7b79e91711f1ef1544e3520660dc45c4",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s200-data-api-schema-cache-recovery",
+      "protected": false,
+      "sha": "c99fe1b8bd217d2588b5743be34815bab5ade96f",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s201-data-api-resource-diagnosis",
+      "protected": false,
+      "sha": "a17aa09cf191d0b547cc5ffd124d69566a8da685",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s202-player-case-process-isolation",
+      "protected": false,
+      "sha": "560eb68d4af72a66142e3617655bdb03e15de81c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s203-data-api-lock-diagnosis",
+      "protected": false,
+      "sha": "f31f1777be7ed3a029b6ef1e78f6a4c67b169aca",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s204-data-api-capacity-metrics",
+      "protected": false,
+      "sha": "7e2c6f775a7b54ba859478f00226976d83bec682",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s205-provider-worker-drain",
+      "protected": false,
+      "sha": "a84da424a539c76fcb472faa6fdd643492666db9",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s206-projector-brand-pass",
+      "protected": false,
+      "sha": "c13d0dda77408e09ea4af9447bbf40fbfe3a9063",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s207-quiesce-fixture-teardown",
+      "protected": false,
+      "sha": "3061c407838b3bbc6dd276045a0e3cbfa5026926",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s208-login-resilience",
+      "protected": false,
+      "sha": "712c29eaca5f79e6418ad77db09a156dab1c1474",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s209-provider-logo-refresh",
+      "protected": false,
+      "sha": "67a3c29115fb0bda583f369219c9ce83c3164e1c",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s212-sportlink-provider-media-type",
+      "protected": false,
+      "sha": "3182cb949eb45f8754e591ef38fb6015b4e6dc09",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s213-sites-v17-source-integration",
+      "protected": false,
+      "sha": "141343b0c3ed979c1812670b12b44d2a6265f6c6",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s214-studio-template-picker-fix",
+      "protected": false,
+      "sha": "d017cacf0d69ffa77b78d60d0862429e46e16858",
+      "unique_commits": 0,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s215-menu-widgets-and-studio-create",
+      "protected": false,
+      "sha": "71ad6ce758e2aa72e6282b444f2d327b1c5f3b8d",
+      "unique_commits": 3,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s216-menu-studio-visual-parity",
+      "protected": false,
+      "sha": "0a8499efe0e2adf469634056f1bf9805ae3c3986",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s217-clubverhaal-media-release-recovery",
+      "protected": false,
+      "sha": "ea52b3b697fa003706efa8085cb0ac97d6351156",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s218-library-player-live-recovery",
+      "protected": false,
+      "sha": "90bedfecae2b5a151eddaccb553ef4c6b8c72646",
+      "unique_commits": 4,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s219-menu-copy-footer-hotfix",
+      "protected": false,
+      "sha": "bc00179b7706c87978828e386cf29e9b7b0bf92d",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s220-menu-studio-editing",
+      "protected": false,
+      "sha": "27eb6022389cd96fa46fbc300dcaafbf4656fe41",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s221-lg-menu-black-screen",
+      "protected": false,
+      "sha": "6208452e4e3ba1b37dcbb8dba472d7e30f96b040",
+      "unique_commits": 2,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s222-video-processing-budget",
+      "protected": false,
+      "sha": "396669b464c353b905f234bb3dc279bdb3024701",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s223-force-player-sync",
+      "protected": false,
+      "sha": "8d14bc14a6a8de0d8aa21699a0c0385ddb3b5520",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s224-lg-video-cache",
+      "protected": false,
+      "sha": "a2639ecf2fb02c8bd3551292124dbfacaa32d84d",
+      "unique_commits": 3,
+      "cleanup_status": "dependency review pending; retained"
+    },
+    {
+      "name": "veyocast/s225-lg-media-recovery",
+      "protected": false,
+      "sha": "6dc97f2010e12e7ce5bf9d790833ef17226822f6",
+      "unique_commits": 1,
+      "cleanup_status": "dependency review pending; retained"
+    }
+  ]
+}

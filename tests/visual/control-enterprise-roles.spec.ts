@@ -182,7 +182,7 @@ test.describe("Control enterprise roles evidence", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await navigate(page, "/dashboard/team");
-    await page.getByRole("tab", { name: "Rollen" }).click();
+    await page.getByRole("button", { name: "Rollen & rechten", exact: true }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
     await page.waitForLoadState("networkidle");
     if (await page.getByText("Contentcoördinator", { exact: true }).count() === 0) {
@@ -194,7 +194,7 @@ test.describe("Control enterprise roles evidence", () => {
       await dialog.getByLabel(/Publiceren/).check();
       await dialog.getByRole("button", { name: "Rol maken" }).click();
       await expect(page.getByText("De custom rol en effectieve werkrechten zijn opgeslagen.")).toBeVisible();
-      await page.getByRole("tab", { name: "Rollen" }).click();
+      await page.getByRole("button", { name: "Rollen & rechten", exact: true }).click();
     }
 
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
@@ -206,7 +206,7 @@ test.describe("Control enterprise roles evidence", () => {
 
     await page.setViewportSize({ height: 844, width: 390 });
     await navigate(page, "/dashboard/team");
-    await page.getByRole("tab", { name: "Rollen" }).click();
+    await page.getByRole("button", { name: "Rollen & rechten", exact: true }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Custom rollen" })).toBeVisible();
     await hideDevelopmentOverlays(page);
     await page.screenshot({
@@ -214,7 +214,7 @@ test.describe("Control enterprise roles evidence", () => {
       path: path.resolve("docs/screenshots/s31b-team-roles-mobile.png")
     });
 
-    await page.getByRole("button", { name: "Teamlid uitnodigen" }).click();
+    await page.getByRole("button", { name: "Iemand uitnodigen", exact: true }).click();
     await page.getByRole("dialog", { name: "Teamlid uitnodigen" }).screenshot({
       path: path.resolve("docs/screenshots/s31b-team-invite-mobile.png")
     });

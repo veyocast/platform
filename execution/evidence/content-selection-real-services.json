@@ -1,0 +1,41 @@
+{
+  "scope": "isolated-local-content-selection-real-CAS-and-lost-response",
+  "name": "S226 content batch 1792276065658",
+  "playlistId": "66e58993-7ed0-4198-9d9e-29e710e33000",
+  "libraryViolations": [],
+  "conflictReadback": {
+    "name": "S226 content batch 1792276065658 gewijzigd",
+    "count": 0,
+    "assetIds": null,
+    "revision": 1,
+    "releaseCount": 0
+  },
+  "afterLostAcknowledgement": {
+    "name": "S226 content batch 1792276065658 gewijzigd",
+    "count": 2,
+    "assetIds": [
+      "af1b3ec3-8edf-4213-b0ea-a8883b79e002",
+      "8974d036-f216-497c-8fa5-3b8b4a24f663"
+    ],
+    "revision": 3,
+    "releaseCount": 0
+  },
+  "dialogViolations": [],
+  "afterRetry": {
+    "name": "S226 content batch 1792276065658 gewijzigd",
+    "count": 2,
+    "assetIds": [
+      "af1b3ec3-8edf-4213-b0ea-a8883b79e002",
+      "8974d036-f216-497c-8fa5-3b8b4a24f663"
+    ],
+    "revision": 3,
+    "releaseCount": 0
+  },
+  "noOverflowWidths": [
+    320,
+    390,
+    768,
+    1024,
+    1440
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "recordedAt": "2026-10-18T14:00:50.161047+00:00",
+  "baseline": "20729be35d38dc8eb67b836160632ac7c3ea5153",
+  "migrationCount": 26,
+  "freshReset": "PASS",
+  "rlsChecks": 3588,
+  "migrations": [
+    {
+      "path": "supabase/migrations/20261017195749_sync_marketing_inquiries.sql",
+      "sha256": "548bc9f6350b6a5cfd03c7d751afdbc347d9bfbab7904ba75020e28f7435ad31"
+    },
+    {
+      "path": "supabase/migrations/20261017201455_sync_content_library.sql",
+      "sha256": "4508786d2c135a1d3399bf619c02fb4c234e3b47bd787d8782884e80b11c2ed1"
+    },
+    {
+      "path": "supabase/migrations/20261018001500_sync_product_catalog_paging.sql",
+      "sha256": "d2f039e9d431f1d50e6c502f7b01cdbb98f77758ccc41a0e674ac6066e511606"
+    },
+    {
+      "path": "supabase/migrations/20261018002000_sync_studio_authoring.sql",
+      "sha256": "dc844c3cd50281cedd71ae7f1876af37095b4e370bb70650c4c4bee536e713df"
+    },
+    {
+      "path": "supabase/migrations/20261018002500_studio_retry_progress.sql",
+      "sha256": "640cd99d5a8435970f8dd930295a616891384c19a2f674ce418997a10686d722"
+    },
+    {
+      "path": "supabase/migrations/20261018003000_sync_studio_orientation.sql",
+      "sha256": "1c341f8c28fb33530cb8511ccc1d43f23a246f90840f90bf4337ae383d8594a4"
+    },
+    {
+      "path": "supabase/migrations/20261018003500_studio_render_receipt_recovery.sql",
+      "sha256": "0fe0def39375a47f2ba28b5df2e4b69beb5a43d292b3068d2095eabad6699993"
+    },
+    {
+      "path": "supabase/migrations/20261018004000_studio_manual_retry_budget.sql",
+      "sha256": "b5bfaaca52edb0822a681e05acff8bef91ee567e2d749b722f6e8359ced0b871"
+    },
+    {
+      "path": "supabase/migrations/20261018004500_sync_studio_release_playback.sql",
+      "sha256": "73239d52eb756a9132289b2220373b93e8d308c206dc39765520a00da7e6051a"
+    },
+    {
+      "path": "supabase/migrations/20261018005000_sync_studio_library.sql",
+      "sha256": "819f0436afab64e7ce3336c8704a46212a7ccd0efa111288c0e702644c30c72f"
+    },
+    {
+      "path": "supabase/migrations/20261018005500_sync_studio_metadata_cas.sql",
+      "sha256": "49be7ce8b927cc027f56f15972af36fa0d3bd35cfc675c319987635bd5c1d3e7"
+    },
+    {
+      "path": "supabase/migrations/20261018006000_sync_studio_series.sql",
+      "sha256": "cb623df9c691a9f4a861a85b16c31d009026464e8fd3b02021bece837a129965"
+    },
+    {
+      "path": "supabase/migrations/20261018006500_studio_series_prepare_receipt.sql",
+      "sha256": "1435616df34c77b19a90d18226f73fba2a4c24ee8416076f1013409f5ffd2d60"
+    },
+    {
+      "path": "supabase/migrations/20261018007000_sync_dynamic_configuration.sql",
+      "sha256": "034dedb622aa319ad07ee96ab84e30741b198a2084d0919b2adf901c8629de21"
+    },
+    {
+      "path": "supabase/migrations/20261018007500_sync_dynamic_worker_lease.sql",
+      "sha256": "0aa7c27105c8d22f7bdaed98961e55c7520607ce0398130412a0e35db5647431"
+    },
+    {
+      "path": "supabase/migrations/20261018008000_sync_dynamic_complete_artifact.sql",
+      "sha256": "51202d926c326acd81d046a564146bb2310124561ec1fdf3694ab5c8eac2469f"
+    },
+    {
+      "path": "supabase/migrations/20261018008500_sync_dynamic_canonical_snapshot.sql",
+      "sha256": "7d47d168d10c7f61f9ff9a62bc9417f2634f70cb46e0030f498e6463ace4451b"
+    },
+    {
+      "path": "supabase/migrations/20261018064315_sync_dynamic_authoring_receipts.sql",
+      "sha256": "2026d7a5dbf31a1cb3096c41cefcd7318086424f9bf50332b2a8804216a28716"
+    },
+    {
+      "path": "supabase/migrations/20261018073738_sync_dynamic_placement_variants.sql",
+      "sha256": "effbd09996ac077b69812fd16ec30b9bc18f24d02158ef7c13159c7b889f9dc7"
+    },
+    {
+      "path": "supabase/migrations/20261018094300_sync_dynamic_led_gate.sql",
+      "sha256": "55f7c41072f6cfad7c20b6990691c27850cbae51d05da26c14fb0c87e772b837"
+    },
+    {
+      "path": "supabase/migrations/20261018101300_led_player_bootstrap_orientation.sql",
+      "sha256": "314eba2ce61722dedf4c6dba5e88374534e4e9c76e71b8856e8deadf619a7f6a"
+    },
+    {
+      "path": "supabase/migrations/20261018101500_sync_youtube_binding.sql",
+      "sha256": "8bb772ab06b925f8446f0c8b40302f1fe9f72929c31d7c7e6c00456bcffbb76b"
+    },
+    {
+      "path": "supabase/migrations/20261018103016_sync_published_binary_refresh.sql",
+      "sha256": "b9ec0327232d2a90d96884c3457cef3ff5aa008cf4cffd329daafeb7c7b60d3d"
+    },
+    {
+      "path": "supabase/migrations/20261018104700_player_target_realtime_columns.sql",
+      "sha256": "4630fde5a1d97d946d490c279a1b6cdebd920ac01e83c587ae30295bb547256f"
+    },
+    {
+      "path": "supabase/migrations/20261018111000_sync_engage_binding.sql",
+      "sha256": "12a445dab1e8747e08d081e628d8a1117eff404696bc61925b9c1965b5ec0ef2"
+    },
+    {
+      "path": "supabase/migrations/20261018123001_sync_binary_storage_fencing.sql",
+      "sha256": "1b638ec6603cc7b07827e2550727142306b8ddab964a7ff8a996e0e4c0056e34"
+    }
+  ]
+}

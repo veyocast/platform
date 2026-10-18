@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T04:48:25.430Z",
+  "scope": "actual AAL2 Source library filmstrip, private asset preview and navigation without authoring or rendering",
+  "projectId": "16a1de10-8d1b-49a1-b6ec-02d5b9c5744d",
+  "previewCount": 8,
+  "previewNames": [
+    "ELEIGEN LOKALE CLUBCLUB TVDIT IS ONZE TROTSEEN CLUB. EEN VERHAAL.Bevestigde eigen reeksOp het veld en daarbuiten. Samen maken we de mooiste verhalen van onze club.Eigen lokale club S226 eigen reeks 1792298319192 · slide 2",
+    "ELEIGEN LOKALE CLUBCLUB TVDIT IS ONZE TROTSEEN CLUB. EEN VERHAAL.Bevestigde eigen reeksOp het veld en daarbuiten. Samen maken we de mooiste verhalen van onze club.Eigen lokale club S226 eigen reeks 1792298319192",
+    "SLS226 LOKALE CLUBCLUB TVHET CLUBPROGRAMMAEen echte Sync-uitzending11:00Thuis 1Uit 1VELD111:00Thuis 2Uit 2VELD211:00Thuis 3Uit 3VELD311:00Thuis 4Uit 4VELD4Programma · OnzeTrots TV",
+    "SLS226 LOKALE CLUBCLUB TVDIT IS ONZE TROTSEEN CLUB. EEN VERHAAL.Een werkelijk gerenderde overgangEigen tekst uit de geautoriseerde Source-renderketen.S226 lokale club S226 echte Motion 1792294416138",
+    "DSDUINDORP SVCLUB TVHET CLUBPROGRAMMANOG GEEN GEGEVENS.Kies een andere selectie of voeg handmatig gegevens toe.LEGE SELECTIES226 echt aangemaakt in Sync",
+    "DSDUINDORP SVCLUB TVHET CLUBPROGRAMMANOG GEEN GEGEVENS.Kies een andere selectie of voeg handmatig gegevens toe.LEGE SELECTIEProgramma",
+    "SLS226 LOKALE CLUBCLUB TVDIT IS ONZE TROTSEEN CLUB. EEN VERHAAL.Onze eigen Sync-uitzendingDeze tekst is bewaard via de nieuwe Sync-editor.S226 lokale club S226 Source-editor browser",
+    "SLS226 LOKALE CLUBCLUB TVHET CLUBPROGRAMMAEen echte Sync-uitzending11:00Thuis 1Uit 1VELD111:00Thuis 2Uit 2VELD211:00Thuis 3Uit 3VELD311:00Thuis 4Uit 4VELD4S226 Sync mp4 b1f98e0e-a6ba-4822-8f54-186252e379fb"
+  ],
+  "axeViolations": 0,
+  "widths": [
+    {
+      "width": 320,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "overflow": 0
+    },
+    {
+      "width": 768,
+      "overflow": 0
+    },
+    {
+      "width": 1024,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "overflow": 0
+    }
+  ],
+  "navigatedToProject": "dd38316c-63b4-4a60-9d8c-3b8211de00ce",
+  "noAuthoringOrRenderWrites": true
+}

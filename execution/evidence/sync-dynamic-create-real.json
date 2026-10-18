@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T07:15:01.115Z",
+  "controlBuildId": "chcFxKuUhKEVYeoGsfvnt",
+  "scope": "actual AAL2 Source menu creation with explicit canonical source selection, lost committed create response and exact receipt recovery, complete existing-worker artifact; no RSS/external provider, sport selectors, copied Studio origin, hardware or hosted deployment claim",
+  "slideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "exactCreateReceiptRecovered": true,
+  "transportWritesThisRun": 0,
+  "canonical": {
+    "rows": 9,
+    "jobId": "3b91e0dc-7fb4-4ccd-a577-aa3a7ab36fc4",
+    "seedRows": 0,
+    "sourceId": "d98978b2-786d-4fdf-9de8-c304ae380227",
+    "jobStatus": "completed",
+    "slideCount": 1,
+    "snapshotId": "8e0649ee-0d20-44c1-a32b-49b2ade98bd4"
+  },
+  "completeOutput": {
+    "rows": 9,
+    "bytes": 1844051,
+    "sha256": "b8e8cba6db421bf67ed5c359fd0e91f183d350765931aac1ca609c6c6f56fc28",
+    "status": "ready",
+    "assetId": "d5a87273-23c3-5db3-873a-8fc3e6620790",
+    "durationMs": 15000
+  },
+  "detailAxeViolations": 0,
+  "existingReleasesUnchanged": true,
+  "recoveredStages": {
+    "evidence": "execution/evidence/sync-dynamic-create-attempt-1.json",
+    "committedCreateAndExactReplay": 2,
+    "previewReadOnly": true,
+    "finalizationReusedSameEntityAndJob": true
+  }
+}

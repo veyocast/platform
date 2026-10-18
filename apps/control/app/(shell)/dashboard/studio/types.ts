@@ -110,6 +110,7 @@ export type StudioEditorPermissions = {
   canManageJobs: boolean;
   canManageTemplate: boolean;
   canRender: boolean;
+  canUploadMedia?: boolean;
 };
 
 export type StudioBrandResources = {

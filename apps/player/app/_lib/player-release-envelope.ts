@@ -6,6 +6,9 @@ import { createHash } from "node:crypto";
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 
 import {
+  syncSlidePresentationSchema, syncSlideAssets, syncSlidePageCount, syncSystemAssets, type SyncSlidePresentation,
+  syncDynamicPlaybackSchema,
+  syncDynamicConfigurationSchema,
   sitesDynamicConfigurationSchema,
   sitesPresentationSchema,
   type SitesPresentation,
@@ -26,11 +29,13 @@ import type {
 } from "./player-manifest";
 import {
   buildDynamicTemplatePayloadMap,
-  type DynamicSnapshotPayloadRow,
   type DynamicTemplatePayloadRow,
   type DynamicTemplatePayloadVersionRow
 } from "./player-dynamic-template-payload";
 import { createPlayerAdminClient } from "./player-supabase";
+import {readSyncDynamicReleaseSnapshot,projectSyncDynamicReleaseData,syncDynamicProjectionAssetIds,type SyncDynamicSnapshotRow} from './player-sync-dynamic-payload';
+import {readSyncPublishedBinaryArtifact} from './player-sync-binary-payload';
+import type {SyncDynamicMode} from './sync-player-capabilities';
 
 type ReleaseRow = {
   id: string;
@@ -83,6 +88,8 @@ type ReleaseItemRow = {
   youtube_playlist_id:string|null;youtube_playlist_video_ids:unknown;youtube_playlist_repeat:boolean|null;
   sites_configuration_json:unknown;
   sites_studio_presentation_json:unknown;
+  sync_studio_presentation_json?:unknown;
+  sync_studio_duration_ms?:number|null;
 };
 
 export type PlayerReleaseDevice = {
@@ -96,8 +103,12 @@ export type PlayerReleaseDevice = {
 export async function loadPlayerReleaseEnvelope({
   device,
   releaseId,
-  tenantId
+  tenantId,
+  enableSyncStudio = false,
+  syncDynamicMode=false,
 }: {
+  enableSyncStudio?:boolean;
+  syncDynamicMode?:SyncDynamicMode;
   device: PlayerReleaseDevice;
   releaseId: string;
   tenantId: string;
@@ -112,7 +123,7 @@ export async function loadPlayerReleaseEnvelope({
       .single(),
     admin
       .from("playlist_release_items")
-      .select("id, source_item_id, live_data_enabled, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, youtube_playlist_id, youtube_playlist_video_ids, youtube_playlist_repeat, sites_configuration_json, sites_studio_presentation_json, engage_public_id, engage_title, engage_question")
+      .select("id, source_item_id, live_data_enabled, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, youtube_playlist_id, youtube_playlist_video_ids, youtube_playlist_repeat, sites_configuration_json, sites_studio_presentation_json, sync_studio_presentation_json, sync_studio_duration_ms, engage_public_id, engage_title, engage_question")
       .eq("release_id", releaseId)
       .eq("tenant_id", tenantId)
       .order("sort_order", { ascending: true })
@@ -127,15 +138,35 @@ export async function loadPlayerReleaseEnvelope({
   if (releaseItems.length === 0) throw new Error("release has no items");
   const presentationDefaults = readPresentationDefaults(release.manifest_json);
   const configurationHashes = new Map<string, string>();
+  const syncDynamicSnapshots=new Map<string,ReturnType<typeof readSyncDynamicReleaseSnapshot>>();
   const dynamicTemplates = await loadDynamicTemplatePayloads(
     admin,
     releaseItems,
     tenantId,
-    configurationHashes
+    configurationHashes,
+    syncDynamicMode,syncDynamicSnapshots,
   );
+  const binaryArtifacts=new Map<string,ReturnType<typeof readSyncPublishedBinaryArtifact>['artifact']>();
+  if(syncDynamicMode==='binary'){
+    const selected=releaseItems.filter(item=>item.live_data_enabled&&item.dynamic_snapshot_id&&syncDynamicSnapshots.has(item.id)),ids=[...new Set(selected.map(item=>item.dynamic_snapshot_id!))];
+    if(ids.length){
+      const result=await admin.rpc('get_sync_binary_playback_v1',{p_tenant_id:tenantId,p_snapshot_ids:ids});
+      if(result.error||!Array.isArray(result.data)||result.data.length>ids.length)throw Error('SYNC_DYNAMIC_BINARY_UNAVAILABLE');
+      const rows=new Map<string,unknown>();
+      for(const row of result.data){if(!row||typeof row!=='object'||Array.isArray(row)||typeof row.snapshotId!=='string'||!ids.includes(row.snapshotId)||rows.has(row.snapshotId))throw Error('SYNC_DYNAMIC_BINARY_INVALID');rows.set(row.snapshotId,row);}
+      for(const item of selected){const row=rows.get(item.dynamic_snapshot_id!);if(!row)continue;const fresh=readSyncPublishedBinaryArtifact(syncDynamicSnapshots.get(item.id)!,row,tenantId);binaryArtifacts.set(item.id,fresh.artifact);syncDynamicSnapshots.set(item.id,fresh.value);}
+    }
+  }
   const studioPresentations=new Map<string,Extract<SitesPresentation,{kind:"studio"}>>();
   for(const item of releaseItems){if(item.sites_studio_presentation_json==null)continue;const parsed=sitesPresentationSchema.safeParse(item.sites_studio_presentation_json);if(!parsed.success||parsed.data.kind!=="studio")throw new Error("SITES_STUDIO_RELEASE_INVALID");studioPresentations.set(item.id,parsed.data);}
-  const studioAssetRefs=[...studioPresentations.values()].flatMap(sitesPresentationAssets).filter(ref=>ref.kind==="tenant");
+  const syncPresentations=new Map<string,SyncSlidePresentation>();
+  if(enableSyncStudio) for(const item of releaseItems){
+    if(item.sync_studio_presentation_json==null)continue;
+    const parsed=syncSlidePresentationSchema.safeParse(item.sync_studio_presentation_json),duration=item.sync_studio_duration_ms;
+    if(!parsed.success||item.sites_studio_presentation_json!=null||!Number.isInteger(duration)||Number(duration)<3000*syncSlidePageCount(parsed.data)||Number(duration)>120000||item.duration_seconds*1000<Number(duration))throw Error("SYNC_STUDIO_RELEASE_INVALID");
+    syncPresentations.set(item.id,parsed.data);
+  }
+  const studioAssetRefs=[...[...studioPresentations.values()].flatMap(sitesPresentationAssets),...[...syncPresentations.values()].flatMap(syncSlideAssets),...(syncDynamicMode==='dom'?[...syncDynamicSnapshots.values()].flatMap(value=>syncSlideAssets(value.presentation)):[])].filter(ref=>ref.kind==="tenant");
   const studioAssets=studioAssetRefs.length?await loadDynamicTemplateAssets(admin,tenantId,[...new Set(studioAssetRefs.map(ref=>ref.mediaAssetId))]):new Map<string,PlayerDynamicTemplateAsset>();
   if(studioAssetRefs.some(ref=>{const asset=studioAssets.get(ref.mediaAssetId);return !asset||asset.checksumSha256!==ref.checksumSha256||!asset.mimeType.startsWith("image/");}))throw new Error("SITES_STUDIO_ASSETS_UNAVAILABLE");
   const dynamicAssetBytes = uniqueDynamicAssetBytes(dynamicTemplates);
@@ -143,7 +174,8 @@ export async function loadPlayerReleaseEnvelope({
   const sponsorPlan = await loadSponsorPlan(admin, tenantId, device.screenId);
 
   const items = await Promise.all(
-    releaseItems.map(async (item): Promise<PlayerManifestItem> => {
+    releaseItems.map(async (originalItem): Promise<PlayerManifestItem> => {
+      const binary=binaryArtifacts.get(originalItem.id),item=binary?{...originalItem,storage_path:binary.storagePath,checksum_sha256:binary.checksumSha256,file_size_bytes:binary.byteLength,mime_type:binary.mimeType,asset_kind:binary.mimeType==='video/mp4'?'video' as const:'image' as const,duration_seconds:Math.max(originalItem.duration_seconds,binary.durationMs/1000)}:originalItem;
       const { data: signed, error: signedError } = await admin.storage
         .from(item.storage_bucket)
         .createSignedUrl(item.storage_path, 60 * 60);
@@ -162,10 +194,12 @@ export async function loadPlayerReleaseEnvelope({
         displayTitle: item.display_title ?? item.asset_title,
         durationSeconds: item.duration_seconds,
         ...(studioPresentations.has(item.id)?{sitesStudioPresentation:studioPresentations.get(item.id),sitesStudioAssets:Object.fromEntries(sitesPresentationAssets(studioPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
+        ...(syncPresentations.has(item.id)?{syncStudioPresentation:syncPresentations.get(item.id),syncStudioDurationMs:Number(item.sync_studio_duration_ms),syncStudioAssets:Object.fromEntries(syncSlideAssets(syncPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
+        ...(syncDynamicSnapshots.has(item.id)?(syncDynamicMode==='dom'?{syncDynamic:syncDynamicPlaybackSchema.parse({...syncDynamicSnapshots.get(item.id)!.metadata,presentation:syncDynamicSnapshots.get(item.id)!.presentation,liveMatch:syncDynamicSnapshots.get(item.id)!.liveMatch,assets:Object.fromEntries(syncSlideAssets(syncDynamicSnapshots.get(item.id)!.presentation).flatMap(ref=>ref.kind==='tenant'?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))})}:{syncDynamicBinary:syncDynamicSnapshots.get(item.id)!.metadata}):{}),
         ...(dynamicTemplates.get(item.id)
           ? { dynamicTemplate: dynamicTemplates.get(item.id) }
           : {}),
-        ...(item.engage_public_id && item.engage_title && item.engage_question
+        ...(item.engage_public_id && item.engage_title && item.engage_question&&(!item.sync_studio_presentation_json||enableSyncStudio)
           ? {
               onlinePlayback: {
                 kind: "engage" as const,
@@ -190,7 +224,7 @@ export async function loadPlayerReleaseEnvelope({
         id: item.id,
         sourceItemId: item.source_item_id ?? item.id,
         contentHash: createHash("sha256").update(JSON.stringify({
-          source: item.dynamic_snapshot_id ? configurationHashes.get(item.id) : item.checksum_sha256,
+          source: item.dynamic_snapshot_id ? configurationHashes.get(item.id)??item.checksum_sha256 : item.checksum_sha256,
           duration: item.duration_seconds, title: item.display_title, fit: item.fit_mode,
           crop: [item.crop_focus_x, item.crop_focus_y], background: item.background_color,
           muted: item.muted, volume: item.volume_percent, trim: [item.trim_start_seconds,item.trim_end_seconds],
@@ -239,6 +273,7 @@ export async function loadPlayerReleaseEnvelope({
   for(const item of items)item.sitesPresentation=await buildPlayerSitesMarkup(item);
   const needsSites=items.some(item=>item.sitesStudioPresentation||item.dynamicTemplate?.data.sitesConfiguration||((item.dynamicTemplate?.data.themePresentation as {selection?:{ref?:{id?:string}}}|undefined)?.selection?.ref?.id==="onzetrots-tv"));
   const systemAssets=needsSites?sitesSystemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
+  const syncAssets=syncPresentations.size||syncDynamicMode==='dom'&&syncDynamicSnapshots.size?syncSystemAssets.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
   const fetchedAt = new Date().toISOString();
   return {
     device,
@@ -260,9 +295,10 @@ export async function loadPlayerReleaseEnvelope({
       releaseId: release.id,
       schemaVersion: 1,
       tenantId: release.tenant_id,
-      totalBytes: release.total_bytes + dynamicAssetBytes + studioAssetBytes + uniqueSponsorAssetBytes(sponsorPlan)+(systemAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0),
+      totalBytes: release.total_bytes + items.reduce((sum,item,index)=>sum+item.source.bytes-releaseItems[index]!.file_size_bytes,0) + dynamicAssetBytes + studioAssetBytes + uniqueSponsorAssetBytes(sponsorPlan)+(systemAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0)+(syncAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0),
       ...(systemAssets?{systemAssets}:{}),
-      totalDurationSeconds: release.total_duration_seconds,
+      ...(syncAssets?{syncSystemAssets:syncAssets}:{}),
+      totalDurationSeconds: release.total_duration_seconds+items.reduce((sum,item,index)=>sum+item.durationSeconds-releaseItems[index]!.duration_seconds,0),
       version: release.version,
       ...(presentationDefaults ? { presentationDefaults } : {}),
       ...(sponsorPlan ? { sponsorPlan } : {})
@@ -344,7 +380,9 @@ async function loadDynamicTemplatePayloads(
   admin: ReturnType<typeof createPlayerAdminClient>,
   releaseItems: ReleaseItemRow[],
   tenantId: string,
-  configurationHashes: Map<string, string>
+  configurationHashes: Map<string, string>,
+  syncDynamicMode:SyncDynamicMode,
+  syncDynamicSnapshots:Map<string,ReturnType<typeof readSyncDynamicReleaseSnapshot>>,
 ) {
   const snapshotIds = [
     ...new Set(
@@ -356,33 +394,48 @@ async function loadDynamicTemplatePayloads(
   const result = new Map<string, PlayerDynamicTemplatePayload>();
   if (snapshotIds.length === 0) return result;
 
-  const snapshotResult = await admin
+  const snapshotResult = syncDynamicMode?await admin
+    .from('dynamic_slide_snapshots')
+    .select('id, source_revision_hash, snapshot_data_json, template_version_id, dynamic_slide_version_id, status, sync_render_result_json')
+    .eq('tenant_id',tenantId).in('id',snapshotIds):await admin
     .from("dynamic_slide_snapshots")
     .select("id, source_revision_hash, snapshot_data_json, template_version_id, dynamic_slide_version_id")
     .eq("tenant_id", tenantId)
     .in("id", snapshotIds);
   if (snapshotResult.error) return result;
-  const originalSnapshots = (snapshotResult.data ?? []) as Array<DynamicSnapshotPayloadRow & { dynamic_slide_version_id: string }>;
+  const originalSnapshots = (snapshotResult.data ?? []) as SyncDynamicSnapshotRow[];
   for (const item of releaseItems) {
     const snapshot = originalSnapshots.find((value) => value.id === item.dynamic_snapshot_id);
     if (snapshot) configurationHashes.set(item.id, JSON.stringify({
       version: snapshot.dynamic_slide_version_id, template: snapshot.template_version_id,
-      theme: snapshot.snapshot_data_json.themePresentation, editorial: snapshot.snapshot_data_json.editorial,sites:item.sites_configuration_json
+      theme: snapshot.snapshot_data_json.themePresentation, editorial: snapshot.snapshot_data_json.editorial,sites:item.sites_configuration_json,
+      ...(Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration')?{sync:snapshot.snapshot_data_json.syncConfiguration}:{})
     }));
+    if(snapshot&&syncDynamicMode&&Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'))syncDynamicSnapshots.set(item.id,readSyncDynamicReleaseSnapshot(snapshot,item));
   }
-  const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled)
+  const legacySnapshots=originalSnapshots.filter(snapshot=>!Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'));
+  const legacyIds=new Set(legacySnapshots.map(snapshot=>snapshot.id));
+  const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled&&item.dynamic_snapshot_id&&(legacyIds.has(item.dynamic_snapshot_id)||syncDynamicMode==='dom'&&syncDynamicSnapshots.has(item.id)))
     .flatMap((item) => item.dynamic_snapshot_id ? [item.dynamic_snapshot_id] : []))];
   const liveResult = liveIds.length ? await admin.from("published_dynamic_data")
     .select("snapshot_id,content_hash,data_json,data_revision,changed_at,last_error_code")
     .eq("tenant_id", tenantId).in("snapshot_id", liveIds) : null;
   const liveById = new Map((liveResult?.data ?? []).map((data) => [data.snapshot_id, data]));
-  const snapshots = originalSnapshots.map((snapshot) => {
+  if(liveResult?.error&&syncDynamicMode==='dom'&&syncDynamicSnapshots.size)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');
+  const sourceWork=releaseItems.flatMap(item=>{
+    if(syncDynamicMode!=='dom'||!item.live_data_enabled||!item.dynamic_snapshot_id)return [];
+    const live=liveById.get(item.dynamic_snapshot_id),snapshot=originalSnapshots.find(value=>value.id===item.dynamic_snapshot_id),base=syncDynamicSnapshots.get(item.id);
+    if(!live||!snapshot||!base)return [];
+    if(Number(live.data_revision)===1){base.metadata={...base.metadata,dataRevision:1};return [];}
+    return [{itemId:item.id,snapshot,base,live}];
+  });
+  const snapshots = legacySnapshots.map((snapshot) => {
     const live = liveById.get(snapshot.id);
     return live ? { ...snapshot, snapshot_data_json: live.data_json as Record<string, unknown>,
       source_revision_hash: live.content_hash as string } : snapshot;
   });
   const versionIds = [
-    ...new Set(snapshots.map((snapshot) => snapshot.template_version_id))
+    ...new Set([...snapshots.map((snapshot) => snapshot.template_version_id),...sourceWork.map(value=>value.snapshot.template_version_id)])
   ];
   if (versionIds.length === 0) return result;
 
@@ -390,23 +443,24 @@ async function loadDynamicTemplatePayloads(
     .from("dynamic_template_versions")
     .select("id, template_id")
     .in("id", versionIds);
-  if (versionResult.error) return result;
+  if (versionResult.error){if(sourceWork.length)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');return result;}
   const versions = (versionResult.data ??
     []) as DynamicTemplatePayloadVersionRow[];
   const templateIds = [
     ...new Set(versions.map((version) => version.template_id))
   ];
-  if (templateIds.length === 0) return result;
+  if (templateIds.length === 0){if(sourceWork.length)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');return result;}
 
   const templateResult = await admin
     .from("dynamic_templates")
     .select("id, slug, slide_type, orientation")
     .in("id", templateIds);
-  if (templateResult.error) return result;
+  if (templateResult.error){if(sourceWork.length)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');return result;}
+  const templates=(templateResult.data??[])as DynamicTemplatePayloadRow[];
 
   const payloads = buildDynamicTemplatePayloadMap({
     snapshots,
-    templates: (templateResult.data ?? []) as DynamicTemplatePayloadRow[],
+    templates,
     versions
   });
   const mediaIdsBySnapshot = new Map(
@@ -417,11 +471,22 @@ async function loadDynamicTemplatePayloads(
   );
   for(const item of releaseItems){const config=sitesDynamicConfigurationSchema.safeParse(item.sites_configuration_json);if(item.dynamic_snapshot_id&&config.success&&config.data.background?.kind==="tenant"){const ids=mediaIdsBySnapshot.get(item.dynamic_snapshot_id)??[];ids.push(config.data.background.mediaAssetId);mediaIdsBySnapshot.set(item.dynamic_snapshot_id,ids);}}
   const mediaAssetIds = [
-    ...new Set([...mediaIdsBySnapshot.values()].flat())
+    ...new Set([...mediaIdsBySnapshot.values()].flat().concat(sourceWork.flatMap(work=>{
+      const cfg=syncDynamicConfigurationSchema.safeParse(work.snapshot.snapshot_data_json.syncConfiguration);
+      return cfg.success&&isRecord(work.live.data_json)?syncDynamicProjectionAssetIds(work.live.data_json,cfg.data):[];
+    })))
   ];
   const assetsById = mediaAssetIds.length
     ? await loadDynamicTemplateAssets(admin, tenantId, mediaAssetIds)
     : new Map<string, PlayerDynamicTemplateAsset>();
+  for(const work of sourceWork){
+    const version=versions.find(value=>value.id===work.snapshot.template_version_id),template=version?templates.find(value=>value.id===version.template_id):null;
+    if(!template)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');
+    const cfg=syncDynamicConfigurationSchema.parse(work.snapshot.snapshot_data_json.syncConfiguration);
+    const data=isRecord(work.live.data_json)?work.live.data_json:{};
+    const assets=Object.fromEntries(syncDynamicProjectionAssetIds(data,cfg).flatMap(id=>assetsById.has(id)?[[id,assetsById.get(id)!]]:[]));
+    syncDynamicSnapshots.set(work.itemId,projectSyncDynamicReleaseData({snapshot:work.snapshot,base:work.base,live:work.live,template,assets}));
+  }
   for (const item of releaseItems) {
     if (!item.dynamic_snapshot_id) continue;
     const basePayload = payloads.get(item.dynamic_snapshot_id);

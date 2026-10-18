@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T04:38:38.073Z",
+  "scope": "same already paired browser profile and immutable animated release; current production build, actual three-second DOM video boundaries and offline cold reload; original publication/first-frame proof is separate",
+  "originalPublicationProof": "execution/evidence/sync-motion-to-player.json",
+  "releaseId": "9ce58462-f79a-4497-b059-4a729b4cd48d",
+  "playerBuildId": "G9oDc8JtbdX1s6dEJdSLL",
+  "onlineLoopIntervals": [
+    3083.3000000044703,
+    3083.10000000149
+  ],
+  "animation": {
+    "name": "veyocast-sync-slide-enter",
+    "duration": "0.4s"
+  },
+  "loadedScriptDigest": "a1588ffe65112fe1f3fdf2e58f15fd226e23de1a5e9688b7e601b7978bb20656",
+  "offlineLoopIntervals": [
+    3083.10000000149
+  ],
+  "verifiedAssetCount": 12,
+  "offlineColdReload": true,
+  "pairingPreserved": true,
+  "immutableReleaseUnchanged": true
+}

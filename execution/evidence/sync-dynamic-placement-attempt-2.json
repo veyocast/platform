@@ -1,0 +1,9 @@
+{
+  "status": "FAIL",
+  "startedAt": "2026-10-18T07:54:35.433Z",
+  "controlBuildId": "3GpdD9LilNFTc7akq9e8g",
+  "scope": "actual AAL2 pinned Source theme/duration choice, receipt recovery, one complete existing-worker variant, private SHA and reload; no publication, provider, hardware or hosted deployment claim",
+  "playlistId": "c5d2f44f-9aac-4948-91c1-cbc5658c4965",
+  "sourceSlideId": "9c91ee17-4616-4cce-bf3d-419187255052",
+  "error": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Playlist bewerken', exact: true }).getByRole('region', { name: 'Playlistvoorbeeld', exact: true }).getByLabel('Seconden per pagina', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input min=\"3\" max=\"40\" value=\"5\" type=\"number\" inputmode=\"numeric\"/>\u001b[22m\n\u001b[2m    - fill(\"7\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    60 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+}

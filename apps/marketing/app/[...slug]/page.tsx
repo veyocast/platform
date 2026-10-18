@@ -8,6 +8,10 @@ import {
   verifySetupIntentToken
 } from "../_lib/setup-intent";
 import { setupIntentSigningSecret } from "../_lib/setup-intent.server";
+import Marketing from "../_sync/Marketing";
+import { marketingPages as syncPages, normalizeMarketingPath } from "../_sync/pages";
+import { siteConfig } from "../_lib/site-config";
+import { SyncStructuredData } from "../_sync/structured-data";
 
 type RouteProps = {
   params: Promise<{ slug: string[] }>;
@@ -21,13 +25,18 @@ function pathnameFromSlug(slug: string[]) {
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return marketingPages.map((page) => ({
-    slug: page.pathname.split("/").filter(Boolean)
-  }));
+  return [...new Set([...marketingPages.map(page => page.pathname), ...Object.keys(syncPages).filter(path => path !== "/").map(path => path.replace(/\/$/, ""))])].map(path => ({ slug: path.split("/").filter(Boolean) }));
 }
 
 export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {
   const { slug } = await params;
+  const sync = syncPages[normalizeMarketingPath(pathnameFromSlug(slug))];
+  if (sync) return {
+    title: sync.title,
+    description: sync.description,
+    alternates: { canonical: canonicalUrl(pathnameFromSlug(slug)) },
+    openGraph: { title: sync.title, description: sync.description, url: canonicalUrl(pathnameFromSlug(slug)), type: "website", images: [{ url: "/assets/brand-hero-1254.webp", width: 1254, height: 1254, alt: "VeyoCast" }] }
+  };
   const page = getMarketingPage(pathnameFromSlug(slug));
   if (!page) return {};
 
@@ -55,6 +64,13 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
 export default async function MarketingContentPage({ params, searchParams }: RouteProps) {
   const { slug } = await params;
   const query = await searchParams;
+  const syncPath = normalizeMarketingPath(pathnameFromSlug(slug));
+  if (syncPages[syncPath]) {
+    const token = syncPath === "/demo/" && typeof query.setup === "string" ? query.setup : null;
+    const secret = token ? setupIntentSigningSecret() : null;
+    const setup = token && secret ? await verifySetupIntentToken(token, secret) : null;
+    return <><SyncStructuredData path={pathnameFromSlug(slug)} /><Marketing page={syncPath} appHref={siteConfig.controlOrigin} playerHref={siteConfig.playerOrigin} setupIntent={setup} setupIntentToken={setup ? token : null} setupUnavailable={Boolean(token && !setup)} /></>;
+  }
   const page = getMarketingPage(pathnameFromSlug(slug));
 
   if (!page) notFound();

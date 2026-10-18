@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "scope": "read-only actual Next template picker, groups, accessibility, overflow and keyboard focus",
+  "axe": [],
+  "widths": [
+    {
+      "width": 320,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 390,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 768,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 1024,
+      "root": 0,
+      "dialog": 0
+    },
+    {
+      "width": 1440,
+      "root": 0,
+      "dialog": 0
+    }
+  ]
+}

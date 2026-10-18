@@ -1,0 +1,85 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T06:08:18.160Z",
+  "playerBuildId": "v8W_PjaAegjM6Lr6BzX1N",
+  "scope": "real AAL2 dynamic-source placement and Control preflight/publication, independent Source DOM/new binary/old binary negotiation and verified offline reload; no Source binding editor, live source refresh, external provider, hardware or hosted deployment claim",
+  "slideId": "2e4becaa-7f1a-4513-9065-fa165eb720ae",
+  "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+  "assetId": "41f6c19f-448d-571c-89d1-407395c56865",
+  "screenId": "19170000-0000-4000-8000-000000000022",
+  "sha256": "f2c675c7c3e90d9bfc128f367ea0c51eabe3d01607f948419db480ff2ae34054",
+  "playlistId": "a8221a02-6e54-4ac9-bf2b-a294f6c99190",
+  "placementReceipt": {
+    "itemId": "14e939b8-9393-4cf9-befa-f050629d41d5",
+    "outcome": "applied",
+    "renderMode": "html_css",
+    "actualRevision": 1,
+    "dynamicSlideId": "2e4becaa-7f1a-4513-9065-fa165eb720ae",
+    "durationSeconds": 6,
+    "dynamicSnapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3"
+  },
+  "release": {
+    "kind": "video",
+    "bytes": 669573,
+    "sha256": "f2c675c7c3e90d9bfc128f367ea0c51eabe3d01607f948419db480ff2ae34054",
+    "assetId": "41f6c19f-448d-571c-89d1-407395c56865",
+    "version": 1,
+    "mimeType": "video/mp4",
+    "releaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a",
+    "snapshotId": "27fe9155-57d7-4f19-b35b-7bf304f5fec3",
+    "durationSeconds": 6,
+    "liveDataEnabled": true
+  },
+  "firstFrame": {
+    "releaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a",
+    "trace": {
+      "revision": "2",
+      "publicationId": "a8221a02-6e54-4ac9-bf2b-a294f6c99190",
+      "configRevision": "1",
+      "assignmentSource": "default",
+      "committedAt": null,
+      "correlationId": "8e5e822b-28eb-4dca-93f9-7e3cd55d3d25",
+      "generation": 1,
+      "releaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a",
+      "signalReceivedAt": null,
+      "resolvedAt": "2026-10-18T06:08:26.872Z",
+      "targetWrittenAt": "2026-10-18T06:08:22.489993+00:00",
+      "targetRevision": "2",
+      "assetsReadyAt": "2026-10-18T06:08:27.156Z",
+      "firstFrameAt": "2026-10-18T06:08:27.440Z"
+    },
+    "serverStatus": 200
+  },
+  "profiles": {
+    "domAssets": 11,
+    "binaryAssets": 0,
+    "oldAssets": 0,
+    "distinctEtags": 3,
+    "sourceDurationMs": 6000
+  },
+  "onlinePages": [
+    0,
+    1
+  ],
+  "domCache": {
+    "assets": 12,
+    "shellControlled": true
+  },
+  "offlinePages": [
+    0,
+    1
+  ],
+  "domOfflineReload": true,
+  "pairingPreserved": true,
+  "binaryCache": {
+    "assets": 1,
+    "shellControlled": true
+  },
+  "binaryOfflineReload": true,
+  "readback": {
+    "lastErrorCode": null,
+    "activeReleaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a",
+    "desiredReleaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a"
+  },
+  "existingReleasesUnchanged": true
+}
