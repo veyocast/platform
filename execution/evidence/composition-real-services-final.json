@@ -1,0 +1,317 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T15:37:28.534Z",
+  "scope": "Real local existing AAL2 Control onboarding/composition UI → authenticated atomic composition commands → independent new Player pairing → actual three-zone frames → cold offline process restart. Existing published playlists reused read-only; no flags, grants, reset or existing screen bindings changed.",
+  "name": "S226 compositie acceptatie 1792337733058",
+  "steps": [
+    {
+      "name": "existing-tenant-context-selected",
+      "status": "PASS",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    },
+    {
+      "name": "existing-support-and-capacity",
+      "status": "PASS",
+      "compositionFlags": [],
+      "capabilityGuardedUI": true,
+      "atomicRpcPresent": true,
+      "capacity": {
+        "used": 6,
+        "limit": 10
+      }
+    },
+    {
+      "name": "own-screen-created",
+      "status": "PASS",
+      "screenId": "66199476-2426-4aed-a49d-00b3edcc6af8",
+      "noInitialRelease": true
+    },
+    {
+      "name": "three-zones-published",
+      "status": "PASS",
+      "compositionId": "3fbf3e75-4173-403e-9b06-a077183302f5",
+      "binding": {
+        "zones": [
+          {
+            "zone": "bottom",
+            "releaseId": "f7b98cd4-3595-436f-b77b-6b8208e18d4a",
+            "playlistId": "a8221a02-6e54-4ac9-bf2b-a294f6c99190"
+          },
+          {
+            "zone": "main",
+            "releaseId": "ba33f3d2-92ee-4ef2-9a91-d63538c27578",
+            "playlistId": "a41b9dc3-07bc-486f-9687-813f4210e4b7"
+          },
+          {
+            "zone": "side",
+            "releaseId": "9ce58462-f79a-4497-b059-4a729b4cd48d",
+            "playlistId": "8008827a-a511-4a2e-a98d-ae92d2f52e08"
+          }
+        ],
+        "layout": "three"
+      }
+    },
+    {
+      "name": "existing-tenant-context-selected",
+      "status": "PASS",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    },
+    {
+      "name": "existing-support-and-capacity",
+      "status": "PASS",
+      "compositionFlags": [],
+      "capabilityGuardedUI": true,
+      "atomicRpcPresent": true,
+      "capacity": {
+        "used": 7,
+        "limit": 10
+      }
+    },
+    {
+      "name": "prepared-own-screen-reopened",
+      "status": "PASS",
+      "screenId": "66199476-2426-4aed-a49d-00b3edcc6af8",
+      "compositionId": "3fbf3e75-4173-403e-9b06-a077183302f5"
+    },
+    {
+      "name": "own-player-paired",
+      "status": "PASS",
+      "screenId": "66199476-2426-4aed-a49d-00b3edcc6af8",
+      "deviceId": "64b32b93-d2c9-4a6d-8cb7-e76febe45110",
+      "separateProfile": true
+    },
+    {
+      "name": "all-online-zone-frames-and-server-ack",
+      "status": "PASS",
+      "compositionId": "3fbf3e75-4173-403e-9b06-a077183302f5",
+      "cache": {
+        "shellControlled": true,
+        "assets": 14
+      },
+      "ackStatus": 200
+    },
+    {
+      "name": "cold-offline-three-zone-frames",
+      "status": "PASS",
+      "newBrowserProcess": true,
+      "networkOfflineBeforeNavigation": true,
+      "pairingPreserved": true,
+      "visibleZones": [
+        "main",
+        "side",
+        "bottom"
+      ]
+    }
+  ],
+  "playerProfile": "/tmp/veyocast-composition-acceptance-1792337733058-player-profile",
+  "excludedConcurrentRootScreenIds": [
+    "1ad347a8-7f52-479c-aa28-36c44bcf4c26"
+  ],
+  "playlists": {
+    "main": "a41b9dc3-07bc-486f-9687-813f4210e4b7",
+    "side": "8008827a-a511-4a2e-a98d-ae92d2f52e08",
+    "bottom": "a8221a02-6e54-4ac9-bf2b-a294f6c99190"
+  },
+  "sourceReleaseIds": {
+    "8008827a-a511-4a2e-a98d-ae92d2f52e08": "9ce58462-f79a-4497-b059-4a729b4cd48d",
+    "a41b9dc3-07bc-486f-9687-813f4210e4b7": "ba33f3d2-92ee-4ef2-9a91-d63538c27578",
+    "a8221a02-6e54-4ac9-bf2b-a294f6c99190": "f7b98cd4-3595-436f-b77b-6b8208e18d4a"
+  },
+  "screenId": "66199476-2426-4aed-a49d-00b3edcc6af8",
+  "compositionId": "3fbf3e75-4173-403e-9b06-a077183302f5",
+  "notYetPaired": false,
+  "finishedAt": "2026-10-18T15:37:37.525Z",
+  "deviceId": "64b32b93-d2c9-4a6d-8cb7-e76febe45110",
+  "onlineFrames": [
+    {
+      "zone": "main",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1344,
+        "height": 864
+      },
+      "videos": [],
+      "dom": [
+        {
+          "page": "0",
+          "text": "@font-face{font-family:Manrope;src:url(\"/__veyocast-player-cache/a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c"
+        }
+      ],
+      "images": 0,
+      "screenshot": "/tmp/veyocast-composition-acceptance-1792337733058-online-main.png",
+      "screenshotSha256": "e32a6889f3fe0eb278a0308954452afacaad6d67abc3a7d1781d3db2bb79791b",
+      "rgbMeans": [
+        32.13,
+        63.6,
+        96.16
+      ]
+    },
+    {
+      "zone": "side",
+      "rect": {
+        "x": 1344,
+        "y": 0,
+        "width": 576,
+        "height": 864
+      },
+      "videos": [],
+      "dom": [
+        {
+          "page": "0",
+          "text": "@font-face{font-family:Manrope;src:url(\"/__veyocast-player-cache/a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c"
+        }
+      ],
+      "images": 0,
+      "screenshot": "/tmp/veyocast-composition-acceptance-1792337733058-online-side.png",
+      "screenshotSha256": "e62d6fad3163901cdc4a5fdf8bab91f3e33a2b9ea55188636d7aab9f025168ab",
+      "rgbMeans": [
+        23.52,
+        37.52,
+        51.46
+      ]
+    },
+    {
+      "zone": "bottom",
+      "rect": {
+        "x": 0,
+        "y": 864,
+        "width": 1920,
+        "height": 216
+      },
+      "videos": [],
+      "dom": [
+        {
+          "page": "0",
+          "text": "@font-face{font-family:Manrope;src:url(\"/__veyocast-player-cache/a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c"
+        }
+      ],
+      "images": 0,
+      "screenshot": "/tmp/veyocast-composition-acceptance-1792337733058-online-bottom.png",
+      "screenshotSha256": "8ece9e35cca40feae97d8f1baa39269f9467321a113699a77dc8aef30a60d8e4",
+      "rgbMeans": [
+        37.46,
+        41.29,
+        45.02
+      ]
+    }
+  ],
+  "compositionAcks": [
+    {
+      "status": 200,
+      "body": {
+        "compositionId": "3fbf3e75-4173-403e-9b06-a077183302f5",
+        "targetRevision": "2"
+      }
+    }
+  ],
+  "cache": {
+    "shellControlled": true,
+    "assets": 14
+  },
+  "offlineFrames": [
+    {
+      "zone": "main",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1344,
+        "height": 864
+      },
+      "videos": [],
+      "dom": [
+        {
+          "page": "0",
+          "text": "@font-face{font-family:Manrope;src:url(\"/__veyocast-player-cache/a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c"
+        }
+      ],
+      "images": 0,
+      "screenshot": "/tmp/veyocast-composition-acceptance-1792337733058-cold-offline-main.png",
+      "screenshotSha256": "e32a6889f3fe0eb278a0308954452afacaad6d67abc3a7d1781d3db2bb79791b",
+      "rgbMeans": [
+        32.13,
+        63.6,
+        96.16
+      ]
+    },
+    {
+      "zone": "side",
+      "rect": {
+        "x": 1344,
+        "y": 0,
+        "width": 576,
+        "height": 864
+      },
+      "videos": [],
+      "dom": [
+        {
+          "page": "0",
+          "text": "@font-face{font-family:Manrope;src:url(\"/__veyocast-player-cache/a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c"
+        }
+      ],
+      "images": 0,
+      "screenshot": "/tmp/veyocast-composition-acceptance-1792337733058-cold-offline-side.png",
+      "screenshotSha256": "e62d6fad3163901cdc4a5fdf8bab91f3e33a2b9ea55188636d7aab9f025168ab",
+      "rgbMeans": [
+        23.52,
+        37.52,
+        51.46
+      ]
+    },
+    {
+      "zone": "bottom",
+      "rect": {
+        "x": 0,
+        "y": 864,
+        "width": 1920,
+        "height": 216
+      },
+      "videos": [],
+      "dom": [
+        {
+          "page": "0",
+          "text": "@font-face{font-family:Manrope;src:url(\"/__veyocast-player-cache/a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c"
+        }
+      ],
+      "images": 0,
+      "screenshot": "/tmp/veyocast-composition-acceptance-1792337733058-cold-offline-bottom.png",
+      "screenshotSha256": "3acbee50e1b579037137f40bcaa99a2fd437fe7de1497d74f6f04e78aa3a486a",
+      "rgbMeans": [
+        38.27,
+        42.29,
+        46.52
+      ]
+    }
+  ],
+  "existingReleases": {
+    "items": {
+      "count": 7,
+      "allExistingRowsUnchanged": true
+    },
+    "releases": {
+      "count": 7,
+      "allExistingRowsUnchanged": true
+    },
+    "authoring": {
+      "count": 7,
+      "allExistingRowsUnchanged": true
+    }
+  },
+  "existingScreenBindingsUnchanged": true,
+  "existingFlagsUnchanged": true,
+  "runtime": {
+    "controlOrigin": "http://localhost:3240",
+    "playerOrigin": "http://127.0.0.1:3242",
+    "playerApiOrigin": "https://127.0.0.1:57624",
+    "localProxyDestination": "http://127.0.0.1:57621",
+    "browserLocalCertificateException": true,
+    "productionCspUnchanged": true,
+    "healthScope": "Local QA endpoint503 is expected because loopback/deploymentmetadata do not establish hosted readiness. Actual pairing/manifest/assets/ACK/offline chain verified separately.",
+    "fixture3222Used": false
+  },
+  "preparedAndResumedSameScreen": true,
+  "initialReadOnlyAttemptNotes": [
+    "Original SSR state had no tenant context. Explicit existing context selection through actual UI succeeded before any screen creation.",
+    "Initial Player3222 was a fixture, identified before any Player access by this tool. Actual owned profile was opened only on configured3242 after the local TLS proxy was available."
+  ]
+}

@@ -1,5 +1,11 @@
 # Werkstand S226
 
+PR252 is normaal gemerged als848ab297d04cf36891881d27a1da7e8456e16b04. Alle6
+finaleCI-workflows op1a44 zijn groen;282PlayerPASS/15opt-inSKIP en548strikte
+Sourcecases plus aanvullende starters/backgrounds/category-off zijn bevestigd.
+Stagingrun39142862287 bouwt die immutable release. De productiepromotie volgt
+met de getoetste S227-aanvulling; nog geen productieclaim op deze snapshot.
+
 S227 native vervolg: lokale softwaregates en echte V3/MFA-/receipt-/worker-/
 render-CASketens groen. Android/Hermes bundel en32gewijzigde productiebronnen
 matchen exact. Zie evidence/native-control-verification.json en

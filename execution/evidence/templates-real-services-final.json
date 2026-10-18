@@ -1,0 +1,115 @@
+{
+  "resumedExistingDraft": true,
+  "status": "PASS",
+  "startedAt": "2026-10-18T15:27:56.460Z",
+  "scope": "Actual existing local production Next UI/forms with existing AAL2 SSR session, guarded authenticated RPCs and PostgreSQL readback. Own uniquely labelled central template only; no enrollment, flags, reset, releases or other records changed.",
+  "slug": "s226-acceptance-template-1792337132463",
+  "steps": [
+    {
+      "name": "existing-aal2",
+      "status": "PASS",
+      "userId": "19170000-0000-4000-8000-000000000001",
+      "noMfaEnrollment": true
+    },
+    {
+      "name": "create-and-reopen",
+      "status": "PASS",
+      "templateId": "cc2d41f3-c5a5-4bd3-bd4a-b7a2df30fe92",
+      "versionId": "df1cc338-effe-4896-89e6-0a67df6c37b2",
+      "revision": 0
+    },
+    {
+      "name": "edit-and-reopen-version1",
+      "status": "PASS",
+      "revision": 1,
+      "sourceHash": "00d36c0208561f520e8ccd89ba1a63870a572091b304d3628021d2dfe835b6e8"
+    },
+    {
+      "name": "publish-version1",
+      "status": "PASS",
+      "versionId": "df1cc338-effe-4896-89e6-0a67df6c37b2",
+      "sourceHash": "00d36c0208561f520e8ccd89ba1a63870a572091b304d3628021d2dfe835b6e8"
+    },
+    {
+      "name": "existing-aal2",
+      "status": "PASS",
+      "userId": "19170000-0000-4000-8000-000000000001",
+      "noMfaEnrollment": true
+    },
+    {
+      "name": "create-version2",
+      "status": "PASS",
+      "versionId": "34bab557-916c-47bf-8938-093c2c9fb80e",
+      "clonedPublishedSource": true,
+      "firstVersionUnchanged": true,
+      "reopenedExistingCommittedVersion": true
+    },
+    {
+      "name": "edit-version2",
+      "status": "PASS",
+      "revision": 1,
+      "versionId": "34bab557-916c-47bf-8938-093c2c9fb80e",
+      "firstVersionUnchanged": true
+    },
+    {
+      "name": "publish-version2",
+      "status": "PASS",
+      "versionId": "34bab557-916c-47bf-8938-093c2c9fb80e",
+      "sourceHash": "1858a20a28a9a6c740ab25885688e0dbc3350eaf5326155984c6c6598384334f",
+      "firstVersionUnchanged": true
+    },
+    {
+      "name": "withdraw-and-reopen",
+      "status": "PASS",
+      "versionIds": [
+        "df1cc338-effe-4896-89e6-0a67df6c37b2",
+        "34bab557-916c-47bf-8938-093c2c9fb80e"
+      ],
+      "publishedSourcesUnchanged": true,
+      "previewAndHistoryStillReadable": true
+    }
+  ],
+  "templateId": "cc2d41f3-c5a5-4bd3-bd4a-b7a2df30fe92",
+  "currentPath": "/platform/templates/cc2d41f3-c5a5-4bd3-bd4a-b7a2df30fe92",
+  "resumedAfterTransientRead": true,
+  "existingHistory": {
+    "releases": {
+      "count": 7,
+      "baselineSha256": "75bb302657d2d72e92259eca8197e56c266e2cd44ef7347d59a27a6acebb99a3",
+      "allExistingRowsByteEquivalent": true
+    },
+    "releaseItems": {
+      "count": 7,
+      "baselineSha256": "10e1420badfab0c0c48889f812a2e37f6a29366d4fe5cb85cc98205895334468",
+      "allExistingRowsByteEquivalent": true
+    },
+    "authoringSnapshots": {
+      "count": 7,
+      "baselineSha256": "cd9f907618e8a96070408af8d6561f04689b89f7303d21c73024a1f7a5907c27",
+      "allExistingRowsByteEquivalent": true
+    },
+    "readyDynamicSnapshots": {
+      "count": 8,
+      "baselineSha256": "b9492137b8abfdd0ac2cf370f8f0407628d558154f2822b8ad29c312c69982d6",
+      "allExistingRowsByteEquivalent": true
+    },
+    "publishedTemplateVersions": {
+      "count": 69,
+      "baselineSha256": "3e4ed2bb50c2bf7ddc46c134bc88fbf309f925336d996f282d34743823eed017",
+      "allExistingRowsByteEquivalent": true
+    }
+  },
+  "pageErrors": 0,
+  "finishedAt": "2026-10-18T15:27:59.405Z",
+  "attemptNotes": [
+    {
+      "stage": "edit-version1",
+      "issue": "Strict getByLabel(exact) lookup for a textarea timed out before edit submission. Temporary tool changed to textarea[name=sample]/textarea[name=markup]; same own draft resumed, no new create."
+    },
+    {
+      "stage": "create-version2",
+      "issue": "Same-page label-based name assertion did not resolve after the version commit. PostgreSQL contained exactly one V2 draft with correct name and cloned source. Fresh browser page with input[name=name] verified it; resumed same V2 without another create-version command. No application defect established."
+    }
+  ],
+  "historyBaselineScope": "Final persisted history baseline was captured after own V1 publication and V2 draft creation, before V2 edits/publication/withdrawal; own V1 content/status was also protected in that baseline. Existing release/snapshot counts remained 7/7/7/8 across all readbacks."
+}

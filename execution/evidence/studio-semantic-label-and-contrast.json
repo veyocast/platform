@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "scope": "Actual local authenticated Next editor; single semantic label CSS correction, no data writes",
+  "readbacks": [
+    {
+      "width": 390,
+      "fontSize": "12px",
+      "lineHeight": "18.6px",
+      "element": "SPAN",
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "fontSize": "11px",
+      "lineHeight": "17.05px",
+      "element": "SPAN",
+      "overflow": 0
+    }
+  ],
+  "axeDetails": [],
+  "axeViolations": 0,
+  "checkedAt": "2026-10-18T15:59:16.401Z"
+}

@@ -58,3 +58,17 @@ S227 krijgt een eigen PR/CI en integreert na de gezonde S226-webrelease. De
 bestaande main→staging→exact-dezelfde-images-productieflow blijft verplicht.
 Rollback herstelt de vorige webimages; v1/v2 blijven werken en lokale nieuwe
 journals worden niet stilzwijgend in oudere documentformaten omgezet.
+
+Aanvullende echte V1-acceptatie sluit templates, support met vreemdtenantweigering,
+gekoppelde Player zonder contentcache en driezonecompositie met koud offline
+browserproces af. Individuele conclusies staan in de148-scenariomatrix en
+`execution/evidence/*-real-services-final.json`; de Venue-pilot blijft bewaakt uit.
+De sponsorvier-ogenproef vond een onzichtbare ServerAction-foutredirect. Alleen
+de approvalform gebruikt nu een gewone POST/303 met dezelfde authenticated RPC,
+capability-/lifecycle-/CSRFgrenzen en het bestaande AALbeleid. De gevalideerde
+browserorigin blijft behouden bij een afwijkende Next-listenhostname. Echte
+weigering én tweede-actor-goedkeuring tonen hun bestaande fout/succesbanner.
+Dezelfde editorcontrole herstelt de mobiele semantische labeltypografie en het
+Licht-keuzelabelcontrast met de locked InkBlack-token; werkelijk Axe0 en geen
+overflow. Overige bekende geometrieverschillen zijn expliciet verklaard in
+`studio-editor-geometry-notes.json`, geen algemene pixelpariteitsclaim.

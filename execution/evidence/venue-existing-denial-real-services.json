@@ -1,0 +1,71 @@
+{
+  "status": "GUARDED_NOT_ENABLED",
+  "startedAt": "2026-10-18T15:40:15.491Z",
+  "scope": "Actual local retained Control Venue route and authenticated guarded RPC with existing verified AAL2; own unique attempted label, no rollout activation or database reset. No graph-success claim while feature is disabled.",
+  "tenantId": "19170000-0000-4000-8000-000000000010",
+  "ownedScreenId": "66199476-2426-4aed-a49d-00b3edcc6af8",
+  "label": "S226 venue acceptatie 1792338015245",
+  "flagRows": [],
+  "effectiveVenueEnabled": false,
+  "steps": [
+    {
+      "name": "actual-ui-denial",
+      "status": "PASS",
+      "heading": "Venue Twin staat voor deze organisatie uit",
+      "createVenueFormAbsent": true
+    },
+    {
+      "name": "authenticated-rpc-denial",
+      "status": "PASS",
+      "httpStatus": 403,
+      "sqlstate": "42501"
+    }
+  ],
+  "preservation": {
+    "flags": {
+      "sha256": "f770f9fda0c6c47a28fdfef0e7b2262f201ebcb2d84951af9dd4cf02b4ce7933",
+      "unchanged": true,
+      "count": 3
+    },
+    "zones": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "unchanged": true,
+      "count": 0
+    },
+    "venues": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "unchanged": true,
+      "count": 0
+    },
+    "releases": {
+      "sha256": "e89b04d09b9972c55ce81def14a63999d087da1ba9cd5bfe565471d15b9df3a1",
+      "unchanged": true,
+      "count": 7
+    },
+    "floorplans": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "unchanged": true,
+      "count": 0
+    },
+    "placements": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "unchanged": true,
+      "count": 0
+    },
+    "composition": {
+      "sha256": "440adb399171d17b0862e4140c61fb148261f67d3483f8698e92c8a3a125e7c6",
+      "unchanged": true
+    },
+    "releaseItems": {
+      "sha256": "fba8837451a823dd1d9f0095f9af464d8bda7269af41e9e95a2465f971c161eb",
+      "unchanged": true,
+      "count": 7
+    },
+    "screenBinding": {
+      "sha256": "672f35c51f1345288d6848072103ce1229751a72dced45b7889a07ca42e1a3aa",
+      "unchanged": true
+    }
+  },
+  "remaining": "Venue graph create/floorplan/physical-zone/own-screen-placement/inspection is not accepted on this tenant because venue_twin has no enabled tenant rollout. Existing guard works; no flag was changed and no venue record was created.",
+  "finishedAt": "2026-10-18T15:40:17.508Z"
+}

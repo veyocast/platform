@@ -1,60 +1,60 @@
 {
-  "recordedAt": "2026-10-18T15:24:48.543355+00:00",
+  "recordedAt": "2026-10-18T16:04:49.760382+00:00",
   "status": "LOCAL_SOFTWARE_PASS_CI_PENDING",
   "baseline": "1a44b49265076b182c80f156051434b9ab53dc0c",
   "scope": "S227 native Sync and separate V3 API; preserves existing v1/v2, IDs, biometrics, notifications, package and release workflows. No installed app/hardware/store claim.",
   "foundation": {
     "lint": "30/30,29cached",
-    "typecheck": "30/30,27cached",
-    "unit": "30/30,25cached",
+    "typecheck": "30/30,29cached",
+    "unit": "30/30,28cached",
     "nativeTests": 58,
     "nativeTestFiles": 15,
     "studioTests": 39,
-    "controlTests": 810,
+    "controlTests": 816,
     "controlExistingSkips": 34
   },
   "proof": {
     "lint": {
-      "sha256": "4613acb56b6474be10521e661853e4abffbca67679db6e84119cf2b9dd7cdec9",
+      "sha256": "98e49b085432f52017c8a0f90541b2c093925589e9b1db38854e6a6210ec3d4d",
       "tail": [
-        "@veyocast/marketing:lint: $ eslint . --max-warnings=0",
-        "@veyocast/control:lint: cache miss, executing f7bf43cef4387cb5",
         "@veyocast/control:lint: $ eslint . --max-warnings=0",
+        "@veyocast/control-mobile:lint: cache hit, replaying logs 4ebeb3ce7b793b9e",
+        "@veyocast/control-mobile:lint: $ eslint . --max-warnings=0",
         "",
         " Tasks:    30 successful, 30 total",
         "Cached:    29 cached, 30 total",
-        "  Time:    6.85s ",
+        "  Time:    7.123s ",
         ""
       ]
     },
     "typecheck": {
-      "sha256": "7bd5614a27bf4567ad33c60cb3ec51e5d492a5fd29d0af2f24a01635d6d3a9e5",
+      "sha256": "9fb5352bfb370a5d5f5823a4fc1b088e0c57b206b1310e943b28d614577c210d",
       "tail": [
-        "@veyocast/marketing:typecheck: $ tsc --noEmit",
-        "@veyocast/control:typecheck: cache miss, executing c438347bff18a46d",
+        "@veyocast/control-mobile:typecheck: $ tsc --noEmit",
+        "@veyocast/control:typecheck: cache miss, executing a5b0d84015a47fa4",
         "@veyocast/control:typecheck: $ tsc --noEmit",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    27 cached, 30 total",
-        "  Time:    14.094s ",
+        "Cached:    29 cached, 30 total",
+        "  Time:    3.256s ",
         ""
       ]
     },
     "unit": {
-      "sha256": "b69c635668acbb5c77fd6a650bc792bfb47027eb532fa189c10d3bbe87807da9",
+      "sha256": "9d4fcda11ef8889d68cc97d9fab09272f749c88233733d3193d0957de00a1977",
       "tail": [
         "@veyocast/control-mobile:test:    Start at  17:21:08",
         "@veyocast/control-mobile:test:    Duration  1.16s (transform 1.33s, setup 0ms, collect 3.78s, tests 119ms, environment 2ms, prepare 1.10s)",
         "@veyocast/control-mobile:test: ",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    25 cached, 30 total",
-        "  Time:    19.821s ",
+        "Cached:    28 cached, 30 total",
+        "  Time:    13.471s ",
         ""
       ]
     },
     "controlProductionBuild": {
-      "sha256": "1197ceed3471809a2dcedc28eff6388bfc334436c46b863ba26c67a567b47fcf",
+      "sha256": "a557ce802c4eabdcedb8299dd7b67bbe5c6bb2a03266efbbf77305a0c257e539",
       "tail": [
         "",
         "",
@@ -215,8 +215,18 @@
   "review": "All concrete actor/journal/CAS/cache-purge/MFA/render-recovery findings fixed and peer-reviewed.",
   "dependencyChange": "One explicit workspace @veyocast/studio dependency; lockfile adds exactly three importer lines, no version upgrades.",
   "remaining": [
-    "Full exact PR CI and integration after healthy S226 release",
+    "Final exact PR CI; final staging SHA and same immutable images promoted to production",
     "First native Control store/bootstrap signing/Play configuration absent; no prior Control install to update",
     "Installed device, SecureStore, OS biometric/camera/notifications and physical visual acceptance deferred to device tests; this export is no signed installable artifact"
+  ],
+  "stagedBaselineMainMerge": "848ab297d04cf36891881d27a1da7e8456e16b04",
+  "additionalRealServices": [
+    "execution/evidence/sponsor-native-post-recovery.json",
+    "execution/evidence/studio-semantic-label-and-contrast.json",
+    "execution/evidence/templates-real-services-final.json",
+    "execution/evidence/support-real-services-final.json",
+    "execution/evidence/composition-real-services-final.json",
+    "execution/evidence/player-no-content-cache-real-services.json",
+    "execution/evidence/venue-existing-denial-real-services.json"
   ]
 }

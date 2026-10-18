@@ -1,6 +1,6 @@
 import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, URL } from "node:url";
 import { join } from "node:path";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -32,6 +32,7 @@ function scopedCss(filename, scope) {
       // primitives, including their pseudo/focus/disabled and mobile rules.
       const variants = {primary:"primary",secondary:"secondary",ghost:"ghost",danger:"destructive",sm:"sm",lg:"lg"};
       const sharedButtons = rule.selectors.filter(selector => /\.btn(?:\b|-)/.test(selector)).map(selector => selector.replace(/\.btn(?:-([a-z]+))?(?![\w-])/g, (match, variant) => variant ? variants[variant] ? `.vc-button.vc-button--${variants[variant]}` : match : ".vc-button").replace(".sync-control", ".sync-control.app-shell"));
+      const semanticStudioLabels=rule.selectors.filter(selector=>selector.endsWith('.vc-studio-properties label')).map(selector=>selector.replace(/label$/,'.vc-field-label'));
       const studioButtons=rule.selectors.filter(selector=>selector.endsWith('.vc-studio-top-actions button')).map(selector=>selector.replace('.sync-control','.sync-control.app-shell').replace(/button$/,'.vc-button'));
       const accountAvatars=rule.selectors.filter(selector=>selector==='.sync-control .avatar-button').map(()=>'.sync-control .vx-account .avatar-button');
       const workspaceAvatars=rule.selectors.filter(selector=>selector==='.sync-control .workspace-avatar').map(()=>'.sync-control .vx-tenant .workspace-avatar');
@@ -50,7 +51,10 @@ function scopedCss(filename, scope) {
       // measured Chromium button inset (1px 6px) on that semantic equivalent.
       if(rule.selectors.some(selector=>selector.endsWith('.vc-filmstrip-heading>button'))&&!rule.nodes.some(node=>node.type==='decl'&&node.prop==='padding'))rule.append({prop:'padding',value:'1px 6px'});
       if(rule.selectors.some(selector=>selector.endsWith('.vc-back-button'))&&!rule.nodes.some(node=>node.type==='decl'&&node.prop==='padding'))rule.append({prop:'padding',value:'1px 6px'});
-      rule.selectors = [...new Set([...rule.selectors, ...links, ...contentLinks, ...studioHeadings, ...sharedButtons,...studioButtons,...accountAvatars,...workspaceAvatars,...semanticEmptyHeadings,...canonicalEmptyHeadings,...overviewButtons,...planningLinks,...planningHeadings])];
+      // The light background swatch keeps its approved surface, with readable
+      // label ink from the locked brand token instead of white on pale grey.
+      if(rule.selectors.includes('.sync-control .vc-background-choices>.light'))rule.append({prop:'color',value:'var(--vc-brand-ink-black)'});
+      rule.selectors = [...new Set([...rule.selectors, ...links, ...contentLinks, ...studioHeadings, ...sharedButtons,...studioButtons,...semanticStudioLabels,...accountAvatars,...workspaceAvatars,...semanticEmptyHeadings,...canonicalEmptyHeadings,...overviewButtons,...planningLinks,...planningHeadings])];
     }
   });
   if (scope === ".mk-site") tree.walkDecls(declaration => {
