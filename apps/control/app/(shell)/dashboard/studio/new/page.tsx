@@ -1,90 +1,26 @@
 import Link from "next/link";
-
+import { notFound } from "next/navigation";
 import { hasCapability } from "@veyocast/auth";
-import {
-  studioSitesSystemTemplates,
-  studioTemplateCategories,
-} from "@veyocast/studio";
-import { Button, PageHeader } from "@veyocast/ui";
-
+import { syncContentFamilies } from "@veyocast/contracts";
+import { Button } from "@veyocast/ui";
 import { requireTenantControlSession } from "../../../../../lib/control-session";
-import { createStudioProject } from "../actions";
-import { loadStudioBrandResources, loadStudioOverview } from "../data";
 import { SyncStudioCreateDialog } from "../sync-studio-create-dialog";
-import { NewStudioForm } from "./studio-new-form";
+import { loadSyncCreateWizardData } from "../sync-create-wizard-data.server";
+import { SyncCreateWizard } from "../sync-create-wizard";
 
-export default async function NewStudioPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ family?: string }>;
-}) {
-  const session = await requireTenantControlSession("tenant.studio.create");
-  const { family } = await searchParams;
-  const canCreate =
-    session.tenantStatus === "active" &&
-    hasCapability(session.capabilities, "tenant.studio.create");
-  if (!family) {
-    return (
-      <>
-        <PageHeader
-          title="Nieuw ontwerp"
-          description="Kies een template en maak het van jouw club."
-          actions={
-            <Button asChild variant="secondary">
-              <Link href="/dashboard/content">Naar de bibliotheek</Link>
-            </Button>
-          }
-        />
-        <SyncStudioCreateDialog
-          tenantId={session.tenantId}
-          tenantName={session.tenant}
-          canCreate={canCreate && session.isLive}
-          initialOpen
-        />
-      </>
-    );
+export default async function NewStudioPage({ searchParams }: { searchParams: Promise<{ family?: string; mode?: string; group?: string }> }) {
+  const session = await requireTenantControlSession();
+  const query = await searchParams;
+  if (query.family) {
+    const family = syncContentFamilies.find(value => value.id === query.family);
+    if (!family) notFound();
+    const data = await loadSyncCreateWizardData(family.id, query.mode === "connected" || query.mode === "manual" ? query.mode : undefined);
+    if (!data) return <p role="alert" className="notice notice--critical">De beveiligde wizard kan niet worden geopend. Er is niets aangemaakt; meld je opnieuw aan en probeer nogmaals.</p>;
+    return <SyncCreateWizard key={`${data.actorScope}:${data.family}`} data={data} />;
   }
-
-  const [tenantTemplateData, brandResources] = await Promise.all([
-    loadStudioOverview(session.tenantId, session.isLive, session.userId, {
-      format: "all",
-      kind: "template",
-      owner: "all",
-      sort: "name",
-      status: "active",
-      updated: "all",
-      view: "grid",
-    }),
-    loadStudioBrandResources(session.tenantId, session.isLive),
-  ]);
-
-  return (
-    <NewStudioForm
-      action={createStudioProject}
-      canCreate={canCreate}
-      canManageTemplates={hasCapability(
-        session.capabilities,
-        "tenant.studio.template.manage",
-      )}
-      categories={studioTemplateCategories}
-      tenantBrand={brandResources.brandKit}
-      tenantTemplates={tenantTemplateData.projects.flatMap((project) =>
-        project.document
-          ? [
-              {
-                description: "Herbruikbaar template van deze vereniging.",
-                document: project.document,
-                formatId:
-                  project.orientation === "portrait"
-                    ? ("portrait-hd" as const)
-                    : ("landscape-hd" as const),
-                id: project.id,
-                name: project.name,
-              },
-            ]
-          : [],
-      )}
-      templates={studioSitesSystemTemplates}
-    />
-  );
+  const canCreate = session.isLive && session.tenantStatus === "active" && (hasCapability(session.capabilities, "tenant.studio.create") || hasCapability(session.capabilities, "tenant.dynamic_slide.write"));
+  return <>
+    <header className="section-header"><div><div className="eyebrow">JE CREATIEVE THUISBASIS</div><h1>Nieuw ontwerp</h1><p>Kies een template en maak het van jouw club.</p></div><Button asChild variant="secondary"><Link href="/dashboard/content">Naar de bibliotheek</Link></Button></header>
+    <SyncStudioCreateDialog tenantId={session.tenantId} tenantName={session.tenant} actorScope={`${session.tenantId}:${session.userId}`} canCreate={canCreate} initialOpen initialGroup={query.group} preferredMode={query.mode === "connected" || query.mode === "manual" ? query.mode : undefined} />
+  </>;
 }

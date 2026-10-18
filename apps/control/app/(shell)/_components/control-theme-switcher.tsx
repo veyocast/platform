@@ -3,6 +3,7 @@
 import {
   Dialog,
   DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
@@ -15,10 +16,12 @@ import {
   MonitorCog,
   Moon,
   Rows3,
-  Sun
+  Sun,
+  X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import styles from "./sync-account-dialog.module.css";
 
 export type ControlThemePreference = "light" | "dark" | "system";
 export type ControlDensityPreference = "comfortable" | "compact";
@@ -142,7 +145,7 @@ export function ControlThemeSwitcher() {
       <DialogTrigger asChild>
         <IconButton
           aria-label={`Thema en dichtheid: ${activeOption.label}`}
-          className="control-theme-switcher__trigger"
+          className={`control-theme-switcher__trigger ${styles.preferenceTrigger}`}
           title={`Thema en dichtheid: ${activeOption.label}`}
         >
           <ActiveIcon aria-hidden="true" />
@@ -152,20 +155,28 @@ export function ControlThemeSwitcher() {
           />
         </IconButton>
       </DialogTrigger>
-      <DialogContent className="control-theme-switcher__menu">
-        <DialogTitle>Weergave aanpassen</DialogTitle>
-        <DialogDescription>
-          Kies een thema en de informatiedichtheid van Control.
-        </DialogDescription>
-        <DialogBody>
-          <div aria-label="Thema kiezen" role="radiogroup">
-            <p className="control-theme-switcher__label">Thema</p>
+      <DialogContent showClose={false} className={styles.dialog} onKeyDownCapture={event => {
+        // This nested dialog owns Escape; the enclosing account stays open.
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          setMenuOpen(false);
+        }
+      }}>
+        <header className={styles.header}>
+          <DialogTitle className={styles.title}>Weergave aanpassen</DialogTitle>
+          <DialogClose className={`icon-button ${styles.close}`} aria-label="Sluiten"><X size={18} /></DialogClose>
+        </header>
+        <DialogBody className={styles.body}>
+          <DialogDescription className={styles.description}>Kies een thema en de informatiedichtheid van Control.</DialogDescription>
+          <div aria-label="Thema kiezen" className={styles.options} role="radiogroup">
+            <p className={styles.label}>Thema</p>
             {themeOptions.map((option) => {
               const Icon = option.icon;
               return (
                 <button
                   aria-checked={preference === option.value}
-                  className="control-theme-switcher__option"
+                  className={styles.option}
                   key={option.value}
                   onClick={() => selectTheme(option.value)}
                   role="radio"
@@ -179,16 +190,16 @@ export function ControlThemeSwitcher() {
           </div>
           <div
             aria-label="Informatiedichtheid kiezen"
-            className="control-theme-switcher__density"
+            className={styles.options}
             role="radiogroup"
           >
-            <p className="control-theme-switcher__label">Dichtheid</p>
+            <p className={styles.label}>Dichtheid</p>
             {densityOptions.map((option) => {
               const Icon = option.icon;
               return (
                 <button
                   aria-checked={density === option.value}
-                  className="control-theme-switcher__option"
+                  className={styles.option}
                   key={option.value}
                   onClick={() => selectDensity(option.value)}
                   role="radio"

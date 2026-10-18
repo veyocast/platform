@@ -1,7 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { sourceOverviewErrorCopy, sourceOverviewHealth, sourceOverviewLedHealth, sourceOverviewSportlinkHealth, worstSourceOverviewHealth, type SourceOverviewRow } from "./sites-sources-model";
+import { parseSourceSelection, sourceSelectionHref, sourceOverviewErrorCopy, sourceOverviewHealth, sourceOverviewLedHealth, sourceOverviewSportlinkHealth, worstSourceOverviewHealth, type SourceOverviewRow } from "./sites-sources-model";
 const now = Date.parse("2026-10-11T14:00:00Z");
 const source: SourceOverviewRow = { id: "stored-source", name: "Actuele feed", kind: "rss", status: "active", provider_status: "ready", last_successful_sync_at: new Date(now - 60_000).toISOString(), last_error_code: null, refreshMinutes: 5 };
+describe("Source dialog identities are real resources rather than provider labels", () => {
+  const id = "23400000-0000-4000-8000-000000000001";
+  it("round trips every provider without inventing a resource for creation", () => {
+    for (const provider of ["sportlink", "rss", "twelve", "led", "youtube"] as const) {
+      const selection = { mode: "detail" as const, provider, id };
+      const params = Object.fromEntries(new URL(sourceSelectionHref(selection), "https://control.example").searchParams);
+      expect(parseSourceSelection(params)).toEqual(selection);
+      expect(parseSourceSelection({ connect: provider })).toEqual({ mode: "create", provider });
+    }
+  });
+  it("rejects labels, extra segments, unsupported providers and malformed UUIDs", () => {
+    for (const value of ["sportlink", "led:led", `unknown:${id}`, `rss:${id}:extra`, `rss:${id}/settings`, "rss:123"]) expect(parseSourceSelection({ source: value })).toBeNull();
+    expect(parseSourceSelection({ source: "bad", connect: "rss" })).toBeNull();
+    expect(parseSourceSelection({ connect: "not-a-provider" })).toBeNull();
+    expect(parseSourceSelection({})).toBeNull();
+  });
+});
 describe("Bronoverzicht behoudt recente fouten en actuele leases", () => {
   it("laat de laatste datasetfout vóór oude success zien en bewaart paused prioriteit", () => {
     const policies = [{ enabled: true, frequency: "five_minutes", last_success_at: new Date(now - 60_000).toISOString(), last_run_status: "failed", last_error_code: "SPORTLINK_SYNC_COMPLETE_57014" }];

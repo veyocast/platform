@@ -1,16 +1,15 @@
 import Link from "next/link";
-import sites from "../sites-screen-auxiliary.module.css";
-
+import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import { hasCapability } from "@veyocast/auth";
-
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
-import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import { claimScreenPairing } from "../actions";
-import { ScreenSetupDialog } from "../screen-setup-dialog";
+import { ScreenPlayerInstructions, ScreenSetupDialog } from "../screen-setup-dialog";
 import { loadCompositionWorkspace } from "../screen-composition-data";
 import { loadScreenDetail, loadScreenFleet } from "../data";
+import { currentPlayerHeartbeats } from "../sync-screen-detail-model";
 import { OnboardingStatusRefresh } from "./onboarding-status-refresh";
+import styles from "../sync-screen-setup.module.css";
 
 type NewScreenPageProps = {
   searchParams: Promise<{ code?: string; fout?: string; screen?: string; succes?: string }>;
@@ -20,138 +19,30 @@ export default async function NewScreenPage({ searchParams }: NewScreenPageProps
   const session = await requireTenantControlSession("tenant.screen.read");
   const query = await searchParams;
   const pairingCode = query.code?.toUpperCase().replace(/[^A-Z0-9]/g, "") ?? "";
-  const fleet = session.isLive && session.tenantId
-    ? await loadScreenFleet(session.tenantId)
-    : null;
-  const selectedScreen = fleet?.screens.find((screen) => screen.id === query.screen) ?? null;
+  const fleet = session.isLive && session.tenantId ? await loadScreenFleet(session.tenantId) : null;
+  const selectedScreen = fleet?.screens.find(screen => screen.id === query.screen) ?? null;
   const composition = await loadCompositionWorkspace(session.tenantId, session.isLive, session.tenant);
-  const detail = selectedScreen && session.tenantId
-    ? await loadScreenDetail(session.tenantId, selectedScreen.id)
-    : null;
-  const pairedDevice = detail?.devices.find((device) => device.status === "paired") ?? null;
-  const firstHeartbeat = detail?.heartbeats[0] ?? null;
-  const canManage = Boolean(
-    session.isLive &&
-    session.tenantStatus === "active" &&
-    hasCapability(session.capabilities, "tenant.screen.manage")
-  );
+  const detail = selectedScreen && session.tenantId ? await loadScreenDetail(session.tenantId, selectedScreen.id) : null;
+  const pairedDevice = detail?.devices.find(device => device.status === "paired") ?? null;
+  const firstHeartbeat = currentPlayerHeartbeats(pairedDevice, detail?.heartbeats ?? [])[0] ?? null;
+  const canManage = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.screen.manage"));
   const limitReached = Boolean(fleet && fleet.screens.length >= fleet.limit);
-
-  return <div className={sites.page}>
-    <Link className="breadcrumb-link" href="/dashboard/screens">← Terug naar schermvloot</Link>
-    <PageHeader
-      actions={selectedScreen ? <Link className="button-link button-link--secondary" href={`/dashboard/screens/${selectedScreen.id}`}>Open schermdetail</Link> : null}
-      description="Doorloop schermdetails, optionele content, veilige pairing en de eerste heartbeat in één controleerbare flow."
-      eyebrow={`${session.tenant} · Guided onboarding`}
-      status={{
-        label: firstHeartbeat ? "Onboarding voltooid" : selectedScreen ? "Onboarding bezig" : "Nieuwe onboarding",
-        tone: firstHeartbeat ? "success" : "info"
-      }}
-      title="Scherm toevoegen"
-    />
-
+  return <div className={`px-pages ${styles.page}`}>
+    <Link className="px-back" href="/dashboard/screens"><ArrowLeft size={16} aria-hidden="true" />Alle schermen</Link>
+    <header className="section-header"><div><div className="eyebrow">SCREEN CONTROL</div><h1>{pairedDevice ? "Je scherm is gekoppeld" : "Een scherm toevoegen"}</h1><p>{selectedScreen ? `${selectedScreen.name} · ${selectedScreen.location || "Geen locatie"} · ${selectedScreen.orientation === "portrait" ? "9:16" : "16:9"}` : "Een nieuwe plek voor je verhaal. Begin bij de Player op je scherm."}</p></div>{selectedScreen ? <div className="header-actions"><Link className="btn btn-secondary" href={`/dashboard/screens/${selectedScreen.id}`}>Open schermdetail <ArrowRight size={16} aria-hidden="true" /></Link></div> : null}</header>
     {query.fout ? <p className="notice notice--critical" role="alert"><strong>Stap niet voltooid.</strong> {query.fout}</p> : null}
     {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
     {fleet?.error || detail?.error ? <p className="notice notice--critical" role="alert"><strong>Onboardingdata onvolledig.</strong> {fleet?.error || detail?.error}</p> : null}
     {query.screen && !selectedScreen ? <p className="notice notice--warning" role="status">Het gekozen scherm hoort niet bij deze vereniging of bestaat niet meer. Start een nieuwe onboarding vanuit de schermvloot.</p> : null}
-
-    {selectedScreen ? <ol className="screen-onboarding-steps" aria-label="Onboardingstappen">
-      <OnboardingStep complete={Boolean(selectedScreen)} current={!selectedScreen} label="Schermdetails" />
-      <OnboardingStep complete={Boolean(selectedScreen)} current={false} label={selectedScreen?.assignedReleaseId ? "Content gekozen" : "Content optioneel"} />
-      <OnboardingStep complete={Boolean(pairedDevice)} current={Boolean(selectedScreen && !pairedDevice)} label="Player koppelen" />
-      <OnboardingStep complete={Boolean(firstHeartbeat)} current={Boolean(pairedDevice && !firstHeartbeat)} label="Eerste heartbeat" />
-      <OnboardingStep complete={Boolean(firstHeartbeat)} current={Boolean(firstHeartbeat)} label="Afronden" />
-    </ol> : null}
-
-    {!selectedScreen ? (
-      <section className="onboarding-workspace" aria-labelledby="screen-details-title">
-        <h2 id="screen-details-title">Schermdetails en eerste content</h2>
-        {limitReached ? <p className="notice notice--warning" role="status">De schermlimiet is bereikt. Er wordt niets aangemaakt; vraag een platformbeheerder om de limiet te verhogen.</p> : null}
-        <ScreenSetupDialog defaultOpen={!limitReached} disabled={!canManage || limitReached} groups={fleet?.groups ?? []} releases={fleet?.assignableReleases ?? []} previews={composition.playlists} settings={fleet?.settings ?? { width: 1920, height: 1080, orientation: "landscape" }} pairingCode={pairingCode} />
-      </section>
-    ) : (
-      <section className="onboarding-workspace" aria-labelledby="pairing-step-title">
-        <div className="workspace-section__header">
-          <div>
-            <p className="eyebrow">Stap 3 en 4</p>
-            <h2 className="workspace-section__title" id="pairing-step-title">Player koppelen en eerste heartbeat</h2>
-            <p className="work-panel__meta">{selectedScreen.name} · {selectedScreen.location || "Geen locatie"} · {selectedScreen.orientation === "portrait" ? "staand" : "liggend"}</p>
-          </div>
-          <StatusPill label={pairedDevice ? "Gekoppeld" : "Code vereist"} tone={pairedDevice ? "success" : "warning"} />
-        </div>
-
-        {!pairedDevice ? <>
-          <div className="notice" role="status">
-            <strong>Open de Player op het fysieke scherm.</strong> Neem alleen de tijdelijke zeskaraktercode over. Een pairingtoken of device secret verschijnt nooit in Control, logs of de URL.
-          </div>
-          <form action={claimScreenPairing} className="playlist-form onboarding-form">
-            <input name="flow" type="hidden" value="onboarding" />
-            <input name="screenId" type="hidden" value={selectedScreen.id} />
-            <div className="field">
-              <label htmlFor="pairing-code">Koppelcode</label>
-              <input autoCapitalize="characters" autoComplete="one-time-code" defaultValue={pairingCode} disabled={!canManage || selectedScreen.status !== "active"} id="pairing-code" inputMode="text" maxLength={7} name="pairingCode" pattern="[A-Za-z2-9]{3}[ -]?[A-Za-z2-9]{3}" placeholder="ABC DEF" required type="text" />
-              <p>De code verloopt na tien minuten, is eenmalig en wordt begrensd tegen herhaalde pogingen.</p>
-            </div>
-            <div className="field">
-              <label htmlFor="device-name">Playernaam</label>
-              <input defaultValue="LG webOS Signage" disabled={!canManage || selectedScreen.status !== "active"} id="device-name" maxLength={120} name="deviceName" type="text" />
-            </div>
-            <button className="button-link button-link--primary" disabled={!canManage || selectedScreen.status !== "active"} type="submit">Player veilig koppelen</button>
-          </form>
-        </> : !firstHeartbeat ? <>
-          <OnboardingStatusRefresh />
-          <p className="notice" role="status"><strong>Pairing is gereed; heartbeat wordt verwacht.</strong> Laat de Player online en open. De huidige lokale release blijft leidend totdat een nieuwe release volledig is geverifieerd.</p>
-          <dl className="onboarding-summary">
-            <SummaryItem label="Player" value={pairedDevice.deviceName || "VeyoCast Player"} />
-            <SummaryItem label="Platform" value={pairedDevice.platform || "Nog niet gerapporteerd"} />
-            <SummaryItem label="Appversie" value={pairedDevice.appVersion || "Nog niet gerapporteerd"} />
-            <SummaryItem label="Opslag" value="Wordt bij de eerste heartbeat gemeten" />
-          </dl>
-          <p className="work-panel__meta">Deze status wordt automatisch vernieuwd.</p>
-        </> : <>
-          <p className="notice notice--success" role="status"><strong>Onboarding voltooid.</strong> De eerste heartbeat is ontvangen. Open het schermdetail voor content, Player, synchronisatie en gebeurtenissen.</p>
-          <dl className="onboarding-summary">
-            <SummaryItem label="Runtime" value={firstHeartbeat.runtimeState} />
-            <SummaryItem label="Appversie" value={firstHeartbeat.appVersion || pairedDevice.appVersion || "Onbekend"} />
-            <SummaryItem label="Opslag" value={formatStorage(firstHeartbeat.storageUsedBytes, firstHeartbeat.storageQuotaBytes)} />
-            <SummaryItem label="Actieve release" value={releaseLabel(firstHeartbeat.activeReleaseId, detail?.releases ?? [])} />
-            <SummaryItem label="Gewenste release" value={releaseLabel(pairedDevice.desiredReleaseId, detail?.releases ?? [])} />
-            <SummaryItem label="Eerste status" value={formatDate(firstHeartbeat.createdAt)} />
-          </dl>
-          <Link className="button-link button-link--primary" href={`/dashboard/screens/${selectedScreen.id}`}>Onboarding afronden</Link>
-        </>}
-      </section>
-    )}
+    {!selectedScreen ? <section className={styles.surface} aria-label="Scherm toevoegen">{limitReached ? <p className="notice notice--warning" role="status">De schermlimiet is bereikt. Er wordt niets aangemaakt; vraag een platformbeheerder om de limiet te verhogen.</p> : null}<ScreenSetupDialog defaultOpen={!limitReached} disabled={!canManage || limitReached} groups={fleet?.groups ?? []} releases={fleet?.assignableReleases ?? []} previews={composition.playlists} settings={fleet?.settings ?? { width: 1920, height: 1080, orientation: "landscape" }} pairingCode={pairingCode} triggerLabel="Scherm koppelen" /></section> : !pairedDevice ? <section className={styles.surface} aria-labelledby="pairing-step-title">
+      <ScreenPlayerInstructions />
+      <div><span className="px-overline">SCHERMGEGEVENS OPGESLAGEN</span><h2 id="pairing-step-title">Koppel je echte Player</h2><p className="muted">Neem de tijdelijke code van je Player over. De schermgegevens en gekozen publicatie zijn bewaard; de Player is nog niet gekoppeld.</p></div>
+      <form action={claimScreenPairing} className={`${styles.form} ${styles.pairForm}`}><input name="flow" type="hidden" value="onboarding" /><input name="screenId" type="hidden" value={selectedScreen.id} /><div className={styles.grid}><label className="field"><span>Koppelcode</span><input autoCapitalize="characters" autoComplete="one-time-code" className="px-code-input" defaultValue={pairingCode} disabled={!canManage || selectedScreen.status !== "active"} inputMode="text" maxLength={7} name="pairingCode" pattern="[A-Za-z2-9]{3}[ -]?[A-Za-z2-9]{3}" placeholder="Code van je Player" required type="text" /></label><label className="field"><span>Playernaam</span><input defaultValue="VeyoCast Player" disabled={!canManage || selectedScreen.status !== "active"} maxLength={120} name="deviceName" type="text" /></label></div><p className={styles.notice}>De tijdelijke code is eenmalig en verloopt. Een pairingtoken of device secret verschijnt nooit in Control, logs of de URL. Een mislukte koppeling verandert je opgeslagen schermgegevens niet.</p><div className="row"><button className="btn btn-primary" disabled={!canManage || selectedScreen.status !== "active"} type="submit">Player veilig koppelen <ArrowRight size={16} aria-hidden="true" /></button></div></form>
+    </section> : <section className={styles.surface} aria-label="Koppelresultaat"><div className={styles.success}><CheckCircle2 size={58} aria-hidden="true" /><h2>Een nieuwe plek voor je verhaal.</h2>{firstHeartbeat ? <p role="status"><strong>Onboarding voltooid.</strong> {selectedScreen.name} heeft het eerste contact gemeld. Een nieuwe publicatie wordt pas actief na volledige download, verificatie en een bevestigd zichtbaar frame.</p> : <><OnboardingStatusRefresh /><p role="status">De Player is gekoppeld. Laat hem online en open; we wachten op de eerste heartbeat.</p></>}<Link className="btn btn-primary" href={`/dashboard/screens/${selectedScreen.id}`}>{firstHeartbeat ? "Onboarding afronden" : "Naar schermdetail"}<ArrowRight size={16} aria-hidden="true" /></Link></div><details><summary>Playergegevens en eerste contact</summary><dl className={styles.facts}><SummaryItem label="Player" value={pairedDevice.deviceName || "VeyoCast Player"} /><SummaryItem label="Platform" value={pairedDevice.platform || "Nog niet gerapporteerd"} /><SummaryItem label="Appversie" value={firstHeartbeat?.appVersion || pairedDevice.appVersion || "Nog niet gerapporteerd"} /><SummaryItem label="Runtime" value={firstHeartbeat?.runtimeState || "Nog niet gerapporteerd"} /><SummaryItem label="Opslag" value={firstHeartbeat ? formatStorage(firstHeartbeat.storageUsedBytes, firstHeartbeat.storageQuotaBytes) : "Wordt bij de eerste heartbeat gemeten"} /><SummaryItem label="Door Player gemelde release" value={releaseLabel(firstHeartbeat?.activeReleaseId ?? null, detail?.releases ?? [])} /><SummaryItem label="Gewenste release" value={releaseLabel(pairedDevice.desiredReleaseId, detail?.releases ?? [])} /><SummaryItem label="Eerste status" value={firstHeartbeat ? formatTenantDateTime(firstHeartbeat.createdAt, null) : "Nog geen heartbeat"} /></dl></details></section>}
   </div>;
 }
 
-function OnboardingStep({ complete, current, label }: { complete: boolean; current: boolean; label: string }) {
-  return <li aria-current={current ? "step" : undefined} data-complete={complete} data-current={current}>
-    <span aria-hidden="true">{complete ? "✓" : "○"}</span>
-    <strong>{label}</strong>
-  </li>;
-}
-
-function SummaryItem({ label, value }: { label: string; value: string }) {
-  return <div><dt>{label}</dt><dd>{value}</dd></div>;
-}
-
-function releaseLabel(releaseId: string | null, releases: Array<{ id: string; label: string }>) {
-  if (!releaseId) return "Nog geen actieve release";
-  return releases.find((release) => release.id === releaseId)?.label ?? `Release ${releaseId.slice(0, 8)}`;
-}
-
-function formatStorage(used: number | null, quota: number | null) {
-  if (used === null || quota === null) return "Onbekend";
-  return `${formatBytes(used)} / ${formatBytes(quota)}`;
-}
-
-function formatBytes(value: number) {
-  if (value < 1024 ** 2) return `${Math.round(value / 1024)} kB`;
-  if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`;
-  return `${(value / 1024 ** 3).toFixed(1)} GB`;
-}
-
-function formatDate(value: string) {
-  return formatTenantDateTime(value, null);
-}
+function SummaryItem({ label, value }: { label: string; value: string }) { return <div><dt>{label}</dt><dd>{value}</dd></div>; }
+function releaseLabel(releaseId: string | null, releases: Array<{ id: string; label: string }>) { return releaseId ? releases.find(release => release.id === releaseId)?.label ?? `Release ${releaseId.slice(0, 8)}` : "Nog niet gerapporteerd"; }
+function formatStorage(used: number | null, quota: number | null) { return used === null || quota === null ? "Onbekend" : `${formatBytes(used)} / ${formatBytes(quota)}`; }
+function formatBytes(value: number) { if (value < 1024 ** 2) return `${Math.round(value / 1024)} kB`; if (value < 1024 ** 3) return `${(value / 1024 ** 2).toFixed(1)} MB`; return `${(value / 1024 ** 3).toFixed(1)} GB`; }

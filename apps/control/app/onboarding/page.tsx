@@ -1,10 +1,10 @@
 import { JourneyShell } from "@veyocast/ui";
 import { randomUUID } from "node:crypto";
-import Image from "next/image";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { AuthBrand } from "../_components/auth-brand";
 import {
   onboardingSetupCookieName,
   onboardingSourceKeys
@@ -85,7 +85,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
 
   return (
     <main className="onboarding-shell">
-      <Image alt="VeyoCast" className="onboarding-brand" height={32} priority src="/brand/veyocast-logo-primary.svg" width={134} />
+      <AuthBrand />
       <JourneyShell
         aside={<OnboardingPulse pairedCount={pairedCount} releaseCount={releaseCount} screenCount={screens.length} />}
         currentStep={state.current_step}
@@ -125,7 +125,7 @@ async function OrganizationClaim({ error }: Readonly<{ error?: string }>) {
 
   return (
     <main className="onboarding-shell">
-      <Image alt="VeyoCast" className="onboarding-brand" height={32} priority src="/brand/veyocast-logo-primary.svg" width={134} />
+      <AuthBrand />
       <JourneyShell
         aside={setup ? <SetupIntentSummary setup={setup} /> : <OnboardingPromise />}
         currentStep="organization"

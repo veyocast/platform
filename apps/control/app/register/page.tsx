@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 
+import { AuthBrand } from "../_components/auth-brand";
 import { getControlRuntimeMode } from "../../lib/supabase/config";
 import { registerAccount } from "./actions";
 
@@ -15,14 +15,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   return (
     <main className="auth-shell auth-shell--vector">
       <section className="auth-panel" aria-labelledby="register-title">
-        <Image
-          alt="VeyoCast"
-          className="auth-brand"
-          height={34}
-          priority
-          src="/brand/veyocast-logo-primary.svg"
-          width={142}
-        />
+        <AuthBrand />
         <div>
           <p className="auth-kicker">14 dagen gratis · daarna € 5,95 incl. btw per actief scherm</p>
           <h1 className="auth-title" id="register-title">Maak je VeyoCast-account</h1>

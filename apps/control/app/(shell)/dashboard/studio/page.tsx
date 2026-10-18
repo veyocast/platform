@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {randomUUID} from "node:crypto";
 import {createStudioTvCollection} from "./sites-series-actions";
 import {
@@ -56,6 +57,7 @@ type StudioPageProps = {
 export default async function StudioPage({ searchParams }: StudioPageProps) {
   const session = await requireTenantControlSession("tenant.studio.read");
   const params = await searchParams;
+  if (params.advanced !== "1") redirect("/dashboard/content");
   const filter = parseFilter(params);
   const [data, brandResources, dynamicDesignCount, authoringPaused] = await Promise.all([
     loadStudioOverview(

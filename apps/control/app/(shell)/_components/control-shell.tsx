@@ -8,8 +8,6 @@ import {
   DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogPortalProvider,
   DialogTitle,
   DialogTrigger,
@@ -41,6 +39,7 @@ import {
   Home,
   LayoutDashboard,
   ListVideo,
+  LogOut,
   LoaderCircle,
   Menu,
   Monitor,
@@ -88,6 +87,8 @@ import {
 } from "./global-upload-tray";
 import { FloatingPanel } from "./floating-panel";
 import { ControlNotificationsDialog } from "./control-notifications-dialog";
+import { SyncManagementDialog } from "./sync-management-dialog";
+import accountStyles from "./sync-account-dialog.module.css";
 
 type ControlShellProps = {
   children: ReactNode;
@@ -406,6 +407,7 @@ export function ControlShell({
   const secondaryNavigation = hasTenantNavigationContext
     ? syncManagePaths.flatMap(href => availableItems.filter(item => item.href === href)) : [];
   const managementItems = hasTenantNavigationContext ? availableItems.filter(item => !primaryLabels.includes(item.label)) : [];
+  const hasAdditionalManagement = managementItems.some(item => !secondaryNavigation.some(visible => visible.href === item.href));
   const navigation = (items: ControlNavigationItem[]) => items.map((item) => {
     const label = ({ Vandaag: "Overzicht", "Sponsor Hub": "Sponsors", Engage: "Interactie", Team: "Team & rechten", "Thema's": "Thema’s" } as Record<string, string>)[item.label] ?? item.label;
     const Icon = navigationIcons[label] ?? LayoutDashboard;
@@ -489,7 +491,7 @@ export function ControlShell({
           </FloatingPanel>
           <div className="nav-heading">WERKPLEK</div>
           <nav aria-label="Hoofdnavigatie" className="main-nav">{navigation(primaryNavigation)}</nav>
-          {secondaryNavigation.length ? <><div className="nav-heading">BEHEREN</div><nav aria-label="Beheer" className="secondary-nav sidebar-manage">{navigation(secondaryNavigation)}</nav><Dialog open={isManagementOpen} onOpenChange={setManagementOpen}><DialogTrigger asChild><button className={`nav-link vx-more manage-trigger${managementItems.some(item=>isActive(pathname,item))?" active":""}`} type="button"><Settings2 size={18} strokeWidth={1.7} aria-hidden="true" /><span>Beheer</span><ChevronDown size={14} strokeWidth={1.7} aria-hidden="true" /></button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Beheer</DialogTitle><DialogDescription>Onderdelen die je met je huidige rol kunt openen.</DialogDescription></DialogHeader><DialogBody><nav className="secondary-nav" aria-label="Meer beheeronderdelen">{navigation(managementItems)}</nav></DialogBody></DialogContent></Dialog></> : null}
+          {managementItems.length ? <>{secondaryNavigation.length ? <><div className="nav-heading">BEHEREN</div><nav aria-label="Beheer" className="secondary-nav sidebar-manage">{navigation(secondaryNavigation)}</nav></> : null}<SyncManagementDialog open={isManagementOpen} onOpenChange={setManagementOpen} items={managementItems.map(item=>({...item,active:isActive(pathname,item)}))} onNavigate={()=>closeMobileNavigation(false)}><button className={`nav-link vx-more manage-trigger${hasAdditionalManagement?" sync-management-access":""}${managementItems.some(item=>isActive(pathname,item))?" active":""}`} type="button"><Settings2 size={18} strokeWidth={1.7} aria-hidden="true" /><span>Beheer</span><ChevronDown size={14} strokeWidth={1.7} aria-hidden="true" /></button></SyncManagementDialog></> : null}
           <div className="vx-side-footer">
             {hasTenantNavigationContext && tenantSettingsItem ? <Link aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined} className="vx-side-settings" href={tenantSettingsItem.href}><Settings size={17} aria-hidden="true" /><span>Instellingen</span></Link> : null}
 
@@ -603,6 +605,7 @@ function AccountMenu({
   session: ControlSession;
   variant?: "icon" | "topbar";
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const role = activeScope === "tenant" && session.tenantRoleLabel
     ? session.tenantRoleLabel
     : session.roles[0]
@@ -634,43 +637,44 @@ function AccountMenu({
           </IconButton>
         )}
       </DialogTrigger>
-      <DialogContent className="control-account-menu">
-        <DialogHeader>
-          <div className="control-account-menu__identity">
-            <span className="vx-avatar" aria-hidden="true">
+      <DialogContent ref={dialogRef} showClose={false} className={accountStyles.dialog} onEscapeKeyDown={event => {
+        const targetDialog = event.target instanceof HTMLElement ? event.target.closest('[role="dialog"]') : null;
+        if (targetDialog && targetDialog !== dialogRef.current) event.preventDefault();
+      }}>
+        <header className={accountStyles.header}>
+          <DialogTitle className={accountStyles.title}>Mijn werkplek</DialogTitle>
+          <DialogClose className={`icon-button ${accountStyles.close}`} aria-label="Sluiten"><X size={18} /></DialogClose>
+        </header>
+        <DialogBody className={accountStyles.body}>
+          <DialogDescription className={accountStyles.srOnly}>Je persoonlijke gegevens, toegang en weergavevoorkeuren.</DialogDescription>
+          <div className={`stack ${accountStyles.stack}`}>
+          <div className={`profile-head ${accountStyles.profile}`}>
+            <span className={`avatar-large ${accountStyles.avatar}`} aria-hidden="true">
               {initials(session.userName)}
             </span>
-            <div>
-              <DialogTitle>{session.userName}</DialogTitle>
-              <DialogDescription>{session.email}</DialogDescription>
+            <div className={accountStyles.identity}>
+              <h3>{session.userName}</h3>
+              <p>{session.email}</p>
+              <p>{activeScope === "tenant" ? session.tenant : session.organization}</p>
             </div>
           </div>
-        </DialogHeader>
-        <DialogBody>
-          <nav aria-label="Accountinstellingen" className="control-account-menu__links">
-            {activeScope === "tenant" ? (
-              <Link href="/dashboard/settings">
-                <Settings2 aria-hidden="true" />
-                Profiel en instellingen
-              </Link>
-            ) : null}
+          <p className={accountStyles.role}><BadgeCheck size={16} aria-hidden="true" />{role}</p>
+          <nav aria-label="Accountinstellingen" className={accountStyles.links}>
+            {activeScope === "tenant" ? <>
+              <Button asChild variant="secondary" className={`btn btn-secondary ${accountStyles.action}`}><Link href="/dashboard/account"><BadgeCheck size={18} aria-hidden="true" />Mijn profiel</Link></Button>
+              <Button asChild variant="secondary" className={`btn btn-secondary ${accountStyles.action}`}><Link href="/dashboard/settings"><Settings2 size={18} aria-hidden="true" />Verenigingsinstellingen</Link></Button>
+            </> : null}
             {session.isLive ? (
-              <Link href="/auth/mfa">
-                <ShieldCheck aria-hidden="true" />
-                Accountbeveiliging en MFA
-              </Link>
+              <Button asChild variant="secondary" className={`btn btn-secondary ${accountStyles.action}`}><Link href="/auth/mfa"><ShieldCheck size={18} aria-hidden="true" />Accountbeveiliging en MFA</Link></Button>
             ) : null}
-            <a href="https://veyocast.nl/privacy" rel="noreferrer" target="_blank">
-              <ExternalLink aria-hidden="true" />
-              Privacyverklaring
-            </a>
+            <Button asChild variant="secondary" className={`btn btn-secondary ${accountStyles.action}`}><a href="https://veyocast.nl/privacy" rel="noreferrer" target="_blank"><ExternalLink size={18} aria-hidden="true" />Privacyverklaring</a></Button>
           </nav>
           <section
             aria-labelledby="account-preferences-title"
-            className="control-account-menu__preferences"
+            className={accountStyles.preferences}
           >
             <div>
-              <SlidersHorizontal aria-hidden="true" />
+              <SlidersHorizontal size={20} aria-hidden="true" />
               <div>
                 <h3 id="account-preferences-title">Weergave</h3>
                 <p>Kies thema en informatiedichtheid.</p>
@@ -678,21 +682,17 @@ function AccountMenu({
             </div>
             <ControlThemeSwitcher />
           </section>
-          <p className="control-account-menu__role">
-            <BadgeCheck aria-hidden="true" />
-            {role}
-          </p>
-        </DialogBody>
-        <DialogFooter>
           <form
             action={signOut}
             onSubmit={() => clearTenantScopedLocalData(window.localStorage)}
           >
-            <Button type="submit" variant="destructive">
+            <Button type="submit" variant="secondary" className={`btn btn-secondary ${accountStyles.action}`}>
+              <LogOut size={18} aria-hidden="true" />
               Uitloggen
             </Button>
           </form>
-        </DialogFooter>
+          </div>
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );

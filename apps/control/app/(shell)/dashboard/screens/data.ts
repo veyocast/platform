@@ -82,6 +82,7 @@ export type ScreenHeartbeat = {
   activeReleaseId: string | null;
   appVersion: string | null;
   createdAt: string;
+  deviceId: string;
   id: string;
   runtimeState: string;
   storageQuotaBytes: number | null;
@@ -481,6 +482,7 @@ export async function loadScreenDetail(
       activeReleaseId: heartbeat.active_release_id,
       appVersion: heartbeat.app_version,
       createdAt: heartbeat.created_at,
+      deviceId: heartbeat.device_id,
       id: heartbeat.id,
       runtimeState: heartbeat.runtime_state,
       storageQuotaBytes: nullableNumber(heartbeat.storage_quota_bytes),

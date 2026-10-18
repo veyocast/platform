@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "status": "CORE_WIZARD_PROVEN_FULL_SOURCE_AUDIT_AND_DEPLOYMENT_OPEN",
+  "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "branch": "veyocast/s234-source-template-wizards",
+  "baseReviewHead": "a344e55668d6f1754f961e100d0dce5b2c197f22",
+  "baseMainMerge": "46da925b6f0ff5047484c83620fab3e42a11e6a0",
+  "scope": "All36 readable labelled original layout choices; four-step manual/connected creation; original canonical writers and factual empty starters. Source/default-theme and broader route audits remain open.",
+  "units": {
+    "wizardState": 107,
+    "freshActions": 21,
+    "readLoader": 18,
+    "templateExamples": 40,
+    "actualSourceMappings": "36 manual +30 canonical connected choices; Engage/YouTube retain their existing real controls"
+  },
+  "browser": {
+    "chooserBeforeFinalHintFollowup": 7,
+    "wizardOriginal": 8,
+    "wizardRecoveryFollowup": 2,
+    "management": 4,
+    "note": "Final production-built management and RSS warning Source captures passed their bounded geometry/aXe/no-write guards. Raw differences remain, including safe real data versus Source demos. Full five rounds and domain parity remain open.",
+    "chooserFinal": 7,
+    "wizardCachedSourceFollowup": 1,
+    "sourcesOriginal": 6,
+    "sourcesRecoveryFollowup": 6,
+    "sourcesFinalReadbackFollowup": "6 existing +1 failed RSS plus4 management:10PASS; one new harnessURL failure retained then1/1PASS; title26/24 and900pxcustomrole tested",
+    "account": "5 original +1 nested Escape followup",
+    "screens": "7 new +6 setup compatibility"
+  },
+  "actualAal2": {
+    "reportPath": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-wizard-real/b75f794a-a85a-42f7-930c-7ba0f13630dc/readonly-followup-aa147adc-7176-4d16-b665-e3e6416abffd.json",
+    "sha256": "b79dcfb37890c684586787add09e6b903dc309860abab81c84adfb170cd30768",
+    "originalInterruptedReportPreserved": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-wizard-real/b75f794a-a85a-42f7-930c-7ba0f13630dc/checkpoint.json",
+    "originalGuardClassification": "Only one own canonical connected snapshot added; old rows all unchanged. Separate explicit read-only followup verifies this rather than overwriting the original failed final guard.",
+    "commands": {
+      "manual": {
+        "sameFullFlightCommand": true,
+        "sameNonce": true,
+        "reloadAfterActualCommittedResponseLoss": true,
+        "oneDesign": true,
+        "oneReceipt": true,
+        "id": "448dadb5-fe71-48b4-a221-a5f297eca139"
+      },
+      "connected": {
+        "sameFullFlightCommand": true,
+        "sameNonce": true,
+        "reloadAfterActualCommittedResponseLoss": true,
+        "oneDesign": true,
+        "oneReceipt": true,
+        "id": "c9eecfe8-b041-4475-bb53-0140f60fbfe0"
+      }
+    },
+    "strictTablesUnchanged": 14,
+    "authoringTablesAllOldRowsUnchanged": 6,
+    "newOwnCanonicalSnapshot": {
+      "id": "5e4c9f31-ab10-47df-9d36-0c5b3f73d795",
+      "dynamicSlideId": "c9eecfe8-b041-4475-bb53-0140f60fbfe0",
+      "onlyRegisteredNewSnapshot": true,
+      "allEightOldRowsUnchanged": true
+    },
+    "templateFactsNeverStored": true,
+    "actualFullPageAXe": "0 at390/1440 for manual and connected review after four actual desktop sidebar contrast fixes"
+  },
+  "unchangedAuthoritativeFiles": {
+    "apps/control/app/(shell)/dashboard/studio/sync-studio-actions.ts": "f5b0f667b8e9aef7a8008dc4d43260918ce402be0a8d88454c57bbf73cccb95f",
+    "apps/control/app/(shell)/dashboard/slides/sync-dynamic-actions.ts": "f448ae91534c0228b18e5ae00a0d2aa26892776be18b6224f45285e574e8eba9",
+    "packages/contracts/src/sync-content-families.ts": "bf2e754d264b02c7c49e98235a4b2732821db6e8be4efc54ccc03d6737a15a3d",
+    "packages/contracts/src/sync-slide-presentation.ts": "80fecc053b6ba330272af3ac681dc15651b2291e05ee5c4c69125233586c6256"
+  },
+  "boundaries": [
+    "Five full user-requested audit rounds are NOT complete.",
+    "Actual36GETroute visits and listed Source states passed their bounded checks. All provider acceptance, remaining Source flows, final build, exact-head CI, staging and production of this branch remain open.",
+    "Physical device/24h, SendGrid secrets, YouTube and Mollie account setup were explicitly deferred by user.",
+    "Old theme defaults versus global rollout, rawmedia filmstrip/series and other inventoried Source routes require further real implementation; no fake controls or general V1/pixel claim."
+  ],
+  "latestFoundation": {
+    "lint": "latest30/30PASS,29cached",
+    "controlTypecheck": "PASS after Source readback fixes",
+    "test": "latest30/30PASS,Control1272PASS34existingSKIP",
+    "fullTypecheck": "latest30/30PASS,29cached",
+    "productionBuild": "PASS with dynamic protected routes and secret-free client bundle; separate RAM output",
+    "productionBuildProof": {
+      "path": "/tmp/veyocast-s234-production-build-runtime.json",
+      "sha256": "32e0b27ae120b74825ca02cc6af9b81d33d12fe953dda307365487c3d9c53ba1"
+    }
+  },
+  "actualFamilyRoutes": {
+    "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-family-routes/40f6ba9f-6f3f-40cf-a804-90a361a94d12/checkpoint.json",
+    "sha256": "3b9eb49e7fc991a5e365c04f06dca052c6cb8b387d229208dd758d20dc4b2209"
+  },
+  "actualChooserComparison": {
+    "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-chooser-source-comparison/round1-5db3718c-6cd3-40c4-bdba-09a8c49f6582.json",
+    "sha256": "2424b58be73baa866f83f0fa321a70f10e17076aa8eb016a9854048c131e18f7"
+  },
+  "actualWorkspaceComparison": {
+    "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-workspace-source-comparison/round1-2dad7ba4-3440-4c35-a3b7-f978ec4701fd.json",
+    "sha256": "c6a74feefe3ae2b1cd44da536fd71716b37c42692bfc9e992036258ccf993097",
+    "contexts": 14,
+    "aXeViolations": 0,
+    "overflow": 0,
+    "oldTenantTablesUnchanged": 15,
+    "sourceFilesUnchanged": 60,
+    "blockedDevDiagnostics": 2,
+    "blockedDomainWrites": 0,
+    "screenSetup": "real quota denial captured; actual open-modal capture remains open"
+  },
+  "actualReadonlyReceiptAndPreview": {
+    "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-readonly-receipt-preview/44c8928a-3e77-4d04-bb69-b38c59ff38b7/checkpoint.json",
+    "sha256": "3c930dd80d32653dd42cad4a9cb0d871b011fb30fd3e4ecd83d0550e78f490f4",
+    "allowedReadonlyActions": 2,
+    "oldTenantTablesUnchanged": 19,
+    "legacyJournalByteIdentical": true,
+    "noDesignCreated": true
+  },
+  "providerRecovery": {
+    "path": "/tmp/veyocast-s234-sources-recovery-final-proof.json",
+    "sha256": "00561958f83a75eb18a6ed84e2aff0a4b8e5482ab36b8fda2ac03230f47678a3",
+    "boundary": "Exact three in-memory requests/nonce per provider through unknown->temporary rejection->receipt; controlled receipt, not reload or actual provider acceptance."
+  },
+  "actualBuiltReceiptAndPreview": {
+    "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-built-receipt-preview/0413d00a-b666-4e82-945e-bc83dfc6873f/checkpoint.json",
+    "sha256": "e732ff314af9df49ec5d9d32b309e1e93475fe1c54cc85fe474eca797f5fcb93",
+    "all19TablesUnchanged": true,
+    "readonlyActions": 2
+  },
+  "actualBuiltFinalSource": {
+    "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-built-source-final/round1-e640879f-b27b-4f94-b872-c6b8d5e7d9b1.json",
+    "sha256": "3c2043d01d30900cac034b7bd9c0b2bc70dd88d1b683692d7c965bda482c9bf1",
+    "contexts": 2,
+    "actualAxeViolations": 0,
+    "blockedWrites": 0,
+    "oldTenantTablesUnchanged": 15,
+    "sourceFilesUnchanged": 60
+  }
+}
