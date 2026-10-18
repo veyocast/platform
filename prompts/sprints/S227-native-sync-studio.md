@@ -68,3 +68,17 @@ gereproduceerde CSSOM/computed-style-race van de reeds bestaande mobiele
 tegenmeting. Wacht begrensd op exact de bestaande normalisatieregels; ruwe
 productiemeting, 66 cases, Source-assets, toleranties en alle criteria blijven.
 Geen product-CSSwijziging of vervanging van mislukte oude bewijzen.
+
+Root cleanup-scope na read-only afhankelijkheidscontrole: verwijder uitsluitend
+de zes ongebruikte modules integrations/integrations.module.css,
+playlists/playlists-overview.module.css, Player dynamic-template-media.module.css
+en content-templates sites-experience.module.css, sites-led-slide.module.css,
+sites-studio.module.css. Behoud alle actieve TS-renderers/sites-styles.ts/global
+Sync-CSS en originele referentie-assets. Werk archiveREADME/opruimregister en
+branchbesluiten feitelijk bij; behoud alle unieke branchhistory/actieve worktrees.
+
+Scoped release_audit bezit uitsluitend nieuw
+`archive/branch-review-2026-10-18.json` voor de individuele read-only
+inhouds-/patch-/afhankelijkheidsbesluiten over de178oorspronkelijke heads en
+actieve opvolgers. Origineel beforemanifest, alle branche-/worktreehistory en
+dirty werk blijven onaangeroerd. Geen blind verwijderen op historische trees.

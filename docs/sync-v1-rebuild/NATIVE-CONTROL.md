@@ -94,3 +94,5 @@ bestaande serveractie gaan. Zo wordt met één klik opgeslagen; de expliciete
 overlapbevestiging en serverrechten/CAS/nonce blijven dezelfde. De responsive
 Source-harness wacht begrensd op toepassing van zijn bestaande mobiele
 tegenmetings-CSS; ruwe productiemetingen, Source en toleranties blijven intact.
+
+Gebruiker heeft op18oktober tevens automatische YouTube-controle en Mollie-accountinrichting expliciet uitgesteld: “Deze diensten later inrichten”. Bestaande billingflags/collection/restrictie blijven behouden; geen externe werking of nieuwe activering geclaimd. Dit blokkeert de geautoriseerde web- en Player-uitrol niet.

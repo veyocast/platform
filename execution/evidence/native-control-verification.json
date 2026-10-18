@@ -1,12 +1,12 @@
 {
-  "recordedAt": "2026-10-18T16:28:00.124388+00:00",
+  "recordedAt": "2026-10-18T16:39:51.538461+00:00",
   "status": "LOCAL_SOFTWARE_PASS_CI_PENDING",
   "baseline": "1a44b49265076b182c80f156051434b9ab53dc0c",
   "scope": "S227 native Sync and separate V3 API; preserves existing v1/v2, IDs, biometrics, notifications, package and release workflows. No installed app/hardware/store claim.",
   "foundation": {
-    "lint": "30/30,29cached",
-    "typecheck": "30/30,29cached",
-    "unit": "30/30,28cached",
+    "lint": "30/30,22cached",
+    "typecheck": "30/30,24cached",
+    "unit": "30/30,23cached",
     "nativeTests": 58,
     "nativeTestFiles": 15,
     "studioTests": 39,
@@ -15,46 +15,46 @@
   },
   "proof": {
     "lint": {
-      "sha256": "26d39984027ce61697ac840045023a2e468e5bb03b479fef559be501d36169b7",
+      "sha256": "abaaa62af00788c1148ca8f71cee0ec83a4d68e7d21d518c3ed87bdfe860cdba",
       "tail": [
-        "@veyocast/media-worker:lint: cache hit, replaying logs a15d5e64dbbc3bae",
         "@veyocast/media-worker:lint: $ eslint . --max-warnings=0",
         "@veyocast/control:lint: $ eslint . --max-warnings=0",
+        "@veyocast/control-mobile:lint: $ eslint . --max-warnings=0",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    29 cached, 30 total",
-        "  Time:    7.504s ",
+        "Cached:    22 cached, 30 total",
+        "  Time:    13.222s ",
         ""
       ]
     },
     "typecheck": {
-      "sha256": "b471c8600496f9e64dd5716936d45a2dbcd4dc4818ff9df213053703f6210182",
+      "sha256": "f5e3417f4e9278f23cecc0d3b46ada0fc82113fc55b6cad4a416370fe394a652",
       "tail": [
-        "@veyocast/control-mobile:typecheck: cache hit, replaying logs 3dfe1129dbb2f54b",
-        "@veyocast/control-mobile:typecheck: $ tsc --noEmit",
         "@veyocast/control:typecheck: $ tsc --noEmit",
+        "@veyocast/control-mobile:typecheck: $ tsc --noEmit",
+        "@veyocast/content-templates:typecheck: $ tsc --noEmit",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    29 cached, 30 total",
-        "  Time:    3.281s ",
+        "Cached:    24 cached, 30 total",
+        "  Time:    6.476s ",
         ""
       ]
     },
     "unit": {
-      "sha256": "9028e13ab432e577e6306654bb3c5cdb3a337f3e7d942fac482214dddc89db45",
+      "sha256": "7bdecdca645c1c47fa7907fe05d779f85251ad22c71bce5cd58c76cd156028f9",
       "tail": [
-        "@veyocast/control:test:    Start at  18:24:31",
-        "@veyocast/control:test:    Duration  9.17s (transform 8.22s, setup 0ms, collect 48.34s, tests 4.98s, environment 32ms, prepare 11.28s)",
+        "@veyocast/control:test:    Start at  18:36:04",
+        "@veyocast/control:test:    Duration  20.44s (transform 20.01s, setup 0ms, collect 131.81s, tests 9.89s, environment 49ms, prepare 19.64s)",
         "@veyocast/control:test: ",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    28 cached, 30 total",
-        "  Time:    10.009s ",
+        "Cached:    23 cached, 30 total",
+        "  Time:    21.418s ",
         ""
       ]
     },
     "controlProductionBuild": {
-      "sha256": "229f6b23b7912af31cfb6e57e12acc13899122f7fd431c6aaaed3fe67e34692d",
+      "sha256": "8d4d03faa3a3687fb30ac896e4581df644fea8159acaab60c7c6a8b6b868492c",
       "tail": [
         "",
         "",
@@ -64,6 +64,19 @@
         "\u0192  (Dynamic)  server-rendered on demand",
         "",
         "Control authcontrole: beveiligde routes zijn dynamisch."
+      ]
+    },
+    "playerProductionBuild": {
+      "sha256": "13da7313cd7411776ef765008180572d7210f19f064459acabff92705030fe3d",
+      "tail": [
+        "  \u251c chunks/353372f1-f1291c0a79821ca2.js  54.2 kB",
+        "  \u251c chunks/9909-7405abc78775e750.js      45.5 kB",
+        "  \u2514 other shared chunks (total)          1.96 kB",
+        "",
+        "",
+        "\u25cb  (Static)   prerendered as static content",
+        "\u0192  (Dynamic)  server-rendered on demand",
+        ""
       ]
     }
   },
@@ -242,5 +255,17 @@
     "migration": "supabase/migrations/20261018162300_sync_engage_result_privacy.sql",
     "rlsLogSha256": "91eb666d93617a078474f1d9ffb88ae0545cfe49350374aa2842edf8604c71dd",
     "qaApplication": "only forward CREATE OR REPLACE applied to preserved QA; no reset"
+  },
+  "userDeferred": [
+    "physical Android/TV/LG and24h",
+    "SendGrid configuration/delivery",
+    "YouTube provider configuration and Mollie account configuration: explicit18October reply"
+  ],
+  "cleanup": {
+    "removedUnusedCssFiles": 6,
+    "bytes": 94638,
+    "evidence": "execution/evidence/s227-unused-css-cleanup.json",
+    "branchReview": "archive/branch-review-2026-10-18.json",
+    "nativeProductionSources": "No native JS/TS source changed; only unreferenced CSS removed. Existing Hermes source-byte proof remains scoped to32changed native sources."
   }
 }

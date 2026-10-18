@@ -892,3 +892,5 @@ de daadwerkelijke productmelding gericht. Geen retry maakt een tweede mutatie.
 
 
 Aanvullende S227-fixes: planning bewaart met één definitieve klik; Engage gebruikt een afgescheiden server-only fallbackkey en verbergt after_close-tellingen tot sluiten. Echte verse accepted200/dedup/close/late409- en planning/CAS/bedrijfstijdenproeven groen. Nieuwe compatibele privacyforwardmigratie: verse reset130bestanden/3629assertions PASS, DB-errors0; foundation30/30, Control823/34bestaandeSKIP en productiebuild groen. Finale eigen CI en eindstaging/productie volgen.
+
+Gebruiker heeft op18oktober tevens automatische YouTube-controle en Mollie-accountinrichting expliciet uitgesteld: “Deze diensten later inrichten”. Bestaande billingflags/collection/restrictie blijven behouden; geen externe werking of nieuwe activering geclaimd. Dit blokkeert de geautoriseerde web- en Player-uitrol niet.
