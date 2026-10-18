@@ -404,3 +404,16 @@ gerichte metrics voor Source-swatchRGB en compacte inputbreedte/hextekst worden
 in de bestaande metadatajourney toegevoegd. Lint/type/full15 gaan vóór één nieuwe
 read-only6-state Sourcecapturerun; origineel rawrapport en PNG's blijven bewaard.
 Root heeft de enige browserworker hiervoor vrijgegeven. Geen commit/push.
+
+De eerste volledige hosted Playergate vond een ontbrekende nullable kolom in
+de strikte bestaande built-routefixture. Het product selecteert terecht de
+nieuwe `media_frame_provenance_json`; de echte legacyfixture mist alleen haar
+nullwaarde. Root geeft vóór writes `media_db` uitsluitend ownership op
+`tests/player/built-release-render.spec.ts` voor precies die toegevoegde
+fixturekolom. De strikte onbekende-kolomguard, vier HTTP200-renderasserties en
+de HTTP503-onbeschikbare-assetassertie blijven ongewijzigd. Alle vijf echte
+built-routecases eerst rood en daarna groen tegen de bestaande production-
+Player3392, alleen Playwright-requestfixture, geen browser/nieuw serverproces.
+Bewaar originele CI-closure36PASS/1FAIL/266nietuitgevoerd en alle reprobewijzen.
+Geen productcode, helper-, timeout- of assertiewijziging; root commit/push en
+geheel nieuwe CI. De fixturecorrectie is geen versoepeling van de releasegate.

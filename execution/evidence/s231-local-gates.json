@@ -118,5 +118,14 @@
     "native Player/Control/signing",
     "existing database history and data"
   ],
-  "hostedDeploymentClaim": false
+  "hostedDeploymentClaim": false,
+  "hostedCiContinuation": {
+    "initialHead": "6b8b914665cb951e8da6a070ebe7a69336b91b0c",
+    "firstPlayerClosure": "303 discovered;36PASS;1FAIL;266 not executed. Strict built-route fixture lacked new nullable selected column.",
+    "correction": "Only media_frame_provenance_json:null fixture field; helper/product/assertions/deadlines unchanged",
+    "localRealBuiltRouteBefore": "4FAIL/1PASS",
+    "localRealBuiltRouteAfter": "5PASS including original503 missingStorage assertion",
+    "evidence": "execution/evidence/s231-built-release-fixture.json",
+    "requiresNewFullCi": true
+  }
 }
