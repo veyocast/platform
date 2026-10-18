@@ -260,5 +260,20 @@
     "immutablePublicationHistoryUnchanged": true,
     "receipt": "execution/evidence/product-import-real-services.json",
     "scope": "Actual AAL2 production-build browser and PostgreSQL; deliberately generated exports, no external Twelve API/customer-export claim."
-  }
+  },
+  "crossPilot": {
+    "status": "PASS",
+    "actualSameOriginDemoPlanes": true,
+    "logSha256": "a178f50655162ea398bb2522564e8ecd76692ab7ec6364b317e83c9d335d8adf",
+    "tail": [
+      "(Use `node --trace-warnings ...` to show where the warning was created)",
+      "  ✓  1 [chromium] › tests/e2e/pilot-readiness.spec.ts:8:5 › keeps the documented local demo pilot traceable across product planes (34.8s)",
+      "",
+      "  1 passed (35.5s)"
+    ],
+    "scope": "Existing fixture-only demo trace, disabledwrites and actual staging Player fixture; not an authenticated hosted pilot."
+  },
+  "implementationCommit": "24e121ee6a920d6e70b184bc64e895ac2da20614",
+  "pr": "https://github.com/veyocast/platform/pull/252",
+  "ci": "In progress; first cross-plane run found stale prior-design copy. Updated to chosen Source and locallypassed without removing disabled/real-route/Player checks."
 }
