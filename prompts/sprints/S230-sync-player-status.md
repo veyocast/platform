@@ -167,6 +167,17 @@ de locked systeemmarkering linksonder op 40% en bestaande offlinechip.
 
 ## Voorgestelde acceptatie
 
+Rootownership na de tweede concrete CI-bevinding (f2): uitsluitend het native
+`details.sync-fleet-advanced`-element in `screens/sync-fleet-view.tsx`, nieuw
+`tests/control/sync-fleet-native-details.spec.ts` en eigen geschoond bewijs.
+De oorspronkelijke vector-pilot-visible-test, consolecriteria en time-outs
+blijven intact. Trace bewijst: native summaryclick vóór React-init zette open;
+overige navigatie/viewportasserties slaagden. Een gerichte native-state-
+hydratiegrens moet usergekozen open behouden, zonder consolefilters of sleeps.
+Vóór commit moet een productmodule-SSR/hydrateproef met vastgehouden clientscript
+de oorspronkelijke melding reproduceren en daarna vroeg openen/openbehoud/
+opnieuw sluiten/toetsenbord en nul console-/recoverable errors aantonen.
+
 Aanvullende testownership na concrete CI-bevinding op b676e3d8:
 `release_audit` bezit uitsluitend `tests/control/sync-dynamic-workflows.spec.ts`
 en `tests/control/sync-studio-workflows.spec.ts`, de esbuildbeforeAll-output en

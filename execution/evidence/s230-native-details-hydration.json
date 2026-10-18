@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "status": "LOCAL_REGRESSION_PASS_FULL_CI_REQUIRED",
+  "baseCommit": "f2a543c2c7906287fae39976f4a72cac005077b7",
+  "originalCi": {
+    "runId": 39160935663,
+    "controlJobId": 117773969087,
+    "result": "382 passed,629 expected skips,1 failed",
+    "originalFailure": "vector-pilot-visible.spec.ts:53, native summary click before React added open; navigation and viewport checks passed",
+    "artifactId": 12148609887,
+    "artifactZipSha256": "968d3c2504821447e31233dd0f9d4b1911bd8d68303c72397d111326075c879b",
+    "isolatedTraceSha256": "1c40bfa7430aae80f98d04b074e8b63bdf4f0292c92a056490d29be26c69eb5a"
+  },
+  "fixture": {
+    "module": "apps/control/app/(shell)/dashboard/screens/sync-fleet-view.tsx",
+    "boundary": "Actual module SSR and hydrateRoot; Next Link transport and empty fleet/advanced slot controlled. Client script held until native disclosure interaction. Same test before/after product fix. No sleep/readiness delay before early click; no console filters.",
+    "test": "tests/control/sync-fleet-native-details.spec.ts",
+    "sha256": "2fef5d8d3e251596851dd4a12fd223b2e9bec4fa1a86d24296c510c1aab30867"
+  },
+  "before": {
+    "file": "veyocast-s230-native-details-before-product-fix.json",
+    "sha256": "2d96e3df23a908de84d88c862eadb92a27117479567fba7b7dc082504e46351a",
+    "stats": {
+      "startTime": "2026-10-18T20:17:20.375Z",
+      "duration": 2990.83,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "observed": "Early-open fails solely for extra open attribute; closed default passes. No recoverable errors."
+  },
+  "after": {
+    "file": "veyocast-s230-native-details-after-product-fix.json",
+    "sha256": "12a667e4d7b25bcef2ce3652611602e9bd43241cc038b45202d55cd6b19fd3f8",
+    "stats": {
+      "startTime": "2026-10-18T20:17:35.299Z",
+      "duration": 1837.268,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "observed": "Both cases preserve original DOM node; early-open survives hydration; pointer close, Enter open, Space close; zero console/page/recoverable errors."
+  },
+  "fix": "A documented suppressHydrationWarning only on browser-owned uncontrolled details element. No controlled open prop, child-content suppression, test changes or blanket error filtering.",
+  "unchangedOriginalSpec": {
+    "file": "tests/e2e/vector-pilot-visible.spec.ts",
+    "baseSha256": "bdbba263b0f9d29f45bd72cb39bef7c035c2984e490662091a8c221be94cd1d2",
+    "currentSha256": "bdbba263b0f9d29f45bd72cb39bef7c035c2984e490662091a8c221be94cd1d2"
+  },
+  "checks": {
+    "targetedEslint": "PASS",
+    "controlLint": "PASS",
+    "controlTypecheck": "PASS",
+    "targetedTestTypecheck": "PASS"
+  },
+  "fixtureDevelopmentAttempts": [
+    "Initial node argv too large: changed compiler handoff to stdin before product reproduction.",
+    "An artificial dataset marker was replaced by element identity before product reproduction.",
+    "Missing UTF-8 fixture declaration caused a separate text mismatch in both cases; corrected before exact native-open baseline. Original attempt JSONs retained in local /tmp."
+  ],
+  "limits": [
+    "Controlled SSR/hydration boundary proves exact native state behavior; full existing CI and real route test still required.",
+    "No general V1 or sourcepixel acceptance inferred."
+  ],
+  "peerReview": "scenario_audit: no blocker; exact productnode boundary and unchanged original route assertion verified; /tmp/veyocast-s230-native-details-peer-readback.json"
+}

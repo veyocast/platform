@@ -54,3 +54,18 @@ deze globale editor niet. Een rawmedia-UUID als Studio-ID doorgeven of een
 30seconden-Studio-render als willekeurig lang videobestand behandelen is geen
 correcte implementatie. Deze grens is open en geen door de gebruiker uitgestelde
 dienst. Dit document claimt daarom geen volledige V1- of pixelacceptatie.
+
+## Vroeg geopende schermgroepen
+
+De volledige CI vond een afzonderlijke native-disclosure-race: de browser kan
+`Indelingen en groepsacties` openen voordat React hydrateert. Dat legitieme
+`open`-attribuut veroorzaakt dan een melding. Alleen de ongecontroleerde
+`details.sync-fleet-advanced`-node accepteert nu die browserbeheerde staat;
+de kinderen en de algemene consolecontrole behouden hun normale controles.
+
+Dezelfde productmodule-SSR/hydrateproef reproduceerde vóór de wijziging precies
+de melding (1 PASS/1 FAIL). Daarna slagen beide gevallen met behoud van dezelfde
+DOM-node en de vroeg gekozen openstand, plus sluiten/Enter/spatie en nul
+console-, pagina- of recoverable errors. De bestaande vector-routeproef bleef
+bytegelijk. Bewijs: `execution/evidence/s230-native-details-hydration.json`.
+De volledige bestaande CI op de nieuwe commit blijft vereist.
