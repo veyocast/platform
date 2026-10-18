@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS_LOCAL_JOURNEY",
+  "scope": "Real S227 Control3250 + preserved QA Supabase57621; one newly uploaded own unused PNG; actual browser archive/archive-list/restore; no old assets or config changes",
+  "observedAt": "2026-10-18T17:21:39.256Z",
+  "tenantId": "19170000-0000-4000-8000-000000000010",
+  "assetId": "7d7b8ddf-1ea5-4fb4-98b6-45695fba1ff6",
+  "title": "S227-media-restore-e1c5dedf-6aa0-4124-bc9e-09abfa494c88",
+  "fileName": "S227-media-restore-e1c5dedf-6aa0-4124-bc9e-09abfa494c88.png",
+  "checks": {
+    "preservation": {
+      "status": "PASS",
+      "existingAssetRowsUnchanged": 17,
+      "existingVariantRowsUnchanged": 46,
+      "existingReleaseRowsUnchanged": 7,
+      "existingFlagsUnchanged": true
+    },
+    "upload": {
+      "httpStatus": 201,
+      "confirmed": true,
+      "code": null,
+      "inputBytes": 258,
+      "inputSha256": "ea88e44cfc4ac92cf85ccb0293c1ae06ad3f893af924e22a450c736bbd090353",
+      "fileName": "S227-media-restore-e1c5dedf-6aa0-4124-bc9e-09abfa494c88.png",
+      "status": "PASS",
+      "assetId": "7d7b8ddf-1ea5-4fb4-98b6-45695fba1ff6"
+    },
+    "archive": {
+      "status": "PASS",
+      "postStatus": 200,
+      "deletedAtPresent": true,
+      "originalStatus": "ready",
+      "disappearedFromActiveList": true
+    },
+    "archiveList": {
+      "status": "PASS",
+      "visibleInArchive": true,
+      "archivedEditorReadOnly": true
+    },
+    "preservationBeforeRestore": {
+      "status": "PASS",
+      "existingAssetRowsUnchanged": 17,
+      "existingVariantRowsUnchanged": 46,
+      "existingReleaseRowsUnchanged": 7,
+      "existingFlagsUnchanged": true
+    },
+    "restore": {
+      "status": "PASS",
+      "postStatus": 303,
+      "sameAssetId": true,
+      "statusAfter": "ready",
+      "deletedAtCleared": true,
+      "visibleSuccess": true,
+      "actualPostCommandSuccessMessageMatches": 2
+    },
+    "activeAgain": {
+      "status": "PASS",
+      "sameOwnAssetVisible": true,
+      "privatePreviewLoaded": true,
+      "readbackGetStatus": 200
+    },
+    "privateStorage": {
+      "status": "PASS",
+      "bytes": 201,
+      "sha256": "857bbe87f94a9dff29d757536f968128c38b8c90da44991a891f69f8af965562",
+      "bucket": "tenant-media",
+      "path": "tenants/19170000-0000-4000-8000-000000000010/assets/7d7b8ddf-1ea5-4fb4-98b6-45695fba1ff6/original/s227-media-restore-e1c5dedf-6aa0-4124-bc9e-09abfa494c88.png",
+      "unchangedAcrossArchiveRestore": true,
+      "variantCount": 2,
+      "variantsUnchanged": true
+    }
+  },
+  "pageErrors": 0,
+  "harnessCorrections": [
+    "Initial read-only h1 check matched hidden streamed markup; corrected to visible Media heading before any asset creation or command.",
+    "The single actual restore produced success text in page and details sheet; final locator was ambiguous. Read-only continuation verified the already-restored active item and private bytes; no archive or restore command was repeated."
+  ],
+  "limits": [
+    "One new own unused PNG only; no draft/release-reference override, physical-device or other-tenant-access claim.",
+    "Uploaded through real guarded API; archive/list/restore through real authenticated browser UI; original-byte checksum read back from real local Storage.",
+    "All pre-existing tenant assets, variants, releases and flags remained bytehash-identical."
+  ],
+  "storedFileName": "s227-media-restore-e1c5dedf-6aa0-4124-bc9e-09abfa494c88.png",
+  "finalAssetStatus": "ready",
+  "activeAgain": true
+}

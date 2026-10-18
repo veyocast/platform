@@ -314,10 +314,10 @@ export async function loadTenantAuditEvents(
     .order("created_at", { ascending: false });
 
   if (filter.action?.trim()) {
-    query = query.ilike("action", `%${escapeAuditLike(filter.action.trim())}%`);
+    query = query.filter("action", "imatch", escapeAuditPattern(filter.action.trim()));
   }
   if (filter.target?.trim()) {
-    query = query.ilike("target_type", `%${escapeAuditLike(filter.target.trim())}%`);
+    query = query.filter("target_type", "imatch", escapeAuditPattern(filter.target.trim()));
   }
   if (filter.result === "success" || filter.result === "failure") {
     query = query.eq("result", filter.result);
@@ -488,6 +488,7 @@ function auditDateBoundary(value: string | undefined, nextDay: boolean) {
   return date.toISOString();
 }
 
-function escapeAuditLike(value: string) {
-  return value.replace(/[%_]/g, "");
+function escapeAuditPattern(value: string) {
+  // A literal regex keeps substring matching without PostgREST's ILIKE '*' alias.
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

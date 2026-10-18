@@ -18,6 +18,9 @@ import { loadSponsorHub } from "./data";
 import styles from "./sponsor-hub.module.css";
 import sites from "./sites-sponsors.module.css";
 import {SitesSponsorsPrimary} from "./sites-sponsors-primary";
+import { parseSponsorCrmFilter, type SponsorCrmParams } from "./sponsor-crm";
+import { loadSponsorCrm } from "./sponsor-crm-data";
+import { SponsorCrmOverview } from "./sponsor-crm-overview";
 
 const positionLabels: Record<string, string> = {
   corner: "Hoekpositie", footer: "Voetregel", fullscreen: "Volledig scherm",
@@ -25,12 +28,14 @@ const positionLabels: Record<string, string> = {
 };
 const campaignTone = { approved: "success", draft: "neutral", ended: "neutral", paused: "warning", published: "success", rejected: "critical", submitted: "info" } as const;
 
-export default async function SponsorHubPage({ searchParams }: { searchParams: Promise<{ fout?: string; succes?: string }> }) {
+export default async function SponsorHubPage({ searchParams }: { searchParams: Promise<SponsorCrmParams & { fout?: string; succes?: string }> }) {
   const session = await requireTenantControlSession("tenant.sponsor.read");
   const params = await searchParams;
-  const [data, tenantStyle] = await Promise.all([
+  const crmFilter = parseSponsorCrmFilter(params);
+  const [data, tenantStyle, crmData] = await Promise.all([
     loadSponsorHub(session.tenantId ?? ""),
-    loadTenantStyleData(session.tenantId, session.isLive)
+    loadTenantStyleData(session.tenantId, session.isLive),
+    session.isLive ? loadSponsorCrm(session.tenantId ?? "", crmFilter) : Promise.resolve({ error: false, opportunities: [], opportunityCount: 0, tasks: [], taskCount: 0 })
   ]);
   const canWrite = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities, "tenant.sponsor.write");
   const canApprove = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities, "tenant.sponsor.approve");
@@ -51,7 +56,7 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
     {params.succes ? <p className={styles.banner} role="status">Wijziging opgeslagen: {params.succes}.</p> : null}
     {params.fout ? <p className={styles.banner} role="alert"><strong>Opslaan mislukt.</strong> Controleer rechten, vier-ogen-goedkeuring en verplichte media/plaatsing. Fout: {params.fout}.</p> : null}
     <SitesSponsorsPrimary campaigns={primaryCampaigns} canWrite={canWrite} creationForm={creationForm} sponsorForm={sponsorForm} sponsorCount={data.sponsors.length} playCount={data.events.length} unavailable={data.error}/>
-    <details className={sites.advanced} id="sponsor-advanced"><summary>Sponsorbeheer, goedkeuring en levering</summary>
+    <details className={sites.advanced} id="sponsor-advanced" open={params.crm === "1"}><summary>Sponsorbeheer, goedkeuring en levering</summary>
     <nav aria-label="Sponsor Hub onderdelen" className={styles.tabs}>
       {[["#actie","Actiecentrum"],["#sponsors","Sponsors"],["#campagnes","Campagnes"],["#media","Media"],["#kansen","Kansen"],["#schermen","Schermgroepen"],["#rapporten","Rapporten"],["#activiteit","Activiteit"]].map(([href,label]) => <a href={href} key={href}>{label}</a>)}
     </nav>
@@ -131,7 +136,7 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
       {canWrite && data.campaigns.length && data.positions.length ? <article className={styles.panel}><PanelHeader title="Campagne plaatsen" description="Een poolreferentie blijft stabiel terwijl sponsors binnen de pool wijzigen." /><form action={placeCampaign} className={styles.form}><label className={styles.field}><span>Campagne</span><select name="campaignId">{data.campaigns.filter((item) => item.status === "draft").map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label className={styles.field}><span>Positie</span><select name="positionId">{data.positions.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label className={styles.field}><span>Oriëntatie</span><select name="orientation"><option value="any">Beide</option><option value="landscape">Landscape</option><option value="portrait">Portrait</option></select></label><Button type="submit" variant="primary">Plaatsing opslaan</Button></form></article> : null}
     </section>
 
-    <section className={styles.panel} id="kansen"><PanelHeader title="Kansenpipeline" description="Commercieel overzicht zonder fictieve omzet of sponsorclaims." /><div className={styles.pipeline}>{["lead","contacted","proposal","won","lost"].map((stage) => <div className={styles.stage} key={stage}><strong>{stage}</strong><span>{data.opportunities.filter((item) => item.stage === stage).length}</span></div>)}</div></section>
+    <SponsorCrmOverview data={crmData} filter={crmFilter} />
 
     <section className={styles.grid} id="rapporten">
       <article className={styles.panel}><PanelHeader title="Proof of Play" description="Device-events zijn dedupliceerbaar op UUID en claimen geen publiek of bereik." /><ul className={styles.list}><li><span><strong>Geaccepteerde events</strong><small>Laatste 30 dagen</small></span><StatusPill label={String(data.events.length)} tone="info" /></li><li><span><strong>Gemiddelde speeltijd</strong><small>Op basis van technisch afgemelde plays</small></span><StatusPill label={data.events.length ? `${Math.round(totalPlayedMs / data.events.length / 1000)} sec` : "—"} tone="neutral" /></li></ul></article>

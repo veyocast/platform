@@ -1,0 +1,574 @@
+{
+  "status": "PASS_LOCAL_CUSTOM_ROLE_WITH_LITERAL_FILTER_CORRECTION",
+  "startedAt": "2026-10-18T17:24:12.362Z",
+  "scope": "Actual existing S227 local Control: own new unassigned custom role only; create/update/reopen and readonly normalized permission/audit verification. No existing actor membership, invitation, role, flag or release changes.",
+  "tenantId": "19170000-0000-4000-8000-000000000010",
+  "name": "S227 rolacceptatie 1792343972327",
+  "steps": [
+    {
+      "name": "existing-aal2-context",
+      "status": "PASS"
+    },
+    {
+      "name": "actual-ui-create",
+      "status": "PASS",
+      "role": {
+        "id": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+        "name": "S227 rolacceptatie 1792343972327",
+        "status": "active",
+        "revision": 0,
+        "description": "Eigen ongebruikte acceptatierol; geen gebruikerstoewijzing.",
+        "capabilities": [
+          "tenant.media.write",
+          "tenant.playlist.write",
+          "tenant.product.write"
+        ]
+      }
+    },
+    {
+      "name": "actual-ui-update-reopen-normalized-permissions",
+      "status": "PASS",
+      "role": {
+        "id": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+        "name": "S227 rolacceptatie 1792343972327 bijgewerkt",
+        "status": "active",
+        "revision": 1,
+        "description": "Eigen ongebruikte acceptatierol; geen gebruikerstoewijzing.",
+        "capabilities": [
+          "tenant.audit.read",
+          "tenant.media.write",
+          "tenant.playlist.write",
+          "tenant.product.write"
+        ]
+      },
+      "noActorAssignment": true,
+      "effectiveRoleCapabilityScope": "Stored normalized work permissions and readback, not an assigned-user authorization claim. Existing rls_tenant_custom_roles.sql separately proves actual effective actor permissions/denials."
+    },
+    {
+      "name": "actual-ui-audit-safe-filter",
+      "status": "PASS",
+      "roleId": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+      "eventCount": 2,
+      "matchingOwnRows": 2,
+      "scope": "Actual rows shown with underscore-free filter; literal-underscore query remains a confirmed product defect."
+    },
+    {
+      "name": "own-role-supported-ui-cleanup",
+      "status": "PASS",
+      "roleId": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+      "revision": 2,
+      "assignedMembers": 0,
+      "invitations": 0,
+      "originalRoleIdRetained": true,
+      "statusAfter": "archived"
+    }
+  ],
+  "auditUiDiscovery": {
+    "headings": [
+      "Activiteit",
+      "Recente gebeurtenissen"
+    ],
+    "alerts": [],
+    "rowCount": 0,
+    "matchingOwnRows": 0,
+    "path": "/dashboard/activity"
+  },
+  "auditAuthenticatedRead": {
+    "status": 200,
+    "errorCode": null,
+    "rowCount": 2
+  },
+  "audit": [
+    {
+      "id": "d9138bd0-7205-4a07-8a01-d64b57a8b0a8",
+      "action": "tenant.custom_role.created",
+      "result": "success",
+      "metadata": {
+        "capabilities": [
+          "tenant.media.write",
+          "tenant.playlist.write",
+          "tenant.product.write"
+        ]
+      },
+      "targetId": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+      "targetType": "tenant_custom_roles",
+      "actorPresent": true
+    },
+    {
+      "id": "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+      "action": "tenant.custom_role.updated",
+      "result": "success",
+      "metadata": {
+        "toCapabilities": [
+          "tenant.audit.read",
+          "tenant.media.write",
+          "tenant.playlist.write",
+          "tenant.product.write"
+        ],
+        "fromCapabilities": [
+          "tenant.media.write",
+          "tenant.playlist.write",
+          "tenant.product.write"
+        ]
+      },
+      "targetId": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+      "targetType": "tenant_custom_roles",
+      "actorPresent": true
+    },
+    {
+      "id": "878070ca-be37-4aea-b51e-526d308d9ce2",
+      "action": "tenant.custom_role.archived",
+      "result": "success",
+      "metadata": {},
+      "targetId": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+      "targetType": "tenant_custom_roles",
+      "actorPresent": true
+    }
+  ],
+  "knownDefect": {
+    "type": "literal-underscore-filter",
+    "actual": "0 UI rows for tenant.custom_role + tenant_custom_roles; exact authenticated tenant query returns 2",
+    "source": "apps/control/lib/control-overview.ts:491",
+    "effect": "Literal underscores are deleted from action/target search instead of SQL-like escaping."
+  },
+  "auditSafeFilter": {
+    "path": "/dashboard/activity",
+    "matchingOwnRows": 2,
+    "createdUpdatedVisible": true,
+    "actorAndTargetBound": true
+  },
+  "preservation": {
+    "roles": {
+      "originalRows": 0,
+      "unchanged": true
+    },
+    "memberships": {
+      "originalRows": 4,
+      "unchanged": true
+    },
+    "invitations": {
+      "originalRows": 0,
+      "unchanged": true
+    },
+    "flags": {
+      "originalRows": 3,
+      "unchanged": true
+    },
+    "releases": {
+      "originalRows": 7,
+      "unchanged": true
+    },
+    "items": {
+      "originalRows": 7,
+      "unchanged": true
+    },
+    "authoring": {
+      "originalRows": 7,
+      "unchanged": true
+    }
+  },
+  "finalRole": {
+    "id": "d136903c-4934-455a-b7a6-5621e2e91e4a",
+    "name": "S227 rolacceptatie 1792343972327 bijgewerkt",
+    "status": "archived",
+    "revision": 2,
+    "description": "Eigen ongebruikte acceptatierol; geen gebruikerstoewijzing.",
+    "capabilities": [
+      "tenant.audit.read",
+      "tenant.media.write",
+      "tenant.playlist.write",
+      "tenant.product.write"
+    ]
+  },
+  "finishedAt": "2026-10-18T17:24:20.910Z",
+  "schemaVersion": 1,
+  "preservationScope": "Hash baseline for existing rows was taken after own create/update and before the final read/cleanup phase; this is not a fabricated pre-create hash baseline. All submitted mutations targeted only the new unassigned role.",
+  "auditFilterCorrection": {
+    "schemaVersion": 1,
+    "status": "PASS_LITERAL_AUDIT_FILTER_FIX",
+    "observedAt": "2026-10-18T17:32:24.633Z",
+    "scope": "Only existing audit action/target substring filters; no new API/schema/RPC/migration and no row mutations",
+    "before": {
+      "schemaVersion": 1,
+      "status": "REPRODUCED_LITERAL_FILTER_DEFECT",
+      "observedAt": "2026-10-18T17:30:25.553Z",
+      "scope": "Actual production audit loader + existing authenticated Supabase SDK .filter serialization + local QA PostgREST; HTTP-boundary extra id filter restricts every audit query to three own existing QA events",
+      "tenantId": "19170000-0000-4000-8000-000000000010",
+      "ownedAuditIds": [
+        "d9138bd0-7205-4a07-8a01-d64b57a8b0a8",
+        "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+        "878070ca-be37-4aea-b51e-526d308d9ce2"
+      ],
+      "aal": "aal2",
+      "results": [
+        {
+          "field": "action",
+          "term": "tenant.custom_role",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": "ilike.%tenant.customrole%",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "tenant_custom_roles",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": null,
+            "target": "ilike.%tenantcustomroles%",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "%",
+          "count": 3,
+          "eventIds": [
+            "878070ca-be37-4aea-b51e-526d308d9ce2",
+            "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+            "d9138bd0-7205-4a07-8a01-d64b57a8b0a8"
+          ],
+          "serializedFilter": {
+            "action": "ilike.%%",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "_",
+          "count": 3,
+          "eventIds": [
+            "878070ca-be37-4aea-b51e-526d308d9ce2",
+            "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+            "d9138bd0-7205-4a07-8a01-d64b57a8b0a8"
+          ],
+          "serializedFilter": {
+            "action": null,
+            "target": "ilike.%%",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "*",
+          "count": 3,
+          "eventIds": [
+            "878070ca-be37-4aea-b51e-526d308d9ce2",
+            "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+            "d9138bd0-7205-4a07-8a01-d64b57a8b0a8"
+          ],
+          "serializedFilter": {
+            "action": "ilike.%*%",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "*",
+          "count": 3,
+          "eventIds": [
+            "878070ca-be37-4aea-b51e-526d308d9ce2",
+            "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+            "d9138bd0-7205-4a07-8a01-d64b57a8b0a8"
+          ],
+          "serializedFilter": {
+            "action": null,
+            "target": "ilike.%*%",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "\\",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": "ilike.%\\%",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "\\",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": null,
+            "target": "ilike.%\\%",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "[.*]",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": "ilike.%[.*]%",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "x),tenant_id.eq.other",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": null,
+            "target": "ilike.%x),tenantid.eq.other%",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        }
+      ],
+      "requests": 10,
+      "mutations": false,
+      "limits": [
+        "The three existing audit events contain real dots/underscores but no percent, star or backslash; special-character HTTP checks prove those terms do not widen to these unrelated events. Positive special-character substring cases are covered separately by behavior tests.",
+        "No server, fixture, role, audit row, schema, RLS, migration, provider or configuration changes."
+      ]
+    },
+    "after": {
+      "schemaVersion": 1,
+      "status": "PASS_REAL_AUTHENTICATED_LITERAL_FILTERS",
+      "observedAt": "2026-10-18T17:30:45.130Z",
+      "scope": "Actual production audit loader + existing authenticated Supabase SDK .filter serialization + local QA PostgREST; HTTP-boundary extra id filter restricts every audit query to three own existing QA events",
+      "tenantId": "19170000-0000-4000-8000-000000000010",
+      "ownedAuditIds": [
+        "d9138bd0-7205-4a07-8a01-d64b57a8b0a8",
+        "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+        "878070ca-be37-4aea-b51e-526d308d9ce2"
+      ],
+      "aal": "aal2",
+      "results": [
+        {
+          "field": "action",
+          "term": "tenant.custom_role",
+          "count": 3,
+          "eventIds": [
+            "878070ca-be37-4aea-b51e-526d308d9ce2",
+            "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+            "d9138bd0-7205-4a07-8a01-d64b57a8b0a8"
+          ],
+          "serializedFilter": {
+            "action": "imatch.tenant\\.custom_role",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "tenant_custom_roles",
+          "count": 3,
+          "eventIds": [
+            "878070ca-be37-4aea-b51e-526d308d9ce2",
+            "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+            "d9138bd0-7205-4a07-8a01-d64b57a8b0a8"
+          ],
+          "serializedFilter": {
+            "action": null,
+            "target": "imatch.tenant_custom_roles",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "%",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": "imatch.%",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "_",
+          "count": 3,
+          "eventIds": [
+            "878070ca-be37-4aea-b51e-526d308d9ce2",
+            "b99c0487-13ff-4fe3-be5e-b19dfb93eeb1",
+            "d9138bd0-7205-4a07-8a01-d64b57a8b0a8"
+          ],
+          "serializedFilter": {
+            "action": null,
+            "target": "imatch._",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "*",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": "imatch.\\*",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "*",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": null,
+            "target": "imatch.\\*",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "\\",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": "imatch.\\\\",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "\\",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": null,
+            "target": "imatch.\\\\",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "action",
+          "term": "[.*]",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": "imatch.\\[\\.\\*\\]",
+            "target": null,
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        },
+        {
+          "field": "target",
+          "term": "x),tenant_id.eq.other",
+          "count": 0,
+          "eventIds": [],
+          "serializedFilter": {
+            "action": null,
+            "target": "imatch.x\\),tenant_id\\.eq\\.other",
+            "tenantFilterPresent": true,
+            "limit": 50,
+            "ownedAuditIdsOnly": true
+          }
+        }
+      ],
+      "requests": 10,
+      "mutations": false,
+      "limits": [
+        "The three existing audit events contain real dots/underscores but no percent, star or backslash; special-character HTTP checks prove those terms do not widen to these unrelated events. Positive special-character substring cases are covered separately by behavior tests.",
+        "No server, fixture, role, audit row, schema, RLS, migration, provider or configuration changes."
+      ]
+    },
+    "positivePostgresConstantChecks": [
+      {
+        "term": "%",
+        "positiveLiteralMatch": true,
+        "ordinaryDoesNotMatch": true
+      },
+      {
+        "term": "_",
+        "positiveLiteralMatch": true,
+        "ordinaryDoesNotMatch": true
+      },
+      {
+        "term": "\\",
+        "positiveLiteralMatch": true,
+        "ordinaryDoesNotMatch": true
+      },
+      {
+        "term": "*",
+        "positiveLiteralMatch": true,
+        "ordinaryDoesNotMatch": true
+      }
+    ],
+    "verification": {
+      "behaviorTests": {
+        "passed": 18,
+        "total": 18,
+        "redBeforeFix": 17,
+        "log": "/tmp/veyocast-s229-audit-filter-green.log"
+      },
+      "scopedLint": "PASS zero warnings",
+      "controlTypecheck": "PASS",
+      "tenantPredicate": "unchanged and behavior-tested",
+      "pagination": "unchanged range50 and behavior-tested",
+      "failureHandling": "existing error return unchanged; denial tested",
+      "sdk": "Actual Supabase SDK .filter(column, imatch, escaped literal) used by production loader",
+      "databaseMutations": false
+    },
+    "changedFiles": [
+      {
+        "path": "apps/control/lib/control-overview.ts",
+        "sha256": "b1cdfc06076acb8710e4596208daf37bc041c6f0f8cddddf0cc265952a95d9a3"
+      },
+      {
+        "path": "apps/control/lib/audit-filter.test.ts",
+        "sha256": "d27fa2b8e9a84e4eccd6d4b9df72accc78abf9b05453a9bcbe6668389598e822"
+      }
+    ]
+  },
+  "limits": [
+    "Real own-role create/update/reopen/archive; no actor assignment, invitation or existing role change.",
+    "Normalized stored permissions are not an assigned-user authorization claim; effective capability/denial behavior has separate existing RLS coverage.",
+    "Initial actual UI literal-underscore failure is retained; final green correction uses the production loader plus real authenticated PostgREST, not a new full SSR-UI claim."
+  ]
+}
