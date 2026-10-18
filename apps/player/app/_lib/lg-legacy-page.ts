@@ -1074,6 +1074,7 @@ export function renderLgLegacyHtml() {
       rejectedVideoAttemptCount: 0,
       rejectedVideoChecksum: null,
       restoringVideoFallback: false,
+      networkVideoReleaseId: null,
       cachePlaybackWorkerStarted: false,
       goalAckFlushTimer: null,
       goalAckInFlight: false,
@@ -5515,8 +5516,12 @@ export function renderLgLegacyHtml() {
         currentRequest.onsuccess = function () {
           if (targetGeneration !== runtime.targetGeneration) { transaction.abort(); return; }
           var current = currentRequest.result;
+          if (current && current.requiresNativeNetworkVideo && releaseIdOf(current.envelope) === releaseIdOf(envelope)) {
+            cached.requiresNativeNetworkVideo = true;
+          }
           if (
-            current &&
+            current && !current.requiresNativeNetworkVideo &&
+            releaseIdOf(current.envelope) !== runtime.networkVideoReleaseId &&
             (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope)) &&
             (runtime.currentElement && runtime.currentElement.lgReleaseIdentity === releaseIdOf(current.envelope) + ":" + lgCompositionIdentity(current.envelope) ||
               lgCompositionIdentity(current.envelope) === "full" &&
@@ -5640,6 +5645,17 @@ export function renderLgLegacyHtml() {
       });
     }
     function restoreLastKnownGood(callback) {
+      if (runtime.currentElement && runtime.currentElement.lgNativeNetworkVideo ||
+          runtime.pendingElement && runtime.pendingElement.lgNativeNetworkVideo) {
+        runtime.offline = true;
+        byId("offline").className = "visible";
+        clearPlaybackTimers();
+        cancelPendingMedia();
+        runtime.rejectedVideoChecksum = runtime.currentItem && runtime.currentItem.source && runtime.currentItem.source.checksumSha256;
+        restoreVideoFallback();
+        callback(true);
+        return;
+      }
       if (!runtime.deviceToken) { callback(false); return; }
       if (runtime.envelope && runtime.currentElement) {
         runtime.offline = true;
@@ -6012,8 +6028,8 @@ export function renderLgLegacyHtml() {
       cachedAssetUrl(item && item.source, callback);
     }
     function sourceForItem(item, callback) {
-      // Online and offline use the same verified bytes. Signed URLs are delivery
-      // credentials, never the preferred source of an already cached video.
+      // Always prepare from verified local bytes first. Native-only LG decoders
+      // get an online transport retry only after rejecting both local routes.
       cachedItemUrl(item, callback);
     }
     function preloadLocalImage(url, callback) {
@@ -9938,12 +9954,48 @@ export function renderLgLegacyHtml() {
         sendHeartbeat();
       });
     }
+    function nativeVideoSource(item) {
+      if (runtime.offline || window.navigator.onLine === false || !item.source) return null;
+      try {
+        var url = new URL(item.source.url, window.location.href);
+        if (url.username || url.password ||
+            (url.protocol !== "https:" && url.origin !== window.location.origin)) return null;
+        return url.href;
+      } catch (error) { return null; }
+    }
+    function rememberNativeNetworkVideo() {
+      var releaseId = releaseIdOf(runtime.envelope);
+      runtime.networkVideoReleaseId = releaseId;
+      // A frame on the native HTTP path is not proof of offline decoding. Keep
+      // the previous locally playable release rather than rotating it away.
+      openPlayerDatabase(function (error, database) {
+        if (error || !database) return;
+        var transaction;
+        try {
+          transaction = database.transaction(CONFIG.activeReleaseStore, "readwrite");
+          var store = transaction.objectStore(CONFIG.activeReleaseStore);
+          var result = store.get(runtime.deviceToken);
+          result.onsuccess = function () {
+            var cached = result.result;
+            if (cached && releaseIdOf(cached.envelope) === releaseId) {
+              cached.requiresNativeNetworkVideo = true;
+              store.put(cached);
+            }
+          };
+          transaction.oncomplete = transaction.onabort = function () { database.close(); };
+          transaction.onerror = function () {};
+        } catch (error) { database.close(); }
+      });
+    }
     function playVideo(item, sourceUrl, objectUrls, generation, allowCacheFallback) {
       var video;
       var committed = false;
       var fallbackStarted = false;
+      var nativeSource = nativeVideoSource(item);
+      var nativeNetwork = nativeSource !== null && sourceUrl === nativeSource;
       function fallbackOrFail(code) {
-        runtime.videoFailureAction = "retry_" + (sourceUrl.indexOf("blob:") === 0 ? "blob" : "cache") +
+        if (generation !== runtime.playbackGeneration || item !== runtime.currentItem || fallbackStarted) return;
+        runtime.videoFailureAction = "retry_" + (nativeNetwork ? "native" : sourceUrl.indexOf("blob:") === 0 ? "blob" : "cache") +
           "_media_" + String(video && video.error && video.error.code || 0) +
           "_ready_" + String(video && video.readyState || 0) + "_network_" + String(video && video.networkState || 0);
         var localUrl = sourceUrl.indexOf("blob:") === 0 ? verifiedVideoCacheUrl(item) : null;
@@ -9957,7 +10009,19 @@ export function renderLgLegacyHtml() {
           playVideo(item, localUrl, [], generation, false);
           return;
         }
-        if (!allowCacheFallback || fallbackStarted) {
+        if (!nativeNetwork && nativeSource && !runtime.offline && window.navigator.onLine !== false) {
+          fallbackStarted = true;
+          runtime.lastPlaybackError = { code: code, itemId: item.id, occurredAt: new Date().toISOString(), action: runtime.videoFailureAction };
+          clearPlaybackTimers();
+          if (runtime.pendingElement === video) cancelPendingMedia();
+          // The authenticated envelope names the immutable, already downloaded
+          // and checksum-verified object. This is a native transport retry, not
+          // permission to skip release preparation or activate on play() alone.
+          log("LEGACY_VIDEO_NATIVE_TRANSPORT", "native HTTP after verified local transport rejection");
+          playVideo(item, nativeSource, [], generation, false);
+          return;
+        }
+        if (!allowCacheFallback || nativeNetwork) {
           failItem(code);
           return;
         }
@@ -9995,6 +10059,7 @@ export function renderLgLegacyHtml() {
         });
       }
       video = document.createElement("video");
+      video.lgNativeNetworkVideo = nativeNetwork;
       video.setAttribute("playsinline", "");
       video.setAttribute("webkit-playsinline", "");
       video.preload = "auto";
@@ -10017,6 +10082,7 @@ export function renderLgLegacyHtml() {
         if (!committed) {
           window.clearTimeout(runtime.watchdogTimer);
           runtime.watchdogTimer = null;
+          if (nativeNetwork) rememberNativeNetworkVideo();
           committed = commitPendingMedia(
             video,
             objectUrls,

@@ -432,3 +432,8 @@ geverifieerde nieuwe media hoeven niet op een verwijderde timer te wachten.
 Gezonde video, overlaypauzes, compositiezones en offline last-known-good behouden
 hun bestaande grenzen. De fysieke videoweigering blijft afzonderlijk te meten;
 zie `docs/s225-lg-media-recovery.md`.
+
+S228 herstelt de op de fysieke LG bewezen weigering van beide lokale
+videotransporten met een begrensde native HTTP-herpoging na volledige
+releaseverificatie. Netwerkafhankelijke video verdringt de vorige lokaal
+werkende release niet; zie `docs/s228-lg-native-media.md`.

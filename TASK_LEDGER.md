@@ -298,3 +298,9 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S224 | review | veyocast/s224-lg-video-cache | root | Werkelijk gemeten LG-videofout na S223 onderzoeken en lokale playback herstellen | LG-runtime/probe/heartbeat, SW-shell v4, read-only gepinde workerprobe, gerichte regressies en docs | Foundation elk30/30 en productiebuild; 88 browser-/offline-/LG-/a11yproeven groen, inclusief zeven videoproeven en twee eerst rode cachebugs; Actionlint/ShellCheck groen; exacte CI en uitrol volgen | S223 is live en het echte force-syncontvangstbewijs is bevestigd; Narrow meldt nog LEGACY_VIDEO_ERROR en geen eerste frame. Geen ongeverifieerde stream, cachewissen of contentversies; fysieke decoderroute blijft te bevestigen. |
 
 | S225 | review | veyocast/s225-lg-media-recovery | root | LG-publicatiewissel na terminale videofout herstellen | LG-runtime, bestaande videobrowserfixture, prompt/docs/ledger/plan | Foundation elk30/30; Player-productiebuild incl webOS/bundleguards; 39 gerichte browser-/offline-/a11yproeven groen; vastloper en overlayrandgeval eerst rood gereproduceerd; exacte CI en uitrol volgen | Nieuwe afbeelding Droog was geverifieerd maar wachtte op verdwenen itemtimer. Alleen de mislukte grens zonder resterende bewaking/tijd krijgt hervatting; gezonde video en goalpauze behouden hun grens. Native video code4 blijft afzonderlijk te meten. Geen DB/dependency/content/credential/cachewijziging. |
+
+- S228: actuele LG-/workerdiagnose bevestigt lokale transportweigering met
+  geslaagde directe video. Native HTTP-fallback na volledige verificatie en
+  behoud van lokaal werkende vorige release. Lint/typecheck/unit 30/30 elk,
+  productiebuild en 43 browser/offline/a11yproeven groen; CI/uitrol volgen.
+  Zie `docs/s228-lg-native-media.md`.
