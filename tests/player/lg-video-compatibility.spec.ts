@@ -10,7 +10,7 @@ const replacementImage=image.replace("#155fac","#008844");
 const replacementImageSha=createHash("sha256").update(replacementImage).digest("hex");
 const imageSha=createHash("sha256").update(image).digest("hex");
 type Report={activeReleaseId?:string;desiredReleaseId?:string;lastPlaybackError?:{code:string;action:string;recoveredAt?:string};syncPhase?:string;syncRetryAcknowledgedAt?:string;videoProbe?:{code:string}};
-async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",previousVideo=false,initialVideo=false,mixedRelease=false){
+async function fixture(page:Page,policy:"paintable"|"blob-fails"|"local-fails"|"all-fail",previousVideo=false,initialVideo=false,mixedRelease=false){
  const base=await(await page.request.get(`${origin}/api/player/manifest?deviceToken=demo-online`)).json()as PlayerManifestEnvelope;
  const delivered=previousVideo?Buffer.concat([video,Buffer.from([0,0,0,8,102,114,101,101])]):video;
  const deliveredSha=createHash("sha256").update(delivered).digest("hex");
@@ -27,9 +27,9 @@ async function fixture(page:Page,policy:"paintable"|"blob-fails"|"all-fail",prev
   Object.defineProperty(HTMLMediaElement.prototype,"src",{...descriptor,set(value:string){
    if(this instanceof HTMLVideoElement&&value){
     const style=getComputedStyle(this),bounds=this.getBoundingClientRect();const paintable=style.visibility!=="hidden"&&Number(style.opacity)>0&&bounds.width>0&&bounds.height>0;
-    state.videoAttempts.push({scheme:value.startsWith("blob:")?"blob":"cache",paintable,cover:document.elementsFromPoint(innerWidth/2,innerHeight/2)[0]?.tagName??""});
-    const rejectedSource=!mode.previousVideo||value.includes(mode.blockedSha)||sizes.get(value)===mode.blockedSize;
-    if(mode.policy==="all-fail"&&rejectedSource||mode.policy==="blob-fails"&&value.startsWith("blob:")||mode.policy==="paintable"&&!paintable){
+    state.videoAttempts.push({scheme:value.startsWith("blob:")?"blob":value.includes("/__veyocast-player-cache/")?"cache":"native",paintable,cover:document.elementsFromPoint(innerWidth/2,innerHeight/2)[0]?.tagName??""});
+    const rejectedSource=!mode.previousVideo||value.includes(mode.blockedSha)||value.includes("compat-video.mp4")||sizes.get(value)===mode.blockedSize;
+    if(mode.policy==="local-fails"&&(value.startsWith("blob:")||value.includes("/__veyocast-player-cache/"))||mode.policy==="all-fail"&&rejectedSource||mode.policy==="blob-fails"&&value.startsWith("blob:")||mode.policy==="paintable"&&!paintable){
      Object.defineProperty(this,"error",{configurable:true,get:()=>({code:4})});queueMicrotask(()=>this.dispatchEvent(new Event("error")));return;
     }
    }
@@ -68,18 +68,32 @@ test("LG retries a rejected Blob using verified local Range bytes and restores t
  await expect.poll(()=>page.locator("video.visible:not(.retiring)").evaluate((v:HTMLVideoElement)=>v.currentTime),{timeout:8000}).toBeGreaterThan(0);
  expect(run.getDownloads()).toBe(1);
 });
-test("LG preserves the verified previous menu after both local video transports fail, including offline startup",async({page,context})=>{
+test("LG preserves the verified previous menu after all video transports fail, including offline startup",async({page,context})=>{
  const run=await fixture(page,"all-fail");await run.publish();
  await expect.poll(()=>run.reports.some(body=>body.lastPlaybackError?.action.includes("media_4")),{timeout:12000}).toBe(true);
  await expect(page.locator("#media-root img.visible").first()).toBeVisible();
  await expect.poll(()=>run.reports.at(-1)?.desiredReleaseId).toBe("new-video");
  await expect.poll(()=>run.reports.at(-1)?.activeReleaseId).toBe("old-menu");
  await page.waitForTimeout(6000);
- const attempts=await page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length);expect(attempts).toBe(4);
+ const attempts=await page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length);expect(attempts).toBe(6);
  expect(run.getDownloads()).toBe(1);
  await run.requestSync();
  await expect.poll(()=>run.reports.some(body=>body.syncRetryAcknowledgedAt==="2026-10-16T01:00:00.123456+00:00")).toBe(true);
- await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:10000}).toBe(8);
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:10000}).toBe(12);
+ // Force an offline notification while the previous image is being validated.
+ // A competing LKG read must not restart the rejected active video underneath it.
+ await page.addInitScript(checksum=>{
+  const match=Cache.prototype.match;let injected=false;
+  Cache.prototype.match=function(request,options){
+   const result=match.call(this,request,options);
+   const url=typeof request==="string"?request:request.url;
+   if(!navigator.onLine&&!injected&&url.includes(checksum)){
+    injected=true;setTimeout(()=>window.dispatchEvent(new Event("offline")),0);
+    return result.then(response=>new Promise<Response|undefined>(resolve=>setTimeout(()=>resolve(response),300)));
+   }
+   return result;
+  };
+ },imageSha);
  await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));await context.setOffline(true);await page.reload();await expect(page.locator("#media-root img.visible").first()).toBeVisible();
  await expect(page.locator("#status")).toBeHidden();
 });
@@ -113,10 +127,10 @@ test("a different verified previous video remains eligible for offline last-know
 
 test("several unpresented video publications cannot overwrite the previous working release",async({page,context})=>{
  const run=await fixture(page,"all-fail");await run.publish();
- await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:12000}).toBe(4);
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:12000}).toBe(6);
  await run.publishAgain();
  await expect.poll(()=>run.reports.at(-1)?.desiredReleaseId).toBe("new-video-2");
- await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:10000}).toBe(8);
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:10000}).toBe(12);
  await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));await context.setOffline(true);await page.reload();
  await expect(page.locator("#media-root img.visible").first()).toBeVisible();
  await expect(page.locator("#status")).toBeHidden();
@@ -136,7 +150,7 @@ test("a cold pending video keeps the startup status painted above its decoder su
 
 test("a verified image publication escapes a terminal video failure without a remaining item timer",async({page,context})=>{
  const run=await fixture(page,"all-fail",false,false,true);
- await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:15000}).toBe(4);
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:15000}).toBe(6);
  await expect.poll(()=>run.reports.at(-1)?.syncPhase).toBe("failed");
  await run.publishImage();
  await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-image"),{timeout:8000}).toBe(true);
@@ -166,7 +180,7 @@ test("a healthy LG video keeps its own boundary when a new verified image is rea
 
 test("recovery waits for a paused goal overlay and resumes after it expires",async({page})=>{
  const run=await fixture(page,"all-fail",false,false,true);
- await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:15000}).toBe(4);
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as{videoAttempts:unknown[]}).videoAttempts.length),{timeout:15000}).toBe(6);
  await expect.poll(()=>run.reports.at(-1)?.syncPhase).toBe("failed");
  let sent=false;
  await page.route("**/api/player/realtime/ack",route=>route.fulfill({json:{ok:true}}));
@@ -186,4 +200,29 @@ test("recovery waits for a paused goal overlay and resumes after it expires",asy
  expect(run.reports.some(body=>body.activeReleaseId==="new-image")).toBe(false);
  await expect(page.locator("#goal-overlay")).toBeHidden({timeout:5000});
  await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-image"),{timeout:5000}).toBe(true);
+});
+
+
+test("LG uses its authorized immutable source after both verified local video transports fail and restores the local image offline",async({page,context})=>{
+ const run=await fixture(page,"local-fails");await run.publish();
+ await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-video"),{timeout:12000}).toBe(true);
+ await expect(page.locator("video.visible:not(.retiring)")).toHaveAttribute("src",`${origin}/compat-video.mp4`);
+ await expect.poll(()=>page.locator("video.visible:not(.retiring)").evaluate((v:HTMLVideoElement)=>v.currentTime)).toBeGreaterThan(0);
+ await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));
+ await context.setOffline(true);
+ await expect(page.locator("#media-root img.visible:not(.retiring)")).toBeVisible();
+ await page.reload();
+ await expect(page.locator("#media-root img.visible:not(.retiring)")).toBeVisible();
+ await expect(page.locator("#status")).toBeHidden();
+});
+
+
+test("two presented native HTTP publications never replace the locally playable previous release",async({page,context})=>{
+ const run=await fixture(page,"local-fails");await run.publish();
+ await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-video"),{timeout:12000}).toBe(true);
+ await run.publishAgain();
+ await expect.poll(()=>run.reports.some(body=>body.activeReleaseId==="new-video-2"),{timeout:12000}).toBe(true);
+ await page.route("**/api/player/**",route=>route.abort("internetdisconnected"));await context.setOffline(true);await page.reload();
+ await expect(page.locator("#media-root img.visible:not(.retiring)")).toBeVisible();
+ await expect(page.locator("#status")).toBeHidden();
 });

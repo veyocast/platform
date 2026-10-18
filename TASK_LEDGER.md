@@ -302,6 +302,17 @@ Gebruik dit bestand als single source of truth voor Codex-taken.
 | S225 | review | veyocast/s225-lg-media-recovery | root | LG-publicatiewissel na terminale videofout herstellen | LG-runtime, bestaande videobrowserfixture, prompt/docs/ledger/plan | Foundation elk30/30; Player-productiebuild incl webOS/bundleguards; 39 gerichte browser-/offline-/a11yproeven groen; vastloper en overlayrandgeval eerst rood gereproduceerd; exacte CI en uitrol volgen | Nieuwe afbeelding Droog was geverifieerd maar wachtte op verdwenen itemtimer. Alleen de mislukte grens zonder resterende bewaking/tijd krijgt hervatting; gezonde video en goalpauze behouden hun grens. Native video code4 blijft afzonderlijk te meten. Geen DB/dependency/content/credential/cachewijziging. |
 
 
+- S228: actuele LG-/workerdiagnose bevestigt lokale transportweigering met
+  geslaagde directe video. Native HTTP-fallback na volledige verificatie en
+  behoud van lokaal werkende vorige release. Lint/typecheck/unit 30/30 elk,
+  productiebuild en 43 browser/offline/a11yproeven groen; CI/uitrol volgen.
+  Zie `docs/s228-lg-native-media.md`.
+- S228 CI-vervolg: offline cold-start-race reproduceerbaar gemaakt met een
+  offlinebericht tijdens vorige-releasevalidatie; decoderherstel behoudt
+  playbackownership en verouderde LKG-callbacks starten de kandidaat niet opnieuw.
+  De gerichte raceproef 3/3, productiebuild, foundationgates elk 30/30 en alle 43
+  productie-browser/offline/a11yproeven zijn na die correctie opnieuw groen.
+
 S226 vervolg: RSS-handmatig → expliciete gekoppelde kopie met echte AAL2-diensten
 PASS over drie opgeslagen fixtureartikelen (geen externe feedacceptatie). Eén
 15s-MP4/private SHA, origineel/publicaties behouden. Productie-only herstel-
