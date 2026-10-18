@@ -104,6 +104,11 @@ export async function archiveMediaAsset(formData: FormData) {
     expectedDraftCount,
     removeDraftReferences: expectedDraftCount > 0
   });
+  if (formData.get("returnTo") === "/dashboard/content") {
+    revalidatePath("/dashboard/content");
+    revalidatePath("/dashboard/media");
+    redirect("/dashboard/content");
+  }
   completeLibrary(
     expectedDraftCount > 0
       ? `De media is uit ${expectedDraftCount} concept${expectedDraftCount === 1 ? "" : "en"} verwijderd en staat nu herstelbaar in het archief. Bestaande releases blijven afspeelbaar.`
@@ -114,6 +119,11 @@ export async function archiveMediaAsset(formData: FormData) {
 export async function restoreMediaAsset(formData: FormData) {
   const assetId = mediaId(formData);
   await mutateMediaAsset(formData, "restore", {});
+  if (formData.get("returnTo") === "/dashboard/content") {
+    revalidatePath("/dashboard/content");
+    revalidatePath("/dashboard/media");
+    redirect("/dashboard/content");
+  }
   completeAsset(assetId, "De media is hersteld en staat weer in de actieve bibliotheek.");
 }
 

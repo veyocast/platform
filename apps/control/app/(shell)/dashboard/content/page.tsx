@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { hasCapability } from "@veyocast/auth";
 import { Loader2, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
@@ -42,7 +43,7 @@ export default async function ContentLibrary({
   let request = client
     ?.from("sync_content_library_v1")
     .select(
-      "id,content_key,title,kind,family,status,archived,orientation,duration_seconds,updated_at,width,height,preview_asset_id,placement",
+      "id,content_key,title,kind,family,status,archived,orientation,duration_seconds,updated_at,width,height,preview_asset_id,placement,revision",
       { count: "exact" },
     )
     .eq("tenant_id", session.tenantId!)
@@ -147,7 +148,18 @@ export default async function ContentLibrary({
             : `/dashboard/slides/${item.id}`
           : `/dashboard/studio/${item.id}`,
     placement: readContentPlacement(item.placement),
+    revision: item.revision === null ? null : Number(item.revision),
+    restoreKey: item.archived && item.kind === "media" ? randomUUID() : undefined,
   }));
+  const studioIds = items.filter(item => item.kind === "studio").map(item => item.id);
+  if (client && studioIds.length) {
+    const themes = await client.from("studio_project_drafts").select("project_id,theme:document_json->syncPresentation->>theme")
+      .eq("tenant_id", session.tenantId!).in("project_id", studioIds);
+    if (!themes.error) for (const item of items) {
+      const theme = themes.data.find(row => row.project_id === item.id)?.theme;
+      item.themeName = theme === "fieldflow" ? "FieldFlow" : theme === "onzetrots-tv" ? "OnzeTrots TV" : null;
+    }
+  }
   const href = (target: number, nextFilter = filter) =>
     `/dashboard/content?${new URLSearchParams({ q: query, filter: nextFilter, page: String(target) })}`;
   const canCreate =
@@ -223,6 +235,10 @@ export default async function ContentLibrary({
           session.tenantStatus === "active" &&
           hasCapability(session.capabilities, "tenant.playlist.write")
         }
+        actionScope={session.isLive && session.tenantId && session.userId ? `${session.tenantId}:${session.userId}` : undefined}
+        canArchiveMedia={canUpload && session.isLive}
+        canArchiveStudio={session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.studio.archive")}
+        canDuplicateStudio={canCreate && session.isLive && (hasCapability(session.capabilities, "tenant.studio.edit_own") || hasCapability(session.capabilities, "tenant.studio.edit_all"))}
         query={query}
         filter={filter}
       >

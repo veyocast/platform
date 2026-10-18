@@ -33,7 +33,9 @@ export function SyncFleetView({ data, screens, devices, query, status, group, se
     })}<Link className="px-add-screen" href="/dashboard/screens/new"><span><Plus size={24} /></span><strong>Een nieuw scherm</strong><p>Koppel met een code.<br />Publiceer je eerste verhaal.</p><span className="px-add-arrow">Beginnen <ArrowRight size={15} /></span></Link></div>
     {!screens.length && data.screens.length ? <div className="empty"><Monitor size={32} /><h2>Geen schermen gevonden</h2><p>Probeer een andere zoekterm of wis de filters.</p><Link className="btn btn-secondary" href="/dashboard/screens">Filters wissen</Link></div> : null}
     <div className="px-fleet-bottom"><ShieldCheck size={22} /><div><strong>Je laatste goede verhaal blijft spelen.</strong><p>Ook bij een onderbreking. Nieuwe inhoud wordt eerst gedownload en gecontroleerd.</p></div><Link className="btn btn-ghost" href="/dashboard/publications">Publicaties bekijken <ArrowRight size={16} /></Link></div>
-    <details className="sync-fleet-advanced"><summary><CalendarDays size={17} />Indelingen en groepsacties</summary>{advanced}</details>
+    {/* The browser owns this uncontrolled disclosure's open state, including
+        clicks before hydration. Preserve that choice when React attaches. */}
+    <details className="sync-fleet-advanced" suppressHydrationWarning><summary><CalendarDays size={17} />Indelingen en groepsacties</summary>{advanced}</details>
   </div>;
 }
 function Brand() { return <img src="/assets/full-light.svg" className="brand" alt="VeyoCast · nog geen publicatievoorbeeld" />; }

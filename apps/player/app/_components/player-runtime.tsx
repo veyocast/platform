@@ -18,7 +18,6 @@ import { goalVideoTelemetry, goalVideoCapabilities } from "../_lib/goal-video-te
 
 /* eslint-disable @next/next/no-img-element -- Player media URLs come from release manifests and must render directly. */
 
-import { VEYOCAST_APPS } from "@veyocast/config";
 import type { SponsorPlayEvent, SponsorPositionKey,SyncSlidePresentation } from "@veyocast/contracts";
 import React, {
   useCallback,
@@ -157,8 +156,9 @@ import {
   type FrozenPlayerTheme
 } from "./player-presentation-theme";
 import { playerSystemThemeAttributes } from "./player-system-theme";
+import { SyncPlayerStatus } from "./sync-player-status";
+import { initialPlayerPreparationStage, playerProblemStage } from "../_lib/player-status-presentation";
 
-const demoPairingCode = "VYO 482";
 const waitingContentSyncIntervalMs = 5_000;
 const maximumManifestSyncBackoffMs = 5 * 60_000;
 const pairingClaimPollIntervalMs = 2_000;
@@ -223,6 +223,7 @@ type InstallationRuntime =
 
 export function PlayerRuntime() {
   const [runtime, setRuntime] = useState<RuntimeView>({ state: "BOOTING" });
+  const [initialPreparationPhase, setInitialPreparationPhase] = useState<PlayerCachePhase | null>(null);
   const [installation, setInstallation] = useState<InstallationRuntime>({
     status: "registering"
   });
@@ -925,7 +926,7 @@ export function PlayerRuntime() {
 
           if (!body.live) {
             clearPairingProvisionAfter();
-            setRuntime({ pairingCode: demoPairingCode, state: "UNPAIRED" });
+            setRuntime({ pairingCode: body.pairingCode, state: "UNPAIRED" });
             return;
           }
 
@@ -1122,6 +1123,7 @@ export function PlayerRuntime() {
     }
 
     transitionPairing({ type: "ACTIVATED" });
+    setInitialPreparationPhase(null);
     setRuntime({ state: "SYNCING", deviceToken: activeDeviceToken });
 
     async function restoreLastKnownGood() {
@@ -1422,6 +1424,8 @@ export function PlayerRuntime() {
 
     async function prepareLatest(body: PlayerManifestEnvelope, token: PlayerTargetToken) {
       preparationErrorRef.current = null;
+      setInitialPreparationPhase(null);
+      setRuntime(current => isPlaybackRuntime(current) ? current : { state: "SYNCING", deviceToken: activeDeviceToken });
       let hydrated: HydratedPlayerRelease | undefined;
       preparingCountRef.current += 1;
       try {
@@ -1489,6 +1493,7 @@ export function PlayerRuntime() {
     }
 
     function updatePlaybackPhase(phase: PlayerCachePhase) {
+      if (!isPlaybackRuntime(runtimeRef.current)) setInitialPreparationPhase(phase);
       setRuntime((currentRuntime) => {
         if (!isPlaybackRuntime(currentRuntime)) {
           return currentRuntime;
@@ -2143,30 +2148,22 @@ export function PlayerRuntime() {
       />
     );
   } else if (runtime.state === "SYNCING") {
-    playerView = <SetupPanel stateLabel="SYNCING" title="Release ophalen" />;
+    playerView = <SyncPlayerStatus stage={initialPlayerPreparationStage(initialPreparationPhase)} landmark="VeyoCast player sync" footer="Publicatie voorbereiden" />;
   } else if (runtime.state === "BOOTING") {
-    playerView = <SetupPanel stateLabel="BOOTING" title="Koppelcode maken" />;
+    playerView = <SyncPlayerStatus stage="boot" landmark="VeyoCast player sync" footer="Player starten" />;
   } else if (runtime.state === "PAIRING_RETRY") {
     playerView = (
-      <SetupPanel
-        detail={`${runtime.reason}${
-          runtime.errorCode ? ` Foutcode: ${runtime.errorCode}.` : ""
-        } De Player probeert het automatisch opnieuw; vernieuwen is niet nodig.${
-          pairingMachine.recoveryHintVisible
-            ? " Koppelen duurt langer dan verwacht. Houd OK acht seconden ingedrukt voor herstelopties."
-            : ""
-        }`}
-        transportDiagnostic={formatPlayerTransportDiagnostic(
-          readLatestPlayerTransportDiagnostic()
-        )}
-        stateLabel="PAIRING_RETRY"
-        title="Nieuwe koppelcode voorbereiden"
+      <SyncPlayerStatus
+        stage="recovery" landmark="VeyoCast player sync" footer="Automatisch opnieuw proberen"
+        detail={runtime.reason}
+        problem={{ code: runtime.errorCode, cause: runtime.reason, effect: "Een veilige koppelcode is nog niet beschikbaar.", recovery: pairingMachine.recoveryHintVisible ? "De Player probeert automatisch opnieuw. Houd OK acht seconden ingedrukt voor herstelopties." : "De Player probeert automatisch opnieuw; vernieuwen is niet nodig." }}
+        onRetry={handleLocalRetry}
       />
     );
   } else if (runtime.state === "READY") {
     playerView = (
-      <DefaultWaitingScreen
-        branding={runtime.branding}
+      <SyncPlayerStatus
+        stage="no-content" landmark="VeyoCast player gereed" footer="Gekoppeld en gereed"
         screenName={runtime.device.screenName}
       />
     );
@@ -2174,13 +2171,16 @@ export function PlayerRuntime() {
     runtime.state === "ERROR_RECOVERABLE" ||
     runtime.state === "DISABLED"
   ) {
-    playerView = <ProblemPanel problem={runtime} />;
+    const stage = playerProblemStage(runtime.error.code, runtime.state === "DISABLED");
+    playerView = <SyncPlayerStatus stage={stage} landmark="VeyoCast player status" title={stage === "error" ? problemTitle(runtime.error.code) : undefined} problem={runtime.error} footer={stage === "offline-empty" ? "Verbinding nodig" : "Herstel beschikbaar"} onRetry={runtime.state === "DISABLED" ? undefined : handleLocalRetry} />;
   } else {
     playerView = (
       <PairingPanel
         pairingCode={
           runtime.state === "UNPAIRED" ? runtime.pairingCode : undefined
         }
+        expiresAt={runtime.state === "UNPAIRED" ? runtime.expiresAt : undefined}
+        onRetry={handleLocalRetry}
       />
     );
   }
@@ -2228,9 +2228,7 @@ function PlaybackView({
 
   if (!activeItem || (!underlayPaused && !isPlayerManifestItemPlayable(activeItem))) {
     return (
-      <DefaultWaitingScreen
-        branding={runtime.release.envelope.branding}
-      />
+      <SyncPlayerStatus stage="no-content" landmark="VeyoCast player gereed" screenName={runtime.release.envelope.device.screenName} footer="Wachten op afspeelbare inhoud" />
     );
   }
 
@@ -3035,149 +3033,18 @@ function safelySetVideoVolume(
   }
 }
 
-function PairingPanel({
-  pairingCode
-}: {
-  pairingCode?: string;
-}) {
-  const displayedPairingCode = pairingCode ?? demoPairingCode;
-  const qrCode = displayedPairingCode.replace(/[^A-Z0-9]/gi, "");
+function PairingPanel({ pairingCode, expiresAt, onRetry }: { pairingCode?: string; expiresAt?: string; onRetry: () => void }) {
   const [connectionLabel, setConnectionLabel] = useState("Internet controleren…");
   const [deviceLabel, setDeviceLabel] = useState("Web Player");
-
   useEffect(() => {
-    const updateConnection = (online = readPlayerConnectivity()) =>
-      setConnectionLabel(online ? "Verbonden" : "VeyoCast niet bereikbaar");
-    const updatePlayerConnection = (event: Event) =>
-      updateConnection((event as PlayerConnectivityEvent).detail.online);
+    const updateConnection = (online = readPlayerConnectivity()) => setConnectionLabel(online ? "Internet beschikbaar" : "VeyoCast niet bereikbaar");
+    const updatePlayerConnection = (event: Event) => updateConnection((event as PlayerConnectivityEvent).detail.online);
     setDeviceLabel(detectDeviceLabel(navigator.userAgent));
     updateConnection();
     window.addEventListener(playerConnectivityEventName, updatePlayerConnection);
-    return () => {
-      window.removeEventListener(
-        playerConnectivityEventName,
-        updatePlayerConnection
-      );
-    };
+    return () => window.removeEventListener(playerConnectivityEventName, updatePlayerConnection);
   }, []);
-
-  return (
-    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--pairing" aria-label="VeyoCast player setup">
-      <SetupBackdrop />
-      <section className="pairing-stage" aria-labelledby="player-title">
-        <PairingBrandScene />
-        <div className="pairing-stage__primary">
-          <img alt="VeyoCast" className="pairing-logo" src="/assets/full-light.svg" />
-          <div className="pairing-heading">
-            <p className="runtime-kicker"><span className="pairing-live-dot" aria-hidden="true" /> Klaar om te koppelen</p>
-            <h1 className="runtime-title" id="player-title">Koppel dit scherm aan VeyoCast</h1>
-            <p className="runtime-copy">Open <strong>Schermen</strong> in VeyoCast Control, kies <strong>Scherm koppelen</strong> en voer deze code in.</p>
-          </div>
-          <div className="pairing-code-group">
-            <span className="pairing-code-label">Koppelcode</span>
-            <div className="player-pairing-code" aria-label="Pairingcode">{displayedPairingCode}</div>
-            <p>De code is tijdelijk en alleen bruikbaar voor dit scherm.</p>
-          </div>
-        </div>
-        <aside className="pairing-stage__status" aria-label="Device setupstatus">
-          <div className="pairing-qr">
-            {/* Pairing SVG is local and contains only the expiring public code. */}
-            <img alt="QR-code met tijdelijke VeyoCast-koppelcode" src={`/api/player/pairing/qr?code=${encodeURIComponent(qrCode)}`} />
-            <span>Scan met VeyoCast Control</span>
-          </div>
-          <div className="pairing-signal" aria-hidden="true"><span /><span /><span /><i /></div>
-          <div>
-            <p className="pairing-status-eyebrow">Schermstatus</p>
-            <h2>Wachten op VeyoCast Control</h2>
-            <p>Zodra de code is bevestigd, haalt dit scherm veilig de toegewezen release op.</p>
-          </div>
-          <dl className="player-diagnostics">
-            <div><dt>Apparaat</dt><dd>{deviceLabel}</dd></div>
-            <div><dt>Internet</dt><dd><span className="pairing-live-dot" aria-hidden="true" /> {connectionLabel}</dd></div>
-            <div><dt>Player</dt><dd>{VEYOCAST_APPS.player.name} · versie 1.0</dd></div>
-          </dl>
-        </aside>
-      </section>
-    </main>
-  );
-}
-
-function SetupPanel({
-  detail,
-  stateLabel,
-  title,
-  transportDiagnostic
-}: {
-  detail?: string;
-  stateLabel: "BOOTING" | "PAIRING_RETRY" | "SYNCING";
-  title: string;
-  transportDiagnostic?: string;
-}) {
-  const visibleStateLabel = {
-    BOOTING: "Player starten",
-    PAIRING_RETRY: "Automatisch herstellen",
-    SYNCING: "Synchroniseren"
-  }[stateLabel];
-
-  return (
-    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player sync">
-      <SetupBackdrop />
-      <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
-        <img alt="VeyoCast" className="sync-boot-hero" src="/assets/brand-hero-800.webp" />
-        <p className="runtime-kicker">{visibleStateLabel}</p>
-        <h1 className="runtime-title" id="player-title">
-          {title}
-        </h1>
-        <p className="runtime-copy">
-          {detail ?? (stateLabel === "BOOTING"
-            ? "De player vraagt een tijdelijke, veilige koppelcode aan. Het geheime device-token blijft op dit apparaat."
-            : "De player haalt het toegewezen release manifest op. Playback start zodra de online release compleet is gelezen.")}
-        </p>
-        {transportDiagnostic ? (
-          <p className="runtime-transport-diagnostic">
-            Diagnose: {transportDiagnostic}
-          </p>
-        ) : null}
-      </section>
-    </main>
-  );
-}
-
-function ProblemPanel({
-  problem
-}: {
-  problem: Extract<RuntimeView, { state: "ERROR_RECOVERABLE" | "DISABLED" }>;
-}) {
-  const title = problemTitle(problem.error.code);
-
-  return (
-    <main {...playerSystemThemeAttributes} className="runtime-shell runtime-shell--setup" aria-label="VeyoCast player status">
-      <SetupBackdrop />
-      <section className="runtime-panel runtime-panel--branded" aria-labelledby="player-title">
-        <img alt="VeyoCast" className="pairing-logo" src="/assets/full-light.svg" />
-        <p className="runtime-kicker">{problem.state}</p>
-        <h1 className="runtime-title" id="player-title">
-          {title}
-        </h1>
-        <div className="runtime-problem" role="status">
-          {problem.error.code ? (
-            <p>
-              <strong>Foutcode:</strong> {problem.error.code}
-            </p>
-          ) : null}
-          <p>
-            <strong>Oorzaak:</strong> {problem.error.cause}
-          </p>
-          <p>
-            <strong>Effect:</strong> {problem.error.effect}
-          </p>
-          <p>
-            <strong>Herstel:</strong> {problem.error.recovery}
-          </p>
-        </div>
-      </section>
-    </main>
-  );
+  return <SyncPlayerStatus stage="pairing" landmark="VeyoCast player setup" pairingCode={pairingCode} expiresAt={expiresAt} screenName={deviceLabel} footer={connectionLabel} onRetry={onRetry} />;
 }
 
 function problemTitle(code?: string) {
@@ -3209,133 +3076,6 @@ function problemTitle(code?: string) {
   return "Playback wacht";
 }
 
-const defaultWaitingBranding: PlayerWaitingBranding = {
-  sportparkName: "ons sportpark",
-  tenantLogoUrl: null,
-  tenantName: "VeyoCast",
-  themeMode: "dark",
-  timezone: "Europe/Amsterdam"
-};
-
-function DefaultWaitingScreen({
-  branding,
-  screenName
-}: {
-  branding?: PlayerWaitingBranding;
-  screenName?: string;
-}) {
-  const resolved = branding ?? defaultWaitingBranding;
-  return (
-    <main
-      aria-label="VeyoCast player gereed"
-      className={`default-waiting-screen default-waiting-screen--${resolved.themeMode}`}
-      data-design-revision="royal-current-v8"
-      data-theme-authority="player-system"
-      data-theme-mode={resolved.themeMode}
-    >
-      <section className="default-waiting-screen__card">
-        <DefaultWaitingClock timezone={resolved.timezone} />
-        <div className="default-waiting-screen__content">
-          <p className="default-waiting-screen__tenant">{resolved.tenantName}</p>
-          <h1>Wachten op content</h1>
-          <p className="default-waiting-screen__welcome">
-            Welkom op {resolved.sportparkName}!
-          </p>
-          {screenName ? (
-            <p className="default-waiting-screen__screen">{screenName}</p>
-          ) : null}
-          {resolved.tenantLogoUrl ? (
-            <img
-              alt={`Logo ${resolved.tenantName}`}
-              className="default-waiting-screen__tenant-logo"
-              src={resolved.tenantLogoUrl}
-            />
-          ) : null}
-          <img
-            alt="VeyoCast"
-            className="default-waiting-screen__veyocast-logo"
-            src={resolved.themeMode === "light"
-              ? "/assets/full-dark.svg"
-              : "/assets/full-light.svg"}
-          />
-          <p className="default-waiting-screen__payoff">
-            Narrowcasting voor sportverenigingen!
-          </p>
-          <div className="default-waiting-screen__status" role="status">
-            Status: online en gereed
-          </div>
-        </div>
-        <footer className="default-waiting-screen__footer">
-          <span>VEYOCAST · VOORBEELD</span>
-          <span>{resolved.sportparkName}</span>
-        </footer>
-      </section>
-    </main>
-  );
-}
-
-function DefaultWaitingClock({ timezone }: { timezone: string }) {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    let timer: number | undefined;
-    const schedule = () => {
-      setNow(new Date());
-      timer = window.setTimeout(schedule, 60_000 - (Date.now() % 60_000) + 100);
-    };
-    timer = window.setTimeout(schedule, 60_000 - (Date.now() % 60_000) + 100);
-    return () => {
-      if (timer !== undefined) window.clearTimeout(timer);
-    };
-  }, []);
-
-  return (
-    <time className="default-waiting-screen__clock" dateTime={now.toISOString()}>
-      {formatDefaultWaitingClock(now, timezone)}
-    </time>
-  );
-}
-
-function formatDefaultWaitingClock(value: Date, timezone: string) {
-  try {
-    return new Intl.DateTimeFormat("nl-NL", {
-      day: "2-digit",
-      hour: "2-digit",
-      hour12: false,
-      minute: "2-digit",
-      month: "2-digit",
-      timeZone: timezone,
-      year: "numeric"
-    }).format(value).replace(", ", " | ");
-  } catch {
-    return new Intl.DateTimeFormat("nl-NL", {
-      day: "2-digit",
-      hour: "2-digit",
-      hour12: false,
-      minute: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    }).format(value).replace(", ", " | ");
-  }
-}
-
-function PairingBrandScene() {
-  return (
-    <div className="pairing-brand-scene" aria-hidden="true">
-      <img alt="" className="sync-pairing-hero" src="/assets/brand-hero-800.webp" />
-    </div>
-  );
-}
-
-function SetupBackdrop() {
-  return (
-    <div className="setup-backdrop" aria-hidden="true">
-      <span className="setup-orbit setup-orbit--one" />
-      <span className="setup-orbit setup-orbit--two" />
-      <span className="setup-orbit setup-orbit--three" />
-    </div>
-  );
-}
 
 function detectDeviceLabel(userAgent: string) {
   if (/Web0S|WebOS/i.test(userAgent)) return "LG webOS signage";

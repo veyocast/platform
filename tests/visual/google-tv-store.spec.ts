@@ -29,7 +29,7 @@ test("legt Android TV-winkelbeelden voor de bestaande Play-app vast", async ({
 }) => {
   await page.goto(playerURL);
   await expect(
-    page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })
+    page.getByRole("heading", { name: "Geef dit scherm een verhaal." })
   ).toBeVisible();
   await page.screenshot({
     animations: "disabled",

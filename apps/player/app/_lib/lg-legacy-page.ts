@@ -1,3 +1,4 @@
+import { syncPlayerStatusCopy } from "./player-status-presentation";
 import { legacyEngageCss, lgSitesEngageScript } from "./lg-sites-engage";
 import { lgSitesGoalScript } from "./lg-sites-goal";
 import { lgSitesRuntimeScript } from "./lg-sites-runtime";
@@ -109,8 +110,143 @@ const legacyConfig = {
   videoStartTimeoutMs: 15_000
 } as const;
 
+const legacySyncStatusCss = `/* Immutable Sync 8b1fdf status geometry; fullscreen vw equals Source cqw.
+   Only this non-playback shell uses these fonts and Chrome79 fallbacks. */
+@font-face{font-family:Manrope;font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/manrope.woff2') format('woff2')}
+@font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/inter.woff2') format('woff2')}
+#status.legacy-sync-status,#default-waiting.legacy-sync-status{padding:0;display:block;font:14px/1.55 Manrope,Inter,sans-serif}
+#status[hidden],#default-waiting[hidden]{display:none!important}
+.legacy-sync-status button{font-family:inherit;cursor:pointer}
+.legacy-sync-status [hidden]{display:none!important}
+.legacy-sync-status .px-splash{position:absolute;top:0;right:0;bottom:0;left:0;z-index:10;background:radial-gradient(ellipse at 45% 35%,#20392c 0%,#101d18 48%,#0c1414 100%);overflow:hidden;display:flex;flex-direction:column}
+.legacy-sync-status .px-splash.error{background:radial-gradient(ellipse at 50% 30%,#3a3021,#191c18 65%)}
+.legacy-sync-status .px-splash-grid{position:absolute;top:0;right:0;bottom:0;left:0;background-image:linear-gradient(#b5d39105 1px,transparent 1px),linear-gradient(90deg,#b5d39105 1px,transparent 1px);background-size:5vw 5vw;-webkit-mask-image:radial-gradient(ellipse,#000,transparent 80%);mask-image:radial-gradient(ellipse,#000,transparent 80%)}
+.legacy-sync-status .px-splash-halo{position:absolute;width:50vw;height:50vw;left:25%;top:-40%;background:radial-gradient(ellipse,#a7cf6340,transparent 68%);filter:blur(15px);animation:px-glow 7s ease-in-out infinite alternate}
+.legacy-sync-status .px-splash-orbit{position:absolute;left:50%;top:50%;width:57vw;height:57vw;transform:translate(-50%,-50%);border:1px solid #b9d49e0b;border-radius:50%}
+.legacy-sync-status .px-splash-orbit.two{width:73vw;height:73vw}
+.legacy-sync-status .px-splash-brand{position:absolute;top:5%;left:5%;width:16%;z-index:1}
+.legacy-sync-status .px-splash-brand img{display:block;width:100%}
+.legacy-sync-status .px-splash-center{position:absolute;left:10%;right:10%;top:49%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;text-align:center}
+.legacy-sync-status .px-splash-icon{width:6.3vw;height:6.3vw;min-width:30px;min-height:30px;border:1px solid #d3eaa12a;background:linear-gradient(135deg,#d1eaaa13,#d1eaaa04);box-shadow:0 0 50px #b8db6b0b;border-radius:1.7vw;display:grid;place-items:center;color:#d9efa7;margin-bottom:2.7vw}
+.legacy-sync-status .px-splash-icon img{width:58%;height:58%;object-fit:contain}
+.legacy-sync-status .px-splash-icon svg{width:45%;height:45%}
+.legacy-sync-status .px-splash-eyebrow{font-size:.85vw;letter-spacing:.28vw;color:#b8d398;font-weight:800;margin-bottom:1.3vw}
+.legacy-sync-status .px-splash-center h1{font-size:3.3vw;font-weight:600;letter-spacing:-.14vw;line-height:1.13;color:#f3f4e9;margin:0;max-width:85%}
+.legacy-sync-status .px-splash-center p{font-size:1.1vw;color:#95aa9c;line-height:1.7;max-width:45vw;margin:1.4vw 0 0}
+.legacy-sync-status .px-splash-footer{position:absolute;bottom:5%;left:5%;right:5%;display:flex;align-items:center;justify-content:space-between;color:#6f8678;font-size:.8vw;letter-spacing:.03vw}
+.legacy-sync-status .px-splash-footer>span:last-child{display:flex;align-items:center;gap:.5vw}
+.legacy-sync-status .px-splash-footer i{width:.4vw;height:.4vw;border-radius:50%;background:#a1c580}
+.legacy-sync-status .px-splash-loader{display:flex;gap:.45vw;margin-top:2.4vw}
+.legacy-sync-status .px-splash-loader i{height:.45vw;width:.45vw;border-radius:50%;background:#b5d392;animation:px-breathe 1.4s ease-in-out infinite}
+.legacy-sync-status .px-splash-loader i:nth-child(2){animation-delay:.2s}
+.legacy-sync-status .px-splash-loader i:nth-child(3){animation-delay:.4s}
+.legacy-sync-status .px-sync-display{width:38vw;max-width:85%;margin-top:2.7vw}
+.legacy-sync-status .px-sync-track{width:100%;height:.45vw;min-height:3px;border-radius:3px;background:#ffffff0a;overflow:hidden}
+.legacy-sync-status .px-sync-track i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#6a9152,#e1efa9);box-shadow:0 0 15px #d7edaa50}
+.legacy-sync-status .px-sync-display>div:nth-child(2){display:flex;justify-content:space-between;align-items:center;margin-top:.9vw;font-size:.8vw;color:#9eafa0}
+.legacy-sync-status .px-sync-display b{color:#d4e7b4;font-weight:500}
+.legacy-sync-status .px-sync-steps{display:flex;justify-content:space-between;gap:1vw;margin-top:2vw;color:#526a5b;font-size:.7vw}
+.legacy-sync-status .px-sync-steps span{display:flex;align-items:center;gap:.3vw;white-space:nowrap}
+.legacy-sync-status .px-sync-steps span.done{color:#adca92}
+.legacy-sync-status .px-sync-steps svg{width:.9vw;height:.9vw}
+.legacy-sync-status .px-pairing-screen-code{font-size:4.6vw;letter-spacing:1.1vw;color:#d6e7bd;font-weight:400;margin-top:2.6vw;padding:1.1vw 1.8vw 1.1vw 2.8vw;background:#ffffff05;border:1px solid #ffffff14;border-radius:1vw}
+.legacy-sync-status .px-pairing-screen-code b{font-weight:700;color:#fff}
+.legacy-sync-status .px-splash-action{display:flex;align-items:center;gap:.7vw;background:#d4e9b3;border:0;border-radius:.6vw;color:#25391d;font-size:.85vw;font-weight:700;padding:.8vw 1.4vw;margin-top:1.4vw}
+.legacy-sync-status .px-error-actions{display:flex;gap:1vw;margin-top:2vw}
+.legacy-sync-status .px-error-actions button{display:flex;align-items:center;gap:.5vw;background:#ffffff0b;border:1px solid #ffffff20;color:#d3deca;font-size:.85vw;padding:.9vw 1.2vw;border-radius:.6vw}
+.legacy-sync-status .px-splash.has-brand-art{background:#061a22}
+.legacy-sync-status .px-splash-hero{position:absolute;top:0;right:auto;bottom:0;left:0;width:55%;display:flex;align-items:center;justify-content:center;overflow:hidden;isolation:isolate;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+.legacy-sync-status .px-splash-hero img{display:block;width:100%;height:100%;object-fit:contain;position:relative;z-index:1;animation:px-art-float 10s ease-in-out infinite alternate}
+.legacy-sync-status .px-splash-art-light{position:absolute;top:8%;right:-15%;bottom:8%;left:-15%;background:radial-gradient(ellipse at 30% 50%,#3cfad828,transparent 65%);mix-blend-mode:screen;z-index:2;pointer-events:none;animation:px-art-light 7s ease-in-out infinite alternate}
+.legacy-sync-status .px-splash-art-shimmer{position:absolute;top:-30%;right:-30%;bottom:-30%;left:-30%;background:linear-gradient(115deg,transparent 43%,#a8ffe70d 50%,transparent 57%);z-index:3;pointer-events:none;transform:translateX(-65%);animation:px-art-shimmer 9s ease-in-out infinite}
+.legacy-sync-status .has-brand-art .px-splash-grid,.legacy-sync-status .has-brand-art .px-splash-orbit{display:none}
+.legacy-sync-status .has-brand-art .px-splash-halo{left:55%;top:0;width:55%;height:100%;background:radial-gradient(ellipse,#59e7ca12,transparent 70%);filter:none}
+.legacy-sync-status .has-brand-art .px-splash-brand{left:auto;right:5%;top:6%;width:12%;opacity:.58}
+.legacy-sync-status .has-brand-art .px-splash-center{left:57%;right:5%;top:50%;align-items:flex-start;text-align:left}
+.legacy-sync-status .has-brand-art .px-splash-icon{width:4vw;height:4vw;min-width:0;min-height:0;margin-bottom:1.7vw;border-radius:1.1vw;color:#76f4d2;border-color:#82fbd833;background:#82fbd80a}
+.legacy-sync-status .has-brand-art .px-splash-icon.boot,.legacy-sync-status .has-brand-art .px-splash-icon.download,.legacy-sync-status .has-brand-art .px-splash-icon.closed,.legacy-sync-status .has-brand-art .px-splash-icon.no-content{display:none}
+.legacy-sync-status .has-brand-art .px-splash-eyebrow{font-size:.78vw;letter-spacing:.21vw;color:#7decd3;margin-bottom:1.6vw}
+.legacy-sync-status .has-brand-art .px-splash-center h1{max-width:100%;font-size:3.15vw;line-height:1.12;letter-spacing:-.12vw;font-weight:600;color:#f3faf9;text-wrap:balance}
+.legacy-sync-status .has-brand-art .px-splash-center p{max-width:34vw;font-size:1.05vw;color:#a1bfc5;line-height:1.7;margin-top:1.6vw}
+.legacy-sync-status .has-brand-art .px-splash-footer{z-index:3;color:#779da6;font-size:.78vw;bottom:5%;left:5%;right:5%}
+.legacy-sync-status .has-brand-art .px-splash-footer i,.legacy-sync-status .has-brand-art .px-splash-loader i{background:#6de8c9}
+.legacy-sync-status .has-brand-art .px-sync-display{width:100%;max-width:100%;margin-top:2.8vw}
+.legacy-sync-status .has-brand-art .px-sync-track{height:.35vw;background:#b0fff212}
+.legacy-sync-status .has-brand-art .px-sync-track i{background:linear-gradient(90deg,#38a8ba,#75f8ce);box-shadow:0 0 15px #75f8ce40}
+.legacy-sync-status .has-brand-art .px-sync-display>div:nth-child(2){color:#8faeb5;font-size:.78vw}
+.legacy-sync-status .has-brand-art .px-sync-display b,.legacy-sync-status .has-brand-art .px-sync-steps span.done{color:#78e5cb}
+.legacy-sync-status .has-brand-art .px-sync-steps{color:#587c85;gap:.4vw;font-size:.64vw}
+.legacy-sync-status .has-brand-art .px-splash-action{background:#8cf2d4;color:#092d2b;font-size:.87vw;line-height:1.4;max-width:100%;text-align:left}
+.legacy-sync-status .has-brand-art .px-pairing-screen-code{font-size:3vw;letter-spacing:.7vw;padding:.8vw 1.2vw .8vw 1.8vw;margin-top:1.8vw;background:#a3ffe408;color:#a5d9d4}
+.legacy-sync-status .has-brand-art .px-error-actions{flex-wrap:wrap;gap:.7vw}
+.legacy-sync-status .has-brand-art .px-error-actions button{color:#c7e0e2;padding:.7vw 1vw;font-size:.8vw}
+.legacy-sync-status .has-brand-art.error .px-splash-eyebrow{color:#f4c68a}
+.legacy-sync-status .has-brand-art.error .px-splash-icon{color:#f4c68a;background:#f4c68a08;border-color:#f4c68a26}
+.legacy-sync-status .px-splash-hero img,.legacy-sync-status .px-splash-art-light,.legacy-sync-status .px-splash-art-shimmer{animation:none!important;transform:none!important}
+.legacy-sync-status .px-splash-art-shimmer{display:none}
+.legacy-sync-status .px-splash-art-light{opacity:.35}
+@media(orientation:portrait){
+.legacy-sync-status .px-splash-center{left:5%;right:5%;top:46%}
+.legacy-sync-status .px-splash-icon{width:16vw;height:16vw;border-radius:4vw;margin-bottom:8vw}
+.legacy-sync-status .px-splash-brand{width:35%;top:5%;left:7%}
+.legacy-sync-status .px-splash-eyebrow{font-size:2.2vw;letter-spacing:.7vw;margin-bottom:4vw}
+.legacy-sync-status .px-splash-center h1{font-size:8vw;letter-spacing:-.5vw;max-width:80%}
+.legacy-sync-status .px-splash-center p{font-size:3vw;max-width:75vw;margin-top:4vw}
+.legacy-sync-status .px-sync-display{width:75vw;margin-top:7vw}
+.legacy-sync-status .px-sync-track{height:1vw}
+.legacy-sync-status .px-sync-display>div:nth-child(2){font-size:2vw;margin-top:2vw}
+.legacy-sync-status .px-sync-steps{font-size:1.6vw;margin-top:5vw}
+.legacy-sync-status .px-splash-footer{font-size:2vw;left:7%;right:7%;align-items:start;gap:10px}
+.legacy-sync-status .px-splash-footer>span:last-child{max-width:55%;text-align:right}
+.legacy-sync-status .px-pairing-screen-code{font-size:9vw;letter-spacing:2vw;padding:3vw 5vw;margin-top:6vw}
+.legacy-sync-status .px-splash-action{font-size:2.3vw;padding:2vw 3vw;margin-top:4vw}
+.legacy-sync-status .px-error-actions{flex-direction:column;gap:3vw;margin-top:6vw}
+.legacy-sync-status .px-error-actions button{font-size:2.5vw;padding:2.5vw 4vw;gap:2vw}
+.legacy-sync-status .px-splash-hero{top:0;right:0;bottom:auto;left:0;width:100%;height:51%;-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}
+.legacy-sync-status .has-brand-art .px-splash-brand{display:none}
+.legacy-sync-status .has-brand-art .px-splash-center{left:10%;right:10%;top:51%;transform:none;align-items:center;text-align:center}
+.legacy-sync-status .has-brand-art .px-splash-icon{display:none}
+.legacy-sync-status .has-brand-art .px-splash-eyebrow{font-size:1.9vw;letter-spacing:.55vw;margin-bottom:3vw}
+.legacy-sync-status .has-brand-art .px-splash-center h1{max-width:100%;font-size:6.3vw;letter-spacing:-.3vw;line-height:1.13}
+.legacy-sync-status .has-brand-art .px-splash-center p{max-width:78vw;font-size:2.45vw;line-height:1.6;margin-top:3vw}
+.legacy-sync-status .has-brand-art .px-sync-display{width:100%;max-width:100%;margin-top:6vw;text-align:left}
+.legacy-sync-status .has-brand-art .px-sync-track{height:.8vw}
+.legacy-sync-status .has-brand-art .px-sync-display>div:nth-child(2){font-size:2vw;margin-top:2vw}
+.legacy-sync-status .has-brand-art .px-sync-steps{font-size:1.65vw;margin-top:4vw}
+.legacy-sync-status .has-brand-art .px-sync-steps svg{width:2vw;height:2vw}
+.legacy-sync-status .has-brand-art .px-splash-footer{left:7%;right:7%;bottom:4%;font-size:1.8vw;line-height:1.5}
+.legacy-sync-status .has-brand-art .px-splash-footer i{width:1vw;height:1vw}
+.legacy-sync-status .has-brand-art .px-pairing-screen-code{font-size:7vw;letter-spacing:1.6vw;padding:2vw 4vw 2vw 5vw;margin-top:4vw;border-radius:2vw}
+.legacy-sync-status .has-brand-art .px-splash-action{font-size:2.2vw;line-height:1.4;padding:2.2vw 3vw;border-radius:1.3vw;margin-top:4vw}
+.legacy-sync-status .has-brand-art .px-splash-loader{margin-top:5vw;gap:1.2vw}
+.legacy-sync-status .has-brand-art .px-splash-loader i{width:1vw;height:1vw}
+.legacy-sync-status .has-brand-art .px-error-actions{margin-top:4vw;gap:2vw;align-items:center}
+.legacy-sync-status .has-brand-art .px-error-actions button{font-size:2.2vw;padding:2vw 3vw;border-radius:1vw}
+}
+
+.legacy-sync-status .px-splash-icon svg{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.legacy-sync-status .px-sync-track i{width:34%;animation:legacy-status-indeterminate 1.6s ease-in-out infinite alternate}
+.legacy-sync-status .px-splash-center .legacy-status-detail,.legacy-sync-status .px-splash-center .legacy-pairing-expiry{font-size:.78vw;line-height:1.55;margin-top:.9vw}
+.legacy-sync-status #error-code{font:500 .7vw/1.5 Manrope,Inter,sans-serif;color:#f4c68a;margin:.6vw 0 0}
+.legacy-sync-status .px-splash-footer>span:last-child{gap:0}
+.legacy-sync-status .px-splash-footer i{display:inline-block;margin-right:.5vw}
+.legacy-sync-status .has-brand-art .px-splash-loader{gap:0}
+.legacy-sync-status .px-splash-loader i+i{margin-left:.45vw}
+.legacy-sync-status .px-error-actions button{min-height:44px}
+.legacy-sync-status #error-code:empty{display:none}
+@keyframes px-art-float{0%{transform:translateY(.6%)}100%{transform:translateY(-.6%)}}
+@keyframes px-art-light{0%{opacity:.25;transform:translateX(-5%)}100%{opacity:.8;transform:translateX(5%)}}
+@keyframes px-art-shimmer{0%,25%{transform:translateX(-65%);opacity:0}40%{opacity:1}70%,100%{transform:translateX(65%);opacity:0}}
+@keyframes px-glow{to{transform:translateY(8%) scale(1.2);opacity:.6}}
+@keyframes legacy-status-indeterminate{from{transform:translateX(0)}to{transform:translateX(190%)}}
+@keyframes px-breathe{0%,100%{opacity:.35}50%{opacity:1}}
+@media(orientation:portrait){.legacy-sync-status .px-splash-center .legacy-status-detail,.legacy-sync-status .px-splash-center .legacy-pairing-expiry{font-size:1.8vw;margin-top:2vw}.legacy-sync-status #error-code{font-size:1.6vw}.legacy-sync-status .px-splash-loader i+i{margin-left:1.2vw}.legacy-sync-status .px-splash-footer i{margin-right:1.2vw}}
+@media(prefers-reduced-motion:reduce){.legacy-sync-status *,.legacy-sync-status *:before,.legacy-sync-status *:after{animation:none!important;transition:none!important}.legacy-sync-status .px-splash-hero img{transform:none!important}.legacy-sync-status .px-splash-art-shimmer{display:none}.legacy-sync-status .px-splash-art-light{opacity:.35}}
+`;
+
 export function renderLgLegacyHtml() {
   const config = JSON.stringify(legacyConfig).replace(/</g, "\\u003c");
+  const statusCopy = JSON.stringify(syncPlayerStatusCopy).replace(/</g, "\\u003c");
 
   return `<!doctype html>
 <html lang="nl">
@@ -171,11 +307,6 @@ export function renderLgLegacyHtml() {
     .logo{display:block;width:240px;max-width:70vw;max-height:32vh;height:auto;object-fit:contain;margin:0 0 24px}
     .kicker{margin:0 0 14px;color:#ff5a1f;font-size:clamp(15px,1.5vw,22px);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
     h1{margin:0;font-size:clamp(42px,6vw,82px);line-height:.98;letter-spacing:-.045em}
-    #detail{max-width:720px;margin:24px 0 0;color:#d6d3cc;font-size:clamp(18px,2vw,28px);line-height:1.45}
-    #pairing{display:none;margin:32px 0 0}
-    #pairing.visible{display:block}
-    #pairing-code{display:inline-block;padding:18px 26px;border:2px solid #ff5a1f;border-radius:14px;color:#fff;font-size:clamp(42px,7vw,84px);font-weight:800;letter-spacing:.12em}
-    #error-code{margin:18px 0 0;color:#ffb28f;font:700 clamp(14px,1.4vw,20px)/1.4 monospace}
     #diagnostics{margin:18px 0 0;color:#aaa69d;font:400 clamp(12px,1.2vw,17px)/1.45 monospace;white-space:pre-wrap}
     #watermark{position:absolute;z-index:90;left:2.2vw;bottom:2.2vh;display:none;width:160px;width:clamp(100px,9vw,180px);height:auto;opacity:.4;pointer-events:none}
     #watermark.visible{display:block}
@@ -965,8 +1096,9 @@ export function renderLgLegacyHtml() {
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-top{min-height:192px;padding:26px}
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-top h1{font-size:var(--rc-title-size-portrait,54px)}
     .ledscores-live-match[data-design-revision="royal-current-v8"].portrait .live-match-footer{right:38px;bottom:24px;left:38px;height:40px;font-size:14px}
-    @media(max-height:650px){.panel{padding:24px}.logo{width:210px;margin-bottom:24px}#detail{margin-top:14px}#pairing{margin-top:18px}}
+    @media(max-height:650px){.panel{padding:24px}.logo{width:210px;margin-bottom:24px}}
   ${legacyGoalOverlayCss}
+  ${legacySyncStatusCss}
   </style>
 </head>
 <body>
@@ -974,40 +1106,40 @@ export function renderLgLegacyHtml() {
   <section id="goal-overlay" aria-live="assertive" hidden></section>
   <img id="watermark" src="/assets/full-light.svg" alt="">
   <div id="offline" role="status">Offline · lokale release</div>
-  <section id="status" aria-live="polite">
-    <div class="panel">
-      <img class="logo" src="/assets/brand-hero-800.webp" alt="VeyoCast">
-      <p class="kicker" id="kicker">LG Legacy Player</p>
-      <h1 id="title">Player starten</h1>
-      <p id="detail">De eenvoudige LG-runtime controleert de installatie en de laatste geldige release.</p>
-      <div id="pairing">
-        <p class="kicker">Koppelcode</p>
-        <div id="pairing-code"></div>
+  <section id="status" class="legacy-sync-status" aria-live="polite" data-stage="boot">
+    <div id="status-splash" class="px-splash has-brand-art">
+      <div class="px-splash-hero" aria-hidden="true"><img src="/assets/brand-hero-800.webp" srcset="/assets/brand-hero-480.webp 480w, /assets/brand-hero-800.webp 800w, /assets/brand-hero-1254.webp 1254w" sizes="55vw" width="1254" height="1254" alt=""><span class="px-splash-art-light"></span><span class="px-splash-art-shimmer"></span></div><div class="px-splash-halo"></div><div class="px-splash-brand"><img src="/assets/full-light.svg" alt="VeyoCast"></div>
+      <div class="px-splash-center">
+        <div id="status-icon" class="px-splash-icon boot" aria-hidden="true"></div>
+        <span class="px-splash-eyebrow" id="kicker">VEYOCAST PLAYER</span>
+        <h1 id="title">Je verhaal komt tot leven.</h1>
+        <p id="status-body">De player wordt gestart. We halen je laatste goede publicatie op.</p>
+        <p id="detail" class="legacy-status-detail" hidden></p>
+        <div id="pairing" hidden><div id="pairing-code" class="px-pairing-screen-code" aria-label="Pairingcode"></div><p id="pairing-expiry" class="legacy-pairing-expiry"></p></div>
+        <div id="status-progress" class="px-sync-display" hidden>
+          <div class="px-sync-track" role="progressbar" aria-label="Publicatie voorbereiden"><i></i></div>
+          <div><span id="status-progress-label">Bestanden voorbereiden</span><b>Bezig</b></div>
+          <div class="px-sync-steps"><span id="status-connection-step">Verbinding</span><span>Voorbereiden</span><span>Controleren</span><span>In beeld</span></div>
+        </div>
+        <div id="status-loader" class="px-splash-loader" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div id="status-retry" class="px-error-actions" hidden><button id="status-retry-button" type="button">Opnieuw proberen</button></div>
+        <p id="error-code"></p><pre id="diagnostics" hidden></pre>
       </div>
-      <p id="error-code"></p>
-      <pre id="diagnostics"></pre>
+      <div class="px-splash-footer"><span>LG Player</span><span><i></i><span id="status-connection">Verbinding controleren</span></span></div>
     </div>
   </section>
-  <section id="default-waiting" aria-label="VeyoCast player gereed" hidden>
-    <div class="default-waiting-card">
-      <time class="default-waiting-clock" id="default-waiting-clock"></time>
-      <div class="default-waiting-content">
-        <p class="default-waiting-tenant" id="default-waiting-tenant"></p>
-        <h1 id="default-waiting-title">Wachten op content</h1>
-        <p class="default-waiting-welcome" id="default-waiting-welcome"></p>
-        <img class="default-waiting-tenant-logo" id="default-waiting-tenant-logo" alt="">
-        <img class="default-waiting-veyocast-logo" id="default-waiting-veyocast-logo" src="/assets/full-dark.svg" alt="VeyoCast">
-        <p class="default-waiting-payoff">Narrowcasting voor sportverenigingen!</p>
-      </div>
-      <footer class="default-waiting-footer">
-        <span>VEYOCAST · VOORBEELD</span>
-        <span id="default-waiting-sportpark"></span>
-      </footer>
+  <section id="default-waiting" class="legacy-sync-status" aria-label="VeyoCast player gereed" hidden>
+    <div class="px-splash has-brand-art">
+      <div class="px-splash-hero" aria-hidden="true"><img src="/assets/brand-hero-800.webp" srcset="/assets/brand-hero-480.webp 480w, /assets/brand-hero-800.webp 800w, /assets/brand-hero-1254.webp 1254w" sizes="55vw" width="1254" height="1254" alt=""><span class="px-splash-art-light"></span><span class="px-splash-art-shimmer"></span></div><div class="px-splash-halo"></div><div class="px-splash-brand"><img src="/assets/full-light.svg" alt="VeyoCast"></div>
+      <div class="px-splash-center"><div class="px-splash-icon no-content" aria-hidden="true"></div><span class="px-splash-eyebrow">GEKOPPELD EN GEREED</span><h1 id="default-waiting-title">Dit scherm wacht op jouw verhaal.</h1><p>Het scherm is verbonden. Wijs een gepubliceerde playlist toe om automatisch te starten.</p><div class="px-splash-loader" aria-hidden="true"><i></i><i></i><i></i></div></div>
+      <div class="px-splash-footer"><span id="default-waiting-tenant"></span><span><i></i>Beveiligd verbonden</span></div>
+      <div hidden aria-hidden="true"><time id="default-waiting-clock"></time><span id="default-waiting-welcome"></span><img id="default-waiting-tenant-logo" alt=""><img id="default-waiting-veyocast-logo" src="/assets/full-dark.svg" alt=""><span id="default-waiting-sportpark"></span></div>
     </div>
   </section>
   <script>
   (function () {
     "use strict";
+    var STATUS_COPY = ${statusCopy};
     var CONFIG = ${config};
     var playerMediaTraffic = (${createMediaTraffic.toString()})();
     var downloadMedia = (${createMediaDownloader.toString()})(legacyMediaRequest, playerMediaTraffic);
@@ -1216,14 +1348,42 @@ export function renderLgLegacyHtml() {
         return entry.at.slice(11, 19) + " · " + entry.code + " · " + entry.detail;
       }).join("\\n"));
     }
-    function showStatus(kicker, title, detail, code) {
+    function hasHealthyVisiblePlayback() {
+      return Boolean(runtime.envelope && runtime.currentElement &&
+        runtime.currentElement.parentNode &&
+        /(^|\\s)visible(\\s|$)/.test(runtime.currentElement.className || "") &&
+        (!runtime.currentItem || !runtime.itemFailures[runtime.currentItem.id]));
+    }
+    function showStatus(kicker, title, detail, code, requestedStage) {
+      if (hasHealthyVisiblePlayback()) return;
+      var stage = requestedStage || (code ? "error" : "boot");
+      if (code && (runtime.offline || (/NETWORK|OFFLINE|TIMEOUT/.test(code) && window.navigator.onLine === false))) stage = "offline-empty";
+      if (code === "PAIRING_CODE_EXPIRED") stage = "pairing-expired";
+      var copy = STATUS_COPY[stage] || STATUS_COPY.error;
       hideDefaultWaiting();
       byId("status").hidden = false;
+      byId("status").setAttribute("data-stage", stage);
+      byId("status-splash").className = "px-splash has-brand-art" + (stage === "error" ? " error" : "");
+      byId("status-icon").className = "px-splash-icon " + stage;
+      byId("status-icon").innerHTML = stage === "verify"
+        ? '<svg viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>'
+        : stage === "error" ? '<svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+        : stage === "pairing" ? '<svg viewBox="0 0 24 24"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/></svg>'
+        : '<img src="/assets/brand-icon.svg" alt="">';
       byId("watermark").className = "";
-      setText("kicker", kicker);
-      setText("title", title);
-      setText("detail", detail);
+      setText("kicker", copy.eyebrow);
+      setText("title", copy.title);
+      setText("status-body", copy.body);
+      setText("detail", code || stage === "pairing" ? detail : "");
+      byId("detail").hidden = !(code || stage === "pairing") || !detail;
       setText("error-code", code ? "Foutcode: " + code : "");
+      byId("status-retry").hidden = ["error", "offline-empty", "pairing-expired"].indexOf(stage) === -1;
+      byId("status-progress").hidden = stage !== "download" && stage !== "verify";
+      setText("status-progress-label", stage === "verify" ? "Bestanden controleren" : "Bestanden voorbereiden");
+      byId("status-connection-step").className = runtime.identityReady ? "done" : "";
+      byId("status-loader").hidden = stage === "pairing" || stage === "download" || stage === "verify" || !byId("status-retry").hidden;
+      setText("status-connection", runtime.offline ? "Verbinding herstellen" : runtime.identityReady ? "Beveiligd verbonden" : "Verbinding controleren");
+      if (stage !== "pairing") hidePairing();
     }
     function hideDefaultWaiting() {
       byId("default-waiting").hidden = true;
@@ -1256,7 +1416,7 @@ export function renderLgLegacyHtml() {
       byId("default-waiting").hidden = false;
       byId("default-waiting").setAttribute("data-theme", theme);
       setText("default-waiting-tenant", tenantName);
-      setText("default-waiting-title", "Wachten op content");
+      setText("default-waiting-title", STATUS_COPY["no-content"].title);
       setText("default-waiting-welcome", "Welkom op " + sportparkName + "!");
       setText("default-waiting-sportpark", sportparkName);
       var tenantLogo = byId("default-waiting-tenant-logo");
@@ -1278,21 +1438,37 @@ export function renderLgLegacyHtml() {
       updateClock();
     }
     function showPairing(code, detail) {
-      showStatus(
-        "Klaar om te koppelen",
-        "Koppel dit scherm aan VeyoCast",
-        detail || "Open Schermen in VeyoCast Control en voer deze tijdelijke code in.",
-        ""
-      );
+      var expiresAt = safeRead(CONFIG.pairingExpiryKey);
+      var expiry = parsePlayerTimestamp(expiresAt);
+      // A TV clock may be ahead: only the server's PAIRING_CODE_EXPIRED
+      // response determines expiry. Validate the stored timestamp for display.
+      if (expiry === null) {
+        showStatus("", "", "De geldigheid van de tijdelijke koppelcode kon niet worden gecontroleerd. Probeer opnieuw.", "PAIRING_EXPIRY_UNAVAILABLE", "error");
+        return;
+      }
+      if (typeof code !== "string" || !/^[A-Z0-9]{3} ?[A-Z0-9]{3}$/.test(code)) {
+        showStatus("", "", "", "", "boot");
+        return;
+      }
+      showStatus("", "", detail || "", "", "pairing");
+      byId("pairing").hidden = false;
       byId("pairing").className = "visible";
       setText("pairing-code", code);
+      // The strictly validated alphabet above makes this Source emphasis inert.
+      byId("pairing-code").innerHTML = code.slice(0, -3) + "<b>" + code.slice(-3) + "</b>";
+      setText("pairing-expiry", "Code geldig tot " + new Date(expiry).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }));
     }
     function hidePairing() {
+      byId("pairing").hidden = true;
       byId("pairing").className = "";
       setText("pairing-code", "");
+      setText("pairing-expiry", "");
     }
     function setState(state) {
       runtime.state = state;
+      if (state === "DOWNLOADING" || state === "VERIFYING") {
+        showStatus("", "", "", "", state === "DOWNLOADING" ? "download" : "verify");
+      }
     }
     function notifyLgWrapperReady() {
       if (window.parent === window || !window.parent.postMessage) return;
@@ -10717,6 +10893,7 @@ export function renderLgLegacyHtml() {
       refitDynamicTemplates();
       if (activeLineup) renderMatchOverlay(activeLineup);
     });
+    byId("status-retry-button").onclick = function () { window.location.reload(); };
     notifyLgWrapperReady();
     boot();
   }());

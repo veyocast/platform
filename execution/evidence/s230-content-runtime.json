@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-18T19:31:06.974704+00:00",
+  "scope": "Real authenticated local Next/PostgREST/private-Storage acceptance; no hosted deployment or global Source MediaFrame claim.",
+  "baseCommit": "b6c894a466e1e74baf51c9f036145711f440d310",
+  "sourceCommit": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "realReport": {
+    "name": "s230-content-real/final.json",
+    "sha256": "4e3ed1eb054d606b9703dce3f119c76dad286274406cde8c53d8128a810349db"
+  },
+  "realChecks": {
+    "auth": {
+      "status": "PASS",
+      "aal": "aal2",
+      "actor": "19170000-0000-4000-8000-000000000001",
+      "tenantId": "19170000-0000-4000-8000-000000000010"
+    },
+    "upload": {
+      "status": "PASS",
+      "httpStatus": 201,
+      "assetId": "d91e10c3-6644-4df8-9b72-85e3324bf799",
+      "inputSha256": "52a9edf31380379f825839b85a5afd812f812771c172d6f1f8a6d91bc5172cb1",
+      "inputBytes": 1286
+    },
+    "preservation": {
+      "status": "PASS",
+      "unchangedExistingRows": {
+        "media_assets": 18,
+        "media_variants": 48,
+        "studio_projects": 15,
+        "studio_project_drafts": 15,
+        "playlist_releases": 7,
+        "playlist_release_items": 7,
+        "tenant_feature_flags": 3,
+        "tenant_memberships": 1
+      }
+    },
+    "mediaArchive": {
+      "status": "PASS",
+      "httpStatus": 303,
+      "returnPath": "/dashboard/content",
+      "noWriteBeforeConfirm": true
+    },
+    "mediaRestore": {
+      "status": "PASS",
+      "sameAssetId": "d91e10c3-6644-4df8-9b72-85e3324bf799",
+      "privateBytesUnchanged": true,
+      "bytes": 481,
+      "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+      "bucket": "tenant-media",
+      "path": "tenants/19170000-0000-4000-8000-000000000010/assets/d91e10c3-6644-4df8-9b72-85e3324bf799/original/s230-content-media-78204931-f8e9-4bf1-a362-81888f482b58.png"
+    },
+    "create": {
+      "status": "PASS",
+      "throughSourcePicker": true,
+      "projectId": "ee2c7753-4487-4bae-8bb0-5d75b40a70f9",
+      "name": "S230-content-studio-78204931-f8e9-4bf1-a362-81888f482b58"
+    },
+    "duplicate": {
+      "status": "PASS",
+      "committedResponseDeliberatelyLost": true,
+      "reloaded": true,
+      "identicalCommandReplay": true,
+      "oneCopy": true,
+      "originalNonce": "1b276dd4-538d-4b45-bdf7-91b409996396",
+      "copyId": "db607fe2-9327-4882-9698-33b3eae7162d"
+    },
+    "copyArchive": {
+      "status": "PASS",
+      "noWriteBeforeConfirm": true,
+      "committedResponseDeliberatelyLost": true,
+      "resumedFromArchivedState": true,
+      "identicalCommandReplay": true,
+      "originalNonce": "d1e78f87-f211-434b-b0c4-c1dfde8e8766"
+    },
+    "copyRestore": {
+      "status": "PASS",
+      "newNonce": true,
+      "restoreNonce": "ab66c883-9d73-4a07-a861-ffb9fc97b2d6",
+      "copyId": "db607fe2-9327-4882-9698-33b3eae7162d"
+    },
+    "cleanup": {
+      "status": "PASS",
+      "ownNewMediaArchived": true,
+      "ownNewOriginalAndSingleCopyArchived": true,
+      "physicalStorageRetained": true
+    }
+  },
+  "failedAttemptsRetained": [
+    {
+      "status": "INTERRUPTED_LOCAL_RUNTIME_RESTART",
+      "evidence": "attempt-1-runtime-restart.json"
+    },
+    {
+      "status": "HARNESS_ASSERTION_BEFORE_INTERCEPT_COMPLETION",
+      "evidence": "attempt-2-harness-interrupted.json"
+    }
+  ],
+  "implementationInputs": {
+    "apps/control/app/(shell)/dashboard/content/content-workspace.tsx": "a0c0324a9d6978c47f4f4620daf3f85bcd3c2f2c7ab7fe66e259c6e42495401f",
+    "apps/control/app/(shell)/dashboard/content/content-workspace.module.css": "9f0f68b0f21e1babc99c16a07bd715fab3374767c962139eaa520ae8b898f806",
+    "apps/control/app/(shell)/dashboard/content/content-card-actions.tsx": "03e2c94916a0c5e2022c6c98c7a3a5d3e0284e4758262ee5883262963a88db9f",
+    "apps/control/app/(shell)/dashboard/content/content-resource-actions.ts": "7fceb8fd8d8896f80c9a1cc784ef6be1627959a946020ba5ad6917e0a2ce5955",
+    "apps/control/app/(shell)/dashboard/content/content-resource-actions.test.ts": "f162d7932d3bb5b11a34bdc9304ac60f23f02a3ecd0a46b99ead37d74f7327db",
+    "apps/control/app/(shell)/dashboard/content/model.ts": "500706a046987ad0822b6ff4b9d7bb1a2464b45f409088686f64d8d136739021",
+    "apps/control/app/(shell)/dashboard/content/model.test.ts": "1347a4418d1763af3fa4c3659245281ca0eb04d0b5076dce590a28691366b141",
+    "apps/control/app/(shell)/dashboard/content/page.tsx": "401ac4397433099ed149662da6a8de1c1d50488e0838fd2b0655a1e378ec40b4",
+    "apps/control/app/(shell)/dashboard/media/actions.ts": "3fb0dc6bfcf2aa329142135fec0e9d90fe738d6b0a73665a599e934a7977cb31",
+    "apps/control/app/(shell)/dashboard/media/media-overlays.tsx": "c2108089437f4fa9b6e2bae8ceaa3de69252d8e6aa7ba65a299e436f9093211f",
+    "apps/control/app/(shell)/dashboard/studio/sync-studio-frame.tsx": "26351c022e8a8355ccc881c8958a0f572590a3f3b80d46e7767d89cc73cdd0a8",
+    "apps/control/app/(shell)/dashboard/studio/sync-studio-frame.module.css": "3946825e84f65ed9b01137fe866236a47ae9c7104a199cc2123a7b2c0f7d0e32"
+  },
+  "localGates": {
+    "controlUnit": {
+      "passed": 865,
+      "existingSkipped": 34
+    },
+    "contentPreviewUnit": 12,
+    "mediaAspectRegression": 1,
+    "controlLint": "PASS",
+    "controlTypecheck": "PASS"
+  },
+  "boundaries": [
+    "Local actual authenticated UI/API/PostgREST and private Storage only; no provider/hardware claim.",
+    "Only the unique own PNG, source project and its one duplicate were changed.",
+    "No auth-switch negative probe was performed against existing identities.",
+    "Cleanup is restricted to archive of own new fixtures; baseline rows remain untouched.",
+    "Actual Source MediaFrame/global media presentation editor remains open; existing Media inspector is not claimed equivalent.",
+    "Final combined CI and stage/production deployment are recorded separately."
+  ]
+}

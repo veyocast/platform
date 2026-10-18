@@ -3240,7 +3240,7 @@ test("LG Legacy Player voltooit remote recovery ondanks een twee uur voorlopende
       )
     )
     .toBe(recoveredDeviceToken);
-  await expect(page.getByRole("heading", { name: "Wachten op content" }))
+  await expect(page.getByRole("heading", { name: "Dit scherm wacht op jouw verhaal." }))
     .toBeVisible();
 });
 
@@ -3287,7 +3287,7 @@ test("LG Legacy Player toont pairing zonder witte of horizontaal overlopende pag
   await page.goto(`${playerURL}/lg/legacy`);
 
   await expect(page.locator("#pairing-code")).toHaveText("LGX 691");
-  await expect(page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Geef dit scherm een verhaal." })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth

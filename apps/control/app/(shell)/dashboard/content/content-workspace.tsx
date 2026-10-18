@@ -29,7 +29,9 @@ import {
 import type { PlaylistBatchCommand } from "@veyocast/contracts";
 import { savePlaylistBatch } from "../playlists/sites-batch-actions";
 import { listContentPlaylists } from "./actions";
-import { contentPlacementOperations, type ContentItem } from "./model";
+import { contentFormat, contentPlacementOperations, type ContentItem } from "./model";
+import { ContentMediaArchiveAction, ContentMediaRestoreAction, ContentStudioActions } from "./content-card-actions";
+import styles from "./content-workspace.module.css";
 
 const labels: Record<string, string> = {
   ready: "Gereed",
@@ -51,6 +53,10 @@ export function ContentWorkspace({
   children,
   query,
   filter,
+  actionScope,
+  canArchiveMedia = false,
+  canArchiveStudio = false,
+  canDuplicateStudio = false,
 }: {
   items: ContentItem[];
   canCreate: boolean;
@@ -58,6 +64,10 @@ export function ContentWorkspace({
   children: React.ReactNode;
   query: string;
   filter: string;
+  actionScope?: string;
+  canArchiveMedia?: boolean;
+  canArchiveStudio?: boolean;
+  canDuplicateStudio?: boolean;
 }) {
   const [view, setView] = useState("grid"),
     [selection, setSelection] = useState<string[]>([]),
@@ -159,13 +169,15 @@ export function ContentWorkspace({
               </Link>
               <button
                 type="button"
-                className={`vc-content-select ${selection.includes(item.key) ? "selected" : ""}`}
+                className={styles.selection}
                 aria-label={`${item.title} selecteren`}
                 aria-pressed={selection.includes(item.key)}
                 disabled={!canAdd}
                 onClick={() => toggle(item.key)}
               >
-                {selection.includes(item.key) && <Check size={15} />}
+                <span aria-hidden="true" className={`vc-content-select ${styles.selectionGlyph} ${selection.includes(item.key) ? "selected" : ""}`}>
+                  {selection.includes(item.key) && <Check size={15} />}
+                </span>
               </button>
               <span className="vc-content-type">
                 {item.family === "video" ? (
@@ -183,7 +195,7 @@ export function ContentWorkspace({
                     ? "Reeks"
                     : "Ontwerp"}
               </span>
-              {["processing", "rendering", "uploading"].includes(
+              {!item.archived && ["processing", "rendering", "uploading"].includes(
                 item.status,
               ) && (
                 <div className="vc-processing-overlay">
@@ -197,7 +209,7 @@ export function ContentWorkspace({
               <div className="vc-content-card-title">
                 <Link href={item.href}>{item.title}</Link>
                 <span
-                  className={`badge ${item.status === "ready" ? "badge-green" : ["error", "validation_failed"].includes(item.status) ? "badge-red" : "badge-neutral"}`}
+                  className={`badge ${item.archived ? "badge-neutral" : ["ready", "published"].includes(item.status) ? "badge-green" : ["processing", "rendering", "uploading"].includes(item.status) ? "badge-blue" : ["error", "validation_failed"].includes(item.status) ? "badge-red" : "badge-neutral"}`}
                 >
                   {item.archived
                     ? "Gearchiveerd"
@@ -208,15 +220,7 @@ export function ContentWorkspace({
                 <span>{item.kind === "media" ? "Upload" : item.kind === "dynamic" ? "Bronontwerp" : "Studio"}</span>
                 <i />
                 <span>
-                  {item.kind === "media"
-                    ? item.width && item.height
-                      ? `${item.width} × ${item.height} px`
-                      : "Maten nog onbekend"
-                    : item.orientation === "portrait"
-                      ? "9:16"
-                      : item.orientation === "landscape"
-                        ? "16:9"
-                        : "Formaat nog onbekend"}
+                  {contentFormat(item)}
                 </span>
                 {item.duration ? (
                   <>
@@ -226,7 +230,11 @@ export function ContentWorkspace({
                 ) : null}
               </div>
               <div className="vc-content-card-bottom">
+                <span className="vc-theme-tag">{item.kind === "media" ? "Volgt playlist" : item.themeName ?? (item.kind === "series" ? "Per ontwerp" : "Eigen ontwerp")}</span>
                 <div className="vc-card-actions">
+                  {item.kind === "media" && !item.archived && canArchiveMedia && <ContentMediaArchiveAction key={`${actionScope}:${item.id}`} assetId={item.id} title={item.title} />}
+                  {item.kind === "media" && item.archived && canArchiveMedia && item.restoreKey && <ContentMediaRestoreAction assetId={item.id} title={item.title} nonce={item.restoreKey} />}
+                  {item.kind === "studio" && actionScope && Number.isSafeInteger(item.revision) && <ContentStudioActions key={`${actionScope}:${item.id}`} projectId={item.id} title={item.title} revision={item.revision!} archived={item.archived} canArchive={canArchiveStudio} canDuplicate={canDuplicateStudio} scope={actionScope} />}
                   <Link href={item.href} className="vc-edit-link">
                     Bewerken <ArrowRight size={13} />
                   </Link>

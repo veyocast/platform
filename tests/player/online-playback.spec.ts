@@ -72,7 +72,7 @@ test("LG activeert de eerste release vanuit wachten op content via lokale cacheb
   await page.goto(`${playerURL}/lg?deviceToken=demo-online&durationMs=5000`);
 
   await expect(
-    page.getByRole("heading", { name: "Wachten op content" })
+    page.getByRole("heading", { name: "Dit scherm wacht op jouw verhaal." })
   ).toBeVisible();
   const image = page.getByRole("img", { name: "Clubhuis entree" });
   await expect(image).toBeVisible({ timeout: 8_000 });
@@ -299,10 +299,11 @@ test("shows a recoverable state for an unknown device token", async ({
   await expect(
     page.getByRole("heading", { name: "Player opnieuw koppelen" })
   ).toBeVisible();
-  await expect(page.getByRole("status")).toContainText(
+  await page.getByText("Herstelgegevens", { exact: true }).click();
+  await expect(page.getByRole("main", { name: "VeyoCast player status" })).toContainText(
     "De device token hoort niet bij een actief scherm."
   );
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.getByRole("main", { name: "VeyoCast player status" })).toContainText(
     "Zonder last-known-good release blijft de player in herstelstatus."
   );
 });

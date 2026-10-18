@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "baseHead": "b676e3d85b2524356539b94ed96973f62876c83e",
+  "status": "PASS_LOCAL_CONTROLLED_BROWSER",
+  "scope": "Only two existing beforeAll compiler outputs and HTML stylesheet/script injection; original assertions and transport fixtures retained.",
+  "previousCiFailure": {
+    "headPrefix": "b676e3d8",
+    "artifactId": 12147659422,
+    "cause": "Both beforeAll esbuild builds imported a real CSS module without an outfile; no browser criteria were reached for the 38 cases. Original CI evidence retained by root."
+  },
+  "implementation": {
+    "write": false,
+    "outfile": "fixture.js",
+    "loaders": {
+      ".module.css": "local-css",
+      ".css": "css"
+    },
+    "outputSelection": "Explicit .js and .css outputFiles; fail if either is absent",
+    "transport": "JSON with js/css strings",
+    "html": "Existing global styles first, emitted real module CSS afterwards; inject emitted JS",
+    "reference": "tests/helpers/sync-reference-runtime.mjs:68–72"
+  },
+  "files": [
+    {
+      "path": "tests/control/sync-dynamic-workflows.spec.ts",
+      "beforeSha256": "f0118231ce237fc253ea3807955ff1b5622b163e3b0da5afd975c907ca810746",
+      "afterSha256": "65e2cd8540685bb7b75625b90d764b2a0336e789c32fdaf45747e279a5ef18cc",
+      "testCasesAndAssertionsByteUnchanged": true,
+      "testCasesSha256": "cb22ee41053cc4e67188a37b382ac159fc14835b32bd1e5cee0914597096091d"
+    },
+    {
+      "path": "tests/control/sync-studio-workflows.spec.ts",
+      "beforeSha256": "d57be9a1b41d68eb18cc868d13689362c2e4092407598ee36240c22807a32e9e",
+      "afterSha256": "cd02b88c0575c8a1c7b62cbb65db487182d11d10c78a03cf89f4efaaed954f4c",
+      "testCasesAndAssertionsByteUnchanged": true,
+      "testCasesSha256": "71627d29d54933281929c1f66d81f8000eba24f1da002afef211904917a1af3e"
+    }
+  ],
+  "verification": {
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0,
+    "workers": 1,
+    "duration": "1.4m",
+    "externalServers": true,
+    "nextServerStarted": false,
+    "browserLog": "/tmp/veyocast-s230-css-module-harness-browser.log",
+    "browserLogSha256": "1052d013f326a911645e06a2e75fb916e7c42ae30effad2b020d315e40f61064",
+    "eslintExitCode": 0,
+    "eslintLog": "/tmp/veyocast-s230-css-module-harness-lint.log",
+    "diffCheck": "PASS"
+  },
+  "unchangedBoundaries": [
+    "All test bodies/assertions byte-identical",
+    "Timeouts, skips, transport fixtures and plugins unchanged",
+    "No product, workflow, dependency, database or runtime changes",
+    "No live provider or Supabase mutation, commit or push"
+  ]
+}

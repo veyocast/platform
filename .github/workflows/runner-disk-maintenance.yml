@@ -4,13 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: Inspectie of uitsluitend ongebruikte buildcache ouder dan 24 uur
+        description: Inspectie of ongebruikte buildcache met een vaste leeftijdsgrens
         required: true
         default: inspect
         type: choice
         options:
           - inspect
           - prune-unused-build-cache
+          - prune-unused-build-cache-older-than-1h
 
 permissions:
   contents: read
@@ -36,7 +37,7 @@ jobs:
           [[ "$GITHUB_REPOSITORY" == veyocast/platform && "$GITHUB_REF" == refs/heads/main ]] || fail REPOSITORY_SCOPE_INVALID
           [[ "$RUNNER_NAME" == veyocast-staging-01 && "$(hostname -s)" == dg-deploy-vps-01 && "$(id -un)" == deploy ]] || fail RUNNER_IDENTITY_MISMATCH
           case "$REQUESTED_OPERATION" in
-            inspect|prune-unused-build-cache) ;;
+            inspect|prune-unused-build-cache|prune-unused-build-cache-older-than-1h) ;;
             *) fail OPERATION_INVALID ;;
           esac
           for required_tool in docker df tail sort sha256sum pgrep awk stat; do
@@ -87,19 +88,30 @@ jobs:
           images_before=$(fingerprint images)
           containers_before=$(fingerprint containers)
           volumes_before=$(fingerprint volumes)
-          build_pids=$(pgrep -u "$(id -u)" -f 'docker[[:space:]]+(build|buildx[[:space:]]+build)|pnpm[[:space:]]+build' || true)
+          build_pattern='(^|[[:space:]/])(docker([[:space:]]+[^[:space:]]+)*[[:space:]]+(build|bake)|docker-buildx([[:space:]]+[^[:space:]]+)*[[:space:]]+(build|bake)|buildctl([[:space:]]+[^[:space:]]+)*[[:space:]]+build|pnpm([[:space:]]+[^[:space:]]+)*[[:space:]]+build)([[:space:]]|$)'
+          build_pids=$(pgrep -u "$(id -u)" -f "$build_pattern" || true)
           [[ "$build_pids" =~ ^[0-9[:space:]]*$ ]] || fail PROCESS_READ_INVALID
           build_count=$(printf '%s\n' "$build_pids" | awk 'NF { count++ } END { print count+0 }')
           printf '{"event":"runner_disk_scope","operation":"%s","dockerRoot":"%s","activeBuildProcesses":%s}\n' "$REQUESTED_OPERATION" "$docker_root" "$build_count"
           disk before runner-temp "$RUNNER_TEMP"
           disk before docker-root "$docker_root"
           dc system df --format '{{json .}}'
+          dc buildx version
+          dc version --format '{{.Server.Version}}'
+          # Deliberately omit Description: Dockerfile commands are unnecessary.
+          dc buildx du --builder default --format 'table {{.ID}}\t{{.Reclaimable}}\t{{.Shared}}\t{{.Mutable}}\t{{.Type}}\t{{.Size}}\t{{.LastUsedAt}}'
 
-          if [[ "$REQUESTED_OPERATION" == prune-unused-build-cache ]]; then
+          if [[ "$REQUESTED_OPERATION" != inspect ]]; then
             [[ "$build_count" == 0 ]] || fail ACTIVE_BUILD_PROCESS
             # This operation cannot remove images, containers or volumes. Docker
-            # also retains cache leased by an active build. Recent cache is kept.
-            dc buildx prune --builder default --force --filter until=24h
+            # also retains cache leased by an active build. Keep a fixed minimum
+            # last-used age; the broader choice is explicit and separately logged.
+            cache_age=24h
+            if [[ "$REQUESTED_OPERATION" == prune-unused-build-cache-older-than-1h ]]; then
+              cache_age=1h
+            fi
+            printf '{"event":"runner_cache_prune","filter":"until=%s"}\n' "$cache_age"
+            dc buildx prune --builder default --force --filter "until=$cache_age"
           fi
 
           [[ "$images_before" == "$(fingerprint images)" ]] || fail IMAGE_SET_CHANGED

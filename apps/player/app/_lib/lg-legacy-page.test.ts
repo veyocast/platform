@@ -1,23 +1,26 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { Script } from "node:vm";
+import { Script, createContext } from "node:vm";
 
 import { describe, expect, it } from "vitest";
 
 import { createRoyalCurrentPalette } from "../../../../packages/content-templates/src/royal-current-theme";
 
 import { renderLgLegacyHtml } from "./lg-legacy-page";
+import { syncPlayerStatusCopy } from "./player-status-presentation";
 
 function inlineRuntime(html: string) {
   return html.slice(html.indexOf("<script>") + "<script>".length, html.indexOf("</script>"));
 }
 
 describe("Royal Current Static LG", () => {
-  it("bevat de product-owned premium waiting fallback met tenantbranding en klok", () => {
+  it("gebruikt de Source-wachtpresentatie met echte tenantnaam en behoudt de bestaande verborgen klok", () => {
     const html = renderLgLegacyHtml();
 
     expect(html).toContain('id="default-waiting"');
-    expect(html).toContain("Narrowcasting voor sportverenigingen!");
+    expect(html.includes("Narrowcasting voor sportverenigingen!")).toBe(false);
+    expect(html.includes("VEYOCAST · VOORBEELD")).toBe(false);
+    expect(html.includes("Dit scherm wacht op jouw verhaal.")).toBe(true);
     expect(html).toContain("showDefaultWaiting(envelope)");
     expect(html).toContain("default-waiting-clock");
     expect(html).toContain("/assets/full-dark.svg");
@@ -188,5 +191,114 @@ describe("Royal Current Static LG", () => {
     expect(runtime).not.toContain("?.");
     expect(runtime).not.toContain("??");
     expect(() => new Script(runtime)).not.toThrow();
+  });
+});
+
+function statusHarness(options: { playback?: boolean; failed?: boolean; offlineHint?: boolean; expiry?: string } = {}) {
+  const elements = new Map<string, {
+    hidden: boolean; className: string; textContent: string; innerHTML: string;
+    attributes: Record<string, string>; setAttribute(name: string, value: string): void;
+  }>();
+  const byId = (id: string) => {
+    let element = elements.get(id);
+    if (!element) {
+      element = { hidden: id === "status", className: "", textContent: "", innerHTML: "", attributes: {},
+        setAttribute(name, value) { this.attributes[name] = value; } };
+      elements.set(id, element);
+    }
+    return element;
+  };
+  const runtime = {
+    envelope: options.playback ? {} : null,
+    currentElement: options.playback ? { parentNode: {}, className: "legacy-media-layer visible" } : null,
+    currentItem: options.playback ? { id: "owned-active-item" } : null,
+    itemFailures: options.failed ? { "owned-active-item": 1 } : {},
+    identityReady: true, offline: false, state: "BOOTING", defaultWaitingTimer: null
+  };
+  const context = createContext({ runtime, byId, STATUS_COPY: syncPlayerStatusCopy,
+    CONFIG: { pairingExpiryKey: "expiry" },
+    safeRead: () => options.expiry ?? null,
+    now: () => Date.parse("2026-10-18T18:00:00Z"),
+    setText: (id: string, text: string) => { byId(id).textContent = text; },
+    window: { clearTimeout() {}, setTimeout() { return 1; }, navigator: { onLine: options.offlineHint !== false } }
+  });
+  const source = inlineRuntime(renderLgLegacyHtml());
+  new Script(source.slice(source.indexOf("function parsePlayerTimestamp(value)"), source.indexOf("function errorCode(body, fallback)"))).runInContext(context);
+  new Script(source.slice(source.indexOf("function hasHealthyVisiblePlayback()"), source.indexOf("function notifyLgWrapperReady()"))).runInContext(context);
+  return { runtime, byId, run: (command: string) => new Script(command).runInContext(context) };
+}
+
+describe("LG Source-statusgrenzen", () => {
+  it("toont uitsluitend bestaande download-/verificatiefasen zonder verzonnen percentages", () => {
+    const view = statusHarness();
+    view.run('setState("DOWNLOADING")');
+    expect(view.byId("status").attributes["data-stage"]).toBe("download");
+    expect(view.byId("title").textContent).toBe("We zetten alles klaar.");
+    expect(view.byId("status-progress").hidden).toBe(false);
+    view.run('setState("VERIFYING")');
+    expect(view.byId("status").attributes["data-stage"]).toBe("verify");
+    expect(view.byId("status-progress-label").textContent).toBe("Bestanden controleren");
+    const progress = renderLgLegacyHtml().match(/<div class="px-sync-track"[^>]*>/)?.[0];
+    expect(progress).toContain('role="progressbar"');
+    expect(progress).not.toContain("aria-valuenow");
+  });
+
+  it("bedekt gezonde zichtbare last-known-good niet bij voorbereiding of verbindingsfout", () => {
+    const view = statusHarness({ playback: true });
+    view.run('setState("DOWNLOADING"); setState("VERIFYING"); showStatus("", "", "Werkelijke oorzaak", "NETWORK_ERROR")');
+    expect(view.byId("status").hidden).toBe(true);
+    expect(view.runtime.currentElement?.className).toBe("legacy-media-layer visible");
+  });
+
+  it("toont een echt mislukte huidige eerste weergave met oorzaak en herstelactie", () => {
+    const view = statusHarness({ playback: true, failed: true });
+    view.run('showStatus("", "", "Het bestand is beschadigd.", "LEGACY_ASSET_CHECKSUM_MISMATCH")');
+    expect(view.byId("status").hidden).toBe(false);
+    expect(view.byId("detail").textContent).toBe("Het bestand is beschadigd.");
+    expect(view.byId("status-retry").hidden).toBe(false);
+  });
+
+  it("verbergt een door de server verlopen code zonder pairing of opslag te wijzigen", () => {
+    const view = statusHarness({ expiry: "2026-10-18T19:00:00Z" });
+    view.run('showPairing("ABC 123"); showStatus("", "", "Vraag opnieuw een code aan.", "PAIRING_CODE_EXPIRED")');
+    expect(view.byId("status").attributes["data-stage"]).toBe("pairing-expired");
+    expect(view.byId("pairing").hidden).toBe(true);
+    expect(view.byId("pairing-code").textContent).toBe("");
+  });
+
+  it("laat de server beslissen over geldigheid bij een voorlopende TV-klok en normaliseert microseconden", () => {
+    const view = statusHarness({ expiry: "2026-10-18T16:00:00.123456+00:00" });
+    view.run('showPairing("ABC 123")');
+    expect(view.byId("status").attributes["data-stage"]).toBe("pairing");
+    expect(view.byId("pairing-code").textContent).toBe("ABC 123");
+    expect(view.byId("pairing-code").innerHTML).toBe("ABC <b>123</b>");
+    expect(view.byId("pairing-expiry").textContent).toContain("Code geldig tot");
+  });
+
+  it.each([undefined, "ongeldige-tijd"])("verbergt een code waarvan de tijdelijke geldigheid niet leesbaar is: %s", expiry => {
+    const view = statusHarness({ expiry });
+    view.run('showPairing("ABC 123")');
+    expect(view.byId("status").attributes["data-stage"]).toBe("error");
+    expect(view.byId("pairing").hidden).toBe(true);
+    expect(view.byId("pairing-code").textContent).toBe("");
+  });
+
+  it("toont alleen de echte tijdelijke code en expiry", () => {
+    const view = statusHarness({ expiry: "2026-10-18T19:00:00Z" });
+    view.run('showPairing("ABC 123")');
+    expect(view.byId("pairing-code").textContent).toBe("ABC 123");
+    expect(view.byId("pairing-expiry").textContent).toContain("Code geldig tot");
+    expect(view.byId("pairing").hidden).toBe(false);
+    view.run('showPairing("invalid-code")');
+    expect(view.byId("pairing").hidden).toBe(true);
+    expect(view.byId("pairing-code").textContent).toBe("");
+  });
+
+  it("verwisselt een onbetrouwbare browserhint niet met bewezen netwerkuitval", () => {
+    const view = statusHarness({ offlineHint: false });
+    view.run('showStatus("", "", "De dienst reageert niet.", "INSTALLATION_API_UNAVAILABLE")');
+    expect(view.byId("status").attributes["data-stage"]).toBe("error");
+    view.run('showStatus("", "", "De verbinding is weg.", "NETWORK_ERROR")');
+    expect(view.byId("status").attributes["data-stage"]).toBe("offline-empty");
   });
 });

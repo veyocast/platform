@@ -49,6 +49,7 @@ import {
   type SyncSlideAssetResolver,
 } from "@veyocast/content-templates/sync-slide-static-view";
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
+import styles from "./sync-studio-frame.module.css";
 import type { StudioMediaAsset } from "./types";
 import {
   syncRowsFromText,
@@ -866,7 +867,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 Alles bekijken <ArrowRight size={13} />
               </Link>
             </div>
-            <div className="vc-filmstrip-items">
+            <div className={`vc-filmstrip-items ${styles.filmstrip}`}>
               {props.filmstrip?.length?props.filmstrip.map(member=><button type="button"key={member.id}className={member.id===props.currentProjectId?'active':''}disabled={props.busy}aria-label={`${member.id===props.currentProjectId?'Huidig ontwerp':'Ontwerp openen'}: ${member.name}`}onClick={()=>{if(member.id!==props.currentProjectId)props.onSelectDesign?.(member.id);}}><SyncSlideStaticView presentation={member.id===props.currentProjectId?preview:member.presentation}compact resolveAsset={asset=>asset.kind==='tenant'&&member.id!==props.currentProjectId?member.assetUrls?.[asset.mediaAssetId]??resolveAsset(asset):resolveAsset(asset)}includeStyles={false}/><span>{member.name}</span></button>):<button
                 type="button"
                 className="active"

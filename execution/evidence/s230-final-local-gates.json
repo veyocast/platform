@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-18T19:32:17.038732+00:00",
+  "scope": "Final local S230 combined gates before PR; independent hosted CI/deploy follows.",
+  "baseCommit": "b6c894a466e1e74baf51c9f036145711f440d310",
+  "mainMergeSameBaseTree": "7b131c259fbb1bd90568cc4090a2006b82336d64",
+  "gates": {
+    "controlLint": "PASS",
+    "controlTypecheck": "PASS",
+    "controlUnit": {
+      "passed": 865,
+      "existingSkipped": 34
+    },
+    "playerUnit": {
+      "passed": 462,
+      "skipped": 0
+    },
+    "playerBrowserCohorts": [
+      25,
+      17
+    ],
+    "lgBrowser": 5,
+    "vpsValidation": {
+      "passed": 226,
+      "failed": 0
+    },
+    "deployWorkflowSecurity": "PASS",
+    "royalThemeWorkflowSecurity": "PASS",
+    "maintenanceYamlBashShellcheckActionlint": "PASS",
+    "maintenanceRefusalAndExactFilterHarness": {
+      "passed": 16,
+      "actualDockerInvocations": 0,
+      "firstFindingRetained": true
+    }
+  },
+  "reports": {
+    "contentActual": {
+      "name": "s230-content-real/final.json",
+      "sha256": "4e3ed1eb054d606b9703dce3f119c76dad286274406cde8c53d8128a810349db"
+    },
+    "contentAccessibility": {
+      "name": "filled-content-source-comparison/s230-current-hosted-final/final-readback.json",
+      "sha256": "4907b96806134e9c743787210100d63d4e5b082a18064dc45f057deea1cb5f46"
+    },
+    "contentAdditionalConsoleDiagnostic": {
+      "name": "filled-content-source-comparison/s230-console-diagnostic/diagnostic.json",
+      "sha256": "e5b6edb8c8653fa34c283490f98474e11c86c4e79f4adcce327d977fab5a8f29"
+    },
+    "playerSourceComparison": {
+      "name": "player-status-source-comparison/s230-final/final-readback.json",
+      "sha256": "9cdb07b089bfdb1b2d462b2a7a7256e6dbcb0e5441e3e16d4e34fe78e49c18e5"
+    },
+    "editorActualComparison": {
+      "name": "editor-actual-source-comparison-candidate/report.json",
+      "sha256": "7cb75b074885840cf0ff2f575565dd158cb0092a61ac29df39311a04182ce800"
+    },
+    "maintenancePeer": {
+      "name": "veyocast-s230-runner-maintenance-review.json",
+      "sha256": "2bdb71def254616caa3772c95dace4587813e7cfb1bc8b5a1d10d158d80491e2"
+    }
+  },
+  "existingUnchangedWorkflowCount": 25,
+  "existingUnchangedWorkflows": [
+    ".github/workflows/lg-webos-signage-ipk.yml",
+    ".github/workflows/android-tv.yml",
+    ".github/workflows/control-mobile-ci.yml",
+    ".github/workflows/probe-goal-media.yml",
+    ".github/workflows/current-publication-maintenance.yml",
+    ".github/workflows/control-mobile-play-production.yml",
+    ".github/workflows/android-google-tv-play-internal.yml",
+    ".github/workflows/probe-runtime-database.yml",
+    ".github/workflows/vector-v2-pilot-rollout.yml",
+    ".github/workflows/android-tv-play-internal.yml",
+    ".github/workflows/slack-alert-smoke.yml",
+    ".github/workflows/sites-reference-gates.yml",
+    ".github/workflows/fieldflow-royal-theme-reset.yml",
+    ".github/workflows/control-mobile-play-internal.yml",
+    ".github/workflows/recover-data-api.yml",
+    ".github/workflows/probe-player-video.yml",
+    ".github/workflows/probe-data-api-resources.yml",
+    ".github/workflows/deploy.yml",
+    ".github/workflows/recovery-drill.yml",
+    ".github/workflows/retention-maintenance.yml",
+    ".github/workflows/menu-studio-pilot-rollout.yml",
+    ".github/workflows/pr-gates.yml",
+    ".github/workflows/probe-publication-runtime.yml",
+    ".github/workflows/probe-live-integrations.yml",
+    ".github/workflows/database-rls-gates.yml"
+  ],
+  "preserved": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "apps/player/app/_lib/player-cache.ts",
+    "database migrations and policies",
+    "native Player signing and package identity",
+    "native Control code",
+    "service workers"
+  ],
+  "visualLimits": [
+    "Raw Source/Player pixels remain DIFFERENT; factual code/QR/progress/error actions replace demonstrator data. Common hero/brand/heading/body geometry and typography were measured.",
+    "Actual Content data differs from frozen controlled Source fixture; no general pixel PASS.",
+    "First mobile target-size violation fixed with unchanged22px glyph/position inside44px target; both final viewports aXe0.",
+    "Strict first final-Content harness retained STOPPED_FOR_REVIEW for dev stack lookup; bounded follow-up GET had zero console/page errors and no repro.",
+    "Portrait filmstrip fixed from227px to95.390625px; Source94.703125px, no tolerance widened."
+  ],
+  "remainingSoftwareBoundary": "Global Source MediaFrame editing/duplication authority is open; existing Media inspector is not equivalent.",
+  "userDeferred": [
+    "physical Android/TV/LG upgrade and24h playback",
+    "SendGrid credentials/sender/recipient",
+    "YouTube account setup",
+    "Mollie account setup"
+  ],
+  "externalControlBootstrap": "First Control app requires owner Play/Firebase application context; user has never installed Control. No old Control key request or invented signature.",
+  "hostedDeploymentClaim": false,
+  "followupHarnessCorrection": {
+    "headBefore": "b676e3d85b2524356539b94ed96973f62876c83e",
+    "reason": "Two controlled esbuild beforeAll compilers need actual module CSS output after new filmstrip wrapper CSS import.",
+    "previousCi": {
+      "run": 39159275992,
+      "controlArtifact": 12147659422,
+      "passed": 345,
+      "expectedSkipped": 629,
+      "beforeAllFailures": 2,
+      "notExecuted": 36
+    },
+    "fix": "Explicit outfile and real local-css/css outputs injected after global stylesheet; original test bodies/assertions unchanged.",
+    "completeChangedFilesCohort": {
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "nextServerStarted": false
+    },
+    "proof": "execution/evidence/s230-css-module-harness.json",
+    "newFullCiRequired": true
+  },
+  "runnerCapacityRecoveredSeparately": {
+    "route": "user-reverified existing Tailscale SSH",
+    "operation": "fixed unused buildcache until=1h",
+    "reclaimedReported": "12.08GB",
+    "availableBytesAfter": 15173021696,
+    "usedPercentAfter": 91,
+    "imagesContainersVolumesUnchanged": true,
+    "fiveHealthsAfter": "HTTP200/statusok exact6c837bbc",
+    "applicationDeploymentPerformed": false,
+    "report": "s230-ssh-cache-prune-1h.json"
+  }
+}

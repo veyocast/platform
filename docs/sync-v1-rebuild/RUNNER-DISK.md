@@ -25,8 +25,34 @@ ouder dan 24 uur verwijderen. De image-, container- en volumesets moeten vóór
 en na exact gelijk zijn. Er is geen image-, system- of volumeprune, geen
 directoryverwijdering en geen toegang tot configuratiewaarden.
 
+Inspectie `39157743040` vond 98% schijfgebruik, 3.09GB vrije ruimte,
+13.5GB reclaimable buildcache en nul actieve buildprocessen. De daaropvolgende
+24h-operatie `39158022971` slaagde met gelijk gebleven image/container/volumesets,
+maar maakte slechts 24.86kB buildcache vrij en liet de schijf op 98%.
+Dit is geen herstelde capaciteit. `until` betreft laatst gebruikt; gedeelde
+imageblobs en niet geselecteerde cache kunnen het verschil mede verklaren.
+
+Na deze vastgelegde inspectie bestaat één afzonderlijke handmatige keuze:
+`prune-unused-build-cache-older-than-1h`. Zij gebruikt precies dezelfde
+socket/builder/host/concurrencychecks en `buildx prune`, uitsluitend met de
+vaste grens `until=1h`. Zij voegt geen `--all` of image/system/volumeprune toe.
+Bevestig daarna opnieuw de werkelijk vrije ruimte en de beschermde sets;
+het slagen van de workflow alleen bewijst geen voldoende capaciteit.
+
 Een mislukte of onvoldoende opruiming geeft geen toestemming om ruimere paden
 te verwijderen. Bewaar databases, uploads, signing, actieve images, benodigde
 rollback-images en `/srv/apps/veyocast/releases`. Controleer na herstel de echte
 ruimte en de toestand van eventuele onvolledige immutable images vóór een
 normale nieuwe releasepoging. Bestaande immutable images worden nooit overschreven.
+
+De gebruiker heeft vervolgens de bestaande Tailscale-identiteit bevestigd.
+Een nieuwe directe read-only inspectie bevestigde host/gebruiker, dezelfde lokale
+rootlesssocket, Buildx0.35.0/Engine29.6.2 en nul actieve builds/deployments.
+De exact gereviewde onderhoudsbody is via die bestaande SSH-route uitgevoerd met
+uitsluitend vaste `until=1h`. GitHub-concurrency was daarmee niet gereserveerd:
+de vers gecontroleerde afwezigheid van deploys/builds, uitgestelde eigen merges
+en BuildKit-leases vormen de gedocumenteerde grens; dit is geen nieuwe SSH-deploy.
+Resultaat:12.08GB cache vrijgemaakt,15.173.021.696 bytes beschikbaar (91% gebruikt).
+Alle image/container/volumesets bleven gelijk; de vijf healthroutes bleven200ok
+op6c837bbc. Bronlogs/before-after-JSON blijven bij het afgeschermde releasebewijs.
+De applicatie-uitrol blijft uitsluitend de bestaande GitHub-releaseflow.
