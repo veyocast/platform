@@ -1,4 +1,5 @@
 import {assertSyncPlayerAssetManifest,assertSyncDynamicConfigurationContinuity} from "./sync-player-assets";
+import { assertMediaFrameManifest, assertMediaFrameContinuity } from "./player-media-frame";
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 import {publishedScreenCompositionSchema} from "@veyocast/contracts";
 import type { PlayerDynamicTemplateAsset } from "@veyocast/contracts";
@@ -67,6 +68,7 @@ export function getCacheableAssets(
   manifest: PlayerReleaseManifest
 ): PlayerCacheAsset[] {
   assertSyncPlayerAssetManifest(manifest);
+  assertMediaFrameManifest(manifest);
   if(manifest.systemAssets){const expected=new Map(sitesSystemAssets.files.map(asset=>[asset.path,asset]));if(manifest.systemAssets.length!==expected.size||new Set(manifest.systemAssets.map(asset=>asset.path)).size!==expected.size||manifest.systemAssets.some(asset=>{const trusted=expected.get(asset.path);return !trusted||trusted.sha256!==asset.checksumSha256||trusted.bytes!==asset.bytes||trusted.mimeType!==asset.mimeType;}))throw new Error("SITES_ASSET_MANIFEST_INVALID");}
   const contentAssets = manifest.items.flatMap((item) => {
     const assets: PlayerCacheAsset[] = [];
@@ -87,7 +89,7 @@ export function getCacheableAssets(
       );
     }
 
-    for (const asset of Object.values({...item.dynamicTemplate?.assets,...item.sitesStudioAssets,...item.syncStudioAssets,...item.syncDynamic?.assets})) {
+    for (const asset of Object.values({...item.dynamicTemplate?.assets,...item.sitesStudioAssets,...item.syncStudioAssets,...item.syncDynamic?.assets,...item.mediaFrameBackgroundAssets})) {
       assets.push(toDynamicCacheAsset(item, asset));
       if (
         asset.posterUrl && asset.posterBytes && asset.posterChecksumSha256
@@ -665,6 +667,7 @@ function withCachedUrls(
           ...(manifest.systemAssets?.length?{sitesSystemAssetUrls:Object.fromEntries(manifest.systemAssets.map(asset=>[asset.path,playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.path]))}:{}),
           ...(manifest.syncSystemAssets?.length?{syncSystemAssetUrls:Object.fromEntries(manifest.syncSystemAssets.map(asset=>[asset.path,playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.path]))}:{}),
           ...(item.syncStudioAssets?{syncStudioAssets:Object.fromEntries(Object.entries(item.syncStudioAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
+          ...(item.mediaFrameBackgroundAssets?{mediaFrameBackgroundAssets:Object.fromEntries(Object.entries(item.mediaFrameBackgroundAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           ...(item.syncDynamic?{syncDynamic:{...item.syncDynamic,assets:Object.fromEntries(Object.entries(item.syncDynamic.assets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}}:{}),
           ...(dynamicTemplate ? { dynamicTemplate } : {}),
           ...(item.sitesStudioAssets?{sitesStudioAssets:Object.fromEntries(Object.entries(item.sitesStudioAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
@@ -704,6 +707,8 @@ export function refreshHydratedReleaseEnvelope({
 }): PlayerManifestEnvelope {
   assertSyncPlayerAssetManifest(freshEnvelope.manifest);
   assertSyncDynamicConfigurationContinuity(cachedEnvelope.manifest,freshEnvelope.manifest);
+  assertMediaFrameManifest(freshEnvelope.manifest);
+  assertMediaFrameContinuity(cachedEnvelope.manifest,freshEnvelope.manifest);
   const cachedItems = new Map(
     cachedEnvelope.manifest.items.map((item) => [item.id, item])
   );
@@ -755,6 +760,7 @@ export function refreshHydratedReleaseEnvelope({
           ...item,
           ...(item.sitesStudioAssets?{sitesStudioAssets:Object.fromEntries(Object.entries(item.sitesStudioAssets).map(([id,asset])=>{const cached=cachedItem.sitesStudioAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
           ...(item.syncStudioAssets?{syncStudioAssets:Object.fromEntries(Object.entries(item.syncStudioAssets).map(([id,asset])=>{const cached=cachedItem.syncStudioAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
+          ...(item.mediaFrameBackgroundAssets?{mediaFrameBackgroundAssets:Object.fromEntries(Object.entries(item.mediaFrameBackgroundAssets).map(([id,asset])=>{const cached=cachedItem.mediaFrameBackgroundAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
           ...(item.syncDynamic?{syncDynamic:{...item.syncDynamic,assets:Object.fromEntries(Object.entries(item.syncDynamic.assets).map(([id,asset])=>{const cached=cachedItem.syncDynamic?.assets[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}}:{}),
           ...(cachedItem.syncSystemAssetUrls?{syncSystemAssetUrls:cachedItem.syncSystemAssetUrls}:{}),
           ...(cachedItem.sitesSystemAssetUrls?{sitesSystemAssetUrls:cachedItem.sitesSystemAssetUrls}:{}),
@@ -785,6 +791,7 @@ export function refreshHydratedReleaseEnvelope({
   if(cachedEnvelope.manifest.releaseId===freshEnvelope.manifest.releaseId){
     refreshed.manifest.items=refreshed.manifest.items.map(item=>{
       const cached=cachedItems.get(item.id);
+      if(cached&&cached.source.checksumSha256===item.source.checksumSha256&&item.mediaFrameBackground&&!cached.mediaFrameBackground){const binary={...item};delete binary.mediaFrameBackground;delete binary.mediaFrameBackgroundAssets;return binary;}
       if(cached&&cached.source.checksumSha256===item.source.checksumSha256&&item.syncDynamic&&!cached.syncDynamic){const binary={...item};delete binary.syncDynamic;if(cached.syncDynamicBinary)binary.syncDynamicBinary=cached.syncDynamicBinary;if(!binary.syncStudioPresentation)delete binary.syncSystemAssetUrls;return binary;}
       if(!cached||cached.source.checksumSha256!==item.source.checksumSha256||!item.syncStudioPresentation)return item;
       if(!cached.syncStudioPresentation){const binary={...item};delete binary.syncStudioPresentation;delete binary.syncStudioDurationMs;delete binary.syncStudioAssets;delete binary.syncSystemAssetUrls;return binary;}

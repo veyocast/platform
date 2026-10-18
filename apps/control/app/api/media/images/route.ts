@@ -78,6 +78,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const expectedActorScope = request.headers.get("x-veyocast-actor-scope");
+  if (expectedActorScope !== null && (!session.userId || expectedActorScope !== `${session.tenantId}:${session.userId}`)) {
+    return failure(requestId, 403, "CONTEXT_CHANGED", "De gebruiker of vereniging is gewijzigd sinds dit ontwerp is geopend.", "Je ontwerp blijft behouden. Open het opnieuw vanuit de juiste vereniging en probeer daarna opnieuw.");
+  }
+
   const supabase = await createControlSupabaseClient();
   if (!supabase) {
     return failure(

@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-18T21:52:57.321328+00:00",
+  "scope": "Actual local AAL2 Control and production-mode hosted Player/real LG compatibility route in Chromium; physical hardware is not claimed.",
+  "ownFixtureIds": {
+    "tenantId": "19170000-0000-4000-8000-000000000010",
+    "screenId": "10e5e824-6711-4517-8ca8-ab0d4e0911e2",
+    "playlistId": "685a9eef-c66b-4961-b94f-b2a88bc21038",
+    "releaseId": "30fa1458-4694-495f-8bc6-0181fea51d5c",
+    "mainAssetId": "e8856e6c-eec6-4c90-812e-e33e4d7162f0",
+    "backgroundAssetId": "93a6ab57-fb91-4da0-87cc-36b93a714a22",
+    "primaryFrameId": "8a616a91-78ba-4665-b385-96ddeb011a37",
+    "copyFrameId": "0233ac3b-c65d-4e0f-84f7-a557adf85fe0",
+    "lgScreenId": "fc2eba6b-8f72-4d54-8e58-dbb1b7a2c1e8"
+  },
+  "content": {
+    "status": "PASS_CONTENT_STAGE",
+    "checks": {
+      "save": {
+        "status": "PASS",
+        "getReadOnly": true,
+        "actualCommitResponseLost": true,
+        "reloadExactReplay": true,
+        "oneVersion": true,
+        "durationSeconds": 901
+      },
+      "storageImmutability": {
+        "status": "PASS",
+        "actualAuthenticatedStorageUpsertDenied": true,
+        "httpStatus": 403,
+        "originalHashUnchanged": true
+      },
+      "duplicate": {
+        "status": "PASS",
+        "actualCommitResponseLost": true,
+        "reloadExactReplay": true,
+        "oneLogicalCopy": true,
+        "noNewPhysicalAsset": true
+      },
+      "ui": [
+        {
+          "width": 390,
+          "tab": "Inhoud",
+          "aXeViolations": 0,
+          "noOverflow": true
+        },
+        {
+          "width": 390,
+          "tab": "Vormgeving",
+          "aXeViolations": 0,
+          "noOverflow": true
+        },
+        {
+          "width": 390,
+          "tab": "Instellingen",
+          "aXeViolations": 0,
+          "noOverflow": true
+        },
+        {
+          "width": 1440,
+          "tab": "Inhoud",
+          "aXeViolations": 0,
+          "noOverflow": true
+        },
+        {
+          "width": 1440,
+          "tab": "Vormgeving",
+          "aXeViolations": 0,
+          "noOverflow": true
+        },
+        {
+          "width": 1440,
+          "tab": "Instellingen",
+          "aXeViolations": 0,
+          "noOverflow": true
+        }
+      ]
+    },
+    "mainAndBackgroundOriginalBytes": {
+      "main": {
+        "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+        "bytes": 481
+      },
+      "background": {
+        "sha256": "36d49eb9290d9df7d6ec4f355fe6d928170da149e7ab69d9c8075f56ed08486a",
+        "bytes": 481
+      }
+    },
+    "pageErrors": 0
+  },
+  "modern": {
+    "status": "PASS_PUBLICATION_PLAYER_OFFLINE",
+    "publication": {
+      "status": "PASS",
+      "releaseId": "30fa1458-4694-495f-8bc6-0181fea51d5c",
+      "version": 1,
+      "targetScreenId": "10e5e824-6711-4517-8ca8-ab0d4e0911e2",
+      "existingAssignmentsUnchanged": true
+    },
+    "immutableItemCount": 2,
+    "onlinePlayer": {
+      "status": "PASS",
+      "releaseId": "30fa1458-4694-495f-8bc6-0181fea51d5c",
+      "firstFrameAt": "2026-10-18T21:36:05.080Z",
+      "heartbeatStatus": 200,
+      "manifestStatus": 200,
+      "visual": {
+        "complete": true,
+        "fit": "contain",
+        "focus": "100% 50%",
+        "backgroundContainsImage": true,
+        "backgroundUsesLocalBytes": true
+      },
+      "mainAndBackgroundCache": [
+        {
+          "role": "main",
+          "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+          "bytes": 481
+        },
+        {
+          "role": "background",
+          "sha256": "36d49eb9290d9df7d6ec4f355fe6d928170da149e7ab69d9c8075f56ed08486a",
+          "bytes": 481
+        }
+      ]
+    },
+    "offline": {
+      "status": "PASS",
+      "coldBrowserRestart": true,
+      "networkOfflineBeforeNavigation": true,
+      "deviceIdentityPreserved": true,
+      "activeLkgReleaseId": "30fa1458-4694-495f-8bc6-0181fea51d5c",
+      "visual": {
+        "complete": true,
+        "fit": "contain",
+        "focus": "100% 50%",
+        "backgroundContainsImage": true,
+        "backgroundUsesLocalBytes": true
+      },
+      "mainAndBackgroundCache": [
+        {
+          "role": "main",
+          "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+          "bytes": 481
+        },
+        {
+          "role": "background",
+          "sha256": "36d49eb9290d9df7d6ec4f355fe6d928170da149e7ab69d9c8075f56ed08486a",
+          "bytes": 481
+        }
+      ]
+    },
+    "retainedFailureCount": 3,
+    "pageErrorCount": 0,
+    "ownedBrowserContextsClosed": true
+  },
+  "lg": {
+    "status": "PASS_LG_PLAYER_COLD_OFFLINE_STRENGTHENED",
+    "checks": {
+      "online": {
+        "status": "PASS",
+        "heartbeatHttpStatus": 200,
+        "heartbeatActiveReleaseId": "30fa1458-4694-495f-8bc6-0181fea51d5c",
+        "visual": {
+          "decoded": true,
+          "fit": "contain",
+          "focus": "100% 50%",
+          "backgroundSize": "cover, cover",
+          "backgroundPosition": "50% 50%, 50% 50%",
+          "mainLocalBlob": true,
+          "backgroundLocalBlob": true,
+          "backgroundFreshImageDecoded": true,
+          "statusHidden": true,
+          "watermark": "visible",
+          "records": [
+            {
+              "role": "main",
+              "bytes": 481,
+              "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+              "actualPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "d76a77b9c185ce2dc2561612ca36f295f7d690e89a0e938cfff8b692cae6e1c6"
+              },
+              "cachedPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "d76a77b9c185ce2dc2561612ca36f295f7d690e89a0e938cfff8b692cae6e1c6"
+              }
+            },
+            {
+              "role": "background",
+              "bytes": 481,
+              "sha256": "36d49eb9290d9df7d6ec4f355fe6d928170da149e7ab69d9c8075f56ed08486a",
+              "actualPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "a20ba697608dfdba57dd133784bd9c611c5dc5156f5ba590c5f6e9625a56185d"
+              },
+              "cachedPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "a20ba697608dfdba57dd133784bd9c611c5dc5156f5ba590c5f6e9625a56185d"
+              }
+            }
+          ]
+        }
+      },
+      "coldOffline": {
+        "status": "PASS",
+        "coldBrowserRestart": true,
+        "offlineBeforeNavigation": true,
+        "realServiceWorkerDocument": true,
+        "identityPreserved": true,
+        "activeLkgReleaseId": "30fa1458-4694-495f-8bc6-0181fea51d5c",
+        "visual": {
+          "decoded": true,
+          "fit": "contain",
+          "focus": "100% 50%",
+          "backgroundSize": "cover, cover",
+          "backgroundPosition": "50% 50%, 50% 50%",
+          "mainLocalBlob": true,
+          "backgroundLocalBlob": true,
+          "backgroundFreshImageDecoded": true,
+          "statusHidden": true,
+          "watermark": "visible",
+          "records": [
+            {
+              "role": "main",
+              "bytes": 481,
+              "sha256": "0264f66c8f5b255c43edf87e1f08274cb7f6019f519047931bd2ae931ed15f39",
+              "actualPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "d76a77b9c185ce2dc2561612ca36f295f7d690e89a0e938cfff8b692cae6e1c6"
+              },
+              "cachedPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "d76a77b9c185ce2dc2561612ca36f295f7d690e89a0e938cfff8b692cae6e1c6"
+              }
+            },
+            {
+              "role": "background",
+              "bytes": 481,
+              "sha256": "36d49eb9290d9df7d6ec4f355fe6d928170da149e7ab69d9c8075f56ed08486a",
+              "actualPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "a20ba697608dfdba57dd133784bd9c611c5dc5156f5ba590c5f6e9625a56185d"
+              },
+              "cachedPixels": {
+                "width": 320,
+                "height": 180,
+                "rgbaSha256": "a20ba697608dfdba57dd133784bd9c611c5dc5156f5ba590c5f6e9625a56185d"
+              }
+            }
+          ]
+        }
+      },
+      "preservation": {
+        "status": "PASS",
+        "assignmentsUnchanged": true,
+        "immutableReleaseAndFrameTablesUnchanged": true
+      }
+    },
+    "pageErrors": [],
+    "cspEvents": [],
+    "originalHarnessFailurePreserved": {
+      "originalCheckpointSha256": "73dc67ba973225107afbc6cb4865b521d484d56a95486362fa8615c2403dfcb9",
+      "diagnosticSha256": "d940c4740f5e700a1aed6f479d62199929a91013ac62cbf7dc005d89a15524c1",
+      "originalAttemptPreserved": true
+    },
+    "originalFailureReason": "Test reader fetch(blob:) was blocked by existing CSP after real LG decoded playback. Follow-up uses Image.decode/canvas pixel hashes vs same verified cachebytes; product CSP unchanged."
+  },
+  "reports": [
+    {
+      "name": "s231-content-real/checkpoint.json",
+      "sha256": "f88767c16d0e1732fdc03f2a7004811f5d015aaf573161cac724a15c9b7d7e23"
+    },
+    {
+      "name": "s231-publication-real/checkpoint.json",
+      "sha256": "4355b7095755cedf3bb08093c5d6bd6758adc882f32d3a4860ad108b99db2799"
+    },
+    {
+      "name": "s231-lg-real/checkpoint.json",
+      "sha256": "73dc67ba973225107afbc6cb4865b521d484d56a95486362fa8615c2403dfcb9"
+    },
+    {
+      "name": "s231-lg-real/diagnostic.json",
+      "sha256": "d940c4740f5e700a1aed6f479d62199929a91013ac62cbf7dc005d89a15524c1"
+    },
+    {
+      "name": "s231-lg-real/followup-f4cc9a89-6ca5-41ed-88b3-d44d6bee06bf.json",
+      "sha256": "1e0f4da572173c911f8765e1f1a6e04ecb648a1bba276c8f7cc48818013f56ce"
+    }
+  ],
+  "limits": [
+    "No physical Android/TV/LG or24h proof; user deferred.",
+    "SendGrid credentials/sender/recipient and YouTube/Mollie setup user deferred.",
+    "No production deployment claim; hosted CI/staging/production separate."
+  ]
+}

@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S231 maakt rawmedia via de gekozen Source-editor bewerkbaar als eigen
+immutable media-ontwerp, met logische kopieën, expliciet vastgezette
+playlistversies en geverifieerde offline achtergrondmedia. Zie
+`docs/s231-media-content-frames.md` en het eigen sprintprompt voor ownership,
+databehoud, herstel en concrete acceptatiegrenzen.
+
 S227 sluit de native Sync-documentkoppeling, actor/tenant/projectherstel en echte
 MFA af via een afzonderlijke V3 API. De lokale diensten-/bundelbewijzen staan in
 `docs/sync-v1-rebuild/NATIVE-CONTROL.md`; integratie volgt de S226-webrelease.

@@ -4,6 +4,7 @@ import systemAssets from "../../../../packages/content-templates/src/sites-syste
 import {lgSitesRuntimeScript} from "./lg-sites-runtime";
 import {lgSitesYouTubeScript} from "./lg-sites-youtube";
 import {renderLgLegacyHtml} from "./lg-legacy-page";
+import {mediaFrameClubmuurAsset} from "./player-media-frame";
 
 type RuntimeContext=Record<string,unknown>;
 const uuid=(value:number)=>`00000000-0000-4000-8000-${String(value).padStart(12,"0")}`;
@@ -12,7 +13,7 @@ function envelope(id=1){return {manifest:{schemaVersion:1,tenantId:uuid(100),pla
 function composition(){return {...envelope(),composition:{published:{id:uuid(400),revision:1,configuration:{schemaVersion:1,layout:"three",orientation:"landscape",mainWidthPercent:70,bottomHeightPercent:20,zones:["main","side","bottom"].map((id,index)=>({id,playlistId:uuid(index+11)}))},bindings:["main","side","bottom"].map((zoneId,index)=>({zoneId,playlistId:uuid(index+11),releaseId:uuid(index+1)}))},zones:{side:envelope(2),bottom:envelope(3)}}};}
 /** Exercise the generated ES5 functions, rather than rewriting their rules in TS. */
 function context(extra:RuntimeContext={}){
- const value:RuntimeContext={CONFIG:{cachePathPrefix:"/__veyocast-player-cache/",sitesSystemAssets:systemAssets.files},nextItem:vi.fn(),request:vi.fn(),revokeObjectUrls:vi.fn(),...extra};
+ const value:RuntimeContext={CONFIG:{cachePathPrefix:"/__veyocast-player-cache/",sitesSystemAssets:systemAssets.files,mediaFrameClubmuurAsset},nextItem:vi.fn(),request:vi.fn(),revokeObjectUrls:vi.fn(),...extra};
  new Script(`
   var callbacks={}, queued=[], commits=[], failures=[];
   var runtime={playbackGeneration:1,currentElement:{old:true},pendingElement:null,envelope:null,deviceToken:"fixture-device-token",offline:false};
@@ -34,7 +35,7 @@ function context(extra:RuntimeContext={}){
  return value;
 }
 function evaluate<T=unknown>(value:RuntimeContext,code:string){return new Script(code).runInNewContext(value) as T;}
-function loadAssets(value:RuntimeContext){const html=renderLgLegacyHtml();const source=html.slice(html.indexOf("    function cacheAsset("),html.indexOf("    function sha256Hex("));evaluate(value,`function playableItems(entry){return entry.manifest.items;} function templateRecord(entry){return entry;} ${source}`);}
+function loadAssets(value:RuntimeContext){const html=renderLgLegacyHtml();const source=html.slice(html.indexOf("    function cacheAsset("),html.indexOf("    function sha256Hex("));const validator=html.slice(html.indexOf("var validMediaFrameBackground ="),html.indexOf("var normalizeLgSitesCss ="));evaluate(value,`${validator} function playableItems(entry){return entry.manifest.items;} function templateRecord(entry){return entry;} ${source}`);}
 
 describe("Standalone LG Sites compositor",()=>{
  it("uses the published geometry while preserving a scheduled main release",()=>{const value=context();const input=composition();input.manifest.releaseId=uuid(99);value.input=input;expect(evaluate(value,'lgCompositionZones(input).map(function(zone){return [zone.id,zone.left,zone.top,zone.width,zone.height];})')).toEqual([["main",0,0,70,80],["side",70,0,30,80],["bottom",0,80,100,20]]);});

@@ -1,4 +1,6 @@
 import { syncPlayerStatusCopy } from "./player-status-presentation";
+import { mediaFrameBackgroundStyle } from "../../../../packages/content-templates/src/media-frame-background";
+import { mediaFrameClubmuurAsset, validMediaFrameBackground } from "./player-media-frame";
 import { legacyEngageCss, lgSitesEngageScript } from "./lg-sites-engage";
 import { lgSitesGoalScript } from "./lg-sites-goal";
 import { lgSitesRuntimeScript } from "./lg-sites-runtime";
@@ -102,6 +104,7 @@ const legacyConfig = {
   storageReserveBytes: 16 * 1024 * 1024,
   storageReserveMaximumBytes: 64 * 1024 * 1024,
   sitesSystemAssets: sitesSystemAssets.files,
+  mediaFrameClubmuurAsset,
   themeCatalog: legacyThemeCatalog,
   themeFontSizes: themeBaseFontSizes,
   themeManifestVersion: themeManifestSource.manifestVersion,
@@ -1177,6 +1180,8 @@ export function renderLgLegacyHtml() {
     var startBirthdayConfetti = ${startBirthdayConfetti.toString()};
     var birthdayCalendarDay = ${birthdayCalendarDay.toString()};
     var resolveSportListLayout = ${resolveSportListLayout.toString()};
+    var mediaFrameBackgroundStyle = ${mediaFrameBackgroundStyle.toString()};
+    var validMediaFrameBackground = ${validMediaFrameBackground.toString()};
     ${lgSitesRuntimeScript()}
     ${lgSitesGoalScript()}
     ${lgSitesYouTubeScript()}
@@ -4739,6 +4744,7 @@ export function renderLgLegacyHtml() {
       var assetId;
       for (index = 0; index < items.length; index += 1) {
         item = items[index];
+        if (!validMediaFrameBackground(item.mediaFrameBackground, item.mediaFrameBackgroundAssets, CONFIG.mediaFrameClubmuurAsset) || item.mediaFrameBackground && (item.dynamicTemplate || item.sitesPresentation || item.syncStudioPresentation || item.syncDynamic || item.onlinePlayback)) return null;
         asset = cacheAsset(item, "media", item.source);
         if (!asset) return null;
         assets.push(asset);
@@ -4749,6 +4755,13 @@ export function renderLgLegacyHtml() {
             mimeType: "image/jpeg",
             url: item.source.posterUrl
           });
+          if (!asset) return null;
+          assets.push(asset);
+        }
+        var frameAssets = item.mediaFrameBackgroundAssets || {};
+        for (assetId in frameAssets) {
+          if (!Object.prototype.hasOwnProperty.call(frameAssets, assetId)) continue;
+          asset = cacheAsset(item, "dynamic", frameAssets[assetId]);
           if (!asset) return null;
           assets.push(asset);
         }
@@ -5148,6 +5161,16 @@ export function renderLgLegacyHtml() {
         }
       }
     }
+    function refreshMediaFrameMediaAccess(currentItem, freshItem) {
+      if (!currentItem.mediaFrameBackground || JSON.stringify(currentItem.mediaFrameBackground) !== JSON.stringify(freshItem.mediaFrameBackground)) return;
+      var current = currentItem.mediaFrameBackgroundAssets || {};
+      var fresh = freshItem.mediaFrameBackgroundAssets || {};
+      var id;
+      for (id in current) {
+        if (!Object.prototype.hasOwnProperty.call(current, id)) continue;
+        if (fresh[id] && current[id].checksumSha256 === fresh[id].checksumSha256 && current[id].bytes === fresh[id].bytes && current[id].mimeType === fresh[id].mimeType && typeof fresh[id].url === "string" && fresh[id].url) current[id].url = fresh[id].url;
+      }
+    }
     function liveDataChanged(freshEnvelope) {
       return lgEnvelopeDataIdentity(runtime.envelope) !== lgEnvelopeDataIdentity(freshEnvelope);
     }
@@ -5177,6 +5200,7 @@ export function renderLgLegacyHtml() {
         if (typeof freshItem.source.url === "string" && freshItem.source.url) {
           currentItem.source.url = freshItem.source.url;
         }
+        refreshMediaFrameMediaAccess(currentItem, freshItem);
         if (
           currentItem.source.posterChecksumSha256 &&
           currentItem.source.posterChecksumSha256 === freshItem.source.posterChecksumSha256 &&
@@ -6176,6 +6200,12 @@ export function renderLgLegacyHtml() {
         : "50% 50%";
       byId("media-root").style.backgroundColor =
         item.backgroundColor || defaults.backgroundColor || "#050505";
+      if (item.mediaFrameBackground) {
+        var local = item._legacyMediaFrameUrls || {};
+        var frame = item.mediaFrameBackground;
+        var background = mediaFrameBackgroundStyle(frame, { image: frame.background.kind === "image" ? local[frame.background.mediaAssetId] : undefined, clubmuur: local.clubmuur });
+        if (background) Object.keys(background).forEach(function (property) { element.style[property] = background[property]; });
+      }
     }
     function cachedAssetUrl(source, callback) {
       var cacheKey;
@@ -6211,10 +6241,27 @@ export function renderLgLegacyHtml() {
     function cachedItemUrl(item, callback) {
       cachedAssetUrl(item && item.source, callback);
     }
+    function resolveMediaFrameBackgroundUrls(item, callback) {
+      var frame = item.mediaFrameBackground;
+      var key = frame && (frame.background.kind === "image" ? frame.background.mediaAssetId : frame.background.preset === "clubmuur" ? "clubmuur" : null);
+      if (!key) { callback({}, []); return; }
+      var asset = item.mediaFrameBackgroundAssets && item.mediaFrameBackgroundAssets[key];
+      cachedAssetUrl(asset, function (url, objectUrl) {
+        if (!url) { callback(null, []); return; }
+        var urls = {}; urls[key] = url;
+        preloadLocalImage(url, function () { callback(urls, objectUrl ? [objectUrl] : []); });
+      });
+    }
     function sourceForItem(item, callback) {
       // Always prepare from verified local bytes first. Native-only LG decoders
       // get an online transport retry only after rejecting both local routes.
-      cachedItemUrl(item, callback);
+      cachedItemUrl(item, function (url, objectUrl) {
+        if (!url) { callback(null, null, false, {}, []); return; }
+        resolveMediaFrameBackgroundUrls(item, function (urls, objectUrls) {
+          if (!urls) { if (objectUrl) revokeObjectUrls([objectUrl]); callback(null, null, false, {}, []); return; }
+          callback(url, objectUrl, false, urls, objectUrls);
+        });
+      });
     }
     function preloadLocalImage(url, callback) {
       var image = document.createElement("img");
@@ -6312,8 +6359,8 @@ export function renderLgLegacyHtml() {
       cancelPendingMedia();
       silenceCurrentMediaEvents();
       if (!legacyIsCompositionZone && runtime.envelope.composition) { lgCompositionStart(runtime.envelope, generation); return; }
-      sourceForItem(item, function (sourceUrl, objectUrl, networkVideoSource) {
-        var objectUrls = objectUrl ? [objectUrl] : [];
+      sourceForItem(item, function (sourceUrl, objectUrl, networkVideoSource, frameUrls, frameObjectUrls) {
+        var objectUrls = (objectUrl ? [objectUrl] : []).concat(frameObjectUrls || []);
         if (
           generation !== runtime.playbackGeneration ||
           item !== runtime.currentItem
@@ -6325,6 +6372,7 @@ export function renderLgLegacyHtml() {
           failItem("LEGACY_CACHE_MISSING");
           return;
         }
+        if (item.mediaFrameBackground) item._legacyMediaFrameUrls = frameUrls || {};
         if (playLegacyEngage(item, sourceUrl, objectUrls, generation)) return;
         if (playLegacyYouTube(item, sourceUrl, objectUrls, generation)) return;
         if (item.sitesPresentation) {
@@ -10177,6 +10225,24 @@ export function renderLgLegacyHtml() {
       var fallbackStarted = false;
       var nativeSource = nativeVideoSource(item);
       var nativeNetwork = nativeSource !== null && sourceUrl === nativeSource;
+      function retryWithBackground(retryUrl, retryObjectUrls) {
+        // Each replacement owns fresh background URLs. Cancelling a pending
+        // video or retiring the previous frame may revoke its original URLs.
+        resolveMediaFrameBackgroundUrls(item, function (urls, backgroundObjectUrls) {
+          var ownedUrls = retryObjectUrls.concat(backgroundObjectUrls || []);
+          if (generation !== runtime.playbackGeneration || item !== runtime.currentItem) {
+            revokeObjectUrls(ownedUrls);
+            return;
+          }
+          if (!urls) {
+            revokeObjectUrls(ownedUrls);
+            failItem("LEGACY_VIDEO_BACKGROUND_CACHE_MISSING");
+            return;
+          }
+          if (item.mediaFrameBackground) item._legacyMediaFrameUrls = urls;
+          playVideo(item, retryUrl, ownedUrls, generation, false);
+        });
+      }
       function fallbackOrFail(code) {
         if (generation !== runtime.playbackGeneration || item !== runtime.currentItem || fallbackStarted) return;
         runtime.videoFailureAction = "retry_" + (nativeNetwork ? "native" : sourceUrl.indexOf("blob:") === 0 ? "blob" : "cache") +
@@ -10190,7 +10256,7 @@ export function renderLgLegacyHtml() {
           clearPlaybackTimers();
           if (runtime.pendingElement === video) cancelPendingMedia();
           log("LEGACY_VIDEO_LOCAL_TRANSPORT", "verified cache HTTP after Blob failure");
-          playVideo(item, localUrl, [], generation, false);
+          retryWithBackground(localUrl, []);
           return;
         }
         if (!nativeNetwork && nativeSource && !runtime.offline && window.navigator.onLine !== false) {
@@ -10202,7 +10268,7 @@ export function renderLgLegacyHtml() {
           // and checksum-verified object. This is a native transport retry, not
           // permission to skip release preparation or activate on play() alone.
           log("LEGACY_VIDEO_NATIVE_TRANSPORT", "native HTTP after verified local transport rejection");
-          playVideo(item, nativeSource, [], generation, false);
+          retryWithBackground(nativeSource, []);
           return;
         }
         if (!allowCacheFallback || nativeNetwork) {
@@ -10233,13 +10299,7 @@ export function renderLgLegacyHtml() {
             failItem("LEGACY_VIDEO_CACHE_FALLBACK_MISSING");
             return;
           }
-          playVideo(
-            item,
-            cachedUrl,
-            cachedObjectUrl ? [cachedObjectUrl] : [],
-            generation,
-            false
-          );
+          retryWithBackground(cachedUrl, cachedObjectUrl ? [cachedObjectUrl] : []);
         });
       }
       video = document.createElement("video");

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { hasCapability } from "@veyocast/auth";
+import { mediaFrameSettingsSchema } from "@veyocast/contracts";
 import { Loader2, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
 import { requireTenantControlSession } from "../../../../lib/control-session";
@@ -43,7 +44,7 @@ export default async function ContentLibrary({
   let request = client
     ?.from("sync_content_library_v1")
     .select(
-      "id,content_key,title,kind,family,status,archived,orientation,duration_seconds,updated_at,width,height,preview_asset_id,placement,revision",
+      "id,content_key,title,kind,family,status,archived,orientation,duration_seconds,updated_at,width,height,preview_asset_id,placement,revision,media_frame_id,media_frame_version_id",
       { count: "exact" },
     )
     .eq("tenant_id", session.tenantId!)
@@ -141,7 +142,7 @@ export default async function ContentLibrary({
     preview: previews.get(item.preview_asset_id) ?? null,
     href:
       item.kind === "media"
-        ? `/dashboard/media?asset=${item.id}`
+        ? item.media_frame_id ? `/dashboard/content/media/${item.media_frame_id}` : ["ready", "archived"].includes(item.status) ? `/dashboard/content/media/source/${item.id}` : `/dashboard/media?asset=${item.id}`
         : item.kind === "dynamic"
           ? ["menu", "price_list"].includes(item.family)
             ? `/dashboard/slides/menu-studio/${item.id}`
@@ -150,8 +151,35 @@ export default async function ContentLibrary({
     placement: readContentPlacement(item.placement),
     revision: item.revision === null ? null : Number(item.revision),
     restoreKey: item.archived && item.kind === "media" ? randomUUID() : undefined,
+    mediaFrameId: item.media_frame_id ?? undefined,
+    mediaFrameVersionId: item.media_frame_version_id ?? undefined,
   }));
   const studioIds = items.filter(item => item.kind === "studio").map(item => item.id);
+  const frameIds = items.flatMap(item => item.mediaFrameId ? [item.mediaFrameId] : []);
+  if (client && frameIds.length) {
+    const versionIds = items.flatMap(item => item.mediaFrameVersionId ? [item.mediaFrameVersionId] : []);
+    const [versions, refs] = await Promise.all([
+      client.from("media_frame_versions").select("id,frame_id,settings_json").eq("tenant_id", session.tenantId!).in("id", versionIds),
+      client.from("media_frame_version_assets").select("version_id,role,media_asset_id,storage_bucket,storage_path,mime_type,checksum_sha256").eq("tenant_id", session.tenantId!).in("version_id", versionIds),
+    ]);
+    const safeRefs = !refs.error ? (refs.data ?? []).filter(ref => ref.storage_bucket === "tenant-media" && typeof ref.storage_path === "string" && ref.storage_path.startsWith(`tenants/${session.tenantId}/assets/${ref.media_asset_id}/`) && !ref.storage_path.split("/").some((part: string) => part === "." || part === "..") && !(/[\\?#]/.test(ref.storage_path) || Array.from(ref.storage_path).some(character => character.charCodeAt(0) < 32))) : [];
+    const paths = [...new Set(safeRefs.map(ref => String(ref.storage_path)))];
+    const urls = paths.length ? await client.storage.from("tenant-media").createSignedUrls(paths, 600) : null;
+    const byPath = new Map(paths.map((path, index) => [path, urls?.data?.[index]?.signedUrl]));
+    for (const item of items.filter(item => item.mediaFrameId)) {
+      item.preview = null;
+      const version = !versions.error ? versions.data.find(row => row.id === item.mediaFrameVersionId && row.frame_id === item.mediaFrameId) : undefined;
+      const parsed = mediaFrameSettingsSchema.safeParse(version?.settings_json);
+      if (!parsed.success) continue;
+      const settings = parsed.data, choice = settings.appearance.background;
+      item.themeName = settings.appearance.themeId === "fieldflow" ? "FieldFlow" : "OnzeTrots TV";
+      const main = safeRefs.find(ref => ref.version_id === item.mediaFrameVersionId && ref.role === "media");
+      const background = choice.kind === "image" ? safeRefs.find(ref => ref.version_id === item.mediaFrameVersionId && ref.role === "background" && ref.media_asset_id === choice.mediaAssetId && ref.mime_type.startsWith("image/")) : undefined;
+      const sourceUrl = main ? byPath.get(main.storage_path) : undefined, backgroundUrl = background ? byPath.get(background.storage_path) : undefined;
+      if (!main || !sourceUrl || choice.kind === "image" && (!backgroundUrl || !/^[a-f0-9]{64}$/.test(String(background?.checksum_sha256)))) continue;
+      item.mediaFramePreview = { settings, sourceUrl, kind: main.mime_type === "video/mp4" ? "video" : "image", ...(backgroundUrl ? { backgroundUrl, backgroundChecksumSha256: background!.checksum_sha256 } : {}) };
+    }
+  }
   if (client && studioIds.length) {
     const themes = await client.from("studio_project_drafts").select("project_id,theme:document_json->syncPresentation->>theme")
       .eq("tenant_id", session.tenantId!).in("project_id", studioIds);

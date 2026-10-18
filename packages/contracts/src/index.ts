@@ -15,6 +15,7 @@ export * from "./theme-engine";
 export * from "./screen-automation";
 export * from "./screen-composition";
 export * from "./playlist-batch";
+export * from "./media-frames";
 export * from "./sponsor";
 export * from "./sport";
 export * from "./sportlink-slide-blueprints";

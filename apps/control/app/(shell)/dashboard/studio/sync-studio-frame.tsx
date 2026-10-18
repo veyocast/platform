@@ -71,6 +71,15 @@ const tabs = [
 type FrameProps = {
   presentation: SyncSlidePresentation;
   previewPresentation?:SyncSlidePresentation;
+  /** Optional rawmedia form and preview adapters; existing Studio defaults stay intact. */
+  mediaControls?: { content?: ReactNode; style?: ReactNode; settings?: ReactNode; playback?: ReactNode };
+  previewContent?: ReactNode;
+  compactPreviewContent?: ReactNode;
+  templateReadOnly?: boolean;
+  templateLabel?: string;
+  sectionLabel?: string;
+  maxSeconds?: number;
+  inputsDisabled?: boolean;
   initialTab?:'content'|'style'|'data'|'settings';
   primarySaveLabel?:string;
   assets: StudioMediaAsset[];
@@ -236,7 +245,7 @@ export function SyncStudioFrame(props: FrameProps) {
     );
   }
   function chooseFamily(family: SyncContentFamily) {
-    if (props.readOnly || props.busy) return;
+    if (props.readOnly || props.busy || props.inputsDisabled) return;
     onChange({
       family,
       headline: "",
@@ -247,7 +256,7 @@ export function SyncStudioFrame(props: FrameProps) {
   const matchFamily = ["matchday", "next-match", "scoreboard", "goal"].includes(
     presentation.family,
   );
-  const previewNode = (
+  const previewNode = props.previewContent ?? (
     <SyncSlideStaticView
       presentation={preview}
       includeStyles={false}
@@ -271,13 +280,13 @@ export function SyncStudioFrame(props: FrameProps) {
           <div className="vc-studio-title">
             <span>
               STUDIO <ChevronRight size={11} />
-              {definition.group.toUpperCase()}
+              {props.sectionLabel ?? definition.group.toUpperCase()}
             </span>
             <input
               aria-label="Ontwerpnaam"
               value={presentation.name}
               maxLength={120}
-              disabled={props.readOnly || props.busy}
+              disabled={props.readOnly || props.busy || props.inputsDisabled}
               onChange={(event) => onChange({ name: event.target.value })}
             />
           </div>
@@ -352,9 +361,9 @@ export function SyncStudioFrame(props: FrameProps) {
           </div>
           <fieldset
             className="vc-studio-properties"
-            disabled={props.readOnly || props.busy}
+            disabled={props.readOnly || props.busy || props.inputsDisabled}
           >
-            {tab === "content" && (
+            {tab === "content" && (props.mediaControls?.content ?? (
               <>
                 <div className="vc-properties-heading">
                   <span>MAAK HET VAN JOU</span>
@@ -365,12 +374,13 @@ export function SyncStudioFrame(props: FrameProps) {
                   type="button"
                   className="vc-template-switch"
                   ref={templateTrigger}
+                  disabled={props.templateReadOnly || props.inputsDisabled}
                   onClick={() => setTemplatesOpen(true)}
                 >
                   <LayoutTemplate size={20} />
                   <span>
                     <small>TEMPLATE</small>
-                    <strong>{definition.name}</strong>
+                    <strong>{props.templateLabel ?? definition.name}</strong>
                   </span>
                   <ChevronDown size={16} />
                 </button>
@@ -469,8 +479,8 @@ export function SyncStudioFrame(props: FrameProps) {
                   <span>Bewaar je ontwerp eerst. Voeg het daarna vanuit de bibliotheek aan een playlist toe.</span>
                 </div>
               </>
-            )}
-            {tab === "style" && (
+            ))}
+            {tab === "style" && (props.mediaControls?.style ?? (
               <>
                 <div className="vc-properties-heading">
                   <span>ÉÉN HERKENBARE CLUB</span>
@@ -620,7 +630,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 {!props.connectedData&&(matchFamily||presentation.family==='welcome')&&<details><summary>Teamlogo’s</summary>{(['home','away'] as const).map(side=><div key={side}>{imageSelect(presentation[side]?.logo,logo=>onChange({[side]:{name:presentation[side]?.name??'',team:presentation[side]?.team??'',logo}}),side==='home'?'Logo eigen team':'Logo tegenstander')}</div>)}</details>}
                 </details>
               </>
-            )}
+            ))}
             {tab === "data" && (
               <>
                 <div className="vc-properties-heading">
@@ -739,7 +749,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 )}
               </>
             )}
-            {tab === "settings" && (
+            {tab === "settings" && (props.mediaControls?.settings ?? (
               <>
                 <div className="vc-properties-heading">
                   <span>DE LAATSTE DETAILS</span>
@@ -754,7 +764,7 @@ export function SyncStudioFrame(props: FrameProps) {
                   <input
                     type="number"
                     min={3}
-                    max={120}
+                    max={props.maxSeconds ?? 120}
                     value={props.secondsPerPage}
                     onChange={(event) =>
                       props.onSecondsChange(event.target.value)
@@ -766,7 +776,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 {props.versions}
                 {props.outputControls}
               </>
-            )}
+            ))}
           </fieldset>
         </aside>
         <section className="vc-studio-stage" aria-label="Schermvoorbeeld">
@@ -782,7 +792,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 className={!portrait ? "active" : ""}
                 aria-label="Liggend formaat"
                 aria-pressed={!portrait}
-                disabled={props.readOnly || props.busy}
+                disabled={props.readOnly || props.busy || props.inputsDisabled}
                 onClick={() => onChange({ orientation: "landscape" })}
               >
                 <Monitor size={17} />
@@ -792,7 +802,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 className={portrait ? "active" : ""}
                 aria-label="Staand formaat"
                 aria-pressed={portrait}
-                disabled={props.readOnly || props.busy}
+                disabled={props.readOnly || props.busy || props.inputsDisabled}
                 onClick={() => onChange({ orientation: "portrait" })}
               >
                 <Smartphone size={17} />
@@ -824,7 +834,7 @@ export function SyncStudioFrame(props: FrameProps) {
               Groot voorbeeld <ArrowRight size={14} />
             </button>
           </div>
-          <div className="vc-page-controls">
+          {props.mediaControls?.playback ?? <div className="vc-page-controls">
             <button
               type="button"
               aria-label="Vorige pagina"
@@ -856,7 +866,7 @@ export function SyncStudioFrame(props: FrameProps) {
             >
               <ChevronRight size={17} />
             </button>
-          </div>
+          </div>}
           <div className="vc-studio-filmstrip">
             <div className="vc-filmstrip-heading">
               <span>
@@ -873,7 +883,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 className="active"
                 aria-label={`Huidig ontwerp: ${presentation.name}`}
               >
-                <SyncSlideStaticView presentation={preview} compact resolveAsset={resolveAsset} includeStyles={false}/>
+                {props.compactPreviewContent ?? <SyncSlideStaticView presentation={preview} compact resolveAsset={resolveAsset} includeStyles={false}/>}
                 <span>{presentation.name}</span>
               </button>}
             </div>

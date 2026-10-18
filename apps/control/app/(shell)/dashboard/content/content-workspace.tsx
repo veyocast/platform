@@ -31,6 +31,8 @@ import { savePlaylistBatch } from "../playlists/sites-batch-actions";
 import { listContentPlaylists } from "./actions";
 import { contentFormat, contentPlacementOperations, type ContentItem } from "./model";
 import { ContentMediaArchiveAction, ContentMediaRestoreAction, ContentStudioActions } from "./content-card-actions";
+import { MediaFrameCardActions } from "./media-frames/media-frame-archive-actions";
+import { MediaFrameCardPreview } from "./media-frames/media-frame-card-preview";
 import styles from "./content-workspace.module.css";
 
 const labels: Record<string, string> = {
@@ -146,7 +148,7 @@ export function ContentWorkspace({
                 href={item.href}
                 aria-label={`${item.title} bewerken`}
               >
-                {item.preview ? (
+                {item.mediaFramePreview ? <MediaFrameCardPreview value={item.mediaFramePreview} title={item.title} /> : item.preview ? (
                   <img
                     src={item.preview}
                     alt={item.title}
@@ -230,10 +232,11 @@ export function ContentWorkspace({
                 ) : null}
               </div>
               <div className="vc-content-card-bottom">
-                <span className="vc-theme-tag">{item.kind === "media" ? "Volgt playlist" : item.themeName ?? (item.kind === "series" ? "Per ontwerp" : "Eigen ontwerp")}</span>
+                <span className="vc-theme-tag">{item.mediaFrameId ? item.themeName ?? "Media-ontwerp" : item.kind === "media" ? "Volgt playlist" : item.themeName ?? (item.kind === "series" ? "Per ontwerp" : "Eigen ontwerp")}</span>
                 <div className="vc-card-actions">
-                  {item.kind === "media" && !item.archived && canArchiveMedia && <ContentMediaArchiveAction key={`${actionScope}:${item.id}`} assetId={item.id} title={item.title} />}
-                  {item.kind === "media" && item.archived && canArchiveMedia && item.restoreKey && <ContentMediaRestoreAction assetId={item.id} title={item.title} nonce={item.restoreKey} />}
+                  {item.kind === "media" && actionScope && canArchiveMedia && <MediaFrameCardActions key={`${actionScope}:${item.key}`} scope={actionScope} identity={item.key} assetId={item.id} frameId={item.mediaFrameId} revision={item.revision} title={item.title} archived={item.archived} canWrite={canArchiveMedia} canDuplicate={item.status === "ready"} />}
+                  {item.kind === "media" && !item.mediaFrameId && !item.archived && canArchiveMedia && <ContentMediaArchiveAction key={`${actionScope}:${item.id}`} assetId={item.id} title={item.title} />}
+                  {item.kind === "media" && !item.mediaFrameId && item.archived && canArchiveMedia && item.restoreKey && <ContentMediaRestoreAction assetId={item.id} title={item.title} nonce={item.restoreKey} />}
                   {item.kind === "studio" && actionScope && Number.isSafeInteger(item.revision) && <ContentStudioActions key={`${actionScope}:${item.id}`} projectId={item.id} title={item.title} revision={item.revision!} archived={item.archived} canArchive={canArchiveStudio} canDuplicate={canDuplicateStudio} scope={actionScope} />}
                   <Link href={item.href} className="vc-edit-link">
                     Bewerken <ArrowRight size={13} />

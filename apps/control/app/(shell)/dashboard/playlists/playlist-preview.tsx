@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import type { PlayerPlaybackItem } from "@veyocast/contracts";
 
 export type PlaylistPreviewItem = PlayerPlaybackItem & {
   url: string;
+  mediaFrameStyle?: CSSProperties;
 };
 
 export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
@@ -56,10 +57,11 @@ export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
             preload="metadata"
             ref={videoRef}
             src={activeItem.url}
+            style={activeItem.mediaFrameStyle}
           ><track kind="captions" /></video>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img alt={`Voorbeeld van ${activeItem.title}`} className="player-preview__media" src={activeItem.url} />
+          <img alt={`Voorbeeld van ${activeItem.title}`} className="player-preview__media" src={activeItem.url} style={activeItem.mediaFrameStyle} />
         )}
         <span className="player-preview__safe-zone" aria-hidden="true" />
       </div>

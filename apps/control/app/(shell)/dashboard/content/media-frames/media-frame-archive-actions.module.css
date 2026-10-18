@@ -1,0 +1,12 @@
+.dialog .description.description { color:var(--vc-text); }
+/* Keep these new dialog controls above the scoped Source button selectors. */
+.dialog.dialog button.confirm.confirm.confirm {
+  background:var(--vc-brand-electric-orange);
+  border-color:var(--vc-brand-electric-orange);
+  color:var(--vc-brand-ink-black);
+}
+.dialog.dialog button.confirm.confirm.confirm:hover {
+  background:var(--vc-brand-electric-orange);
+  border-color:var(--vc-brand-electric-orange);
+  color:var(--vc-brand-ink-black);
+}

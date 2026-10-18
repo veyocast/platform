@@ -1,14 +1,14 @@
 import type { ImageUploadApiResult } from "../../../../../../lib/media/image-upload-api";
 
 /** A receipt and a verified library preview are both required before selection. */
-export async function uploadBackground(file:File):Promise<{assetId:string;previewUrl:string;checksumSha256?:string}> {
+export async function uploadBackground(file:File,expectedActorScope?:string):Promise<{assetId:string;previewUrl:string;checksumSha256?:string}> {
   const name=file.name.replace(/\.[^.]+$/,"").trim();
   const form=new FormData();form.set("media",file);form.set("title",name.length>=2?name.slice(0,120):"Nieuwe afbeelding");
   const upload=new AbortController();
   const uploadDeadline=setTimeout(()=>upload.abort(),120000);
   let assetId:string;
   try {
-    const response=await fetch("/api/media/images",{method:"POST",body:form,signal:upload.signal});
+    const response=await fetch("/api/media/images",{method:"POST",body:form,signal:upload.signal,...(expectedActorScope!==undefined?{headers:{"X-VeyoCast-Actor-Scope":expectedActorScope}}:{})});
     let body:ImageUploadApiResult|null;
     try {body=await response.json() as ImageUploadApiResult|null;}
     catch {throw new Error(response.status===413?"Het bestand is te groot voor de uploadservice. Verklein de afbeelding en probeer opnieuw.":"De uploadservice gaf geen bruikbare bevestiging. Controleer de beeldbank voordat je opnieuw uploadt.");}

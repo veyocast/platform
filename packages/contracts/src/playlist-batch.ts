@@ -22,6 +22,8 @@ export const playlistItemPatchSchema = z.object({
 
 export const playlistBatchOperationSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("add_media"), clientId: id, mediaAssetId: id, durationSeconds: duration }).strict(),
+  z.object({ operation: z.literal("add_media_frame"), clientId: id, frameId: id, expectedVersionId: id }).strict(),
+  z.object({ operation: z.literal("refresh_media_frame"), itemId: id, expectedPinnedVersionId: id, versionId: id }).strict(),
   z.object({ operation: z.literal("add_dynamic"), clientId: id, dynamicSlideId: id, expectedSnapshotId: id, durationSeconds: duration.min(5) }).strict(),
   z.object({ operation: z.literal("add_sync_dynamic"), clientId: id, dynamicSlideId: id, expectedSnapshotId: id, snapshotId: id, durationSeconds: duration.max(120) }).strict(),
   z.object({ operation: z.literal("add_youtube"), clientId: id, sourceId: id, durationSeconds: duration.min(5) }).strict(),

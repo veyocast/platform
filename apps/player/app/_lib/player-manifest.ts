@@ -12,7 +12,8 @@ import type {
   PlayerPlaybackItem,
   PlayerSponsorPlan,
   SignedPlayerEntitlement,
-  PlayerYouTubePlayback
+  PlayerYouTubePlayback,
+  MediaFramePlaybackBackground
 } from "@veyocast/contracts";
 
 
@@ -86,6 +87,8 @@ export type PlayerManifestItem = PlayerPlaybackItem & {
   syncDynamic?:SyncDynamicPlayback;
   syncDynamicBinary?:SyncDynamicBinaryPlayback;
   syncSystemAssetUrls?:Record<string,string>;
+  mediaFrameBackground?:MediaFramePlaybackBackground;
+  mediaFrameBackgroundAssets?:Record<string,PlayerDynamicTemplateAsset>;
   source: {
     url: string;
     fallbackUrl?: string;

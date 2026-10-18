@@ -6,7 +6,7 @@ import type { Media, Playlist, Slide,SyncDynamicLibraryDesign } from './model';
 import { AssetImage, type DynamicDesign } from './presentation-adapter';
 import type { Group, Screen } from './model';
 import { type StudioProject } from './presentation-adapter';
-import { playlistPlacementPages } from './playlist-command-plan';
+import { maximumPlaylistPlacementSeconds, playlistPlacementPages, refreshMediaFramePlacement } from './playlist-command-plan';
 import { PHOTOS } from './model';
 import { PlaylistMediaPicker } from './playlist-media-picker';
 import { ScreenThemePicker } from './screen-theme-picker';
@@ -16,6 +16,7 @@ import s from './playlist-editor.module.css';
 
 type Props = {
   playlist: Playlist;
+  confirmedPlaylist?: Playlist;
   onChange: (playlist: Playlist) => void;
   onClose: () => void;
   onSave: (playlist: Playlist) => Promise<Playlist | null>;
@@ -32,6 +33,7 @@ type Props = {
   renderPreview: (slide: Slide, active: boolean) => ReactNode;
   startAdding?: boolean;
   notice?: string;
+  onReplay?: () => void;
   canWrite?: boolean;
   canPublish?: boolean;
   busy?: boolean;
@@ -45,7 +47,7 @@ const seconds = (slide: Slide) => slide.seconds * pages(slide);
 const clock = (value: number) => `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 const boundedSeconds = (value: number, dynamic: boolean, maximum=180) => Math.max(dynamic ? 5 : 3, Math.min(maximum, Math.round(value) || (dynamic ? 5 : 3)));
-const maximumSeconds=(slide:Slide)=>slide.syncStudio||slide.syncDynamic?Math.floor(120/pages(slide)):180;
+const maximumSeconds=maximumPlaylistPlacementSeconds;
 const kind = (slide: Slide) => slide.sourceKind === 'youtube' ? 'YouTube' : slide.sourceKind === 'engage' ? 'Engage' : slide.syncDynamic?'Gekoppeld ontwerp':slide.syncStudio ? 'Studio' : slide.kind === 'video' ? 'Video' : slide.design ? (slide.design.provider === 'led-scores' ? 'LED Scores' : slide.design.provider === 'sportlink' ? 'Sportlink' : 'Menubord') : slide.studioSlide ? 'Studio' : 'Afbeelding';
 const themeOf = (slide: Slide): ScreenThemeId | undefined => slide.syncDynamic?slide.themeId??slide.syncDynamic.presentation.theme:slide.syncStudio ? slide.themeId??slide.syncStudio.presentation.theme : slide.design ? slide.design.themeId : slide.studioSlide ? slide.studioSlide.themeId : slide.themeId;
 const themedSlide = (slide: Slide, themeId: ScreenThemeId): Slide => slide.design
@@ -54,14 +56,17 @@ const themedSlide = (slide: Slide, themeId: ScreenThemeId): Slide => slide.desig
 
 function DurationInput({ value, dynamic, maximum=180, onCommit }: { value: number; dynamic: boolean; maximum?:number; onCommit: (value: number) => void }) {
   const [draft, setDraft] = useState(String(value));
+  const touched = useRef(false);
   useEffect(() => setDraft(String(value)), [value]);
   function commit() {
     const next = draft.trim() ? boundedSeconds(Number(draft), dynamic,maximum) : value;
     setDraft(String(next));
-    if (next !== value) onCommit(next);
+    if (next !== value || touched.current) onCommit(next);
+    touched.current = false;
   }
   return <input type="number" inputMode="numeric" min={dynamic ? 5 : 3} max={maximum} value={draft} onChange={event => {
     const text = event.target.value;
+    touched.current = true;
     setDraft(text);
     const next = Number(text);
     // Keep incomplete input editable, while valid values immediately become
@@ -70,7 +75,7 @@ function DurationInput({ value, dynamic, maximum=180, onCommit }: { value: numbe
   }} onBlur={commit} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} />;
 }
 
-export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish, inventory, groups, initialScreenIds, media, onMediaChange, designs,syncDesigns=[], projects, onGoStudio, renderPreview, startAdding = false,notice:serverNotice,canWrite=true,canPublish=true,busy=false,onAdvanced,videoUploadConfig }: Props) {
+export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose, onSave, onPublish, inventory, groups, initialScreenIds, media, onMediaChange, designs,syncDesigns=[], projects, onGoStudio, renderPreview, startAdding = false,notice:serverNotice,canWrite=true,canPublish=true,busy=false,onReplay,onAdvanced,videoUploadConfig }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const scrollBody = useRef<HTMLDivElement>(null);
   const backAction = useRef<() => void>(() => {});
@@ -93,7 +98,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
   const [storageError, setStorageError] = useState('');
   const pending = saving || busy;
   const canEdit = canWrite && !pending;
-  const dirty = JSON.stringify(playlist) !== initial.current;
+  const dirty = JSON.stringify(playlist) !== (confirmedPlaylist ? JSON.stringify(confirmedPlaylist) : initial.current);
   const active = playlist.slides.find(slide => slide.id === activeId) || playlist.slides[0];
   const activeIndex = active ? playlist.slides.findIndex(slide => slide.id === active.id) : 0;
   const total = playlist.slides.reduce((sum, slide) => sum + seconds(slide), 0);
@@ -167,6 +172,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
         if (updated.design) updated.design = { ...updated.design, seconds: updated.seconds };
         if (updated.studioSlide) updated.studioSlide = { ...updated.studioSlide, duration: updated.seconds };
       }
+      if (slide.mediaFrame && (patch.seconds !== undefined || patch.name !== undefined)) updated.mediaFrame = { ...slide.mediaFrame, edits: { ...slide.mediaFrame.edits, ...(patch.seconds !== undefined ? { durationSeconds: updated.seconds } : {}), ...(patch.name !== undefined ? { displayTitle: updated.name } : {}) } };
       return updated;
     }));
   }
@@ -236,7 +242,8 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
   function duplicate(slide: Slide) {
     if (!canEdit) return;
     const index = playlist.slides.findIndex(item => item.id === slide.id);
-    const next = { ...copy(slide), id: uid(), duplicateOf: slide.id, name: `${slide.name} (kopie)` };
+    const name = `${slide.name} (kopie)`;
+    const next = { ...copy(slide), id: uid(), duplicateOf: slide.id, name, ...(slide.mediaFrame ? { mediaFrame: { ...copy(slide.mediaFrame), edits: { ...slide.mediaFrame.edits, displayTitle: name } } } : {}) };
     updateSlides([...playlist.slides.slice(0, index + 1), next, ...playlist.slides.slice(index + 1)]);
     setActiveId(next.id);
     setEditingId(next.id);
@@ -247,17 +254,18 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
     updateSlides(playlist.slides.map(slide => {
       if (!validSelection.includes(slide.id)) return slide;
       const value = boundedSeconds(Number(bulkSeconds), !!slide.design,maximumSeconds(slide));
-      return { ...slide, seconds: value, ...(slide.design ? { design: { ...slide.design, seconds: value } } : {}), ...(slide.studioSlide ? { studioSlide: { ...slide.studioSlide, duration: value } } : {}) };
+      return { ...slide, seconds: value, ...(slide.mediaFrame ? { mediaFrame: { ...slide.mediaFrame, edits: { ...slide.mediaFrame.edits, durationSeconds: value } } } : {}), ...(slide.design ? { design: { ...slide.design, seconds: value } } : {}), ...(slide.studioSlide ? { studioSlide: { ...slide.studioSlide, duration: value } } : {}) };
     }));
     setNotice(`Duur aangepast voor ${validSelection.length} ${validSelection.length === 1 ? 'item' : 'items'}. Dynamische pagina’s duren minimaal 5 seconden.`);
   }
   function applyTheme(ids: string[], themeId: ScreenThemeId) {
     if (!ids.length||!canEdit) return;
-    const supported=playlist.slides.filter(slide=>ids.includes(slide.id)&&(slide.kind!=='video'||slide.studioSlide||slide.syncStudio||slide.syncDynamic)).map(slide=>slide.id);
+    const supported=playlist.slides.filter(slide=>ids.includes(slide.id)&&!slide.mediaFrame&&(slide.kind!=='video'||slide.studioSlide||slide.syncStudio||slide.syncDynamic)).map(slide=>slide.id);
     updateSlides(playlist.slides.map(slide => supported.includes(slide.id) ? themedSlide(slide, themeId) : slide));
     setNotice(`${themeId === 'onzetrots-tv' ? 'OnzeTrots TV' : 'Oorspronkelijke stijl'} toegepast op ${supported.length} ${supported.length === 1 ? 'item' : 'items'}. Je inhoud en duur per pagina blijven behouden.${supported.length<ids.length?' Video’s behouden hun eigen beeld.':''}`);
   }
   function refresh(slide: Slide) {
+    if (slide.mediaFrame) { try { const next = refreshMediaFramePlacement(slide); updateSlides(playlist.slides.map(item => item.id === slide.id ? next : item)); setNotice('De gekozen media-ontwerpversie staat in je concept. Bestaande plaatsingsvoorkeuren blijven behouden; sla op om de versie te bevestigen.'); } catch (failure) { setNotice(failure instanceof Error ? failure.message : 'De media-ontwerpversie kon niet worden gekozen.'); } return; }
     const latestSource=syncDesigns.find(design=>design.id===slide.designId);
     if(slide.syncDynamic&&latestSource){patchSlide(slide.id,{syncDynamic:copy(latestSource),seconds:latestSource.configuration.secondsPerPage,kind:latestSource.kind,mediaId:latestSource.mediaAssetId,mediaChecksumSha256:latestSource.checksumSha256,image:'',orientation:latestSource.presentation.orientation});setNotice('De nieuwste volledige Source-versie staat in je concept. Sla op om deze keuze te bevestigen.');return;}
     const latestDesign = designs.find(design => design.id === slide.designId);
@@ -274,16 +282,17 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
   }
 
   function itemSettings(slide: Slide) {
-    const canRefresh = !!(slide.syncDynamic&&syncDesigns.some(design=>design.id===slide.designId))||!!(slide.design && designs.some(design => design.id === slide.designId)) || !!(slide.studioSlide && projects.some(project => project.id === slide.studioProjectId && project.slides.some(item => item.id === slide.studioSlideId)));
+    const canRefresh = slide.mediaFrame ? Boolean(slide.mediaFrame.current && slide.mediaFrame.current.id !== slide.mediaFrame.selected.id && slide.mediaFrame.current.number > slide.mediaFrame.pinnedVersionNumber) : !!(slide.syncDynamic&&syncDesigns.some(design=>design.id===slide.designId))||!!(slide.design && designs.some(design => design.id === slide.designId)) || !!(slide.studioSlide && projects.some(project => project.id === slide.studioProjectId && project.slides.some(item => item.id === slide.studioSlideId)));
     return <fieldset disabled={!canEdit}className={s.itemSettings}style={{border:0,margin:0,padding:0,minWidth:0}}>
       <label className={s.field}>Naam in playlist<input value={slide.name} onChange={event => patchSlide(slide.id, { name: event.target.value })} /></label>
+      {slide.mediaFrame && <p className={s.hint}>Vastgezet op media-ontwerpversie {slide.mediaFrame.pinnedVersionNumber}.{slide.mediaFrame.selected.id !== slide.mediaFrame.pinnedVersionId ? ` Versie ${slide.mediaFrame.selected.number} is gekozen voor de volgende opslag.` : slide.mediaFrame.current && slide.mediaFrame.current.number > slide.mediaFrame.pinnedVersionNumber ? ` Versie ${slide.mediaFrame.current.number} is beschikbaar; vernieuwen gebeurt alleen op jouw verzoek.` : !slide.mediaFrame.current ? ' De actuele bron is niet beschikbaar voor vernieuwen.' : ''}</p>}
       <div className={s.durationSettings}>
         <label className={s.field}>{pages(slide) > 1 ? 'Seconden per pagina' : 'Seconden in beeld'}<DurationInput key={slide.id} value={slide.seconds} dynamic={!!slide.design} maximum={maximumSeconds(slide)} onCommit={value => patchSlide(slide.id, { seconds: value })} /></label>
         <div className={s.presets} aria-label="Snelle afspeelduur">{[10, 15, 20].filter(value=>value<=maximumSeconds(slide)).map(value => <button key={value} type="button" aria-pressed={slide.seconds === value} onClick={() => patchSlide(slide.id, { seconds: value })}>{value}s</button>)}</div>
       </div>
       {pages(slide) > 1 && <p className={s.hint}>{pages(slide)} pagina’s × {slide.seconds}s = {seconds(slide)} seconden in je playlist.</p>}
       <div className={s.themeSettings}>
-        {slide.kind==='video'&&!slide.studioSlide&&!slide.syncStudio&&!slide.syncDynamic?<p className={s.hint}>Deze video speelt zijn eigen beeld af.</p>:<ScreenThemePicker value={themeOf(slide)} onChange={themeId => applyTheme([slide.id], themeId)} legacyLabel="Oorspronkelijke stijl" compact />}
+        {slide.mediaFrame?<p className={s.hint}>De vormgeving en achtergrond komen uit de gekozen vaste media-ontwerpversie.</p>:slide.kind==='video'&&!slide.studioSlide&&!slide.syncStudio&&!slide.syncDynamic?<p className={s.hint}>Deze video speelt zijn eigen beeld af.</p>:<ScreenThemePicker value={themeOf(slide)} onChange={themeId => applyTheme([slide.id], themeId)} legacyLabel="Oorspronkelijke stijl" compact />}
         {slide.sourceKind&&<p className={s.hint}>Het schermthema geldt voor de lokale back-upkaart.</p>}
         {!slide.syncDynamic&&!slide.syncStudio && !slide.design && !slide.studioSlide && themeOf(slide) === 'onzetrots-tv' && <label className={s.field}>Schermstand<select value={slide.orientation || 'landscape'} onChange={event => patchSlide(slide.id, { orientation: event.target.value as 'landscape' | 'portrait' })}><option value="landscape">Liggend · 16:9</option><option value="portrait">Staand · 9:16</option></select></label>}
         {(slide.syncDynamic||slide.design || slide.studioSlide || slide.syncStudio) && <p className={s.hint}>Het thema geldt voor dit playlistitem. Je bronontwerp in Studio blijft behouden.</p>}
@@ -292,7 +301,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
       <div className={s.itemActions}>
         <button type="button" className={s.secondary} onClick={() => duplicate(slide)}><Copy size={17} />Kopiëren</button>
         <button type="button" className={s.danger} onClick={() => remove([slide.id])}><Trash2 size={17} />Verwijderen</button>
-        {canRefresh && <button type="button" className={s.refresh} onClick={() => refresh(slide)}><RotateCcw size={16} />Nieuwste Studio-versie</button>}
+        {canRefresh && <button type="button" className={s.refresh} onClick={() => refresh(slide)}><RotateCcw size={16} />{slide.mediaFrame?`Media-ontwerpversie ${slide.mediaFrame.current!.number} kiezen`:'Nieuwste Studio-versie'}</button>}
       </div>
     </fieldset>;
   }
@@ -335,6 +344,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
       <button type="button" className={s.closeButton} onClick={() => requestLeave('close')} aria-label="Playlisteditor sluiten"><X size={22} /></button>
     </header>
     {serverNotice && <p className={s.notice} role="status">{serverNotice}</p>}
+    {onReplay && <button type="button" className={s.secondary} disabled={pending} onClick={onReplay}><RotateCcw size={17}/>Dezelfde opslag opnieuw bevestigen</button>}
     {storageError && <div className={s.error} role="alert">{storageError}<button type="button" onClick={() => setStorageError('')} aria-label="Melding sluiten"><X size={18} /></button></div>}
     {leave ? <div className={s.leaveScreen}>
       <div className={s.leaveIcon}><Save size={29} /></div><h3>Je hebt nog wijzigingen</h3><p>Bewaar je playlist voordat je {leave === 'studio' ? 'naar Studio gaat' : 'de editor sluit'}.</p>
@@ -379,7 +389,7 @@ export function PlaylistEditor({ playlist, onChange, onClose, onSave, onPublish,
             {listMode === 'reorder' && <p className={s.modeHint}>Verplaats items met de pijlen. Je wijzigingen worden bewaard als je op Opslaan tikt.</p>}
             {listMode === 'select' && <div className={s.bulkPanel}>
               <div className={s.bulkHeading}><strong>{validSelection.length} geselecteerd</strong><button type="button" onClick={() => setSelectedIds(validSelection.length === playlist.slides.length ? [] : playlist.slides.map(slide => slide.id))}>{validSelection.length === playlist.slides.length ? 'Selectie wissen' : 'Alles selecteren'}</button></div>
-              <div className={s.bulkDuration}><label>Duur <input type="number" inputMode="numeric" min={3} max={180} value={bulkSeconds} onChange={event => setBulkSeconds(event.target.value)} /> sec.</label><button type="button" className={s.secondary} disabled={!canEdit || !validSelection.length || !bulkSeconds} onClick={applyDuration}>Toepassen</button><button type="button" className={s.danger} disabled={!canEdit || !validSelection.length} onClick={() => remove(validSelection)} aria-label={`${validSelection.length} geselecteerde items verwijderen`}><Trash2 size={18} /></button></div>
+              <div className={s.bulkDuration}><label>Duur <input type="number" inputMode="numeric" min={3} max={playlist.slides.some(slide=>validSelection.includes(slide.id)&&slide.mediaFrame)?3600:180} value={bulkSeconds} onChange={event => setBulkSeconds(event.target.value)} /> sec.</label><button type="button" className={s.secondary} disabled={!canEdit || !validSelection.length || !bulkSeconds} onClick={applyDuration}>Toepassen</button><button type="button" className={s.danger} disabled={!canEdit || !validSelection.length} onClick={() => remove(validSelection)} aria-label={`${validSelection.length} geselecteerde items verwijderen`}><Trash2 size={18} /></button></div>
               <div className={s.bulkTheme}><ScreenThemePicker value={bulkTheme} onChange={setBulkTheme} legacyLabel="Oorspronkelijke stijl" compact /><button type="button" className={s.secondary} disabled={!canEdit || !validSelection.length} onClick={() => applyTheme(validSelection, bulkTheme)}>Thema toepassen op {validSelection.length} items</button></div>
             </div>}
             <ol className={s.slideList}>{playlist.slides.map((slide, index) => <li key={slide.id} className={s.slideItem} data-current={active?.id === slide.id} data-expanded={editingId === slide.id} data-selected={validSelection.includes(slide.id)}>

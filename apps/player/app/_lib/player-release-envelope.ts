@@ -36,6 +36,7 @@ import { createPlayerAdminClient } from "./player-supabase";
 import {readSyncDynamicReleaseSnapshot,projectSyncDynamicReleaseData,syncDynamicProjectionAssetIds,type SyncDynamicSnapshotRow} from './player-sync-dynamic-payload';
 import {readSyncPublishedBinaryArtifact} from './player-sync-binary-payload';
 import type {SyncDynamicMode} from './sync-player-capabilities';
+import { readPlayerMediaFramePayload } from "./player-media-frame-payload";
 
 type ReleaseRow = {
   id: string;
@@ -90,6 +91,7 @@ type ReleaseItemRow = {
   sites_studio_presentation_json:unknown;
   sync_studio_presentation_json?:unknown;
   sync_studio_duration_ms?:number|null;
+  media_frame_provenance_json?:unknown;
 };
 
 export type PlayerReleaseDevice = {
@@ -123,7 +125,7 @@ export async function loadPlayerReleaseEnvelope({
       .single(),
     admin
       .from("playlist_release_items")
-      .select("id, source_item_id, live_data_enabled, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, youtube_playlist_id, youtube_playlist_video_ids, youtube_playlist_repeat, sites_configuration_json, sites_studio_presentation_json, sync_studio_presentation_json, sync_studio_duration_ms, engage_public_id, engage_title, engage_question")
+      .select("id, source_item_id, live_data_enabled, asset_kind, asset_title, display_title, duration_seconds, fit_mode, muted, transition, crop_focus_x, crop_focus_y, background_color, volume_percent, trim_start_seconds, trim_end_seconds, visible_from, visible_until, enabled, accessibility_name, section_source_id, section_name, section_position_key, storage_bucket, storage_path, mime_type, file_size_bytes, checksum_sha256, dynamic_snapshot_id, youtube_video_id, youtube_title, youtube_online_only, youtube_playlist_id, youtube_playlist_video_ids, youtube_playlist_repeat, sites_configuration_json, sites_studio_presentation_json, sync_studio_presentation_json, sync_studio_duration_ms, media_frame_provenance_json, engage_public_id, engage_title, engage_question")
       .eq("release_id", releaseId)
       .eq("tenant_id", tenantId)
       .order("sort_order", { ascending: true })
@@ -184,7 +186,14 @@ export async function loadPlayerReleaseEnvelope({
         throw new Error("signed asset URL unavailable");
       }
 
+      const frame = await readPlayerMediaFramePayload(item.media_frame_provenance_json, tenantId, { storageBucket: item.storage_bucket, storagePath: item.storage_path, checksumSha256: item.checksum_sha256, bytes: item.file_size_bytes, mimeType: item.mime_type }, async (bucket, path) => {
+        const result = await admin.storage.from(bucket).createSignedUrl(path, 60 * 60);
+        if (result.error || !result.data?.signedUrl) throw Error("MEDIA_FRAME_BACKGROUND_UNAVAILABLE");
+        return result.data.signedUrl;
+      });
+
       return {
+        ...frame,
         accessibilityName: item.accessibility_name ?? item.asset_title,
         backgroundColor: item.background_color ?? undefined,
         cropFocus: {
@@ -227,6 +236,7 @@ export async function loadPlayerReleaseEnvelope({
           source: item.dynamic_snapshot_id ? configurationHashes.get(item.id)??item.checksum_sha256 : item.checksum_sha256,
           duration: item.duration_seconds, title: item.display_title, fit: item.fit_mode,
           crop: [item.crop_focus_x, item.crop_focus_y], background: item.background_color,
+          ...(item.media_frame_provenance_json == null ? {} : { mediaFrame: item.media_frame_provenance_json }),
           muted: item.muted, volume: item.volume_percent, trim: [item.trim_start_seconds,item.trim_end_seconds],
           transition: item.transition, visibility: [item.visible_from,item.visible_until], enabled: item.enabled,
           youtube: [item.youtube_video_id,item.youtube_playlist_id,item.youtube_playlist_video_ids,item.youtube_playlist_repeat],sites:item.sites_configuration_json,studio:item.sites_studio_presentation_json, engage: item.engage_public_id
@@ -271,6 +281,8 @@ export async function loadPlayerReleaseEnvelope({
   );
 
   for(const item of items)item.sitesPresentation=await buildPlayerSitesMarkup(item);
+  const mainChecksums = new Set(items.map(item => item.source.checksumSha256));
+  const frameAssetBytes = [...new Map(items.flatMap(item => Object.values(item.mediaFrameBackgroundAssets ?? {})).filter(asset => !mainChecksums.has(asset.checksumSha256)).map(asset => [asset.checksumSha256, asset])).values()].reduce((sum, asset) => sum + asset.bytes, 0);
   const needsSites=items.some(item=>item.sitesStudioPresentation||item.dynamicTemplate?.data.sitesConfiguration||((item.dynamicTemplate?.data.themePresentation as {selection?:{ref?:{id?:string}}}|undefined)?.selection?.ref?.id==="onzetrots-tv"));
   const systemAssets=needsSites?sitesSystemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
   const syncAssets=syncPresentations.size||syncDynamicMode==='dom'&&syncDynamicSnapshots.size?syncSystemAssets.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
@@ -295,7 +307,7 @@ export async function loadPlayerReleaseEnvelope({
       releaseId: release.id,
       schemaVersion: 1,
       tenantId: release.tenant_id,
-      totalBytes: release.total_bytes + items.reduce((sum,item,index)=>sum+item.source.bytes-releaseItems[index]!.file_size_bytes,0) + dynamicAssetBytes + studioAssetBytes + uniqueSponsorAssetBytes(sponsorPlan)+(systemAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0)+(syncAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0),
+      totalBytes: release.total_bytes + items.reduce((sum,item,index)=>sum+item.source.bytes-releaseItems[index]!.file_size_bytes,0) + dynamicAssetBytes + studioAssetBytes + frameAssetBytes + uniqueSponsorAssetBytes(sponsorPlan)+(systemAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0)+(syncAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0),
       ...(systemAssets?{systemAssets}:{}),
       ...(syncAssets?{syncSystemAssets:syncAssets}:{}),
       totalDurationSeconds: release.total_duration_seconds+items.reduce((sum,item,index)=>sum+item.durationSeconds-releaseItems[index]!.duration_seconds,0),

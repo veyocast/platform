@@ -6,7 +6,7 @@ import { hasCapability } from "@veyocast/auth";
 import { requireTenantControlSession } from "../../../../../../lib/control-session";
 import { loadDraftPreflight } from "../../../releases/data";
 import { loadPlaylistStudio } from "../../data";
-import type { PlaylistPreviewItem } from "../../playlist-preview";
+import { loadPublicationMediaPreview } from "../../publish-media-frame-preview.server";
 import { getReadinessCopy } from "../../readiness-copy";
 import { PublishJourney } from "./publish-journey";
 
@@ -28,16 +28,18 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
   const enabledSections = new Set(
     studio?.sections.filter((section) => section.enabled).map((section) => section.id) ?? []
   );
-  const targetItems = studio?.items.flatMap((item) => item.enabled &&
-    (item.sectionId === null || enabledSections.has(item.sectionId)) &&
-    item.asset?.variant
-    ? [{ checksumSha256: item.asset.variant.checksumSha256, fileSizeBytes: item.asset.variant.fileSizeBytes }]
-    : []) ?? [];
-  const preflight = session.isLive && session.tenantId && playlist
-    ? await loadDraftPreflight(session.tenantId, targetItems)
-    : { error: null, screenStates: [], warning: null };
+  let publication: Awaited<ReturnType<typeof loadPublicationMediaPreview>> | null = null;
+  let publicationError: string | null = null;
+  if (studio && session.isLive && session.tenantId) {
+    try { publication = await loadPublicationMediaPreview(session.tenantId, studio.items, enabledSections); }
+    catch { publicationError = "De vaste media-ontwerpversie of achtergrond kon niet volledig worden gecontroleerd. Je concept blijft behouden; open de playlist opnieuw voordat je publiceert."; }
+  }
+  const preflight = session.isLive && session.tenantId && playlist && !publicationError
+    ? await loadDraftPreflight(session.tenantId, publication?.targetItems ?? [])
+    : { error: publicationError, screenStates: [], warning: null };
   const canPublish = Boolean(
     session.isLive &&
+    !publicationError &&
     session.tenantStatus === "active" &&
     playlist?.status !== "archived" &&
     hasCapability(session.capabilities, "tenant.playlist.publish") &&
@@ -60,37 +62,12 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
       pageCount: slide.slideCount
     }];
   }) ?? [];
-  const previewItems: PlaylistPreviewItem[] = studio?.items.flatMap((item) => {
-    if (!item.asset?.variant?.previewUrl) return [];
-    return [{
-      accessibilityName: item.accessibilityName || undefined,
-      backgroundColor: item.backgroundColor || undefined,
-      cropFocus: { x: item.cropFocusX, y: item.cropFocusY },
-      displayTitle: item.displayTitle || undefined,
-      durationSeconds: item.durationSeconds,
-      enabled: item.enabled,
-      fitMode: item.fitMode,
-      id: item.id,
-      kind: item.asset.kind,
-      muted: item.muted,
-      title: item.asset.title,
-      transition: item.transition,
-      trim: {
-        endSeconds: item.trimEndSeconds ?? undefined,
-        startSeconds: item.trimStartSeconds
-      },
-      url: item.asset.variant.previewUrl,
-      visibility: item.visibleFrom || item.visibleUntil
-        ? { from: item.visibleFrom ?? undefined, until: item.visibleUntil ?? undefined }
-        : undefined,
-      volumePercent: item.volumePercent
-    }];
-  }) ?? [];
+  const previewItems = publication?.previewItems ?? [];
 
   return <>
     {query.fout ? <p className="notice notice--critical" role="alert"><strong>Publicatie niet uitgevoerd.</strong> {query.fout}</p> : null}
     {studio?.error || preflight.error ? <p className="notice notice--critical" role="alert"><strong>Publicatiecontrole niet beschikbaar.</strong> {studio?.error ?? preflight.error}</p> : null}
-    {playlist && studio ? (
+    {playlist && studio && !publicationError ? (
       <PublishJourney
         canPublish={canPublish}
         initialScreenIds={(query.screens??'').split(',').filter(id=>preflight.screenStates.some(state=>state.screen.id===id))}
@@ -116,7 +93,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
             const copy = getReadinessCopy(reason);
             return `${copy.label}. ${copy.detail}`;
           }) ?? [],
-          totalBytes: studio.readiness?.totalBytes ?? 0,
+          totalBytes: publication?.hasFrames ? publication.totalBytes : studio.readiness?.totalBytes ?? 0,
           totalDurationSeconds: studio.readiness?.totalDurationSeconds ?? 0
         }}
         tenantName={session.tenant}

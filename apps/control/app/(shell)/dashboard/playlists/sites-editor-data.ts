@@ -4,7 +4,7 @@ import { buildSitesPresentationFromDynamicPayload } from "@veyocast/content-temp
 import { resolveSitesStudioSlide } from "@veyocast/content-templates/sites-presentation-model";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import type { PlaylistStudioData } from "./data";
-import { loadPublisherLibrary, loadSitesAssetUrls, loadCanonicalSnapshotAssets,loadBoundPublisherDynamicDefinitions,collectCanonicalSnapshotAssetIds,type PublisherLibraryPage } from "./library";
+import { loadMediaFramePlacements, loadPublisherLibrary, loadSitesAssetUrls, loadCanonicalSnapshotAssets,loadBoundPublisherDynamicDefinitions,collectCanonicalSnapshotAssetIds,type PublisherLibraryPage } from "./library";
 import type { DynamicDesign, Group, Media, Playlist, Screen, Slide, StudioSlide } from "./_components/sites/model";
 import { chunkPlaylistStudioIds } from "./playlist-studio-query-scope";
 import {readPublisherSyncDynamic,type PublisherSyncMedia} from "./sync-dynamic-library";
@@ -28,8 +28,16 @@ export async function loadSitesPlaylistEditor(tenantId: string, data: PlaylistSt
   const boundDefinitions=await loadBoundPublisherDynamicDefinitions(tenantId,data.items.map(item=>item.dynamicSlideId));
   const snapshotAssets=await loadCanonicalSnapshotAssets(tenantId,snapshots.flatMap(snapshot=>[snapshot.snapshot_data_json,snapshot.sync_render_result_json]));
   const assetUrls=await loadSitesAssetUrls(tenantId,revisions.map(revision=>revision.document_json));
+  const framePlacements = data.items.some(item => item.mediaFrameId || item.mediaFrameVersionId)
+    ? await loadMediaFramePlacements(supabase, tenantId, data.items)
+    : new Map<string, NonNullable<Slide["mediaFrame"]>>();
   const slides:Slide[]=data.items.map(item=>{
     const slide:Slide={mediaChecksumSha256:item.asset?.variant?.checksumSha256,id:item.id,name:item.displayTitle||item.asset?.title||"Playlistitem",image:item.asset?.variant?.previewUrl??"",seconds:item.durationSeconds,mediaId:item.mediaAssetId,kind:item.asset?.kind,sourceKind:item.youtubeSourceId?"youtube":item.engageCampaignId?"engage":undefined,sourceId:item.youtubeSourceId??item.engageCampaignId??undefined,fallbackAssetId:item.mediaAssetId};
+    const mediaFrame = framePlacements.get(item.id);
+    if (mediaFrame) {
+      // A pinned frame is rawmedia, even when another historical export shares its asset.
+      return { ...slide, mediaFrame, image: mediaFrame.selected.image, mediaChecksumSha256: mediaFrame.selected.checksumSha256, kind: mediaFrame.selected.kind, orientation: mediaFrame.selected.settings.orientation };
+    }
     const exported=exports.find(value=>value.media_asset_id===item.mediaAssetId);
     const revision=exported?revisions.find(value=>value.id===exported.revision_id):null;
     const document=revision?.document_json;
