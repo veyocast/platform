@@ -82,3 +82,10 @@ Scoped release_audit bezit uitsluitend nieuw
 inhouds-/patch-/afhankelijkheidsbesluiten over de178oorspronkelijke heads en
 actieve opvolgers. Origineel beforemanifest, alle branche-/worktreehistory en
 dirty werk blijven onaangeroerd. Geen blind verwijderen op historische trees.
+
+Scoped binary_review bezit uitsluitend packages/integrations/src/rss.ts en
+packages/integrations/test/rss.test.ts voor de echte NOS-feedrepro: sla geldige
+processing instructions alleen in de proloog inert over bij rootdetectie.
+Behoud netwerk-/SSRF-/size-/DOCTYPE-/entity-/HTML-grenzen; laad geen stylesheet.
+Eigen minimale fixture/voor-na-regressie en echte begrensde officiële feedread
+vereist. Geen dependency-/providercredential-/flag-/queuewijziging.

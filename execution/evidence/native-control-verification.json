@@ -1,60 +1,61 @@
 {
-  "recordedAt": "2026-10-18T16:39:51.538461+00:00",
+  "recordedAt": "2026-10-18T16:50:21.488667+00:00",
   "status": "LOCAL_SOFTWARE_PASS_CI_PENDING",
   "baseline": "1a44b49265076b182c80f156051434b9ab53dc0c",
   "scope": "S227 native Sync and separate V3 API; preserves existing v1/v2, IDs, biometrics, notifications, package and release workflows. No installed app/hardware/store claim.",
   "foundation": {
-    "lint": "30/30,22cached",
-    "typecheck": "30/30,24cached",
-    "unit": "30/30,23cached",
+    "lint": "30/30,26cached",
+    "typecheck": "30/30,27cached",
+    "unit": "30/30,26cached",
     "nativeTests": 58,
     "nativeTestFiles": 15,
     "studioTests": 39,
     "controlTests": 823,
-    "controlExistingSkips": 34
+    "controlExistingSkips": 34,
+    "integrationTests": 194
   },
   "proof": {
     "lint": {
-      "sha256": "abaaa62af00788c1148ca8f71cee0ec83a4d68e7d21d518c3ed87bdfe860cdba",
+      "sha256": "9d70cfebb15eb8b515d98c0ebcca81974bfbb6d84fb664f3f433c77f297b2c8b",
       "tail": [
-        "@veyocast/media-worker:lint: $ eslint . --max-warnings=0",
+        "@veyocast/media-worker:lint: cache miss, executing 3097ca55a9e0bcb1",
         "@veyocast/control:lint: $ eslint . --max-warnings=0",
-        "@veyocast/control-mobile:lint: $ eslint . --max-warnings=0",
+        "@veyocast/media-worker:lint: $ eslint . --max-warnings=0",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    22 cached, 30 total",
-        "  Time:    13.222s ",
+        "Cached:    26 cached, 30 total",
+        "  Time:    9.767s ",
         ""
       ]
     },
     "typecheck": {
-      "sha256": "f5e3417f4e9278f23cecc0d3b46ada0fc82113fc55b6cad4a416370fe394a652",
+      "sha256": "efaa1019d4e507dfc9ae3ca17ec79a41ba80d6a1a8c83e8449ad7d6b8fb7cf00",
       "tail": [
+        "@veyocast/integrations:typecheck: $ tsc --noEmit",
+        "@veyocast/media-worker:typecheck: $ tsc --noEmit",
         "@veyocast/control:typecheck: $ tsc --noEmit",
-        "@veyocast/control-mobile:typecheck: $ tsc --noEmit",
-        "@veyocast/content-templates:typecheck: $ tsc --noEmit",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    24 cached, 30 total",
-        "  Time:    6.476s ",
+        "Cached:    27 cached, 30 total",
+        "  Time:    6.312s ",
         ""
       ]
     },
     "unit": {
-      "sha256": "7bdecdca645c1c47fa7907fe05d779f85251ad22c71bce5cd58c76cd156028f9",
+      "sha256": "572941fc3132c7d0c34b3c0d0c76a5d4c9a0c1ce6c44944b2d6ab427ad4cb893",
       "tail": [
-        "@veyocast/control:test:    Start at  18:36:04",
-        "@veyocast/control:test:    Duration  20.44s (transform 20.01s, setup 0ms, collect 131.81s, tests 9.89s, environment 49ms, prepare 19.64s)",
+        "@veyocast/control:test:    Start at  18:48:10",
+        "@veyocast/control:test:    Duration  11.45s (transform 11.99s, setup 0ms, collect 65.51s, tests 6.61s, environment 36ms, prepare 12.57s)",
         "@veyocast/control:test: ",
         "",
         " Tasks:    30 successful, 30 total",
-        "Cached:    23 cached, 30 total",
-        "  Time:    21.418s ",
+        "Cached:    26 cached, 30 total",
+        "  Time:    12.293s ",
         ""
       ]
     },
     "controlProductionBuild": {
-      "sha256": "8d4d03faa3a3687fb30ac896e4581df644fea8159acaab60c7c6a8b6b868492c",
+      "sha256": "fb56bde6614e29c3a964467d08814ab746a7e9705c545c6d1d26cf278dfcb792",
       "tail": [
         "",
         "",
@@ -67,7 +68,7 @@
       ]
     },
     "playerProductionBuild": {
-      "sha256": "13da7313cd7411776ef765008180572d7210f19f064459acabff92705030fe3d",
+      "sha256": "3bdb35ad14ebd274c4ac19237a4bf5ee3761c92a7d7d9272f4a2c79b33265464",
       "tail": [
         "  \u251c chunks/353372f1-f1291c0a79821ca2.js  54.2 kB",
         "  \u251c chunks/9909-7405abc78775e750.js      45.5 kB",
@@ -243,7 +244,8 @@
     "execution/evidence/venue-existing-denial-real-services.json",
     "execution/evidence/engage-recovery-real-services-final.json",
     "execution/evidence/engage-fresh-receipt-real-services-final.json",
-    "execution/evidence/planning-real-services-final.json"
+    "execution/evidence/planning-real-services-final.json",
+    "execution/evidence/rss-official-feed-final.json"
   ],
   "database": {
     "freshDisposableReset": "PASS",

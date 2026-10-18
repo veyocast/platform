@@ -3,6 +3,64 @@ import { describe, expect, it } from "vitest";
 import { parseRssOrAtom, RssParseError } from "../src/rss";
 
 describe("RSS/Atom normalisatie", () => {
+  const prologFeed = `<rss version="2.0"><channel><title>Eigen QA-nieuws</title>
+    <item><guid>eigen-qa-1</guid><title>Eigen QA-artikel</title>
+      <description><![CDATA[<p>De oorspronkelijke inhoud blijft staan.</p>]]></description>
+      <link>https://example.com/eigen-qa</link>
+    </item></channel></rss>`;
+
+  it.each([
+    '<?xml version="1.0"?>\n<?xml-stylesheet href="/public/style.xsl" type="text/xsl"?>',
+    '<?xml-stylesheet href="https://example.invalid/never-loaded.xsl"?>',
+    '<?qa?>',
+    '<!-- vooraf --><?qa mode="one"?><!-- ertussen --><?other?>\n<!-- erna -->',
+    '\uFEFF<?xml version="1.0"?>\n<!-- vooraf --><?qa?><?qa mode="two"?>',
+    '<?éigen:bron instelling="test"?>',
+    '<?qa\u0301?><?\u{10000}?>',
+    '<?qa toegestane data met < en <!-- commentaartekst ?>',
+    '<?xml version="1.0"?><?qa?><!DOCTYPE rss SYSTEM "https://example.invalid/never-loaded.dtd"><!-- na DTD --><?other?>'
+  ])("behoudt de feed bij inerte prolooginstructies: %s", (prolog) => {
+    expect(parseRssOrAtom(`${prolog}${prologFeed}`, "https://example.com/feed.xml"))
+      .toEqual(parseRssOrAtom(prologFeed, "https://example.com/feed.xml"));
+  });
+
+  it("behandelt artikel- en kanaalmarkup in proloogmetadata uitsluitend als metadata", () => {
+    const prolog = `<?xml version="1.0"?><?qa
+      <channel><title>Alleen metadata</title></channel>
+      <item><guid>metadata-only</guid><title>Geen artikel</title>
+        <link>https://example.com/metadata</link></item>?>`;
+    expect(parseRssOrAtom(`${prolog}${prologFeed}`, "https://example.com/feed.xml"))
+      .toEqual(parseRssOrAtom(prologFeed, "https://example.com/feed.xml"));
+  });
+
+  it.each([
+    '<?xml-stylesheet href="/style.xsl">',
+    '<? ?>',
+    '<?1invalid?>',
+    '<?invalid/target?>',
+    '<?invalid@target?>',
+    '<?XML?>',
+    '<?xml?>',
+    '<?qa \u0000?>',
+    '<?qa?><!-- ongesloten',
+    '<!-- ongeldig -- commentaar --><?qa?>'
+  ])("weigert een ongeldige proloog: %s", (prolog) => {
+    expect(() => parseRssOrAtom(`${prolog}${prologFeed}`, "https://example.com/feed.xml"))
+      .toThrowError(RssParseError);
+  });
+
+  it("behoudt HTML-, entity- en groottegrenzen na een prolooginstructie", () => {
+    const prolog = '<?xml version="1.0"?><?xml-stylesheet href="/style.xsl"?>';
+    for (const document of [
+      `${prolog}<html><body>${prologFeed}</body></html>`,
+      `${prolog}<!DOCTYPE rss [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>${prologFeed}`,
+      `<?qa ${"x".repeat(2_000_000)}?>${prologFeed}`
+    ]) {
+      expect(() => parseRssOrAtom(document, "https://example.com/feed.xml"))
+        .toThrowError(RssParseError);
+    }
+  });
+
   it("normaliseert RSS zonder HTML uit de brontekst over te nemen", () => {
     const feed = parseRssOrAtom(
       `<?xml version="1.0"?>

@@ -96,3 +96,12 @@ Source-harness wacht begrensd op toepassing van zijn bestaande mobiele
 tegenmetings-CSS; ruwe productiemetingen, Source en toleranties blijven intact.
 
 Gebruiker heeft op18oktober tevens automatische YouTube-controle en Mollie-accountinrichting expliciet uitgesteld: “Deze diensten later inrichten”. Bestaande billingflags/collection/restrictie blijven behouden; geen externe werking of nieuwe activering geclaimd. Dit blokkeert de geautoriseerde web- en Player-uitrol niet.
+
+Aanvullende echte RSS-providercheck: de officiële NOS-feed werd onterecht als
+webpagina geweigerd door een geldige xml-stylesheet-PI. De bestaande begrensde
+adapter accepteert de proloog nu inert en parseert uitsluitend vanaf de echte
+RSS/Atom-root; metadata kan geen artikel/feedtitel worden. Netwerk-, grootte-,
+entity-, DTD- en HTML-grenzen blijven. De echte feed levert20ongewijzigde
+artikelen;194integratiechecks/lint/types en onafhankelijke peerreview groen.
+Dit is adapter-/HTTPbewijs, geen claim van een volledige nieuwe workerqueue,
+UI-bron of fysieke aflevering. Bewijs: execution/evidence/rss-official-feed-final.json.
