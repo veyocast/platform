@@ -4,11 +4,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import type { Tabs } from "expo-router";
 import {
-  CirclePlus,
   LayoutDashboard,
   Library,
-  MoreHorizontal,
-  Monitor,
+  Settings,
+  WandSparkles,
   type LucideIcon,
 } from "lucide-react-native";
 
@@ -31,11 +30,10 @@ const tabPresentation: Record<
   string,
   Readonly<{ icon: LucideIcon; label: string }>
 > = {
-  content: { icon: Library, label: "Content" },
-  maken: { icon: CirclePlus, label: "Maken" },
-  meer: { icon: MoreHorizontal, label: "Meer" },
-  schermen: { icon: Monitor, label: "Schermen" },
-  vandaag: { icon: LayoutDashboard, label: "Overzicht" },
+  content: { icon: Library, label: "Media" },
+  ontwerpen: { icon: WandSparkles, label: "Studio" },
+  meer: { icon: Settings, label: "Instellingen" },
+  vandaag: { icon: LayoutDashboard, label: "Cockpit" },
 };
 
 export const premiumRailBreakpoint = 768;

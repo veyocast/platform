@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-18T15:09:40.705Z",
+  "scope": "Real local AAL2 V3 series add then duplicate; response destroyed after remove/archiving commit; identical command recovers receipt despite detail404. No native hardware or hosted claim.",
+  "originalProjectId": "2ccf21f4-574e-4dcb-857d-6fa7d09dffde",
+  "duplicateProjectId": "9dd84d12-5ef2-48d2-8593-db41f70a0745",
+  "seriesId": "28d56ee9-5b56-4a0c-b971-3db7ca854dc1",
+  "lostRemoveHttpStatus": 200,
+  "archivedDetailHttpStatus": 404,
+  "recoveredNextProjectId": "2ccf21f4-574e-4dcb-857d-6fa7d09dffde",
+  "duplicateReplayPreservesId": true,
+  "projectCountAfterReplay": 3,
+  "staleSeriesCommandOutcome": "conflict"
+}

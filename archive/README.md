@@ -23,10 +23,13 @@ Herstelbasis: `20729be35d38dc8eb67b836160632ac7c3ea5153`, succesvol gedeployd
 via run `38973162759`. Geen operationele database-reset is geautoriseerd.
 
 
-Actuele afgebakende cleanup: negentien ignored compiler-caches
-(7.412.676.205 bytes) en drie vervangen CSS-modules zonder resterende imports.
+Actuele afgebakende cleanup: twintig ignored compiler-caches
+(8.309.272.994 bytes) en negen vervangen CSS-modules zonder resterende imports.
 Alle178 remoteheads zijn behouden.129 hebben geen graphverschil met de basis;
 49 branches bevatten72 commitverwijzingen naar68 unieke SHA's. Graphverschil
 bewijst geen ontbrekende patch of verwijderbaarheid. Hieronder vallen onder
-meer identity/MFA-, LG-, caching- en deployherstel. Er is geen aanvullende
-branch-/bronverwijdering bewezen veilig; geen volledige178-branchcleanupclaim.
+meer identity/MFA-, LG-, caching- en deployherstel. Op historische branchtrees is geen aanvullende bronverwijdering bewezen veilig; geen volledige178-branchcleanupclaim.
+
+Zes aanvullende modules (94.638 bytes) zijn na afzonderlijke referentie-/export-/buildglobcontrole verwijderd; actieve gedeelde renderers en stijlstrings blijven behouden. Zie execution/evidence/s227-unused-css-cleanup.json. Unieke branchhistory en alle actieve/dirty worktrees blijven bewaard; dit is geen volledige branchcleanupclaim.
+
+Individuele inhouds-/patch-/CSSafhankelijkheidsbesluiten voor alle178oorspronkelijke heads staan in branch-review-2026-10-18.json:129ancestor,34patch-equivalent,15met30unmatchedSHA’s. De actuele181heads en24worktrees zijn geregistreerd en behouden; de beforeinventaris blijft ongewijzigd. Historische imports onderbouwen waarom de zes active-source-deletes niet blind op oude branches worden toegepast.

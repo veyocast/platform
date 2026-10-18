@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "observedAt": "2026-10-18T16:26:08.190Z",
+  "scope": "Actual post-fix fresh accepted HTTP receipt via S227 Control3250 and real preserved QA57621; new own after_close poll, fresh anonymous browser, exactly one accepted vote; no provider or hardware claim",
+  "runtime": "S227 dev3250; preserved QA Supabase57621; server-actions-root fallback active, no dedicated Engage secret",
+  "poll": {
+    "campaignId": "8a83fbbd-f70c-4f0a-99c3-9f6b53be28ae",
+    "publicId": "336d02ab-dcc8-4d88-8e79-8825d3a03f84",
+    "resultVisibility": "after_close",
+    "finalStatus": "closed",
+    "finalRevision": 2
+  },
+  "checks": {
+    "create": {
+      "status": "PASS",
+      "campaignId": "8a83fbbd-f70c-4f0a-99c3-9f6b53be28ae",
+      "publicId": "336d02ab-dcc8-4d88-8e79-8825d3a03f84",
+      "optionCount": 3,
+      "resultVisibility": "after_close",
+      "revision": 0
+    },
+    "draftPrivate": {
+      "status": "PASS",
+      "apiStatus": 404
+    },
+    "start": {
+      "status": "PASS",
+      "postStatus": 303,
+      "uiShowsOpen": true
+    },
+    "preVotePrivacy": {
+      "status": "PASS",
+      "freshAnonymousBrowser": true,
+      "liveIdentityReadHidden": true,
+      "totalVotesReturned": 0,
+      "optionCountsOmitted": true,
+      "existingAcceptedVotes": 0
+    },
+    "acceptedReceipt": {
+      "status": "PASS",
+      "apiStatus": 200,
+      "accepted": true,
+      "reason": "accepted",
+      "resultsVisibleBeforeClose": false,
+      "totalVotesReturned": 0,
+      "returnedOptionCounts": [
+        null,
+        null,
+        null
+      ],
+      "databaseVotes": [
+        {
+          "option_id": "2624de4e-845e-45e7-b757-3d8cad752d25",
+          "votes": 1
+        }
+      ],
+      "afterFixAcceptedReceipt": true,
+      "optionCountsOmitted": true,
+      "publicUiOnlyLabels": true,
+      "publicUiAcknowledgesAcceptedVote": true
+    },
+    "duplicate": {
+      "status": "PASS",
+      "apiStatus": 200,
+      "reason": "already_voted",
+      "voteUnchanged": true,
+      "resultsVisible": false,
+      "totalVotesReturned": 0,
+      "optionCountsOmitted": true
+    },
+    "close": {
+      "status": "PASS",
+      "uiShowsClosed": true
+    },
+    "results": {
+      "status": "PASS",
+      "apiStatus": 200,
+      "totalVotes": 1,
+      "optionCounts": [
+        1,
+        0,
+        0
+      ]
+    },
+    "closedVote": {
+      "apiStatus": 409,
+      "accepted": null,
+      "reason": null,
+      "votesUnchanged": true,
+      "status": "PASS"
+    },
+    "preservation": {
+      "status": "PASS",
+      "flagsUnchanged": true,
+      "existingReleasesUnchanged": true,
+      "existingCampaignsUnchanged": true
+    }
+  },
+  "ownerPageErrors": 0,
+  "limits": [
+    "One new own after_close poll and one fresh visitor; exactly one accepted vote.",
+    "Actual browser/API lifecycle; no blanket cross-tenant, provider, physical-player, hardware or other result-visibility-policy claim."
+  ],
+  "sourceEvidence": [
+    "/tmp/veyocast-engage-fresh-receipt-report.json"
+  ]
+}

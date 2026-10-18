@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS_KNOWN_RSS_PROLOG_FIX",
+  "observedAt": "2026-10-18T16:47:47.008Z",
+  "scope": "Known official-feed processing-instruction parser correction only; no new QA sources, queue claims or persisted-ingestion claim",
+  "officialSource": "https://nos.nl/feeds",
+  "feedUrl": "https://feeds.nos.nl/nossportalgemeen",
+  "before": {
+    "status": "FAILED_ACTUAL_ADAPTER_PARSE",
+    "errorCode": "rss_invalid_feed",
+    "actualRssRoot": true,
+    "leadingInstructions": [
+      "<?xml-stylesheet href=\"/public/style.xsl\" type=\"text/xsl\"?>"
+    ],
+    "originalFixtureRed": {
+      "rssTests": 28,
+      "failed": 9
+    },
+    "metadataFixtureRed": {
+      "failed": 1
+    }
+  },
+  "after": {
+    "schemaVersion": 1,
+    "status": "PASS_ACTUAL_OFFICIAL_RSS_ADAPTER",
+    "observedAt": "2026-10-18T16:47:23.244Z",
+    "officialSource": "https://nos.nl/feeds",
+    "officialSourceLinkLabel": "NOS Sport Algemeen",
+    "feedUrl": "https://feeds.nos.nl/nossportalgemeen",
+    "finalUrl": "https://feeds.nos.nl/nossportalgemeen",
+    "xmlPrologSpecification": "https://www.w3.org/TR/xml/#sec-pi",
+    "acceptedStatusRange": "2xx (required by unchanged production adapter)",
+    "bodyBytes": 60985,
+    "bodySha256": "41da94a43a99c9add80afa6556d82e3310ec870dffad7df802d4866fd587cc9e",
+    "articleCount": 20,
+    "elapsedMs": 191,
+    "productionAdapter": "packages/integrations/src/safe-rss-fetch.ts:fetchSafeRss + rss.ts:parseRssOrAtom",
+    "checks": {
+      "actualExternalPublicGet": true,
+      "stylesheetInstructionPresent": true,
+      "originalBodyUnchanged": true,
+      "normalizedContentEqualToSameBodyWithoutStylesheetInstruction": true,
+      "articlesNonemptyAndBounded": true,
+      "noStylesheetLoading": true,
+      "existingNetworkSizeAndEntityPoliciesUnchanged": true
+    },
+    "mutations": {
+      "database": false,
+      "queueClaims": false,
+      "featureFlags": false,
+      "releases": false,
+      "existingSources": false
+    },
+    "limits": [
+      "This proves the real external fetch/parser boundary; no QA source was created and no persisted-ingestion or scheduled-worker claim is made.",
+      "No article body, provider credential, session or cookie is included."
+    ]
+  },
+  "verification": {
+    "integrations": {
+      "suites": 12,
+      "tests": 194,
+      "passed": 194,
+      "log": "/tmp/veyocast-rss-acceptance-integrations-test.log"
+    },
+    "lint": {
+      "status": "PASS",
+      "warnings": 0,
+      "log": "/tmp/veyocast-rss-acceptance-integrations-lint.log"
+    },
+    "typecheck": {
+      "status": "PASS",
+      "log": "/tmp/veyocast-rss-acceptance-integrations-typecheck.log"
+    },
+    "diffCheck": "PASS",
+    "independentPeerReview": "ACK; metadata-extraction finding corrected; no remaining concrete blocker"
+  },
+  "changedFiles": [
+    {
+      "path": "packages/integrations/src/rss.ts",
+      "sha256": "84657cc50aedd9ca180cd9601c97e73596b9855faa95e4ff973bc4cae99a0aa8"
+    },
+    {
+      "path": "packages/integrations/test/rss.test.ts",
+      "sha256": "648beb89682aac2daab623cdfacff3c64cd6b585836477183195b5f5794b476e"
+    }
+  ],
+  "noMutations": [
+    "QA database",
+    "existing sources",
+    "feature flags",
+    "queues",
+    "releases",
+    "provider settings",
+    "commits",
+    "pushes"
+  ]
+}

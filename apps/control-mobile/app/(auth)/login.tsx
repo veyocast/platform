@@ -8,7 +8,7 @@ import {
   TextField,
   mobileSpacing
 } from "@veyocast/mobile-design-system";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { LockKeyhole, LogIn, Mail } from "lucide-react-native";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
@@ -18,7 +18,7 @@ import { BrandMark } from "../../src/components/brand-mark";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, session, sessionError } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,6 @@ export default function LoginScreen() {
     setError(null);
     try {
       await signIn(email, password);
-      router.replace("/(tabs)/vandaag");
     } catch {
       setError(
         "Inloggen is niet gelukt. Controleer je gegevens, MFA-status en verbinding."
@@ -43,6 +42,7 @@ export default function LoginScreen() {
     }
   }
 
+  if (session) return <Redirect href="/(auth)/mfa" />;
   return (
     <AppShell>
       <KeyboardAvoidingView
@@ -68,10 +68,10 @@ export default function LoginScreen() {
                 Gebruik hetzelfde account als in VeyoCast Control.
               </AppText>
             </View>
-            {error ? (
+            {sessionError || error ? (
               <InlineAlert
                 description="Je gegevens zijn niet gewijzigd."
-                title={error}
+                title={sessionError ?? error ?? "Inloggen is niet gelukt."}
                 tone="critical"
               />
             ) : null}

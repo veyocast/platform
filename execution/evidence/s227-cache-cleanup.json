@@ -1,0 +1,9 @@
+{
+  "recordedAt": "2026-10-18T16:27:04.994444+00:00",
+  "path": "/home/codex/repos/castivo-s227/apps/control/.next-qa/cache",
+  "kind": "ignored rebuildable Next compiler cache",
+  "files": 22,
+  "bytesRemoved": 896596789,
+  "reason": "Final verified production build completed; active dev runtime uses separate .next; retain .next-qa server/static/BUILD_ID and all data/configuration",
+  "successor": "same source may rebuild cache; completed production outputs retained"
+}

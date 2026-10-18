@@ -1,0 +1,61 @@
+{
+  "recordedAt": "2026-10-18T16:35:42.853996+00:00",
+  "scope": "Only six unreferenced tracked CSS modules; no reference assets, renderer/API, data/config/signing/worktree/branch deletion",
+  "bytesRemoved": 94638,
+  "files": [
+    {
+      "path": "apps/control/app/(shell)/dashboard/integrations/integrations.module.css",
+      "resolvedPath": "/home/codex/repos/castivo-s227/apps/control/app/(shell)/dashboard/integrations/integrations.module.css",
+      "bytes": 2350,
+      "sha256": "08f55b9b8baba231dcbff4538291e423b51cc74f76b9dcf09d436794b6030103",
+      "successor": "apps/control/app/(shell)/dashboard/data-sources/page.tsx; apps/control/app/(shell)/dashboard/sources/sites-sources-support.module.css; apps/control/app/sync-source.css",
+      "reason": "No filename references, package exports or buildglob dependencies; active TS/string renderers retained",
+      "recovery": "e89605e6cefd5fa5488a729a076e37e3c788e4b6 Git history"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/playlists/playlists-overview.module.css",
+      "resolvedPath": "/home/codex/repos/castivo-s227/apps/control/app/(shell)/dashboard/playlists/playlists-overview.module.css",
+      "bytes": 4955,
+      "sha256": "2b61a6f05d45c55401d3928caef1010888b35836609b075bc5e7602ad330610b",
+      "successor": "apps/control/app/(shell)/dashboard/playlists/_components/sites/playlist-library.tsx; apps/control/app/(shell)/dashboard/playlists/_components/sites/sites-playlist-library-workspace.tsx; apps/control/app/sync-source.css",
+      "reason": "No filename references, package exports or buildglob dependencies; active TS/string renderers retained",
+      "recovery": "e89605e6cefd5fa5488a729a076e37e3c788e4b6 Git history"
+    },
+    {
+      "path": "apps/player/app/_components/dynamic-template-media.module.css",
+      "resolvedPath": "/home/codex/repos/castivo-s227/apps/player/app/_components/dynamic-template-media.module.css",
+      "bytes": 23998,
+      "sha256": "bdf1de7b505d6cd09e67016a60c7e350d4eb9d5fcd1197aa4e2e0762ff57e980",
+      "successor": "packages/content-templates/src/editorial-arena-renderer.tsx; editorial-arena-renderer.module.css",
+      "reason": "No filename references, package exports or buildglob dependencies; active TS/string renderers retained",
+      "recovery": "e89605e6cefd5fa5488a729a076e37e3c788e4b6 Git history"
+    },
+    {
+      "path": "packages/content-templates/src/sites-experience.module.css",
+      "resolvedPath": "/home/codex/repos/castivo-s227/packages/content-templates/src/sites-experience.module.css",
+      "bytes": 8860,
+      "sha256": "178e2a79cc445345245939c0c19ff5f56fb7e4d40cdfe320b97fa9f03ae848ae",
+      "successor": "packages/content-templates/src/sites-styles.ts:sitesExperienceClasses/sitesExperienceCss",
+      "reason": "No filename references, package exports or buildglob dependencies; active TS/string renderers retained",
+      "recovery": "e89605e6cefd5fa5488a729a076e37e3c788e4b6 Git history"
+    },
+    {
+      "path": "packages/content-templates/src/sites-led-slide.module.css",
+      "resolvedPath": "/home/codex/repos/castivo-s227/packages/content-templates/src/sites-led-slide.module.css",
+      "bytes": 12377,
+      "sha256": "fa0b552821dbde631e541a0f870396728b8a40966685ae8c3d815107de9724b2",
+      "successor": "packages/content-templates/src/sites-styles.ts:sitesLedClasses/sitesLedCss/sitesPresentationCss",
+      "reason": "No filename references, package exports or buildglob dependencies; active TS/string renderers retained",
+      "recovery": "e89605e6cefd5fa5488a729a076e37e3c788e4b6 Git history"
+    },
+    {
+      "path": "packages/content-templates/src/sites-studio.module.css",
+      "resolvedPath": "/home/codex/repos/castivo-s227/packages/content-templates/src/sites-studio.module.css",
+      "bytes": 42098,
+      "sha256": "0c2e0b9bd133122108807520d61504d16654b60a864d96274437769527ab0eb0",
+      "successor": "packages/content-templates/src/sites-styles.ts:sitesStudioClasses/sitesStudioCss/sitesPresentationCss",
+      "reason": "No filename references, package exports or buildglob dependencies; active TS/string renderers retained",
+      "recovery": "e89605e6cefd5fa5488a729a076e37e3c788e4b6 Git history"
+    }
+  ]
+}

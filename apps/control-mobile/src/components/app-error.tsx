@@ -5,6 +5,7 @@ import {
 } from "@veyocast/mobile-design-system";
 import { AlertTriangle, RotateCcw } from "lucide-react-native";
 import { View } from "react-native";
+import { usePathname, useRouter } from "expo-router";
 
 import { MobileApiError } from "../api/mobile-api";
 
@@ -15,6 +16,8 @@ export function AppError({
   error: unknown;
   onRetry?: () => void;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const apiError = error instanceof MobileApiError ? error : null;
   const message =
     apiError?.message ??
@@ -47,6 +50,7 @@ export function AppError({
           Opnieuw proberen
         </Button>
       ) : null}
+      {apiError?.code === "FORBIDDEN" || apiError?.code === "MFA_REQUIRED" ? <Button variant="secondary" onPress={() => router.push({ pathname: "/(auth)/mfa", params: { returnTo: pathname } })}>Tweestapsverificatie controleren</Button> : null}
     </View>
   );
 }

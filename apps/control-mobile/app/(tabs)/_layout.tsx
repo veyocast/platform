@@ -20,31 +20,34 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="vandaag"
         options={{
-          title: "Overzicht",
+          title: "Cockpit",
         }}
       />
       <Tabs.Screen
         name="schermen"
         options={{
           title: "Schermen",
+          href: null,
         }}
       />
       <Tabs.Screen
         name="content"
         options={{
-          title: "Content",
+          title: "Media",
         }}
       />
       <Tabs.Screen
         name="maken"
         options={{
           title: "Maken",
+          href: null,
         }}
       />
+      <Tabs.Screen name="ontwerpen" options={{ title: "Studio" }} />
       <Tabs.Screen
         name="meer"
         options={{
-          title: "Meer",
+          title: "Instellingen",
         }}
       />
     </Tabs>

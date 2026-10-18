@@ -56,7 +56,7 @@ import {
 import { useTenant } from "../../../../src/tenant/tenant-provider";
 
 export default function PlaylistDetailScreen() {
-  const { playlistId } = useLocalSearchParams<{ playlistId: string }>();
+  const { playlistId, syncAssetId, syncDuration } = useLocalSearchParams<{ playlistId: string; syncAssetId?: string; syncDuration?: string }>();
   const { activeTenant } = useTenant();
   const queryClient = useQueryClient();
   const theme = useMobileTheme();
@@ -65,6 +65,7 @@ export default function PlaylistDetailScreen() {
   const [releaseNotes, setReleaseNotes] = useState("");
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
+  const [addedSyncAsset, setAddedSyncAsset] = useState<string | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [dragTargetIndex, setDragTargetIndex] = useState<number | null>(null);
   const query = useQuery({
@@ -224,6 +225,18 @@ export default function PlaylistDetailScreen() {
             tone={playlist.status === "published" ? "success" : "neutral"}
           />
         </View>
+
+        {syncAssetId && addedSyncAsset !== `${playlist.id}:${syncAssetId}` ? <SurfaceCard>
+          <AppText variant="cardTitle">Gereed Sync-ontwerp toevoegen</AppText>
+          <AppText muted>Voeg het geverifieerde afspeelbestand toe. Je bestaande publicatie verandert pas na de normale preflight en publicatie.</AppText>
+          <Button disabled={Boolean(busyKey || pendingBatch)} onPress={() => {
+            const seconds = Number(syncDuration);
+            if (!/^[a-f0-9-]{36}$/i.test(syncAssetId) || !Number.isInteger(seconds) || seconds < 3 || seconds > 3600) {
+              setError(new Error("Deze ontwerpselectie is ongeldig. Open het ontwerp opnieuw vanuit Studio.")); return;
+            }
+            void applyOperations([{ operation: "add_media", clientId: Crypto.randomUUID(), mediaAssetId: syncAssetId, durationSeconds: seconds }]).then(() => setAddedSyncAsset(`${playlist.id}:${syncAssetId}`)).catch(() => undefined);
+          }}>Ontwerp aan deze playlist toevoegen</Button>
+        </SurfaceCard> : null}
 
         <SectionHeader
           description="Sleep met de greep of gebruik de pijlen."

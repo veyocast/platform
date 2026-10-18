@@ -1,5 +1,6 @@
 import { engagePublicCampaignSchema, engageVoteRequestSchema, engageVoteResultSchema } from "@veyocast/contracts";
 import { type NextRequest, NextResponse } from "next/server";
+import { readEngageAbuseSigningSecret } from "../../../../lib/engage-server-secret";
 
 import {
   createEngageVisitorId,
@@ -32,7 +33,7 @@ async function handle(request: NextRequest, context: RouteContext, optionId: str
     hashes = deriveEngageVoterHashes({
       campaignId: publicId,
       forwardedFor: request.headers.get("x-forwarded-for"),
-      secret: process.env.ENGAGE_ABUSE_SIGNING_SECRET ?? "",
+      secret: readEngageAbuseSigningSecret(),
       userAgent: request.headers.get("user-agent"),
       visitorId
     });
@@ -43,7 +44,8 @@ async function handle(request: NextRequest, context: RouteContext, optionId: str
   const result = optionId
     ? await admin.rpc("submit_engage_vote_v1", { p_identity_hash: hashes.identityHash, p_network_hash: hashes.networkHash, p_option_id: optionId, p_public_id: publicId })
     : await admin.rpc("get_engage_campaign_for_identity_v1", { p_identity_hash: hashes.identityHash, p_public_id: publicId });
-  if (result.error || !result.data) return NextResponse.json({ error: "Campagne niet beschikbaar." }, { status: optionId ? 409 : 404 });
+  const closedVote = optionId && result.data?.reason === "closed" && result.data?.campaign === null;
+  if (result.error || !result.data || closedVote) return NextResponse.json({ error: "Campagne niet beschikbaar." }, { status: optionId ? 409 : 404 });
   const parsed = optionId ? engageVoteResultSchema.safeParse(result.data) : engagePublicCampaignSchema.safeParse(result.data);
   if (!parsed.success) return NextResponse.json({ error: "Campagnedata is ongeldig." }, { status: 502 });
   const response = NextResponse.json(parsed.data, { headers: { "cache-control": "private, no-store" } });

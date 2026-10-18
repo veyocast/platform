@@ -1,0 +1,43 @@
+{
+  "recordedAt": "2026-10-18T16:02:02.398225+00:00",
+  "originalEvidence": "execution/evidence/sync-editor-source-comparison.json",
+  "originalEvidenceUnchanged": true,
+  "originalResults": {
+    "match": 9,
+    "different": 7
+  },
+  "causes": [
+    {
+      "case": "mobile topbar",
+      "cause": "32px Source icon actions enlarged to mandatory44px touch targets; topbar+2px",
+      "classification": "accessibility exception retained"
+    },
+    {
+      "case": "settings pane",
+      "cause": "Source closed fake revision simulator omitted; real CAS and receipt recovery replace simulator",
+      "heightDeltaDesktop": -34.5,
+      "heightDeltaMobile": -33.5,
+      "classification": "functional demo removal, no literal pixel claim"
+    },
+    {
+      "case": "design pane",
+      "cause": "Extra closed club image/background controls retain real background/crop/logo/tagline authoring",
+      "heightAdded": 39.6875,
+      "classification": "functional extension, not factual-copy-only replacement; no literal pixel claim"
+    },
+    {
+      "case": "semantic theme label",
+      "cause": "Mobile label selector missed accessible span; existing12px styling now cloned for same class",
+      "actualMobileFontPx": 12,
+      "actualDesktopFontPx": 11,
+      "classification": "unintended typography fixed, actual app proof attached"
+    },
+    {
+      "case": "light background option",
+      "cause": "Original white label on light swatch had2.23 contrast; only label uses locked InkBlack token",
+      "classification": "accessibility exception; original surface/geometry retained"
+    }
+  ],
+  "actualCorrectionProof": "execution/evidence/studio-semantic-label-and-contrast.json",
+  "scope": "No Source baseline/tolerance change or general filled-editor pixel claim."
+}

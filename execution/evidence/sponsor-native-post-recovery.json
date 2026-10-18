@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-10-18T15:57:04.571Z",
+  "runtime": "http://localhost:3250",
+  "tenantId": "75f225b5-a241-4914-8fca-dc7ec8cb8bb8",
+  "campaignId": "cd53d9d9-5a1b-4f1a-9daf-64f07b7dc900",
+  "originalCampaignId": "13cc9a88-3d2a-4e3c-be6f-136c541d7f1c",
+  "originalCampaignSha256": "7a4310ab6924df2874c884318fc34c368ab00160996982a29fd69d5d32b1db62",
+  "scope": "Native document POST/303 on current S227 dev Control, same existing isolated QA actors and extra submitted campaign",
+  "checks": {
+    "requestGuards": {
+      "status": "PASS",
+      "crossOriginStatus": 403,
+      "oversizedStatus": 413
+    },
+    "sameActor": {
+      "status": "PASS",
+      "postStatus": 303,
+      "navigationRequest": true,
+      "resourceType": "document",
+      "origin": "http://localhost:3250",
+      "nextActionHeaderPresent": false,
+      "redirectOrigin": "http://localhost:3250",
+      "redirectPath": "/dashboard/sponsors",
+      "errorQuery": "campagneactie",
+      "successQuery": null,
+      "bannerVisible": true,
+      "aal": "aal1",
+      "navigations": [
+        {
+          "method": "GET",
+          "status": 200,
+          "errorQuery": null,
+          "successQuery": null
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "errorQuery": "campagneactie",
+          "successQuery": null
+        }
+      ],
+      "pageErrors": 0,
+      "database": {
+        "id": "cd53d9d9-5a1b-4f1a-9daf-64f07b7dc900",
+        "status": "submitted",
+        "submitted_by": "eba1f6f1-7147-4d7c-88e4-32cd0d2c7e34",
+        "approved_by": null,
+        "revision": 1
+      }
+    },
+    "secondActor": {
+      "status": "PASS",
+      "postStatus": 303,
+      "navigationRequest": true,
+      "resourceType": "document",
+      "origin": "http://localhost:3250",
+      "nextActionHeaderPresent": false,
+      "redirectOrigin": "http://localhost:3250",
+      "redirectPath": "/dashboard/sponsors",
+      "errorQuery": null,
+      "successQuery": "goedgekeurd",
+      "bannerVisible": true,
+      "aal": "aal1",
+      "navigations": [
+        {
+          "method": "GET",
+          "status": 200,
+          "errorQuery": null,
+          "successQuery": null
+        },
+        {
+          "method": "GET",
+          "status": 200,
+          "errorQuery": null,
+          "successQuery": "goedgekeurd"
+        }
+      ],
+      "pageErrors": 0,
+      "database": {
+        "id": "cd53d9d9-5a1b-4f1a-9daf-64f07b7dc900",
+        "status": "approved",
+        "submitted_by": "eba1f6f1-7147-4d7c-88e4-32cd0d2c7e34",
+        "approved_by": "1e41799a-1155-4102-8ef1-3d51dd27b06b",
+        "revision": 1
+      }
+    },
+    "originalUnchanged": {
+      "status": "PASS",
+      "campaignId": "13cc9a88-3d2a-4e3c-be6f-136c541d7f1c",
+      "checksumSha256": "7a4310ab6924df2874c884318fc34c368ab00160996982a29fd69d5d32b1db62"
+    }
+  },
+  "initialHostMismatch": {
+    "browserOrigin": "http://localhost:3250",
+    "redirectOrigin": "http://127.0.0.1:3250",
+    "sameActorRemainedSubmitted": true,
+    "rootFixRequired": "Use the already validated Origin as redirect base, or a relative Location."
+  },
+  "lastRedirectTrace": {
+    "expectedOrigin": "http://localhost:3250",
+    "actualOrigin": "http://localhost:3250",
+    "path": "/dashboard/sponsors",
+    "errorQuery": null,
+    "successQuery": "goedgekeurd",
+    "postStatus": 303,
+    "navigationRequest": true
+  },
+  "status": "PASS",
+  "finishedAt": "2026-10-18T15:59:18.651Z"
+}

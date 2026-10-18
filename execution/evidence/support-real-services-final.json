@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "run": "64d8b900-7f45-4a43-82f2-6d8690cfbf23",
+  "startedAt": "2026-10-18T15:24:34.997Z",
+  "scope": "Local built Control and preserved QA Supabase, own support ticket only",
+  "tenant": "19170000-0000-4000-8000-000000000010",
+  "checks": {
+    "create": {
+      "status": "PASS",
+      "readback": {
+        "id": "9281acb8-c85f-4e57-a718-9de5298df75e",
+        "subject": "S226-support-acceptance-64d8b900-7f45-4a43-82f2-6d8690cfbf23",
+        "tenant_id": "19170000-0000-4000-8000-000000000010",
+        "status": "open",
+        "revision": 0,
+        "closed_at": null,
+        "deleted_at": null
+      },
+      "messageCount": 1
+    },
+    "uploadRegistration": {
+      "status": "PASS",
+      "attachmentId": "e3ca7787-2af6-4f8a-9850-06d4867ea235",
+      "bytes": 105,
+      "checksumSha256": "5142fbbd2abd75864dfbccf45bb1684a726fdb4065e49e5e2899995110eae9c3",
+      "privateBucket": true
+    },
+    "privateDownload": {
+      "status": "PASS",
+      "statusCode": 200,
+      "bytes": 105,
+      "checksumSha256": "5142fbbd2abd75864dfbccf45bb1684a726fdb4065e49e5e2899995110eae9c3"
+    },
+    "unauthenticatedDownload": {
+      "status": "PASS",
+      "statusCode": 400
+    },
+    "closed": {
+      "status": "PASS",
+      "revision": 1,
+      "closedAtPresent": true
+    },
+    "open": {
+      "status": "PASS",
+      "revision": 2,
+      "closedAtPresent": false
+    },
+    "foreignTenantActor": {
+      "status": "PASS",
+      "userId": "eba1f6f1-7147-4d7c-88e4-32cd0d2c7e34",
+      "tenantId": "75f225b5-a241-4914-8fca-dc7ec8cb8bb8",
+      "role": "tenant_owner",
+      "targetTenantMemberships": 0,
+      "platformMemberships": 0,
+      "authStatus": 200,
+      "ownTenantTicketReadCapability": true,
+      "ticketRows": 0,
+      "attachmentRows": 0,
+      "privateObjectStatus": 400,
+      "signingStatus": 400,
+      "ownSupportPageStatus": 200,
+      "foreignTicketPageStatus": 200,
+      "foreignTicketNotFoundRendered": true,
+      "notFoundTransportNote": "Next.js streamed the visible 404 response with HTTP 200; the ticket heading and attachment were unavailable."
+    },
+    "creatorStillReads": {
+      "status": "PASS",
+      "pageStatus": 200,
+      "downloadStatus": 200,
+      "bytes": 105,
+      "checksumSha256": "5142fbbd2abd75864dfbccf45bb1684a726fdb4065e49e5e2899995110eae9c3"
+    }
+  },
+  "ticketId": "9281acb8-c85f-4e57-a718-9de5298df75e",
+  "attachmentId": "e3ca7787-2af6-4f8a-9850-06d4867ea235",
+  "attachmentStoragePath": "tenants/19170000-0000-4000-8000-000000000010/tickets/9281acb8-c85f-4e57-a718-9de5298df75e/de64943c-2ce5-4ea6-9fcf-256e8e01c2ec.txt",
+  "pageErrors": 0,
+  "finishedAt": "2026-10-18T15:25:53.739Z",
+  "status": "PASS_LOCAL_CORE_AND_CROSS_TENANT",
+  "limitations": [
+    "Local QA and private-storage acceptance only; no hosted/provider delivery or physical-device claim."
+  ],
+  "foreignFixture": {
+    "tenantId": "75f225b5-a241-4914-8fca-dc7ec8cb8bb8",
+    "email": "support-acceptance-64d8b900-7f45-4a43-82f2-6d8690cfbf23@example.invalid",
+    "slug": "support-acceptance-64d8b900-7f45-4a43-82f2-6d8690cfbf23",
+    "userId": "eba1f6f1-7147-4d7c-88e4-32cd0d2c7e34",
+    "provisioning": "Local Auth admin createUser with email_confirm=true; minimal owned profile/tenant/membership fixture SQL; no email sent; no MFA enrollment required."
+  },
+  "foreignFinishedAt": "2026-10-18T15:31:10.589Z",
+  "preservedBoundaries": [
+    "No repository writes, migrations, policy or grant changes.",
+    "Existing accounts, roles and verified MFA factors were not modified.",
+    "No external provider/email delivery and no billing/rollout flags or reset."
+  ]
+}

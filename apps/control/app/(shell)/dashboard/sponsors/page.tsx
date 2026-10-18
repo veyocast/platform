@@ -6,7 +6,6 @@ import { loadTenantStyleData } from "../../../../lib/tenant-style-data";
 import { TenantStyleSummary } from "../slides/_components/tenant-style-summary";
 import {
   addCreative,
-  approveCampaign,
   createCampaign,
   createSponsor,
   initializeSponsorHub,
@@ -106,7 +105,7 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
 
     <section className={styles.panel} id="campagnes">
       <PanelHeader title="Campagnes en goedkeuring" description="Creatives vergroten nooit automatisch het sponsoraandeel; weging gebeurt op campagneniveau." />
-      <ul className={styles.list}>{data.campaigns.map((campaign) => <li id={`sponsor-campaign-${campaign.id}`} key={campaign.id}><span><strong>{campaign.name}</strong><small>{formatDate(campaign.starts_at)} – {formatDate(campaign.ends_at)} · gewicht {campaign.weight}</small></span><div className={styles.actions}><StatusPill label={campaign.status} tone={campaignTone[campaign.status as keyof typeof campaignTone] ?? "neutral"} />{campaign.status === "draft" && canWrite ? <form action={submitCampaign}><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="secondary">Indienen</Button></form> : null}{campaign.status === "submitted" && canApprove ? <form action={approveCampaign}><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="primary">Goedkeuren</Button></form> : null}</div></li>)}</ul>
+      <ul className={styles.list}>{data.campaigns.map((campaign) => <li id={`sponsor-campaign-${campaign.id}`} key={campaign.id}><span><strong>{campaign.name}</strong><small>{formatDate(campaign.starts_at)} – {formatDate(campaign.ends_at)} · gewicht {campaign.weight}</small></span><div className={styles.actions}><StatusPill label={campaign.status} tone={campaignTone[campaign.status as keyof typeof campaignTone] ?? "neutral"} />{campaign.status === "draft" && canWrite ? <form action={submitCampaign}><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="secondary">Indienen</Button></form> : null}{campaign.status === "submitted" && canApprove ? <form action="/api/sponsors/campaigns/approve" method="post"><input name="campaignId" type="hidden" value={campaign.id} /><Button type="submit" variant="primary">Goedkeuren</Button></form> : null}</div></li>)}</ul>
       {canWrite && data.sponsors.length ? <form action={createCampaign} className={styles.form} style={{ marginTop: "1.25rem" }}><div className={styles.formGrid}>
         <label className={styles.field}><span>Sponsor</span><select name="sponsorId" required>{data.sponsors.map((sponsor) => <option value={sponsor.id} key={sponsor.id}>{sponsor.name}</option>)}</select></label>
         <label className={styles.field}><span>Campagnenaam</span><input name="name" required maxLength={180} /></label>

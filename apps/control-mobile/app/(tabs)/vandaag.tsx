@@ -1,335 +1,100 @@
 import {
-  AppShell,
-  AppText,
-  Button,
-  InlineAlert,
-  ScreenScrollView,
-  SectionHeader,
-  Skeleton,
-  StatusBadge,
-  SurfaceCard,
-  mobileSpacing,
-  useMobileTheme
+  AppShell, AppText, Button, InlineAlert, PressableSurface, ScreenScrollView,
+  SectionHeader, Skeleton, StatusBadge, SurfaceCard, mobileSpacing, useMobileTheme,
 } from "@veyocast/mobile-design-system";
+import type { MobileScreenSummary } from "@veyocast/contracts";
 import { useRouter } from "expo-router";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Clock3,
-  CloudOff,
-  MonitorCheck,
-  PackageCheck,
-  Radio
-} from "lucide-react-native";
-import { RefreshControl, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Camera, ChevronRight, Monitor } from "lucide-react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 
 import { AppError } from "../../src/components/app-error";
 import { PageHeader } from "../../src/components/page-header";
-import { useMobileCockpit } from "../../src/query/use-mobile-data";
+import { useMobileCockpit, useMobileScreens } from "../../src/query/use-mobile-data";
+import { useTenant } from "../../src/tenant/tenant-provider";
 
 export default function VandaagScreen() {
-  const query = useMobileCockpit();
+  const cockpit = useMobileCockpit();
+  const screens = useMobileScreens();
+  const { session } = useTenant();
   const router = useRouter();
   const theme = useMobileTheme();
-  const { width } = useWindowDimensions();
-  const metricColumns = width >= 768 ? 4 : 2;
-  const data = query.data?.data;
+  const data = screens.data?.data;
+  const items = data?.items ?? [];
+  const offline = Boolean(screens.data?.offline || cockpit.data?.offline);
+  const refetch = () => { void screens.refetch(); void cockpit.refetch(); };
+  const firstName = session?.userName.trim().split(/\s+/)[0];
 
   return (
     <AppShell>
-      <ScreenScrollView
-        refreshControl={
-          <RefreshControl
-            colors={[theme.colors.action]}
-            onRefresh={() => void query.refetch()}
-            refreshing={query.isRefetching}
-            tintColor={theme.colors.action}
-          />
-        }
-      >
-        <PageHeader eyebrow={formatDayLabel(new Date())} title="Vandaag" />
-        {query.data?.offline ? (
-          <InlineAlert
-            description={`Je ziet de laatst opgeslagen status${
-              query.data.storedAt
-                ? ` van ${formatTimestamp(query.data.storedAt)}`
-                : ""
-            }. Acties worden pas uitgevoerd wanneer de API bereikbaar is.`}
-            title="Offline overzicht"
-            tone="warning"
-          />
-        ) : null}
-        {query.isLoading ? (
-          <View style={styles.stack}>
-            <Skeleton height={132} />
-            <Skeleton height={220} />
+      <ScreenScrollView refreshControl={<RefreshControl colors={[theme.colors.action]} onRefresh={refetch} refreshing={screens.isRefetching || cockpit.isRefetching} tintColor={theme.colors.action} />}>
+        <PageHeader eyebrow={firstName ? `Hallo, ${firstName}` : "Je club, onderweg"} title="Alles in beeld." />
+        {offline ? <InlineAlert title="Laatste opgeslagen overzicht" description={`De verbinding ontbreekt. Deze status is bewaard${screens.data?.storedAt ? ` op ${formatTimestamp(screens.data.storedAt)}` : " op dit apparaat"}. Vernieuw de gegevens voordat je een beheeractie uitvoert.`} tone="warning" /> : null}
+        {screens.isLoading ? <Skeleton height={180} /> : screens.error ? <AppError error={screens.error} onRetry={refetch} /> : data ? <>
+          <AppText muted variant="caption">{items.length === data.total ? "Je schermen" : `${items.length} van ${data.total} schermen in dit overzicht`} · {screens.data?.offline ? "laatst bekende status" : "actuele status"}</AppText>
+          <View style={styles.metrics}>
+            {([
+              ["online", "Online", "success"],
+              ["offline", "Offline", "warning"],
+              ["unknown", "Onbekend", "neutral"],
+            ] as const).map(([status, label, tone]) => <SurfaceCard key={status} style={styles.metric}>
+              <AppText variant="pageTitle">{items.filter(screen => screen.status === status).length}</AppText>
+              <StatusBadge label={label} tone={tone} />
+            </SurfaceCard>)}
           </View>
-        ) : query.error ? (
-          <AppError error={query.error} onRetry={() => void query.refetch()} />
-        ) : data ? (
-          <>
-            <View style={styles.section}>
-              <View style={styles.sectionTitle}>
-                <View style={styles.titleCopy}>
-                  <AppText accessibilityRole="header" variant="section">
-                    Acties voor vandaag
-                  </AppText>
-                  <AppText muted>
-                    Operationele signalen uit je eigen organisatie.
-                  </AppText>
-                </View>
-                <StatusBadge
-                  label={`${data.signals.length} open`}
-                  tone={data.signals.length ? "warning" : "success"}
-                />
-              </View>
-              {data.signals.length ? (
-                data.signals.map((signal) => (
-                  <SurfaceCard
-                    key={signal.id}
-                    style={[
-                      styles.signal,
-                      {
-                        borderLeftColor:
-                          signal.tone === "critical"
-                            ? theme.colors.critical
-                            : signal.tone === "warning"
-                              ? theme.colors.warning
-                              : theme.colors.focus
-                      }
-                    ]}
-                  >
-                    <View style={styles.signalHeader}>
-                      <View
-                        style={[
-                          styles.signalIcon,
-                          {
-                            backgroundColor:
-                              signal.tone === "critical"
-                                ? theme.colors.criticalSurface
-                                : signal.tone === "warning"
-                                  ? theme.colors.warningSurface
-                                  : theme.colors.infoSurface
-                          }
-                        ]}
-                      >
-                        {signal.tone === "critical" ? (
-                          <AlertTriangle color={theme.colors.critical} size={19} />
-                        ) : signal.tone === "warning" ? (
-                          <CloudOff color={theme.colors.warning} size={19} />
-                        ) : (
-                          <Radio color={theme.colors.focus} size={19} />
-                        )}
-                      </View>
-                      <View style={styles.titleCopy}>
-                        <AppText variant="cardTitle">{signal.title}</AppText>
-                        <AppText muted variant="caption">
-                          {signal.occurredAt
-                            ? formatTimestamp(signal.occurredAt)
-                            : "Tijdstip onbekend"}
-                        </AppText>
-                      </View>
-                    </View>
-                    <AppText>{signal.message}</AppText>
-                    <Button
-                      disabled={query.data?.offline}
-                      icon={
-                        <ArrowRight color={theme.colors.ink} size={17} />
-                      }
-                      onPress={() => router.push(signal.actionHref as never)}
-                      size="compact"
-                      style={styles.signalAction}
-                      variant="secondary"
-                    >
-                      {signal.actionLabel}
-                    </Button>
-                  </SurfaceCard>
-                ))
-              ) : (
-                <SurfaceCard style={styles.clearState}>
-                  <View
-                    style={[
-                      styles.signalIcon,
-                      { backgroundColor: theme.colors.successSurface }
-                    ]}
-                  >
-                    <MonitorCheck color={theme.colors.success} size={19} />
-                  </View>
-                  <View style={styles.titleCopy}>
-                    <AppText variant="cardTitle">Alles onder controle</AppText>
-                    <AppText muted>
-                      Er zijn nu geen signalen die om actie vragen.
-                    </AppText>
-                  </View>
-                </SurfaceCard>
-              )}
-            </View>
-            <View style={styles.section}>
-              <SectionHeader
-                description="De actuele stand van je organisatie."
-                title="Status vandaag"
-              />
-              <SurfaceCard style={styles.summary}>
-                <Metric
-                  columns={metricColumns}
-                  icon={<MonitorCheck color={theme.colors.success} size={18} />}
-                  index={0}
-                  label="Schermen online"
-                  surface={theme.colors.successSurface}
-                  value={String(data.screensOnline)}
-                />
-                <Metric
-                  columns={metricColumns}
-                  icon={<AlertTriangle color={theme.colors.warning} size={18} />}
-                  index={1}
-                  label="Aandacht nodig"
-                  surface={theme.colors.warningSurface}
-                  value={String(data.screensAttention)}
-                />
-                <Metric
-                  columns={metricColumns}
-                  icon={<PackageCheck color={theme.colors.focus} size={18} />}
-                  index={2}
-                  label="Publicaties gereed"
-                  surface={theme.colors.infoSurface}
-                  value={String(data.pendingPublications)}
-                />
-                <Metric
-                  columns={metricColumns}
-                  icon={
-                    <Clock3 color={theme.colors.secondaryInk} size={18} />
-                  }
-                  index={3}
-                  label="Media verwerkt"
-                  surface={theme.colors.surface}
-                  value={String(data.mediaProcessing)}
-                />
-              </SurfaceCard>
-            </View>
-          </>
-        ) : null}
+          {items.some(screen => screen.status === "attention" || screen.status === "pairing") ? <AppText muted>{items.filter(screen => screen.status === "attention").length} met aandacht · {items.filter(screen => screen.status === "pairing").length} wachten op koppeling</AppText> : null}
+          <SectionHeader title="Je schermen" action={<Button size="compact" variant="ghost" onPress={() => router.push("/(tabs)/schermen")}>Alle schermen</Button>} />
+          {items.length ? items.map(screen => <CockpitScreen key={screen.id} screen={screen} onPress={() => router.push(`/screens/${screen.id}`)} />) : <SurfaceCard><AppText variant="cardTitle">Hier begint je uitzending</AppText><AppText muted>Koppel een Player om de status van je eerste scherm te zien.</AppText><Button variant="secondary" onPress={() => router.push("/screens/pair")}>Scherm koppelen</Button></SurfaceCard>}
+        </> : null}
+        <SurfaceCard style={[styles.callout, { backgroundColor: theme.colors.infoSurface }]}>
+          <Camera color={theme.colors.ink} size={27} />
+          <AppText variant="section">Een moment om te delen?</AppText>
+          <AppText>Maak clubnieuws direct vanaf je telefoon.</AppText>
+          <Button onPress={() => router.push("/(tabs)/maken")}>Afbeelding kiezen of maken</Button>
+        </SurfaceCard>
+        {cockpit.error ? <AppError error={cockpit.error} onRetry={() => void cockpit.refetch()} /> : cockpit.data?.data.signals.length ? <>
+          <SectionHeader title="Aandacht voor vandaag" description="Herstelacties uit je eigen organisatie." />
+          {cockpit.data.data.signals.map(signal => <SurfaceCard key={signal.id} style={styles.callout}>
+            <StatusBadge label={signal.title} tone={signal.tone} />
+            <AppText>{signal.message}</AppText>
+            <AppText muted variant="caption">{signal.occurredAt ? formatTimestamp(signal.occurredAt) : "Tijdstip onbekend"}</AppText>
+            <Button disabled={offline} variant="secondary" onPress={() => router.push(signal.actionHref as never)}>{signal.actionLabel}</Button>
+          </SurfaceCard>)}
+        </> : null}
       </ScreenScrollView>
     </AppShell>
   );
 }
 
-function Metric({
-  columns,
-  icon,
-  index,
-  label,
-  surface,
-  value,
-}: {
-  columns: number;
-  icon: React.ReactNode;
-  index: number;
-  label: string;
-  surface: string;
-  value: string;
-}) {
+function CockpitScreen({ screen, onPress }: { screen: MobileScreenSummary; onPress: () => void }) {
   const theme = useMobileTheme();
-  const row = Math.floor(index / columns);
-  const lastRow = Math.floor(3 / columns);
-  const lastColumn = index % columns === columns - 1;
-  return (
-    <View
-      style={[
-        styles.metric,
-        {
-          borderBottomColor: theme.colors.line,
-          borderBottomWidth: row < lastRow ? 1 : 0,
-          borderRightColor: theme.colors.line,
-          borderRightWidth: lastColumn ? 0 : 1,
-          flexBasis: `${100 / columns}%`
-        }
-      ]}
-    >
-      <View style={styles.metricTopline}>
-        <View style={[styles.metricIcon, { backgroundColor: surface }]}>
-          {icon}
-        </View>
-        <AppText variant="display">{value}</AppText>
+  const status = {
+    online: { label: "Online", tone: "success" }, offline: { label: "Offline", tone: "warning" },
+    unknown: { label: "Onbekend", tone: "neutral" }, attention: { label: "Aandacht nodig", tone: "warning" },
+    pairing: { label: "Wacht op koppeling", tone: "info" },
+  } as const;
+  return <PressableSurface accessibilityLabel={`Open ${screen.name}, ${status[screen.status].label}`} onPress={onPress}>
+    <SurfaceCard style={styles.screen}>
+      <Monitor color={theme.colors.secondaryInk} size={20} />
+      <View style={styles.copy}>
+        <AppText variant="cardTitle">{screen.name}</AppText>
+        <AppText muted variant="caption">{screen.location ?? "Locatie niet ingevuld"}</AppText>
+        <AppText muted variant="caption">Contact: {screen.lastSeenAt ? formatTimestamp(screen.lastSeenAt) : "nog niet ontvangen"}</AppText>
+        <AppText muted variant="caption">Actief: {screen.activeReleaseLabel ?? "nog niet bekend"}</AppText>
+        <StatusBadge {...status[screen.status]} />
       </View>
-      <AppText muted variant="label">
-        {label}
-      </AppText>
-    </View>
-  );
-}
-
-function formatDayLabel(value: Date) {
-  const label = new Intl.DateTimeFormat("nl-NL", {
-    day: "numeric",
-    month: "long",
-    weekday: "long"
-  }).format(value);
-  return label.slice(0, 1).toLocaleUpperCase("nl-NL") + label.slice(1);
+      <ChevronRight color={theme.colors.secondaryInk} size={18} />
+    </SurfaceCard>
+  </PressableSurface>;
 }
 
 function formatTimestamp(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
-    dateStyle: "short",
-    timeStyle: "short"
-  }).format(new Date(value));
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "onbekend" : new Intl.DateTimeFormat("nl-NL", { dateStyle: "short", timeStyle: "short" }).format(date);
 }
-
 const styles = StyleSheet.create({
-  clearState: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: mobileSpacing.inline
-  },
-  metric: {
-    gap: 6,
-    minWidth: 0,
-    padding: mobileSpacing.inline
-  },
-  metricIcon: {
-    alignItems: "center",
-    borderRadius: 7,
-    height: 28,
-    justifyContent: "center",
-    width: 28
-  },
-  metricTopline: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: mobileSpacing.compact
-  },
-  section: { gap: mobileSpacing.inline },
-  sectionTitle: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: mobileSpacing.inline,
-    justifyContent: "space-between"
-  },
-  signal: {
-    borderLeftWidth: 3,
-    gap: mobileSpacing.inline,
-    paddingLeft: mobileSpacing.inline
-  },
-  signalAction: {
-    alignSelf: "flex-start"
-  },
-  signalHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: mobileSpacing.inline
-  },
-  signalIcon: {
-    alignItems: "center",
-    borderRadius: 8,
-    height: 36,
-    justifyContent: "center",
-    width: 36
-  },
-  stack: { gap: mobileSpacing.default },
-  summary: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    overflow: "hidden",
-    padding: 0
-  },
-  titleCopy: { flex: 1, gap: mobileSpacing.micro }
+  metrics: { flexDirection: "row", gap: mobileSpacing.compact, flexWrap: "wrap" },
+  metric: { flex: 1, minWidth: 88, gap: mobileSpacing.compact, padding: mobileSpacing.inline },
+  callout: { gap: mobileSpacing.default },
+  screen: { alignItems: "center", flexDirection: "row", gap: mobileSpacing.compact },
+  copy: { flex: 1, minWidth: 0, gap: mobileSpacing.micro },
 });

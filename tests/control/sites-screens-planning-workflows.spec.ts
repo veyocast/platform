@@ -35,11 +35,11 @@ export const setContentScheduleEnabled=input=>command('enable-schedule',input);`
   bundle = JSON.parse(execFileSync(process.execPath, ["-e", `(async()=>{${build}})().catch(error=>{console.error(error.message);process.exitCode=1;});`], { encoding: "utf8", timeout: 30000, maxBuffer: 16 * 1024 * 1024 }));
 });
 
-async function mount(page: Page, mode: string) {
+async function mount(page: Page, mode: string, scheduleConflicts: Record<string, unknown>[] = []) {
   const commands: { kind: string; input: Record<string, unknown> }[] = [];
   const baseCss = ["tokens/veyocast-design-tokens.css", "packages/ui/src/styles.css", "apps/control/app/globals.css", "apps/control/app/fieldflow.css"].map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
   await page.route("**/__sites-test/screens-planning*", route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><style>${baseCss}\n${bundle.css}</style></head><body><div id="root"></div><script>${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>` }));
-  await page.route("**/__sites-test/wizard-command", route => { const command = route.request().postDataJSON() as typeof commands[number]; commands.push(command); return route.fulfill({ contentType: "application/json", body: JSON.stringify(command.kind === "conflicts" ? { conflicts: [], error: null } : command.kind === "composition" ? { status: "published", message: "Indeling bevestigd door het gecontroleerde transport." } : { status: "saved" }) }); });
+  await page.route("**/__sites-test/wizard-command", route => { const command = route.request().postDataJSON() as typeof commands[number]; commands.push(command); return route.fulfill({ contentType: "application/json", body: JSON.stringify(command.kind === "conflicts" ? { conflicts: scheduleConflicts, error: null } : command.kind === "composition" ? { status: "published", message: "Indeling bevestigd door het gecontroleerde transport." } : { status: "saved" }) }); });
   const manifest = JSON.parse(readFileSync("docs/sites-v11-overname/system-assets.json", "utf8")) as { files: { path: string; sha256: string; bytes: number; mimeType: string }[] };
   const assets = new Map(manifest.files.map(asset => [asset.path, asset]));
   for (const pattern of ["**/fonts/**", "**/fieldflow/**"]) await page.route(pattern, route => { const asset = assets.get(new URL(route.request().url()).pathname); if (!asset) return route.abort(); const bytes = readFileSync(join(process.cwd(), "apps/control/public", asset.path)); expect(bytes.byteLength).toBe(asset.bytes); expect(createHash("sha256").update(bytes).digest("hex")).toBe(asset.sha256); return route.fulfill({ contentType: asset.mimeType, body: bytes }); });
@@ -48,6 +48,38 @@ async function mount(page: Page, mode: string) {
   await expect(page.getByRole("dialog")).toBeVisible();
   return commands;
 }
+
+for (const overlap of [false, true]) test(`definitieve planning ${overlap ? "bevestigt overlap expliciet" : "slaat met één klik op"}`, async ({ page }) => {
+  const commands = await mount(page, "planning", overlap ? [{
+    endsAt: "2026-10-11T12:00:00.000Z", priority: 100,
+    scheduleId: "19170000-0000-4000-8000-000000000050", scheduleName: "Bestaand moment",
+    screenId: "19170000-0000-4000-8000-000000000020", screenName: "Kantine TV 1",
+    source: "publisher", startsAt: "2026-10-11T10:00:00.000Z"
+  }] : []);
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Naam van het moment").fill("Eenmalig clubprogramma");
+  await dialog.getByLabel("Content", { exact: true }).selectOption("19170000-0000-4000-8000-000000000040");
+  await dialog.getByRole("button", { name: "Volgende", exact: true }).click();
+  await dialog.getByLabel("Van", { exact: true }).fill("12:00");
+  await dialog.getByLabel("Tot", { exact: true }).fill("14:00");
+  await dialog.getByRole("button", { name: "Volgende", exact: true }).click();
+  await expect(dialog.locator('ol li[aria-current="step"]')).toContainText("Controleren");
+  expect(commands.filter(command => command.kind === "create-schedule")).toHaveLength(0);
+  const save = dialog.getByRole("button", { name: "Moment inplannen", exact: true });
+  if (overlap) {
+    await expect(save).toBeDisabled();
+    await expect(dialog.getByRole("alert")).toContainText("Bestaand moment");
+    await dialog.getByRole("button", { name: "Prioriteit begrijpen en toch opslaan", exact: true }).click();
+  } else {
+    await expect(save).toBeEnabled();
+    await save.click();
+  }
+  await expect.poll(() => commands.filter(command => command.kind === "create-schedule").length).toBe(1);
+  expect(commands.filter(command => command.kind === "conflicts")).toHaveLength(1);
+  const saved = commands.find(command => command.kind === "create-schedule")!;
+  expect(saved.input).toMatchObject({ name: "Eenmalig clubprogramma", confirmConflicts: overlap ? "yes" : "no" });
+  expect(saved.input.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
+});
 
 function csvRows(content: string) {
   const rows: string[][] = []; let row: string[] = [], cell = "", quoted = false;

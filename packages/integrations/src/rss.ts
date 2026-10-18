@@ -2,6 +2,18 @@ import type { CanonicalNewsArticle } from "@veyocast/contracts";
 
 const entityPattern = /&(#x?[0-9a-f]+|amp|apos|gt|lt|quot);/gi;
 const entityDeclarationPattern = /<!ENTITY\b/i;
+// XML 1.0 Name/Char ranges; prolog instructions are inert metadata, never URLs to load.
+const xmlNameStart = ":A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF" +
+  "\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F" +
+  "\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD\\u{10000}-\\u{EFFFF}";
+const xmlChar = "[\\u0009\\u000A\\u000D\\u0020-\\uD7FF\\uE000-\\uFFFD\\u{10000}-\\u{10FFFF}]";
+const inertPrologPattern = new RegExp(
+  `^(?:<!--(?:(?!--)${xmlChar})*-->|` +
+  `<\\?(?![Xx][Mm][Ll](?:[ \\t\\r\\n]|\\?>))` +
+  `[${xmlNameStart}](?:[${xmlNameStart}0-9.\\-\\u00B7\\u203F-\\u2040]|[\\u0300-\\u036F])*` +
+  `(?:[ \\t\\r\\n]${xmlChar}*?)?\\?>)`,
+  "u"
+);
 
 export class RssParseError extends Error {
   readonly code = "rss_invalid_feed";
@@ -32,8 +44,7 @@ export function parseRssOrAtom(
   if (entityDeclarationPattern.test(xml)) {
     throw new RssParseError("XML-entitydeclaraties zijn niet toegestaan.");
   }
-  const feedXml = stripInertFeedDoctypes(xml);
-  assertFeedDocument(feedXml);
+  const feedXml = readFeedDocument(stripInertFeedDoctypes(xml));
   const rootTitle =
     firstTag(feedXml, "channel") && firstTag(firstTag(feedXml, "channel")!, "title") ||
     firstTag(feedXml, "feed") && firstTag(firstTag(feedXml, "feed")!, "title") ||
@@ -198,11 +209,16 @@ function stripInertFeedDoctypes(xml: string): string {
   }
 }
 
-function assertFeedDocument(xml: string) {
-  const documentStart = xml
+function readFeedDocument(xml: string): string {
+  let documentStart = xml
     .replace(/^\uFEFF/, "")
-    .replace(/^\s*<\?xml[\s\S]*?\?>/i, "")
-    .replace(/^(?:\s*<!--[\s\S]*?-->)*\s*/, "");
+    .replace(/^\s*<\?xml(?=[ \t\r\n])[\s\S]*?\?>/, "")
+    .trimStart();
+  for (;;) {
+    const inert = documentStart.match(inertPrologPattern)?.[0];
+    if (!inert) break;
+    documentStart = documentStart.slice(inert.length).trimStart();
+  }
   const rootName = documentStart.match(/^<([A-Za-z_][\w.:-]*)\b/)?.[1]
     ?.toLowerCase();
   if (!rootName || !["feed", "rdf:rdf", "rss"].includes(rootName)) {
@@ -210,6 +226,7 @@ function assertFeedDocument(xml: string) {
       "De URL verwijst naar een webpagina in plaats van een RSS- of Atom-feed."
     );
   }
+  return documentStart;
 }
 
 function rssLink(block: string): string | null {

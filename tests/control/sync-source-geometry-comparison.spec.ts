@@ -106,6 +106,15 @@ for(const row of originalRows())test(`original ${row.case_id} chosen Sync ${row.
    await current.locator(selector).evaluate((element,text)=>{element.textContent=text;},reference);
   }
   const normalization=route.current==='/website'?null:await current.addStyleTag({content:touchComparisonCss});
+  if(normalization&&width<=760){
+   // Probes observed stale computed media styles after two mocked rAF
+   // callbacks, settled by the first sample after 25ms of host-time waiting.
+   // Poll the existing rules; raw production measurements remain untouched.
+   await expect.poll(()=>current.evaluate(()=>{
+    const header=document.querySelector('.topbar'),links=[...document.querySelectorAll('.mobile-bottom a')];
+    return{mobileMediaMatches:matchMedia('(max-width:760px)').matches,headerGap:header?getComputedStyle(header).gap:null,bottomLinkMinHeightsReset:links.length>0&&links.every(link=>getComputedStyle(link).minHeight==='0px')};
+   }),{timeout:2000,intervals:[25,50,100,250],message:`${row.case_id}: existing mobile counterfactual CSS must apply before measurement`}).toEqual({mobileMediaMatches:true,headerGap:'10px',bottomLinkMinHeightsReset:true});
+  }
   const b=normalization?await measure(current):production;
   if(normalization)await normalization.evaluate(element=>element.remove());
   for(const copy of copyComparisons)await current.locator(copy.selector).evaluate((element,text)=>{element.textContent=text;},copy.production);

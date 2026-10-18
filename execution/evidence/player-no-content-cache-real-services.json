@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "startedAt": "2026-10-18T15:37:44.471Z",
+  "scope": "Actual paired local QA Player, fresh content storage, precached application shell, cold offline reload and real online recovery. No physical/hosted claim.",
+  "buildId": "3CPZkI7XWWIiZGnqqM90G",
+  "screenId": "1ad347a8-7f52-479c-aa28-36c44bcf4c26",
+  "expectedReleaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+  "contentStoresBefore": {
+    "veyocast-player-cache-v1:activeReleases": 0
+  },
+  "offlineHeading": "Playback wacht",
+  "offlineStatus": "Oorzaak: Failed to fetch\n\nEffect: Zonder last-known-good release blijft de player in herstelstatus.\n\nHerstel: Herstel netwerk of koppel het scherm opnieuw.",
+  "contentStoresOffline": {
+    "veyocast-player-cache-v1:activeReleases": 0
+  },
+  "firstFrame": {
+    "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+    "at": "2026-10-18T15:37:46.090Z",
+    "serverStatus": 200,
+    "runtimeState": "PLAYING"
+  },
+  "actualManifest": {
+    "releaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+    "screenId": "1ad347a8-7f52-479c-aa28-36c44bcf4c26"
+  },
+  "databaseReadback": [
+    {
+      "activeReleaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+      "desiredReleaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+      "phase": "active"
+    },
+    {
+      "activeReleaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+      "desiredReleaseId": "edf6fde0-332f-4050-95a2-53bea1a0b725",
+      "phase": "active"
+    }
+  ],
+  "pairingPreserved": true,
+  "abortedRequests": 5,
+  "browserErrors": [],
+  "finishedAt": "2026-10-18T15:37:46.278Z"
+}

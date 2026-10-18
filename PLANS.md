@@ -1,5 +1,9 @@
 # VeyoCast MVP Plan
 
+S227 sluit de native Sync-documentkoppeling, actor/tenant/projectherstel en echte
+MFA af via een afzonderlijke V3 API. De lokale diensten-/bundelbewijzen staan in
+`docs/sync-v1-rebuild/NATIVE-CONTROL.md`; integratie volgt de S226-webrelease.
+
 S226 volgt de actuele opdracht voor de volledige Sync V1-rebuild. Zie
 `execution/PLAN.md` en `prompts/sprints/S226-sync-v1-rebuild.md`. Deze opdracht
 behoudt bestaande data, identiteiten, publicaties en migratiehistorie. De

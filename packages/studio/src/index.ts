@@ -11,3 +11,4 @@ export * from "./text-layout";
 
 export * from "./sites";
 export * from "./sync";
+export * from "./mobile-control-v3";
