@@ -1,0 +1,88 @@
+{
+  "status": "PASS_SINGLE_NULLABLE_FIXTURE_FIELD_BEFORE_AFTER",
+  "branch": "veyocast/s231-media-content-frames",
+  "baseCommit": "6b8b914665cb951e8da6a070ebe7a69336b91b0c",
+  "changedFile": "tests/player/built-release-render.spec.ts",
+  "changedLine": 16,
+  "exactInsertion": "media_frame_provenance_json:null,",
+  "exactInsertionOnlyVerified": true,
+  "before": {
+    "phase": "before",
+    "cwd": "/home/codex/repos/castivo-s231",
+    "files": {
+      "tests/player/built-release-render.spec.ts": "d199186aa8de3781d3281d18b89ae67462ae7f9f46648844dfc904dd1980a7bd",
+      "tests/helpers/probe-built-player-release.cjs": "32d439a1ad7ee1e2e7d69a9ffa5dd6577d08ddddaa4b270506d3c259cfc208c1",
+      "apps/player/.next/server/app/api/player/manifest/route.js": "de3e6e944c75bccaa5520297c955f49c1c6c68a4a992a2426f87fcc984e1229f",
+      "apps/player/app/_lib/player-release-envelope.ts": "5ac83c5d5d79f6fce6b2c1e4f0fdbfef8451be29398e958ea559e0b9a9735b13"
+    },
+    "environment": {
+      "PLAYWRIGHT_EXTERNAL_SERVERS": "1",
+      "PLAYWRIGHT_PRODUCTION_SERVERS": "1",
+      "PLAYWRIGHT_APPS": "player",
+      "PLAYER_PORT": "3392"
+    },
+    "browserFixtureUsed": false,
+    "newServerAllowed": false,
+    "argv": [
+      "pnpm",
+      "exec",
+      "playwright",
+      "test",
+      "tests/player/built-release-render.spec.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--timeout=60000",
+      "--retries=0",
+      "--reporter=list",
+      "--output=/tmp/veyocast-s231-built-release-before/artifacts"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 5.529,
+    "logSha256": "df0d0eddc2aa17ddb6bc3915674d0a00effe848bd822c43e1c75976efa751bc2"
+  },
+  "after": {
+    "phase": "after",
+    "cwd": "/home/codex/repos/castivo-s231",
+    "files": {
+      "tests/player/built-release-render.spec.ts": "96ec0587cb6f473400f42300d4a02d556eb3b5d172ead541e089210d0e2532a7",
+      "tests/helpers/probe-built-player-release.cjs": "32d439a1ad7ee1e2e7d69a9ffa5dd6577d08ddddaa4b270506d3c259cfc208c1",
+      "apps/player/.next/server/app/api/player/manifest/route.js": "de3e6e944c75bccaa5520297c955f49c1c6c68a4a992a2426f87fcc984e1229f",
+      "apps/player/app/_lib/player-release-envelope.ts": "5ac83c5d5d79f6fce6b2c1e4f0fdbfef8451be29398e958ea559e0b9a9735b13"
+    },
+    "environment": {
+      "PLAYWRIGHT_EXTERNAL_SERVERS": "1",
+      "PLAYWRIGHT_PRODUCTION_SERVERS": "1",
+      "PLAYWRIGHT_APPS": "player",
+      "PLAYER_PORT": "3392"
+    },
+    "browserFixtureUsed": false,
+    "newServerAllowed": false,
+    "argv": [
+      "pnpm",
+      "exec",
+      "playwright",
+      "test",
+      "tests/player/built-release-render.spec.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--timeout=60000",
+      "--retries=0",
+      "--reporter=list",
+      "--output=/tmp/veyocast-s231-built-release-after/artifacts"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 3.372,
+    "logSha256": "315093bb6d71a8117095a4a080ca038ddd6fa7d7bc255f44b35633487e3b5438"
+  },
+  "observedBefore": "4 positive renderer cases fail HTTP503; missingStorage negative case passes HTTP503",
+  "observedAfter": "All 5 pass; four positive cases return HTTP200 with existing rendered-content/security assertions; missingStorage remains HTTP503",
+  "helperProductAndCompiledRouteUnchanged": true,
+  "assertionsAndTimeoutsUnchanged": true,
+  "noBrowserLaunch": true,
+  "noNewServer": true,
+  "retainedCIDiagnosis": "/tmp/veyocast-s231-player-ci-diagnosis.json",
+  "limitations": [
+    "Full303-case CI closure is still required from a new normal CI run.",
+    "Root owns commit/push; no commit or CI rerun was performed."
+  ]
+}
