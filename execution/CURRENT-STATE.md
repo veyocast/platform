@@ -1,5 +1,10 @@
 # Werkstand S226
 
+S227 native vervolg: lokale softwaregates en echte V3/MFA-/receipt-/worker-/
+render-CASketens groen. Android/Hermes bundel en32gewijzigde productiebronnen
+matchen exact. Zie evidence/native-control-verification.json en
+../docs/sync-v1-rebuild/NATIVE-CONTROL.md. Eigen PR/CI/hostedintegratie volgen.
+
 ## Eindige conflictresponses — 18 oktober, lokale precommitcontrole
 
 Zeven S226-RPC-grenzen vertalen alleen de bestaande serialization-conflictcode

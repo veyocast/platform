@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-18T15:21:09.378Z",
+  "scope": "Actual local AAL2 V3 HTTP and original PostgreSQL render RPC; no installed native/hardware claim",
+  "projectId": "a007e5c9-49b3-4ca5-a88d-4d7881736544",
+  "oldRevision": 0,
+  "currentRevision": 1,
+  "concurrentMotionEnabled": true,
+  "stalePngRenderOutcome": "conflict",
+  "staleRenderMilliseconds": 281,
+  "newJobs": 0,
+  "immutablePublicationHistoryUnchanged": true,
+  "sourceSha256": "a1cf1bd08d4ebe2a7bd1e07b61ca2afc490c14e48da09702b7cd70f47bcb6f27"
+}

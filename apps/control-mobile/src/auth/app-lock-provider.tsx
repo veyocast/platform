@@ -17,6 +17,7 @@ type AppLockContextValue = {
   available: boolean;
   enabled: boolean;
   locked: boolean;
+  lock: () => boolean;
   setEnabled: (enabled: boolean) => Promise<boolean>;
   unlock: () => Promise<boolean>;
 };
@@ -36,6 +37,7 @@ export function AppLockProvider({ children }: PropsWithChildren) {
     ]).then(([hardware, enrolled, preference]) => {
       setAvailable(hardware && enrolled);
       setEnabledState(preference === "enabled");
+      setLocked(preference === "enabled");
     });
   }, []);
 
@@ -61,6 +63,12 @@ export function AppLockProvider({ children }: PropsWithChildren) {
     return result.success;
   }, [enabled]);
 
+  const lock = useCallback(() => {
+    if (!enabled) return false;
+    setLocked(true);
+    return true;
+  }, [enabled]);
+
   const setEnabled = useCallback(
     async (next: boolean) => {
       if (next) {
@@ -84,8 +92,8 @@ export function AppLockProvider({ children }: PropsWithChildren) {
   );
 
   const value = useMemo(
-    () => ({ available, enabled, locked, setEnabled, unlock }),
-    [available, enabled, locked, setEnabled, unlock]
+    () => ({ available, enabled, locked, lock, setEnabled, unlock }),
+    [available, enabled, locked, lock, setEnabled, unlock]
   );
 
   return (

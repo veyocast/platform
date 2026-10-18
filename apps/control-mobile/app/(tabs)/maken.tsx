@@ -48,7 +48,14 @@ export default function MakenScreen() {
   const [queue, setQueue] = useState<QueuedImageUpload[]>([]);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const [readyAsset, setReadyAsset] = useState<{ assetId: string; title: string } | null>(null);
+  const tenantRef = useRef(activeTenant?.id);
+  tenantRef.current = activeTenant?.id;
   const resuming = useRef(false);
+
+  useEffect(() => {
+    setReadyAsset(null); setSelected(null); setTitle(""); setQueue([]); setError(null);
+  }, [activeTenant?.id]);
 
   const refreshQueue = useCallback(async () => {
     if (!activeTenant) return;
@@ -124,13 +131,14 @@ export default function MakenScreen() {
       if (!activeTenant || item.tenant_id !== activeTenant.id) return;
       await updateImageUpload(item.id, "uploading");
       try {
-        await mobileApi.uploadImage(activeTenant.id, {
+        const received = await mobileApi.uploadImage(activeTenant.id, {
           fileName: item.file_name,
           mimeType: item.mime_type,
           title: item.title,
           uri: item.uri
         });
         await completeImageUpload(item);
+        if (tenantRef.current === item.tenant_id) setReadyAsset(received);
         await queryClient.invalidateQueries({
           queryKey: ["content", activeTenant.id]
         });
@@ -219,6 +227,11 @@ export default function MakenScreen() {
           </Button>
         </View>
         {error ? <AppError error={error} /> : null}
+        {readyAsset ? <SurfaceCard style={styles.composer}>
+          <AppText variant="cardTitle">Afbeelding ontvangen</AppText>
+          <AppText>{readyAsset.title}</AppText>
+          <Button onPress={() => router.push({ pathname: "/studio", params: { assetId: readyAsset.assetId, assetName: readyAsset.title } })}>Open in mini-studio</Button>
+        </SurfaceCard> : null}
         {selected ? (
           <SurfaceCard style={styles.composer}>
             <Image source={{ uri: selected.uri }} style={styles.preview} />

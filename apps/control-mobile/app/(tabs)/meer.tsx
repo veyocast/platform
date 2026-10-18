@@ -32,7 +32,7 @@ export default function MeerScreen() {
   return (
     <AppShell>
       <ScreenScrollView>
-        <PageHeader eyebrow="Instellingen" title="Meer" />
+        <PageHeader eyebrow="Je eigen beheeromgeving" title="Jouw voorkeuren" />
         {session ? (
           <SurfaceCard style={styles.profile}>
             <View

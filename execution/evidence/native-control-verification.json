@@ -1,0 +1,222 @@
+{
+  "recordedAt": "2026-10-18T15:24:48.543355+00:00",
+  "status": "LOCAL_SOFTWARE_PASS_CI_PENDING",
+  "baseline": "1a44b49265076b182c80f156051434b9ab53dc0c",
+  "scope": "S227 native Sync and separate V3 API; preserves existing v1/v2, IDs, biometrics, notifications, package and release workflows. No installed app/hardware/store claim.",
+  "foundation": {
+    "lint": "30/30,29cached",
+    "typecheck": "30/30,27cached",
+    "unit": "30/30,25cached",
+    "nativeTests": 58,
+    "nativeTestFiles": 15,
+    "studioTests": 39,
+    "controlTests": 810,
+    "controlExistingSkips": 34
+  },
+  "proof": {
+    "lint": {
+      "sha256": "4613acb56b6474be10521e661853e4abffbca67679db6e84119cf2b9dd7cdec9",
+      "tail": [
+        "@veyocast/marketing:lint: $ eslint . --max-warnings=0",
+        "@veyocast/control:lint: cache miss, executing f7bf43cef4387cb5",
+        "@veyocast/control:lint: $ eslint . --max-warnings=0",
+        "",
+        " Tasks:    30 successful, 30 total",
+        "Cached:    29 cached, 30 total",
+        "  Time:    6.85s ",
+        ""
+      ]
+    },
+    "typecheck": {
+      "sha256": "7bd5614a27bf4567ad33c60cb3ec51e5d492a5fd29d0af2f24a01635d6d3a9e5",
+      "tail": [
+        "@veyocast/marketing:typecheck: $ tsc --noEmit",
+        "@veyocast/control:typecheck: cache miss, executing c438347bff18a46d",
+        "@veyocast/control:typecheck: $ tsc --noEmit",
+        "",
+        " Tasks:    30 successful, 30 total",
+        "Cached:    27 cached, 30 total",
+        "  Time:    14.094s ",
+        ""
+      ]
+    },
+    "unit": {
+      "sha256": "b69c635668acbb5c77fd6a650bc792bfb47027eb532fa189c10d3bbe87807da9",
+      "tail": [
+        "@veyocast/control-mobile:test:    Start at  17:21:08",
+        "@veyocast/control-mobile:test:    Duration  1.16s (transform 1.33s, setup 0ms, collect 3.78s, tests 119ms, environment 2ms, prepare 1.10s)",
+        "@veyocast/control-mobile:test: ",
+        "",
+        " Tasks:    30 successful, 30 total",
+        "Cached:    25 cached, 30 total",
+        "  Time:    19.821s ",
+        ""
+      ]
+    },
+    "controlProductionBuild": {
+      "sha256": "1197ceed3471809a2dcedc28eff6388bfc334436c46b863ba26c67a567b47fcf",
+      "tail": [
+        "",
+        "",
+        "ƒ Middleware                                                    92.8 kB",
+        "",
+        "○  (Static)   prerendered as static content",
+        "ƒ  (Dynamic)  server-rendered on demand",
+        "",
+        "Control authcontrole: beveiligde routes zijn dynamisch."
+      ]
+    }
+  },
+  "realServices": [
+    "execution/evidence/native-sync-v3-real-services.json",
+    "execution/evidence/native-sync-v3-series-real-services.json",
+    "execution/evidence/native-mfa-real-services.json",
+    "execution/evidence/native-render-cas-real-services.json"
+  ],
+  "nativeExport": {
+    "platform": "android",
+    "format": "Hermes bytecode",
+    "bundlePath": "apps/control-mobile/dist/_expo/static/js/android/entry-e13d10e1f718a1f966d4aede63c7ba86.hbc",
+    "bundleSha256": "a9b730bf8123e8eb6d9ba0cfb24f327e55d0034c8160547864e2ef4a20a4f097",
+    "sourcemapSha256": "dbbb850a50fee95c9b57397f3c5025b5880ab736f5e3eeb0d9b67192d7cbacf1",
+    "modules": 3945,
+    "assets": 35,
+    "exactChangedProductionSources": [
+      {
+        "path": "apps/control-mobile/app/(auth)/login.tsx",
+        "sha256": "7ab0283c584df167e2f60e378ce29cb672a1b1cf5e438c4a33ebbe02cb0e5420"
+      },
+      {
+        "path": "apps/control-mobile/app/(auth)/mfa.tsx",
+        "sha256": "4cb3b5812797cce98894cfea355ff13d79c7feffda22b292ed40abcdf6ff5f39"
+      },
+      {
+        "path": "apps/control-mobile/app/(tabs)/_layout.tsx",
+        "sha256": "c7cec24deccb17c5dccf8fe6effa4022d92285ec3a5008060d8042f9297ff11f"
+      },
+      {
+        "path": "apps/control-mobile/app/(tabs)/content/index.tsx",
+        "sha256": "a14a8f66255a9b5ab057047d4dae3c073c8209c4bb1cf7c36d7fdbf4b7ed90c0"
+      },
+      {
+        "path": "apps/control-mobile/app/(tabs)/content/playlists/[playlistId].tsx",
+        "sha256": "3b4e17d102a17678fd7864a74741225d6ab5d9ff26977c6f221ce5775c795b61"
+      },
+      {
+        "path": "apps/control-mobile/app/(tabs)/maken.tsx",
+        "sha256": "30598a6c325389342acf146c4eacee9757bb3df01e894445027b1cd85eb827cd"
+      },
+      {
+        "path": "apps/control-mobile/app/(tabs)/meer.tsx",
+        "sha256": "4ebff6a1fe34c84dbbd670f0c489ee89da437a0c29d45fce92197b036749c1f9"
+      },
+      {
+        "path": "apps/control-mobile/app/(tabs)/ontwerpen.tsx",
+        "sha256": "448df8b4c32f0cffd1a61be9a7f7b0493546e566ed1dc9b16ee4afd40037e743"
+      },
+      {
+        "path": "apps/control-mobile/app/(tabs)/vandaag.tsx",
+        "sha256": "22c56d185f1dc650250e3ffd8d82c69e26ab6a6abd217a8f97ebc56b819b80c5"
+      },
+      {
+        "path": "apps/control-mobile/app/_layout.tsx",
+        "sha256": "21696c97d0cf01d382943c43d3b3a3159b134d5af2d2d0fa3a18cc28bf9ebee8"
+      },
+      {
+        "path": "apps/control-mobile/app/more/security.tsx",
+        "sha256": "50910a9d69580ed1b8b95905dcb3bf6416f6d8766cb9d349ec850d86f6ef6f2c"
+      },
+      {
+        "path": "apps/control-mobile/app/studio/designs/[projectId].tsx",
+        "sha256": "987e94f78115c421dba21f95dc97a8a2707e8e1e89b50eb0e4523320934ce720"
+      },
+      {
+        "path": "apps/control-mobile/app/studio/index.tsx",
+        "sha256": "46894f17346b8c02a219a60d792760b5280b749c4d60adf1f03eefa1debe1166"
+      },
+      {
+        "path": "apps/control-mobile/app/studio/legacy.tsx",
+        "sha256": "290a058dc3bb1104bdc37ac4116eb6fd0861880036182cd06c20ebcf8f1de29e"
+      },
+      {
+        "path": "apps/control-mobile/src/api/mobile-api.ts",
+        "sha256": "541f32635b0a85a2fe967056d7943ae715a13e03bd2e1b444b0aaaa5198c94ab"
+      },
+      {
+        "path": "apps/control-mobile/src/auth/app-lock-provider.tsx",
+        "sha256": "d94bb29892a28124deab0d088f06c9b946782325e7eabd95c44c37fc94f88a65"
+      },
+      {
+        "path": "apps/control-mobile/src/auth/auth-provider.tsx",
+        "sha256": "02aefff8a85e26baf844fa7cdb34f19ed868b0d82072cb5a99d8298bab930370"
+      },
+      {
+        "path": "apps/control-mobile/src/auth/mfa-navigation.ts",
+        "sha256": "d410e074301dd8f68a0578faf16a97cff3a1241f0068db9c1ba899b8860823ec"
+      },
+      {
+        "path": "apps/control-mobile/src/auth/mfa.ts",
+        "sha256": "ceaca2e9475a0d774edb1856a9c322a23aa1f745724c5e6fa5f28b5c58e88f4e"
+      },
+      {
+        "path": "apps/control-mobile/src/auth/session-operations.ts",
+        "sha256": "383535e6f863c0915a21f0fa35286ff44cbff607d136cc94ac18a5b93df73b1e"
+      },
+      {
+        "path": "apps/control-mobile/src/auth/session-transition.ts",
+        "sha256": "f05decb6b607835b6a091a03f906c3e02b983aba05d25d3bd071c914ef69a9c5"
+      },
+      {
+        "path": "apps/control-mobile/src/components/app-error.tsx",
+        "sha256": "524fe9d11250d6d47482eb1466581f5c6262cad5421b4caa518b3e4f701ac54d"
+      },
+      {
+        "path": "apps/control-mobile/src/components/page-header.tsx",
+        "sha256": "ed8ada6f8e795b80293b10ba8458654f46a91ae45c1cfa5f476878ad7970193d"
+      },
+      {
+        "path": "apps/control-mobile/src/navigation/premium-tab-bar.tsx",
+        "sha256": "4936885ca2f8c509ddd14e21816130a6bc362fe57eb3adb83ff809afa0e50204"
+      },
+      {
+        "path": "apps/control-mobile/src/query/use-mobile-data.ts",
+        "sha256": "83a517f01a8e83e186c9995cc813995b59c59e75860c7ca35a1e4b5256246611"
+      },
+      {
+        "path": "apps/control-mobile/src/storage/tenant-cache.ts",
+        "sha256": "231b90cfb82a75501de9ca461eb024bc73b26de6cd0fe988313c58e0bcd1a125"
+      },
+      {
+        "path": "apps/control-mobile/src/sync/pending-receipt.tsx",
+        "sha256": "193da5ebdf563daeeb2045170ff0fe5e59c63febc84f4d920abd2f123f8b957a"
+      },
+      {
+        "path": "apps/control-mobile/src/sync/render-polling.ts",
+        "sha256": "6cfe14ab0ee9beb0756b1ed234d8d3da13401273ed2ed6a75e2b3a1ae0bdd734"
+      },
+      {
+        "path": "apps/control-mobile/src/sync/studio-fields.tsx",
+        "sha256": "7344d696bbb9588c54f4e63f7ac9d6ecb8ad56787545e7954a654276353e149d"
+      },
+      {
+        "path": "apps/control-mobile/src/sync/studio-recovery.ts",
+        "sha256": "a89010d1e33f485add33a923d15539af67450ca79c352cd11b042e27b0554131"
+      },
+      {
+        "path": "apps/control-mobile/src/sync/use-studio-recovery.ts",
+        "sha256": "bdd879367a0d41060e89c020b785fb8c1a262f143f5620e764893816ba6548af"
+      },
+      {
+        "path": "apps/control-mobile/src/tenant/tenant-provider.tsx",
+        "sha256": "1d224345a62dac2486a776205e1d39cc780398ae8ceda7be7f28d03dc5e043d1"
+      }
+    ]
+  },
+  "review": "All concrete actor/journal/CAS/cache-purge/MFA/render-recovery findings fixed and peer-reviewed.",
+  "dependencyChange": "One explicit workspace @veyocast/studio dependency; lockfile adds exactly three importer lines, no version upgrades.",
+  "remaining": [
+    "Full exact PR CI and integration after healthy S226 release",
+    "First native Control store/bootstrap signing/Play configuration absent; no prior Control install to update",
+    "Installed device, SecureStore, OS biometric/camera/notifications and physical visual acceptance deferred to device tests; this export is no signed installable artifact"
+  ]
+}

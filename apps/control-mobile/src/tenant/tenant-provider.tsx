@@ -34,7 +34,7 @@ export function TenantProvider({ children }: PropsWithChildren) {
   const sessionQuery = useQuery({
     enabled: Boolean(auth.session),
     queryFn: mobileApi.session,
-    queryKey: ["mobile-session"]
+    queryKey: ["mobile-session", auth.session?.user.id]
   });
 
   useEffect(() => {

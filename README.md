@@ -1,5 +1,9 @@
 # VeyoCast Platform
 
+S227 voegt native Sync Studio en echte authenticatorbevestiging toe met behoud
+van APIv1/v2 en veilige lokale invoer. Zie
+[Native Control](docs/sync-v1-rebuild/NATIVE-CONTROL.md) voor bewijs en releasegrenzen.
+
 S226 voert de Sync V1-rebuild van 17 oktober 2026 uit. De originele overdracht,
 voorrang en actuele bewijsstatus staan in `docs/sync-v1-rebuild/` en
 `execution/`. Volledige V1-acceptatie volgt uit de afzonderlijke scenario- en releasebewijzen;

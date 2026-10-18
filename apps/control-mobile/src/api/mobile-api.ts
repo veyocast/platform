@@ -26,6 +26,11 @@ import {
   mobilePlaylistPublishResultSchema
 } from "@veyocast/contracts";
 import { z } from "zod";
+import {
+  mobileSyncStudioWorkspaceV3Schema,
+  mobileSyncStudioResultV3Schema,
+  type MobileSyncStudioRequestV3,
+} from "@veyocast/studio/mobile-v3";
 
 import { readMobileRuntimeConfig } from "../config/runtime";
 import { mobileSupabase } from "../auth/supabase";
@@ -55,6 +60,16 @@ const dataEnvelope = <T extends z.ZodType>(schema: T) =>
 const dataEnvelopeV2 = <T extends z.ZodType>(schema: T) => z.object({data:schema,meta:z.object({requestId:z.string(),version:z.literal("2")})});
 
 export const mobileApi = {
+  studioV3(tenantId: string, projectId?: string, offset = 0) {
+    return request(`/api/mobile/v3/studio?offset=${offset}${projectId ? `&projectId=${encodeURIComponent(projectId)}` : ""}`,
+      z.object({ data: mobileSyncStudioWorkspaceV3Schema, meta: z.object({ requestId: z.string(), version: z.literal("3") }) }),
+      { tenantId }).then(value => value.data);
+  },
+  mutateStudioV3(tenantId: string, input: MobileSyncStudioRequestV3, expectedUserId: string) {
+    return request("/api/mobile/v3/studio",
+      z.object({ data: mobileSyncStudioResultV3Schema, meta: z.object({ requestId: z.string(), version: z.literal("3") }) }),
+      { tenantId, expectedUserId, method: "POST", body: input }).then(value => value.data);
+  },
   preparePlacementThemeV2(tenantId:string,playlistId:string,input:MobilePlacementThemeRequestV2){return request(`/api/mobile/v2/playlists/${playlistId}/placement-theme`,dataEnvelopeV2(mobilePlacementThemeResultV2Schema),{tenantId,method:"POST",body:input}).then(value=>value.data);},
   placementThemeStatusV2(tenantId:string,playlistId:string,jobId:string){return request(`/api/mobile/v2/playlists/${playlistId}/placement-theme?jobId=${jobId}`,dataEnvelopeV2(mobilePlacementThemeResultV2Schema),{tenantId}).then(value=>value.data);},
   screenCompositionV2(tenantId:string,screenId:string){return request(`/api/mobile/v2/screens/${screenId}/composition`,dataEnvelopeV2(mobileScreenCompositionWorkspaceV2Schema),{tenantId}).then(value=>value.data);},
@@ -300,6 +315,7 @@ async function request<T>(
     body?: unknown;
     method?: "DELETE" | "GET" | "POST" | "PUT";
     tenantId?: string;
+    expectedUserId?: string;
   } = {}
 ): Promise<T> {
   const runtime = readMobileRuntimeConfig();
@@ -323,6 +339,9 @@ async function request<T>(
       null,
       401
     );
+  }
+  if (options.expectedUserId && session.user.id !== options.expectedUserId) {
+    throw new MobileApiError("AUTH_CONTEXT_CHANGED", "Je actieve account is gewijzigd. Deze opdracht is niet verstuurd.", "Open Studio opnieuw vanuit het juiste account om dezelfde opdracht te hervatten.", null, 401);
   }
   const controller = new AbortController();
   let deadline: ReturnType<typeof setTimeout> | undefined;

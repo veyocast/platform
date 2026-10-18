@@ -1,0 +1,60 @@
+# S227 · Native Sync Control
+
+De native cockpit en vier hoofdingangen volgen de gekozen Sync-structuur.
+Native Studio leest en bewaart volledige Sync-documenten via een aparte
+`/api/mobile/v3/studio`-route. De bestaande v1/v2-responses, account-/tenant-/
+project-ID's, SecureStore, biometrische app-lock, notificatievoorkeuren en
+releaseworkflows blijven de basis. Eén expliciete Studio-workspacedependency
+geeft native een smalle V3-export zonder desktop-rendererimports.
+
+De server valideert de volledige opdracht, 512KiB-grens, tenantrechten en AAL2
+vóór de bestaande atomische RPCs. Lijsten bevatten maximaal acht projecten;
+alleen het geopende ontwerp krijgt maximaal twintig reeksleden en de nieuwste
+renderjob. Een uitvoer is pas gereed na actuele draftrevision, ready media,
+private tenantprefix, positieve bytes en export/variant-SHA-overeenkomst.
+
+SQLite bewaart invoer en de volledige onzekere opdracht met dezelfde nonce per
+actor, tenant en project voordat verzending begint. Tenantwissels behouden die
+journals; accountwissels en uitloggen wissen voorafgaande accountdata. Een
+mislukte purge houdt de volgende account afgeschermd. Gedeelde opslagqueues
+voorkomen dat oude mounts een nieuw journal overschrijven. Onbekende uitkomsten
+blijven pending; bevestigde conflicts bieden expliciet de actuele versie.
+Renderpolling stopt bij verborgen scherm, lokale invoer, pending of na twee
+minuten. Bevestigd toevoegen aan een playlist gebruikt de bestaande publicatieketen.
+
+Verse passwordlogin vereist een echte authenticatorbevestiging. Bestaande TOTP
+gebruikt challenge/verify; een eerste instelling start uitsluitend na de knop en
+bewijst de eerste code. Instelsleutels blijven in paginageheugen. Alleen een
+onafgeronde factor kan na verse accountstatus bewust worden verwijderd.
+Accountwissels en MFA delen één sessiequeue; de huidige token wordt aan de
+SDK-assurancereadback doorgegeven. Stateless serververificatie gebruikt dezelfde
+geverifieerde bearertoken voor de AAL2-bepaling.
+
+Werkelijke lokale bewijzen:
+
+- Create, save met verloren HTTP-antwoord, dezelfde nonce/revisieherstel, echte
+  worker-PNG en geverifieerde private preview; vreemde tenant geweigerd.
+- Reeks add/duplicate/remove met verloren antwoord, detail404 na archiveren,
+  oorspronkelijk receipt hersteld en geen dubbele projecten.
+- Verse AAL1-passwordsessie: writer403; echte authenticatorcode naar AAL2;
+  exact dezelfde createopdracht200 en replay met hetzelfde project-ID.
+- Concurrente motionwijziging: oude PNG-aanvraag krijgt conflict binnen281ms,
+  geen nieuwe job of publicatie. Alleen definitief23514 plus bevestigde andere
+  revision krijgt die afhandeling; onzekere fouten blijven pending.
+- Foundation lint/type/unit elk30/30; native58, Studio39, Control810 met34
+  bestaande opt-inskips; Control-productiebuild/authgrens/clientbundelscan groen.
+- Android/Hermes-export3945modules/35assets; alle32gewijzigde productiebronnen
+  matchen de sourcemap. Bundel-SHA en loghashes staan in
+  `execution/evidence/native-control-verification.json`.
+
+De huidige gebruiker had alleen Player en website geïnstalleerd. Er is geen
+historische Control-handtekening om te zoeken of te vervangen. Eerste Control-
+storeinrichting/signing/Play blijft een afzonderlijke open configuratiegate;
+de Hermes-export is geen gesigneerd installeerbaar artifact. Fysieke Android/
+TV/LG/24u-acceptatie is uitgesteld. Dit bewijs claimt geen OS-biometrie-, camera-
+of notificatie-uitvoering en geen volledige fysieke schermpariteit.
+
+S227 krijgt een eigen PR/CI en integreert na de gezonde S226-webrelease. De
+bestaande main→staging→exact-dezelfde-images-productieflow blijft verplicht.
+Rollback herstelt de vorige webimages; v1/v2 blijven werken en lokale nieuwe
+journals worden niet stilzwijgend in oudere documentformaten omgezet.

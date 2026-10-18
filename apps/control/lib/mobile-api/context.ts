@@ -133,7 +133,7 @@ export async function getMobileRequestContext(
         .eq("user_id", user.id)
         .order("created_at", { ascending: true }),
       supabase.from("platform_memberships").select("role").eq("user_id", user.id),
-      supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      supabase.auth.mfa.getAuthenticatorAssuranceLevel(token)
     ]);
 
   if (

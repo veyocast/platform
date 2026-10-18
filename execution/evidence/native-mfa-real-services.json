@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-18T15:16:40.304Z",
+  "scope": "Compiled actual native MFA controller and real Supabase SDK/Auth/PostgreSQL/V3 HTTP; factory replaced solely by owned local memory client. No installed app, SecureStore or hardware UI claim.",
+  "passwordAssurance": "aal1",
+  "writeBeforeMfa": 403,
+  "authenticatorAssurance": "aal2",
+  "writeAfterMfa": 200,
+  "sameCreateCommandReused": true,
+  "sameNonceReplayProjectUnchanged": true,
+  "projectId": "a007e5c9-49b3-4ca5-a88d-4d7881736544",
+  "noFactorEnrolledOrRemoved": true,
+  "sources": [
+    {
+      "path": "apps/control-mobile/src/auth/mfa.ts",
+      "sha256": "ceaca2e9475a0d774edb1856a9c322a23aa1f745724c5e6fa5f28b5c58e88f4e"
+    },
+    {
+      "path": "apps/control-mobile/src/auth/session-operations.ts",
+      "sha256": "383535e6f863c0915a21f0fa35286ff44cbff607d136cc94ac18a5b93df73b1e"
+    }
+  ]
+}

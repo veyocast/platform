@@ -15,7 +15,7 @@ import {
 import { FileImage, ListVideo } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { Image, RefreshControl, StyleSheet, View } from "react-native";
 
 import { AppError } from "../../../src/components/app-error";
 import { PageHeader } from "../../../src/components/page-header";
@@ -41,7 +41,8 @@ export default function ContentScreen() {
           />
         }
       >
-        <PageHeader eyebrow="Bibliotheek" title="Content" />
+        <PageHeader eyebrow="Je clubmomenten" title="Je mediabibliotheek" />
+        <Button onPress={() => router.push("/(tabs)/maken")}>Afbeelding kiezen of maken</Button>
         <Button variant="secondary" onPress={()=>router.push("/studio")}>Studio en opgeslagen ontwerpen</Button>
         <SegmentedControl
           accessibilityLabel="Contenttype"
@@ -72,7 +73,7 @@ export default function ContentScreen() {
             <View style={styles.list}>
               {content.media.map((asset) => (
                 <SurfaceCard key={asset.id} style={styles.row}>
-                  <FileImage color={theme.colors.secondaryInk} size={26} />
+                  {asset.thumbnailUrl ? <Image source={{ uri: asset.thumbnailUrl }} accessibilityLabel={asset.name} style={{ width: 64, height: 64, borderRadius: 8 }} /> : <FileImage color={theme.colors.secondaryInk} size={26} />}
                   <View style={styles.copy}>
                     <AppText variant="cardTitle">{asset.name}</AppText>
                     <AppText muted variant="caption">
@@ -94,6 +95,7 @@ export default function ContentScreen() {
                             : "info"
                       }
                     />
+                    {asset.processingStatus === "ready" && asset.mimeType.startsWith("image/") ? <Button variant="secondary" onPress={() => router.push({ pathname: "/studio", params: { assetId: asset.id, assetName: asset.name } })}>Open in mini-studio</Button> : null}
                   </View>
                 </SurfaceCard>
               ))}

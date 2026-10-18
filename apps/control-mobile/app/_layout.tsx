@@ -77,7 +77,7 @@ export default function RootLayout() {
 }
 
 function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
-  const { initialized } = useAuth();
+  const { initialized, session } = useAuth();
   const theme = useMobileTheme();
   useEffect(() => {
     if (initialized && fontsReady) void SplashScreen.hideAsync();
@@ -101,8 +101,11 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Protected guard={Boolean(session)}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="studio/index" options={{ title: "Studio" }} />
+        <Stack.Screen name="studio/legacy" options={{ title: "Eerdere ontwerpen" }} />
+        <Stack.Screen name="studio/designs/[projectId]" options={{ title: "Sync-ontwerp" }} />
         <Stack.Screen
           name="studio/[seriesId]"
           options={{ title: "Studio-reeks" }}
@@ -123,6 +126,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
           name="more/notifications"
           options={{ title: "Meldingen" }}
         />
+        </Stack.Protected>
       </Stack>
       <NotificationRouter />
       <AppLock />

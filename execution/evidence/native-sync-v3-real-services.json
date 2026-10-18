@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-18T14:48:42.351Z",
+  "scope": "Real local AAL2 bearer→version3 API→tenant RPC/receipt recovery→private worker PNG→signed preview/SHA. No native hardware, provider or hosted claim.",
+  "projectId": "2ccf21f4-574e-4dcb-857d-6fa7d09dffde",
+  "renderJobId": "fc302d61-6ff2-47df-a902-658cafcca146",
+  "mediaAssetId": "8b2130b7-fbf1-4f17-9ebb-ca70ae415c9f",
+  "draftRevision": 1,
+  "injectedReceiptLoss": {
+    "httpStatus": 200,
+    "responseSha256": "e6795aafc0039d0329e34c8105a27b118de8f68762cfa33e37925c9f8f320cf5"
+  },
+  "replayRevision": 1,
+  "previewBytes": 1950169,
+  "previewSha256": "c24dcaa58847626c91b202b83865de23001bc8494c4ffb475820a408fef6ad9c",
+  "immutableReleaseHistoryUnchanged": true,
+  "foreignTenantDeniedStatus": 404
+}

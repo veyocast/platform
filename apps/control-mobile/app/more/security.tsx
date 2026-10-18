@@ -1,6 +1,7 @@
 import {
   AppShell,
   AppText,
+  Button,
   InlineAlert,
   ScreenScrollView,
   SurfaceCard,
@@ -8,16 +9,23 @@ import {
 } from "@veyocast/mobile-design-system";
 import { Fingerprint } from "lucide-react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import { StyleSheet, Switch, View } from "react-native";
 
 import { useAppLock } from "../../src/auth/app-lock-provider";
 
 export default function SecurityScreen() {
+  const router = useRouter();
   const { available, enabled, setEnabled } = useAppLock();
   const [failed, setFailed] = useState(false);
   return (
     <AppShell>
       <ScreenScrollView>
+        <SurfaceCard style={{ gap: mobileSpacing.default }}>
+          <AppText variant="section">Tweestapsverificatie voor je account</AppText>
+          <AppText>Bevestig beheeracties met je authenticator. Je kunt hier ook bewust een authenticator instellen.</AppText>
+          <Button onPress={() => router.push({ pathname: "/(auth)/mfa", params: { returnTo: "/more/security" } })}>Authenticator openen</Button>
+        </SurfaceCard>
         <View style={styles.copy}>
           <AppText accessibilityRole="header" variant="section">
             Lokale appbeveiliging
