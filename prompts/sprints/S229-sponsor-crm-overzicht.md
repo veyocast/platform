@@ -38,13 +38,38 @@ media-archive/restore- en custom-rolebewijs mee.
 - `execution/evidence/media-archive-restore-final.json` en
   `execution/evidence/custom-role-final.json`, uitsluitend geschoonde bewijzen.
 
+Aanvullende expliciete roottoewijzing na de eerste CI:
+
+- `tests/e2e/studio.spec.ts`, uitsluitend de bestaande
+  `Studio-samenvatting`-locator scopen onder `#control-content`, met dezelfde
+  `toBeVisible`-assertie; geen timeout/skip/`.first()` of criteriawijziging;
+- `execution/evidence/s229-studio-stream-locator.json`, geschoonde concrete
+  trace-/targetgatefeiten; het bestaande artifact blijft bewaard;
+- dit prompt en uitsluitend de eigen S229-ledgerentry voor scope en bewijs.
+
 `binary_review` schrijft exclusief, zonder eigen commit:
 
 - `apps/control/lib/control-overview.ts`, uitsluitend `escapeAuditLike` en
   noodzakelijke `loadTenantAuditEvents`-filteraanroepen;
 - nieuw `apps/control/lib/audit-filter.test.ts`.
 
-Geen package/lock/database/workflow/token/shared-CSS-wijzigingen. De hoofdagent
+`root` schrijft exclusief de twee aanvullende operationele bestanden:
+
+- nieuw `.github/workflows/runner-disk-maintenance.yml`;
+- `docs/sync-v1-rebuild/RUNNER-DISK.md`.
+
+De bestaande stagingrunner kreeg een volle schijf vóór deployment. De nieuwe
+workflow is uitsluitend handmatig op vertrouwde main, standaard inspectie,
+met bestaande stagingrunner en deployserialisatie. Host/gebruiker/rootless
+daemon en dezelfde lokale deploy-owned Unixsocket/defaultbuilder worden
+afgedwongen. Alleen na gemeten inspectie mag root de begrensde optionele
+ongebruikte buildcache ouder dan 24 uur laten opruimen; images/containers/volumes
+blijven beschermd. Alleen root doet validatie en autoriseert uitvoering;
+`release_audit` bundelt deze twee reeds gereviewde bestanden ongewijzigd.
+
+Geen package/lock/database/token/shared-CSS-wijzigingen; bestaande workflows
+blijven bytegelijk. Alleen de hierboven expliciete nieuwe rootworkflow is
+toegestaan. De hoofdagent
 doet één frozen install; geen parallelle installs. Stop/report bij ruimere scope.
 
 ## Functionele grenzen
@@ -76,3 +101,13 @@ PR attachen. Root zet de base na de normale S227-mainmerge om en verifieert de
 merge-tree; geen eigen merge/rebase/amend of automatische bewijshergebruikclaim.
 Root beheert merge en geautoriseerde staging/productie. Geen volledige V1-,
 provider-, store- of hardwareacceptatie afleiden uit deze beperkte gates.
+
+De minimale Studio-testcorrectie wordt op drie bestaande Studio-cases getoetst
+met een eigen tijdelijke Control op 3369 en dezelfde zichtbaarheidseis. Root heeft
+de operationele aanvulling met peerreview, YAML/Bash, actionlint/shellcheck en
+lokale weigeringstests gevalideerd. Eén normale vervolgcommit omvat test,
+geschoond bewijs, prompt/ledgereigenentry en de twee ongewijzigde rootfiles;
+geen amend/rebase/force. Nieuwe volledige officiële CI geldt voor die nieuwe
+HEAD. De stagingcapaciteitsblokkade wijzigt de rolloutvolgorde: root kan de
+gezonde S227-release eerst afzonderlijk promoveren en S229 daarna normaal
+aftekenen/uitrollen. Geen runtime-/runner-/productionactie door deze writer.

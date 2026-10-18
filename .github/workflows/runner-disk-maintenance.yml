@@ -1,0 +1,111 @@
+name: Staging runner disk maintenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Inspectie of uitsluitend ongebruikte buildcache ouder dan 24 uur
+        required: true
+        default: inspect
+        type: choice
+        options:
+          - inspect
+          - prune-unused-build-cache
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-veyocast-main
+  cancel-in-progress: false
+
+jobs:
+  maintenance:
+    if: github.ref == 'refs/heads/main'
+    environment: staging
+    runs-on: [self-hosted, linux, x64, veyocast, staging]
+    timeout-minutes: 10
+    steps:
+      - name: Inspect or reclaim only unused builder cache
+        shell: bash
+        env:
+          REQUESTED_OPERATION: ${{ inputs.operation }}
+        run: |
+          set -Eeuo pipefail
+          fail() { printf '{"event":"runner_disk_failure","code":"%s"}\n' "$1" >&2; exit 1; }
+          [[ "$GITHUB_REPOSITORY" == veyocast/platform && "$GITHUB_REF" == refs/heads/main ]] || fail REPOSITORY_SCOPE_INVALID
+          [[ "$RUNNER_NAME" == veyocast-staging-01 && "$(hostname -s)" == dg-deploy-vps-01 && "$(id -un)" == deploy ]] || fail RUNNER_IDENTITY_MISMATCH
+          case "$REQUESTED_OPERATION" in
+            inspect|prune-unused-build-cache) ;;
+            *) fail OPERATION_INVALID ;;
+          esac
+          for required_tool in docker df tail sort sha256sum pgrep awk stat; do
+            command -v "$required_tool" >/dev/null || fail REQUIRED_TOOL_UNAVAILABLE
+          done
+          docker_endpoint=${DOCKER_HOST:-}
+          if [[ -z "$docker_endpoint" ]]; then
+            docker_endpoint=$(docker context inspect --format '{{(index .Endpoints "docker").Host}}')
+          fi
+          [[ "$docker_endpoint" == unix:///* ]] || fail LOCAL_UNIX_SOCKET_REQUIRED
+          socket_path=${docker_endpoint#unix://}
+          [[ "$socket_path" != /var/run/docker.sock && -S "$socket_path" ]] || fail ROOTLESS_SOCKET_REQUIRED
+          [[ "$(stat -c '%u' "$socket_path")" == "$(id -u)" ]] || fail SOCKET_OWNER_MISMATCH
+          # Pin every daemon call and the builder to this same local socket.
+          # An inherited selected context or remote Buildx builder is ignored.
+          unset DOCKER_CONTEXT DOCKER_TLS DOCKER_TLS_VERIFY DOCKER_CERT_PATH BUILDKIT_HOST
+          export DOCKER_HOST="$docker_endpoint" BUILDX_BUILDER=default
+          dc() { docker --host "$docker_endpoint" "$@"; }
+          security_options=$(dc info --format '{{json .SecurityOptions}}')
+          [[ "$security_options" == *rootless* ]] || fail ROOTLESS_DAEMON_REQUIRED
+          builder_info=$(dc buildx inspect default)
+          builder_driver=$(awk '$1 == "Driver:" { print $2 }' <<< "$builder_info")
+          builder_endpoint=$(awk '$1 == "Endpoint:" { print $2 }' <<< "$builder_info")
+          [[ "$builder_driver" == docker ]] || fail DAEMON_BUILDER_REQUIRED
+          if [[ "$builder_endpoint" == default ]]; then
+            builder_endpoint=$(dc context inspect default --format '{{(index .Endpoints "docker").Host}}')
+          fi
+          [[ "$builder_endpoint" == "$docker_endpoint" ]] || fail BUILDER_ENDPOINT_MISMATCH
+          docker_root=$(dc info --format '{{.DockerRootDir}}')
+          [[ "$docker_root" =~ ^/[A-Za-z0-9_./-]+$ && -d "$docker_root" ]] || fail DOCKER_ROOT_INVALID
+
+          disk() {
+            local phase=$1 scope=$2 path=$3 total used available percent
+            read -r total used available percent < <(df --block-size=1 --output=size,used,avail,pcent "$path" | tail -n 1)
+            percent=${percent%%%}
+            [[ "$total" =~ ^[0-9]+$ && "$used" =~ ^[0-9]+$ && "$available" =~ ^[0-9]+$ && "$percent" =~ ^[0-9]+$ ]] || fail DISK_READ_INVALID
+            printf '{"event":"runner_disk","phase":"%s","scope":"%s","totalBytes":%s,"usedBytes":%s,"availableBytes":%s,"usedPercent":%s}\n' "$phase" "$scope" "$total" "$used" "$available" "$percent"
+          }
+          fingerprint() {
+            case "$1" in
+              images) dc image ls --all --no-trunc --quiet ;;
+              containers) dc ps --all --no-trunc --quiet ;;
+              volumes) dc volume ls --quiet ;;
+              *) fail FINGERPRINT_SCOPE_INVALID ;;
+            esac | sort -u | sha256sum | awk '{print $1}'
+          }
+
+          images_before=$(fingerprint images)
+          containers_before=$(fingerprint containers)
+          volumes_before=$(fingerprint volumes)
+          build_pids=$(pgrep -u "$(id -u)" -f 'docker[[:space:]]+(build|buildx[[:space:]]+build)|pnpm[[:space:]]+build' || true)
+          [[ "$build_pids" =~ ^[0-9[:space:]]*$ ]] || fail PROCESS_READ_INVALID
+          build_count=$(printf '%s\n' "$build_pids" | awk 'NF { count++ } END { print count+0 }')
+          printf '{"event":"runner_disk_scope","operation":"%s","dockerRoot":"%s","activeBuildProcesses":%s}\n' "$REQUESTED_OPERATION" "$docker_root" "$build_count"
+          disk before runner-temp "$RUNNER_TEMP"
+          disk before docker-root "$docker_root"
+          dc system df --format '{{json .}}'
+
+          if [[ "$REQUESTED_OPERATION" == prune-unused-build-cache ]]; then
+            [[ "$build_count" == 0 ]] || fail ACTIVE_BUILD_PROCESS
+            # This operation cannot remove images, containers or volumes. Docker
+            # also retains cache leased by an active build. Recent cache is kept.
+            dc buildx prune --builder default --force --filter until=24h
+          fi
+
+          [[ "$images_before" == "$(fingerprint images)" ]] || fail IMAGE_SET_CHANGED
+          [[ "$containers_before" == "$(fingerprint containers)" ]] || fail CONTAINER_SET_CHANGED
+          [[ "$volumes_before" == "$(fingerprint volumes)" ]] || fail VOLUME_SET_CHANGED
+          disk after runner-temp "$RUNNER_TEMP"
+          disk after docker-root "$docker_root"
+          dc system df --format '{{json .}}'
+          printf '{"event":"runner_disk_complete","operation":"%s","imagesUnchanged":true,"containersUnchanged":true,"volumesUnchanged":true}\n' "$REQUESTED_OPERATION"

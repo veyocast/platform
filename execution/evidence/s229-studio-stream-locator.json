@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS_SCOPED_ACTIVE_PAGE_LOCATOR",
+  "recordedAt": "2026-10-18T18:26:43.586508+00:00",
+  "scope": "Single existing Studio visibility locator scoped to active Control page. Product implementation, assertion, timeout, test inventory and criteria unchanged.",
+  "baseHead": "67153bfb1d48a4ec931fa12e8ba5db8e15cfcbcb",
+  "originalFailure": {
+    "head": "67153bfb1d48a4ec931fa12e8ba5db8e15cfcbcb",
+    "run": 39150614690,
+    "attempt": 1,
+    "job": 117743320592,
+    "artifact": {
+      "id": 12145423123,
+      "digest": "sha256:8ca561c73ea16a4c33823f13bfc89e4e029cc60c37e8e9082ebb9c77538654b5",
+      "bytes": 2938323
+    },
+    "test": "tests/e2e/studio.spec.ts:17",
+    "summary": {
+      "passed": 380,
+      "skipped": 629,
+      "failed": 1,
+      "serialFollowingNotRun": 2
+    },
+    "error": "Global getByLabel('Studio-samenvatting') strictness violation on two elements during streamed SSR insertion",
+    "traceObservation": "after goto1095238.017ms summary is under BODY > DIV hidden id=S:2. Assert starts1095289.956ms, first locator log1095320.666ms, failed1095580.271ms. after assert snapshot1095591.439ms real summary is under #control-content.",
+    "minimalProposedFix": "Scope existing visibility assertion to page.locator('#control-content').getByLabel('Studio-samenvatting'); preserve active-route uniqueness, no first(), no timeout increase.",
+    "productAndTestUnchangedVsDc50": true,
+    "editsByAgent": false
+  },
+  "traceFacts": {
+    "traceFile": "0-trace.trace",
+    "artifactRelativeTrace": "control/batch-1/e2e-studio-Studio-overview-24690-se-real-responsive-controls-chromium/trace.zip",
+    "afterGotoSnapshotMs": 1095238.017,
+    "hiddenAncestor": "BODY > DIV[hidden][id=\"S:2\"] > DL[aria-label=\"Studio-samenvatting\"]",
+    "assertionStartMs": 1095289.956,
+    "firstLocatorLogMs": 1095320.666,
+    "strictnessFailureEndMs": 1095580.271,
+    "afterAssertionSnapshotMs": 1095591.439,
+    "activeAncestor": "MAIN.vx-main > DIV#control-content > DL[aria-label=\"Studio-samenvatting\"]",
+    "hiddenIdBelongsTo": "The temporary stream DIV, not the definition list.",
+    "failureBeforeDefaultFiveSecondTimeout": true,
+    "artifactDeleted": false
+  },
+  "change": {
+    "file": "tests/e2e/studio.spec.ts",
+    "before": "page.getByLabel(\"Studio-samenvatting\")",
+    "after": "page.locator(\"#control-content\").getByLabel(\"Studio-samenvatting\")",
+    "assertion": "toBeVisible() unchanged",
+    "oneLineOnly": true,
+    "firstAdded": false,
+    "timeoutChanged": false,
+    "skipAdded": false,
+    "productionSourceChanged": false,
+    "preFixTestByteEqualToDc50": true,
+    "studioProductTreeByteEqualToDc50": true
+  },
+  "targetVerification": {
+    "existingTests": 3,
+    "passed": 3,
+    "skipped": 0,
+    "browser": "Chromium",
+    "ownControlPort": 3369,
+    "command": "PLAYWRIGHT_APPS=control CONTROL_PORT=3369 PLAYWRIGHT_WORKERS=1 pnpm exec playwright test tests/e2e/studio.spec.ts --project=chromium",
+    "durationSeconds": 43.5,
+    "logSha256": "56481eae322d8f832c353c43c9c77169019b437ce1c2b6bb27d7fe00b7652fa8",
+    "testEslint": "PASS zero warnings",
+    "testStandaloneTypecheck": "PASS tsc --noEmit --skipLibCheck --module nodenext --moduleResolution nodenext --target es2022 tests/e2e/studio.spec.ts",
+    "nextEnvChanged": false,
+    "otherExistingRuntimesUntouched": true
+  },
+  "bundledRootOperations": {
+    "workflow": ".github/workflows/runner-disk-maintenance.yml",
+    "workflowSha256": "de57d6c2295fe3812446686b59ae5a2daf00c9b7ec194ff32c2cea5bbdba3d76",
+    "document": "docs/sync-v1-rebuild/RUNNER-DISK.md",
+    "documentSha256": "740fbee2844798a03ec53faa658d7ef0dc5dd073046ba6a53750ae5aa5ad3ae7",
+    "rootValidation": {
+      "yaml": true,
+      "bashSyntax": true,
+      "shellcheck": true,
+      "actionlint": true,
+      "diffCheck": true,
+      "existingDeployWorkflowSecurity": true,
+      "existingRoyalThemeWorkflowGuard": true,
+      "existingVpsDeploymentValidation": {
+        "pass": 226,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    "peerReview": "ACK after endpoint/defaultbuilder guard correction",
+    "refusalChecks": [
+      {
+        "name": "non-main",
+        "exitCode": 1,
+        "expectedGuard": "REPOSITORY_SCOPE_INVALID",
+        "pass": true
+      },
+      {
+        "name": "wrong-host",
+        "exitCode": 1,
+        "expectedGuard": "RUNNER_IDENTITY_MISMATCH",
+        "pass": true
+      }
+    ],
+    "existingWorkflowCount": 25,
+    "existingWorkflowBytesUnchanged": true,
+    "workflowDispatchedByThisAgent": false,
+    "pruneExecutedByThisAgent": false
+  },
+  "limits": [
+    "This local target gate verifies the three existing Studio journeys after locator scoping; complete official CI must accept the new follow-up commit.",
+    "The original CI artifact is retained. The hidden streaming duplicate is excluded by active-page scope, not by weakening visibility or selecting the first match.",
+    "Root owns and validates the two operation files; this writer bundles their exact reviewed bytes and performs no remote maintenance or deployment."
+  ]
+}
