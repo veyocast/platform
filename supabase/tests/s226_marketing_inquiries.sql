@@ -48,7 +48,7 @@ select set_config('request.jwt.claim.aal','aal1',true);
 select throws_ok($$select public.update_marketing_inquiry_v1((select (receipt->>'id')::uuid from fixture),1,'contacted','Called')$$,'42501',null,'AAL1 cannot mutate the inquiry');
 select set_config('request.jwt.claim.aal','aal2',true);
 select is(public.update_marketing_inquiry_v1((select (receipt->>'id')::uuid from fixture),1,'contacted','Called'),2,'authorized update increments revision');
-select throws_ok($$select public.update_marketing_inquiry_v1((select (receipt->>'id')::uuid from fixture),1,'closed','Stale')$$,'40001',null,'concurrent stale update is rejected');
+select throws_ok($$select public.update_marketing_inquiry_v1((select (receipt->>'id')::uuid from fixture),1,'closed','Stale')$$,'PT409',null,'concurrent stale update is rejected');
 select is((select notes from public.marketing_inquiries where request_id='20000000-0000-4000-8000-000000226001'),'Called','conflict preserves accepted notes');
 reset role;
 select ok(exists(select 1 from public.audit_events where action='marketing.inquiry.updated' and target_id=(select (receipt->>'id')::uuid from fixture)),'platform change has an atomic audit receipt');
@@ -72,7 +72,7 @@ select throws_ok($$select public.retry_marketing_inquiry_mail_v1((select (receip
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000226003',true);
 select throws_ok($$select public.retry_marketing_inquiry_mail_v1((select (receipt->>'id')::uuid from fixture),1,false)$$,'22023',null,'unknown send requires explicit reconciliation');
 select is(public.retry_marketing_inquiry_mail_v1((select (receipt->>'id')::uuid from fixture),1,true),2,'authorized reconciled retry keeps the same outbox identity');
-select throws_ok($$select public.retry_marketing_inquiry_mail_v1((select (receipt->>'id')::uuid from fixture),1,true)$$,'40001',null,'double retry is rejected by revision guard');
+select throws_ok($$select public.retry_marketing_inquiry_mail_v1((select (receipt->>'id')::uuid from fixture),1,true)$$,'PT409',null,'double retry is rejected by revision guard');
 reset role;
 set local role service_role;
 select is(public.complete_marketing_inquiry_mail_v1((select (receipt->>'id')::uuid from fixture),(select (mail_claim->>'leaseId')::uuid from fixture),'accepted'),false,'old completion cannot erase a new retry');

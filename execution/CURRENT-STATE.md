@@ -1,5 +1,22 @@
 # Werkstand S226
 
+## Eindige conflictresponses — 18 oktober, lokale precommitcontrole
+
+Zeven S226-RPC-grenzen vertalen alleen de bestaande serialization-conflictcode
+naar PT409/HTTP409. De originele auth/RLS/receipt/CAS-commands blijven private;
+geen directe nieuwe callerrechten. De echte PostgREST14-proef ging van een
+oneindige retry naar53ms/HTTP409; nul actieve seriesrequests na afloop. Verse
+reset en volledige RLS129 bestanden/3.596 checks, error-level app-schema-lint0
+en foundation lint/type/unit elk30/30 PASS (29/29/28 cachehergebruik).
+Zie evidence/nonretryable-conflicts.json. De volgende CI-cohort moet de nieuwe
+commit volledig toetsen voordat PR252 kan mergen en staging/productie volgen.
+
+Op de voorgaande26a94d17-cohort is Control volledig groen:376PASS/629opt-inSKIP,
+waaronder alle9cases van de3gecorrigeerde Studio-bestanden. S227 bewijst inmiddels
+apart de echte V3-create/save/render/seriesreceipts; native MFA-afronding loopt.
+Drie aanvullende eigen ignored compiler-caches (1.810.286.189 bytes) zijn
+verwijderd met behoud van runtime/static bestanden; totaal19caches en3CSS-modules.
+
 ## Aanvullende CI- en rendererafsluiting
 
 CI op c26096f bevestigt foundation, database/RLS/concurrency en de echte

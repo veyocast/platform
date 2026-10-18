@@ -20,6 +20,6 @@ it('requires fresh edit/create/archive capabilities before admitting each operat
  f.capabilities=['tenant.studio.edit_own'];await expect(mutateSyncStudioSeriesAction(input())).resolves.toMatchObject({ok:false,rejected:true});await expect(mutateSyncStudioSeriesAction({...input(),operation:'remove',seriesId:series,seriesRevision:1})).resolves.toMatchObject({ok:false,rejected:true});expect(f.rpc).not.toHaveBeenCalled();
 });
 it('reports real CAS conflicts and rejects foreign tenant input instead of forwarding it',async()=>{
- f.rpc.mockResolvedValue({error:{code:'40001'},data:null});await expect(mutateSyncStudioSeriesAction(input())).resolves.toMatchObject({ok:false,rejected:true,conflict:true});
+ f.rpc.mockResolvedValue({error:{code:'PT409'},data:null});await expect(mutateSyncStudioSeriesAction(input())).resolves.toMatchObject({ok:false,rejected:true,conflict:true});
  f.rpc.mockClear();await expect(mutateSyncStudioSeriesAction({...input(),tenantId:tenant} as SyncStudioSeriesCommand)).resolves.toMatchObject({ok:false,rejected:true});expect(f.rpc).not.toHaveBeenCalled();
 });

@@ -24,7 +24,7 @@ export async function preparePublisherStudioSeries(input: {
         return { ok: false as const, error: "Je sessie ontbreekt. Log opnieuw in; je selectie blijft behouden." };
     const result = await client.rpc("prepare_publisher_studio_series_v1", { p_series_id: input.seriesId, p_expected_revision: input.revision, p_members: input.members.map(member => ({ id: member.id, draftRevision: member.draftRevision })), p_idempotency_key: input.key });
     if (result.error)
-        return { ok: false as const, error: result.error.code === "40001" ? "Het ontwerp is intussen gewijzigd. Vernieuw de bibliotheek voordat je het toevoegt." : "Het ontwerp kon niet voor offline afspelen worden voorbereid. Je selectie blijft behouden; probeer opnieuw." };
+        return { ok: false as const, error: ["40001","PT409"].includes(result.error.code ?? "") ? "Het ontwerp is intussen gewijzigd. Vernieuw de bibliotheek voordat je het toevoegt." : "Het ontwerp kon niet voor offline afspelen worden voorbereid. Je selectie blijft behouden; probeer opnieuw." };
     const jobs = (result.data as {
         jobs?: Array<{
             projectId: string;
@@ -43,7 +43,7 @@ export async function preparePublisherSyncProject(input:{projectId:string;draftR
  if(!hasCapability(session.capabilities,'tenant.studio.render'))return {ok:false as const,error:'Dit ontwerp heeft nog geen afspeelfallback. Vraag een beheerder met Studio-renderrechten om het gereed te maken.'};
  const client=await createControlSupabaseClient();if(!client)return {ok:false as const,error:'Je sessie ontbreekt. Log opnieuw in; je selectie blijft behouden.'};
  const result=await client.rpc('prepare_publisher_sync_project_v1',{p_project_id:input.projectId,p_expected_draft_revision:input.draftRevision,p_idempotency_key:input.key});
- if(result.error)return {ok:false as const,error:result.error.code==='40001'?'Het Source-ontwerp is intussen gewijzigd. Vernieuw de bibliotheek voordat je het toevoegt.':'Het Source-ontwerp kon niet voor offline afspelen worden voorbereid. Je selectie blijft behouden; probeer opnieuw.'};
+ if(result.error)return {ok:false as const,error:["40001","PT409"].includes(result.error.code ?? "")?'Het Source-ontwerp is intussen gewijzigd. Vernieuw de bibliotheek voordat je het toevoegt.':'Het Source-ontwerp kon niet voor offline afspelen worden voorbereid. Je selectie blijft behouden; probeer opnieuw.'};
  const value=result.data as {projectId?:string;jobId?:string}|null;
  if(value?.projectId!==input.projectId||!value.jobId||!uuid.test(value.jobId))return {ok:false as const,error:'De server heeft de Source-voorbereiding niet volledig bevestigd. Je selectie blijft behouden; controleer de bibliotheek.'};
  return {ok:true as const,jobs:[{projectId:input.projectId,jobId:value.jobId}]};

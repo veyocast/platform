@@ -39,7 +39,7 @@ select is(public.prepare_publisher_sync_project_v1((select id from source_ids wh
 select is((select output_kind from public.studio_render_jobs where id=(select id from source_ids where label='job')),'png','the actual stored no-motion document controls output kind');
 select is(public.save_studio_draft_v1((select id from source_ids where label='a'),0,jsonb_set(pg_temp.source_doc(),'{syncPresentation,title}','"Latere inhoud"'),'{}','40000000-0000-4000-8000-000000226086')->>'outcome','saved','the mutable draft can change after preparation');
 select is(public.prepare_publisher_sync_project_v1((select id from source_ids where label='a'),0,'40000000-0000-4000-8000-000000226084')->>'jobId',(select id::text from source_ids where label='job'),'the original receipt remains recoverable after that later edit');
-select throws_ok($$select public.prepare_publisher_sync_project_v1((select id from source_ids where label='a'),0,'40000000-0000-4000-8000-000000226087')$$,'40001',null,'an unrelated new stale intent is rejected');
+select throws_ok($$select public.prepare_publisher_sync_project_v1((select id from source_ids where label='a'),0,'40000000-0000-4000-8000-000000226087')$$,'PT409',null,'an unrelated new stale intent is rejected');
 select is((select count(*)from public.studio_render_jobs where tenant_id='10000000-0000-4000-8000-000000226081'),1::bigint,'stale intent rejection creates no extra job');
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000226082',true);
 select set_config('request.jwt.claims','{"sub":"00000000-0000-4000-8000-000000226082","role":"authenticated","aal":"aal2"}',true);

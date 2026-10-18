@@ -14,7 +14,7 @@ export async function updateInquiry(form: FormData) {
   const notes = String(form.get("notes") ?? "");
   if (!client || !/^[0-9a-f-]{36}$/i.test(id) || !Number.isInteger(revision) || revision < 1 || !["new", "contacted", "closed"].includes(status) || notes.length > 4000) redirect("/platform/requests?error=invalid");
   const { error } = await client.rpc("update_marketing_inquiry_v1", { p_id: id, p_revision: revision, p_status: status, p_notes: notes });
-  if (error) redirect(`/platform/requests?error=${error.code === "40001" ? "conflict" : "save"}`);
+  if (error) redirect(`/platform/requests?error=${["40001","PT409"].includes(error.code ?? "") ? "conflict" : "save"}`);
   revalidatePath("/platform/requests");
   redirect("/platform/requests?saved=1");
 }
@@ -26,7 +26,7 @@ export async function retryInquiryMail(form: FormData) {
   const revision = Number(form.get("revision"));
   if (!client || !/^[0-9a-f-]{36}$/i.test(id) || !Number.isInteger(revision)) redirect("/platform/requests?error=invalid");
   const { error } = await client.rpc("retry_marketing_inquiry_mail_v1", { p_id: id, p_revision: revision, p_confirm_uncertain: form.get("confirmUncertain") === "on" });
-  if (error) redirect(`/platform/requests?error=${error.code === "40001" ? "conflict" : "retry"}`);
+  if (error) redirect(`/platform/requests?error=${["40001","PT409"].includes(error.code ?? "") ? "conflict" : "retry"}`);
   revalidatePath("/platform/requests");
   redirect("/platform/requests?saved=1");
 }

@@ -1,0 +1,16 @@
+begin;
+select plan(8);
+select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname like 's226_conflict_base_%'),7,'all seven conflict bases are private');
+select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname like 's226_conflict_base_%' and (has_function_privilege('anon',p.oid,'execute')or has_function_privilege('authenticated',p.oid,'execute')or has_function_privilege('service_role',p.oid,'execute'))),'private bases cannot bypass the public conflict boundary');
+select ok((select bool_and(has_function_privilege('authenticated',p.oid,'execute')and not has_function_privilege('anon',p.oid,'execute')and not has_function_privilege('service_role',p.oid,'execute'))from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in('mutate_sync_studio_series_v1','prepare_publisher_sync_project_v1','prepare_publisher_studio_series_v1','mutate_studio_project_v1','mutate_playlist_batch_v1','update_marketing_inquiry_v1','retry_marketing_inquiry_mail_v1')),'public caller grants are unchanged');
+select ok((select bool_and(p.prosecdef and p.proconfig=array['search_path=""'])from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in('mutate_sync_studio_series_v1','prepare_publisher_sync_project_v1','prepare_publisher_studio_series_v1','mutate_studio_project_v1','mutate_playlist_batch_v1','update_marketing_inquiry_v1','retry_marketing_inquiry_mail_v1')),'public boundaries use an explicit empty search path');
+select is(pg_get_function_arguments('public.retry_marketing_inquiry_mail_v1(uuid,integer,boolean)'::regprocedure),'p_id uuid, p_revision integer, p_confirm_uncertain boolean DEFAULT false','existing optional confirmation argument is preserved');
+set local role anon;
+select throws_ok($$select public.mutate_sync_studio_series_v1('10000000-0000-4000-8000-000000226001',0,null,null,'add',null,null,'10000000-0000-4000-8000-000000226002')$$,'42501',null,'anonymous users cannot invoke the boundary');
+reset role;
+set local role authenticated;
+select throws_ok($$select private.s226_conflict_base_mutate_playlist_batch_v1('10000000-0000-4000-8000-000000226001',0,'[]','10000000-0000-4000-8000-000000226002')$$,'42501',null,'authenticated users cannot call a private base directly');
+select throws_ok($$select public.retry_marketing_inquiry_mail_v1('10000000-0000-4000-8000-000000226001',0)$$,'42501',null,'default arguments still reach the existing actor guard');
+reset role;
+select * from finish();
+rollback;

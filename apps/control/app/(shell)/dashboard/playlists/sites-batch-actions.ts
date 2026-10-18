@@ -24,7 +24,7 @@ export async function savePlaylistBatch(command: PlaylistBatchCommand): Promise<
     p_operations: parsed.data.operations,
     p_idempotency_key: parsed.data.idempotencyKey
   });
-  if (error) return { outcome: "failed", message: error.code === "40001"
+  if (error) return { outcome: "failed", message: ["40001","PT409"].includes(error.code ?? "")
     ? "Een ontwerp of playlist is intussen gewijzigd. Er is niets uit deze opslaghandeling toegepast. Je concept blijft open; laad de nieuwste versie en vergelijk de wijzigingen."
     : "De server kon deze wijzigingen niet veilig opslaan. Je concept blijft open; probeer opnieuw." };
   const result = data as { outcome?: string; actualRevision?: number; itemIds?: Record<string, string> } | null;

@@ -50,7 +50,7 @@ export type StudioActionResult = {
 // A database error response proves that this individual transaction rolled back.
 // Callers recovering an earlier unknown write must still keep its original key.
 const studioTransactionRejected = (code: string | undefined) =>
-  Boolean(code && ["22023", "23514", "23503", "42501", "P0002", "55000", "23505"].includes(code));
+  Boolean(code && ["22023", "23514", "23503", "42501", "P0002", "55000", "23505", "PT409"].includes(code));
 
 export async function createStudioProject(formData: FormData) {
   const session = await requireTenantControlSession(studioCapabilities.create);
@@ -735,6 +735,7 @@ function saveErrorMessage(code: string | undefined) {
 }
 
 function mutationErrorMessage(code: string | undefined) {
+  if (code === "PT409" || code === "40001") return "Het ontwerp is intussen gewijzigd. Je invoer blijft behouden; herlaad de actuele versie voordat je de projectactie bevestigt.";
   if (code === "42501") return "Je mag deze projectactie niet uitvoeren.";
   if (code === "P0002") return "Het Studio-ontwerp bestaat niet meer.";
   return "De projectactie kon niet veilig worden uitgevoerd.";

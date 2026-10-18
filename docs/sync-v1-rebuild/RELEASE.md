@@ -20,14 +20,19 @@ POST303-formulieren vermijden de gereproduceerde vastlopende ServerAction-
 paginaovergang; bestaande auth/RLS/RPC- en CSRF-grenzen blijven van kracht.
 
 Lokale validatie staat in `execution/evidence/current-verification.json` en de
-148 individuele scenario's. Foundation lint/type/unit30/30, verse RLS128/3588,
+148 individuele scenario's. Foundation lint/type/unit30/30, verse RLS129/3596,
 gekozen responsive66/66, Next-viewport126, Player/offline en werkelijke lokale
 publicatie-/bron-/herstelketens zijn afzonderlijk vastgelegd. Dit is geen
 algemene pixel-, externe provider- of fysieke apparaataanvaarding.
 
+Stale commands krijgen aan zeven RPC-grenzen één HTTP409 (`PT409`), met
+behoud van auth/RLS en het oorspronkelijke receipt vóór CAS. Dit voorkomt de
+werkelijk gereproduceerde PostgREST14-retrystorm bij custom40001. Directe toegang
+tot de private bases blijft geweigerd; zie het nonretryable-conflicts-bewijs.
+
 ## Uitrol en terugzetten
 
-Alle26 nieuwe forwardmigraties staan met hashes in
+Alle27 nieuwe forwardmigraties staan met hashes in
 `execution/evidence/migration-manifest.json`. De bestaande deploymentflow doet
 dry-run/apply vóór de images. Geen operationele reset/backfill of destructieve
 downmigratie. Promoveer uitsluitend dezelfde volledig geslaagde staging-SHA en
