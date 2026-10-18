@@ -44,3 +44,15 @@ te verwijderen. Bewaar databases, uploads, signing, actieve images, benodigde
 rollback-images en `/srv/apps/veyocast/releases`. Controleer na herstel de echte
 ruimte en de toestand van eventuele onvolledige immutable images vóór een
 normale nieuwe releasepoging. Bestaande immutable images worden nooit overschreven.
+
+De gebruiker heeft vervolgens de bestaande Tailscale-identiteit bevestigd.
+Een nieuwe directe read-only inspectie bevestigde host/gebruiker, dezelfde lokale
+rootlesssocket, Buildx0.35.0/Engine29.6.2 en nul actieve builds/deployments.
+De exact gereviewde onderhoudsbody is via die bestaande SSH-route uitgevoerd met
+uitsluitend vaste `until=1h`. GitHub-concurrency was daarmee niet gereserveerd:
+de vers gecontroleerde afwezigheid van deploys/builds, uitgestelde eigen merges
+en BuildKit-leases vormen de gedocumenteerde grens; dit is geen nieuwe SSH-deploy.
+Resultaat:12.08GB cache vrijgemaakt,15.173.021.696 bytes beschikbaar (91% gebruikt).
+Alle image/container/volumesets bleven gelijk; de vijf healthroutes bleven200ok
+op6c837bbc. Bronlogs/before-after-JSON blijven bij het afgeschermde releasebewijs.
+De applicatie-uitrol blijft uitsluitend de bestaande GitHub-releaseflow.

@@ -112,5 +112,37 @@
     "Mollie account setup"
   ],
   "externalControlBootstrap": "First Control app requires owner Play/Firebase application context; user has never installed Control. No old Control key request or invented signature.",
-  "hostedDeploymentClaim": false
+  "hostedDeploymentClaim": false,
+  "followupHarnessCorrection": {
+    "headBefore": "b676e3d85b2524356539b94ed96973f62876c83e",
+    "reason": "Two controlled esbuild beforeAll compilers need actual module CSS output after new filmstrip wrapper CSS import.",
+    "previousCi": {
+      "run": 39159275992,
+      "controlArtifact": 12147659422,
+      "passed": 345,
+      "expectedSkipped": 629,
+      "beforeAllFailures": 2,
+      "notExecuted": 36
+    },
+    "fix": "Explicit outfile and real local-css/css outputs injected after global stylesheet; original test bodies/assertions unchanged.",
+    "completeChangedFilesCohort": {
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "nextServerStarted": false
+    },
+    "proof": "execution/evidence/s230-css-module-harness.json",
+    "newFullCiRequired": true
+  },
+  "runnerCapacityRecoveredSeparately": {
+    "route": "user-reverified existing Tailscale SSH",
+    "operation": "fixed unused buildcache until=1h",
+    "reclaimedReported": "12.08GB",
+    "availableBytesAfter": 15173021696,
+    "usedPercentAfter": 91,
+    "imagesContainersVolumesUnchanged": true,
+    "fiveHealthsAfter": "HTTP200/statusok exact6c837bbc",
+    "applicationDeploymentPerformed": false,
+    "report": "s230-ssh-cache-prune-1h.json"
+  }
 }

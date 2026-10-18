@@ -167,6 +167,15 @@ de locked systeemmarkering linksonder op 40% en bestaande offlinechip.
 
 ## Voorgestelde acceptatie
 
+Aanvullende testownership na concrete CI-bevinding op b676e3d8:
+`release_audit` bezit uitsluitend `tests/control/sync-dynamic-workflows.spec.ts`
+en `tests/control/sync-studio-workflows.spec.ts`, de esbuildbeforeAll-output en
+fixture-HTML-style-injectie. De nieuwe echte filmstrip-CSS-module moet als
+`local-css` worden gebundeld en naast de JS worden geïnjecteerd, conform bestaand
+`tests/helpers/sync-reference-runtime.mjs`. Geen stub, criteria-, timeout-, skip-
+of productwijziging. Root beheert commit/push; eerste345PASS/629SKIP/2beforeAllFAIL/
+36nietuitgevoerde cases en artifact12147659422 blijven behouden.
+
 - Onafhankelijke gelijke-state Source/candidatecaptures op 1920×1080 en
   1080×1920, reduced motion/fontload/beelduitsnede gelijk; parent coördineert
   capture-evidence. Democopy versus echte feiten apart vastleggen.
