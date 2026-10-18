@@ -128,6 +128,131 @@ function providerFixture() {
 }
 
 describe("LED Scores protocol", () => {
+  describe("bounded rejected-team shape diagnostics", () => {
+    function rejected(payload: unknown) {
+      try {
+        parseLedScoresMessage(JSON.stringify(payload));
+        throw new Error("The malformed provider payload must remain rejected.");
+      } catch (error) {
+        expect(error).toBeInstanceOf(LedScoresProtocolError);
+        if (!(error instanceof LedScoresProtocolError)) throw error;
+        expect(error.code).toBe("LEDSCORES_MESSAGE_INVALID");
+        return error;
+      }
+    }
+
+    function rejectedTeams(teams: Record<string, unknown>) {
+      const fixture = providerFixture();
+      return rejected({ ...fixture, message: { ...fixture.message, teams } });
+    }
+
+    it.each([
+      { value: null, type: "null" },
+      { value: true, type: "boolean" },
+      { value: ["PRIVATE_ARRAY_VALUE"], type: "array" },
+      { value: {}, type: "object" }
+    ])("describes a rejected $type slot without accepting it or inspecting its contents", ({ value, type }) => {
+      const error = rejectedTeams({ away: 200, home: value });
+      expect(error.validationIssues).toEqual([{
+        code: "invalid_union",
+        path: "message.teams.home",
+        shape: type === "object" ? { type, primitiveFields: [] } : { type }
+      }]);
+      expect(JSON.stringify(error.validationIssues)).not.toContain("PRIVATE_ARRAY_VALUE");
+    });
+
+    it("distinguishes a missing own slot from explicit null and bounds shape records to both exact paths", () => {
+      const error = rejectedTeams({ home: null });
+      expect(error.validationIssues).toEqual([
+        { code: "invalid_union", path: "message.teams.away", shape: { type: "missing" } },
+        { code: "invalid_union", path: "message.teams.home", shape: { type: "null" } }
+      ]);
+      expect(error.validationIssues.filter(issue => issue.shape)).toHaveLength(2);
+    });
+
+    it("projects only fixed primitive field types, with no values, arbitrary keys or nested content", () => {
+      const error = rejectedTeams({
+        away: {
+          id: 4312807,
+          name: null,
+          type: { privateNested: "PRIVATE_NESTED_VALUE" },
+          active: false,
+          "PRIVATE_ARBITRARY_FIELD": "PRIVATE_TOKEN_VALUE"
+        },
+        home: {
+          active: true,
+          type: "PRIVATE_TEAM_TYPE",
+          name: "PRIVATE_TEAM_NAME",
+          id: "PRIVATE_TEAM_ID",
+          url: "https://private.example.invalid/?token=PRIVATE_URL_TOKEN",
+          players: ["PRIVATE_PLAYER_NAME"],
+          ["__proto__"]: { inherited: "PRIVATE_INHERITED_VALUE" }
+        }
+      });
+      expect(error.validationIssues).toEqual([
+        {
+          code: "invalid_union", path: "message.teams.away",
+          shape: { type: "object", primitiveFields: [
+            { key: "id", type: "number" },
+            { key: "name", type: "null" },
+            { key: "active", type: "boolean" }
+          ] }
+        },
+        {
+          code: "invalid_union", path: "message.teams.home",
+          shape: { type: "object", primitiveFields: [
+            { key: "id", type: "string" },
+            { key: "name", type: "string" },
+            { key: "type", type: "string" },
+            { key: "active", type: "boolean" }
+          ] }
+        }
+      ]);
+      const diagnostic = JSON.stringify(error.validationIssues);
+      expect(diagnostic).not.toContain("PRIVATE_");
+      expect(diagnostic).not.toContain("4312807");
+      expect(diagnostic).not.toContain("private.example.invalid");
+      expect(diagnostic).not.toContain("players");
+      expect(Buffer.byteLength(diagnostic)).toBeLessThan(1_000);
+    });
+
+    it("keeps object and array children out of the primitive-field projection", () => {
+      const error = rejectedTeams({ away: 200, home: {
+        id: { id: "PRIVATE_NESTED_ID" }, name: ["PRIVATE_NESTED_NAME"],
+        type: [], active: { active: true }
+      } });
+      expect(error.validationIssues).toEqual([{
+        code: "invalid_union", path: "message.teams.home",
+        shape: { type: "object", primitiveFields: [] }
+      }]);
+    });
+
+    it("never adds shapes to another union path or to missing parent objects", () => {
+      const fixture = providerFixture();
+      const invalidScorer = rejected({ ...fixture, message: { ...fixture.message,
+        scoreboard: { ...fixture.message.scoreboard, scored: {
+          ...fixture.message.scoreboard.scored, id: null
+        } }
+      } });
+      expect(invalidScorer.validationIssues).toEqual([
+        { code: "invalid_union", path: "message.scoreboard.scored.id" }
+      ]);
+      const missingTeams = rejected({ ...fixture, message: { ...fixture.message, teams: undefined } });
+      expect(missingTeams.validationIssues).toEqual([{ code: "invalid_type", path: "message.teams" }]);
+    });
+
+    it("keeps all accepted identity formats and normalized statuses unchanged", () => {
+      const fixture = providerFixture();
+      const original = parseLedScoresMessage(JSON.stringify(fixture));
+      const strings = parseLedScoresMessage(JSON.stringify({ ...fixture,
+        message: { ...fixture.message, teams: { away: "200", home: "100" } }
+      }));
+      expect(strings).toEqual(original);
+      expect(original).not.toHaveProperty("validationIssues");
+      expect(original).not.toHaveProperty("shape");
+    });
+  });
+
   it("constructs only the allowlisted websocket host", () => {
     expect(createLedScoresUrl("duindorp-sv"))
       .toBe("wss://wss.ledscores.score.tel/clubs/duindorp-sv/scores/");
