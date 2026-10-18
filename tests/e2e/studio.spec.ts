@@ -14,7 +14,7 @@ test("Studio overview and creation journey use real responsive controls", async 
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Studio" })
   ).toBeVisible();
-  await expect(page.getByLabel("Studio-samenvatting")).toBeVisible();
+  await expect(page.locator("#control-content").getByLabel("Studio-samenvatting")).toBeVisible();
   await expect(page.getByRole("link", { name: "Nieuwe slide" })).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Studio-ontwerpen" })
