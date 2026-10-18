@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "scope": "Local controlled browser/runtime acceptance of Source status UI; no hosted deployment, hardware or physical-upgrade claim.",
+  "baseCommit": "b6c894a466e1e74baf51c9f036145711f440d310",
+  "sourceCommit": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+  "sourceInputs": {
+    "docs/sync-v1-rebuild/handoff/reference/sites-sync/src/modules/Players.tsx": "a0e5a28c0e1fec80417c882f2e8f7613f8498da215093ada3f6c2934194a7819",
+    "docs/sync-v1-rebuild/handoff/reference/sites-sync/src/modules/players.css": "cb2a48756902838f083eb9ad183abe752b7c4453da559e9a5d0aabcf29df8117"
+  },
+  "implementationInputs": {
+    "apps/player/app/_components/player-runtime.tsx": "cbb7cdaef5058d4325227d72ac729a82be6a9c6ef4d399984ffcd487e811863b",
+    "apps/player/app/_components/sync-player-status.tsx": "dc5a8feefc9505b1b563d4ce13bdedeb385850f1cbad01c97dd3e72ac267d182",
+    "apps/player/app/_components/sync-player-status.module.css": "cc82918db4b3758943188f662c779f67703e92497ab83ede38acee49f15ce3ca",
+    "apps/player/app/_lib/player-status-presentation.ts": "4e2834984b5b78c070fcff54d8144226afdf2e5b287017645d1a86313536abfe",
+    "apps/player/app/_lib/player-status-presentation.test.ts": "895a8e653d4d7e211b1fd563ec0104d46fe81692ec17b9c4d55bb19d24018cae",
+    "tests/player/sync-player-status.spec.ts": "0a46080a2ac34d349d548fe6bd124c7c3113a990b83e3afcc5680cedc814953d"
+  },
+  "gates": [
+    {
+      "name": "Player lint and typecheck",
+      "status": "PASS",
+      "logs": [
+        "/tmp/veyocast-s230-player-lint.log",
+        "/tmp/veyocast-s230-player-typecheck.log"
+      ]
+    },
+    {
+      "name": "Earlier full Player unit snapshot",
+      "status": "PASS",
+      "files": 77,
+      "tests": 459,
+      "log": "/tmp/veyocast-s230-player-unit.log",
+      "boundary": "Before the final presentation-only parser/clock correction and independent LG-writer additions; final combined workspace checks are recorded separately by root."
+    },
+    {
+      "name": "Final presenter and existing timestamp normalization",
+      "status": "PASS",
+      "files": 2,
+      "tests": 7,
+      "log": "/tmp/veyocast-s230-player-status-final-unit.log"
+    },
+    {
+      "name": "Status source and tests eslint",
+      "status": "PASS",
+      "log": "/tmp/veyocast-s230-player-final-lint.log"
+    },
+    {
+      "name": "Pairing, online video, waiting, offline-startup and accessibility cohort",
+      "status": "PASS",
+      "tests": 25,
+      "log": "/tmp/veyocast-s230-player-final-browser.log",
+      "boundary": "The later removed duplicate UI expiry clock is covered by the final follow-up cohort and focused unit checks."
+    },
+    {
+      "name": "Final original routes, recovery, actual pairing and preparation after parser correction",
+      "status": "PASS",
+      "tests": 17,
+      "log": "/tmp/veyocast-s230-player-final-followup-browser.log",
+      "includes": {
+        "originalPlayerRoutes": 10,
+        "existingRecovery": 3,
+        "pairingAndExpiry": 3,
+        "downloadVerificationAndLkg": 1
+      }
+    }
+  ],
+  "actualBrowserAssertions": [
+    "Initial manifest held: Source boot visible.",
+    "Initial actual asset response held: Source download visible; no invented aria-valuenow or playback.",
+    "Actual SHA-256 digest held: Source verification visible before first playback.",
+    "Verification released: first verified image becomes visible.",
+    "A following actual download is held: previous verified image stays visible and no status canvas overlays LKG.",
+    "Following release is verified and activates at the existing natural boundary.",
+    "Existing live pairing, expiry rotation, revoked identity, transient 503 preservation, video first-frame handoff, muted playback and offline diagnostics remain green.",
+    "QR opens via the explicit real action, remains visible, closes and restores focus.",
+    "Ten original Player routes retain device-only auth, diagnostic/review guards, thumbnail denial and viewport bounds."
+  ],
+  "protocolBoundary": {
+    "extraUiExpiryClock": false,
+    "existingRuntimeAndServerRemainAuthoritative": true,
+    "postgresTimestampParserReused": true,
+    "unconfiguredFixtureCodeOnlyFromExistingApi": true
+  },
+  "preserved": {
+    "apps/player/app/_lib/player-cache.ts": true,
+    "pnpm-lock.yaml": true,
+    "package.json": true,
+    "pnpm-workspace.yaml": true
+  },
+  "visualBoundary": "Original Source and first candidate captures retained externally. A concrete omitted Source blue-background rule was restored literally after measurement; final visual readback is separate. Common geometry does not imply pixel identity for factual copy/actions.",
+  "acceptedFactualOverrides": "docs/sync-v1-rebuild/PLAYER-STATUS.md#Afwijkende-feiten-per-Source-toestand",
+  "retainedFailedAttempt": "Initial local browser traces retain presentation-assertion failures and resource/page-setup crashes; subsequent bounded cohorts are independently green. No timeout, skip or visual-tolerance increase.",
+  "storeCaptureRegenerated": false,
+  "physicalHardwareAcceptance": false,
+  "hostedDeploymentClaim": false
+}

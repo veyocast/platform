@@ -7,7 +7,7 @@ test("unpaired player startup is visible without a network-backed release", asyn
 }) => {
   await page.goto(playerURL);
 
-  await expect(page.getByText("Klaar om te koppelen")).toBeVisible();
+  await expect(page.getByText("READY TO CONNECT", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toBeVisible();
-  await expect(page.getByRole("main")).toContainText("Koppel dit scherm aan VeyoCast");
+  await expect(page.getByRole("main")).toContainText("Geef dit scherm een verhaal.");
 });

@@ -79,7 +79,7 @@ test("onverwachte clientfout toont de lokale VeyoCast-fallback", async ({
   ).toHaveAttribute("href", "/lg/recover");
   await expect(page.getByText("Application error")).toHaveCount(0);
   await expect(page.locator("#veyocast-client-fallback-guard")).toHaveCount(1);
-  await expect(page.getByText("Klaar om te koppelen")).toHaveCount(1);
+  await expect(page.getByText("READY TO CONNECT")).toHaveCount(1);
   await expect
     .poll(() =>
       page.evaluate(() => {
@@ -123,5 +123,5 @@ test("een lokale mediafout blijft in de playback-recovery en vernietigt de app n
   });
 
   await expect(page.locator("#veyocast-client-fallback")).toHaveCount(0);
-  await expect(page.getByText("Klaar om te koppelen")).toBeVisible();
+  await expect(page.getByText("READY TO CONNECT")).toBeVisible();
 });

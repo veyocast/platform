@@ -19,7 +19,22 @@ export type ContentItem = {
   preview: string | null;
   href: string;
   placement: ContentPlacement | null;
+  revision?: number | null;
+  themeName?: string | null;
+  restoreKey?: string;
 };
+
+/** Show actual media proportions; landscape alone does not establish 16:9. */
+export function contentFormat(item: Pick<ContentItem, "kind" | "width" | "height" | "orientation">) {
+  if (item.kind === "media") {
+    const { width, height } = item;
+    if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width === null || height === null || width <= 0 || height <= 0) return "Formaat nog onbekend";
+    let a = width, b = height;
+    while (b) [a, b] = [b, a % b];
+    return `${width / a}:${height / a}`;
+  }
+  return item.orientation === "portrait" ? "9:16" : item.orientation === "landscape" ? "16:9" : item.orientation === "square" ? "1:1" : "Formaat nog onbekend";
+}
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 export function readContentPlacement(value: unknown): ContentPlacement | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;

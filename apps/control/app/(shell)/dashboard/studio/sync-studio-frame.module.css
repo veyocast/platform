@@ -1,0 +1,19 @@
+/* The retained renderer adds one wrapper around Source's direct slide child.
+   Apply the original thumbnail bounds through that wrapper as well. */
+.filmstrip > button > :global(.sync-slide-root) {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.filmstrip > button > :global(.sync-slide-root) > :global(.vc-slide-preview) {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+}
+
+.filmstrip > button > :global(.sync-slide-root) > :global(.vc-slide-preview.is-portrait) {
+  width: 35px;
+  height: 62px;
+  margin: 0 auto;
+}

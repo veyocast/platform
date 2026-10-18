@@ -68,9 +68,13 @@ for (const row of matrix) test(`${row.case_id}: production Player ${row.producti
       boundary = "Default review route requires its separate review session and redirects to device setup; review media remains hidden.";
     } else boundary = "Default runtime uses device-only installation/pairing transport and retains the pairing screen.";
     await expect(page.getByRole("main", { name: "VeyoCast player setup" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Geef dit scherm een verhaal." })).toBeVisible();
     await expect(page.getByLabel("Pairingcode")).toContainText("QA1 234");
+    const qrButton = page.getByRole("button", { name: "QR-code tonen", exact: true });
+    await qrButton.click();
     await expect(page.getByRole("img", { name: "QR-code met tijdelijke VeyoCast-koppelcode" })).toBeVisible();
+    await page.getByRole("button", { name: "Sluiten", exact: true }).click();
+    await expect(qrButton).toBeFocused();
     await expect(page.getByRole("button", { name: /Aanmelden|Inloggen/u })).toHaveCount(0);
   }
   const geometry = await page.evaluate(() => ({

@@ -7,16 +7,21 @@ test("player starts in unpaired pairing mode", async ({ page }) => {
   await page.goto(playerURL);
 
   await expect(
-    page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })
+    page.getByRole("heading", { name: "Geef dit scherm een verhaal." })
   ).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toContainText("VYO 482");
+  const qrButton = page.getByRole("button", { name: "QR-code tonen" });
+  await qrButton.click();
+  await expect(page.getByRole("dialog", { name: "Scherm koppelen" })).toBeVisible();
   await expect(page.getByRole("img", { name: "QR-code met tijdelijke VeyoCast-koppelcode" })).toBeVisible();
-  await expect(page.getByLabel("Device setupstatus")).toContainText("Wachten op VeyoCast Control");
+  await page.keyboard.press("Escape");
+  await expect(qrButton).toBeFocused();
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Internet beschikbaar");
   const logo = page.getByRole("img", { exact: true, name: "VeyoCast" });
   await expect(logo).toBeVisible();
   const logoBox = await logo.boundingBox();
-  expect(logoBox?.height).toBeGreaterThanOrEqual(64);
-  await expect(page.locator(".pairing-brand-scene img")).toBeVisible();
+  expect(logoBox?.width).toBeCloseTo(1920 * 0.12, 1);
+  await expect(page.locator(".px-splash-hero img")).toBeVisible();
   await expect(page.getByLabel("Device setupstatus")).toContainText("Web Player");
   await expect(page.getByLabel("Device setupstatus")).not.toContainText("Code geldig");
   await expect(page.getByLabel("Device setupstatus")).not.toContainText("Geen Supabase Auth-user");
@@ -68,7 +73,7 @@ test("LG pairing uses the legacy transport and ignores a false browser offline h
   await page.goto(`${playerURL}/lg`);
 
   await expect(page.getByLabel("Pairingcode")).toContainText("LGX 234");
-  await expect(page.getByLabel("Device setupstatus")).toContainText("Verbonden");
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Code geldig tot");
   await expect(
     page.getByText("Geen internetverbinding", { exact: true })
   ).toHaveCount(0);
@@ -116,12 +121,12 @@ test("pairing stays completely inside a short Android TV viewport", async ({
 
   const viewportFit = await page.evaluate(() => {
     const selectors = [
-      ".pairing-stage",
-      ".pairing-logo",
-      ".pairing-heading",
-      ".pairing-code-group",
-      ".pairing-stage__status",
-      ".player-diagnostics"
+      ".px-splash",
+      ".px-splash-brand",
+      ".px-splash-center h1",
+      ".px-pairing-screen-code",
+      ".px-splash-footer",
+      ".px-splash-action"
     ];
     const tolerance = 1;
     const outsideViewport = selectors.filter((selector) => {
@@ -193,17 +198,17 @@ test("LG hervat een opgeslagen pairing met PostgreSQL-microseconden zonder nieuw
   ).toBe("m".repeat(43));
 });
 
-test("pairing uses compact TV density on a 720p display", async ({ page }) => {
+test("pairing keeps the Source landscape geometry on a 720p display", async ({ page }) => {
   await page.setViewportSize({ height: 720, width: 1280 });
   await page.goto(playerURL);
   await expect(page.getByLabel("Pairingcode")).toBeVisible();
   await expect(page.getByLabel("Device setupstatus")).toBeVisible();
 
   const layout = await page.evaluate(() => {
-    const stage = document.querySelector<HTMLElement>(".pairing-stage");
-    const logo = document.querySelector<HTMLElement>(".pairing-logo");
-    const title = document.querySelector<HTMLElement>(".runtime-title");
-    const code = document.querySelector<HTMLElement>(".player-pairing-code");
+    const stage = document.querySelector<HTMLElement>(".px-splash");
+    const logo = document.querySelector<HTMLElement>(".px-splash-brand");
+    const title = document.querySelector<HTMLElement>(".px-splash-center h1");
+    const code = document.querySelector<HTMLElement>(".px-pairing-screen-code");
     if (!stage || !logo || !title || !code) return null;
 
     const stageBox = stage.getBoundingClientRect();
@@ -217,11 +222,11 @@ test("pairing uses compact TV density on a 720p display", async ({ page }) => {
   });
 
   expect(layout).not.toBeNull();
-  expect(layout?.stageWidth).toBeLessThanOrEqual(1180);
-  expect(layout?.stageHeight).toBeLessThanOrEqual(640);
-  expect(layout?.logoWidth).toBeLessThanOrEqual(180);
-  expect(layout?.titleFontSize).toBeLessThanOrEqual(44);
-  expect(layout?.codeFontSize).toBeLessThanOrEqual(68);
+  expect(layout?.stageWidth).toBe(1280);
+  expect(layout?.stageHeight).toBe(720);
+  expect(layout?.logoWidth).toBeCloseTo(1280 * 0.12, 1);
+  expect(layout?.titleFontSize).toBeCloseTo(1280 * 0.0315, 1);
+  expect(layout?.codeFontSize).toBeCloseTo(1280 * 0.03, 1);
 });
 
 test("player pairing becomes static when reduced motion is requested", async ({
@@ -230,7 +235,7 @@ test("player pairing becomes static when reduced motion is requested", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(playerURL);
 
-  const brandIcon = page.locator(".pairing-brand-scene img");
+  const brandIcon = page.locator(".px-splash-hero img");
   await expect(brandIcon).toBeVisible();
   await expect(brandIcon).toHaveCSS("animation-name", "none");
   await expect(brandIcon).toHaveAttribute("src", "/assets/brand-hero-800.webp");
@@ -286,7 +291,7 @@ test("recovers automatically when pairing creation is temporarily rate limited",
 
   await page.goto(playerURL);
   await expect(
-    page.getByRole("heading", { name: "Nieuwe koppelcode voorbereiden" })
+    page.getByRole("heading", { name: "We pakken het rustig op." })
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Playback wacht" })).toHaveCount(0);
   await expect(page.getByLabel("Pairingcode")).toContainText("RTY 234", {
@@ -295,7 +300,7 @@ test("recovers automatically when pairing creation is temporarily rate limited",
   await expect(
     page.getByText("Geen internetverbinding", { exact: true })
   ).toHaveCount(0);
-  await expect(page.getByLabel("Device setupstatus")).toContainText("Verbonden");
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Code geldig tot");
   expect(pairingRequests).toBe(2);
   expect(playerInstances[0]).toMatch(/^[a-f0-9-]{20,80}$/);
   expect(playerInstances[1]).toBe(playerInstances[0]);
@@ -387,11 +392,11 @@ test("coalesces rapid refreshes before requesting another pairing code", async (
 
   await page.goto(playerURL);
   await expect(
-    page.getByRole("heading", { name: "Nieuwe koppelcode voorbereiden" })
+    page.getByRole("heading", { name: "We pakken het rustig op." })
   ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Nieuwe koppelcode voorbereiden" })
+    page.getByRole("heading", { name: "We pakken het rustig op." })
   ).toBeVisible();
   await page.clock.runFor(4_999);
   expect(pairingRequests).toBe(0);
@@ -472,10 +477,10 @@ test("live pairing completes before content exists and keeps reporting readiness
 
   await page.goto(playerURL);
   await expect(page.getByLabel("Pairingcode")).toContainText("ABC 234");
-  await expect(page.getByRole("heading", { name: "Wachten op content" })).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Dit scherm wacht op jouw verhaal." })).toBeVisible({
     timeout: 8_000
   });
-  await expect(page.getByRole("status")).toContainText("online en gereed");
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Gekoppeld en gereed");
   expect(heartbeatAttempts).toBeGreaterThanOrEqual(2);
   await expect(page.getByLabel("Pairingcode")).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("veyocast.player.deviceToken")))
@@ -588,7 +593,8 @@ test("tijdelijke 503 verwijdert geen geldige schermcredential", async ({
   }));
 
   await page.goto(playerURL);
-  await expect(page.getByText("Foutcode:")).toBeVisible();
+  await page.getByText("Herstelgegevens", { exact: true }).click();
+  await expect(page.getByText("PLAYER_API_UNAVAILABLE", { exact: true })).toBeVisible();
   expect(
     await page.evaluate(() =>
       localStorage.getItem("veyocast.player.deviceToken")

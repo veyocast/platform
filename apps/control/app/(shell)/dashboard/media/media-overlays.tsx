@@ -65,6 +65,11 @@ type ArchiveMediaDialogProps = {
   screenCount: number;
   title: string;
   assetId: string;
+  trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onReturnFocus?: () => void;
+  returnTo?: "/dashboard/content";
 };
 
 export type MediaFolderOption = {
@@ -257,19 +262,25 @@ export function ArchiveMediaDialog({
   kind,
   releaseCount,
   screenCount,
-  title
+  title,
+  trigger,
+  open,
+  onOpenChange,
+  onReturnFocus,
+  returnTo
 }: ArchiveMediaDialogProps) {
   const mediaLabel = kind === "video" ? "video" : "afbeelding";
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger !== null && <DialogTrigger asChild>
+        {trigger ??
         <Button disabled={!canArchive} type="button" variant="destructive">
           <Trash2 aria-hidden="true" />
           Uit Media verwijderen
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
+        </Button>}
+      </DialogTrigger>}
+      <DialogContent onCloseAutoFocus={onReturnFocus ? event => { event.preventDefault(); onReturnFocus(); } : undefined}>
         <DialogHeader>
           <DialogTitle>
             {kind === "video" ? "Video" : "Afbeelding"} ‘{title}’ verwijderen?
@@ -304,6 +315,7 @@ export function ArchiveMediaDialog({
             </span>
           </div>
           <form action={archiveMediaAsset} className="playlist-form">
+            {returnTo && <input name="returnTo" type="hidden" value={returnTo} />}
             <input name="assetId" type="hidden" value={assetId} />
             <input name="expectedDraftCount" type="hidden" value={draftCount} />
             <input name="idempotencyKey" type="hidden" value={idempotencyKey} />

@@ -12,7 +12,7 @@ test("player setup and playback expose accessible landmarks and diagnostics", as
     page.getByRole("main", { name: "VeyoCast player setup" })
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Koppel dit scherm aan VeyoCast" })
+    page.getByRole("heading", { name: "Geef dit scherm een verhaal." })
   ).toBeVisible();
   await expect(page.getByLabel("Pairingcode")).toContainText("VYO 482");
   await expect(page.getByLabel("Device setupstatus")).toContainText("Internet");
@@ -69,7 +69,7 @@ test("paired player without content exposes a clear ready state", async ({
   await page.goto(playerURL);
 
   await expect(page.getByRole("main", { name: "VeyoCast player gereed" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Wachten op content" })).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("online en gereed");
+  await expect(page.getByRole("heading", { name: "Dit scherm wacht op jouw verhaal." })).toBeVisible();
+  await expect(page.getByLabel("Device setupstatus")).toContainText("Gekoppeld en gereed");
   await expect(page.getByText("Kantine hoofdscherm", { exact: true })).toBeVisible();
 });

@@ -25,6 +25,20 @@ ouder dan 24 uur verwijderen. De image-, container- en volumesets moeten vóór
 en na exact gelijk zijn. Er is geen image-, system- of volumeprune, geen
 directoryverwijdering en geen toegang tot configuratiewaarden.
 
+Inspectie `39157743040` vond 98% schijfgebruik, 3.09GB vrije ruimte,
+13.5GB reclaimable buildcache en nul actieve buildprocessen. De daaropvolgende
+24h-operatie `39158022971` slaagde met gelijk gebleven image/container/volumesets,
+maar maakte slechts 24.86kB buildcache vrij en liet de schijf op 98%.
+Dit is geen herstelde capaciteit. `until` betreft laatst gebruikt; gedeelde
+imageblobs en niet geselecteerde cache kunnen het verschil mede verklaren.
+
+Na deze vastgelegde inspectie bestaat één afzonderlijke handmatige keuze:
+`prune-unused-build-cache-older-than-1h`. Zij gebruikt precies dezelfde
+socket/builder/host/concurrencychecks en `buildx prune`, uitsluitend met de
+vaste grens `until=1h`. Zij voegt geen `--all` of image/system/volumeprune toe.
+Bevestig daarna opnieuw de werkelijk vrije ruimte en de beschermde sets;
+het slagen van de workflow alleen bewijst geen voldoende capaciteit.
+
 Een mislukte of onvoldoende opruiming geeft geen toestemming om ruimere paden
 te verwijderen. Bewaar databases, uploads, signing, actieve images, benodigde
 rollback-images en `/srv/apps/veyocast/releases`. Controleer na herstel de echte
