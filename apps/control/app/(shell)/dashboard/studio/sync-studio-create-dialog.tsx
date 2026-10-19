@@ -22,7 +22,7 @@ export function SyncStudioCreateDialog({ tenantId, actorScope, canCreate, initia
   const [hydrated, setHydrated] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [legacyNonce, setLegacyNonce] = useState<string | null>(null);
   const generation = useRef(0), inflight = useRef(false);
   useEffect(() => {
-    generation.current++; setLegacyNonce(null); setError(null);
+    generation.current++; inflight.current = false; setBusy(false); setLegacyNonce(null); setError(null);
     try {
       const raw = sessionStorage.getItem(`veyocast-sync-create-v1:${tenantId}`);
       if (raw) {
@@ -52,7 +52,7 @@ export function SyncStudioCreateDialog({ tenantId, actorScope, canCreate, initia
       else if (result.href) router.push(result.href);
       else setError("Dit account heeft geen bevestigd ontvangstbewijs voor die eerdere keuze. Er is niets opnieuw uitgevoerd; de oorspronkelijke opdracht blijft bewaard. Controleer het oorspronkelijke account en de bibliotheek.");
     } catch { if (sequence === generation.current) setError("Het ontvangstbewijs kon niet worden gecontroleerd. De oorspronkelijke opdracht blijft bewaard; probeer opnieuw zodra je verbinding terug is."); }
-    finally { inflight.current = false; if (sequence === generation.current) setBusy(false); }
+    finally { if (sequence === generation.current) { inflight.current = false; setBusy(false); } }
   }
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild>{children ?? <Button disabled={!canCreate || !hydrated}><Plus size={18} strokeWidth={1.7} />Nieuw ontwerp</Button>}</DialogTrigger>

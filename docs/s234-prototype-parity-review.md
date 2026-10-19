@@ -176,3 +176,11 @@ zijn dezelfde oude receipt- en cachepreviewleesacties opnieuw geslaagd met
 19tabellen bytegelijk. De laatste echte Sourcevergelijking van Beheer en de
 RSS-foutmelding gebruikt deze gebouwde versie:0aXe,0overloop,0POSTs,60Source-
 bestanden en15tabellen bytegelijk. Dit is nog geen staging-/productieacceptatie.
+
+De onafhankelijke peer vond daarna een echt hersteldefect: scopewissel tijdens
+een oude receiptread liet busy staan en kon de kiezer blokkeren. De rode proef
+behoudt die fout. Scope-reset en een generationgebonden finally herstellen dit;
+de volledige actuele kiezercohort is8/8groen met exactoude journal en nul
+createcommands. Lint/typecheck/tests na normale mainb342integratie zijn elk
+30/30groen. De voorafgaande productiebuild-/leesbewijzen zijn afzonderlijk
+behouden; exacte gecommitteerde CI blijft de volgende releasegrens.
