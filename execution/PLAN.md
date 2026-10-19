@@ -1,3 +1,19 @@
+# S244 · Finale Sync-acceptatie en uitrol
+
+De oorspronkelijke startprompt en gekozen prototype1/Sync blijven leidend, met de latere expliciete eis om oude oranje bediening, verdwenen OnzeTrots-achtergronden en massale gestapelde containers op te ruimen. De vijf gevraagde volledige vergelijkingen zijn een eigen open gate; losse tests, vijf breedtes of identieke browserherhalingen tellen daar niet voor.
+
+1. S245–S247 na afzonderlijke proof/freeze normaal integreren; alle oorspronkelijke branches, PRs en rode resultaten bewaren.
+2. Eén actuele productiebuild met echte lokale AAL2-diensten vastleggen. Begrensde read-only cohort met werkelijk geladen editor, inner-scroll, alle36 wizardfamilies, OnzeTrots-foto/decode en landschap/portret uitvoeren. Auth-, Source-, build-, tenantdata-, historie- en Storageguards behouden; geen QA-reset of extra opgeslagen ontwerp voor screenshots.
+3. De volledige bevroren capturecohort vijfmaal onafhankelijk vergelijken. Iedere route/state/viewport, Sourcevergelijkbaarheid, afwijking, afsluiting en expliciete dekkingsgrens registreren. Werkelijke productdefecten oplossen; fixture-/timingfouten en onbekende oorzaken herkenbaar bewaren.
+4. Bewijsindex en148-scenariomapping waarheidsgetrouw afronden, dan de exacte laatste PR-versie door de bestaande software-, UI-, Player/offline- en RLS-gates laten gaan.
+5. Normaal naar main mergen, automatische staging plus verplichte pairing-/LG-recovery-smokes volgen. Uitsluitend dezelfde immutable release met bestaande workflow en normale environmentreview naar productie promoveren. Vijf healthversies en relevante gebruikersroutes controleren.
+
+De diensten en fysieke tests die de gebruiker heeft uitgesteld blijven als zodanig geregistreerd. Bestaande billing-/retentionflags, signingidentiteit, tenantautorisatie, immutable releases en offline-LKG blijven behouden. Getekende standaard-/TV-Player-internalupdates bestaan al; niet opnieuw als ontbrekende inrichting behandelen.
+
+## Historisch uitvoeringsplan S226
+
+Het oorspronkelijke plan hieronder blijft behouden; actuele vervolgstappen staan hierboven.
+
 # S226 · Sync V1 rebuild
 
 Opdracht: de aangeleverde startprompt uitvoeren, inclusief staging en productie

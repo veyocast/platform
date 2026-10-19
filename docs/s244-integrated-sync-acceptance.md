@@ -82,11 +82,17 @@ afgeschermde lokale releasebewijs.
 
 ## Open gates
 
-S237 volledige shellcontrole op een gebouwde runtime; S243 volledige
-context-/indeling-/openingstijdenflow;
-de exacte gecombineerde software-/browser-/offline-/CI-gates; de vijf volledige
-vergelijkingsronden; en normale staging-/productie-uitrol met verplichte smokes
-en versiecontrole zijn nog niet afgesloten.
+De afzonderlijke volledige gebouwde S237-shellcontrole en S243-context-/
+indeling-/openingstijdenflow zijn inmiddels gesloten. Op integratiehead
+`10a49dc957c03c68f40e7ef92c28239d8e5376c3` zijn alle13 uitgevoerde hosted
+controles groen; de IPK-inspectie is de bestaande conditionele skip.
+Dit bewijst geen latere productcommit.
+
+De eerste read-only gebouwde routecohort is door fouten in de capture gestopt
+en telt als nul volledige ronden. De definitieve samengestelde build na
+S245–S248, de begrensde actuele capture, vijf volledige vergelijkingsronden,
+exacte laatste CI en normale staging-/productie-uitrol met verplichte smokes
+en versiecontrole blijven afzonderlijke open gates.
 
 De gebruiker heeft fysieke Android/TV/LG-updates en24u-playback,
 SendGrid-accountconfiguratie, YouTube en Mollie uitgesteld. Deze grenzen

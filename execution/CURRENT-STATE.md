@@ -1,3 +1,23 @@
+# Werkstand S244 — samengestelde Sync-acceptatie
+
+Opnamemoment: 19 oktober 2026, vóór de finale gebouwde vergelijkingscohort en uitrol. De expliciete opdracht blijft: de gekozen Sync-interface afmaken en via de bestaande workflow naar staging en productie brengen.
+
+PR270 bevat de gewone integratie van S237–S243. Op exact `10a49dc957c03c68f40e7ef92c28239d8e5376c3` zijn de 13 uitgevoerde hosted controles groen; de release-IPK-inspectie is de bestaande conditionele skip. Lokale foundation:68/68, Control1658 PASS/34 bestaande conditionele SKIP en90/90 gerichte P0-browsergevallen. Gecontroleerde component-/transportbewijzen en de echte lokale AAL2-ketens houden hun afzonderlijke grenzen. Deze cijfers certificeren geen latere commit.
+
+De eerste gebouwde read-only routecohort is onvolledig gebleven door capturefouten en een te vroege controle tijdens client-editorladen. De oorspronkelijke717 PNG's,130 fouten en guards blijven bewaard; dit telt als nul volledige vergelijkingsronden. Alle162 tenanttabelsnapshots, historie en Storage bleven gelijk. De volgende cohort wacht werkelijk op de editor en bevat gerichte inner-scrollbeelden, alle36 wizardfamilies en beide formaten voor de OnzeTrots-scènes. Dekking en niet-geobserveerde toestanden worden afzonderlijk afgetekend.
+
+S245 herstelt twee werkelijk te lichte statusvoorgronden plus de ontbrekende actieve Source-markering. Dezelfde twee gevallen met Licht én opgeslagen Donker zijn groen op390/1440; alleen vaste officiële on-surface-rollen zijn gebruikt. S246 herstelt resterende oranje LED-editorbediening en geselecteerde UI-vlakken met behoud van inhoud/configuratie. S247 behandelt de apart gevonden audit- en thema-editorbediening. De finale gecombineerde build, vijf volledige vergelijkingsronden en exacte laatste CI blijven open tot hun eigen bewijs bestaat.
+
+Staging draait op dit opnamemoment `d6c7d325f46b82a56d05bea086aef2175095bf10`; productie op `3d467ba5a345674915ec45a8610ecc6ff9ef3d22`. De mislukte C3-stagingbuild bereikte geen deployment. Twee begrensde onderhoudsruns verwijderden uitsluitend ongebruikte buildcache ouder dan één uur; na de laatste run is15.768.428.544 bytes vrij en zijn alle image-, container- en volumesets gelijk. Alle vijf publieke healthroutes zijn200ok. Dit is geen nieuwe uitrol.
+
+De bestaande standaard- en Google TV-Player zijn al gesigneerd naar `internal` en `tv:internal` gepubliceerd: runs39150034846 en39150306457, versionCodes100000801 en200001501. Hun Android-producttree is gelijk aan de getoetste integratiebasis. Dit bewijst geen fysieke upgrade of Play-productietrack. Fysieke Android/TV/LG- en24u-proeven, SendGrid-accountconfiguratie, YouTube en Mollie zijn expliciet door de gebruiker uitgesteld. Eerste Control-storeinrichting blijft afzonderlijk; er was geen eerder geïnstalleerde Control-app.
+
+Alle148 scenario-IDs, bestaande bewijsstatussen,36 logische contracten en historische refs blijven behouden. De foutieve canonverwijzing is in143 productiecriteria gecorrigeerd; vijf specifieke criteria blijven letterlijk gelijk. Ontbrekende repo-/runverwijzingen zijn toegevoegd zonder scenario-PASS toe te kennen. Zie `evidence/s244-scenario-crosswalk.json`, `../docs/s244-integrated-sync-acceptance.md` en de afzonderlijke S245–S247-docs zodra normaal geïntegreerd.
+
+## Historische werkstanden
+
+De onderstaande S226-mijlpalen zijn bewaard als historische registratie. Oude woorden zoals “nog geen PR/deploy” gelden uitsluitend op hun eigen opnamemoment.
+
 # Werkstand S226
 
 PR252 is normaal gemerged als848ab297d04cf36891881d27a1da7e8456e16b04. Alle6

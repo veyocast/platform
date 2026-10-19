@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-19T05:05:52.496845+00:00",
+  "scope": "Historical software/release snapshot; not final-head acceptance or new deployment",
+  "pullRequest": {
+    "number": 270,
+    "url": "https://github.com/veyocast/platform/pull/270",
+    "headRefOid": "10a49dc957c03c68f40e7ef92c28239d8e5376c3",
+    "readAt": "2026-10-19T04:57:12.191770+00:00",
+    "counts": {
+      "SUCCESS": 13,
+      "SKIPPED": 1
+    }
+  },
+  "checks": [
+    {
+      "name": "Lint, test and build Android Player",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818956/job/117884278529"
+    },
+    {
+      "name": "Database and RLS gates",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197819000/job/117884278934"
+    },
+    {
+      "name": "Validate LG wrapper and hosted route",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197819028/job/117884278878"
+    },
+    {
+      "name": "Foundation gates",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818994/job/117884278663"
+    },
+    {
+      "name": "Chosen Sync responsive UI",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818975/job/117884278593"
+    },
+    {
+      "name": "Inspect immutable release IPK",
+      "conclusion": "SKIPPED",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197819028/job/117884637625"
+    },
+    {
+      "name": "Browser gates (control)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818994/job/117884278903"
+    },
+    {
+      "name": "Original Sites renderers (templates-and-tv)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818975/job/117884278861"
+    },
+    {
+      "name": "Browser gates (player)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818994/job/117884278793"
+    },
+    {
+      "name": "Original Sites renderers (led)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818975/job/117884278865"
+    },
+    {
+      "name": "Browser gates (marketing)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818994/job/117884278876"
+    },
+    {
+      "name": "Original Sites renderers (sportlink)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818975/job/117884278960"
+    },
+    {
+      "name": "Browser gates (cross)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818994/job/117884278808"
+    },
+    {
+      "name": "Original Sites renderers (menu-and-youtube)",
+      "conclusion": "SUCCESS",
+      "status": "COMPLETED",
+      "detailsUrl": "https://github.com/veyocast/platform/actions/runs/39197818975/job/117884278919"
+    }
+  ],
+  "softwareEvidence": {
+    "combinedFoundationTasks": 68,
+    "controlUnitPass": 1658,
+    "existingControlUnitConditionalSkips": 34,
+    "p0BrowserPass": 90,
+    "p0Retries": 0,
+    "p0Skips": 0,
+    "boundary": "Controlled component/transport and actual QA evidence have separate scope; all later product commits require exact final-head CI"
+  },
+  "cacheMaintenance": {
+    "operation": "unused BuildKit cache older than1h",
+    "route": "existing authorized TailscaleSSH helper",
+    "helperSha256": "dc5a1cce2c5ff3bcaa08c27aa89bd7ba74adfe961a1d6062d17a7e2d05cd237f",
+    "logSha256": "1fb2cf6522ac3a0e15d6f651b25169332cf38e94359923b9fd66dc4c4926e336",
+    "sessionExit": 0,
+    "events": [
+      {
+        "event": "execution_route",
+        "route": "authorized-tailscale-ssh"
+      },
+      {
+        "event": "runner_disk_scope",
+        "operation": "prune-unused-build-cache-older-than-1h",
+        "dockerRoot": "/home/deploy/.local/share/docker",
+        "activeBuildProcesses": 0
+      },
+      {
+        "event": "runner_disk",
+        "phase": "before",
+        "scope": "runner-temp",
+        "totalBytes": 160938012672,
+        "usedBytes": 146339590144,
+        "availableBytes": 7994142720,
+        "usedPercent": 95
+      },
+      {
+        "event": "runner_disk",
+        "phase": "before",
+        "scope": "docker-root",
+        "totalBytes": 160938012672,
+        "usedBytes": 146339590144,
+        "availableBytes": 7994142720,
+        "usedPercent": 95
+      },
+      {
+        "event": "runner_cache_prune",
+        "filter": "until=1h"
+      },
+      {
+        "event": "runner_disk",
+        "phase": "after",
+        "scope": "runner-temp",
+        "totalBytes": 160938012672,
+        "usedBytes": 138565304320,
+        "availableBytes": 15768428544,
+        "usedPercent": 90
+      },
+      {
+        "event": "runner_disk",
+        "phase": "after",
+        "scope": "docker-root",
+        "totalBytes": 160938012672,
+        "usedBytes": 138565304320,
+        "availableBytes": 15768428544,
+        "usedPercent": 90
+      },
+      {
+        "event": "runner_disk_complete",
+        "operation": "prune-unused-build-cache-older-than-1h",
+        "imagesUnchanged": true,
+        "containersUnchanged": true,
+        "volumesUnchanged": true
+      }
+    ]
+  },
+  "healthAfterCacheMaintenance": {
+    "at": "2026-10-19T04:59:05.490747+00:00",
+    "scope": "public health only; not a new deployment",
+    "results": [
+      {
+        "url": "https://staging-control.veyocast.nl/api/health",
+        "httpStatus": 200,
+        "body": {
+          "environment": "staging",
+          "revision": "d6c7d325f46b82a56d05bea086aef2175095bf10",
+          "service": "control",
+          "status": "ok"
+        }
+      },
+      {
+        "url": "https://staging-player.veyocast.nl/healthz",
+        "httpStatus": 200,
+        "body": {
+          "environment": "staging",
+          "revision": "d6c7d325f46b82a56d05bea086aef2175095bf10",
+          "service": "player",
+          "status": "ok"
+        }
+      },
+      {
+        "url": "https://control.veyocast.nl/api/health",
+        "httpStatus": 200,
+        "body": {
+          "environment": "production",
+          "revision": "3d467ba5a345674915ec45a8610ecc6ff9ef3d22",
+          "service": "control",
+          "status": "ok"
+        }
+      },
+      {
+        "url": "https://player.veyocast.nl/healthz",
+        "httpStatus": 200,
+        "body": {
+          "environment": "production",
+          "revision": "3d467ba5a345674915ec45a8610ecc6ff9ef3d22",
+          "service": "player",
+          "status": "ok"
+        }
+      },
+      {
+        "url": "https://veyocast.nl/api/health",
+        "httpStatus": 200,
+        "body": {
+          "environment": "production",
+          "revision": "3d467ba5a345674915ec45a8610ecc6ff9ef3d22",
+          "service": "marketing",
+          "status": "ok"
+        }
+      }
+    ]
+  },
+  "signedExistingPlayer": {
+    "standardRunUrl": "https://github.com/veyocast/platform/actions/runs/39150034846",
+    "googleTvRunUrl": "https://github.com/veyocast/platform/actions/runs/39150306457",
+    "standardVersionCode": 100000801,
+    "googleTvVersionCode": 200001501,
+    "tracks": [
+      "internal",
+      "tv:internal"
+    ],
+    "boundary": "Signed published internal builds; no Play production-track or physical upgrade claim",
+    "sourceEvidenceSha256": "85669e0f30383a413b0668ba4970f809c737fa880748fd9875ee2012caf59704"
+  },
+  "openGates": [
+    "Final S245/S246/S247 integration and actual production-build cohort",
+    "Five full visual comparison rounds",
+    "Final exact-head CI",
+    "Normal staging then same immutable production release with mandatory smokes"
+  ]
+}

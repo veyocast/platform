@@ -26,6 +26,18 @@ Sync-primary gaat boven de historische algemene Orange-regel.
 - Gewone Git-integratie van de exacte bevroren S237, S238, S239, S240, S241,
   S242 en S243 featureheads. Geen force, amend, rebase of branchverwijdering.
   Alle oorspronkelijke PRs, rode resultaten en lokale/hosted bewijzen behouden.
+- Expliciet afgebakende vervolgcorrecties S245/S246 normaal integreren na hun
+  afzonderlijke rootreview. S245 gebruikt vaste officiële on-surface-kleuren
+  voor twee werkelijk te lichte statusvoorgronden en herstelt uitsluitend de
+  ontbrekende Source-actiefmarkering. S246 vervangt uitsluitend de bewezen
+  oranje LED-editorbediening en geselecteerde UI-vlakken binnen Sync; de
+  inhoudspaletten, canvaspixels en configuratiecontracten blijven behouden.
+  Iedere correctie heeft eigen branch/worktree/PR, rood-groenbewijs en prompt.
+- De verdere concrete auditbevindingen S247/S248 volgen dezelfde aparte
+  reviewgrens. S247 raakt uitsluitend audit-/thema-editorbediening in de
+  lokale Sync-scope. S248 groepeert de bestaande extra LED-taken met native
+  disclosures en behoudt alle formulieren, permissions, keys, anchors en
+  fout-/editretouren. Geen writer of inhoudscontract wordt vervangen.
 - `TASK_LEDGER.md`, dit prompt, `docs/s244-integrated-sync-acceptance.md`,
   `execution/CURRENT-STATE.md`, `execution/PLAN.md`,
   `execution/scenario-acceptatie.csv`, `execution/opruimregister.csv`,
