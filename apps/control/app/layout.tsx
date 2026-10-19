@@ -39,6 +39,7 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html
+      data-veyocast-document-ready="1"
       data-design-system="fieldflow"
       lang="nl"
       suppressHydrationWarning
