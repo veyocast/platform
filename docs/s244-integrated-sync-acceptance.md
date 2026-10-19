@@ -310,3 +310,32 @@ geen groene gracefulclosure. Container/image/volumes en alle andere runningIDs
 zijn behouden. Dezelfde container moet na de zware builds en vóór de finale
 captures opnieuw worden gestart en onafhankelijk gecontroleerd. Er is geen
 QA-reset, databaseverwijdering of directe applicatiedeploy uitgevoerd.
+
+
+## Websitecompatibiliteit na de volledige 09d-controle
+
+S259 is na rootreview normaal geïntegreerd. De bron omvat nu negentien
+UI-featureheads en twee afzonderlijke CI-correcties. De volledige hostedCI op
+historische09d heeft13success, één Marketingfailure en één conditionele
+IPK-skip. Control en Player zijn daar groen; Marketing telt21PASS/3FAIL.
+Twee verwachtingen gebruikten de oude skiplinktekst; de nieuwe footer bleef
+bij afdrukken zichtbaar. Die originele resultaten blijven behouden.
+
+S259 past uitsluitend de retained-printscope aan, controleert de bestaande
+Source-skiplink inclusief toetsenbord-/ankerwerking en verbetert één grammaticale
+FAQ-string plus dezelfde testliteral. De drie bestaande legal-/printgevallen
+slagen, gevolgd door dezelfde twee behouden mobiele/desktoproutegevallen op
+één volledige Marketingbuild:5PASS,0retry/skip, tien aXe-metingen zonder
+meldingen. De eerdere onvolledige sparse build, readinessstops en foutieve
+nieuwe prerender-aanname blijven afzonderlijk bewaard. De uiteindelijke
+Nextcompile is0; de latere expliciete controle van hetzelfde artifact is0.
+Dat verandert de oorspronkelijke wrapperstatus1 niet.
+
+Bestaande-installcontinuïteit en gezamenlijke lint/typecheck/test elk30/30 zijn
+op09d werkelijk groen. Ze certificeren deze nieuwe bron nog niet. De nieuwe
+continuïteitscontrole, foundation, beide verse appbuilds, alle finite captures,
+vijf volledige vergelijkingen, exacte laatsteCI en gewone staging/productie
+blijven open. Nog0/5 volledige ronden; de oorspronkelijke negen Control-
+React418-fouten zijn niet afgesloten. De oude S215-analyticscontainer moet na
+de zware builds en vóór captures opnieuw worden gestart. Alle oorspronkelijke
+bewijzen en scenario-/contractstatussen blijven behouden.

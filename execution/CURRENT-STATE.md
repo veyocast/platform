@@ -1,14 +1,15 @@
 # Werkstand S244 — samengestelde Sync-acceptatie
 
-Laatste vervolgbron: S257 en S258 normaal geïntegreerd na rootreview. Achttien
-UI-featureheads plus twee afzonderlijke CI-correcties; Control/Player/deps en
-Source onveranderd vanaf1e37. S2572PASS/tien aXe0/tien rootbekeken PNG's zijn
-pre-copybewijs: twee laatste featurePage-strings wachten op de finale build.
-S258 bestaande reconnectcase1PASS/scopedlint0, overige twee cases niet lokaal
-uitgevoerd. Historische1e37foundation is30/30 per gate; exacteCI13success,
-één Playerfailure en één conditionele skip. Nieuwe broncontinuïteit, foundation,
-beide appbuilds, alle finite capturecohorten en vijf volledige vergelijkingen
-blijven open:0/5. Negen originele React418-fouten open. Oude lokale S215-
+Laatste vervolgbron: S257/S258/S259 normaal geïntegreerd na rootreview.
+Negentien UI-featureheads plus twee afzonderlijke CI-correcties. Control/Player,
+32 dependencyinputs en Source blijven gelijk vanaf1e37. Historische09d heeft
+bestaande-installcontinuïteit en lint/typecheck/test elk30/30 groen; hostedCI
+13success/1Marketingfailure/1conditioneleIPKskip, Marketing21PASS/3FAIL.
+S259 sluit de drie bestaande legal-/printgevallen plus dezelfde twee retained-
+routegevallen op één volledige Marketingbuild:5PASS,0retry/skip,tien aXe0.
+Alle oude stops/failures blijven bewaard. Nieuwe-headcontinuïteit, foundation,
+beide appbuilds, finite capturecohorten en vijf volledige vergelijkingen zijn
+nog open:0/5. Negen oorspronkelijke React418-fouten open. Oude lokale S215-
 analytics is tijdelijk gestopt (137/forced) en moet vóór captures worden hersteld.
 Geen nieuwe staging-/productieclaim. Exacte refs en grenzen staan in
 `evidence/s244-post-capture-followups.json`; oude snapshots blijven behouden.

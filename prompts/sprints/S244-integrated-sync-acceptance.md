@@ -145,3 +145,16 @@ finale captures. Laat alle oorspronkelijke negen React418-fouten open tot
 werkelijk nieuwe diagnose/afsluiting; alle57+404 publieke routes krijgen beide
 breedtes en aaneengesloten native scrollbeelden. Vijf volledige reviews blijven
 0/5 tot de complete actuele cohort daadwerkelijk is beoordeeld.
+
+
+## S259 en definitieve bronbinding
+
+Integreer de zeven gereviewde S259-paden normaal. Behoud de historische09dCI
+13success/1Marketingfailure/1conditioneleIPKskip en21PASS/3FAIL. De laatste
+volledige S259Marketingbuild sluit drie legal-/printgevallen en dezelfde twee
+retained-routegevallen zonder retries/skips; dit is geen volledige ronde.
+Bind daarna alle concrete bronrefs via de gereviewde v3-pipeline, voer verse
+bestaande-installcontinuïteit en foundation uit en bouw Control/Marketing
+achtereenvolgens. Geen herinstallatie of hergebruik van09d als nieuwe-head-PASS.
+Herstel de oude S215analytics vóór captures. Negen native Controlfouten,
+alle A/C/B/W/P-captures en vijf volledige vergelijkingen blijven expliciet open.

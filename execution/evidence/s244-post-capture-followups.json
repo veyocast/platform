@@ -219,5 +219,74 @@
     "fullReviewRoundsCompleted": 0,
     "originalNineControlHydrationErrors": "OPEN",
     "finalGates": "CONTINUITY_FOUNDATION_BUILDS_ALL_FINITE_CAPTURES_FIVE_REVIEWS_EXACT_CI_STAGING_PRODUCTION_PENDING"
+  },
+  "post09dIntegration": {
+    "at": "2026-10-19T13:19:14.802738+00:00",
+    "sourceHeadBeforeDocumentation": "7a7c4cb2c08f2248f0fe12022a4b7448d2c9c19f",
+    "featureHeadS259": "aba3e76287591e91bbf2c3e79758fc497c7d291e",
+    "ordinaryMerge": true,
+    "uiFeatureHeads": 19,
+    "separateCiCorrections": 2,
+    "historical09d": {
+      "head": "09d8431cf47f7a5e56d00d9d1cb4fdce27e06883",
+      "continuity": {
+        "path": "/dev/shm/veyocast-s244-final-head-pipeline-bound-e53caee1-3bff-4191-b7dc-253f0bfabde0/continuity/validation-1e9b3568-4049-4138-950b-eec33360007e/closed.json",
+        "sha256": "fe1f856d2c23cb67bbb306058d629e65f167b0d0cbcec02ee0c04d50bc8e0d1d"
+      },
+      "foundation": {
+        "path": "/dev/shm/veyocast-s244-final-foundation-375db012-ceda-4520-9486-6dd4bebdf8e5/closed.json",
+        "sha256": "87e479ee8012b3efd36b57843e68c4ae500262401722f4be450d49885c85dd7d"
+      },
+      "hostedSuccess": 13,
+      "hostedMarketingFailure": 1,
+      "conditionalIpkSkip": 1,
+      "marketingCases": {
+        "pass": 21,
+        "fail": 3
+      },
+      "certifiesNewHead": false,
+      "bothBuildsHeldBeforeActors": true
+    },
+    "s259": {
+      "finalReport": {
+        "path": "/dev/shm/veyocast-s259-retained-marketing-print-20066813-84a3-4a2f-b486-35e119df8b58/final-report-v1.json",
+        "sha256": "18b7f1af95b766ada4b03b960a43e45a0b251be7bfb11f58406cddf23f46948d"
+      },
+      "browser": {
+        "path": "/dev/shm/veyocast-s259-browser-e4a4cfaa-2c4b-4502-8f77-8ab3093a245f/closed.json",
+        "sha256": "b0cf831e249cb823a7480131c6c2fcc3e08fb9008091a1e39657d978b62df9f6"
+      },
+      "buildCompletion": {
+        "path": "/dev/shm/veyocast-s259-retained-marketing-print-20066813-84a3-4a2f-b486-35e119df8b58/completed-build-validation-v2/closed.json",
+        "sha256": "5bad92437d1d0ef13798842224b6041966f8e9912e6d26164b99c1151a38aa58"
+      },
+      "actualBuildId": "nbDVvmSw2Tch7yoe1P_RS",
+      "compileActualExit": 0,
+      "originalWrapperActualExit": 1,
+      "sameArtifactCompletionActualExit": 0,
+      "legalPrintPass": 3,
+      "retainedPass": 2,
+      "retries": 0,
+      "skips": 0,
+      "axeZeroChecks": 10,
+      "allPreviousFailuresPreserved": true,
+      "newRootAcceptancePending": true
+    },
+    "protectedTrees": {
+      "apps/control": "674f04d58a23dc02be79afbc95a24b18b515d1c3",
+      "apps/player": "6597726438d6b60607080a2744bef18fe78c4a8f",
+      "packages/tokens": "a1c110b59281084beef3c1186912344b2e1ddd20",
+      "supabase": "c798289068d6dd3e97afcc0761961a810954fc6f",
+      ".github/workflows": "3f644c64bdb1bb021f4d7d5ef9d0acc2beec945d",
+      "assets/brand": "833bd5796e15eb347efb0a1b37f9fde866ff83b4",
+      "docs/sync-v1-rebuild/handoff/reference/sites-sync": "6343eacbd1899978fe31d6e6041fb356c1e08c42"
+    },
+    "oldS215AnalyticsRestoreBeforeCaptures": "PENDING_REQUIRED",
+    "fullWholeReviewRoundsCompleted": 0,
+    "originalNineControlHydrationErrors": "OPEN",
+    "allHistoricalProofsPreserved": true,
+    "noQaReset": true,
+    "all148IdsStatusesAnd36ContractsPreserved": true,
+    "finalGates": "NEW_CONTINUITY_FOUNDATION_BUILDS_ALL_FINITE_CAPTURES_FIVE_REVIEWS_EXACT_CI_STAGING_PRODUCTION_PENDING"
   }
 }
