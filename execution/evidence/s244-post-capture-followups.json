@@ -288,5 +288,67 @@
     "noQaReset": true,
     "all148IdsStatusesAnd36ContractsPreserved": true,
     "finalGates": "NEW_CONTINUITY_FOUNDATION_BUILDS_ALL_FINITE_CAPTURES_FIVE_REVIEWS_EXACT_CI_STAGING_PRODUCTION_PENDING"
+  },
+  "postFcdS260AndContractAudit": {
+    "at": "2026-10-19T13:55:53.848940+00:00",
+    "sourceHeadBeforeDocumentation": "2221de12eab27196e0a7ab7a5ea964a8fe068fc6",
+    "S260": "e9d2758c4b670a9fb1c1c53045b6a1bf93088a71",
+    "ordinaryMerge": true,
+    "uiFeatureHeads": 20,
+    "separateCiCorrections": 2,
+    "historicalFcd": {
+      "head": "fcd23d72ecbc822a69f7e4c2654b1355dedf8a28",
+      "continuity": {
+        "path": "/dev/shm/veyocast-s244-final-head-pipeline-bound-v3-5740a015-1859-466b-9d1c-55af1a5dfe09/continuity/validation-8c383a98-71c9-46a7-afae-13cd6c033e7a/closed.json",
+        "sha256": "73e6f51d141a4d79e57ab2cc09ee0571ced7045555b6e662a91947c7b0f38b40"
+      },
+      "foundation": {
+        "path": "/dev/shm/veyocast-s244-final-foundation-64e1b95a-435e-48b2-bf0f-b6c009de65d4/closed.json",
+        "sha256": "3ddbffdc2042225484c4ef9512367018f93a64f3e413540d9ba806494dd96d0e"
+      },
+      "bothBuildsHeldBeforeBindingOrActor": true,
+      "certifiesNewSource": false
+    },
+    "s260": {
+      "finalReport": {
+        "path": "/dev/shm/veyocast-s260-sync-sheet-scope/final-glyph-report.json",
+        "sha256": "a3f8cbbe2e2dfcc98872226d71a26211df2a9394a9824e700724a65c017e065c"
+      },
+      "closure": {
+        "path": "/dev/shm/veyocast-s260-sync-sheet-scope/native-22cdd466-4d92-433e-a21b-6344c7fd22ce/closed.json",
+        "sha256": "7e50fcf51eb9c45a4fcadbe3e73863f0b64fe5c8b584d44f7fc7ecabf2ea389f"
+      },
+      "pass": 2,
+      "retry": 0,
+      "skip": 0,
+      "axeZero": 2,
+      "lintExit": 0,
+      "rootLatestNativePngsViewed": 2,
+      "glyphPx": [
+        20,
+        20
+      ],
+      "touchTargetPx": [
+        48,
+        48
+      ],
+      "nativeCloseAndFocus": true,
+      "allPreviousFailuresAndPreGlyphProofsPreserved": true
+    },
+    "sharedUiTrees": {
+      "before": "6f0f385843bafe980127e491a1a29946ba7f64c5",
+      "after": "f3860c06df326fefb1d8df74670d37433075c8c5"
+    },
+    "newRequiredFunctionalGaps": {
+      "S261": "V1canon7/menu.price_update: centraldiff impact frozenpriceversion explicitcandidates; preserveactiveimmutableprices and otherlivefacts",
+      "S262": "V1canon10/engage.results:2–24options,readablepagedSyncpresentations+legacybinaryduration/privacy"
+    },
+    "schemaOwnership": "S262_FIRST_THEN_S261_NO_CONCURRENT_MIGRATION_WRITERS",
+    "currentQaResetOrForward": "NOT_PERFORMED",
+    "all148IdsStatusesAnd36ContractsUnchanged": true,
+    "originalNineControlHydrationErrors": "OPEN",
+    "fullVisualReviewRounds": 0,
+    "newBuildCaptureCiDeployment": "PENDING_AFTER_REQUIRED_FUNCTIONAL_CORRECTIONS",
+    "oldS215AnalyticsRestorationBeforeFinalCaptures": "REQUIRED_PENDING"
   }
 }

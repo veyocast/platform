@@ -339,3 +339,36 @@ blijven open. Nog0/5 volledige ronden; de oorspronkelijke negen Control-
 React418-fouten zijn niet afgesloten. De oude S215-analyticscontainer moet na
 de zware builds en vóór captures opnieuw worden gestart. Alle oorspronkelijke
 bewijzen en scenario-/contractstatussen blijven behouden.
+
+
+## Geopende zijpanelen en aanvullende contractcontrole
+
+S260 is normaal geïntegreerd vanaf e9d2758c4b670a9fb1c1c53045b6a1bf93088a71
+(PR285). Sheet gebruikt dezelfde bestaande portalcontext als Dialog; buiten de
+provider blijft de bodyfallback bestaan. Het gedeelde hookexport is additief
+via het bestaande barrel; er is geen index-, CSS-, dependency- of writerwijziging.
+De echte oude oranje vinkjes/radio’s zijn op390/1440 rood bevestigd. De laatste
+twee componentgevallen zijn groen,0retry/skip, twee aXe0 en scopedlint0.
+Kolommen/compactheid blijven na reload bewaard; Escape, sluitklik en focusherstel
+werken. Root zag tijdens beeldreview een te klein tekstsluitteken; het bestaande
+Dialog-SVG geeft nu20px en een bewezen48px klikvlak. De laatste beide native
+beelden zijn bekeken. Eerdere fixturefont-/animatiemetingfailures en het eerdere
+pre-glyph2PASS blijven afzonderlijk bewaard. Dit telt als0 volledige ronde.
+
+Historische fcd23d72-continuïteit en foundation zijn werkelijk groen, elk30/30
+voor lint/typecheck/test. Beide builds zijn vóór binding/actor aangehouden:
+deze resultaten certificeren de nieuwe gedeelde UI niet.
+
+De aanvullende broncontrole van alle148 scenario’s vond twee concrete open
+productcontracten uit V1-REBUILD-CANON: centrale gecontroleerde prijsovername
+met diff/impact/bevroren prijsversie/expliciete kandidaten (menu.price_update)
+en leesbare Sync-Interactie-uitvoer voor13–24 opties. Menu Studio heeft al een
+expliciete save/publish-controle, maar de centrale CTA linkt alleen door en de
+Source-liveketen laat catalogusprijzen automatisch doorwerken. Dat moet met
+behoud van andere dynamische feiten en actieve immutable releases worden
+begrensd. Interactie ondersteunt24 campagneopties; de Sync-grenzen staan nog
+op12. S261/S262 onderzoeken/herstellen deze concrete grenzen; geen generieke
+livecachewijziging of truncatie geldt als oplossing. Oude scenario-ID’s/statussen
+blijven behouden. Finale bronbinding, foundation/builds en captures wachten op
+deze correcties. Nog0/5 volledige vergelijkingen; negen oorspronkelijke
+React418-fouten, exacte finaleCI en staging/productie blijven open.

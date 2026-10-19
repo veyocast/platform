@@ -158,3 +158,18 @@ bestaande-installcontinuïteit en foundation uit en bouw Control/Marketing
 achtereenvolgens. Geen herinstallatie of hergebruik van09d als nieuwe-head-PASS.
 Herstel de oude S215analytics vóór captures. Negen native Controlfouten,
 alle A/C/B/W/P-captures en vijf volledige vergelijkingen blijven expliciet open.
+
+
+## S260 en resterende functionele V1-grenzen
+
+Integreer S260 normaal: twee gedeelde UIcomponenten, eigen native2case spec en
+docs/ledger, exactzes paden. Behoud origineel rood, fixture-/meetfailures,
+pre-glyph2PASS en laatste2PASS7e50fcf5 afzonderlijk. Root bekeek de laatste
+390/1440-beelden en het leesbare20px/48px sluiticoon. Geen volledige ronde.
+Sluit vóór de finale bronfreeze ook menu.price_update (V1-canon§7) en24opties
+bij Sync-Interactie (§10) met echte diff/kandidaten/prijsfreeze respectievelijk
+leesbare paginering en legacy-binarycompatibiliteit. S261/S262 krijgen eigen
+ownership; supabase/migrations heeft één schrijver tegelijk, S262 eerst.
+Geen currentQA57621/57622-reset/forward zonder beoordeelde isolatedRLSproof;
+behoud bestaande rijen/historie. Bouw/capture pas op de nieuwe geïntegreerde
+bron. Oude pipelineV4 en fcd-actuals blijven bevroren historisch bewijs.

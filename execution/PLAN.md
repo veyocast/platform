@@ -1,14 +1,15 @@
 # S244 · Finale Sync-acceptatie en uitrol
 
-Actuele aanvulling: S257/S258/S259 zijn normaal opgenomen. Bind de bestaande
-normale installatie aan de definitieve head met pipelinev3; voer verse
-foundation uit en bouw Control/Marketing serieel. Historische09dcontinuïteit/
-foundation zijn groen; CI13success/1Marketingfailure/1skip. S259corrigeert de
-drie websitegevallen,5gerichtePASS/tien aXe0, geen volledige ronde. Herstel de
-oude S215analytics vóór captures. Sluit A/C/B/alleBron-Inhoud/connected/57+404
-public/auth met volledige native scrollbeelden; daarna vijf volledige reviews,
-exacte laatsteCI en normale staging/productie. Nog0/5; negen oorspronkelijke
-React418-fouten open. Alle historische bewijzen blijven behouden.
+Actuele aanvulling: S260 is normaal opgenomen; laatste2nativecases/aXe/lint
+zijn groen, geen volledige ronde. Sluit eerst de aangetoonde V1-prijsgrens
+(S261: diff/impact/bevroren prijsversie/expliciete kandidaten) en24opties bij
+Sync-Interactie (S262: leesbare pagina’s/legacybinaryduur/privacy). Eén SQL-
+schrijver tegelijk, S262 eerst; huidigeQA57621/57622 niet resetten. Daarna
+één finale bronbinding/continuïteit/foundation/Control-/Marketingbuild met
+beoordeelde nieuwe source- en schemacontracten, oude S215analytics herstellen,
+A/C/B/alleBron-Inhoud/connected/57+404public/auth capturen en vijf volledige
+vergelijkingen uitvoeren. Nog0/5; negen oorspronkelijke React418 open. Normale
+exacteCI/staging/productie sluiten pas daarna. Alle oude bewijzen blijven.
 
 De oorspronkelijke startprompt en gekozen prototype1/Sync blijven leidend, met de latere expliciete eis om oude oranje bediening, verdwenen OnzeTrots-achtergronden en massale gestapelde containers op te ruimen. De vijf gevraagde volledige vergelijkingen zijn een eigen open gate; losse tests, vijf breedtes of identieke browserherhalingen tellen daar niet voor.
 

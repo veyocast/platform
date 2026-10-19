@@ -1,18 +1,17 @@
 # Werkstand S244 — samengestelde Sync-acceptatie
 
-Laatste vervolgbron: S257/S258/S259 normaal geïntegreerd na rootreview.
-Negentien UI-featureheads plus twee afzonderlijke CI-correcties. Control/Player,
-32 dependencyinputs en Source blijven gelijk vanaf1e37. Historische09d heeft
-bestaande-installcontinuïteit en lint/typecheck/test elk30/30 groen; hostedCI
-13success/1Marketingfailure/1conditioneleIPKskip, Marketing21PASS/3FAIL.
-S259 sluit de drie bestaande legal-/printgevallen plus dezelfde twee retained-
-routegevallen op één volledige Marketingbuild:5PASS,0retry/skip,tien aXe0.
-Alle oude stops/failures blijven bewaard. Nieuwe-headcontinuïteit, foundation,
-beide appbuilds, finite capturecohorten en vijf volledige vergelijkingen zijn
-nog open:0/5. Negen oorspronkelijke React418-fouten open. Oude lokale S215-
-analytics is tijdelijk gestopt (137/forced) en moet vóór captures worden hersteld.
-Geen nieuwe staging-/productieclaim. Exacte refs en grenzen staan in
-`evidence/s244-post-capture-followups.json`; oude snapshots blijven behouden.
+Laatste vervolgbron: S260 normaal geïntegreerd na echte nativevoor/naproef en
+rootbeeldreview. Twintig UI-featureheads en twee afzonderlijke CI-correcties;
+twee verdere V1-functionaliteiten zijn aantoonbaar open: centrale prijsdiff/
+bevroren prijzen/expliciete kandidaten (S261) en leesbare Sync-Interactie voor
+13–24 opties met behoud van legacyduur (S262). Geen volledige bronfreeze/build
+zolang deze contracten open zijn. Historische fcdcontinuïteit/foundation zijn
+werkelijk groen, elk30/30 per gate; beide builds tijdig vóór actor aangehouden.
+S260 laatste2PASS/twee aXe0/lint0, glyph20px/target48px en echte focus/prefs;
+alle oude failures/pre-glyphproofs blijven. Nog0/5 volledige vergelijkingen,
+negen oorspronkelijke React418 open, geen nieuwe staging/productie. Oude S215-
+analytics moet na zware builds en vóór captures worden hersteld. Exacte refs
+staan in `evidence/s244-post-capture-followups.json`; oude snapshots behouden.
 
 De onderstaande werkstanden zijn historische opnamen.
 
