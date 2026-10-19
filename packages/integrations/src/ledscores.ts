@@ -10,6 +10,12 @@ export const LED_SCORES_DEFAULT_TIMEOUT_MS = 6_000;
 const clubSlugPattern = /^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/;
 const dateValue = z.string().datetime({ offset: true });
 const teamId = z.union([z.number().int().nonnegative(), z.string().min(1).max(120)]);
+// Team references observed on the existing feed carry a bounded label, but
+// mapping and event identity still consume only the original validated ID.
+const teamReference = z.union([
+  teamId,
+  z.object({ id: teamId, name: z.string().min(1).max(200) }).strip()
+]);
 const playerNumber = z.union([
   z.number().int().nonnegative(),
   z.string().max(40)
@@ -74,7 +80,7 @@ const scoresMessageSchema = z.object({
       home: z.array(scorerSchema.nullable()).max(1_000).optional()
     }).passthrough().optional(),
     startedAt: dateValue.nullable().optional(),
-    teams: z.object({ away: teamId, home: teamId }).strip(),
+    teams: z.object({ away: teamReference, home: teamReference }).strip(),
     time: z.number().finite().nonnegative().optional(),
     updateId: z.union([z.string().min(1).max(200), z.number().int()]).optional(),
     updatedAt: dateValue
@@ -343,6 +349,10 @@ export function normalizeLedScoresTeamKey(value: string) {
   return value.trim().toLowerCase();
 }
 
+function normalizeLedScoresTeamReference(value: z.infer<typeof teamReference>) {
+  return normalizeLedScoresTeamKey(String(typeof value === "object" ? value.id : value));
+}
+
 export function parseLedScoresMessage(raw: string | ArrayBuffer | Uint8Array) {
   const bytes = typeof raw === "string"
     ? new TextEncoder().encode(raw)
@@ -391,13 +401,13 @@ export function parseLedScoresMessage(raw: string | ArrayBuffer | Uint8Array) {
   const startedAt = message.startedAt ?? null;
   return {
     awayScore: message.scoreboard.away,
-    awayTeamId: normalizeLedScoresTeamKey(String(message.teams.away)),
+    awayTeamId: normalizeLedScoresTeamReference(message.teams.away),
     displayTeam: message.displayTeam === "away" || message.displayTeam === "home"
       ? message.displayTeam
       : null,
     endedAt,
     homeScore: message.scoreboard.home,
-    homeTeamId: normalizeLedScoresTeamKey(String(message.teams.home)),
+    homeTeamId: normalizeLedScoresTeamReference(message.teams.home),
     lineupPlayers: {
       away: normalizeLineupSide(message.lineup?.away),
       home: normalizeLineupSide(message.lineup?.home)
