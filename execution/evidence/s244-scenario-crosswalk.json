@@ -1,12 +1,12 @@
 {
   "scope": "Reference registration only; no scenario status promotion",
   "baselineCsvSha256": "9e10b89eee74f17d787ebe30e980c515cf88899d9196b50b1441a8e6567f5cc8",
-  "updatedCsvSha256": "a1a0c796b199b0bac32b4332c26010c8b84bf755ab06c6b7183ccbddf44debab",
+  "updatedCsvSha256": "b7c7b7596a84b02e9c67a4354752d0d70c9f98cfbc4efc403722ef28f497b5c2",
   "scenarioCount": 148,
   "uniqueIds": 148,
   "statusChanges": 0,
   "criterionPathCorrections": 143,
-  "appendedReferences": 489,
+  "appendedReferences": 518,
   "allHistoricalReferencesPreserved": true,
   "logicCsvSha256": "f927c5fe01ef0acf2f30ec9a86190140c7c8f01e57dc1feb0c9e33db1aeae4f4",
   "basis": "PR270 10a49 has13SUCCESS/1conditionalIPKskip; S245 onward need final-head acceptance",
@@ -32,7 +32,14 @@
         "tests/e2e/marketing-sync-setup-compatibility.spec.ts",
         "docs/s244-integrated-sync-acceptance.md",
         "docs/s245-sync-status-contrast.md",
-        "tests/control/sync-status-contrast.spec.ts"
+        "tests/control/sync-status-contrast.spec.ts",
+        "docs/s246-sync-led-preview-controls.md",
+        "tests/control/sync-led-controls.spec.ts",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
       ]
     },
     {
@@ -87,7 +94,10 @@
         "tests/control/sync-screen-layout-hours.spec.ts",
         "tests/control/sync-source-geometry-comparison.spec.ts",
         "tests/control/sync-sponsor-workspace.spec.ts",
-        "docs/s244-integrated-sync-acceptance.md"
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
       ]
     },
     {
@@ -106,7 +116,12 @@
         "tests/control/sync-source-geometry-comparison.spec.ts",
         "docs/s244-integrated-sync-acceptance.md",
         "docs/s245-sync-status-contrast.md",
-        "tests/control/sync-status-contrast.spec.ts"
+        "tests/control/sync-status-contrast.spec.ts",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
       ]
     },
     {
@@ -228,7 +243,10 @@
         "tests/control/sync-create-wizard.spec.ts",
         "tests/control/sync-retained-studio-surfaces.spec.ts",
         "tests/player/sync-background-gallery.spec.ts",
-        "docs/s244-integrated-sync-acceptance.md"
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
       ]
     },
     {
@@ -931,7 +949,12 @@
         "docs/s234-prototype-parity-review.md",
         "tests/control/sync-create-wizard.spec.ts",
         "tests/control/sync-source-geometry-comparison.spec.ts",
-        "docs/s244-integrated-sync-acceptance.md"
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s246-sync-led-preview-controls.md",
+        "tests/control/sync-led-controls.spec.ts",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
       ]
     },
     {
@@ -995,7 +1018,10 @@
         "tests/control/sync-background-picker.spec.ts",
         "tests/control/sync-create-wizard.spec.ts",
         "tests/player/sync-background-gallery.spec.ts",
-        "docs/s244-integrated-sync-acceptance.md"
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
       ]
     },
     {
@@ -1005,7 +1031,10 @@
         "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
         "docs/s235-source-theme-creation-defaults.md",
         "tests/control/sync-create-wizard.spec.ts",
-        "docs/s244-integrated-sync-acceptance.md"
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
       ]
     },
     {
@@ -1341,5 +1370,16 @@
       "bewijsstatus": "PARTIAL: neutrale expiry/grace/hardstop met behouden content, clockrollback/monotone signed revisies unitgetest; SQL override/kill-switch beschermd",
       "addedReferences": []
     }
+  ],
+  "initialRegistrationCsvSha256": "a1a0c796b199b0bac32b4332c26010c8b84bf755ab06c6b7183ccbddf44debab",
+  "auditCorrectionsReferencePassAt": "2026-10-19T05:42:11.003496+00:00",
+  "auditCorrectionScenarioIds": [
+    "experience.parity",
+    "experience.states",
+    "experience.permissions",
+    "studio.design",
+    "led.design",
+    "themes.brand",
+    "themes.precedence"
   ]
 }

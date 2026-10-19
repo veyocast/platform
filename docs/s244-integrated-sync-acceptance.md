@@ -122,3 +122,45 @@ en390 meten: de opgeslagen desktopcapture toont een afwijkende accentmarkering
 terwijl de Vormgevingbody en aria-pressed correct leken. Oorzaak en eventueel
 herstel zijn nog niet bewezen. De statuslabels worden met werkelijke
 populatie gecontroleerd; lege oude fixtures bewijzen hun contrast niet.
+
+## Bevroren kandidaat na de concrete diepe audit
+
+S245, S246, S247 en S248 zijn na afzonderlijke rootreview normaal geïntegreerd.
+De featurecommits zijn respectievelijk `dbc5e31f`, `9637ad66`, `2ea7341e` en
+`6498cbd2` (PR271–274). Alleen ledgerconflicten zijn opgelost met behoud van
+beide taakregels; er waren geen nieuwe productconflicten. De zestien finale
+bestandhashes en vier feature-ancestors zijn opnieuw gecontroleerd. De
+Control-applicatietree is `04f1f17b62f02db77e62048f2707fe31ed9f6add`.
+
+De gerichte laatste browsercohorten tellen2/2/2/4 gevallen, zonder retries of
+skips. Ze houden hun component-/presentatiegrens; het zijn geen tien echte
+AAL2-writejourneys. S245 behandelt de twee vaste statusvoorgronden en actieve
+markering. S246 sluit de aantoonbare oranje LED-editorbediening en nummers,
+met behoud van bedoelde inhoudskleuren. S247 herstelt audit-/thema-controls,
+14px/44px en de neutrale accountstatus in opgeslagen Donker (12,850936:1).
+Succes-/foutsemantiek blijft behouden; de historische rasterafwijking en
+CSS-serialisatiegrens zijn expliciet bewaard.
+
+S248 houdt alle oorspronkelijke vier forms, zestien permissionexpressies,
+zes section-IDs, editor-keys en GoalOverlay-knop. Vier native disclosures
+bewaren drafts en openen via edit/hash, dezelfde hash, nieuwe Next-serverprops
+en fout-/succesreturn. De geïsoleerde paginameting daalt van11326→2200px mobiel
+en6094→1464px desktop. De echte mobiele editkolom is390/390client/scrollWidth;
+een lokale wrappercorrectie laat de oorspronkelijke nowraptitel afbreken.
+De volledige S248-foundation is gesloten: lint/typecheck/test elk30/30;
+Control1658PASS/34 bestaande conditioneleSKIP.
+
+Twee eigen afgesloten S244-Webpackcaches zijn daarna verwijderd om geheugen
+voor de finale build vrij te maken:1.668.123.723 bytes. Alle BUILD_ID-,
+server-, static- en standalonebestanden zijn voor/na bytegelijk. De eerste
+procesguard stopte vóór enige mutatie op een onleesbaar unrelated proc-pad;
+de vervolgcontrole gebruikt dezelfde OSErrorgrens als de bestaande buildhelper.
+Alle bron-, uitvoer- en eerdere acceptatiebewijzen blijven behouden.
+
+Dit is de bevroren bronregistratie vóór de nieuwe daadwerkelijke productiebuild,
+read-only routecohort en vijf volledige vergelijkingsronden. De actuele
+acceptatie-, CI- en uitrolreadbacks worden op
+[PR270](https://github.com/veyocast/platform/pull/270) bijgehouden, met exacte
+head/build, capture- en reviewhashes en dekkingsgrenzen. Open gates op deze
+snapshot worden pas met hun eigen nieuwe bewijs gesloten. Zie ook
+`execution/evidence/s244-audit-corrections.json`; geen algemene pixel-/V1-claim.
