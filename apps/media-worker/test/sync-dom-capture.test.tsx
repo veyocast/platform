@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { syncSlidePresentationSchema } from "@veyocast/contracts";
+import { syncSlidePresentationSchema, syncBackgroundScenes } from "@veyocast/contracts";
+import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import sharp from "sharp";
 import {
   buildSyncCaptureHtml,
@@ -27,6 +30,18 @@ function input() {
   });
 }
 describe("Sync capture policy", () => {
+  it("renders each selected photograph as the actual two-page Source background in both orientations", () => {
+    for (const scene of syncBackgroundScenes) for (const orientation of ["landscape", "portrait"] as const) {
+      const asset = scene[orientation], presentation = { ...input(), orientation, style: { ...input().style, background: "photo" as const, backgroundPosition: "right" as const, backgroundAsset: { kind: "system" as const, path: asset.path, checksumSha256: asset.sha256 } } };
+      for (const page of [0, 1]) {
+        const html = buildSyncCaptureHtml(presentation, {}, page);
+        expect(html).toContain(asset.path); expect(html).toContain("background-position:right");
+        expect(html).toContain("linear-gradient(90deg,rgba(6,19,45,.92),rgba(6,19,45,.3))");
+        expect(html).toContain(page ? "Club A 5" : "Club A 1");
+        expect(html).toContain("connect-src 'none'");
+      }
+    }
+  });
   it("keeps Source markup, authored text escaping and a network-denying CSP", () => {
     const html = buildSyncCaptureHtml({
       ...input(),
@@ -80,6 +95,31 @@ describe("Sync capture policy", () => {
 describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))(
   "actual Sync Chromium capture",
   () => {
+    for (const orientation of ["landscape", "portrait"] as const) for (const scene of syncBackgroundScenes) {
+      it(`${scene.label} ${orientation}: captures the real approved photograph on every full binary page`, async () => {
+        const asset = scene[orientation], base = input();
+        const presentation = { ...base, orientation, style: { ...base.style, background: "photo" as const, backgroundPosition: "right" as const, backgroundAsset: { kind: "system" as const, path: asset.path, checksumSha256: asset.sha256 } } };
+        const capture = await createSyncSlideCapture({ presentation, durationMs: 6000, executablePath: process.env.SITES_CAPTURE_TEST_CHROMIUM! });
+        const baseline = await createSyncSlideCapture({ presentation: { ...base, orientation }, durationMs: 6000, executablePath: process.env.SITES_CAPTURE_TEST_CHROMIUM! });
+        try {
+          const first = await capture.renderPng(400), last = await capture.renderPng(5999);
+          expect(await sharp(first).metadata()).toMatchObject({ width: orientation === "landscape" ? 1920 : 1080, height: orientation === "landscape" ? 1080 : 1920 });
+          expect(first).not.toEqual(last); expect(first).not.toEqual(await baseline.renderPng(400)); expect(last).not.toEqual(await baseline.renderPng(5999));
+          expect(await capture.renderPng(5999)).toEqual(last);
+          const crop = { left: orientation === "landscape" ? 1780 : 940, top: 10, width: 40, height: 40 };
+          expect(await sharp(first).extract(crop).raw().toBuffer()).toEqual(await sharp(last).extract(crop).raw().toBuffer());
+        } finally { await capture.close(); await baseline.close(); }
+      }, 45000);
+    }
+    it.each(["missing", "changed"])("refuses a %s gallery image before a binary can complete", async fault => {
+      const directory = await mkdtemp(join(tmpdir(), "s238-capture-")), asset = syncBackgroundScenes[0].landscape, base = input();
+      await symlink(resolve("../player/public/assets"), join(directory, "assets"));
+      await mkdir(join(directory, "onzetrots/website-brush"), { recursive: true });
+      if (fault === "changed") await writeFile(join(directory, asset.path), Buffer.alloc(asset.bytes, 1));
+      const capture = await createSyncSlideCapture({ presentation: { ...base, style: { ...base.style, background: "photo", backgroundAsset: { kind: "system", path: asset.path, checksumSha256: asset.sha256 } } }, durationMs: 6000, publicDirectory: directory, executablePath: process.env.SITES_CAPTURE_TEST_CHROMIUM! });
+      try { await expect(capture.renderPng(400)).rejects.toMatchObject({ code: "studio_sites_capture_failed" }); }
+      finally { await capture.close(); await rm(directory, { recursive: true, force: true }); }
+    }, 45000);
     it('captures the actual selected transition and settles to the unchanged full Source page',async()=>{
       const base=input(),still=await createSyncSlideCapture({presentation:base,durationMs:6000,executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!}),animated=await createSyncSlideCapture({presentation:{...base,style:{...base.style,motion:'dynamisch'}},durationMs:6000,executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!});
       try{

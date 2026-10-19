@@ -1,5 +1,5 @@
 import {beforeEach,expect,it,vi} from 'vitest';
-import {syncSlidePresentationSchema} from '@veyocast/contracts';
+import {syncSlidePresentationSchema,syncBackgroundAssets} from '@veyocast/contracts';
 import {getCacheableAssets} from './player-cache';
 const state=vi.hoisted(()=>({tables:[]as string[],configuration:null as unknown,rendered:null as unknown,live:null as unknown,binary:[]as unknown[]}));
 const releaseId='10000000-0000-4000-8000-000000000227',tenantId='20000000-0000-4000-8000-000000000227',snapshotId='30000000-0000-4000-8000-000000000227';
@@ -73,4 +73,28 @@ it('accepts fenced refresh filenames and rejects a poster from a different attem
  state.binary=[value];expect((await loadPlayerReleaseEnvelope({...input,syncDynamicMode:'binary'})).manifest.items[0]!.source.checksumSha256).toBe('e'.repeat(64));
  value.artifact.poster.storagePath=value.artifact.poster.storagePath.replace(lease,'80000000-0000-4000-8000-000000000228-');
  await expect(loadPlayerReleaseEnvelope({...input,syncDynamicMode:'binary'})).rejects.toThrow('SYNC_DYNAMIC_BINARY_INVALID');
+});
+
+
+function addApprovedScene() {
+ const cfg = state.configuration as { seed: ReturnType<typeof syncSlidePresentationSchema.parse> }, asset = syncBackgroundAssets[0]!;
+ cfg.seed.style = { ...cfg.seed.style, background: 'photo', backgroundAsset: { kind: 'system', path: asset.path, checksumSha256: asset.sha256 } };
+ const rendered = state.rendered as { presentation: ReturnType<typeof syncSlidePresentationSchema.parse> };
+ rendered.presentation.style = structuredClone(cfg.seed.style);
+ return asset;
+}
+it('only negotiates selected scene assets with the explicit backgrounds capability',async()=>{
+ const asset=addApprovedScene();
+ const old=await loadPlayerReleaseEnvelope({...input,syncDynamicMode:'dom'});
+ expect(old.manifest.items[0]!.syncDynamic).toBeUndefined();expect(old.manifest.items[0]!.syncDynamicBinary).toBeDefined();expect(old.manifest.syncSystemAssets).toBeUndefined();expect(getCacheableAssets(old.manifest)).toHaveLength(1);
+ const fresh=await loadPlayerReleaseEnvelope({...input,syncDynamicMode:'dom',enableSyncBackgrounds:true});
+ expect(fresh.manifest.syncSystemAssets).toHaveLength(12);expect(fresh.manifest.syncSystemAssets!.at(-1)?.checksumSha256).toBe(asset.sha256);expect(fresh.manifest.items[0]!.syncDynamic?.presentation.style.backgroundAsset).toEqual((state.configuration as {seed:{style:{backgroundAsset:unknown}}}).seed.style.backgroundAsset);expect(fresh.manifest.items[0]!.syncDynamicBinary).toBeUndefined();expect(getCacheableAssets(fresh.manifest)).toHaveLength(13);
+ expect(fresh.manifest.items[0]!.source).toEqual(old.manifest.items[0]!.source);
+});
+it('keeps frozen scene selection during real canonical live-data projection and gives older clients the complete fresh binary',async()=>{
+ addApprovedScene();const original=await loadPlayerReleaseEnvelope({...input,syncDynamicMode:'dom',enableSyncBackgrounds:true});
+ state.live={snapshot_id:snapshotId,content_hash:'e'.repeat(64),data_revision:2,data_json:{type:'menu',syncConfiguration:state.configuration,menu:{products:[{id:'actual-product',name:'Actuele prijs',category:'Eigen kaart',priceMinor:495}]}}};
+ const fresh=await loadPlayerReleaseEnvelope({...input,syncDynamicMode:'dom',enableSyncBackgrounds:true});
+ expect(fresh.manifest.items[0]!.syncDynamic?.presentation.rows[0]?.[0]).toBe('Actuele prijs');expect(fresh.manifest.items[0]!.syncDynamic?.presentation.style).toEqual(original.manifest.items[0]!.syncDynamic!.presentation.style);expect(fresh.manifest.items[0]!.syncDynamic?.dataRevision).toBe(2);
+ state.binary=[readyBinary()];const old=await loadPlayerReleaseEnvelope({...input,syncDynamicMode:'dom'});expect(old.manifest.items[0]!.source.checksumSha256).toBe('e'.repeat(64));expect(old.manifest.items[0]!.syncDynamicBinary?.dataRevision).toBe(3);expect(old.manifest.syncSystemAssets).toBeUndefined();expect(getCacheableAssets(old.manifest)).toHaveLength(1);
 });

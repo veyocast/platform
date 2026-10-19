@@ -1,5 +1,6 @@
 import {
   syncSystemAssets,
+  syncBackgroundAssetForRef,
   syncSlideAssets,
   syncSlidePageCount,
   syncSlidePresentationSchema,
@@ -55,8 +56,9 @@ export function syncPreparedPresentation(
     return false;
   const playback=resolvePlayerItemPresentation(item);
   if(playback.trimStartSeconds>0||playback.trimEndSeconds!==null&&playback.trimEndSeconds*1000<Number(duration))return false;
+  const background = syncBackgroundAssetForRef(parsed.data.style.backgroundAsset);
   if (
-    syncSystemAssets.some(
+    [...syncSystemAssets, ...(background ? [background] : [])].some(
       (asset) =>
         !isSyncPreparedUrl(item.syncSystemAssetUrls?.[asset.path], origin),
     )
@@ -100,4 +102,37 @@ export function syncPreparedCss(
       return `url(${JSON.stringify(url)})`;
     },
   );
+}
+
+/** A gallery frame owns only its verified cached faces. Global shell families
+ * can have overlapping declarations whose network sources are unavailable offline. */
+export function prepareSyncBackgroundFonts(urls: Record<string, string>, origin: string) {
+  const definitions = [
+    { family: "Inter", path: "/assets/inter.woff2", weight: "100 900", format: "woff2" },
+    { family: "Manrope", path: "/assets/manrope.woff2", weight: "200 800", format: "woff2" },
+    { family: "OnzeTrots", path: "/assets/onzetrots-brush.ttf", weight: "normal", format: "truetype" },
+    { family: "OnzeTrots Brush", path: "/assets/onzetrots-brush.ttf", weight: "normal", format: "truetype" },
+  ];
+  const faces: FontFace[] = [];
+  let stopped = false;
+  const dispose = () => {
+    stopped = true;
+    for (const face of faces) document.fonts.delete(face);
+  };
+  const ready = Promise.resolve().then(async () => {
+    if (stopped) return;
+    for (const definition of definitions) {
+      const url = urls[definition.path];
+      if (!isSyncPreparedUrl(url, origin)) throw Error("SYNC_PREPARED_ASSET_UNAVAILABLE");
+      faces.push(new FontFace(definition.family, `url(${JSON.stringify(url)}) format("${definition.format}")`, {
+        weight: definition.weight, style: "normal", display: "swap",
+      }));
+    }
+    await Promise.all(faces.map(face => face.load().then(loaded => {
+      if (stopped) return;
+      if (loaded.status !== "loaded") throw Error("SYNC_FONT_NOT_LOADED");
+      document.fonts.add(loaded);
+    })));
+  }).catch(error => { dispose(); throw error; });
+  return { ready, dispose };
 }

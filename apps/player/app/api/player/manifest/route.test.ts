@@ -53,3 +53,12 @@ function manifestRequest(etag?: string) {
     }
   });
 }
+
+
+it("includes the additive background capability in full and conditional response Vary", async () => {
+  const response = await GET(manifestRequest());
+  expect(response.headers.get("vary")).toContain("X-VeyoCast-Sync-Backgrounds");
+  const unchanged = await GET(manifestRequest(response.headers.get("etag")!));
+  expect(unchanged.status).toBe(304);
+  expect(unchanged.headers.get("vary")).toContain("X-VeyoCast-Sync-Backgrounds");
+});

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { syncContentFamilies } from "./sync-content-families";
 import { syncSystemAssets } from "./sync-system-assets";
+import { syncBackgroundAssetForRef } from "./sync-background-catalog";
 
 /** Additive identity: legacy Sites documents and release decoders stay unchanged. */
 export const syncSlideRendererVersion = "sync-v1" as const;
@@ -15,7 +16,7 @@ const systemImagePaths = new Map(
     .map((asset) => [asset.path as string, asset.sha256 as string]),
 );
 
-export const syncSlideAssetSchema = z
+const syncSlideAssetReferenceSchema = z
   .discriminatedUnion("kind", [
     z
       .object({
@@ -31,8 +32,8 @@ export const syncSlideAssetSchema = z
         checksumSha256: sha256,
       })
       .strict(),
-  ])
-  .superRefine((asset, context) => {
+  ]);
+export const syncSlideAssetSchema = syncSlideAssetReferenceSchema.superRefine((asset, context) => {
     if (
       asset.kind === "system" &&
       systemImagePaths.get(asset.path) !== asset.checksumSha256
@@ -44,6 +45,12 @@ export const syncSlideAssetSchema = z
     }
   });
 export type SyncSlideAsset = z.infer<typeof syncSlideAssetSchema>;
+/** Photographs may be selected as a background; they never become club logos. */
+const syncSlideBackgroundAssetSchema = syncSlideAssetReferenceSchema.superRefine((asset, context) => {
+  if (asset.kind === "system" && systemImagePaths.get(asset.path) !== asset.checksumSha256 && !syncBackgroundAssetForRef(asset)) {
+    context.addIssue({ code: "custom", message: "Kies een geverifieerde achtergrondafbeelding." });
+  }
+});
 
 const publicUrl = z
   .string()
@@ -200,7 +207,7 @@ export const syncSlidePresentationSchema = z
         background: z
           .enum(["stadium", "gradient", "stripes", "clubmuur", "light", "photo"])
           .default("stadium"),
-        backgroundAsset: syncSlideAssetSchema.optional(),
+        backgroundAsset: syncSlideBackgroundAssetSchema.optional(),
         backgroundPosition: z
           .enum(["center", "top", "bottom", "left", "right"])
           .default("center"),
@@ -227,6 +234,12 @@ export const syncSlidePresentationSchema = z
   })
   .strict()
   .superRefine((slide, context) => {
+    if (syncBackgroundAssetForRef(slide.style.backgroundAsset) && slide.style.background !== "photo")
+      context.addIssue({
+        code: "custom",
+        path: ["style", "background"],
+        message: "Gebruik de fotoachtergrond bij deze afbeelding.",
+      });
     if (slide.style.background === "photo" && !slide.style.backgroundAsset)
       context.addIssue({
         code: "custom",

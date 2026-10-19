@@ -50,6 +50,8 @@ import {
 } from "@veyocast/content-templates/sync-slide-static-view";
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
 import styles from "./sync-studio-frame.module.css";
+import { SyncBackgroundPicker } from "./sync-background-picker";
+import { orientSyncBackground } from "../../../../lib/sync-background-choice";
 import type { StudioMediaAsset } from "./types";
 import {
   syncRowsFromText,
@@ -558,9 +560,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 <FieldGroup label="Uitlijning" className="vc-segmented">
                   {([['left','Links'],['center','Midden'],['right','Rechts']] as const).map(([alignment,label])=><button type="button" key={alignment} className={presentation.style.alignment===alignment?'active':''} aria-pressed={presentation.style.alignment===alignment} onClick={()=>setStyle({alignment})}>{label}</button>)}
                 </FieldGroup>
-                <FieldGroup label="Achtergrond" className="vc-background-choices">
-                  {([['stadium','Stadion'],['gradient','Verloop'],['stripes','Strepen'],['light','Licht']] as const).map(([background,label])=><button type="button" key={background} className={`${background} ${presentation.style.background===background?'active':''}`} aria-pressed={presentation.style.background===background} onClick={()=>setStyle({background,backgroundAsset:undefined})}><span>{label}</span></button>)}
-                </FieldGroup>
+                <SyncBackgroundPicker presentation={presentation} onChange={onChange} disabled={props.inputsDisabled} />
                 {props.onBackgroundUpload&&<><Button variant="secondary" onClick={()=>imageInput.current?.click()}><ImagePlus size={16}/>{props.uploading?'Achtergrond controleren…':'Eigen achtergrond uploaden'}</Button><input ref={imageInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden aria-label="Achtergrond uploaden" onChange={event=>{const file=event.target.files?.[0];event.target.value='';if(file)void props.onBackgroundUpload?.(file);}}/></>}
                 <Field label={`Veilige marge · ${presentation.style.safeMargin}%`}>
                   <input
@@ -757,8 +757,8 @@ export function SyncStudioFrame(props: FrameProps) {
                   <p>Bewaar hoe dit ontwerp gebruikt mag worden.</p>
                 </div>
                 <FieldGroup label="Schermstand" className="vc-orientation-options">
-                  <button type="button" className={!portrait?'active':''} aria-pressed={!portrait} onClick={()=>onChange({orientation:'landscape'})}><Monitor size={24}/><strong>Liggend</strong><span>16:9</span></button>
-                  <button type="button" className={portrait?'active':''} aria-pressed={portrait} onClick={()=>onChange({orientation:'portrait'})}><Smartphone size={24}/><strong>Staand</strong><span>9:16</span></button>
+                  <button type="button" className={!portrait?'active':''} aria-pressed={!portrait} onClick={()=>onChange(orientSyncBackground(presentation,'landscape'))}><Monitor size={24}/><strong>Liggend</strong><span>16:9</span></button>
+                  <button type="button" className={portrait?'active':''} aria-pressed={portrait} onClick={()=>onChange(orientSyncBackground(presentation,'portrait'))}><Smartphone size={24}/><strong>Staand</strong><span>9:16</span></button>
                 </FieldGroup>
                 <Field label="Duur per pagina (seconden)">
                   <input
@@ -793,7 +793,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 aria-label="Liggend formaat"
                 aria-pressed={!portrait}
                 disabled={props.readOnly || props.busy || props.inputsDisabled}
-                onClick={() => onChange({ orientation: "landscape" })}
+                onClick={() => onChange(orientSyncBackground(presentation, "landscape"))}
               >
                 <Monitor size={17} />
               </button>
@@ -803,7 +803,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 aria-label="Staand formaat"
                 aria-pressed={portrait}
                 disabled={props.readOnly || props.busy || props.inputsDisabled}
-                onClick={() => onChange({ orientation: "portrait" })}
+                onClick={() => onChange(orientSyncBackground(presentation, "portrait"))}
               >
                 <Smartphone size={17} />
               </button>

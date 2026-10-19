@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { supportsSyncBackgrounds, supportsSyncSlideDom } from "./sync-player-capabilities";
 import {
   syncSlidePresentationSchema,
   syncSystemAssets,
+  syncBackgroundAssets,
 } from "@veyocast/contracts";
 import {
   getPlayerManifestForToken,
@@ -17,6 +19,7 @@ import {
   syncPreparedPresentation,
   isSyncPreparedUrl,
   syncPlaybackFrame,
+  prepareSyncBackgroundFonts,
 } from "./sync-player-presentation";
 import sitesAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 const origin = "https://player.veyocast.nl";
@@ -49,6 +52,80 @@ function fixture(): PlayerManifestEnvelope {
   return result;
 }
 const prepared = (hash: string) => `/__veyocast-player-cache/${hash}`;
+
+it("keeps core DOM negotiation while requiring an actual image decoder for the additive gallery capability", () => {
+  try {
+    vi.stubGlobal("window", {}); vi.stubGlobal("CSS", { supports: () => true });
+    vi.stubGlobal("ResizeObserver", class {}); vi.stubGlobal("document", { fonts: { load() {}, add() {}, delete() {} } });
+    vi.stubGlobal("FontFace", class { load() {} });
+    vi.stubGlobal("Image", class {});
+    expect(supportsSyncSlideDom()).toBe(true); expect(supportsSyncBackgrounds()).toBe(false);
+    vi.stubGlobal("Image", class { decode() { return Promise.resolve(); } });
+    expect(supportsSyncBackgrounds()).toBe(true);
+    vi.stubGlobal("FontFace", class {});
+    expect(supportsSyncSlideDom()).toBe(true); expect(supportsSyncBackgrounds()).toBe(false);
+    vi.stubGlobal("FontFace", class { load() {} });
+    vi.stubGlobal("document", { fonts: { load() {}, add() {} } });
+    expect(supportsSyncSlideDom()).toBe(true); expect(supportsSyncBackgrounds()).toBe(false);
+    vi.stubGlobal("CSS", { supports: () => false }); expect(supportsSyncBackgrounds()).toBe(false);
+  } finally { vi.unstubAllGlobals(); }
+});
+
+describe("gallery-owned cached font readiness", () => {
+  const urls = Object.fromEntries(syncSystemAssets.map(asset => [asset.path, prepared(asset.sha256)]));
+  function setup(load: (face: MockFace) => Promise<MockFace> = async face => { face.status = "loaded"; return face; }) {
+    const globalFace = { family: "Inter", status: "error" };
+    const registered = new Set<unknown>([globalFace]);
+    const globalLoad = vi.fn(() => Promise.reject(Error("global network font unavailable")));
+    const created: MockFace[] = [];
+    class MockFace {
+      status = "unloaded";
+      constructor(readonly family: string, readonly source: string, readonly descriptors: FontFaceDescriptors) { created.push(this); }
+      load() { return load(this); }
+    }
+    vi.stubGlobal("FontFace", MockFace);
+    vi.stubGlobal("document", { fonts: { load: globalLoad, add: (face: unknown) => registered.add(face), delete: (face: unknown) => registered.delete(face) } });
+    return { globalFace, registered, created, globalLoad };
+  }
+  type MockFace = { family: string; source: string; descriptors: FontFaceDescriptors; status: string };
+
+  it("loads official cached faces despite an unrelated global network font failure, and removes only its own faces", async () => {
+    try {
+      const state = setup(), preparation = prepareSyncBackgroundFonts(urls, origin);
+      await preparation.ready;
+      expect(state.globalLoad).not.toHaveBeenCalled(); expect(state.registered.size).toBe(5);
+      expect(state.created.map(face => [face.family, face.descriptors.weight])).toEqual([["Inter", "100 900"], ["Manrope", "200 800"], ["OnzeTrots", "normal"], ["OnzeTrots Brush", "normal"]]);
+      expect(state.created.every(face => face.source.includes("/__veyocast-player-cache/") && face.status === "loaded")).toBe(true);
+      preparation.dispose(); expect([...state.registered]).toEqual([state.globalFace]);
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it("rejects an unprepared network font URL before it can enter the font set", async () => {
+    try {
+      const state = setup(), preparation = prepareSyncBackgroundFonts({ ...urls, "/assets/inter.woff2": "https://external.invalid/font.woff2" }, origin);
+      await expect(preparation.ready).rejects.toThrow("SYNC_PREPARED_ASSET_UNAVAILABLE");
+      expect([...state.registered]).toEqual([state.globalFace]);
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it("cleans up partial success and never registers a late face after another face fails", async () => {
+    const finishes: (() => void)[] = [];
+    try {
+      const state = setup(face => face.family === "Inter" ? Promise.resolve(Object.assign(face, { status: "loaded" })) : face.family === "Manrope" ? Promise.reject(Error("decode failed")) : new Promise(resolve => finishes.push(() => { face.status = "loaded"; resolve(face); })));
+      const preparation = prepareSyncBackgroundFonts(urls, origin);
+      await expect(preparation.ready).rejects.toThrow("decode failed");
+      for (const finish of finishes) finish(); await Promise.resolve();
+      expect([...state.registered]).toEqual([state.globalFace]);
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it("does not register a face whose asynchronous load finishes after cleanup", async () => {
+    const finishes: (() => void)[] = [];
+    try {
+      const state = setup(face => new Promise(resolve => finishes.push(() => { face.status = "loaded"; resolve(face); })));
+      const preparation = prepareSyncBackgroundFonts(urls, origin); await Promise.resolve();
+      preparation.dispose(); for (const finish of finishes) finish(); await preparation.ready;
+      expect([...state.registered]).toEqual([state.globalFace]);
+    } finally { vi.unstubAllGlobals(); }
+  });
+});
 
 describe("independent Sync Player cache protocol", () => {
   it('matches cover/contain crop focus and background with the same binary placement',()=>{
@@ -261,4 +338,44 @@ it('retains the latest verified complete binary when its data revision moves bac
  const cached=connectedFixture(),item=cached.manifest.items[0]!,metadata=item.syncDynamic!;
  item.syncDynamicBinary={schemaVersion:metadata.schemaVersion,configurationSnapshotId:metadata.configurationSnapshotId,snapshotId:metadata.snapshotId,templateVersionId:metadata.templateVersionId,configurationHash:metadata.configurationHash,contentHash:metadata.contentHash,fallbackChecksumSha256:item.source.checksumSha256,durationMs:metadata.durationMs,dataRevision:4};delete item.syncDynamic;delete cached.manifest.syncSystemAssets;
  const stale=structuredClone(cached);stale.manifest.items[0]!.syncDynamicBinary!.dataRevision=3;expect(()=>refreshHydratedReleaseEnvelope({cachedEnvelope:cached,freshEnvelope:stale})).toThrow('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');expect(cached.manifest.items[0]!.syncDynamicBinary!.dataRevision).toBe(4);
+});
+
+
+describe("approved scene preparation", () => {
+  for (const profile of ["studio", "connected"] as const) it(`${profile}: requires exactly the referenced approved scene before playback`, () => {
+    const value = profile === "studio" ? fixture() : connectedFixture(), item = value.manifest.items[0]!;
+    const presentation = item.syncDynamic?.presentation ?? item.syncStudioPresentation!;
+    const asset = syncBackgroundAssets[0]!;
+    presentation.style = { ...presentation.style, background: "photo", backgroundAsset: { kind: "system", path: asset.path, checksumSha256: asset.sha256 } };
+    expect(() => getCacheableAssets(value.manifest)).toThrow("SYNC_ASSET_MANIFEST_INVALID");
+    value.manifest.syncSystemAssets!.push({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType });
+    const assets = getCacheableAssets(value.manifest);
+    expect(assets.filter(ref => ref.itemId === "sync-v1")).toHaveLength(12);
+    expect(assets.some(ref => ref.checksumSha256 === asset.sha256)).toBe(true);
+    item.syncSystemAssetUrls = Object.fromEntries(syncSystemAssets.map(ref => [ref.path, prepared(ref.sha256)]));
+    expect(syncPreparedPresentation(item, origin)).toBe(false);
+    item.syncSystemAssetUrls[asset.path] = `https://player.veyocast.nl${asset.path}`;
+    expect(syncPreparedPresentation(item, origin)).toBe(false);
+    item.syncSystemAssetUrls[asset.path] = prepared(asset.sha256);
+    expect(syncPreparedPresentation(item, origin)).toBe(true);
+    const fresh = structuredClone(value);
+    delete fresh.manifest.items[0]!.syncSystemAssetUrls;
+    const refreshed = refreshHydratedReleaseEnvelope({ cachedEnvelope: value, freshEnvelope: fresh, online: false });
+    expect(refreshed.manifest.items[0]!.syncSystemAssetUrls?.[asset.path]).toBe(prepared(asset.sha256));
+  });
+  it("rejects unreferenced scenes, substituted descriptors and duplicates without changing the active envelope", () => {
+    const old = fixture(), before = JSON.stringify(old);
+    for (const property of ["unused", "checksum", "bytes", "mime", "duplicate"]) {
+      const next = fixture(), asset = syncBackgroundAssets[0]!, item = next.manifest.items[0]!;
+      if (property !== "unused") item.syncStudioPresentation!.style = { ...item.syncStudioPresentation!.style, background: "photo", backgroundAsset: { kind: "system", path: asset.path, checksumSha256: asset.sha256 } };
+      next.manifest.syncSystemAssets!.push({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType });
+      const declared = next.manifest.syncSystemAssets!.at(-1)!;
+      if (property === "checksum") declared.checksumSha256 = "a".repeat(64);
+      if (property === "bytes") declared.bytes += 1;
+      if (property === "mime") declared.mimeType = "image/png";
+      if (property === "duplicate") next.manifest.syncSystemAssets!.push({ ...declared });
+      expect(() => getCacheableAssets(next.manifest)).toThrow("SYNC_ASSET_MANIFEST_INVALID");
+      expect(JSON.stringify(old)).toBe(before);
+    }
+  });
 });
