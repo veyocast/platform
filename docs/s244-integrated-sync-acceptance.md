@@ -265,3 +265,48 @@ gates. Er zijn nog0/5 ronden afgerond. Geen nieuwe staging-/productieclaim.
 Exacte heads, proofhashes, behouden historische feiten en vervolggates staan in
 `execution/evidence/s244-post-capture-followups.json`; eerdere snapshots blijven
 ongewijzigd en gelden uitsluitend voor hun eigen versie.
+
+
+## Finale bron na website- en fixturecontrole
+
+S257 en S258 zijn na afzonderlijke rootreview normaal geïntegreerd. De bron
+omvat achttien UI-featureheads en twee afzonderlijke CI-correcties. Control,
+Player, dependencies, tokens, locked assets, schema en immutable Source zijn
+hierbij ongewijzigd ten opzichte van1e37; Marketing heeft uitsluitend de elf
+expliciet gereviewde taakpaden inclusief tests/documentatie gewijzigd.
+
+S257 gebruikt ook op de behouden publieke routes de gekozen header/footer en
+huisstijl. Oude product-PNG's blijven historisch bewaard; de actieve product-
+voorbeelden gebruiken de bestaande Sync-preview. Contact heeft geen dubbele
+algemene voordelen-/publiceer-/demoblokken meer. Korte koppen, gewone prijs-
+uitleg en leesbare tabelkoppen zijn gericht gecontroleerd. De laatste gebouwde
+layout-/gedragscohort is2/2PASS zonder retries/skips, vijf routes op390/1440 en
+tien aXe-metingen zonder overtredingen. Root heeft alle tien native PNG's
+bekeken. Daarna zijn exact twee grammaticale featurePage-strings en één
+ongebruikte variabele aangepast. Die kopiedelta is niet in de genoemde build
+of screenshots getoond en wacht op de geïntegreerde build/57-routecontrole.
+
+Op1e37 zijn bestaande-installcontinuïteit en lint/typecheck/test elk30/30 groen.
+HostedCI telt op die historische head13success, één Playerfailure en één
+conditionele IPK-skip. De originele trace toont dat twee doelpunten uit dezelfde
+reconnectcase in omgekeerde executeAt-volgorde werden aangeboden; de behouden
+FIFO-queue liet een zeer klein assertvenster. S258 zet uitsluitend de twee
+offsets in normale oplopende volgorde en voegt één contextcomment toe. Alle
+asserts, deadlines, duur, expiry, IDs, ACK-retry en overige cases zijn gelijk.
+Dezelfde bestaande case slaagt lokaal1/1,0retry/skip, scopedlint0; de overige
+twee cases zijn daar niet uitgevoerd. De eerste0case-readinessfailure blijft
+bewaard. Er is geen Playerproductwijziging of Controlhydrationreparatie geclaimd.
+
+Nieuwe broncontinuïteit, gezamenlijke foundation, verse Control-/Marketingbuild,
+A/C/B/Bron-Inhoud/connected en alle57 publieke routes plus404/auth blijven
+zelfstandige finale gates. Nog0/5 volledige vergelijkingen. De negen originele
+Control-React418-fouten blijven open; een geïnstrumenteerde nonrepro of een
+observabilitycontract sluit ze niet. Exacte finaleCI en normale staging/
+productie volgen via PR270, met behoud van alle oorspronkelijke bewijzen.
+
+Tijdens capaciteitshulp is uitsluitend de oude lokale S215-analyticscontainer
+tijdelijk gestopt. De gewone30s-stop eindigde werkelijk137 en geldt als forced,
+geen groene gracefulclosure. Container/image/volumes en alle andere runningIDs
+zijn behouden. Dezelfde container moet na de zware builds en vóór de finale
+captures opnieuw worden gestart en onafhankelijk gecontroleerd. Er is geen
+QA-reset, databaseverwijdering of directe applicatiedeploy uitgevoerd.

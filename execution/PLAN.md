@@ -1,11 +1,13 @@
 # S244 · Finale Sync-acceptatie en uitrol
 
-Actuele aanvulling: de S255/S256-afwerking is normaal opgenomen. Bind de
-ongewijzigde bestaande installatie waarheidsgetrouw aan de nieuwe bron en
-bouw Control en Marketing opnieuw. Sluit alle routes, alle wizardstappen en
-gekoppelde bronkeuzes, publieke/auth-GET en oorspronkelijke laadfouten voordat
-de vijf volledige vergelijkingen en normale uitrol kunnen worden afgetekend.
-Gerichte6+2 fotocontroles en vier CDP-contractcases zijn geen volledige ronde.
+Actuele aanvulling: S257/S258 zijn normaal opgenomen. Bind de bestaande normale
+installatie aan de finale head, voer gezamenlijke foundation uit en bouw Control
+en Marketing opnieuw. De S257-layout/gedrag/aXeproof is vóór de laatste twee
+letterlijke tekstcorrecties. S258 corrigeert alleen twee fixtureoffsets+comment,
+niet Playerproductgedrag. Herstel de oude tijdelijk gestopte S215-analytics vóór
+captures. Sluit A/C/B/alleBron-Inhoud/connected/57+404public/auth met volledige
+native scrollbeelden; daarna vijf volledige vergelijkingen, exacte laatsteCI
+en normale staging/productie. Nog0/5; oorspronkelijke negen React418 open.
 
 De oorspronkelijke startprompt en gekozen prototype1/Sync blijven leidend, met de latere expliciete eis om oude oranje bediening, verdwenen OnzeTrots-achtergronden en massale gestapelde containers op te ruimen. De vijf gevraagde volledige vergelijkingen zijn een eigen open gate; losse tests, vijf breedtes of identieke browserherhalingen tellen daar niet voor.
 

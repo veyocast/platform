@@ -146,5 +146,78 @@
     "SendGrid key/from/to",
     "YouTube account",
     "Mollie account"
-  ]
+  ],
+  "post1e37Integration": {
+    "at": "2026-10-19T12:21:56.025607+00:00",
+    "sourceHeadBeforeDocumentation": "aa270e7059fb60313305d218a079bc8fafceea73",
+    "featureHeads": {
+      "S257": "5ec585b2d57ae2a9ac631cd398c2aa5f34229226",
+      "S258": "a5384e88cddfb7a01818d9c8a3ed3232dc55762c"
+    },
+    "ordinaryMerges": true,
+    "uiFeatureHeads": 18,
+    "separateCiCorrections": 2,
+    "historical1e37": {
+      "head": "1e3706667dfc82692439d42442bd0770a8415bc2",
+      "continuity": {
+        "path": "/dev/shm/veyocast-s244-install-continuation-preparation/bound-v2-54faeb35-9aab-4a5f-8b98-ff03f2731faf/validation-d53a05b2-b604-40d4-95fc-6844ec6d2603/closed.json",
+        "sha256": "50bd6059c0ec89d5155956450f7fa4a411de86027f6f611c7e7a47bc3091754f"
+      },
+      "foundation": {
+        "path": "/dev/shm/veyocast-s244-new-ui-foundation-51458c8b-e08d-4e30-8617-9fb46c8aa2bb/closed.json",
+        "sha256": "a2258aed03d9f0dbc66a016cf437e1002123fabae374287c5c9c4bd8f50133bc"
+      },
+      "hostedSuccess": 13,
+      "hostedPlayerFailure": 1,
+      "conditionalIpkSkip": 1,
+      "certifiesFinalSource": false
+    },
+    "s257": {
+      "finalReport": {
+        "path": "/dev/shm/veyocast-s257-retained-marketing/candidate-v9-d313d28b-006b-4a2d-b416-a8dc661014db/final-root-native-corrections-c702e6e8-6284-4f15-99c7-15f6230f60c3/final-report.json",
+        "sha256": "b74eee6c843dfa0c49dcbbe5ed0a7f1c86c0cb0fc0101c8659d9b8cef054f5be"
+      },
+      "rootNativePngsViewed": 10,
+      "preCopyBrowserCasesPass": 2,
+      "axeMeasurementsZero": 10,
+      "twoFinalLiteralStringsAndUnusedVariableNotRenderedYet": true
+    },
+    "s258": {
+      "proof": {
+        "path": "/dev/shm/veyocast-s258-preparation-20261019T115010Z-78a00dbc/actual-one-case-final-proof.json",
+        "sha256": "f7afc8fd27a3f29cffa1cb9d6b892d69c20ab2f58ebd736519edb8af83f75a17"
+      },
+      "existingCasePass": 1,
+      "otherTwoCasesRunLocally": false,
+      "lintActualExit": 0,
+      "onlyTwoExecuteAtOffsetsAndCommentChanged": true,
+      "noProductFixClaim": true
+    },
+    "protectedCurrentTrees": {
+      "apps/control": "674f04d58a23dc02be79afbc95a24b18b515d1c3",
+      "apps/player": "6597726438d6b60607080a2744bef18fe78c4a8f",
+      "apps/marketing": "d3b5edd4d25837b2d87a9bfbb8946a0e2364b057",
+      "packages/tokens": "a1c110b59281084beef3c1186912344b2e1ddd20",
+      "supabase": "c798289068d6dd3e97afcc0761961a810954fc6f",
+      ".github/workflows": "3f644c64bdb1bb021f4d7d5ef9d0acc2beec945d",
+      "assets/brand": "833bd5796e15eb347efb0a1b37f9fde866ff83b4",
+      "docs/sync-v1-rebuild/handoff/reference/sites-sync": "6343eacbd1899978fe31d6e6041fb356c1e08c42"
+    },
+    "temporaryOldS215Analytics": {
+      "containerId": "76a346d54cdaed968ae7149733922547d580a59821a85b37f8079ced3d7bb8c9",
+      "stopActualExit": 137,
+      "forced": true,
+      "restorationBeforeFinalCaptures": "PENDING_REQUIRED",
+      "independentStopFollowup": {
+        "path": "/dev/shm/veyocast-s244-integration/s215-idle-analytics-temporary-stop-b8c26f82-d823-4ca8-9ce1-b7190163410a/closed-stop-followup.json",
+        "sha256": "aafa90e47aed99e61b13e7f665391fa50faab541201b70014b5726f6bba7b160"
+      }
+    },
+    "allHistoricalCapturesFailuresProofsPreserved": true,
+    "noQaReset": true,
+    "all148IdsStatusesAnd36ContractsPreserved": true,
+    "fullReviewRoundsCompleted": 0,
+    "originalNineControlHydrationErrors": "OPEN",
+    "finalGates": "CONTINUITY_FOUNDATION_BUILDS_ALL_FINITE_CAPTURES_FIVE_REVIEWS_EXACT_CI_STAGING_PRODUCTION_PENDING"
+  }
 }

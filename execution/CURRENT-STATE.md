@@ -1,12 +1,17 @@
 # Werkstand S244 — samengestelde Sync-acceptatie
 
-Laatste vervolgbron: S255 en S256 normaal geïntegreerd. De nieuwe gerichte
-Studio-/kleur-/wizard- en echte foto-decodecontroles zijn groen; eerdere49a
-install/foundation/build/CI blijven historisch bewijs. De oorspronkelijke negen
-A-React418-fouten zijn open. Nieuwe Control- én Marketingbuilds, gesloten
-A/B/C/Bron-Inhoud/connected/public-authcohorten, vijf volledige vergelijkingen
-en normale staging/productie volgen. Nog0/5 ronden, geen nieuwe uitrol. Zie
-`evidence/s244-post-capture-followups.json` voor exacte heads en grenzen.
+Laatste vervolgbron: S257 en S258 normaal geïntegreerd na rootreview. Achttien
+UI-featureheads plus twee afzonderlijke CI-correcties; Control/Player/deps en
+Source onveranderd vanaf1e37. S2572PASS/tien aXe0/tien rootbekeken PNG's zijn
+pre-copybewijs: twee laatste featurePage-strings wachten op de finale build.
+S258 bestaande reconnectcase1PASS/scopedlint0, overige twee cases niet lokaal
+uitgevoerd. Historische1e37foundation is30/30 per gate; exacteCI13success,
+één Playerfailure en één conditionele skip. Nieuwe broncontinuïteit, foundation,
+beide appbuilds, alle finite capturecohorten en vijf volledige vergelijkingen
+blijven open:0/5. Negen originele React418-fouten open. Oude lokale S215-
+analytics is tijdelijk gestopt (137/forced) en moet vóór captures worden hersteld.
+Geen nieuwe staging-/productieclaim. Exacte refs en grenzen staan in
+`evidence/s244-post-capture-followups.json`; oude snapshots blijven behouden.
 
 De onderstaande werkstanden zijn historische opnamen.
 

@@ -126,3 +126,22 @@ oorzaak/afsluiting bewezen is. Strikte empirisch gebonden read-actionuitzonderin
 zijn uitsluitend voor bestaande pure-readcommands; iedere mutator blijft
 geblokkeerd. Bron/Inhoud, gekoppelde keuzes en publieke website/auth-GET
 worden afzonderlijk met hun echte eigen bindings getoetst.
+
+
+## Finale aanvullende integratie
+
+Integreer S257 en S258 normaal na afzonderlijke rootreview. S257 omvat exact
+elf eigen paden voor retained Marketingchrome, bestaande Sync-productpreview,
+compacte koppen/contact en tekstafwerking plus twee bestaande testuitbreidingen.
+De laatste twee letterlijke featurePage-strings/unusedvar volgen ná2PASS en
+moeten door de nieuwe gezamenlijke build/57routes worden gecertificeerd.
+S258 omvat exact vier eigen paden: bestaande Playerreconnectcase uitsluitend
+twee executeAt-offsets+comment en eigen docs/ledger. Geen assert/deadline- of
+Playerproductdelta. Behoud rood CI en de0case-harnasstop. Nieuwe exacteCI en
+rootfoundation zijn vereist. Bind de bestaande normale installatie opnieuw;
+geen herinstallatie. Bouw Control en Marketing serieel met lokale publieke
+compileorigins. Herstel de tijdelijk gestopte oude S215-analyticscontainer vóór
+finale captures. Laat alle oorspronkelijke negen React418-fouten open tot
+werkelijk nieuwe diagnose/afsluiting; alle57+404 publieke routes krijgen beide
+breedtes en aaneengesloten native scrollbeelden. Vijf volledige reviews blijven
+0/5 tot de complete actuele cohort daadwerkelijk is beoordeeld.
