@@ -52,6 +52,7 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
   const [options, setOptions] = useState<SyncSportlinkOptions | null>(null), [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null), [optionsAttempt, setOptionsAttempt] = useState(0);
   const [preview, setPreview] = useState<Awaited<ReturnType<typeof previewSyncWizardAction>> | null>(null);
+  const [engagePage, setEngagePage] = useState({ key: "", page: 0 });
   const [previewKey, setPreviewKey] = useState(""), [previewing, setPreviewing] = useState(false), [previewError, setPreviewError] = useState<string | null>(null);
   const alive = useRef(true), pendingRef = useRef<SyncCreateWizardCommand | null>(null), busyRef = useRef(false), generation = useRef(0);
   const titleRef = useRef<HTMLHeadingElement>(null), draftRef = useRef(draft), stepRef = useRef(step);
@@ -168,6 +169,9 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
   }
   const p = draft.presentation;
   const display = draft.mode === "connected" ? preview?.ok ? preview.presentation : { ...connectedSyncWizardSeed(p), state: "empty" as const } : p;
+  const engagePages = display.family === "engage" ? syncSlidePageCount(display) : 1;
+  const engagePageKey = `${display.poll?.id ?? ""}:${display.orientation}`;
+  const visibleEngagePage = engagePage.key === engagePageKey ? Math.min(engagePage.page, engagePages - 1) : 0;
   const matchFamily = ["scoreboard", "goal", "matchday", "next-match"].includes(data.family);
   const image = (data.images ?? []).find(value => p.style.backgroundAsset?.kind === "tenant" && value.id === p.style.backgroundAsset.mediaAssetId && value.checksumSha256 === p.style.backgroundAsset.checksumSha256);
 
@@ -251,7 +255,14 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
       </section>
       <aside className={styles.preview} aria-label="Voorbeeld van je ontwerp">
         <div className={styles.previewHeading}><span className={styles.eyebrow}>Zo ziet het eruit</span><strong>{draft.mode === "connected" ? previewCurrent ? sourceNeedsAttention(checkedSource) ? "Opgeslagen bronpreview" : "Gecontroleerde bronpreview" : preview?.ok ? "Laatste volledige bronpreview" : "Vormgeving zonder brongegevens" : "Jouw ontwerp"}</strong></div>
-        <div className={`${styles.stage} ${display.orientation === "portrait" ? styles.portrait : ""}`}><SyncSlideStaticView presentation={display} compact resolveAsset={asset => asset.kind === "system" ? resolveSyncSystemAsset(asset) : (preview?.ok ? preview.assets[asset.mediaAssetId]?.url : undefined) ?? data.images?.find(value => value.id === asset.mediaAssetId && value.checksumSha256 === asset.checksumSha256)?.url} /></div>
+        <div className={`${styles.stage} ${display.orientation === "portrait" ? styles.portrait : ""}`}><SyncSlideStaticView presentation={display} page={visibleEngagePage} compact resolveAsset={asset => asset.kind === "system" ? resolveSyncSystemAsset(asset) : (preview?.ok ? preview.assets[asset.mediaAssetId]?.url : undefined) ?? data.images?.find(value => value.id === asset.mediaAssetId && value.checksumSha256 === asset.checksumSha256)?.url} /></div>
+        {engagePages > 1 && <nav aria-label="Voorbeeldpagina’s" className={styles.fields}>
+          <p role="status" className={styles.hint}>Pagina {visibleEngagePage + 1} van {engagePages} · alle {display.poll?.options.length} keuzes blijven in je ontwerp.</p>
+          <div className={styles.twoFields}>
+            <Button variant="secondary" disabled={visibleEngagePage === 0} onClick={() => setEngagePage({ key: engagePageKey, page: visibleEngagePage - 1 })}><ArrowLeft size={16} aria-hidden="true" /> Vorige keuzes</Button>
+            <Button variant="secondary" disabled={visibleEngagePage === engagePages - 1} onClick={() => setEngagePage({ key: engagePageKey, page: visibleEngagePage + 1 })}>Volgende keuzes <ArrowRight size={16} aria-hidden="true" /></Button>
+          </div>
+        </nav>}
         {draft.mode === "connected" && <SourceStatusWarning source={checkedSource} label="Status van de bronpreview" />}
         <p className={styles.hint}>{draft.mode === "connected" && !previewCurrent ? "Controleer bij de laatste stap de echte broninhoud. Voorbeeldgegevens worden nooit als clubgegevens opgeslagen." : "Dit is je ontwerpvoorbeeld. Publiceren doe je later via een playlist."}</p>
       </aside>

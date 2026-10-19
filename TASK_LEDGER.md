@@ -437,3 +437,42 @@ Exact zes owned paths op fcd23d72. Gedeelde portalhook voor Dialog en Sheet; bes
 Originele native390/1440 kleur-/scopegevallen 2 RED: buiten Sync/oranje255,92,32 versus Source0,109,115. Eerste kandidaat 2 FAIL door exacte /fonts-fixturelacune; volgende 1 PASS/1 FAIL door feitenmeting vóór de bestaande fonts/animatiesgate. Alleen twee echte font-GETs/pins en dezelfde feiten ná die gate; geen tolerance/assert/deadlineversoepeling. Pre-glyph 2PASS8,715822s/closure801be085 blijft historisch. Laatste dezelfde2cases 2PASS10,611214s/1worker/0retry-skip; SVG20×20/klikvlak48×48 en echte closeklik/focusherstel op390/1440, alle oude focus/Escape/prefs/reload/bottomSheet/Dialog/bodyfallbackasserts en2modal-aXe0 behouden. Scopedlint0.
 
 Runner54852exit0; closure7e50fcf5… onder /dev/shm/veyocast-s260-sync-sheet-scope/native-22cdd466-4d92-433e-a21b-6344c7fd22ce. Chrome/ownedprocessen gesloten,4tijdelijkelinksweg;52overige geselecteerde baselinefiles/18assets/deps/rootfcd gelijk. Geen install/Next/server/Auth/DB. Alle eerdere failures/proofs/voor-nabeelden blijven; laatste glyph-nativebeelden staan apart. Root-finale beeldreview/commit nog open. 0/5 volledige rondes; geïntegreerde gates/builds/captures/release volgen normaal.
+
+## S262 — Volledige Engage-keuzes en compatibele paginering
+
+Nieuwe Sync-polls ondersteunen alle twee tot vierentwintig keuzes, vier per
+pagina. Wizard, editor, normale volledige export en Player delen dezelfde
+paginateller; alle ID’s, volgorde, labels, campagnebrede stemmen en privacy blijven
+behouden. Historische ongemarkeerde twee/twaalf-optiedocumenten behouden hun
+éénpagina-binary en duur. Oude/noheader-clients ontvangen via de aanvullende
+capability dezelfde volledige gevalideerde binary zonder onbekend DOM-veld.
+Gemarkeerde landscape gebruikt een leesbaar raster met horizontale ademruimte;
+portrait behoudt de compacte QR-strook en volledige Source/OnzeTrots-inhoud.
+
+Exact 26 rootgoedgekeurde paden en één CLI-forwardmigratie20261019135521; alle199
+historische SQL bytegelijk. Geen publieke RPC/RLS/ACL-/tabel-/dependency-/offline-
+activatiewijziging. Eerste unit-/Player-run120 PASS; daarna getroffen55 legacy-/
+Playerchecks, laatste17DOM en scopedlint0. Deze overlappende runs zijn geen
+volledige geïntegreerde foundationherhaling.
+
+Native V10: echte8/8PASS in116,021s, één worker/0retry/skips/flaky,104ongewijzigde
+PNG’s/84geometrieën, beide390/1440breedtes/oriëntaties, volledige2/12/13/24pagina’s,
+vragen24/25/80/81/160 en vier volledige160labels/gewoneinhoud/laatste3opties.
+Keyboard/aXe/create/geometrie slagen; root accepteerde gewone en maximale beelden.
+Alle eerdere rode nativebewijzen blijven bewaard; geen herlabeling.
+
+Gecombineerde DB V18: echte exit0 in132,183s; normale CLI-remote-reset van201
+migraties0/2,816s, twee gerichte pgTAP-bestanden187checksPASS/1,801s, volledige136
+bestanden4454checksPASS/44,459s, normale CLI-errorlint0/1,295s. pgTAP gebruikt twee
+expliciete equivalente lokale pg_prove-containers, geen volledig CLI-testdbcommando.
+Echte managed auth/storage-bootstrap/ACL’s gelijk; exact normale CLI-defaultprivileges
+vóór applicatiemigraties en normale telemetrie-opt-out, geen rechtenherstel erna.
+S262fixture38checks; gecombineerde S261-componenten afzonderlijk gepind. Alle oude
+DB-REDS behouden. Eigen containers/groepen/Chrome/aliases/geheimen weg, bronnen/
+dependencies/assets en171bestaandeDockeridentiteiten gelijk; geenQA/57722writes.
+
+Bewijsroot: `/dev/shm/veyocast-s262-engage-preparation-75daf4be-a8ae-466b-846f-f4c7f2d64e5b/`.
+Nativeclosure44956f3e…; DBV18closure1bb27a0b…. Root autoriseerde de gewone draft-PR.
+Echte MP4/gedecodeerdeQR-keten alleen voorbereid; geïntegreerde foundation/normalCLI/
+CI/volledige Player-offline/fysieke proeven/staging/productie blijven open.
+**0/5 volledige prototypevergelijkingsronden.** Zie `docs/s262-engage-full-options.md`.

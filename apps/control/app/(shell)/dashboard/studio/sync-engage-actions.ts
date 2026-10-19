@@ -32,7 +32,7 @@ export async function readSyncEngageSelectionAction(input:{publicId:string}){
  const {client,tenantId}=ctx,campaign=await client.from('engage_campaigns').select('id,public_id,title,question,status,result_visibility').eq('tenant_id',tenantId).eq('public_id',input.publicId).in('status',['scheduled','live','closed']).maybeSingle();
  if(campaign.error||!campaign.data)return{ok:false,error:'Deze campagne hoort niet bij een beschikbare bron. Je vorige keuze blijft behouden; vernieuw de lijst.'}as const;
  const row=campaign.data,options=await client.from('engage_options').select('id,label,sort_order').eq('tenant_id',tenantId).eq('campaign_id',row.id).order('sort_order').order('id').limit(25);
- if(options.error||options.data.length<2||options.data.length>12)return{ok:false,error:'Dit Source-ontwerp vereist twee tot twaalf volledige keuzes. Je vorige keuze blijft behouden; kies een passende campagne.'}as const;
+ if(options.error||options.data.length<2||options.data.length>24)return{ok:false,error:'Dit Source-ontwerp vereist twee tot vierentwintig volledige keuzes. Je vorige keuze blijft behouden; kies een passende campagne.'}as const;
  let publicCampaign:null|ReturnType<typeof engagePublicCampaignSchema.parse>=null;
  if(row.status!=='scheduled'){
   const result=await client.rpc('get_engage_campaign_public_v1',{p_public_id:row.public_id}),parsed=engagePublicCampaignSchema.safeParse(result.data);
@@ -41,7 +41,7 @@ export async function readSyncEngageSelectionAction(input:{publicId:string}){
  }
  let publicUrl:string|undefined;try{const origin=new URL(process.env.NEXT_PUBLIC_APP_URL??'');if(origin.protocol==='https:')publicUrl=new URL('/engage/'+row.public_id,origin.origin).href;}catch{/* Secure hosted origin is supplied by deployment configuration. */}
  if(publicCampaign?.resultsVisible&&(publicCampaign.options.some(option=>option.voteCount===undefined)||publicCampaign.options.reduce((sum,option)=>sum+(option.voteCount??0),0)!==publicCampaign.totalVotes))return{ok:false,error:'De campagneresultaten zijn niet volledig bevestigd. Je vorige keuze blijft behouden; probeer opnieuw.'}as const;
- const poll={id:row.public_id,title:row.question,status:row.status,visibility:publicCampaign?.resultsVisible?'live':publicCampaign&&!(publicCampaign.resultVisibility==='after_close'&&publicCampaign.status==='live')?'after_vote':row.result_visibility,publicUrl,options:options.data.map(option=>({id:option.id,label:option.label,votes:publicCampaign?.resultsVisible?publicCampaign.options.find(actual=>actual.id===option.id)?.voteCount??0:0}))};
+ const poll={optionsPerPage:4,id:row.public_id,title:row.question,status:row.status,visibility:publicCampaign?.resultsVisible?'live':publicCampaign&&!(publicCampaign.resultVisibility==='after_close'&&publicCampaign.status==='live')?'after_vote':row.result_visibility,publicUrl,options:options.data.map(option=>({id:option.id,label:option.label,votes:publicCampaign?.resultsVisible?publicCampaign.options.find(actual=>actual.id===option.id)?.voteCount??0:0}))};
  // Parse the same Source sub-contract used by save/render; no arbitrary public
  // API body or management count reaches the draft.
  const parsed=syncSlidePresentationSchema.shape.poll.safeParse(poll);

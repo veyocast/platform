@@ -1,5 +1,5 @@
 "use client";
-import {supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
+import {supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
 import {assertSyncDynamicConfigurationContinuity} from '../_lib/sync-player-assets';
 import {sourceDataNeedsBoundary} from '../_lib/player-source-data-boundary';
 import { playerMediaFrameBackgroundStyle } from "../_lib/player-media-frame";
@@ -1199,6 +1199,7 @@ export function PlayerRuntime() {
               Accept: "application/json",
               Authorization: `Bearer ${activeDeviceToken}`,
               ...(supportsSyncSlideDom()?{[syncPlayerRendererHeader]:syncPlayerRendererVersion}:{}),
+              ...(supportsSyncSlideDom()?{[syncEngagePagingHeader]:syncEngagePagingVersion}:{}),
               ...(supportsSyncBackgrounds()?{[syncBackgroundsHeader]:syncBackgroundsVersion}:{}),
               [syncDynamicRendererHeader]:supportsSyncSlideDom()?syncDynamicDomVersion:syncDynamicBinaryVersion,
               ...(manifestEtag ? { "If-None-Match": manifestEtag } : {})

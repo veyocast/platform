@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { syncContentFamilies, syncSlidePageCount } from "@veyocast/contracts";
+import { syncContentFamilies, syncSlidePageCount, syncSlidePresentationSchema } from "@veyocast/contracts";
 import {
   createSyncStudioStarter,
   createSyncStudioDocument,
@@ -142,4 +142,21 @@ describe("additive Sync Studio documents", () => {
       ),
     ).toThrow();
   });
+});
+
+it("keeps historical Engage binaries unchanged and requires a complete video for all twenty-four paged answers",()=>{
+ const starter=createSyncStudioStarter({family:"engage",tenantName:"Club A"}).syncPresentation!;
+ const options=(count:number)=>Array.from({length:count},(_,i)=>({id:`26200000-0000-4000-8000-${String(i).padStart(12,"0")}`,label:`Speler ${i+1}`,votes:0}));
+ const poll={id:"26200000-0000-4000-8000-000000000100",title:"Wie was de beste speler?",status:"live" as const,visibility:"after_close" as const};
+ const legacy=syncSlidePresentationSchema.parse({...starter,poll:{...poll,options:options(12)},style:{...starter.style,motion:"geen"}});
+ const original=createSyncStudioDocument(legacy,3);
+ expect(original.motion).toMatchObject({enabled:false,durationMs:3000});
+ expect(parseStudioDocument(original)).toEqual(original);
+ expect(updateSyncStudioDocument(original,legacy).motion).toEqual(original.motion);
+ const paged=syncSlidePresentationSchema.parse({...legacy,poll:{...poll,optionsPerPage:4,options:options(24)}}),complete=createSyncStudioDocument(paged,12);
+ expect(complete.motion).toMatchObject({enabled:true,durationMs:72000});
+ expect(complete.syncPresentation?.poll?.options).toEqual(options(24));
+ expect(()=>createSyncStudioDocument(paged,21)).toThrow(/120/);
+ expect(()=>parseStudioDocument({...complete,motion:{...complete.motion,durationMs:17999}})).toThrow(/drie/);
+ expect(()=>parseStudioDocument({...complete,motion:{...complete.motion,enabled:false}})).toThrow(/video/);
 });
