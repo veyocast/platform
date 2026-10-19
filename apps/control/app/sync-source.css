@@ -8,7 +8,7 @@
 .sync-control button:disabled{cursor:not-allowed;opacity:.48}
 .sync-control img{max-width:100%;display:block}
 .sync-control h1,.sync-control h2,.sync-control h3,.sync-control h4,.sync-control p,.sync-control .vc-content-empty__title,.sync-control .admin-page .sync-empty-title,.sync-control .admin-page .sync-ticket-title,.sync-control .admin-page .sync-source-name{margin:0}
-.sync-control button:focus-visible,.sync-control a:focus-visible,.sync-control input:focus-visible,.sync-control select:focus-visible,.sync-control textarea:focus-visible{outline:3px solid #59e4b0;outline-offset:3px}
+.sync-control button:focus-visible,.sync-control a:focus-visible,.sync-control input:focus-visible,.sync-control select:focus-visible,.sync-control textarea:focus-visible{outline:3px solid color-mix(in srgb, var(--accent) 70%, var(--mint) 30%);outline-offset:3px}
 .sync-control a{color:inherit}
 .sync-control button{color:inherit}
 .sync-control{background:#f4f7f6;color:#142d32;font:14px/1.55 Manrope,Inter,sans-serif}
