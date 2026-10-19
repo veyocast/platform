@@ -212,3 +212,20 @@ De nieuwe gezamenlijke install, foundation, build, gesloten actuele
 capturecohorten, vijf volledige vergelijkingsronden, exacte CI en normale
 staging-/productiepromotie worden pas met hun werkelijke readbacks afgesloten
 op PR270. Geen van de bovenstaande gerichte tests telt als volledige ronde.
+
+
+## Afgebakende LG-buildcontrole
+
+De S250-feature-CI faalde vóór de daadwerkelijke LG-tests: de bestaande
+workflow én unitassertie verboden iedere `patchedDependencies`-registratie.
+S253 beperkt beide via dezelfde guard tot patches op de officiële
+`@webos-tools/cli`. De bestaande Next-patch is toegestaan; CLI-patches en
+onleesbare canonical registraties worden geweigerd. Zeven native controles
+slagen, inclusief betekenisvol eerst rode escaped-key- en ingesprongen-root-
+gevallen; de echte huidige registries geven exit0. Een onafhankelijke peer
+heeft de laatste scopediff beoordeeld. Versie3.2.5, packageheader, ares-profiel,
+werkelijke wrapper/hosted-tests en artifactinspectie blijven behouden.
+
+Dit is een afzonderlijke CI-correctie naast de vijftien UI-/acceptatieheads.
+De oorspronkelijke hosted failure blijft bewaard; alleen de daaropvolgende
+exacte volledige CI kan de gezamenlijke kandidaat certificeren.

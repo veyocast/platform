@@ -47,6 +47,11 @@ Sync-primary gaat boven de historische algemene Orange-regel.
   S251 herstelt drie werkelijk gereproduceerde mobiele indelingsdefecten.
   S252 herstelt lokale clubkleur-swatches en de behouden doelpunteditorpreview;
   canonical renderer, exports, commands en Player blijven behouden.
+- S253 als afzonderlijke noodzakelijke CI-correctie integreren: uitsluitend
+  de te brede LG-patchban in de bestaande workflow/test vervangen door één
+  gedeelde canonical-mapguard voor de officiële webOSCLI. Dezelfde echte
+  versie-, header-, ares-, wrapper-, hosted- en artifactchecks blijven behouden.
+  Geen packager-, versie-, dependency-, IPK- of deploymentcontractwijziging.
 - `TASK_LEDGER.md`, dit prompt, `docs/s244-integrated-sync-acceptance.md`,
   `execution/CURRENT-STATE.md`, `execution/PLAN.md`,
   `execution/scenario-acceptatie.csv`, `execution/opruimregister.csv`,
