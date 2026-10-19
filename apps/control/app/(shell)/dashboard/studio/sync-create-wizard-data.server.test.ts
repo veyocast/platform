@@ -17,14 +17,18 @@ type QueryResult = { data: unknown[] | null; error: unknown };
 function database(overrides: Partial<Record<string, QueryResult>> = {}) {
   const results: Partial<Record<string, QueryResult>> = { dynamic_data_sources: { data: [sourceRow()], error: null }, dynamic_templates: { data: [templateRow()], error: null }, ledscores_connections: { data: [{ data_source_id: source }], error: null }, ...overrides };
   const calls: { table: string; method: string; args: unknown[] }[] = [];
-  const client = { from: vi.fn((table: string) => {
+  const themeModel = { schemaVersion: 1, tenantId: tenant, defaultThemeId: "fieldflow", profiles: [
+    { themeId: "fieldflow", themeVersion: "1.0.0", revision: 0, configured: false, defaults: null },
+    { themeId: "onzetrots-tv", themeVersion: "11.0.0", revision: 0, configured: false, defaults: null },
+  ] };
+  const client = { rpc: vi.fn().mockResolvedValue({ data: themeModel, error: null }), from: vi.fn((table: string) => {
     const query: Record<string, unknown> = {};
     for (const method of ["select", "eq", "in", "order", "limit"]) query[method] = (...args: unknown[]) => { calls.push({ table, method, args }); return query; };
     query.then = (resolve: (result: QueryResult) => unknown) => { const result = results[table]; if (!result) throw Error(`Unexpected table: ${table}`); return Promise.resolve(result).then(resolve); };
     return query;
   }) };
   mocks.client.mockResolvedValue(client);
-  return { client, calls };
+  return { client, calls, themeModel };
 }
 beforeEach(() => { vi.clearAllMocks(); mocks.session.mockResolvedValue(session()); mocks.media.mockResolvedValue({ assets: [], error: null }); });
 
@@ -69,5 +73,28 @@ describe("new wizard read boundary", () => {
   it("exposes only verified own image references and keeps photo errors recoverable", async () => {
     database(); mocks.media.mockResolvedValue({ assets: [{ id: id(8), kind: "image", title: "Eigen foto", checksumSha256: "a".repeat(64), sourceUrl: "https://private.invalid/transient" }, { id: id(9), kind: "image", title: "Ongeverifieerd", sourceUrl: "https://private.invalid/transient" }, { id: id(10), kind: "video", checksumSha256: "b".repeat(64), sourceUrl: "https://private.invalid/transient" }], error: "photo read failed" });
     const result = await loadSyncCreateWizardData("welcome"); expect(result?.images).toEqual([{ id: id(8), title: "Eigen foto", checksumSha256: "a".repeat(64), url: "https://private.invalid/transient" }]); expect(result?.loadError).toContain("foto's"); expect(result?.canCreateManual).toBe(true);
+  });
+  it("uses the actual tenant theme choice and frozen saved defaults without a mutation", async () => {
+    const { client, themeModel } = database();
+    const saved = { accent: "#bAc123", font: "Georgia", mode: "dark", scale: 119, background: "stadium", motion: "geen", showLogo: false };
+    client.rpc.mockResolvedValue({ data: { ...themeModel, defaultThemeId: "onzetrots-tv", profiles: [themeModel.profiles[0], { themeId: "onzetrots-tv", themeVersion: "11.0.0", revision: 12, configured: true, defaults: saved }] }, error: null });
+    const result = await loadSyncCreateWizardData("fixtures");
+    expect(result?.themeDefaultsError).toBeNull(); expect(result?.initialPresentation).toMatchObject({ theme: "onzetrots-tv", style: { accent: "#bAc123", font: "Serif", fontChanged: true, background: "stadium", scale: 119, motion: "geen", showLogo: false } });
+    expect(client.rpc).toHaveBeenCalledExactlyOnceWith("read_sync_theme_creation_defaults_v1", { p_tenant_id: tenant });
+    expect(result?.initialPresentation.rows).toEqual([]); expect(result?.initialPresentation.home).toBeUndefined();
+  });
+  it("uses real Source beginvalues only for explicitly unset profiles", async () => {
+    database(); const result = await loadSyncCreateWizardData("welcome");
+    expect(result?.themeDefaults?.profiles[0]).toMatchObject({ configured: false, defaults: null, revision: 0 });
+    expect(result?.initialPresentation).toMatchObject({ theme: "fieldflow", style: { accent: "#006D83", font: "Manrope", fontChanged: true, scale: 100, background: "light", motion: "rustig", showLogo: true } });
+  });
+  it("keeps an unknown historic default choice explicitly null while choosing a fresh FieldFlow example", async () => {
+    const { client, themeModel } = database(); client.rpc.mockResolvedValue({ data: { ...themeModel, defaultThemeId: null }, error: null });
+    const result = await loadSyncCreateWizardData("welcome"); expect(result?.themeDefaults?.defaultThemeId).toBeNull(); expect(result?.initialPresentation.theme).toBe("fieldflow");
+    expect(client.rpc).toHaveBeenCalledTimes(1);
+  });
+  it.each(["foreign", "corrupt", "transport"])("shows an explicit defaults failure instead of claiming a safe starter: %s", async reason => {
+    const { client, themeModel } = database(); client.rpc.mockResolvedValue({ data: reason === "foreign" ? { ...themeModel, tenantId: id(9) } : reason === "corrupt" ? {} : null, error: reason === "transport" ? { code: "XX000" } : null });
+    const result = await loadSyncCreateWizardData("fixtures"); expect(result?.themeDefaultsError).toBeTruthy(); expect(result?.themeDefaults).toBeUndefined();
   });
 });

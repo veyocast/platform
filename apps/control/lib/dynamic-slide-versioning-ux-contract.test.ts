@@ -122,7 +122,8 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
       menu,
       wizard,
       styleStep,
-      sitesDesign
+      sitesDesign,
+      syncThemeDialog
     ] = await Promise.all([
       source("app/(shell)/dashboard/settings/page.tsx"),
       source("app/(shell)/dashboard/settings/settings-category-workspace.tsx"),
@@ -133,7 +134,8 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
       source("app/(shell)/dashboard/slides/menu-studio/menu-studio-editor.tsx"),
       source("app/(shell)/dashboard/studio/sportlink/new/sportlink-bulk-wizard.tsx"),
       source("app/(shell)/dashboard/slides/_components/fieldflow-style-step.tsx"),
-      source("app/(shell)/dashboard/studio/sportlink/new/sites-source-design-controls.tsx")
+      source("app/(shell)/dashboard/studio/sportlink/new/sites-source-design-controls.tsx"),
+      source("app/(shell)/dashboard/themes/sync-theme-defaults-dialog.tsx")
     ]);
 
     expect(settings).not.toContain("<TenantThemeEditor");
@@ -142,7 +144,8 @@ describe("dynamic-slideversies en Sportlink-wizard", () => {
     expect(settings).toContain('id="huisstijl"');
     expect(settings).toContain('href="/dashboard/themes/fieldflow"');
     expect(themes).toContain("Eén club. Meerdere stijlen.");
-    expect(themes).toContain("/dashboard/themes/fieldflow?theme=${theme.id}");
+    expect(themes).toContain("<SyncThemeDefaultsDialog");
+    expect(syncThemeDialog).toContain("/dashboard/themes/fieldflow?theme=${props.themeId}");
     expect(themes).toContain("themeCatalogOptions.map");
     expect(themes).toContain("Een nieuwe themaversie wijzigt bestaande publicaties niet.");
     expect(fieldflowTheme).toContain("<TenantThemeEditor");
