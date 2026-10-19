@@ -1,4 +1,4 @@
-import type { SyncContentFamily, SyncDynamicCommand, SyncDynamicConfiguration, SyncSlidePresentation } from "@veyocast/contracts";
+import type { SyncContentFamily, SyncDynamicCommand, SyncDynamicConfiguration, SyncSlidePresentation, SyncThemeDefaultsReadModel } from "@veyocast/contracts";
 import type { StudioDocument } from "@veyocast/studio";
 
 export type SyncCreateWizardMode = "manual" | "connected";
@@ -23,6 +23,8 @@ export type SyncCreateWizardData = {
   sources: SyncCreateWizardSource[];
   templates: Array<{ versionId: string; orientation: "landscape" | "portrait"; slug: string }>;
   images?: Array<{ id: string; title: string; checksumSha256: string; url: string }>;
+  themeDefaults?: SyncThemeDefaultsReadModel;
+  themeDefaultsError?: string | null;
   loadError: string | null;
 };
 /** Entire original writer command, without transient previews or signed URLs. */

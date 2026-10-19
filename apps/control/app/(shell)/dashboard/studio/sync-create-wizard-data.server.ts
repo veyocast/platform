@@ -4,6 +4,8 @@ import { syncContentFamilies, type SyncContentFamily } from "@veyocast/contracts
 import { createSyncStudioStarter } from "@veyocast/studio";
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { applySyncThemeCreationDefaults, syncThemeCreationStarterDefaults } from "../../../../lib/sync-theme-creation-defaults";
+import { loadSyncThemeCreationDefaults } from "../themes/sync-theme-defaults-data.server";
 import { syncConnectedAuthoringType } from "../slides/sync-sportlink-binding";
 import { loadStudioMediaAssets } from "./data";
 import type { SyncCreateWizardData, SyncCreateWizardMode } from "./sync-create-wizard-types";
@@ -21,9 +23,10 @@ export async function loadSyncCreateWizardData(family: SyncContentFamily, reques
   const canCreateConnected = active && Boolean(slideType) && hasCapability(session.capabilities, "tenant.dynamic_slide.write");
   const data: SyncCreateWizardData = {
     tenantId: session.tenantId, actorScope: `${session.tenantId}:${session.userId}`, tenantName: session.tenant,
-    family, initialPresentation: createSyncStudioStarter({ family, tenantName: session.tenant, theme: "onzetrots-tv" }).syncPresentation!,
+    family, initialPresentation: createSyncStudioStarter({ family, tenantName: session.tenant, theme: "fieldflow" }).syncPresentation!,
     canCreateManual, canCreateConnected, initialMode: canCreateManual ? "manual" : "connected", slideType,
     sources: [], templates: [], images: [], loadError: null,
+    themeDefaultsError: "De voorkeuren voor nieuwe ontwerpen zijn nog niet bevestigd. Je invoer blijft behouden; laad opnieuw voordat je een nieuw ontwerp maakt.",
   };
   if (!canCreateManual && !canCreateConnected) {
     data.loadError = "Je kunt dit ontwerp bekijken, maar niet maken met je huidige rechten. Vraag een beheerder om toegang tot ontwerpen of automatische slides.";
@@ -33,12 +36,20 @@ export async function loadSyncCreateWizardData(family: SyncContentFamily, reques
   if (!client) { data.loadError = "De veilige gegevensverbinding ontbreekt. Je keuze is behouden; laad opnieuw zodra je verbinding terug is."; return data; }
   try {
     const kinds = slideType === "menu" ? ["manual_products", "twelve_excel"] : slideType === "news" ? ["rss"] : slideType === "ledscores_live_match" ? ["ledscores"] : ["sportlink"];
-    const [sources, templates, media, connections] = await Promise.all([
+    const [sources, templates, media, connections, themeDefaults] = await Promise.all([
       canCreateConnected ? client.from("dynamic_data_sources").select("id,name,kind,provider_status,last_successful_sync_at,last_error_code").eq("tenant_id", session.tenantId).in("kind", kinds).eq("status", "active").order("name").limit(201) : null,
       canCreateConnected ? client.from("dynamic_templates").select("current_published_version_id,orientation,slug").eq("slide_type", slideType!).eq("status", "published").order("slug").limit(101) : null,
       hasCapability(session.capabilities, "tenant.media.read") ? loadStudioMediaAssets(client, session.tenantId, []) : null,
       canCreateConnected && slideType === "ledscores_live_match" ? client.from("ledscores_connections").select("data_source_id").eq("tenant_id", session.tenantId).eq("status", "active").limit(201) : null,
+      loadSyncThemeCreationDefaults(client, session.tenantId),
     ]);
+    if (themeDefaults.ok) {
+      data.themeDefaults = themeDefaults.value;
+      data.themeDefaultsError = null;
+      const themeId = themeDefaults.value.defaultThemeId ?? "fieldflow";
+      const profile = themeDefaults.value.profiles.find(value => value.themeId === themeId)!;
+      data.initialPresentation = applySyncThemeCreationDefaults(data.initialPresentation, themeId, profile.defaults ?? syncThemeCreationStarterDefaults(themeId));
+    } else data.themeDefaultsError = themeDefaults.message;
     if (sources?.error || templates?.error || connections?.error || (sources?.data?.length ?? 0) > 200 || (templates?.data?.length ?? 0) > 100 || (connections?.data?.length ?? 0) > 200) throw Error("read");
     const sourceRows = sources?.data ?? [], templateRows = templates?.data ?? [];
     if (sourceRows.some(source => !uuid.test(source.id) || typeof source.name !== "string" || source.name.length > 200 || !kinds.includes(source.kind)) || templateRows.some(template => !uuid.test(String(template.current_published_version_id)) || !["landscape", "portrait"].includes(template.orientation) || typeof template.slug !== "string")) throw Error("shape");

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createSyncStudioStarter } from "@veyocast/studio";
 import { syncContentFamilies, syncDynamicConfigurationSchema, type SyncContentFamily } from "@veyocast/contracts";
 import { syncConnectedAuthoringType, syncSportlinkAutoContext, type SyncSportlinkOptions } from "../slides/sync-sportlink-binding";
-import { buildSyncWizardRequest, connectedSyncWizardSeed, initialSyncCreateWizardDraft, prepareSyncWizardCommand, readSyncWizardJournal, syncCreateWizardDraftError, syncCreateWizardKey, syncWizardHref, type SyncCreateWizardDraft, type SyncCreateWizardJournal } from "./sync-create-wizard-state";
+import { buildSyncWizardRequest, chooseSyncWizardTheme, connectedSyncWizardSeed, initialSyncCreateWizardDraft, prepareSyncWizardCommand, readSyncWizardJournal, syncCreateWizardDraftError, syncCreateWizardKey, syncWizardHref, type SyncCreateWizardDraft, type SyncCreateWizardJournal } from "./sync-create-wizard-state";
+import { syncThemeCreationStarterDefaults } from "../../../../lib/sync-theme-creation-defaults";
 import type { SyncCreateWizardData } from "./sync-create-wizard-types";
 
 const id = (number: number) => `23400000-0000-4000-8000-${String(number).padStart(12, "0")}`;
@@ -16,6 +17,32 @@ function data(family: SyncContentFamily = "welcome"): SyncCreateWizardData {
   };
 }
 const options: SyncSportlinkOptions = { sourceId: id(3), teams: [{ externalId: "own-team", name: "Eigen team", contexts: [{ label: "Eigen competitie", competitionId: "comp", phaseId: "phase", poolId: "pool", seasonId: "season" }] }], capabilities: [], privacyPeople: true, privacyBirthdays: true };
+
+describe("new-design defaults never rewrite original authoring recovery", () => {
+  it("applies only an explicitly chosen profile while preserving all own content and selection", () => {
+    const props = data("fixtures"), draft = initialSyncCreateWizardDraft(props);
+    props.themeDefaults = { schemaVersion: 1, tenantId: props.tenantId, defaultThemeId: "fieldflow", profiles: [
+      { themeId: "fieldflow", themeVersion: "1.0.0", configured: false, revision: 0, defaults: null },
+      { themeId: "onzetrots-tv", themeVersion: "11.0.0", configured: true, revision: 7, defaults: { ...syncThemeCreationStarterDefaults("onzetrots-tv"), accent: "#aBc123", font: "Georgia", mode: "dark", scale: 116, background: "stadium", motion: "geen", showLogo: false } },
+    ] };
+    draft.presentation.name = "Eigen nieuwe titel"; draft.presentation.rows = [["Tijd", "Echt team", "Eigen informatie", "Veld"]]; draft.rowsText = "Eigen ruwe invoer"; draft.seconds = "23";
+    const before = JSON.stringify(draft), selected = chooseSyncWizardTheme(props, draft, "onzetrots-tv");
+    expect(selected.presentation.style).toMatchObject({ accent: "#aBc123", font: "Serif", fontChanged: true, background: "stadium", scale: 116, motion: "geen", showLogo: false });
+    expect({ ...selected, presentation: draft.presentation }).toEqual(draft);
+    expect({ ...selected.presentation, style: draft.presentation.style }).toEqual(draft.presentation); expect(JSON.stringify(draft)).toBe(before);
+    expect(chooseSyncWizardTheme(props, draft, "fieldflow").presentation.style).toMatchObject({ accent: "#006D83", font: "Manrope", background: "light" });
+  });
+  it.each(["manual", "connected"] as const)("keeps the exact old v1 %s journal/body after new defaults or read failure", mode => {
+    const props = data("menu"), draft = initialSyncCreateWizardDraft({ ...props, initialMode: mode }); draft.sourceId = id(3);
+    const command = prepareSyncWizardCommand(props, draft, null, id(6)), raw = JSON.stringify(journal(props, draft, command));
+    const current = { ...props, initialPresentation: { ...props.initialPresentation, style: { ...props.initialPresentation.style, accent: "#000000" } }, themeDefaultsError: "Read unavailable", sources: [], templates: [] };
+    const recovered = readSyncWizardJournal(raw, current)!;
+    expect(JSON.stringify(recovered.pending)).toBe(JSON.stringify(command)); expect(recovered.draft).toEqual(draft);
+    expect(Object.keys(JSON.parse(raw)).sort()).toEqual(["actorScope", "draft", "family", "pending", "schemaVersion", "step", "tenantId"]);
+    expect(() => prepareSyncWizardCommand(current, recovered.draft, null, id(7))).toThrow("Read unavailable");
+    expect(() => chooseSyncWizardTheme(current, recovered.draft, "fieldflow")).toThrow("Read unavailable");
+  });
+});
 function connected(family: SyncContentFamily) {
   const props = data(family), draft = initialSyncCreateWizardDraft({ ...props, initialMode: "connected" });
   draft.sourceId = id(3);

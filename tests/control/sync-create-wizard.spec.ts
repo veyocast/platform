@@ -2,8 +2,49 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { SyncCreateWizardData } from "../../apps/control/app/(shell)/dashboard/studio/sync-create-wizard-types";
 import { fixture, id, mount, next, origin, prepareWizardFixture, toReview } from "../helpers/sync-create-wizard-fixture";
+import { syncDynamicConfigurationSchema } from "../../packages/contracts/src/sync-dynamic-configuration";
+import { applySyncThemeCreationDefaults, syncThemeCreationStarterDefaults } from "../../apps/control/lib/sync-theme-creation-defaults";
 
 test.beforeAll(prepareWizardFixture);
+
+test("persisted new-design profiles drive the real preview and an explicit theme choice without changing own content", async ({ page }) => {
+  const props = fixture();
+  const saved = { ...syncThemeCreationStarterDefaults("onzetrots-tv"), accent: "#cAb123", font: "Georgia" as const, mode: "dark" as const, background: "stadium" as const, scale: 116, motion: "geen" as const, showLogo: false };
+  props.themeDefaults = { schemaVersion: 1, tenantId: props.tenantId, defaultThemeId: "fieldflow", profiles: [
+    { themeId: "fieldflow", themeVersion: "1.0.0", configured: false, revision: 0, defaults: null },
+    { themeId: "onzetrots-tv", themeVersion: "11.0.0", configured: true, revision: 7, defaults: saved },
+  ] };
+  props.initialPresentation = applySyncThemeCreationDefaults(props.initialPresentation, "fieldflow", syncThemeCreationStarterDefaults("fieldflow"));
+  const state = await mount(page, props); await next(page);
+  await page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true }).fill("Mijn eigen verhaal");
+  await page.getByRole("textbox", { name: "Eigen toelichting", exact: true }).fill("Onze echte toelichting blijft behouden."); await next(page);
+  await expect(page.getByText("Dit thema is nog niet ingesteld", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "OnzeTrots TV", exact: true }).click();
+  const preview = page.getByLabel("Voorbeeld van je ontwerp").locator(".vc-slide-preview");
+  await expect(preview).toHaveClass(/is-trots/); await expect(preview).toHaveClass(/bg-stadium/);
+  await expect(preview).toHaveCSS("font-family", "Georgia, serif");
+  await expect.poll(() => preview.evaluate(element => getComputedStyle(element).getPropertyValue("--slide-accent").trim())).toBe("#cAb123");
+  await expect(preview.locator(".vc-slide-brand")).toHaveCSS("visibility", "hidden");
+  await next(page); await page.getByRole("button", { name: "Ontwerp maken", exact: true }).click(); await expect.poll(() => state.creates.length).toBe(1);
+  const original = state.creates[0]!.input; if (original.kind !== "manual") throw Error("manual");
+  expect(original.document.syncPresentation).toMatchObject({ theme: "onzetrots-tv", name: "Mijn eigen verhaal", body: "Onze echte toelichting blijft behouden.", style: { accent: "#cAb123", font: "Serif", fontChanged: true, background: "stadium", scale: 116, motion: "geen", showLogo: false } });
+  expect(JSON.stringify(original)).not.toContain(origin); expect(state.errors).toEqual([]);
+});
+
+test("a failed defaults read blocks a fresh command but never rewrites or blocks an already pending receipt replay", async ({ page }) => {
+  const props = fixture(), state = await mount(page, props, { dropFirst: true }); await toReview(page);
+  await page.getByRole("button", { name: "Ontwerp maken", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true })).toBeEnabled();
+  const original = JSON.stringify(state.creates[0]);
+  props.themeDefaultsError = "De opgeslagen themavoorkeuren konden niet worden bevestigd. Laad opnieuw.";
+  props.initialPresentation = applySyncThemeCreationDefaults(props.initialPresentation, "fieldflow", { ...syncThemeCreationStarterDefaults("fieldflow"), accent: "#000000" });
+  await page.reload(); await expect(page.getByRole("alert")).toContainText("themavoorkeuren konden niet worden bevestigd");
+  await page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true }).click(); await expect.poll(() => state.creates.length).toBe(2);
+  expect(JSON.stringify(state.creates[1])).toBe(original); expect(state.receipts.size).toBe(1); expect(state.errors).toEqual([]);
+  await page.evaluate(nextData => (globalThis as typeof globalThis & { changeWizardData: (value: SyncCreateWizardData) => void }).changeWizardData(nextData), { ...props, actorScope: `${props.tenantId}:${id(9)}` });
+  await expect(page.getByRole("heading", { name: "Bron", exact: true })).toBeVisible(); await toReview(page);
+  await expect(page.getByRole("button", { name: "Ontwerp maken", exact: true })).toBeDisabled(); expect(state.creates).toHaveLength(2);
+});
 
 for (const width of [390, 1440]) {
   test(`Source wizard keeps inputs, full previews, touch targets and accessibility at ${width}px`, async ({ page }, info) => {
@@ -92,7 +133,7 @@ test("a failed RSS source keeps approved cached content visible with warnings an
   await expect(preview.getByText("Eerder opgeslagen clubbericht", { exact: true })).toBeVisible();
   const original = state.creates[0]!.input;
   if (original.kind !== "connected" || !("configuration" in original.command.request)) throw Error("connected source required");
-  expect(original.command.request.configuration.syncConfiguration.seed.news).toEqual([]);
+  expect(syncDynamicConfigurationSchema.parse(original.command.request.configuration.syncConfiguration).seed.news).toEqual([]);
   await page.reload();
   await expect(page.getByRole("status", { name: "Status van de bron", exact: true })).toContainText("bronverwerking is mislukt");
   await retry.click(); await expect.poll(() => state.creates.length).toBe(2);

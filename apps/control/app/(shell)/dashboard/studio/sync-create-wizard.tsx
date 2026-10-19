@@ -15,7 +15,7 @@ import { SyncYouTubeControls } from "./sync-youtube-controls";
 import { syncRowsFromText, syncLineupFromText } from "./sync-studio-recovery";
 import { createSyncDesignWizardAction, loadSyncWizardSportlinkOptionsAction, previewSyncWizardAction } from "./sync-create-wizard-actions";
 import {
-  buildSyncWizardRequest, connectedSyncWizardSeed, initialSyncCreateWizardDraft, prepareSyncWizardCommand,
+  buildSyncWizardRequest, chooseSyncWizardTheme, connectedSyncWizardSeed, initialSyncCreateWizardDraft, prepareSyncWizardCommand,
   readSyncWizardJournal, syncCreateWizardDraftError, syncCreateWizardKey, syncWizardHref, syncWizardRowFamilies,
   type SyncCreateWizardDraft, type SyncCreateWizardJournal,
 } from "./sync-create-wizard-state";
@@ -140,7 +140,7 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
   }
   async function create() {
     if (!hydrated || corrupt || busyRef.current || confirmedHref || !available) return;
-    if (!pendingRef.current && (step !== 3 || invalid || draft.mode === "connected" && !previewCurrent)) return;
+    if (!pendingRef.current && (data.themeDefaultsError || step !== 3 || invalid || draft.mode === "connected" && !previewCurrent)) return;
     const replaying = Boolean(pendingRef.current);
     let original: SyncCreateWizardCommand;
     try { original = pendingRef.current ?? prepareSyncWizardCommand(data, draft, options, crypto.randomUUID()); }
@@ -178,6 +178,8 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
     <nav aria-label="Ontwerpstappen" className={styles.steps}><ol>{steps.map((label, index) => <li key={label}><button type="button" aria-current={step === index ? "step" : undefined} disabled={locked || index > step} onClick={() => move(index)}><span aria-hidden="true">{index < step ? <Check size={16} /> : index + 1}</span><span>{label}</span></button></li>)}</ol></nav>
     {notice && <p role="status" className={styles.notice}>{notice}</p>}
     {data.loadError && <p role="status" className={styles.notice}>{data.loadError} <Link href="/dashboard/sources">Bronnen bekijken</Link></p>}
+    {data.themeDefaultsError && <p role="alert" className={styles.error}>{data.themeDefaultsError} Een teruggevonden oorspronkelijke opdracht kun je wel opnieuw controleren.</p>}
+    {data.themeDefaults?.defaultThemeId === null && <p role="status" className={styles.notice}>Je bestaande standaardthema is niet beschikbaar voor nieuwe ontwerpen. Dit nieuwe ontwerp begint met FieldFlow; je bestaande themakeuze is niet gewijzigd.</p>}
     {error && <p role="alert" className={styles.error}>{error}</p>}
     {storageError && <div role="alert" className={styles.error}><p>Je browser kan de invoer niet veilig bewaren. Er wordt geen opdracht verstuurd. Houd deze pagina open, maak browseropslag vrij en probeer opnieuw.</p><Button variant="secondary" onClick={() => store(draft, step, pendingRef.current)}>Browseropslag opnieuw controleren</Button></div>}
     {!available && <p role="alert" className={styles.error}>Je hebt geen rechten om dit ontwerp te maken. Vraag een beheerder om toegang; er wordt niets aangemaakt.</p>}
@@ -223,7 +225,8 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
           </>}
           {step === 2 && <>
             <FieldGroup label="Schermformaat" className={`${styles.segmented}`}>{([ ["landscape", "Liggend · 16:9"], ["portrait", "Staand · 9:16"] ] as const).map(([orientation, label]) => <button type="button" key={orientation} aria-pressed={p.orientation === orientation} onClick={() => patch({ orientation })}>{label}</button>)}</FieldGroup>
-            <FieldGroup label="Clubstijl" className={`${styles.segmented}`}>{([ ["onzetrots-tv", "OnzeTrots TV"], ["fieldflow", "FieldFlow"] ] as const).map(([theme, label]) => <button type="button" key={theme} aria-pressed={p.theme === theme} onClick={() => patch({ theme })}>{label}</button>)}</FieldGroup>
+            <FieldGroup label="Clubstijl" className={`${styles.segmented}`}>{([ ["onzetrots-tv", "OnzeTrots TV"], ["fieldflow", "FieldFlow"] ] as const).map(([theme, label]) => <button type="button" key={theme} disabled={Boolean(data.themeDefaultsError)} aria-pressed={p.theme === theme} onClick={() => { try { edit(chooseSyncWizardTheme(data, draft, theme)); } catch (cause) { setError(cause instanceof Error ? cause.message : "De themavoorkeuren konden niet worden bevestigd."); } }}>{label}</button>)}</FieldGroup>
+            {data.themeDefaults?.profiles.find(profile => profile.themeId === p.theme)?.configured === false && <p className={styles.hint}>Dit thema is nog niet ingesteld voor je vereniging. Je ziet de Source-beginwaarden; je eigen wijzigingen worden alleen in dit ontwerp bewaard.</p>}
             <Field label="Achtergrond"><select value={p.style.background} onChange={event => { const background = event.target.value as SyncSlidePresentation["style"]["background"]; if (background === "photo") { const first = (data.images ?? [])[0]; if (first) style({ background, backgroundAsset: { kind: "tenant", mediaAssetId: first.id, checksumSha256: first.checksumSha256 } }); } else style({ background, backgroundAsset: undefined }); }}><option value="stadium">Stadion</option><option value="gradient">Kleurverloop</option><option value="stripes">Strepen</option><option value="clubmuur">Clubmuur</option><option value="light">Licht</option>{Boolean(data.images?.length) && <option value="photo">Eigen foto</option>}</select></Field>
             {p.style.background === "photo" && <><Field label="Achtergrondfoto"><select value={image?.id ?? ""} onChange={event => { const selected = data.images?.find(value => value.id === event.target.value); if (selected) style({ backgroundAsset: { kind: "tenant", mediaAssetId: selected.id, checksumSha256: selected.checksumSha256 } }); }}><option value="" disabled>Kies een beschikbare foto</option>{data.images?.map(value => <option key={value.id} value={value.id}>{value.title}</option>)}</select></Field><Field label="Uitsnede"><select value={p.style.backgroundPosition} onChange={event => style({ backgroundPosition: event.target.value as SyncSlidePresentation["style"]["backgroundPosition"] })}>{([ ["center", "Midden"], ["top", "Boven"], ["bottom", "Onder"], ["left", "Links"], ["right", "Rechts"] ] as const).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field></>}
             {!data.images?.length && <p className={styles.hint}>Je kunt nu de vaste achtergronden gebruiken. Voeg een eigen foto toe bij <Link href="/dashboard/media">Media</Link> om die hier te kiezen.</p>}
@@ -240,7 +243,7 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
         {pending && <p role="status" className={styles.notice}>Je invoer staat vast tot dezelfde oorspronkelijke opdracht is bevestigd. Hierdoor ontstaat geen tweede ontwerp als het vorige antwoord verloren ging.</p>}
         <footer className={styles.actions}>
           {step > 0 && <Button variant="secondary" disabled={locked} onClick={() => move(step - 1)}><ArrowLeft size={16} aria-hidden="true" /> Vorige</Button>}
-          {confirmedHref ? <Button asChild variant="primary"><Link href={confirmedHref}>Ontwerp openen</Link></Button> : step < 3 ? <Button variant="primary" disabled={locked || !available} onClick={() => move(step + 1)}>Verder <ArrowRight size={16} aria-hidden="true" /></Button> : <Button variant="primary" disabled={!hydrated || corrupt || busy || !available || storageError || !pending && Boolean(invalid || draft.mode === "connected" && !previewCurrent)} onClick={() => void create()}>{busy ? "Ontwerp bevestigen…" : pending ? "Dezelfde opdracht bevestigen" : "Ontwerp maken"}</Button>}
+          {confirmedHref ? <Button asChild variant="primary"><Link href={confirmedHref}>Ontwerp openen</Link></Button> : step < 3 ? <Button variant="primary" disabled={locked || !available} onClick={() => move(step + 1)}>Verder <ArrowRight size={16} aria-hidden="true" /></Button> : <Button variant="primary" disabled={!hydrated || corrupt || busy || !available || storageError || !pending && Boolean(data.themeDefaultsError || invalid || draft.mode === "connected" && !previewCurrent)} onClick={() => void create()}>{busy ? "Ontwerp bevestigen…" : pending ? "Dezelfde opdracht bevestigen" : "Ontwerp maken"}</Button>}
         </footer>
       </section>
       <aside className={styles.preview} aria-label="Voorbeeld van je ontwerp">

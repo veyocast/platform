@@ -1,8 +1,7 @@
 import Link from 'next/link';
-import {notFound} from 'next/navigation';
+import {notFound,redirect} from 'next/navigation';
 import {Button} from '@veyocast/ui';
 import {syncDynamicConfigurationSchema,syncSlideAssets,type SyncSlidePresentation} from '@veyocast/contracts';
-import {createSyncStudioStarter} from '@veyocast/studio';
 import {requireTenantControlSession} from '../../../../../../lib/control-session';
 import {createControlSupabaseClient} from '../../../../../../lib/supabase/server';
 import {loadStudioProject,loadStudioMediaAssets} from '../../../studio/data';
@@ -21,7 +20,7 @@ export default async function NewSyncSourcePage({searchParams}:{searchParams:Pro
   presentation=project.project.document.syncPresentation;
  }else{
   if(query.family&&!syncConnectedAuthoringType(query.family))notFound();
-  presentation=createSyncStudioStarter({family:(query.family??'menu')as SyncSlidePresentation['family'],tenantName:session.tenant}).syncPresentation!;
+  redirect(`/dashboard/studio/new?family=${encodeURIComponent(query.family??'menu')}&mode=connected`);
  }
  const slideType=syncConnectedAuthoringType(presentation.family);
  if(!slideType)return <><p role="status" className="notice">Open voor dit brontype de bestaande bronselectie. Het handmatige ontwerp blijft behouden.</p><Button asChild variant="secondary"><Link href="/dashboard/sources">Bronnen beheren</Link></Button></>;
