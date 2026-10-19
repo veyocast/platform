@@ -14,3 +14,14 @@ describe("frozen product price evidence", () => {
     expect(frozenProductPrices([linked(2.5), { ...linked(500), visible: false }, { ...linked(500), snapshotFallback: { price: { currency: "USD", amountMinor: 500 } } }, { productId: "coffee", formattedPrice: "geen prijs" }])).toEqual({});
   });
 });
+
+// Source rows and explicit grouped prices remain distinct from catalog guesses.
+describe("Source menu price provenance", () => {
+  it("reads exact integer Source prices from immutable menu output", () => {
+    expect(frozenProductPrices([{ menu: { products: [{ id: "coffee", priceMinor: 250, currency: "EUR" }] } }])).toEqual({ coffee: { capturedCatalogCents: [250], displayCents: [250] } });
+  });
+  it("never treats a shared group price as a catalogue baseline, even for equal amounts", () => {
+    const item = { kind: "linked-product", productRef: { productId: "coffee" }, snapshotFallback: { price: { amountMinor: 250, currency: "EUR" } } };
+    expect(frozenProductPrices([{ kind: "product-group", pricePolicy: "shared", sharedPrice: { amountMinor: 250, currency: "EUR" }, secondaryLineItems: [item] }])).toEqual({ coffee: { capturedCatalogCents: [], displayCents: [250] } });
+  });
+});

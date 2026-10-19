@@ -75,7 +75,7 @@ insert into variant_results values('initial-data',public.claim_published_data_re
 select public.complete_published_data_refresh_v1((select(value->>'tenantId')::uuid from variant_results where name='initial-data'),(select(value->>'snapshotId')::uuid from variant_results where name='initial-data'),(select(value->>'leaseToken')::uuid from variant_results where name='initial-data'));
 reset role;
 select is((select count(*)from private.sync_published_binary_state),0::bigint,'unchanged original facts do not schedule an unnecessary encode');
-update public.tenant_products set price_cents=350 where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
+update public.tenant_products set name='Catalogusnaam A' where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
 update public.dynamic_data_sources set revision=revision+1 where id='20000000-0000-4000-8000-000000226231';
 set local role service_role;
 insert into variant_results values('changed-data',public.claim_published_data_refresh_v1('binary-data',60));
@@ -95,7 +95,7 @@ select is(private.sync_binary_cache_bytes_v1('10000000-0000-4000-8000-0000002262
 create function pg_temp.binary_artifact()returns jsonb language sql stable as $$
  select jsonb_build_object('mimeType','video/mp4','durationMs',6000,'width',1920,'height',1080,'byteLength',5000,'checksumSha256',repeat('a',64),
  'storagePath','tenants/'||(value->>'tenant_id')||'/assets/'||(value->>'output_media_asset_id')||'/sync-dynamic/'||(value->>'lease_token')||'-'||repeat('a',64)||'.mp4',
- 'presentation',jsonb_set(value#>'{snapshot_data_json,syncConfiguration,seed}','{rows}','[["Actual own product","€ 3,50","",""],["Actual product 2","€ 2,50","",""],["Actual product 3","€ 2,50","",""],["Actual product 4","€ 2,50","",""],["Actual product 5","€ 2,50","",""]]'),
+ 'presentation',jsonb_set(value#>'{snapshot_data_json,syncConfiguration,seed}','{rows}',(select jsonb_agg(jsonb_build_array(product->>'name','€ '||replace(to_char((product->>'priceMinor')::numeric/100,'FM999999990.00'),'.',','),'','')order by ordinality)from jsonb_array_elements(value#>'{snapshot_data_json,menu,products}')with ordinality as products(product,ordinality))),
  'poster',jsonb_build_object('byteLength',1200,'checksumSha256',repeat('b',64),'storagePath','tenants/'||(value->>'tenant_id')||'/assets/'||(value->>'output_media_asset_id')||'/sync-dynamic/'||(value->>'lease_token')||'-'||repeat('b',64)||'.png'))from variant_results where name='binary-claim';
 $$;
 set local role service_role;
@@ -118,7 +118,7 @@ select is(private.sync_binary_cache_bytes_v1('10000000-0000-4000-8000-0000002262
 update private.sync_published_binary_state set slot_reservations=jsonb_build_object(current_slot::text,83886080);
 select is(private.sync_binary_cache_bytes_v1('10000000-0000-4000-8000-000000226231'),83892280::bigint,'a retained pre-fence writer and newer acknowledged artifact in the same slot count independently');
 update private.sync_published_binary_state set slot_reservations='{}'::jsonb;
-update public.tenant_products set price_cents=450 where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
+update public.tenant_products set name='Catalogusnaam B' where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
 update public.dynamic_data_sources set revision=revision+1 where id='20000000-0000-4000-8000-000000226231';
 set local role service_role;
 insert into variant_results values('newer-data',public.claim_published_data_refresh_v1('binary-data',60));
@@ -130,7 +130,7 @@ select is((select count(*)from private.published_data_refresh_queue),1::bigint,'
 select is(pg_temp.frozen_history(),(select value from variant_results where name='history'),'even queued newer facts never mutate configuration history');
 -- Another ingest supersedes an idle encode, immediately refreshes DOM facts,
 -- and still retains the same future binary deadline.
-update public.tenant_products set price_cents=550 where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
+update public.tenant_products set name='Catalogusnaam C' where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
 update public.dynamic_data_sources set revision=revision+1 where id='20000000-0000-4000-8000-000000226231';
 select is((select phase from private.published_data_refresh_queue),'data','idle binary work yields immediately to newer source facts');
 set local role service_role;
@@ -169,7 +169,7 @@ select ok((select previous_slot is not null and previous_slot<>current_slot and 
 select is(pg_temp.frozen_history(),(select value from variant_results where name='history'),'all coalescing and reclaims leave immutable configuration history unchanged');
 -- A terminal upload failure can have written a poster or partial video. Keep
 -- its fixed inactive prefix and reservation until replacement/retired cleanup.
-update public.tenant_products set price_cents=650 where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
+update public.tenant_products set name='Catalogusnaam D' where tenant_id='10000000-0000-4000-8000-000000226231'and slug='own-product';
 update public.dynamic_data_sources set revision=revision+1 where id='20000000-0000-4000-8000-000000226231';
 set local role service_role;
 insert into variant_results values('terminal-data',public.claim_published_data_refresh_v1('binary-terminal-data',60));
