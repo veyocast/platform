@@ -60,6 +60,7 @@ import {
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { MotionConfig, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -423,7 +424,7 @@ export function ControlShell({
     const label = ({ Vandaag: "Overzicht", "Sponsor Hub": "Sponsors", Engage: "Interactie", Team: "Team & rechten", "Thema's": "Thema’s" } as Record<string, string>)[item.label] ?? item.label;
     const Icon = navigationIcons[label] ?? LayoutDashboard;
     const active = isActive(pathname, item);
-    return <Link aria-current={active ? "page" : undefined} className={`nav-link${active ? " active" : ""}`} href={item.href} key={item.href} onClick={() => { closeMobileNavigation(false); setManagementOpen(false); }} title={isSidebarCollapsed ? label : undefined}><Icon size={18} strokeWidth={1.7} aria-hidden="true" /><span>{label}</span></Link>;
+    return <Link aria-current={active ? "page" : undefined} className={`nav-link${active ? " active" : ""}`} href={item.href} key={item.href} onClick={() => { closeMobileNavigation(false); setManagementOpen(false); }} title={isSidebarCollapsed ? label : undefined}><Icon size={18} strokeWidth={1.7} aria-hidden="true" /><span>{label}</span>{active ? <MotionConfig reducedMotion="user"><motion.i aria-hidden="true" className="nav-indicator" layoutId="nav-active" /></MotionConfig> : null}</Link>;
   });
 
   return (
