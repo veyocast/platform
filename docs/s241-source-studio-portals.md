@@ -133,8 +133,19 @@ Releasevoorbereiding: de product-/test-/documentatie-eenheid is vastgelegd als
 Beide ledgerbijdragen zijn exact behouden. Het gedeelde
 `sync-studio-frame.tsx` is exact die upstreambron met alleen de S241-fieldsetclass
 toegevoegd; de bestaande filmstrip- en navigatiecallbacks blijven behouden.
-De staged en gewone diffchecks zijn groen, zodat geen inherited EOF-helpertrim
-nodig was. Er was geen productcodeconflict; de acht laatste S241-browsercases
+De staged en gewone diffchecks waren groen. De aanvullende PR-mergebasecheck
+vond de geërfde blanke EOF-regel in
+`tests/helpers/sync-create-wizard-fixture.ts:80`. De expliciet toegestane trim
+verwijdert exact één LF en behoudt alle voorafgaande bytes; de voor-/nahashes
+staan in `inherited-helper-eof-trim.json` in het bewijsdirectory.
+Er was geen productcodeconflict; de acht laatste S241-browsercases
 blijven daarom het expliciete pre-integratiebewijs en zijn niet ten onrechte
 als nieuwe meting van de merge gepresenteerd. De geïntegreerde volledige
-foundationgates worden hieronder afzonderlijk geregistreerd.
+foundationgates zijn afzonderlijk geregistreerd op mergecommit
+`f254c0ee3a374e1c7bb479671fec1349cae54f8f`: lint, typecheck en test elk
+30/30 PASS, met respectievelijk 29, 29 en 28 cached taken. De geïntegreerde
+Control-suite is 1.401 PASS met dezelfde 34 bestaande conditionele skips.
+De sequentiële run gebruikt CPU 4,5 en Turbo-concurrency 1; de logs staan in
+`/tmp/veyocast-s241-studio-proof/integrated-foundation/`. Na deze groene run
+wijzigen alleen de eigen bewijsdocumentatie/ledger en de hierboven exact
+gecontroleerde niet-functionele EOF-trim. Geen extra productiebuild of browserrun.

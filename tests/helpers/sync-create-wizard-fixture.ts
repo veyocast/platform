@@ -77,4 +77,3 @@ export async function mount(page: Page, data = fixture(), opts: { dropFirst?: bo
 }
 export async function next(page: Page) { await page.getByRole("button", { name: "Verder", exact: true }).click(); }
 export async function toReview(page: Page) { await next(page); await next(page); await next(page); await expect(page.getByRole("heading", { name: "Controleren", exact: true })).toBeVisible(); }
-

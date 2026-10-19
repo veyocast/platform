@@ -95,5 +95,18 @@ Uitvoeringsreadback: productcommit `c54b34e6` is vastgelegd na de groene
 lokale gates. De merge van exact `abbff5fc` is automatisch conflictvrij;
 beide ledgerbijdragen blijven behouden. De gedeelde Sync-framebron is exact
 S234 met uitsluitend de S241-propertiesclass erbij. Zowel staged als gewone
-diffcheck zijn groen; een EOF-helpertrim was dus niet nodig. Er is geen
-productcodeconflict en daarom geen extra browserrun of build voor deze merge.
+diffcheck waren groen. De latere PR-mergebasecheck (`origin/main...HEAD`) wees
+wel de geërfde blanke EOF-regel in
+`tests/helpers/sync-create-wizard-fixture.ts:80` aan. Volgens de expliciete
+uitzondering is exact één afsluitende LF verwijderd; iedere voorafgaande byte
+is identiek. De voor-/nahashes en bytecontrole staan buiten de repo in
+`/tmp/veyocast-s241-studio-proof/inherited-helper-eof-trim.json`.
+Er is geen productcodeconflict en daarom geen extra browserrun of build voor
+deze merge.
+
+De normale mergecommit is `f254c0ee3a374e1c7bb479671fec1349cae54f8f`.
+Geïntegreerde lint/typecheck/test zijn elk 30/30 PASS (29/29/28 cached),
+Control 1.401 PASS met dezelfde 34 bestaande conditionele skips. Alle gates
+zijn sequentieel begrensd met CPU 4,5 en Turbo-concurrency 1. Na de gates zijn
+uitsluitend eigen ledger/bewijsdocumentatie en de bewezen niet-functionele
+EOF-trim gewijzigd; geen productcode, browserrun of extra productiebuild.
