@@ -409,3 +409,12 @@ zagen beide native Designbeelden:3foto’s zichtbaar, geenbrokenimg. Oude6PASS
 enbrokenframes bewaard, geen eerderegalleryPASS. Alle14links/2legeparents
 weg,Chrome[];11owned/1176unrelated/65canonical/16assets/token0640/Next/deps
 en6WebPguards gelijk. Fullgates/newbuild/finalB/five/deploy rootownedOPEN.
+
+
+## S257 — Behouden publieke Marketingpagina’s in Sync
+
+Elf owned paths op basis1e370666:47behouden publieke pagina’s gebruiken echte Source-chrome, interactieve preview en lokaal leesbare rollen/compacte hero. KorteH2+oorspronkelijke summaryp voorkomt grote paragrafen als kop; contact verbergt generieke releasepanelen en behoudt het native formulier. Alleen prijs-displaycopy/twee sectiebeschrijvingen/laatste contactFAQ/twee featurePage-displaystrings wijzigen. Gekozen9/native opstelling, overige inhoud/handlers/formules, lockedassets en dependencyinputs blijven behouden.
+
+Laatste echte productiebuild/types/clientsecret/scopedlint0, BUILD_ID8gaCBv9wSYRH6IdZQR5-H. Nieuwe390/1440cases2/2PASS21,8s/0retry-skip,5routes×2aXe0;10nativePNG’s plus skiplinkmetingen. Closure `/dev/shm/veyocast-s257-browser-fb8befd7-1903-45ad-997e-6aa108d85151/closed.json`; Chrome/servergesloten,3tijdelijkelinksweg, bron/deps/publicassetbyte-mode-mtimeguardsPASS. Alle eerdere rode bewijzen blijven; oorspronkelijke6testbodies zijn bytegelijk behouden maar hier niet uitgevoerd. Geeninstall/DBwrites.0/5volledige rondes; root-nativebeeldreview en volledige geïntegreerde workspace/57routes/auth/Sourceacceptatie blijven de eindgrens.
+
+Na de gesloten 2/2-run zijn uitsluitend twee grammaticaal onjuiste, automatisch samengestelde featurePage-displaystrings vervangen door ‘Voor wie is deze functie bedoeld?’ en een gewone voorbereidingszin; de ongebruikte subjectconst is verwijderd. Exacte omkeerbaarheid naar de gebouwde pages.ts-bytes is vastgelegd. Geen nieuwe lint/build/browser is uitgevoerd voor deze letterlijke copydelta: het groene BUILD_ID en de tien PNG’s blijven pre-copy layout-/gedragsbewijs. De finale geïntegreerde build/foundation en57routebeelden moeten de actuele copy nog bevestigen. Geen exact-final-source acceptatieclaim.
