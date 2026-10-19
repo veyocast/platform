@@ -1,0 +1,13 @@
+# S259 — Behouden Marketingprint en Source-skiplink
+
+Basis `09d8431cf47f7a5e56d00d9d1cb4fdce27e06883`; branch `veyocast/s259-retained-marketing-print`, sparseworktree maximaal20MiB, geen install.
+
+Exact zeven owned paths: `apps/marketing/app/_sync/retained.css`; `tests/a11y/marketing-legal.spec.ts`; `apps/marketing/app/_content/pages.ts` (alleen ‘Iedere’→‘Elk’); `tests/e2e/marketing-routes.spec.ts` (alleen dezelfde bestaande FAQassert); `docs/s259-retained-marketing-print.md`; dit promptbestand; de eigen TASK_LEDGER-paragraaf.
+
+Alleen retained-scoped `@media print` verbergt `.mk-header`, `.mk-footer`, `.mk-retained-links` en `.mk-skip`. Source/gekozene negen/globale CSS/tokens/deps/handlers/billing blijven gelijk. Bestaande legalcases gebruiken de echte naam ‘Direct naar inhoud’, behouden hun taal/landmark/kopcontroles en versterken href, focus en native Enter. De bestaande privacy-printcase blijft bytegelijk. Geen assertions, fixture of deadlines verzwakken.
+
+Root reviewde diff/plan en autoriseerde de exclusieve normale productiebuild en exact drie bestaande legal/printcases gevolgd door twee bestaande retained-routecases op hetzelfde artifact/runtime. Build: CPU4,5, heap3072, CIRCLE_NODE_TOTAL2, daadwerkelijke4500MiB/100MiBhostvloer, unieke RAM-output/TMP/cache en768MiBdrukguard. Gesaneerde compile/runtimeomgeving: APP_URL=http://localhost:3405; NEXT_PUBLIC_APP_URL=http://localhost:3108; NEXT_PUBLIC_CONTROL_URL=http://localhost:3405. Geen QA/Supabase/providercredentials. Alleen drie vooraf gepinde canonieke tijdelijke module/publiclinks met volledige cleanup. Browser: directe gepinde NodeCLI, heap1024, één worker, nul retry, bestaande30s/5s.
+
+Voor de volledige build zijn drie ontbrekende bracket-routebestanden uitsluitend als exacte09d-baseline gematerialiseerd; alle66 fysieke Marketing-bron/configbestanden zijn afzonderlijk gebonden. Eerste onvolledige Ulx, resource-preflights en alle helperfouten blijven apart bewaard. De gecorrigeerde Nextbuild eindigde0; de wrapper eindigde1 op een bewezen onjuiste prerender-verwachting. Afzonderlijke voortzetting op hetzelfde nbDV-artifact eindigde0 inclusief client-secretcheck, bron/deps/assets/artifactguards en echte200/BuildID-readiness voor vier routes; geen nieuwe compile of bronwijziging.
+
+Gerichte einduitkomst:3/3 legal/print en2/2 retained groen; scopedlint0; alleChrome/server gesloten en drie links weg. Eigen docs/ledger bijgewerkt na closure, vier geteste bron/testbytes behouden. Gewone commit/push/PR uitsluitend na root eindreview. Alle originele hosted21PASS/3FAIL en lokale bewijzen intact.0 volledige visuele rondes; volledige geïntegreerde gates/captures/release blijven rootowned.

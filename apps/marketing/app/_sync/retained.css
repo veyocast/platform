@@ -328,3 +328,11 @@ html[data-design-system="fieldflow"] .mk-retained-site .price-calculator__rate :
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Retained legal pages keep the existing content-first print contract while
+   using the same Source chrome as the screen layout. */
+@media print {
+  .mk-retained-site :is(.mk-header, .mk-footer, .mk-retained-links, .mk-skip) {
+    display: none;
+  }
+}
