@@ -2,7 +2,7 @@
 
 De oorspronkelijke startprompt en gekozen prototype1/Sync blijven leidend, met de latere expliciete eis om oude oranje bediening, verdwenen OnzeTrots-achtergronden en massale gestapelde containers op te ruimen. De vijf gevraagde volledige vergelijkingen zijn een eigen open gate; losse tests, vijf breedtes of identieke browserherhalingen tellen daar niet voor.
 
-1. Afgesloten: S245–S248 zijn na afzonderlijke proof/freeze normaal geïntegreerd; alle oorspronkelijke branches, PRs en rode resultaten blijven bewaard. De actuele acceptatie-/uitrolstatus volgt op PR270; de onderstaande gates blijven op dit bevroren bronopnamemoment open.
+1. Bronintegratie: S245–S252 zijn na afzonderlijke proof/freeze en rootreview normaal geïntegreerd; alle oorspronkelijke branches, PRs en rode resultaten blijven bewaard. De actuele acceptatie-/uitrolstatus volgt op PR270; de onderstaande gates blijven op dit bevroren bronopnamemoment open.
 2. Eén actuele productiebuild met echte lokale AAL2-diensten vastleggen. Begrensde read-only cohort met werkelijk geladen editor, inner-scroll, alle36 wizardfamilies, OnzeTrots-foto/decode en landschap/portret uitvoeren. Auth-, Source-, build-, tenantdata-, historie- en Storageguards behouden; geen QA-reset of extra opgeslagen ontwerp voor screenshots.
 3. De volledige bevroren capturecohort vijfmaal onafhankelijk vergelijken. Iedere route/state/viewport, Sourcevergelijkbaarheid, afwijking, afsluiting en expliciete dekkingsgrens registreren. Werkelijke productdefecten oplossen; fixture-/timingfouten en onbekende oorzaken herkenbaar bewaren.
 4. Bewijsindex en148-scenariomapping waarheidsgetrouw afronden, dan de exacte laatste PR-versie door de bestaande software-, UI-, Player/offline- en RLS-gates laten gaan.

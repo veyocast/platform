@@ -14,6 +14,22 @@ De bestaande standaard- en Google TV-Player zijn al gesigneerd naar `internal` e
 
 Alle148 scenario-IDs, bestaande bewijsstatussen,36 logische contracten en historische refs blijven behouden. De foutieve canonverwijzing is in143 productiecriteria gecorrigeerd; vijf specifieke criteria blijven letterlijk gelijk. Ontbrekende repo-/runverwijzingen zijn toegevoegd zonder scenario-PASS toe te kennen. Zie `evidence/s244-scenario-crosswalk.json`, `../docs/s244-integrated-sync-acceptance.md` en de afzonderlijke S245–S247-docs zodra normaal geïntegreerd.
 
+## Vervolgcorrecties vóór nieuwe eindbuild
+
+S249–S252 worden na afzonderlijke rood-groencontrole en rootreview normaal
+opgenomen. Daarmee omvat de integratie vijftien featureheads. S249 herstelt
+uitsluitend een conflicterende statusverwachting; S250 is de expliciet
+beoordeelde gepinde Next-Schedulerpatch met één Control-SSRmarker en een
+mechanische lockdelta. S251 herstelt drie mobiele indelingsdefecten; S252
+herstelt clubkleur-swatches en lokale goalpreviewgeometrie/compositie.
+De afzonderlijke cohorten tellen2/4/2/14 geslaagde gevallen. De originele
+fouten en onvolledige captureruns blijven bewaard;0/5 volledige ronden.
+Zie `evidence/s244-followup-corrections.json` en de vier eigen sprintdocs.
+Nieuwe install/foundation/build/capture, exacte laatste CI en normale
+staging-/productie-uitrol blijven op deze bronopname open en worden op PR270
+met hun daadwerkelijke readbacks gesloten. De eerdere Controltree hierboven
+is de historische S245–S248-opname en certificeert deze vervolgbron niet.
+
 ## Historische werkstanden
 
 De onderstaande S226-mijlpalen zijn bewaard als historische registratie. Oude woorden zoals “nog geen PR/deploy” gelden uitsluitend op hun eigen opnamemoment.

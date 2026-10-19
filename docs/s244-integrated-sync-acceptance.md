@@ -164,3 +164,51 @@ acceptatie-, CI- en uitrolreadbacks worden op
 head/build, capture- en reviewhashes en dekkingsgrenzen. Open gates op deze
 snapshot worden pas met hun eigen nieuwe bewijs gesloten. Zie ook
 `execution/evidence/s244-audit-corrections.json`; geen algemene pixel-/V1-claim.
+
+
+## Vervolg na de onvolledige bf458bee-capture
+
+De gesloten tweede capture blijft onvolledig:397 PNG's, waarvan367 actuele
+beelden en30 Sourcebeelden. De72 wizardpogingen zonder Vormgeving-/reviewcapture, oorspronkelijke
+React418-/parentNode-fouten, redirects en
+na de runtime-stop ontstane transportfouten blijven afzonderlijk zichtbaar.
+De capture en de latere beperkte triages tellen nog steeds als0/5 ronden.
+Alle162 tenanttabellen, historie en Storage bleven gelijk; er was geen
+nieuwe QA-reset. De oude capturestatus en eerdere bewijsbestanden zijn behouden.
+
+S249 brengt de oude negatieve neutraalstatusassertie in overeenstemming met
+de al goedgekeurde S247-Sourcekleur. Dezelfde twee gevallen slagen met Licht
+én opgeslagen Donker,12,850936:1, aXe0 en een echte negatieve buiten-Syncgrens.
+S251 sluit drie daadwerkelijk gereproduceerde mobiele defecten: overlappende
+actie onder het tenantformulier, samengedrukte Sportlinklabels en aaneengeplakte
+supportkaarten. Dezelfde twee pagina-cohortgevallen zijn groen op390/1440;
+de drie nieuwe native mobiele beelden zijn door root bekeken.
+
+S250 is afzonderlijk als dependency-taak beoordeeld. Eén Control-SSRmarker
+houdt in Next15.5.20 alleen de gemarkeerde browser-Scheduler tijdens de
+parserfase tegen. De pnpm-patch raakt exact twee bestaande bestanden met
+samen twintig regels; overige versies, integrities en peerrefs blijven gelijk.
+De mechanische lockdelta is byte-voor-byte gecontroleerd. Vier echte
+frameworkstreamgevallen zijn groen, inclusief head zonder body, Fizz-reveal,
+ongemarkeerde bypass en een opzettelijke mismatch die React418 blijft melden.
+Dit is geen volledige NextAppRouteracceptatie. Een permanent open response
+kan initiële interactie blijven uitstellen; werkelijke install, productiebuild
+en routecohort blijven daarom zelfstandige gates.
+
+S252 laat beide themakeuzekaarten de huidige goedgekeurde clubkleur gebruiken.
+De lokale doelpunteditorpreview schaalt titel/scorer/score binnen het eigen
+canvas, met een volledige normale80-tekens hoofdtekst op390/1440 en in beide
+formaten. Alle14 bestaande en nieuwe browsergevallen zijn groen; na de eerste
+geometrische14PASS is de werkelijk bekeken ondergevulde portraitcompositie
+alsnog gecorrigeerd en opnieuw volledig getoetst. Root heeft de vier nieuwe
+lange native voorbeelden bekeken. Geen renderer-/export-/Playerdelta of
+algemene pixelpariteitsclaim; no-scorer en andere momenttypen zijn geen apart
+geometrisch geaccepteerde varianten.
+
+Alle exacte featureheads, lokale rapportgrenzen en vervolgfreeze staan in
+`execution/evidence/s244-followup-corrections.json`. De oude
+`s244-audit-corrections.json` blijft de eerdere, ongewijzigde bronopname.
+De nieuwe gezamenlijke install, foundation, build, gesloten actuele
+capturecohorten, vijf volledige vergelijkingsronden, exacte CI en normale
+staging-/productiepromotie worden pas met hun werkelijke readbacks afgesloten
+op PR270. Geen van de bovenstaande gerichte tests telt als volledige ronde.

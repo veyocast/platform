@@ -38,6 +38,15 @@ Sync-primary gaat boven de historische algemene Orange-regel.
   lokale Sync-scope. S248 groepeert de bestaande extra LED-taken met native
   disclosures en behoudt alle formulieren, permissions, keys, anchors en
   fout-/editretouren. Geen writer of inhoudscontract wordt vervangen.
+- De afzonderlijk gereviewde vervolgheads S249–S252 normaal integreren.
+  S249 corrigeert alleen de combinatie van bestaande statusverwachtingen.
+  S250 is een expliciete dependency-taak: exact Next15.5.20, één SSR-optin
+  en een twintigregelige pnpm-patch in twee vendored Schedulerbestanden;
+  alleen hiervoor zijn patchregistratie en de mechanische lockdelta toegestaan.
+  De originele packageversies, manifests, integrities en peergraph blijven gelijk.
+  S251 herstelt drie werkelijk gereproduceerde mobiele indelingsdefecten.
+  S252 herstelt lokale clubkleur-swatches en de behouden doelpunteditorpreview;
+  canonical renderer, exports, commands en Player blijven behouden.
 - `TASK_LEDGER.md`, dit prompt, `docs/s244-integrated-sync-acceptance.md`,
   `execution/CURRENT-STATE.md`, `execution/PLAN.md`,
   `execution/scenario-acceptatie.csv`, `execution/opruimregister.csv`,
@@ -60,7 +69,8 @@ Sync-primary gaat boven de historische algemene Orange-regel.
   Alle drie noodzakelijke forwards zijn afzonderlijk al bewezen; galerijforward
   heeft historie179→180 en alle rijen van162 tenanttabellen exact behouden.
 
-Geen nieuwe dependencies, lockfile, schema, publieke RPC, tokens, Source-assets,
+Buiten de afzonderlijk goedgekeurde S250-patch geen nieuwe dependencies of
+lockfilemutatie; geen schema, publieke RPC, tokens, Source-assets,
 serviceworker, playeractivatiecontract of releaseworkflowmutatie. De reeds
 afzonderlijk S238-goedgekeurde CI-fixtureprep wordt normaal geïntegreerd.
 Nieuwe werkelijke defecten buiten deze integratie stoppen/melden met concrete
