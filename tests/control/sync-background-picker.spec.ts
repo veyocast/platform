@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
@@ -47,6 +48,7 @@ type Save = {
   document: StudioDocument;
 };
 type Hooks = {
+  accent?: string;
   dropFirstSave?: boolean;
   rejectFirstSave?: boolean;
   rejectRecoverySave?: boolean;
@@ -67,6 +69,8 @@ async function mount(page: Page, hooks: Hooks = {}) {
     family: hooks.family ?? "fixtures",
     tenantName: "Club A",
   });
+  if (hooks.accent && document.syncPresentation)
+    document.syncPresentation.style.accent = hooks.accent;
   if (document.syncPresentation?.family === "fixtures")
     document.syncPresentation.rows = [["Thuis A", "Uit B", "11:00", "2"]];
   const snapshot = structuredClone(document);
@@ -297,6 +301,29 @@ async function mount(page: Page, hooks: Hooks = {}) {
   };
 }
 
+
+for (const width of [390, 1440]) test(`Source theme swatches reflect the approved draft accent without writes at ${width}px`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 1000 });
+  const run = await mount(page, { accent: "#205d77" });
+  const serverBefore = JSON.stringify(run.state.document);
+  const originalTheme = run.state.document.syncPresentation!.theme;
+  const sourcePath = "docs/sync-v1-rebuild/handoff/reference/sites-sync/src/modules/Content.tsx";
+  const source = readFileSync(sourcePath, "utf8");
+  expect(source).toContain("style={{backgroundColor:theme.accent}}");
+  await page.getByRole("button", { name: "Vormgeving", exact: true }).click();
+  const swatches = page.locator(".vc-theme-options .vc-theme-swatch");
+  await expect(swatches).toHaveCount(2);
+  await page.evaluate(() => document.fonts.ready);
+  await info.attach("source-theme-swatches-before", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+  await info.attach("source-theme-swatch-contract", { body: Buffer.from(JSON.stringify({ sourcePath, sourceSha256: createHash("sha256").update(source).digest("hex"), approvedAccent: "#205d77", actual: await swatches.evaluateAll(nodes => nodes.map(node => ({ color: getComputedStyle(node).backgroundColor, gradient: getComputedStyle(node).backgroundImage }))) })), contentType: "application/json" });
+  for (const swatch of await swatches.all()) await expect(swatch).toHaveCSS("background-color", "rgb(32, 93, 119)");
+  await page.getByLabel("Accentkleur", { exact: true }).fill("#2459ed");
+  for (const swatch of await swatches.all()) await expect(swatch).toHaveCSS("background-color", "rgb(36, 89, 237)");
+  for (const [theme, label] of [["fieldflow", "FieldFlow"], ["onzetrots-tv", "OnzeTrots TV"]])
+    await expect(page.locator(".vc-theme-options").getByRole("button", { name: new RegExp(label!) })).toHaveAttribute("aria-pressed", String(originalTheme === theme));
+  expect(JSON.stringify(run.state.document)).toBe(serverBefore);
+  expect(run.writes).toEqual([]); expect(run.renderWrites).toEqual([]); expect(run.copyWrites).toEqual([]); expect(run.restoreWrites).toEqual([]); expect(run.seriesWrites).toEqual([]); expect(run.errors).toEqual([]);
+});
 
 for (const width of [390, 1440]) test(`actual scene selection, orientation pairing and saved reload at ${width}px`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 1000 }); await galleryRoutes(page, origin);

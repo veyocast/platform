@@ -15,6 +15,8 @@ const require = createRequire(join(process.cwd(), "package.json"));
 const compiler = require.resolve("esbuild", { paths: [require.resolve("tsx")] });
 const id = (n: number) => `24800000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const titles = ["Bestaande wedstrijdmomenten", "Uitgebreide overlay-editor", "Live tussenstand als slide", "Uitleg en clubhuisstijl"];
+// Existing editor maxLength and server readGoalDesign both permit 80 characters.
+const longPreviewHeadline = "Een prachtig doelpunt voor onze club: samen vieren we deze verdiende voorsprong!";
 let bundle: { js: string; css: string };
 
 test.beforeAll(() => {
@@ -27,9 +29,68 @@ test.beforeAll(() => {
 
 function fixture(variant = "owner") {
   const connection = { id: id(3), name: "Eigen scorebord", provider_club_id: "own", provider_club_name: "Eigen club", catalog_synced_at: "2026-10-19T12:00:00Z", liveState: { home: { name: "Eigen club", score: 2 }, away: { name: "Gasten", score: 1 }, sourceUpdatedAt: "2026-10-19T12:00:00Z", clockSeconds: 4044 } };
-  const alert = { id: id(1), connection_id: connection.id, name: "Eigen bestaande experience", status: "draft", priority: 100, duration_ms: 8000, underlay_policy: "continue", draft_config: { schemaVersion: 1, triggerOwn: true, triggerOpponent: false }, revision: 7, current_published_version_id: null as string | null, updated_at: "2026-10-19T12:00:00Z", is_central_goal_overlay: false };
+  const alert = { id: id(1), connection_id: connection.id, name: "Eigen bestaande experience", status: "draft", priority: 100, duration_ms: 8000, underlay_policy: "continue", draft_config: { schemaVersion: 1, triggerOwn: true, triggerOpponent: false, ...(variant === "long-headline" ? { ownDesign: { headline: longPreviewHeadline } } : {}) }, revision: 7, current_published_version_id: null as string | null, updated_at: "2026-10-19T12:00:00Z", is_central_goal_overlay: false };
   const data = { alerts: [alert, { ...alert, id: id(4), name: "Eigen gepubliceerde experience", status: "published", current_published_version_id: id(40) }, { ...alert, id: id(5), name: "Eigen centrale Goal Overlay", is_central_goal_overlay: true }], assets: [], availability: variant === "feature-off" ? "not_released" : "available", enabled: variant !== "feature-off", connections: variant === "no-connection" ? [] : [connection], draftGroups: [{ alert_id: alert.id, screen_group_id: id(20) }], groups: [{ id: id(20), name: "Eigen schermgroep", screenIds: [id(30)] }], liveSlides: [{ id: id(10), name: "Eigen live wedstrijdslide", orientation: "landscape", status: "draft", updated_at: alert.updated_at }], mappings: [], publishedGroups: [{ alert_version_id: id(40), screen_group_id: id(20) }], screens: [{ id: id(30), name: "Eigen kantine", status: "online" }], sponsors: [], targetGroups: [{ id: id(20), screenIds: [id(30)] }] };
   return { session: { isLive: true, tenantId: id(100), tenant: "Eigen vereniging", tenantStatus: variant === "paused" ? "paused" : "active", capabilities: variant === "viewer" ? ["tenant.dynamic_slide.read"] : ["tenant.dynamic_slide.read", "tenant.dynamic_slide.write", "tenant.playlist.publish"], timezoneName: "Europe/Amsterdam" }, data, emptyData: { ...data, enabled: false, availability: "not_released", alerts: [], connections: [] }, destinations: { canPublish: false, unavailable: false, playlists: [], screens: [], groups: [] } };
+}
+
+for (const width of [390, 1440]) {
+  test(`retained goal preview preserves full server headline scorer and score without overlap at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+    const state = await prepare(page);
+    expect(longPreviewHeadline.length).toBe(80);
+    for (const [variant, headline] of [["owner", "GOOOAAAL!"], ["long-headline", longPreviewHeadline]]) {
+      await visit(page, `?edit=${id(1)}&fixture=${variant}#editor`);
+      const serverBefore = await page.evaluate(() => JSON.stringify((globalThis as unknown as { fixture: { data: unknown } }).fixture.data));
+      await expect(page.locator('#editor input[name="name"]')).toHaveValue("Eigen bestaande experience");
+      await expect(page.locator('#editor input[name="expectedRevision"]')).toHaveValue("7");
+      const preview = page.locator('#editor [data-orientation][data-palette][data-typography]');
+      await expect(preview).toHaveCount(1);
+      const stand = page.locator("#editor").getByRole("group", { name: "Schermstand", exact: true });
+      for (const [orientation, label] of [["landscape", "16:9"], ["portrait", "9:16"]]) {
+        await stand.getByRole("button", { name: label, exact: true }).click();
+        await expect(preview).toHaveAttribute("data-orientation", orientation!);
+        await preview.scrollIntoViewIfNeeded();
+        await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+        const sample = await preview.evaluate(node => {
+          const root = node as HTMLElement;
+          const goal = root.querySelector<HTMLElement>("[data-show-scorer]")!;
+          const title = goal.querySelector<HTMLElement>(":scope > div > strong")!;
+          const scorer = goal.querySelector<HTMLElement>(":scope > div > p")!;
+          const portrait = goal.querySelector<HTMLElement>(":scope > span:first-child")!;
+          const score = goal.querySelector<HTMLElement>(":scope > span:last-child")!;
+          const rect = (element: HTMLElement) => {
+            const box = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return { x: box.x, y: box.y, left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height, clientWidth: element.clientWidth, scrollWidth: element.scrollWidth, clientHeight: element.clientHeight, scrollHeight: element.scrollHeight, fontSize: style.fontSize, textOverflow: style.textOverflow, overflow: style.overflow };
+          };
+          const textRects = (element: HTMLElement) => {
+            const text = document.createRange(); text.selectNodeContents(element);
+            return [...text.getClientRects()].map(box => ({ left: box.left, top: box.top, right: box.right, bottom: box.bottom }));
+          };
+          return { preview: rect(root), goal: rect(goal), assignedGoalStageHeight: parseFloat(getComputedStyle(root).gridTemplateRows.split(/\s+/)[1]!), goalStageSubpixelToleranceCssPixels: 1, title: rect(title), scorer: rect(scorer), portrait: rect(portrait), score: rect(score), titleTextRects: textRects(title), scorerTextRects: textRects(scorer), scoreTextRects: textRects(score), headline: title.textContent, scorerText: scorer.textContent, scoreText: score.textContent, orientation: root.dataset.orientation, palette: root.dataset.palette };
+        });
+        const key = `goal-preview-${width}-${variant}-${orientation}`;
+        await record(info, key, sample); await record(info, key + "-native", await preview.screenshot());
+        expect(Math.abs(sample.goal.height - sample.assignedGoalStageHeight)).toBeLessThanOrEqual(1);
+        expect(sample.headline).toBe(headline); expect(sample.scorerText).toBe("#9 D. Jansen"); expect(sample.scoreText).toBe("4–2");
+        for (const rect of [sample.title, sample.scorer, sample.portrait, sample.score, ...sample.titleTextRects, ...sample.scorerTextRects, ...sample.scoreTextRects]) {
+          expect(rect.left).toBeGreaterThanOrEqual(sample.preview.left); expect(rect.right).toBeLessThanOrEqual(sample.preview.right);
+          expect(rect.top).toBeGreaterThanOrEqual(sample.preview.top); expect(rect.bottom).toBeLessThanOrEqual(sample.preview.bottom);
+        }
+        type Edges = Pick<typeof sample.title, "left" | "right" | "top" | "bottom">;
+        const disjoint = (a: Edges, b: Edges) => a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+        expect(disjoint(sample.title, sample.score)).toBe(true); expect(disjoint(sample.title, sample.scorer)).toBe(true); expect(disjoint(sample.portrait, sample.score)).toBe(true);
+        for (const title of sample.titleTextRects) for (const other of [...sample.scorerTextRects, ...sample.scoreTextRects]) expect(disjoint(title, other)).toBe(true);
+        for (const scorer of sample.scorerTextRects) for (const score of sample.scoreTextRects) expect(disjoint(scorer, score)).toBe(true);
+        expect(sample.title.scrollWidth).toBeLessThanOrEqual(sample.title.clientWidth); expect(sample.title.scrollHeight).toBeLessThanOrEqual(sample.title.clientHeight);
+        expect(sample.title.textOverflow).not.toBe("ellipsis");
+        expect(await page.evaluate(() => JSON.stringify((globalThis as unknown as { fixture: { data: unknown } }).fixture.data))).toBe(serverBefore);
+        expect(await page.evaluate(() => (globalThis as unknown as { commands: unknown[] }).commands)).toEqual([]);
+      }
+    }
+    expect(state.errors).toEqual([]); expect(state.writes).toEqual([]);
+  });
 }
 
 async function record(info: TestInfo, name: string, value: Buffer | object) {

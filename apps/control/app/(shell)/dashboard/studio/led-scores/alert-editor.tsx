@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import {
   AlertTriangle,
@@ -646,6 +646,8 @@ function ExperiencePreview({ design, kind, orientation }: { design: EditableDesi
     data-orientation={orientation}
     data-palette={design.palette}
     data-typography={design.typography}
+    data-goal-preview={goal || undefined}
+    style={goal ? { "--goal-headline-size": `${design.headline.length > 42 ? 3.5 : design.headline.length > 22 ? 4.75 : 6.5}cqw` } as CSSProperties : undefined}
   >
     <div className={styles.previewTopline}><span>LIVE · HOOFDVELD</span><span>{design.showClock ? "38:24" : "DUINDORP SV"}</span></div>
     <span aria-label="Voorbeeld clublogo" className={styles.previewClubMark}>D</span>

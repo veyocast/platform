@@ -356,3 +356,15 @@ S142/S191 catch-upasserties behouden. Verse reset door `20261018104700`, RLS
 pass. Geen hosted deployment.
 
 | S250 | review | veyocast/s250-control-stream-hydration | studio_surfaces | Control SSR-parser vóór Reactwerk | Alleen SSRhtml-optin + Next15.5.20vendoredschedulerpatch prod/dev; lockregistratie; echte streamspec/docs/prompt | Finale ongewijzigde baseline2FAIL/2PASS→gepatcht4PASS/0skip; Nodeprod/dev, NodeSSR, unmarkedbypass, SSRidentiteit en mismatchmelding; scoped lint/strict TSC/diff groen; lockgraph20/1387/1409 exact behouden; Chrome[] | Geen commit/push. Controlinitwerk wacht parserloading af; hangende response/backgroundtimers kunnen interactie uitstellen. Root voert echte patched install/Nextbuild/volledige foundation/actuele routes uit. Zie docs/s250-control-stream-hydration.md. |
+
+S252: lokale previewfidelity op `veyocast/s252-sync-preview-fidelity`, basis
+`bf458bee`. Clubaccent op thema-swatches; goalpreview schaalt aan eigen breedte
+met volledige80-tekens hoofdtekst/scorer/score en gevulde portraitstage.
+Origineel4 rood; kandidaat12/14; geometrie14/14 met native leegtestagebevinding;
+nieuwe stagecheck2 rood; finale dezelfde14/14 PASS,87,215s,0skip/retry.
+Root heeft4 lange native beelden geaccepteerd. Scopedlint groen; strictproduct0
+nieuwe diagnostics,4 oude test-TSCmeldingen expliciet baseline. Integratie/fullgates
+blijven rootowned. Eigen browsers/links gesloten;74 assetbytes/Source gelijk.
+Primaire roods/PNGs/closures bewaard; één overschreven metadatafile en onbekende
+oude SHA/tijd expliciet vermeld in docs/proof. Geen renderer/Worker/Player-, DB-,
+dependency-, Source- of assetwijziging; losse triage telt0/5 rondes.
