@@ -372,3 +372,54 @@ livecachewijziging of truncatie geldt als oplossing. Oude scenario-ID’s/status
 blijven behouden. Finale bronbinding, foundation/builds en captures wachten op
 deze correcties. Nog0/5 volledige vergelijkingen; negen oorspronkelijke
 React418-fouten, exacte finaleCI en staging/productie blijven open.
+
+
+## S261, S262 en S263: nieuwe samengestelde bron
+
+De drie gewone featureheads zijn opgenomen: S261 `ae5e4a884aa2f452dd5377ad66a3ede349aa4831` (PR288),
+S262 `651a1e65b23bee3d84295601a01e8b56b9ffb0fc` (PR287) en S263 `c235aaefacbe342de2f7915c183e17c80dae3215` (PR286).
+Er zijn nu23 UI-/functionele heads en twee CI-correcties. De twee ledgerconflicten
+zijn exact additief opgelost: alle oude regels, S260 en S262 blijven behouden,
+evenals de afzonderlijke S261-regel. Geen productconflict of dependencywijziging.
+
+S261 biedt de volledige prijsdiff/impact, een expliciete prijsversie en een
+afzonderlijke publicatie van geselecteerde kandidaten. De server bouwt en bindt
+de gehele prijsset aan bestaande receipts; actieve immutable publicaties blijven
+bevroren. Andere livefeiten en alle CAS-/nonce-/rollbackgrenzen blijven behouden.
+De mobiele diff heeft compacte volledige prijsregels; desktop houdt zijn tabel.
+S261 nativeV11 is2/2PASS21,674s/0retry-skip; root bekeek de echte boven-/onder- en
+desktopbeelden. Source-wissel vereist een nieuwe expliciete review en canonical
+readback. Gerichte units21 en lint/compile/discovery zijn afzonderlijk groen.
+
+S262 bewaart alle24 antwoord-ID's/labels en toont4 per pagina, zes pagina's en
+minimaal18s bij24keuzes. Wizard, export en Player delen paginatelling; oude
+ongemarkeerde documenten behouden hun duur. Capabilityonderhandeling geeft
+oudere clients dezelfde complete binary zonder onbekende DOMvelden. NativeV10
+is8/8PASS116,021s,104oorspronkelijkePNG's/84geometrieën en0retry/skip. Root zag
+de extra kolomruimte en volledige OnzeTrots-/QR-inhoud. De echte MP4 met zes
+gedecodeerde pagina's en QR's is nog slechts privé voorbereid.
+
+S263 verandert uitsluitend drie focuskleuren: Media gebruikt Source-accent;
+generieke Sync- en Sportlinkfocus mengen bestaande accent-/minttokens. De
+randbreedtes en offsets blijven gelijk. Native licht-/donkerfocus op de nieuwe
+build blijft open; statische contrastberekening is geen beeldacceptatie.
+
+De echte geïsoleerde gecombineerde DB V18 sloot0 in132,183s: normale CLI-reset
+201migraties+seed0, gericht2bestanden/187checksPASS, volledig136bestanden/4454checks
+PASS44,459s en CLI-errorlint0/1,295s. pgTAP gebruikte twee expliciete equivalente
+lokale pg_prove-containers; het volledige normale CLI/CI-commando blijft apart.
+De managed bootstrap en defaultprivileges volgen aantoonbaar de gepinde normale
+CLI. De optionele CLI-telemetrie is uitgeschakeld na bewezen PostHog-finalizerfout;
+geen SQL-/assert-/rechten-/deadlineversoepeling. Alle eerdere rode DBpogingen
+blijven behouden. Closure1bb27a0bcbabc8867bd34467642dc29e4ba105ac0540fe54ace465720413434b
+staat onder de private S262-proofroot bij actor-a7a8db1a-85a4-4fa8-be32-ec7d98980984.
+Alle eigen actors/geheimen zijn weg; bestaande171Dockeridentiteiten, bronnen,
+deps/assets en199oudeSQL blijven gelijk. HuidigeQA57621/57622 is niet gewijzigd.
+
+S261's full-index-diff8320ac25 en normale Git-indexdiff9ad1d50b verschillen alleen
+in de lengte van indexheaders; alle18 gecommitteerde bestandsinhouden zijn exact
+de releasefreeze. De normale indexdiff wordt in de finale pipeline gebonden.
+S262's normale diff isebe79092; S263's twee gewone commits/diff2e6d5ef0 blijven
+behouden. Volgende gate: nieuwe bronbinding, continuïteit/foundation, Control- en
+Marketingbuilds, gecontroleerde QA-forward, herstelS215analytics en echte finale
+captures. Oude9React418 blijven open;0/5 volledige reviews en geen nieuwe uitrol.

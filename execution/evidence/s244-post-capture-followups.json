@@ -350,5 +350,67 @@
     "fullVisualReviewRounds": 0,
     "newBuildCaptureCiDeployment": "PENDING_AFTER_REQUIRED_FUNCTIONAL_CORRECTIONS",
     "oldS215AnalyticsRestorationBeforeFinalCaptures": "REQUIRED_PENDING"
+  },
+  "postF740FeatureIntegration": {
+    "at": "2026-10-19T17:32:54.517450+00:00",
+    "sourceHeadBeforeDocumentation": "8a14cba9dc7f153e1b877152d67cfe03398b315b",
+    "featureHeads": {
+      "S261": "ae5e4a884aa2f452dd5377ad66a3ede349aa4831",
+      "S262": "651a1e65b23bee3d84295601a01e8b56b9ffb0fc",
+      "S263": "c235aaefacbe342de2f7915c183e17c80dae3215"
+    },
+    "prs": [
+      288,
+      287,
+      286
+    ],
+    "ordinaryMerges": true,
+    "productConflicts": 0,
+    "ledgerConflicts": "Exact additive preservation: S260+S262 sections and S261 row",
+    "uiFunctionalHeads": 23,
+    "ciCorrectionHeads": 2,
+    "scopedNative": {
+      "S261": {
+        "cases": 2,
+        "pngs": 10,
+        "closureSha256": "dc90bf73c5da23891c479f8a50f10ba672bd4849e3167b7868b3ee61ba2d4fab"
+      },
+      "S262": {
+        "cases": 8,
+        "pngs": 104,
+        "geometries": 84,
+        "closureSha256": "44956f3e2e6ec0a1ab60d5f0795b2a3eb2fb1dba59dcac4fadfa47b219b3af30"
+      },
+      "S263": "SOURCE_REVIEW_ONLY_NEW_NATIVE_LIGHT_DARK_PENDING"
+    },
+    "combinedIsolatedDbV18": {
+      "closed": "/dev/shm/veyocast-s262-engage-preparation-75daf4be-a8ae-466b-846f-f4c7f2d64e5b/db-helper-preparation/actor-a7a8db1a-85a4-4fa8-be32-ec7d98980984/closed.json",
+      "sha256": "1bb27a0bcbabc8867bd34467642dc29e4ba105ac0540fe54ace465720413434b",
+      "actualExit": 0,
+      "reset201": 0,
+      "targetedChecks187": "PASS",
+      "full136Files4454Checks": "PASS",
+      "cliErrorLint": 0,
+      "actualFullCliTestDb": false,
+      "localPgProveEquivalentOnly": true,
+      "allCleanupAndSourceDependencyAssetDockerIdentityGuardsPass": true,
+      "historicalRedPreserved": true
+    },
+    "featureDiffs": {
+      "S261FullIndex": "8320ac2577d661439f66cf697c364658f4652bdd86821780829fa1dc5c22ba4a",
+      "S261NormalIndexPipeline": "9ad1d50b78a1d8c4833b80693c6c472fc5af9be10efded83461c91775f0682fa",
+      "S262": "ebe79092202e057c662aaa430e290ccf6d38cb7e3b46282e961e9dc24ab1d59e",
+      "S263": "2e6d5ef0519b3fafd18fe7f8b218bf4ac3496a8f74cab3fe9bf67a3142656f16"
+    },
+    "newFinalSourceContinuityFoundationBuildCi": "PENDING",
+    "mp4SixPagesQrThreeProfiles": "PRIVATE_V2_PREP_ONLY",
+    "separatePriceFocusAux": "PRIVATE_V2_PREP_ROOT_REVIEW_SYNTAX0_FINALREFS_PENDING",
+    "currentQaResetOrForward": "NOT_PERFORMED",
+    "temporaryCapacity": "PREPARATION_ONLY_NO_ADDITIONAL_STOPS",
+    "oldS215Analytics": "STOPPED_RESTORE_REQUIRED_BEFORE_CAPTURE",
+    "originalNineControlHydrationErrors": "OPEN",
+    "all148IdsStatusesAnd36ContractsUnchanged": true,
+    "fullVisualReviewRounds": 0,
+    "deployment": "NOT_STARTED_CURRENT_FEATURES"
   }
 }

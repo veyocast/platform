@@ -173,3 +173,23 @@ ownership; supabase/migrations heeft één schrijver tegelijk, S262 eerst.
 Geen currentQA57621/57622-reset/forward zonder beoordeelde isolatedRLSproof;
 behoud bestaande rijen/historie. Bouw/capture pas op de nieuwe geïntegreerde
 bron. Oude pipelineV4 en fcd-actuals blijven bevroren historisch bewijs.
+
+
+## Geïntegreerde S261/S262/S263 en gesloten databasegate
+
+De drie featureheads zijn normaal opgenomen; behoud hun exacte18/26/6 scopes en
+de oorspronkelijke failures. De V18cohort sloot echt0:201reset,187gericht,
+136bestanden/4454pgTAPchecks en CLI-errorlint. Dit is een equivalent lokaal
+pg_prove-bewijs, geen voltooide finaleCLI/CI. Gebruik de gereviewde V5-pipeline
+met nieuwe complete bronrefs en exacte Control-/Player-/Marketingtrees; bind de
+S261-diff in normale indexvorm9ad1d50b, niet de inhoudelijk gelijke full-indexvorm.
+
+Voer verse continuïteit en foundation uit, dan seriële Control-/Marketingbuilds.
+Alleen beoordeelde tijdelijke capaciteitshulp, met daadwerkelijke vloeren en
+exact herstel. QA-forward blijft twee specifieke nieuwe migrations in éénTX na
+actuele15functiepreconditions, geenreset/19gaprepair. HerstelS215analytics vóór
+Auth/captures. De aparte prijs-/focusaux verandert de oorspronkelijkeA59 niet;
+prijsread blijft achter echte nativewire/compiledpureexportbinding, andere
+POSTs dicht. Echte24-optie-MP4/QR en drie clientprofielen blijven afzonderlijk
+odig. AlleA/C/B/W/P-captures en vijf volledige vergelijkingen zijn nog open:
+0/5, negen oorspronkelijkeReact418, exacteCI en staging/productie niet afgerond.

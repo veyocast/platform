@@ -1,17 +1,23 @@
 # Werkstand S244 — samengestelde Sync-acceptatie
 
-Laatste vervolgbron: S260 normaal geïntegreerd na echte nativevoor/naproef en
-rootbeeldreview. Twintig UI-featureheads en twee afzonderlijke CI-correcties;
-twee verdere V1-functionaliteiten zijn aantoonbaar open: centrale prijsdiff/
-bevroren prijzen/expliciete kandidaten (S261) en leesbare Sync-Interactie voor
-13–24 opties met behoud van legacyduur (S262). Geen volledige bronfreeze/build
-zolang deze contracten open zijn. Historische fcdcontinuïteit/foundation zijn
-werkelijk groen, elk30/30 per gate; beide builds tijdig vóór actor aangehouden.
-S260 laatste2PASS/twee aXe0/lint0, glyph20px/target48px en echte focus/prefs;
-alle oude failures/pre-glyphproofs blijven. Nog0/5 volledige vergelijkingen,
-negen oorspronkelijke React418 open, geen nieuwe staging/productie. Oude S215-
-analytics moet na zware builds en vóór captures worden hersteld. Exacte refs
-staan in `evidence/s244-post-capture-followups.json`; oude snapshots behouden.
+Laatste vervolgbron: S261, S262 en S263 zijn normaal geïntegreerd na afzonderlijke
+rootreviews. Drieëntwintig UI-/functionele featureheads en twee CI-correcties.
+Centrale menuprijsdiff/expliciete kandidaten/bevroren prijzen en leesbare Sync-
+Interactie met 24 opties zijn gericht bewezen. S263 vervangt de resterende oranje
+Mediafocus en gebruikt Source-focustokens met behoud van randgeometrie.
+
+Gecombineerde geïsoleerde DB V18 is werkelijk groen: normale CLI-reset201,
+gericht187 en volledig136 bestanden/4454 checks via equivalente lokale pg_prove,
+CLI-errorlint0. Alle199 historische SQL, oorspronkelijke failures, bestaande
+Dockeridentiteiten/bron/deps/assets blijven behouden; geen huidige QA-writes.
+S261 native2/2 en S262 native8/8 zijn gescopeerde bewijzen, geen volledige ronde.
+De nieuwe samengestelde bron moet nog verse continuïteit, foundation en builds
+krijgen. Exact-head CI, echte MP4/QR, finale A/C/B/W/P plus losse prijs-/focus-
+captures, negen oorspronkelijke React418 en vijf volledige reviews blijven open.
+Nog0/5 volledige ronden en geen nieuwe staging/productie. Oude S215analytics moet
+na builds en vóór captures worden hersteld. De extra capaciteitshulp en twee
+QA-forwards zijn uitsluitend voorbereid; niet uitgevoerd. Exacte featureheads en
+proofs staan in evidence/s244-post-capture-followups.json; oude epochs behouden.
 
 De onderstaande werkstanden zijn historische opnamen.
 

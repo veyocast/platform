@@ -1,15 +1,20 @@
 # S244 · Finale Sync-acceptatie en uitrol
 
-Actuele aanvulling: S260 is normaal opgenomen; laatste2nativecases/aXe/lint
-zijn groen, geen volledige ronde. Sluit eerst de aangetoonde V1-prijsgrens
-(S261: diff/impact/bevroren prijsversie/expliciete kandidaten) en24opties bij
-Sync-Interactie (S262: leesbare pagina’s/legacybinaryduur/privacy). Eén SQL-
-schrijver tegelijk, S262 eerst; huidigeQA57621/57622 niet resetten. Daarna
-één finale bronbinding/continuïteit/foundation/Control-/Marketingbuild met
-beoordeelde nieuwe source- en schemacontracten, oude S215analytics herstellen,
-A/C/B/alleBron-Inhoud/connected/57+404public/auth capturen en vijf volledige
-vergelijkingen uitvoeren. Nog0/5; negen oorspronkelijke React418 open. Normale
-exacteCI/staging/productie sluiten pas daarna. Alle oude bewijzen blijven.
+Actuele aanvulling: S261/S262/S263 zijn normaal geïntegreerd. Gecombineerde
+201-reset/187gerichte/136bestanden-4454checks/errorlint slagen op een nieuwe
+geïsoleerde DB; bestaandeQA is behouden. S261 twee nativegevallen en S262 acht
+nativegevallen zijn groen; S263-kleuren zijn bronmatig beoordeeld. Geen van deze
+bewijzen sluit een volledige vergelijkingsronde af.
+
+Bind nu één finale bron met de bestaande normale installatie, voer verse
+continuïteit/foundation uit en bouw Control/Marketing serieel. Houd de echte
+resourcevloeren aan; tijdelijke geselecteerde services krijgen exact herstel.
+Twee nieuwe QA-migraties mogen alleen na actuele functiepreconditions en een
+beoordeelde atomaire forward, nooit een reset of reparatie van19oude trackinggaten.
+Herstel S215analytics vóór Auth/captures. Sluit echte24-optie-MP4/QR en drie
+clientprofielen, A/C/B/W/P en losse native prijs-/licht-donkerfocuscaptures op
+exact dezelfde bron. Vergelijk de hele actuele cohort vijfmaal; nog0/5. Negen
+oorspronkelijke React418, exacteCI en normale staging/productie blijven open.
 
 De oorspronkelijke startprompt en gekozen prototype1/Sync blijven leidend, met de latere expliciete eis om oude oranje bediening, verdwenen OnzeTrots-achtergronden en massale gestapelde containers op te ruimen. De vijf gevraagde volledige vergelijkingen zijn een eigen open gate; losse tests, vijf breedtes of identieke browserherhalingen tellen daar niet voor.
 
