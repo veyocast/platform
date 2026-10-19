@@ -4,7 +4,7 @@ import { mediaFrameSourceDurationLimit } from "@veyocast/contracts";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ImagePlus, Monitor, Pause, Play, Smartphone } from "lucide-react";
+import { ImagePlus, Monitor, Pause, Play, Plus, Smartphone } from "lucide-react";
 import { Button } from "@veyocast/ui";
 import { mediaFrameBackgroundStyle } from "../../../../../../../packages/content-templates/src/media-frame-background";
 import { syncSystemAssets, type MediaFramePlaybackBackground, type MediaFrameSettings } from "@veyocast/contracts";
@@ -15,15 +15,19 @@ import { mutateMediaFrameAction, readMediaFrameSourceAction } from "./media-fram
 import type { MediaFrameEditorProps, MediaFrameSource } from "./media-frame-types";
 import {
   mediaFrameChrome, mediaFrameJournalKey, mediaFrameSourcesAvailable,
-  parseMediaFrameJournal, prepareMediaFrameSave, sameMediaFrameSource,
+  sameMediaFrameSource,
   sourcesForMediaFrame, validatedMediaFrameDraft,
   type MediaFrameDraft, type MediaFrameJournal,
 } from "./media-frame-presentation";
+import { MediaFrameFilmstrip } from "./media-frame-filmstrip";
+import { mutateMediaFrameSeriesAction, readContentFilmstripAction } from "./media-frame-series-actions";
+import { mediaSeriesDraft, parseMediaFrameSeriesJournal, prepareMediaFrameSeriesSave, reconcileMediaFrameSeriesJournal, upgradeMediaFrameJournal, validMediaSeriesTitle, type MediaFrameSeriesJournal } from "./media-frame-series-state";
+import type { MediaSeriesDraftV2 } from "./media-frame-series-types";
 import styles from "./media-frame-editor.module.css";
 
 const focusOptions = [["center", "Midden"], ["top", "Boven"], ["bottom", "Onder"], ["left", "Links"], ["right", "Rechts"]] as const;
 const copy = <T,>(value: T): T => structuredClone(value);
-type Edit = { draft: MediaFrameDraft; sources: MediaFrameJournal["sources"] };
+type Edit = { draft: MediaFrameDraft; sources: MediaFrameJournal["sources"]; seriesDraft: MediaSeriesDraftV2 };
 
 /** Changing account/resource remounts the controller and fences previous async results. */
 export function MediaFrameEditor(props: MediaFrameEditorProps) {
@@ -33,7 +37,8 @@ export function MediaFrameEditor(props: MediaFrameEditorProps) {
 function MediaFrameEditorSession(props: MediaFrameEditorProps) {
   const router = useRouter();
   const scope = useMemo(() => ({ actorScope: props.actorScope, tenantId: props.tenantId, identity: props.isPrimary ? `source:${props.mainSource.mediaAssetId}` : `frame:${props.frameId}`, assetId: props.mainSource.mediaAssetId }), [props.actorScope, props.tenantId, props.isPrimary, props.mainSource.mediaAssetId, props.frameId]);
-  const initial = (): MediaFrameJournal => ({ ...scope, schemaVersion: 1, frameId: props.frameId, revision: props.frameRevision, draft: { settings: copy(props.settings), seconds: String(props.settings.durationSeconds) }, sources: sourcesForMediaFrame(props.settings, props.mainSource, [...(props.versions.find(version => version.id === props.versionId)?.sources ?? []), ...props.imageSources]) ?? [props.mainSource.expectedSource], dirty: false, pending: null });
+  const legacyInitial = (): MediaFrameJournal => ({ ...scope, schemaVersion: 1, frameId: props.frameId, revision: props.frameRevision, draft: { settings: copy(props.settings), seconds: String(props.settings.durationSeconds) }, sources: sourcesForMediaFrame(props.settings, props.mainSource, [...(props.versions.find(version => version.id === props.versionId)?.sources ?? []), ...props.imageSources]) ?? [props.mainSource.expectedSource], dirty: false, pending: null });
+  const initial = () => upgradeMediaFrameJournal(legacyInitial(), props.mediaSeries?.membership ?? null);
   const [journal, setJournal] = useState(initial);
   const [confirmedVersion, setConfirmedVersion] = useState(props.versionNumber);
   const current = useRef(journal), alive = useRef(true), busyRef = useRef(false), uploadInput = useRef<HTMLInputElement>(null);
@@ -44,20 +49,20 @@ function MediaFrameEditorSession(props: MediaFrameEditorProps) {
   const [extraSources, setExtraSources] = useState<MediaFrameSource[]>([]);
   const available = useMemo(() => [props.mainSource, ...props.imageSources, ...props.versions.flatMap(version => version.sources), ...extraSources], [props.mainSource, props.imageSources, props.versions, extraSources]);
   const sourcesRef = useRef(available); sourcesRef.current = available;
-  const write = (next: MediaFrameJournal) => {
+  const write = (next: MediaFrameSeriesJournal) => {
     try { sessionStorage.setItem(mediaFrameJournalKey(scope), JSON.stringify(next)); }
     catch { setError("De browser kan je herstelgegevens niet bewaren. Je invoer en een eventuele oorspronkelijke opdracht blijven hier; maak ruimte vrij en bevestig dezelfde actie opnieuw."); return false; }
     return true;
   };
-  const apply = (next: MediaFrameJournal) => { current.current = next; setJournal(next); };
+  const apply = (next: MediaFrameSeriesJournal) => { current.current = next; setJournal(next); };
   useEffect(() => {
     alive.current = true;
     try {
       const raw = sessionStorage.getItem(mediaFrameJournalKey(scope));
-      const recovered = raw ? parseMediaFrameJournal(raw, scope) : null;
-      if (recovered && (recovered.dirty || recovered.pending)) {
+      const recovered = raw ? parseMediaFrameSeriesJournal(raw, scope, props.mediaSeries?.membership ?? null) : null;
+      if (recovered && (recovered.dirty || recovered.pending || recovered.seriesDraft.dirty || recovered.confirmedAppend)) {
         current.current = recovered; setJournal(recovered);
-        setConflict(!recovered.pending && recovered.revision !== props.frameRevision);
+        setConflict(!recovered.pending && (recovered.dirty || recovered.seriesDraft.dirty) && (recovered.revision !== props.frameRevision || recovered.seriesDraft.seriesId !== (props.mediaSeries?.membership?.seriesId ?? null) || recovered.seriesDraft.baseRevision !== (props.mediaSeries?.membership?.seriesRevision ?? null)));
         setMessage(recovered.pending ? "Een eerdere opdracht mist een bevestiging. Herhaal eerst precies die opdracht; je invoer blijft bewaard." : "Je lokale invoer is hersteld. Er is nog niets opnieuw opgeslagen.");
       }
     } catch { setRecoveryBlocked(true); setError("De lokale herstelgegevens konden niet veilig worden gelezen. Ze zijn behouden; gebruik dezelfde sessie en controleer de browseropslag voordat je verdergaat."); }
@@ -66,22 +71,32 @@ function MediaFrameEditorSession(props: MediaFrameEditorProps) {
     // A mounted controller retains its exact actor/resource scope.
   }, []);
   useEffect(() => {
-    if (!ready || props.frameRevision <= current.current.revision) return;
-    if (current.current.dirty || current.current.pending) { if (!current.current.pending) setConflict(true); return; }
-    const next = initial(); current.current = next; setJournal(next); setConfirmedVersion(props.versionNumber);
-    // Server revision changes may refresh clean data, never replace local edits/commands.
-  }, [props.frameRevision, props.versionId, ready, journal.pending, journal.dirty]);
+    if (!ready) return;
+    const reconciled = reconcileMediaFrameSeriesJournal(current.current, initial());
+    if (reconciled.conflict) setConflict(true);
+    else if (reconciled.journal !== current.current) { apply(reconciled.journal); setConfirmedVersion(props.versionNumber); }
+    // Refresh clean reads only; dirty frame/reeks CAS and original commands remain fixed.
+  }, [props.frameRevision, props.versionId, props.mediaSeries?.membership?.seriesId, props.mediaSeries?.membership?.seriesRevision, ready, journal.pending, journal.dirty]);
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => { if (current.current.dirty || current.current.pending) { event.preventDefault(); event.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
+  function beforeNavigate() {
+    if (!ready || recoveryBlocked || busyRef.current || uploading) { setError("Wacht tot de lopende actie is bevestigd en je herstelgegevens zijn bewaard voordat je een ander ontwerp opent."); return false; }
+    return write(current.current);
+  }
   const canReplayPending = props.canReplayPending ?? props.canWrite;
   const mayReplay = Boolean(journal.pending) && canReplayPending;
   const blocked = !ready || recoveryBlocked || !props.canWrite || busy || uploading || Boolean(journal.pending);
   const maximumSeconds = mediaFrameSourceDurationLimit(props.mainSource);
   const validation = validatedMediaFrameDraft(journal.draft, maximumSeconds);
   const sourcesReady = mediaFrameSourcesAvailable(journal.sources, available);
-  const edit = (draft: MediaFrameDraft, nextSources = current.current.sources) => {
+  const edit = (draft: MediaFrameDraft, nextSources = current.current.sources, seriesDraft = current.current.seriesDraft) => {
     if (busyRef.current || current.current.pending || !ready || recoveryBlocked || !props.canWrite) return;
-    const previousEdit = copy({ draft: current.current.draft, sources: current.current.sources });
+    const previousEdit = copy({ draft: current.current.draft, sources: current.current.sources, seriesDraft: current.current.seriesDraft });
     setHistory(previous => [...previous.slice(-49), previousEdit]); setFuture([]);
-    const next = { ...current.current, draft, sources: nextSources, dirty: true };
+    const next = { ...current.current, draft, sources: nextSources, seriesDraft, dirty: true };
     apply(next); write(next); setMessage(null);
   };
   const patch = (change: Partial<MediaFrameSettings>) => edit({ ...current.current.draft, settings: { ...current.current.draft.settings, ...change } });
@@ -90,23 +105,22 @@ function MediaFrameEditorSession(props: MediaFrameEditorProps) {
   const travel = (undo: boolean) => {
     const stack = undo ? history : future, target = stack.at(-1);
     if (!target || blocked) return;
-    const previous = copy({ draft: current.current.draft, sources: current.current.sources });
+    const previous = copy({ draft: current.current.draft, sources: current.current.sources, seriesDraft: current.current.seriesDraft });
     if (undo) { setHistory(stack.slice(0, -1)); setFuture(value => [...value, previous]); }
     else { setFuture(stack.slice(0, -1)); setHistory(value => [...value, previous]); }
     const next = { ...current.current, ...copy(target), dirty: true }; apply(next); write(next);
   };
-  async function save() {
-    if (!ready || recoveryBlocked || busyRef.current || uploading || (current.current.pending ? !canReplayPending : !props.canWrite || conflict)) return;
+  async function save(append = false) {
+    if (!ready || recoveryBlocked || busyRef.current || uploading || (append && current.current.pending) || (current.current.pending ? !canReplayPending : !props.canWrite || conflict)) return;
     let pending;
-    try { pending = prepareMediaFrameSave(current.current, crypto.randomUUID(), maximumSeconds); }
+    try { pending = prepareMediaFrameSeriesSave(current.current, crypto.randomUUID(), maximumSeconds, append ? crypto.randomUUID() : undefined); }
     catch (failure) { setError(failure instanceof Error ? failure.message : "Controleer de invoer. Je ontwerp blijft bewaard."); return; }
-    // An uncertain command is replayed even if current sources are unavailable; receipt precedes CAS.
     if (!current.current.pending && !mediaFrameSourcesAvailable(current.current.sources, sourcesRef.current)) { setError("Een gekozen bron is niet meer geverifieerd beschikbaar. Je ontwerp blijft behouden; controleer de bron voordat je opslaat."); return; }
-    const sending = { ...current.current, pending };
+    const sending = { ...current.current, pending, confirmedAppend: append ? null : current.current.confirmedAppend };
     if (!write(sending)) return;
     apply(sending); busyRef.current = true; setBusy(true); setError(null); setMessage(null);
     try {
-      const result = await mutateMediaFrameAction(pending, props.actorScope);
+      const result = pending.kind === "series" ? await mutateMediaFrameSeriesAction(pending.command, props.actorScope) : await mutateMediaFrameAction(pending.command, props.actorScope);
       if (!alive.current) return;
       if (!result.ok) {
         if (!result.uncertain) {
@@ -115,13 +129,26 @@ function MediaFrameEditorSession(props: MediaFrameEditorProps) {
         }
         setError(result.message); return;
       }
-      const confirmed = { ...current.current, ...(pending.operation === "create" || pending.operation === "save" ? { draft: { settings: pending.settings, seconds: String(pending.settings.durationSeconds) }, sources: pending.expectedSources } : {}), frameId: result.frameId, revision: result.frameRevision, pending: null, dirty: false };
-      // Keep the original receipt-replay command if its durable replacement fails.
+      const receipt = "current" in result ? result.current : result;
+      const appended = "appended" in result ? result.appended : null;
+      if (receipt.frameId !== pending.command.frameId || (pending.kind === "series" && pending.command.operation === "append" && appended?.frameId !== pending.command.newFrameId)) throw Error("Invalid command receipt");
+      const command = pending.command;
+      const confirmed: MediaFrameSeriesJournal = {
+        ...current.current,
+        ...("settings" in command ? { draft: { settings: command.settings, seconds: String(command.settings.durationSeconds) }, sources: command.expectedSources } : {}),
+        frameId: receipt.frameId, revision: receipt.frameRevision, pending: null, dirty: false,
+        seriesDraft: "membership" in result ? mediaSeriesDraft(result.membership) : { ...current.current.seriesDraft, dirty: false },
+        confirmedAppend: appended ? { frameId: appended.frameId, contentKey: appended.contentKey, href: appended.href, name: appended.name } : current.current.confirmedAppend,
+      };
+      // Replace the original command only after the complete receipt/destination is durable.
       if (!write(confirmed)) return;
-      apply(confirmed); setConfirmedVersion(result.versionNumber); setConflict(false); setHistory([]); setFuture([]);
-      setMessage(`Versie ${result.versionNumber} is opgeslagen. Bestaande playlistplaatsingen blijven bij hun gekozen versie.`);
-      if (props.isNew) router.replace(`/dashboard/content/media/${result.frameId}`);
-      router.refresh();
+      apply(confirmed); setConfirmedVersion(receipt.versionNumber); setConflict(false); setHistory([]); setFuture([]);
+      setMessage(appended ? "Je ontwerp is opgeslagen. Een nieuwe slide is aan dezelfde reeks toegevoegd." : `Versie ${receipt.versionNumber} is opgeslagen. Bestaande playlistplaatsingen blijven bij hun gekozen versie.`);
+      try {
+        if (appended) router.push(appended.href);
+        else if (props.isNew) router.replace(`/dashboard/content/media/${receipt.frameId}`);
+        router.refresh();
+      } catch { setError("De opslag is bevestigd, maar het volgende ontwerp kon niet worden geopend. Gebruik de bewaarde link hieronder; maak geen nieuwe kopie."); }
     } catch { if (alive.current) setError("De serverbevestiging ontbreekt. De opdracht blijft bewaard; probeer dezelfde actie opnieuw zodra je verbinding hebt."); }
     finally { if (alive.current) { busyRef.current = false; setBusy(false); } }
   }
@@ -177,8 +204,9 @@ function MediaFrameEditorSession(props: MediaFrameEditorProps) {
     return sources && mediaFrameSourcesAvailable(sources, version.sources) ? sources : null;
   };
   const versions = <section className={styles.versions} aria-label="Versiehistorie"><h3>Versies</h3><p className="vc-property-hint">Een oudere versie openen verandert alleen je invoer. Opslaan maakt een nieuwe versie; bestaande plaatsingen blijven vastgezet.</p>{props.versions.length===0?<p>Nog geen opgeslagen versie.</p>:props.versions.map(version=><div key={version.id}><span>Versie {version.number} · {new Date(version.createdAt).toLocaleString('nl-NL')}</span><Button variant="secondary" disabled={blocked||!historicalSources(version)} onClick={()=>{const sources=historicalSources(version);if(sources)edit({settings:copy(version.settings),seconds:String(version.settings.durationSeconds)},sources);}}>Als invoer openen</Button></div>)}</section>;
-  const settingsControls = <><div className="vc-properties-heading"><span>DE LAATSTE DETAILS</span><h2>Instellingen &amp; versies</h2><p>Bewaar hoe dit ontwerp gebruikt mag worden.</p></div><FieldGroup label="Schermstand" className="vc-orientation-options">{([['landscape','Liggend',Monitor,'16:9'],['portrait','Staand',Smartphone,'9:16']] as const).map(([orientation,label,Icon,ratio])=><button key={orientation} type="button" className={settings.orientation===orientation?'active':''} aria-pressed={settings.orientation===orientation} onClick={()=>patch({orientation})}><Icon size={24}/><strong>{label}</strong><span>{ratio}</span></button>)}</FieldGroup><Field label="Duur (seconden)" hint={`Van 3 tot ${maximumSeconds} seconden${props.mainSource.kind==='video'?' volgens de geverifieerde videobron':''}. Het fysieke scherm of de zone bepaalt de uiteindelijke schermstand.`}><input type="number" min={3} max={maximumSeconds} step={1} value={journal.draft.seconds} onChange={event=>edit({...journal.draft,seconds:event.target.value.slice(0,12)})}/></Field><Field label="Motion" hint="Deze keuze bewaart de intro-overgang van het voorbeeld. Het oorspronkelijke mediabestand blijft behouden."><select value={settings.sourceMetadata.motion} onChange={event => metadata({ motion: event.target.value as MediaFrameSettings["sourceMetadata"]["motion"] })}><option value="rustig">Rustige overgangen</option><option value="dynamisch">Dynamisch</option><option value="geen">Geen animatie</option></select></Field>{versions}</>;
-  return <SyncStudioFrame presentation={presentation} assets={[]} resolveAsset={()=>undefined} secondsPerPage={journal.draft.seconds} onSecondsChange={seconds=>edit({...journal.draft,seconds})} onChange={change=>{if(change.name!==undefined)patch({name:change.name});else if(change.orientation)patch({orientation:change.orientation});}} scratch={{rowsText:"",lineupText:""}} onScratchChange={()=>undefined} onSave={()=>void save()} onUndo={()=>travel(true)} onRedo={()=>travel(false)} canUndo={history.length>0&&!journal.pending} canRedo={future.length>0&&!journal.pending} canSave={ready&&!recoveryBlocked&&(journal.pending?canReplayPending:props.canWrite&&!conflict&&validation.success&&sourcesReady&&(journal.dirty||journal.revision===0))} readOnly={(!props.canWrite&&!mayReplay)||recoveryBlocked} busy={busy||uploading||!ready} dirty={journal.dirty} revision={journal.revision} saveLabel={journal.pending?'Bevestiging ontbreekt':journal.dirty?'Niet opgeslagen':journal.revision===0?'Nog niet opgeslagen':`Versie ${confirmedVersion||1} opgeslagen`} inputsDisabled={!props.canWrite||Boolean(journal.pending)} primarySaveLabel={journal.pending?'Dezelfde actie opnieuw bevestigen':'Opslaan'} sectionLabel="MEDIA" templateReadOnly templateLabel={props.mainSource.kind==='video'?'Video':'Afbeelding'} maxSeconds={maximumSeconds} previewContent={preview} compactPreviewContent={<MediaFramePreview settings={settings} main={mainSource} background={backgroundSource} playing={false} compact />} mediaControls={{content:<div className={styles.controls}>{content}</div>,style:<div className={styles.controls}>{style}</div>,settings:<div className={styles.controls}>{settingsControls}</div>,playback:<div className="vc-page-controls"><button type="button" disabled={!mainSource||mainSource.kind!=='video'} onClick={()=>setPlaying(value=>!value)}>{playing?<Pause size={13}/>:<Play size={13}/>} {playing?'Pauzeren':'Afspelen'}</button><span>1 / 1</span></div>}} sourceControls={<><h3>Geverifieerde mediabron</h3><p>{props.mainSource.title}</p><p className="vc-property-hint">Dit ontwerp verwijst naar het oorspronkelijke bestand. Een kopie dupliceert het ontwerp, niet de bestandsbytes.</p></>} feedback={<div className={styles.feedback}>{!validation.success&&!journal.pending&&<p role="alert">Controleer de ontwerpnaam en een gehele duur van 3 tot {maximumSeconds} seconden. Je invoer blijft behouden.</p>}{error&&<p role="alert">{error}</p>}{message&&<p role="status">{message}</p>}{journal.pending&&<Button variant="secondary" disabled={busy||uploading||!canReplayPending||recoveryBlocked} onClick={()=>void save()}>Oorspronkelijke opdracht opnieuw bevestigen</Button>}{!sourcesReady&&<p role="status">Een geverifieerde bron ontbreekt in deze weergave. De oorspronkelijke bronidentiteit en je invoer blijven behouden; vernieuw de pagina om de beschikbaarheid te controleren.</p>}{conflict&&<><p role="alert">Het ontwerp is intussen gewijzigd. Je lokale invoer blijft bewaard; bekijk de actuele versie voordat je opnieuw opslaat.</p><Button variant="secondary" onClick={()=>router.refresh()}>Actuele versie ophalen</Button><Button variant="secondary" disabled={busy||!props.canWrite||Boolean(journal.pending)||props.frameRevision===journal.revision} onClick={()=>{const next={...current.current,revision:props.frameRevision,frameId:props.frameId};if(write(next)){apply(next);setConflict(false);setMessage('De actuele revisie is als basis gekozen. Je lokale invoer is behouden; controleer deze en sla bewust opnieuw op.');}}}>Mijn invoer op actuele revisie gebruiken</Button></>}</div>} />;
+  const seriesControls = props.mediaSeries ? <><Field label="Onderdeel van een reeks"><input value={journal.seriesDraft.seriesTitle} maxLength={120} placeholder="Bijvoorbeeld: Zondag · wedstrijddag" onChange={event => edit(current.current.draft, current.current.sources, { ...current.current.seriesDraft, seriesTitle: event.target.value, dirty: true })} /></Field><Button variant="secondary" disabled={blocked || conflict || !validation.success || !sourcesReady || !validMediaSeriesTitle(journal.seriesDraft.seriesTitle)} onClick={() => void save(true)}><Plus size={16} />Slide aan deze reeks toevoegen</Button></> : null;
+  const settingsControls = <><div className="vc-properties-heading"><span>DE LAATSTE DETAILS</span><h2>Instellingen &amp; versies</h2><p>Bewaar hoe dit ontwerp gebruikt mag worden.</p></div><FieldGroup label="Schermstand" className="vc-orientation-options">{([['landscape','Liggend',Monitor,'16:9'],['portrait','Staand',Smartphone,'9:16']] as const).map(([orientation,label,Icon,ratio])=><button key={orientation} type="button" className={settings.orientation===orientation?'active':''} aria-pressed={settings.orientation===orientation} onClick={()=>patch({orientation})}><Icon size={24}/><strong>{label}</strong><span>{ratio}</span></button>)}</FieldGroup><Field label="Duur (seconden)" hint={`Van 3 tot ${maximumSeconds} seconden${props.mainSource.kind==='video'?' volgens de geverifieerde videobron':''}. Het fysieke scherm of de zone bepaalt de uiteindelijke schermstand.`}><input type="number" min={3} max={maximumSeconds} step={1} value={journal.draft.seconds} onChange={event=>edit({...journal.draft,seconds:event.target.value.slice(0,12)})}/></Field><Field label="Motion" hint="Deze keuze bewaart de intro-overgang van het voorbeeld. Het oorspronkelijke mediabestand blijft behouden."><select value={settings.sourceMetadata.motion} onChange={event => metadata({ motion: event.target.value as MediaFrameSettings["sourceMetadata"]["motion"] })}><option value="rustig">Rustige overgangen</option><option value="dynamisch">Dynamisch</option><option value="geen">Geen animatie</option></select></Field>{seriesControls}{versions}</>;
+  return <SyncStudioFrame presentation={presentation} assets={[]} resolveAsset={()=>undefined} secondsPerPage={journal.draft.seconds} onSecondsChange={seconds=>edit({...journal.draft,seconds})} onChange={change=>{if(change.name!==undefined)patch({name:change.name});else if(change.orientation)patch({orientation:change.orientation});}} scratch={{rowsText:"",lineupText:""}} onScratchChange={()=>undefined} onSave={()=>void save()} onUndo={()=>travel(true)} onRedo={()=>travel(false)} canUndo={history.length>0&&!journal.pending} canRedo={future.length>0&&!journal.pending} canSave={ready&&!recoveryBlocked&&(journal.pending?canReplayPending:props.canWrite&&!conflict&&validation.success&&validMediaSeriesTitle(journal.seriesDraft.seriesTitle)&&sourcesReady&&(journal.dirty||journal.revision===0))} readOnly={(!props.canWrite&&!mayReplay)||recoveryBlocked} busy={busy||uploading||!ready} dirty={journal.dirty} revision={journal.revision} saveLabel={journal.pending?'Bevestiging ontbreekt':journal.dirty?'Niet opgeslagen':journal.revision===0?'Nog niet opgeslagen':`Versie ${confirmedVersion||1} opgeslagen`} inputsDisabled={!props.canWrite||Boolean(journal.pending)} primarySaveLabel={journal.pending?'Dezelfde actie opnieuw bevestigen':'Opslaan'} sectionLabel="MEDIA" templateReadOnly templateLabel={props.mainSource.kind==='video'?'Video':'Afbeelding'} maxSeconds={maximumSeconds} previewContent={preview} compactPreviewContent={<MediaFramePreview settings={settings} main={mainSource} background={backgroundSource} playing={false} compact />} mediaControls={{content:<div className={styles.controls}>{content}</div>,style:<div className={styles.controls}>{style}</div>,settings:<div className={styles.controls}>{settingsControls}</div>,playback:<div className="vc-page-controls"><button type="button" disabled={!mainSource||mainSource.kind!=='video'} onClick={()=>setPlaying(value=>!value)}>{playing?<Pause size={13}/>:<Play size={13}/>} {playing?'Pauzeren':'Afspelen'}</button><span>1 / 1</span></div>}} onBeforeLibraryNavigate={beforeNavigate} filmstripContent={props.mediaSeries ? <MediaFrameFilmstrip currentKey={props.mediaSeries.contentKey} currentName={settings.name} currentOrientation={settings.orientation} currentPreview={<MediaFramePreview settings={settings} main={mainSource} background={backgroundSource} playing={false} compact />} initialPage={props.mediaSeries.filmstrip} busy={busy||uploading||!ready} beforeNavigate={beforeNavigate} loadMore={offset=>readContentFilmstripAction({tenantId:props.tenantId,offset},props.actorScope)} /> : undefined} sourceControls={<><h3>Geverifieerde mediabron</h3><p>{props.mainSource.title}</p><p className="vc-property-hint">Dit ontwerp verwijst naar het oorspronkelijke bestand. Een kopie dupliceert het ontwerp, niet de bestandsbytes.</p></>} feedback={<div className={styles.feedback}>{!validation.success&&!journal.pending&&<p role="alert">Controleer de ontwerpnaam en een gehele duur van 3 tot {maximumSeconds} seconden. Je invoer blijft behouden.</p>}{error&&<p role="alert">{error}</p>}{message&&<p role="status">{message}</p>}{journal.pending&&<Button variant="secondary" disabled={busy||uploading||!canReplayPending||recoveryBlocked} onClick={()=>void save()}>Oorspronkelijke opdracht opnieuw bevestigen</Button>}{journal.confirmedAppend&&!journal.pending&&<a className={styles.confirmedDestination} href={journal.confirmedAppend.href} onClick={event=>{if(!beforeNavigate())event.preventDefault();}}>Toegevoegde slide openen: {journal.confirmedAppend.name}</a>}{!sourcesReady&&<p role="status">Een geverifieerde bron ontbreekt in deze weergave. De oorspronkelijke bronidentiteit en je invoer blijven behouden; vernieuw de pagina om de beschikbaarheid te controleren.</p>}{conflict&&<><p role="alert">Het ontwerp is intussen gewijzigd. Je lokale invoer blijft bewaard; bekijk de actuele versie voordat je opnieuw opslaat.</p><Button variant="secondary" onClick={()=>router.refresh()}>Actuele versie ophalen</Button><Button variant="secondary" disabled={busy||!props.canWrite||Boolean(journal.pending)||(props.frameRevision===journal.revision&&(props.mediaSeries?.membership?.seriesRevision??null)===journal.seriesDraft.baseRevision)} onClick={()=>{const next={...current.current,revision:props.frameRevision,frameId:props.frameId,seriesDraft:{...current.current.seriesDraft,seriesId:props.mediaSeries?.membership?.seriesId??null,baseRevision:props.mediaSeries?.membership?.seriesRevision??null}};if(write(next)){apply(next);setConflict(false);setMessage('De actuele revisie is als basis gekozen. Je lokale invoer is behouden; controleer deze en sla bewust opnieuw op.');}}}>Mijn invoer op actuele revisie gebruiken</Button></>}</div>} />;
 }
 
 function MediaFramePreview({settings,main,background,playing,compact=false}:{settings:MediaFrameSettings;main?:MediaFrameSource;background?:MediaFrameSource;playing:boolean;compact?:boolean}) {

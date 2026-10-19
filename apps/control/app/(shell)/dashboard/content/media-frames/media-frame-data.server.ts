@@ -5,6 +5,7 @@ import { mediaFrameDefaultSettings, mediaFrameExpectedSourceSchema, mediaFrameSe
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { readMediaFrameSourceAction } from "./media-frame-actions";
+import { loadContentFilmstripPage, loadMediaFrameSeriesBinding } from "./media-frame-filmstrip-data.server";
 import type { MediaFrameEditorProps, MediaFrameSource, MediaFrameVersion } from "./media-frame-types";
 
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
@@ -41,7 +42,9 @@ export async function loadMediaFrameEditor(identity: { frameId: string } | { ass
       if ("frameId" in identity) return failure(true);
       const source = await readMediaFrameSourceAction({ tenantId, mediaAssetId: identity.assetId, role: "media" }, actorScope);
       if (!source.ok) return failure();
-      return { ok: true, archived: false, props: { tenantId, actorScope, frameId: randomUUID(), isPrimary: true, isNew: true, frameRevision: 0, versionId: null, versionNumber: 0,
+      const filmstrip = await loadContentFilmstripPage(client, tenantId);
+      if (!filmstrip) return failure();
+      return { ok: true, archived: false, props: { tenantId, actorScope, mediaSeries: { contentKey: `media:${identity.assetId}`, membership: null, series: null, filmstrip }, frameId: randomUUID(), isPrimary: true, isNew: true, frameRevision: 0, versionId: null, versionNumber: 0,
         settings: mediaFrameDefaultSettings(source.source), mainSource: source.source, imageSources: await imageOptions(client, tenantId, actorScope), versions: [], canWrite, canReplayPending: canWrite } };
     }
     if (!uuid.test(String(frame.id)) || !uuid.test(String(frame.source_asset_id)) || !uuid.test(String(frame.current_version_id)) || !Number.isSafeInteger(frame.revision) || Number(frame.revision) < 1 || !["active", "archived"].includes(String(frame.status))) return failure();
@@ -84,9 +87,15 @@ export async function loadMediaFrameEditor(identity: { frameId: string } | { ass
     const main = current.sources.find(source => source.expectedSource.role === "media" && source.mediaAssetId === frame.source_asset_id);
     const background = current.settings.appearance.background;
     if (!main || current.sources.length !== (background.kind === "image" ? 2 : 1) || background.kind === "image" && !current.sources.some(source => source.expectedSource.role === "background" && source.mediaAssetId === background.mediaAssetId)) return failure();
+    const [binding, filmstrip] = await Promise.all([
+      loadMediaFrameSeriesBinding(client, tenantId, { frameId: String(frame.id), frameRevision: Number(frame.revision), versionId: current.id, versionNumber: current.number }),
+      loadContentFilmstripPage(client, tenantId),
+    ]);
+    if (!binding) return { ok: false, missing: false, message: "De actuele frameversie en reeks konden niet samen worden bevestigd. Je bewaarde invoer blijft behouden; vernieuw de pagina om verder te gaan." };
+    if (!filmstrip) return failure();
     const frozenBackground = current.sources.filter(source => source.expectedSource.role === "background");
     const recentImages = await imageOptions(client, tenantId, actorScope);
     const imageSources = [...frozenBackground, ...recentImages.filter(source => !frozenBackground.some(frozen => frozen.mediaAssetId === source.mediaAssetId))];
-    return { ok: true, archived: frame.status === "archived", props: { tenantId, actorScope, frameId: String(frame.id), isPrimary: frame.is_primary === true, isNew: false, frameRevision: Number(frame.revision), versionId: current.id, versionNumber: current.number, settings: current.settings, mainSource: main, imageSources, versions: history, canWrite: canWrite && frame.status === "active", canReplayPending: canWrite } };
+    return { ok: true, archived: frame.status === "archived", props: { tenantId, actorScope, mediaSeries: { contentKey: frame.is_primary === true ? `media:${frame.source_asset_id}` : `media-frame:${frame.id}`, ...binding, filmstrip }, frameId: String(frame.id), isPrimary: frame.is_primary === true, isNew: false, frameRevision: Number(frame.revision), versionId: current.id, versionNumber: current.number, settings: current.settings, mainSource: main, imageSources, versions: history, canWrite: canWrite && frame.status === "active", canReplayPending: canWrite } };
   } catch { return failure(); }
 }
