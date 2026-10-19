@@ -1,0 +1,11 @@
+# S253 — gerichte guard voor de officiële Signage-packager
+
+PR277/head `4d0d3b2a6cacf7e4e8ee97eb44da34aedc2dfb40`, run39217710530/job117945380431/attempt1, checkte merge `b9d6f259d8d14e52a7b17d4977fda63241540240` uit. De locked install slaagde. De stap `Verify pinned Signage CLI` stopte op de aanwezigheid van elk `patchedDependencies`-veld. Beide registries bevatten uitsluitend de goedgekeurde Next15.5.20-patch. De IPK-/hostedchecks werden daardoor overgeslagen; dit is geen bewezen product- of installerfout.
+
+De workflow en bestaande package-workflowtest delen nu één standaard-Nodeguard die patchselectors voor `@webos-tools/cli` weigert, inclusief gequote/geversioneerde selectors. De echte Next-only workspace- en lockregistries worden toegestaan. CLI-versie3.2.5, originele packagermarker, Signageprofiel, ares-versioncheck en alle echte wrapper/publicatie/hostedchecks, acties/digests en deadlines blijven bytegelijk.
+
+De guard ondersteunt de huidige canonieke pnpm11 scalar-mappingregistraties. Hij decodeert gequote rootsleutels/selectors en weigert onleesbare, dubbele of niet ondersteunde registraties, rootmerges, explicit keys en ingesprongen documentroots. Dit is geen algemene YAML-parser; een toekomstig ander registratieformaat vereist expliciete review. Geen dependency, versie, lockfile, patchbyte, geïnstalleerd pakket of toolchain gewijzigd.
+
+Bewijs onder `/dev/shm/veyocast-s253-lg-cli-patch-guard`: eerste CI-log SHA `9ca46051e041bc86423644fc0a16fd3f2519954299a49dd580f134411fea94f1`, metadata, beide oorspronkelijke brede guards en oorspronkelijke Nodefout1PASS/1FAIL. Eerste gerichte kandidaat6/6 PASS; onafhankelijke root/peerreview vond een escaped-rootkeylacune. De toegevoegde regressie gaf6PASS/1FAIL vóór herstel. Dezelfde case vond vervolgens een ingesprongen documentroot rood6/7. Na rootkeydecodering/unsupported-rootweigering en kolom0-rootguard: dezelfde7/7 PASS,0skip, exit0; afzonderlijke echte guardCLI op de bevroren registries exit0.
+
+Alleen native Nodechecks uitgevoerd; geen install, browser, appbuild, workflowrerun, device-/providerhandeling of publicatie. Volledige geïntegreerde gates en hosted LG-toolchainacceptatie volgen op roots finale bron. Deze guardreparatie levert geen visuele reviewronde op.

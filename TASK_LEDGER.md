@@ -368,3 +368,12 @@ blijven rootowned. Eigen browsers/links gesloten;74 assetbytes/Source gelijk.
 Primaire roods/PNGs/closures bewaard; één overschreven metadatafile en onbekende
 oude SHA/tijd expliciet vermeld in docs/proof. Geen renderer/Worker/Player-, DB-,
 dependency-, Source- of assetwijziging; losse triage telt0/5 rondes.
+
+S253: gerichte officiële Signage-CLI-patchguard op basis `aeebeac2`.
+De eerste hosted LG-check stopte vóór wrapper/hostedtests doordat elk patchveld
+verboden was; echte Next-onlyregistries zijn nu toegestaan, CLI-patches blijven
+verboden. Beide oude guards en eerste CI-log bewaard. Oorspronkelijke Node1/2;
+kandidaat6/6; escaped-/ingesprongen-rootregressies ieder6/7 vóór herstel;
+finale7/7 PASS en echte
+registryguard exit0. Versie/toolchain/echte checks/actions/digests behouden.
+Geen install/browser/build/workflowrerun; volledige geïntegreerde CI volgt.
