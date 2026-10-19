@@ -128,6 +128,83 @@ function providerFixture() {
 }
 
 describe("LED Scores protocol", () => {
+
+  it("accepts observed numeric team references without changing canonical IDs or retaining provider metadata", () => {
+    const fixture = providerFixture();
+    const primitive = parseLedScoresMessage(JSON.stringify(fixture));
+    const object = parseLedScoresMessage(JSON.stringify({ ...fixture, message: { ...fixture.message, teams: {
+      away: { id: 200, name: "PRIVATE_PROVIDER_AWAY", providerRevision: 17 },
+      home: { id: 100, name: "PRIVATE_PROVIDER_HOME", logo: "https://private.invalid/metadata" }
+    } } }));
+    expect(object).toEqual(primitive);
+    expect(JSON.stringify(object)).not.toContain("PRIVATE_PROVIDER_");
+    expect(JSON.stringify(object)).not.toContain("private.invalid");
+  });
+
+  it("keeps primitive and object reference match identity, mapping and real goal keys identical", () => {
+    const fixture = providerFixture();
+    function parsed(teams: unknown, score: number) {
+      return parseLedScoresMessage(JSON.stringify({ ...fixture, message: { ...fixture.message,
+        teams, endedAt: null, matchId: null, updatedAt: "2026-08-30T12:00:20.500Z",
+        startedAt: "2026-08-30T11:00:00.000Z", updateId: `team-reference-score-${score}`,
+        scoreboard: { away: 0, home: score, scored: score > 0
+          ? { id: 1, date: "2026-08-30T12:00:20.000Z", side: "home" } : null }
+      } }));
+    }
+    const primitive = { away: 27753, home: 23603 };
+    const reference = { away: { id: 27753, name: "PRIVATE_PROVIDER_AWAY" }, home: { id: 23603, name: "PRIVATE_PROVIDER_HOME" } };
+    const expected = observePair(parsed(primitive, 0), parsed(primitive, 1));
+    const mixedTransition = observePair(parsed(primitive, 0), parsed(reference, 1));
+    expect(mixedTransition).toEqual(expected);
+    expect(mixedTransition).toMatchObject({ kind: "goal", goal: {
+      homeTeamKey: "23603", awayTeamKey: "27753", scoringTeamKey: "23603", scoringSide: "own",
+      homeTeam: mappings[0]?.teamName, awayTeam: mappings[1]?.teamName,
+      matchIdentity: "fixture:23603:27753:2026-08-30T11:00:00.000Z"
+    } });
+    expect(JSON.stringify(mixedTransition)).not.toContain("PRIVATE_PROVIDER_");
+    expect(observePair(parsed(reference, 0), parsed(primitive, 1))).toEqual(expected);
+  });
+
+  it.each([
+    { id: "  TEAM-100 ", name: "Synthetic team" },
+    { id: 0, name: "Synthetic zero ID" },
+    { id: "x".repeat(120), name: "x".repeat(200) }
+  ])("preserves the existing primitive ID contract for bounded object $id", reference => {
+    const fixture = providerFixture();
+    const primitive = parseLedScoresMessage(JSON.stringify({ ...fixture, message: { ...fixture.message,
+      teams: { away: 200, home: reference.id }
+    } }));
+    expect(parseLedScoresMessage(JSON.stringify({ ...fixture, message: { ...fixture.message,
+      teams: { away: 200, home: { ...reference, additiveMetadata: { ignored: true } } }
+    } }))).toEqual(primitive);
+  });
+
+  it.each([
+    { label: "null ID", value: { id: null, name: "Synthetic team" } },
+    { label: "boolean ID", value: { id: false, name: "Synthetic team" } },
+    { label: "nested ID", value: { id: { id: 100 }, name: "Synthetic team" } },
+    { label: "array ID", value: { id: [100], name: "Synthetic team" } },
+    { label: "fractional ID", value: { id: 1.5, name: "Synthetic team" } },
+    { label: "negative ID", value: { id: -1, name: "Synthetic team" } },
+    { label: "unsafe numeric ID", value: { id: Number.MAX_SAFE_INTEGER + 1, name: "Synthetic team" } },
+    { label: "empty ID", value: { id: "", name: "Synthetic team" } },
+    { label: "overlong ID", value: { id: "x".repeat(121), name: "Synthetic team" } },
+    { label: "missing ID", value: { name: "Synthetic team" } },
+    { label: "missing name", value: { id: 100 } },
+    { label: "null name", value: { id: 100, name: null } },
+    { label: "boolean name", value: { id: 100, name: false } },
+    { label: "numeric name", value: { id: 100, name: 17 } },
+    { label: "nested name", value: { id: 100, name: { label: "Synthetic team" } } },
+    { label: "array name", value: { id: 100, name: ["Synthetic team"] } },
+    { label: "empty name", value: { id: 100, name: "" } },
+    { label: "overlong name", value: { id: 100, name: "x".repeat(201) } }
+  ])("rejects unsupported object $label without coercion", ({ value }) => {
+    const fixture = providerFixture();
+    expect(() => parseLedScoresMessage(JSON.stringify({ ...fixture, message: { ...fixture.message,
+      teams: { away: 200, home: value }
+    } }))).toThrow(LedScoresProtocolError);
+  });
+
   describe("bounded rejected-team shape diagnostics", () => {
     function rejected(payload: unknown) {
       try {
@@ -183,7 +260,8 @@ describe("LED Scores protocol", () => {
           active: true,
           type: "PRIVATE_TEAM_TYPE",
           name: "PRIVATE_TEAM_NAME",
-          id: "PRIVATE_TEAM_ID",
+          // Valid ID/name references are now supported; boolean IDs still fail.
+          id: false,
           url: "https://private.example.invalid/?token=PRIVATE_URL_TOKEN",
           players: ["PRIVATE_PLAYER_NAME"],
           ["__proto__"]: { inherited: "PRIVATE_INHERITED_VALUE" }
@@ -201,7 +279,7 @@ describe("LED Scores protocol", () => {
         {
           code: "invalid_union", path: "message.teams.home",
           shape: { type: "object", primitiveFields: [
-            { key: "id", type: "string" },
+            { key: "id", type: "boolean" },
             { key: "name", type: "string" },
             { key: "type", type: "string" },
             { key: "active", type: "boolean" }

@@ -18,6 +18,7 @@ import {
 } from "../slides/sync-sportlink-binding";
 import { syncLineupFromText, syncRowsFromText } from "./sync-studio-recovery";
 import type { SyncCreateWizardCommand, SyncCreateWizardData } from "./sync-create-wizard-types";
+import { applySyncThemeCreationDefaults, syncThemeCreationStarterDefaults } from "../../../../lib/sync-theme-creation-defaults";
 
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -67,6 +68,13 @@ export function initialSyncCreateWizardDraft(data: SyncCreateWizardData): SyncCr
   };
 }
 
+/** Explicit user choice only. Recovery never calls this projector. */
+export function chooseSyncWizardTheme(data: SyncCreateWizardData, draft: SyncCreateWizardDraft, themeId: SyncSlidePresentation["theme"]): SyncCreateWizardDraft {
+  if (data.themeDefaultsError) throw Error(data.themeDefaultsError);
+  const profile = data.themeDefaults?.profiles.find(value => value.themeId === themeId);
+  return { ...draft, presentation: applySyncThemeCreationDefaults(draft.presentation, themeId, profile?.defaults ?? syncThemeCreationStarterDefaults(themeId)) };
+}
+
 export function connectedSyncWizardSeed(presentation: SyncSlidePresentation): SyncSlidePresentation {
   return syncSlidePresentationSchema.parse({ ...presentation, rows: [], news: [], ownRowIndexes: [],
     home: undefined, away: undefined, match: undefined, poll: undefined, youtubeUrl: undefined, state: "ready" });
@@ -109,6 +117,7 @@ export function buildSyncWizardRequest(data: SyncCreateWizardData, draft: SyncCr
 }
 
 export function prepareSyncWizardCommand(data: SyncCreateWizardData, draft: SyncCreateWizardDraft, options: SyncSportlinkOptions | null, idempotencyKey: string): SyncCreateWizardCommand {
+  if (data.themeDefaultsError) throw Error(data.themeDefaultsError);
   if (!uuid.test(idempotencyKey)) throw Error("Invalid command nonce");
   if (draft.presentation.family !== data.family) throw Error("Deze keuze hoort bij een ander ontwerp. Open de juiste familie opnieuw.");
   const error = syncCreateWizardDraftError(draft);

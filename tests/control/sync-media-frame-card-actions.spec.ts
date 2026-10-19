@@ -12,7 +12,7 @@ const origin="http://127.0.0.1:3374", require=createRequire(join(process.cwd(),"
 const compiler=require.resolve("esbuild",{paths:[require.resolve("tsx")]});
 let bundle:{js:string;css:string};
 test.beforeAll(()=>{
- const entry=`import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'./packages/ui/src/components/dialog';import{MediaFrameCardActions}from'./apps/control/app/(shell)/dashboard/content/media-frames/media-frame-archive-actions';function App(){const[portal,setPortal]=useState(null),[props,setProps]=useState(globalThis.fixtureProps);globalThis.replaceFixtureProps=setProps;return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Content</h1><article className="vc-content-card"><h2>{props.title}</h2><div className="vc-card-actions"><MediaFrameCardActions key={props.scope+':'+props.identity} {...props}/></div></article></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
+ const entry=`import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'./packages/ui/src/components/dialog';import{MediaFrameCardActions}from'./apps/control/app/(shell)/dashboard/content/media-frames/media-frame-archive-actions';function App(){const[portal,setPortal]=useState(null),[props,setProps]=useState(globalThis.fixtureProps);globalThis.replaceFixtureProps=setProps;return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Content</h1><a className="button-link button-link--primary" href="/dashboard/releases">Publicaties openen</a><article className="vc-content-card"><h2>{props.title}</h2><div className="vc-card-actions"><MediaFrameCardActions key={props.scope+':'+props.identity} {...props}/></div></article></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
  const script=`const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/control/node_modules'],bundle:true,write:false,outfile:'fixture.js',loader:{'.module.css':'local-css','.css':'css'},platform:'browser',format:'iife',jsx:'automatic',plugins:[{name:'controlled-boundaries',setup(b){b.onResolve({filter:/media-frame-actions$/},a=>({path:a.path,namespace:'actions'}));b.onLoad({filter:/.*/,namespace:'actions'},()=>({contents:'async function post(path,input,scope){const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({input,scope})});if(!r.ok)throw Error("Controlled unavailable transport");return r.json()}export const mutateMediaFrameAction=(input,scope)=>post("/__card/mutate",input,scope);export const prepareMediaFrameCopyAction=(input,scope)=>post("/__card/prepare",input,scope);export const readMediaFrameUsageAction=(input,scope)=>post("/__card/usage",input,scope);',loader:'js'}));b.onResolve({filter:/^next\\/navigation$/},a=>({path:a.path,namespace:'navigation'}));b.onLoad({filter:/.*/,namespace:'navigation'},()=>({contents:'export function useRouter(){return{refresh:()=>{globalThis.refreshCount=(globalThis.refreshCount||0)+1}}}',loader:'js'}));}}]});const js=result.outputFiles.find(file=>file.path.endsWith('.js'))?.text,css=result.outputFiles.find(file=>file.path.endsWith('.css'))?.text;if(!js||!css)throw Error('Fixture omitted actual JavaScript or CSS');process.stdout.write(JSON.stringify({js,css}));`;
  bundle=JSON.parse(execFileSync(process.execPath,['-e',`(async()=>{${script}})().catch(e=>{console.error(e);process.exitCode=1})`],{encoding:'utf8',timeout:30000,maxBuffer:8*1024*1024}));
 });
@@ -90,4 +90,30 @@ test('archive dialog returns keyboard focus to its card action after Escape',asy
 
 test('saved-frame duplication uses its CAS and restore requires its own explicit confirmation',async({page})=>{
  const fixture=await mount(page);await page.getByRole('button',{name:'Eigen media dupliceren',exact:true}).click();await expect.poll(()=>fixture.durableBeforePost.length).toBe(1);await expect(page.getByRole('button',{name:'Eigen media dupliceren',exact:true})).toBeEnabled();expect(fixture.prepares).toHaveLength(0);expect(fixture.writes[0]!.input).toMatchObject({operation:'duplicate',frameId:frame,expectedRevision:1});const command=fixture.writes[0]!.input;if(command.operation!=='duplicate')throw Error('Expected duplicate command');expect(command.newFrameId).not.toBe(frame);expect(command.newFrameId).toMatch(/^[a-f0-9-]{36}$/);await fixture.replace({archived:true,revision:3});await page.getByRole('button',{name:'Eigen media herstellen',exact:true}).click();await expect(page.getByRole('dialog').getByRole('heading',{name:'Media-ontwerp herstellen',exact:true})).toBeVisible();expect(fixture.writes).toHaveLength(1);await page.getByRole('dialog').getByRole('button',{name:'Herstellen',exact:true}).click();await expect.poll(()=>fixture.durableBeforePost.length).toBe(2);expect(fixture.writes[1]!.input).toMatchObject({operation:'restore',frameId:frame,expectedRevision:3});expect(fixture.writes[1]!.input.idempotencyKey).not.toBe(command.idempotencyKey);expect(fixture.errors).toEqual([]);
+});
+
+
+for (const archived of [false, true]) test(`Source primary covers raw links and ${archived ? "restore" : "archive"} confirmation without changing the action`, async ({ page }) => {
+ const fixture = await mount(page);
+ const link = page.getByRole("link", { name: "Publicaties openen", exact: true });
+ await expect(link).toHaveAttribute("href", "/dashboard/releases");
+ await expect(link).toHaveCSS("background-color", "rgb(0, 109, 115)");
+ await expect(link).toHaveCSS("color", "rgb(255, 255, 255)");
+ await link.hover();
+ expect(await link.evaluate(element => getComputedStyle(element).filter)).toBe("none");
+ expect(await link.evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ if (archived) await fixture.replace({ archived: true, revision: 3 });
+ await page.getByRole("button", { name: `Eigen media ${archived ? "herstellen" : "archiveren"}`, exact: true }).click();
+ const dialog = page.getByRole("dialog");
+ const confirm = dialog.getByRole("button", { name: archived ? "Herstellen" : "Archiveren", exact: true });
+ await expect(confirm).toHaveCSS("background-color", "rgb(0, 109, 115)");
+ await expect(confirm).toHaveCSS("color", "rgb(255, 255, 255)");
+ await confirm.hover();
+ await expect(confirm).toHaveCSS("background-color", "rgb(0, 109, 115)");
+ await expect(dialog.getByText("2 conceptplaylists · 3 publicaties · 4 schermen", { exact: true })).toBeVisible();
+ expect(fixture.writes).toHaveLength(0);
+ await confirm.click();
+ await expect.poll(() => fixture.writes.length).toBe(1);
+ expect(fixture.writes[0]!.input).toMatchObject({ operation: archived ? "restore" : "archive", frameId: frame, expectedRevision: archived ? 3 : 1 });
+ expect(fixture.errors).toEqual([]);
 });

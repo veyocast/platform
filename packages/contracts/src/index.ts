@@ -36,3 +36,4 @@ export * from './sync-dynamic-artifact';
 export * from "./sync-dynamic-playback";
 export * from './sync-dynamic-placement';
 export * from "./sync-background-catalog";
+export * from "./sync-theme-creation-defaults";
