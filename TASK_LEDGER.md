@@ -377,3 +377,12 @@ kandidaat6/6; escaped-/ingesprongen-rootregressies ieder6/7 vóór herstel;
 finale7/7 PASS en echte
 registryguard exit0. Versie/toolchain/echte checks/actions/digests behouden.
 Geen install/browser/build/workflowrerun; volledige geïntegreerde CI volgt.
+
+S256: lokale behouden huisstijlbediening op basis49a12c45. Alleen Sync-headeraccent,
+legacyUIlabel Huisstijl en leesbaar native Rustige-bewegingenlabel; v2namen,
+payloads/canvassen/handlers behouden. Origineel2/2 FAIL (kleur, geen aparte
+checkbox-roodclaim)→volle4/4 browserPASS24,533s/0skip/retry;12unitsPASS/scopedlint0.
+Native2labels door agent+root bekeken/lokaal geaccepteerd; productpeer zonder
+blocker. Chrome[] en
+alle13links verwijderd;16asset-/trackedtoken-/dependencyinputs gelijk.
+Geen install/build/authrefresh/DB; integratie/fullgates/actualbuild volgen.

@@ -264,3 +264,58 @@ for (const width of [390, 1440]) {
     expect(errors).toEqual([]); expect(writes).toEqual([]);
   });
 }
+
+
+for (const width of [390, 1440]) {
+  test(`retained theme eyebrow and native motion label stay readable without payload drift at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+    const errors: string[] = [], writes: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    page.on("request", request => { if (request.method() !== "GET") writes.push(`${request.method()} ${new URL(request.url()).pathname}`); });
+    await page.route(`${origin}/assets/*`, route => {
+      const name = new URL(route.request().url()).pathname.split("/").at(-1)!;
+      if (!/^[a-zA-Z0-9_.-]+$/.test(name)) return route.abort();
+      return route.fulfill({ body: readFileSync(join(process.cwd(), "apps/control/public/assets", name)), contentType: name.endsWith("woff2") ? "font/woff2" : name.endsWith("ttf") ? "font/ttf" : "image/svg+xml" });
+    });
+    const css = rootStyles.map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
+    await page.route(`${origin}/__retained?*`, route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Behouden Control-bediening</title><style>${css}\n${audit.css}\n${editor.css}</style></head><body>${themeBootstrap}<div id="root"></div><script>globalThis.auditMarkup=${JSON.stringify(audit.html).replace(/<\/script/gi, "<\\/script")};${editor.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>` }));
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.addInitScript(() => localStorage.setItem("veyocast-control-theme", "light"));
+    await page.goto(`${origin}/__retained?sync=1&theme=light`);
+    const scope = page.locator('.sync-control [data-proof="theme"]');
+    await expect(scope.getByRole("button", { name: "Blauw", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.evaluate(() => document.fonts.ready);
+    const accent = await page.locator('[data-proof="source-roles"]').evaluate(element => getComputedStyle(element).color);
+    const eyebrow = scope.locator('[class*="editorialThemeEyebrow"]');
+    await expect(eyebrow).toHaveCSS("color", accent);
+    const label = scope.locator("label.settings-check-card"), checkbox = label.getByRole("checkbox"), title = label.locator("strong"), help = label.locator("small");
+    await expect(title).toHaveText("Rustige bewegingen");
+    await label.scrollIntoViewIfNeeded();
+    await expect(title).toHaveCSS("font-size", "14px"); await expect(help).toHaveCSS("font-size", "13px");
+    const geometry = await label.evaluate(node => {
+      const rect = (element: Element) => { const r = element.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; };
+      return { label: rect(node), title: rect(node.querySelector("strong")!), help: rect(node.querySelector("small")!), clientWidth: node.clientWidth, scrollWidth: node.scrollWidth };
+    });
+    expect(geometry.label.width).toBeGreaterThanOrEqual(44); expect(geometry.label.height).toBeGreaterThanOrEqual(44);
+    expect(geometry.title.bottom).toBeLessThanOrEqual(geometry.help.top); expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth);
+    const formPayload = () => scope.locator("form").evaluate(form => Object.fromEntries(new FormData(form as HTMLFormElement)));
+    const before = await formPayload(), appearanceBefore = JSON.parse(String(before.themeAppearanceJson)), canvasBefore = await canvasFacts(page);
+    const assertMotionOnly = async (enabled: boolean) => {
+      const after = await formPayload();
+      expect({ ...after, themeAppearanceJson: before.themeAppearanceJson }).toEqual(before);
+      expect(JSON.parse(String(after.themeAppearanceJson))).toEqual({ ...appearanceBefore, motionEnabled: enabled });
+      await expect(checkbox).toBeChecked({ checked: enabled });
+    };
+    await checkbox.focus(); await expect(checkbox).toBeFocused(); await page.keyboard.press("Space"); await assertMotionOnly(!appearanceBefore.motionEnabled);
+    await expect(checkbox).toHaveCSS("outline-style", "solid");
+    await title.click(); await assertMotionOnly(appearanceBefore.motionEnabled);
+    await help.click(); await assertMotionOnly(!appearanceBefore.motionEnabled);
+    await checkbox.focus(); await page.keyboard.press("Space"); await assertMotionOnly(appearanceBefore.motionEnabled);
+    expect(await formPayload()).toEqual(before); expect(await canvasFacts(page)).toEqual(canvasBefore);
+    const axe = await new AxeBuilder({ page }).include("label.settings-check-card").withRules(["color-contrast", "target-size"]).analyze();
+    expect(axe.violations).toEqual([]); expect(axe.incomplete).toEqual([]);
+    await attach(info, `native-motion-label-${width}`, await label.screenshot(), "image/png");
+    await attach(info, `motion-label-geometry-${width}`, Buffer.from(JSON.stringify({ geometry, appearance: appearanceBefore, axe })), "application/json");
+    expect(errors).toEqual([]); expect(writes).toEqual([]);
+  });
+}

@@ -1274,6 +1274,7 @@
   text-transform: uppercase;
 }
 
+:global(.sync-control) .editorialThemeEyebrow,
 :global(.sync-control) .editorialSectionEyebrow,
 :global(.sync-control) .editorialTokenDisclosureIndicator {
   color: var(--accent);
@@ -2763,4 +2764,46 @@
   .editorialThemeDualPreview {
     grid-template-columns: 1fr;
   }
+}
+
+/* Retained tenant motion control: Source chrome, native label/checkbox behavior. */
+:global(.sync-control) .settingsCheckCard {
+  align-items: flex-start;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  min-height: 44px;
+  min-width: 0;
+  padding: 10px 0;
+}
+
+:global(.sync-control) .settingsCheckCard > input[type="checkbox"] {
+  accent-color: var(--accent);
+  flex: 0 0 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  width: 20px;
+}
+
+:global(.sync-control) .settingsCheckCard > input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+:global(.sync-control) .settingsCheckCard > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+:global(.sync-control) .settingsCheckCard > span > strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+:global(.sync-control) .settingsCheckCard > span > small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
