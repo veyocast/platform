@@ -1274,6 +1274,11 @@
   text-transform: uppercase;
 }
 
+:global(.sync-control) .editorialSectionEyebrow,
+:global(.sync-control) .editorialTokenDisclosureIndicator {
+  color: var(--accent);
+}
+
 .editorialThemeScope,
 .editorialContrastSummary {
   align-items: center;
@@ -1392,6 +1397,17 @@
 .editorialPalettePresets button[aria-pressed="true"] {
   border-color: var(--vc-action);
   box-shadow: 0 0 0 1px var(--vc-action);
+}
+
+:global(.sync-control) .editorialPalettePresets > div > button {
+  font-size: 0.875rem;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+:global(.sync-control) .editorialPalettePresets > div > button[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .editorialPalettePresets button:focus-visible {
@@ -1863,6 +1879,19 @@
   color: var(--vc-action);
 }
 
+:global(.sync-control) .editorialModeTab {
+  font-size: 0.875rem;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+:global(.sync-control) .editorialModeTab[aria-pressed="true"],
+:global(.sync-control) .editorialModeTab[aria-selected="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 @media (max-width: 720px) {
   .editorialGlobalMode {
     align-items: stretch;
@@ -2096,6 +2125,12 @@
 .editorialTokenField:focus-within {
   border-color: color-mix(in srgb, var(--vc-action) 52%, var(--vc-border));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--vc-action) 12%, transparent);
+}
+
+:global(.sync-control) .editorialTokenField[data-active="true"]:not(:has(:invalid, [aria-invalid="true"])),
+:global(.sync-control) .editorialTokenField:focus-within:not(:has(:invalid, [aria-invalid="true"])) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .editorialColorInput {
