@@ -96,3 +96,9 @@ rootintegratie. Player, immutable publicaties en offline-LKG zijn niet geraakt.
 
 Actuele bron- en producthashes staan in
 `/tmp/veyocast-s239-baseline/current-hashes.json`.
+
+Na de normale S234/S232/S236-dependencymerge is de volledige foundation
+opnieuwgroen:68/68taken,64cached; werkelijk Control1.401PASS/34bestaandeSKIP.
+Log `/tmp/veyocast-s239-integrated-foundation.log`. Eigen productclass-/CSS-/
+commandgrenzen blijven behouden. Exact-head hosted browser/CI en normale
+staging/productie volgen afzonderlijk.
