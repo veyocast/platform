@@ -3,6 +3,8 @@ html[data-design-system="fieldflow"] .sync-control { --vc-font-display:Manrope,I
 /* Fixed light Source status surfaces use their official on-surface roles. */
 .sync-control .badge-amber { color:var(--vc-vector-warning-on-surface); }
 html[data-design-system="fieldflow"] .sync-control .vc-badge--success { color:var(--vc-vector-success-on-surface); }
+/* Neutral Source status surfaces stay light under the stored dark preference. */
+html[data-design-system="fieldflow"] .sync-control .vc-badge--neutral { color:var(--text); }
 .sync-control .vc-badge--success .vc-badge__dot { background:var(--ff-sites-badge-success-text,var(--vc-semantic-success-solid)); }
 .sync-control svg { display:inline; vertical-align:baseline; }
 .sync-control .nav-panel { border-radius: 0; gap:normal; margin: 0; transform: none; box-shadow: none; }
@@ -35,6 +37,13 @@ html[data-design-system="fieldflow"] .sync-control .vc-badge--success { color:va
 .sync-control .vx-account .avatar-button { padding:1px 6px; }
 .sync-control.app-shell :is(.btn,.vc-button) { min-height:44px; }
 .sync-control .vc-button { line-height:inherit; }
+/* Retained audit disclosure uses Source chrome; command metadata stays intact. */
+.sync-control .audit-details > summary {
+  color:var(--accent);
+  font-size:0.875rem;
+  min-height:44px;
+  min-width:44px;
+}
 /* Server-rendered action links share the Source button treatment. */
 .sync-control .button-link--primary {
   min-height:44px;
