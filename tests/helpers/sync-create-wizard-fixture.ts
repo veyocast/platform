@@ -1,9 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readFileSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { expect, type Page } from "@playwright/test";
 import { createSyncStudioStarter } from "../../packages/studio/src/sync";
+import { syncBackgroundAssets } from "../../packages/contracts/src/sync-background-catalog";
 import type { SyncCreateWizardCommand, SyncCreateWizardData } from "../../apps/control/app/(shell)/dashboard/studio/sync-create-wizard-types";
 import { syncConnectedAuthoringType } from "../../apps/control/app/(shell)/dashboard/slides/sync-sportlink-binding";
 
@@ -38,6 +40,23 @@ export async function mount(page: Page, data = fixture(), opts: { dropFirst?: bo
   page.on("pageerror", error => errors.push(error.message));
   page.on("dialog", dialog => void dialog.accept());
   const css = ["tokens/veyocast-design-tokens.css", "packages/ui/src/styles.css", "apps/control/app/globals.css", "apps/control/app/fieldflow.css", "apps/control/app/sync-source.css", "apps/control/app/sync-adapter.css"].map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
+  // Resolve through the existing approved assets directory: ordinary local public
+  // in a full checkout, canonical public behind the guarded assets link in sparse QA.
+  const publicRoot = dirname(realpathSync(join(process.cwd(), "apps/control/public/assets")));
+  const backgrounds = new Map<string, Buffer>(syncBackgroundAssets.map(asset => {
+    const source = join(publicRoot, asset.path.slice(1));
+    if (realpathSync(source) !== source) throw Error(`Background is outside the canonical public directory: ${asset.path}`);
+    const bytes = readFileSync(source);
+    expect(bytes.length, asset.path).toBe(asset.bytes);
+    expect(createHash("sha256").update(bytes).digest("hex"), asset.path).toBe(asset.sha256);
+    return [asset.path, bytes];
+  }));
+  await page.route(`${origin}/onzetrots/website-brush/*`, route => {
+    const request = route.request(), url = new URL(request.url());
+    const bytes = backgrounds.get(url.pathname);
+    if (request.method() !== "GET" || url.origin !== origin || url.search || !bytes) return route.abort();
+    return route.fulfill({ body: bytes, contentType: "image/webp" });
+  });
   await page.route(`${origin}/assets/*`, route => {
     const name = new URL(route.request().url()).pathname.split("/").at(-1)!;
     if (!/^[a-zA-Z0-9_.-]+$/.test(name)) return route.abort();

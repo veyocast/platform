@@ -379,3 +379,33 @@ registryguard exit0. Versie/toolchain/echte checks/actions/digests behouden.
 Geen install/browser/build/workflowrerun; volledige geïntegreerde CI volgt.
 
 | S255 | lokale review | veyocast/s255-sync-saved-studio-touch | studio_surfaces | Bewaarde Sync Studio-uitlijning en native disclosures | Alleen lokale properties-CSS, bestaande Clubmuur/save/reloadcase en eigen docs/prompt | Echte390-nulmeting10px/29,5px en summary21,6875px; dezelfde uitgebreide controlledcase baseline1FAIL→kandidaat1PASS/0skip/0retry,14px/min44px/Enter/state/save/reload/1440/properties-aXe0. Scopedlint/syntax/diff groen; infraENOENT afzonderlijk behouden; alle14linksweg/Chrome[]/bron-deps-assets-tokensgelijk | Volledige foundation/strictspecTSC/geïntegreerde Next-capture en releasebesluit open; root autoriseert eigen scoped commit/push/draft-PR; geen install/build/runtime/QA-DB/deploy. Geen volledige visuele ronde of acceptatieclaim. |
+
+S256: lokale behouden huisstijlbediening op basis49a12c45. Alleen Sync-headeraccent,
+legacyUIlabel Huisstijl en leesbaar native Rustige-bewegingenlabel; v2namen,
+payloads/canvassen/handlers behouden. Origineel2/2 FAIL (kleur, geen aparte
+checkbox-roodclaim)→volle4/4 browserPASS24,533s/0skip/retry;12unitsPASS/scopedlint0.
+Native2labels door agent+root bekeken/lokaal geaccepteerd; productpeer zonder
+blocker. Chrome[] en
+alle13links verwijderd;16asset-/trackedtoken-/dependencyinputs gelijk.
+Geen install/build/authrefresh/DB; integratie/fullgates/actualbuild volgen.
+S256 gerichte kleurfollow-up na75d4ca0c: vijf lokale Syncselectorvoorstellen,
+vier CSSpaden inclusief drie expliciete ownershipuitbreidingen; Tenantbreed
+asserties in dezelfde echte twee themecases, geen fake routefixture. Vooralsnog
+RAM-only wegens reserve<100MiB; nieuwe4cases/scopedlint/actualglyphcapture OPEN.
+Oude2rood/4groen/12units en eerstecommit blijven ongewijzigd bewaard.
+S256 dezelfde RAM-follow-up omvat twee gebruikershints en pagina/pagina’s in
+het bestaande wizardreviewlabel; één duurassert in bestaande390/1440cases.
+Nieuwe wizardSHA/finalB-binding vereist; oude B uitsluitend historisch.
+S256 resourcehersteld: exact RAM69bb7744 toegepast; scopedlint99000 actual0,
+specsyntax2×0/CSSparse4×0;13links weg,1177unrelatedfiles+tokens/assets/deps
+gelijk. Nieuwe6browsercases/finalB/actualbuild/fullgates/ronden nog OPEN.
+S256 finale gerichte follow-up:6/6 kleuren/copyPASS32,988s/36772exit0;
+96595blijft0caseNOT_RUN_LOADER_INFRA, geenproductFAIL. Echte broken Design
+thumbs onthulden fixture-/onzetrotsroutegat; helperownership expliciet erbij.
+Exact6immutableWebPbytes/sha+querylozeGET; bestaande390/1440cases
+3portraitdecode941×1672 vóórDesignPNG, alle oude flow/asserties behouden.
+Afzonderlijk2/2PASS10,407s/38972exit0; scopedlint41604exit0. Agent/root
+zagen beide native Designbeelden:3foto’s zichtbaar, geenbrokenimg. Oude6PASS
+enbrokenframes bewaard, geen eerderegalleryPASS. Alle14links/2legeparents
+weg,Chrome[];11owned/1176unrelated/65canonical/16assets/token0640/Next/deps
+en6WebPguards gelijk. Fullgates/newbuild/finalB/five/deploy rootownedOPEN.
