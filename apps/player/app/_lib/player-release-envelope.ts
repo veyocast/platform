@@ -107,10 +107,12 @@ export async function loadPlayerReleaseEnvelope({
   releaseId,
   tenantId,
   enableSyncStudio = false,
+  enableSyncEngagePaging = false,
   enableSyncBackgrounds = false,
   syncDynamicMode=false,
 }: {
   enableSyncStudio?:boolean;
+  enableSyncEngagePaging?:boolean;
   enableSyncBackgrounds?:boolean;
   syncDynamicMode?:SyncDynamicMode;
   device: PlayerReleaseDevice;
@@ -164,18 +166,25 @@ export async function loadPlayerReleaseEnvelope({
   }
   const studioPresentations=new Map<string,Extract<SitesPresentation,{kind:"studio"}>>();
   for(const item of releaseItems){if(item.sites_studio_presentation_json==null)continue;const parsed=sitesPresentationSchema.safeParse(item.sites_studio_presentation_json);if(!parsed.success||parsed.data.kind!=="studio")throw new Error("SITES_STUDIO_RELEASE_INVALID");studioPresentations.set(item.id,parsed.data);}
-  const syncPresentations=new Map<string,SyncSlidePresentation>();
-  if(enableSyncStudio) for(const item of releaseItems){
-    if(item.sync_studio_presentation_json==null)continue;
-    const parsed=syncSlidePresentationSchema.safeParse(item.sync_studio_presentation_json),duration=item.sync_studio_duration_ms;
+  const syncPresentations=new Map<string,SyncSlidePresentation>(),validatedSyncPresentations=new Map<string,SyncSlidePresentation>();
+  for(const item of releaseItems){
+    const raw=item.sync_studio_presentation_json;
+    if(raw==null)continue;
+    const pagedEngage=isRecord(raw)&&raw.family==='engage'&&isRecord(raw.poll)&&Object.hasOwn(raw.poll,'optionsPerPage');
+    if(!enableSyncStudio&&!pagedEngage)continue;
+    const parsed=syncSlidePresentationSchema.safeParse(raw),duration=item.sync_studio_duration_ms;
     if(!parsed.success||item.sites_studio_presentation_json!=null||!Number.isInteger(duration)||Number(duration)<3000*syncSlidePageCount(parsed.data)||Number(duration)>120000||item.duration_seconds*1000<Number(duration))throw Error("SYNC_STUDIO_RELEASE_INVALID");
-    if (enableSyncBackgrounds || !syncBackgroundAssetForRef(parsed.data.style.backgroundAsset)) syncPresentations.set(item.id,parsed.data);
+    validatedSyncPresentations.set(item.id,parsed.data);
+    // Older supported profiles receive the complete, unchanged binary, without
+    // an unknown strict DOM field or an online projection they cannot paginate.
+    if (enableSyncStudio&&(!pagedEngage||enableSyncEngagePaging)&&(enableSyncBackgrounds || !syncBackgroundAssetForRef(parsed.data.style.backgroundAsset))) syncPresentations.set(item.id,parsed.data);
   }
   const studioAssetRefs=[...[...studioPresentations.values()].flatMap(sitesPresentationAssets),...[...syncPresentations.values()].flatMap(syncSlideAssets),...[...syncDynamicSnapshots].flatMap(([id,value])=>dynamicDomIds.has(id)?syncSlideAssets(value.presentation):[])].filter(ref=>ref.kind==="tenant");
-  const studioAssets=studioAssetRefs.length?await loadDynamicTemplateAssets(admin,tenantId,[...new Set(studioAssetRefs.map(ref=>ref.mediaAssetId))]):new Map<string,PlayerDynamicTemplateAsset>();
-  if(studioAssetRefs.some(ref=>{const asset=studioAssets.get(ref.mediaAssetId);return !asset||asset.checksumSha256!==ref.checksumSha256||!asset.mimeType.startsWith("image/");}))throw new Error("SITES_STUDIO_ASSETS_UNAVAILABLE");
+  const validationRefs=[...studioAssetRefs,...[...validatedSyncPresentations.values()].flatMap(syncSlideAssets).filter(ref=>ref.kind==='tenant')];
+  const studioAssets=validationRefs.length?await loadDynamicTemplateAssets(admin,tenantId,[...new Set(validationRefs.map(ref=>ref.mediaAssetId))]):new Map<string,PlayerDynamicTemplateAsset>();
+  if(validationRefs.some(ref=>{const asset=studioAssets.get(ref.mediaAssetId);return !asset||asset.checksumSha256!==ref.checksumSha256||!asset.mimeType.startsWith("image/");}))throw new Error("SITES_STUDIO_ASSETS_UNAVAILABLE");
   const dynamicAssetBytes = uniqueDynamicAssetBytes(dynamicTemplates);
-  const studioAssetBytes=[...studioAssets.values()].reduce((sum,asset)=>sum+asset.bytes,0);
+  const studioAssetBytes=[...new Set(studioAssetRefs.map(ref=>ref.mediaAssetId))].reduce((sum,id)=>sum+studioAssets.get(id)!.bytes,0);
   const sponsorPlan = await loadSponsorPlan(admin, tenantId, device.screenId);
 
   const items = await Promise.all(

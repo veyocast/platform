@@ -194,6 +194,8 @@ function SyncSlideMarkup({
     article = articles[articleIndex];
   const poll = slide.poll,
     pollOptions = poll?.options ?? [],
+    pollPageSize = poll && "optionsPerPage" in poll ? poll.optionsPerPage : pollOptions.length,
+    displayedPollOptions = pollOptions.slice(safePage * pollPageSize, (safePage + 1) * pollPageSize),
     totalVotes = pollOptions.reduce((sum, option) => sum + option.votes, 0),
     resultsVisible =
       Boolean(
@@ -253,7 +255,7 @@ function SyncSlideMarkup({
   } as CSSProperties;
   return (
     <div
-      className={`vc-slide-preview ${ours ? "is-trots" : "is-fieldflow"} ${portrait ? "is-portrait" : ""} ${compact ? "is-compact" : ""} ${isRss ? "is-rss" : ""} ${isEngage ? "is-engage" : ""} bg-${backgroundUrl ? "photo" : s.background || "stadium"}`}
+      className={`vc-slide-preview ${ours ? "is-trots" : "is-fieldflow"} ${portrait ? "is-portrait" : ""} ${compact ? "is-compact" : ""} ${isRss ? "is-rss" : ""} ${isEngage ? "is-engage" : ""} ${isEngage && poll && "optionsPerPage" in poll ? "is-engage-paged" : ""} ${isEngage && poll && "optionsPerPage" in poll && poll.title.length <= 24 && poll.title.split(/\s+/).some(word => word.length > 16) ? "has-wide-short-question" : ""} ${isEngage && poll && "optionsPerPage" in poll && poll.title.length > 24 && poll.title.length <= 80 ? "has-medium-question" : ""} ${isEngage && poll && "optionsPerPage" in poll && poll.title.length > 80 ? "has-long-question" : ""} bg-${backgroundUrl ? "photo" : s.background || "stadium"}`}
       style={style}
       aria-label={`Voorbeeld: ${title}`}
     >
@@ -338,8 +340,8 @@ function SyncSlideMarkup({
                   <h2>{poll?.title || s.title || "LAAT DE CLUB MEEPRATEN."}</h2>
                   {poll ? (
                     <div className="vc-engage-layout">
-                      <div className="vc-engage-results">
-                        {pollOptions.map((option, index) => {
+                      <div className="vc-engage-results" style={"optionsPerPage" in poll ? { "--engage-meta-row": Math.ceil(displayedPollOptions.length / 2) + 1 } as CSSProperties : undefined}>
+                        {displayedPollOptions.map((option, index) => {
                           const percent = totalVotes
                             ? Math.round(
                                 (Number(option.votes || 0) / totalVotes) * 100,
@@ -348,6 +350,7 @@ function SyncSlideMarkup({
                           return (
                             <div
                               className="vc-engage-result"
+                              data-option-id={option.id}
                               key={option.id || index}
                             >
                               <div>
@@ -376,6 +379,9 @@ function SyncSlideMarkup({
                               ? "Resultaten zichtbaar op je telefoon nadat je hebt gestemd."
                               : "De uitslag verschijnt zodra de stemming sluit."}
                         </p>
+                        {pages > 1 && <p className="vc-engage-pages" aria-label={`Pagina ${safePage + 1} van ${pages}`}>
+                          Keuzes {safePage * pollPageSize + 1}–{Math.min((safePage + 1) * pollPageSize, pollOptions.length)} van {pollOptions.length} · {safePage + 1}/{pages}
+                        </p>}
                       </div>
                       <aside className="vc-engage-qr">
                         {pollUrl && <QRCode value={pollUrl} size={120} />}

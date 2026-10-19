@@ -73,27 +73,30 @@ const club = z
   .strict();
 
 /** Only confirmed, policy-filtered poll data belongs in the renderer. No demo store. */
-const poll = z
-  .object({
+const pollOption = z.object({
+  id: z.string().uuid(),
+  label: text,
+  votes: z.number().int().min(0).max(1_000_000_000),
+}).strict();
+const pollFields = {
     id: z.string().uuid(),
     title: text,
     status: z.enum(["draft", "scheduled", "live", "closed", "archived"]),
     visibility: z.enum(["live", "after_vote", "after_close"]),
     publicUrl: publicUrl.optional(),
-    options: z
-      .array(
-        z
-          .object({
-            id: z.string().uuid(),
-            label: text,
-            votes: z.number().int().min(0).max(1_000_000_000),
-          })
-          .strict(),
-      )
-      .min(2)
-      .max(12),
-  })
-  .strict()
+    options: z.array(pollOption).min(2).max(12),
+};
+/** Unmarked immutable polls keep their original single-page timing. Every new
+ * selected campaign freezes four readable choices per page, without dropping
+ * any of the campaign's twenty-four possible answers. */
+const poll = z.union([
+  z.object(pollFields).strict(),
+  z.object({
+    ...pollFields,
+    optionsPerPage: z.literal(4),
+    options: z.array(pollOption.extend({ label: z.string().max(160) })).min(2).max(24),
+  }).strict(),
+])
   .superRefine((value, context) => {
     const visible =
       (value.visibility === "live" &&
@@ -287,6 +290,8 @@ export const syncSlideDraftInputSchema = z
   .strict();
 
 export function syncSlidePageCount(slide: SyncSlidePresentation): number {
+  if (slide.family === "engage" && slide.poll && "optionsPerPage" in slide.poll)
+    return Math.max(1, Math.ceil(slide.poll.options.length / slide.poll.optionsPerPage));
   return slide.family === "rss"
     ? Math.max(1, slide.news.length)
     : Math.max(1, Math.ceil(slide.rows.length / slide.rowsPerPage));

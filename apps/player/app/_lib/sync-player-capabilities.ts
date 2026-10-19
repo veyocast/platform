@@ -1,5 +1,7 @@
 export const syncPlayerRendererHeader = "X-VeyoCast-Sync-Renderer";
 export const syncPlayerRendererVersion = "sync-v1";
+export const syncEngagePagingHeader = "X-VeyoCast-Sync-Engage-Paging";
+export const syncEngagePagingVersion = "sync-engage-pages-v1";
 export const syncBackgroundsHeader = "X-VeyoCast-Sync-Backgrounds";
 export const syncBackgroundsVersion = "sync-backgrounds-v1";
 export const syncDynamicRendererHeader='X-VeyoCast-Sync-Dynamic';
