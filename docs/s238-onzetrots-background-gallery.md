@@ -105,3 +105,35 @@ De twee nieuwe labelasserties zijn na de lokale CSS-correctie2/2PASS in6,8s,
 1worker/0retry/0skip. Eerste2FAIL met werkelijk12px blijven bewaard in
 `/tmp/veyocast-s238-wizard-label-first-red.json`; actueel
 `/tmp/veyocast-s238-wizard-label-current.json`. Dit is vóór de dependencymerge.
+
+## Geïntegreerde lokale gates
+Normale S235/S234/S232/S236-merge is vastgelegd op690d9e7a. Gallerykeuze en
+oriëntatiepairing zijn gecombineerd met defaults/errorguards/expliciete
+themekeuze; beide contractexports en alleoudeUIasserties blijven behouden.
+Alle32Controlbrowsercases zijn groen (1,5min,1worker,0retry/0skip), rapport
+`/tmp/veyocast-s238-s235-integrated-control.json`. De volledige actuele
+foundation heeft68/68PASS,25cached: Player514PASS,Control1639PASS/34bestaande
+SKIP,mediaworker373PASS/332conditioneleSKIP. De echte afzonderlijke18worker-
+cases bewijzen de browsercaptures met hun expliciete Chrome-configuratie.
+Log `/tmp/veyocast-s238-s235-integrated-foundation.log`.
+
+Gecombineerde disposable database: alle199migraties/134bestanden/4267asserties
+PASS. De eerste eigenpostguard was te strikt voor de terecht opnieuw
+aangemaakte disposable DBcontainer. Alleen die guard is gecorrigeerd met
+bewezenoude→nieuweID/resetwindow; huidigeimage/ID worden vanafdan bevroren.
+Deoudeimagewasnietvastgelegd en wordt nietalsgelijkgeclaimd. De beschermde
+QA-containers/ports/starttijden blijven bytegelijk, geenQAdataquery/reset.
+Eerste guardfout en helperv1blijven bewaard; geen tweede reset ofSQLwijziging.
+Finalelint/proof `/tmp/veyocast-s238-combined-db-evidence` volgt apart.
+
+Root heeft het actuele1440saved-editorbeeld daadwerkelijk bekeken: echte
+Houtrustfoto en drie scènekeuzes naast de behouden presets. Oudere algemene
+propertylabels behoren tot de afzonderlijke S241-correctie; dit is geen
+algemene saved-editor14px-/pixelpariteitsclaim op de pre-S241branch.
+
+Definitieve gecombineerde database-lint is PASS, nul errors en exact dezelfde
+25bestaande waarschuwingen in16ongewijzigde functies. Beide galleryhelpers
+hebben nul issues. Summary SHA
+`7bed9323fd2a9c30fa053110cb9c27e86d6858b24ab5468b8fcc232efebd5861`.
+DB-lane en eigen runtimes zijn gesloten. Exact-head CI en werkelijke lokale
+QA-gallerysave zijn volgende afzonderlijke gates; geen nieuweQA-reset.
