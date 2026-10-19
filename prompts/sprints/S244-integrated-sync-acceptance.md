@@ -109,3 +109,20 @@ auto-staging en verplichte pairing-/LG-recovery-smokes, promoveer uitsluitend
 dezelfde immutable release via bestaande handmatige productieworkflow en
 normale environmentreview. Verifieer vijf publieke healthversies en relevante
 echte gebruikersflows. Geen V1-/pixelpariteit-/vijf-rondenclaim zonder bewijs.
+
+
+## Aanvullende bewezen UI-afwerking
+
+Integreer S2553bfc3dd0 en S25602ba14c9 normaal met behoud van beide taakregistraties.
+De concrete scopes omvatten opgeslagen Studio-aanraakdoelen, vijf verdere
+Sync-UIaccenten, huisstijl-/bewegingslabels, twee korte wizardhints en pagina-
+enkelvoud. De bestaande wizardfixture mag exact zes onveranderde OnzeTrots-
+catalogusbeelden serveren en beide bestaande breedtegevallen moeten de drie
+echte portretminiaturen vóór hun DesignPNG decoderen. Geen asset-/renderer-/
+command-/schema-/dependencywijziging. Nieuwe volledige appbuilds en capturen
+blijven vereist;6+2 gerichte PASS en de CDP-observabilityproef zijn geen ronde.
+Behoud de negen oorspronkelijke A-React418-fouten als open totdat concrete
+oorzaak/afsluiting bewezen is. Strikte empirisch gebonden read-actionuitzonderingen
+zijn uitsluitend voor bestaande pure-readcommands; iedere mutator blijft
+geblokkeerd. Bron/Inhoud, gekoppelde keuzes en publieke website/auth-GET
+worden afzonderlijk met hun echte eigen bindings getoetst.

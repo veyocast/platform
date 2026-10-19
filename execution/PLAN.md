@@ -1,5 +1,12 @@
 # S244 · Finale Sync-acceptatie en uitrol
 
+Actuele aanvulling: de S255/S256-afwerking is normaal opgenomen. Bind de
+ongewijzigde bestaande installatie waarheidsgetrouw aan de nieuwe bron en
+bouw Control en Marketing opnieuw. Sluit alle routes, alle wizardstappen en
+gekoppelde bronkeuzes, publieke/auth-GET en oorspronkelijke laadfouten voordat
+de vijf volledige vergelijkingen en normale uitrol kunnen worden afgetekend.
+Gerichte6+2 fotocontroles en vier CDP-contractcases zijn geen volledige ronde.
+
 De oorspronkelijke startprompt en gekozen prototype1/Sync blijven leidend, met de latere expliciete eis om oude oranje bediening, verdwenen OnzeTrots-achtergronden en massale gestapelde containers op te ruimen. De vijf gevraagde volledige vergelijkingen zijn een eigen open gate; losse tests, vijf breedtes of identieke browserherhalingen tellen daar niet voor.
 
 1. Bronintegratie: S245–S252 zijn na afzonderlijke proof/freeze en rootreview normaal geïntegreerd; alle oorspronkelijke branches, PRs en rode resultaten blijven bewaard. De actuele acceptatie-/uitrolstatus volgt op PR270; de onderstaande gates blijven op dit bevroren bronopnamemoment open.

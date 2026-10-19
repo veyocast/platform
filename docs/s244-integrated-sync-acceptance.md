@@ -229,3 +229,39 @@ werkelijke wrapper/hosted-tests en artifactinspectie blijven behouden.
 Dit is een afzonderlijke CI-correctie naast de vijftien UI-/acceptatieheads.
 De oorspronkelijke hosted failure blijft bewaard; alleen de daaropvolgende
 exacte volledige CI kan de gezamenlijke kandidaat certificeren.
+
+
+## Nieuwe afwerking na de gebouwde 49a-cohort
+
+S255 en S256 zijn normaal geïntegreerd; samen zijn nu zeventien UI-featureheads
+opgenomen, naast de afzonderlijke LG-CI-correctie. Bewaarde Studio-bediening
+heeft leesbare tekst en minimaal44px aanraakdoelen. Vijf verdere Sync-iconen en
+Tenantbreed gebruiken de gekozen accentrollen; waarschuwingen, destructieve
+acties, providerkleuren en slidecanvassen houden hun eigen betekenis. De wizard
+gebruikt korte gebruikershints en een correct enkelvoud bij één pagina.
+
+S255 sluit dezelfde gerichte case1/1; S256 sluit6/6 kleur-/copycases en daarna
+dezelfde twee wizardbreedtes2/2 met sterkere fotocontroles. Root heeft beide
+nieuwe Designbeelden bekeken. De drie OnzeTrots-foto's zijn zichtbaar en
+decoderen als echte941×1672-bestanden. Een ontdekt gat in de testfixture wordt
+expliciet behouden: de eerdere zes-casebeelden hadden kapotte miniaturen,
+terwijl de echte B-cohort de zes goedgekeurde assets al correct laadde. De
+fixture serveert nu uitsluitend de exacte zes catalogusbytes; productassets
+zijn niet aangepast. De oorspronkelijke loaderfout, rode tests en beelden
+blijven beschikbaar.
+
+Op de eerdere49a-bron zijn normale install, foundation, Controlbuild en veertien
+uitgevoerde hostedchecks groen. De echte A-cohort bleef rood: negen React418
+fouten en37 geweigerde Studio-readpolls. Bv2 leverde72 handmatige Design-/review-
+entries voor36 families zonder pageerrors, maar bewijst niet Bron/Inhoud of de
+gekoppelde bronkeuzes. De latere geïnstrumenteerde A-nonrepro sluit de negen
+fouten niet. Een afzonderlijke vier-caseproef bewijst nu dat passieve CDP-
+diagnose beide echte ReactDOM-helpers kan waarnemen, terwijl de oorspronkelijke
+fout en recovery blijven bestaan; dat is geen productreparatie.
+
+Nieuwe broncontinuïteit, gezamenlijke foundation, beide actuele appbuilds, alle
+finite capturecohorten en vijf volledige vergelijkingen blijven zelfstandige
+gates. Er zijn nog0/5 ronden afgerond. Geen nieuwe staging-/productieclaim.
+Exacte heads, proofhashes, behouden historische feiten en vervolggates staan in
+`execution/evidence/s244-post-capture-followups.json`; eerdere snapshots blijven
+ongewijzigd en gelden uitsluitend voor hun eigen versie.

@@ -1,5 +1,15 @@
 # Werkstand S244 — samengestelde Sync-acceptatie
 
+Laatste vervolgbron: S255 en S256 normaal geïntegreerd. De nieuwe gerichte
+Studio-/kleur-/wizard- en echte foto-decodecontroles zijn groen; eerdere49a
+install/foundation/build/CI blijven historisch bewijs. De oorspronkelijke negen
+A-React418-fouten zijn open. Nieuwe Control- én Marketingbuilds, gesloten
+A/B/C/Bron-Inhoud/connected/public-authcohorten, vijf volledige vergelijkingen
+en normale staging/productie volgen. Nog0/5 ronden, geen nieuwe uitrol. Zie
+`evidence/s244-post-capture-followups.json` voor exacte heads en grenzen.
+
+De onderstaande werkstanden zijn historische opnamen.
+
 Opnamemoment: 19 oktober 2026, vóór de finale gebouwde vergelijkingscohort en uitrol. De expliciete opdracht blijft: de gekozen Sync-interface afmaken en via de bestaande workflow naar staging en productie brengen.
 
 PR270 bevat de gewone integratie van S237–S243. Op exact `10a49dc957c03c68f40e7ef92c28239d8e5376c3` zijn de 13 uitgevoerde hosted controles groen; de release-IPK-inspectie is de bestaande conditionele skip. Lokale foundation:68/68, Control1658 PASS/34 bestaande conditionele SKIP en90/90 gerichte P0-browsergevallen. Gecontroleerde component-/transportbewijzen en de echte lokale AAL2-ketens houden hun afzonderlijke grenzen. Deze cijfers certificeren geen latere commit.
