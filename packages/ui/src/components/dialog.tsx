@@ -22,6 +22,11 @@ export function DialogPortalProvider({ container, children }: { container: HTMLE
   return <PortalContainer.Provider value={container}>{children}</PortalContainer.Provider>;
 }
 
+/** Shared portal scope, configured through DialogPortalProvider. */
+export function useDialogPortalContainer() {
+  return useContext(PortalContainer);
+}
+
 export type DialogContentProps = ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
   closeLabel?: string;
   size?: "standard" | "wide" | "editor" | "fullscreen";
@@ -35,7 +40,7 @@ export const DialogContent = forwardRef<
   { children, className, closeLabel = "Sluiten", size = "standard", showClose = true, ...props },
   ref
 ) {
-  const container = useContext(PortalContainer);
+  const container = useDialogPortalContainer();
   return (
     <DialogPrimitive.Portal container={container ?? undefined}>
       <DialogPrimitive.Overlay className="vc-overlay vc-dialog__overlay" />
