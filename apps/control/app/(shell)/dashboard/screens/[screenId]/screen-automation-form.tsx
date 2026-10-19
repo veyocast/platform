@@ -182,6 +182,8 @@ export function ScreenAutomationForm({
           )}
         </section>
 
+        <details className={styles.supportDisclosure}>
+          <summary>Startgedrag en schermbediening</summary>
         <section className={styles.section} aria-labelledby="startup-settings-title">
           <div className={styles.sectionHeader}>
             <div>
@@ -275,6 +277,7 @@ export function ScreenAutomationForm({
             </p>
           ) : null}
         </section>
+        </details>
 
         <section className={styles.section} aria-labelledby="exceptions-title">
           <div className={styles.sectionHeader}>

@@ -6,10 +6,16 @@ import { redirect } from "next/navigation";
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { parseScreenAssignmentContext, resolveScreenAssignmentContext, withScreenAssignmentContext } from "../screens/sync-screen-assignment-context";
 import { loadReleaseDetail } from "./data";
 
 export async function reassignRelease(formData: FormData) {
   const releaseId = idValue(formData, "releaseId");
+  const submittedContext = formData.getAll("screenContext");
+  let screenContext = parseScreenAssignmentContext(submittedContext.length === 1 ? submittedContext[0] : submittedContext.length ? submittedContext : undefined);
+  function fail(id: string, message: string): never {
+    redirect(withScreenAssignmentContext(`/dashboard/publications/${id}?fout=${encodeURIComponent(message)}`, screenContext));
+  }
   const screenIds = [...new Set(formData.getAll("screenIds").map(String).filter(isId))];
   const session = await requireTenantCapability("tenant.playlist.publish", "publish");
   const supabase = await createControlSupabaseClient();
@@ -18,6 +24,7 @@ export async function reassignRelease(formData: FormData) {
   if (formData.get("confirmImmutable") !== "on") fail(releaseId, "Bevestig dat je een bestaande immutable release opnieuw toewijst.");
   if (!session.tenantId) fail(releaseId, "De actieve vereniging ontbreekt. Er is niets toegewezen.");
   const detail = await loadReleaseDetail(session.tenantId, releaseId);
+  screenContext = resolveScreenAssignmentContext(screenContext, detail.screenStates);
   const targets = detail.screenStates.filter((state) => screenIds.includes(state.screen.id));
   if (targets.length !== screenIds.length || targets.some((state) => state.preflight.status === "blocked")) {
     fail(releaseId, "Minimaal één doelscherm is geblokkeerd door status, incompatibiliteit of onvoldoende opslag. Er is niets toegewezen.");
@@ -46,7 +53,7 @@ export async function reassignRelease(formData: FormData) {
   revalidatePath("/dashboard/publications");
   revalidatePath(`/dashboard/publications/${releaseId}`);
   revalidatePath("/dashboard/screens");
-  redirect(`/dashboard/publications/${releaseId}?succes=${encodeURIComponent("De bestaande immutable release is opnieuw toegewezen. Players schakelen pas na volledige download en verificatie.")}`);
+  redirect(withScreenAssignmentContext(`/dashboard/publications/${releaseId}?succes=${encodeURIComponent("De bestaande immutable release is opnieuw toegewezen. Players schakelen pas na volledige download en verificatie.")}`, screenContext));
 }
 
 export async function restoreReleaseToDraft(formData: FormData) {

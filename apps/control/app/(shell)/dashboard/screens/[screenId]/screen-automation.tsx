@@ -71,6 +71,16 @@ export function ScreenAutomation({
         </div>
       </section>
 
+      <ScreenAutomationForm
+        canManage={canManage}
+        disclaimerAcceptedAt={automation.disclaimerAcceptedAt}
+        initial={automation.settings}
+        revision={automation.revision}
+        screenId={screenId}
+      />
+
+      <details className={styles.supportDisclosure}>
+        <summary><span>Apparaatondersteuning</span><SupportBadge status={isOnline ? "supported" : "untested"} label={isOnline ? "Online" : "Niet recent online"} /></summary>
       <section className={styles.capabilities} aria-labelledby="capabilities-title">
         <div className={styles.sectionHeading}>
           <div>
@@ -103,15 +113,10 @@ export function ScreenAutomation({
           <Capability label="HDMI-CEC startpoging" status={capabilities.hdmiCec} />
         </div>
       </section>
+      </details>
 
-      <ScreenAutomationForm
-        canManage={canManage}
-        disclaimerAcceptedAt={automation.disclaimerAcceptedAt}
-        initial={automation.settings}
-        revision={automation.revision}
-        screenId={screenId}
-      />
-
+      <details className={styles.supportDisclosure}>
+        <summary>Compatibiliteit en installatie</summary>
       <section className={styles.compatibility} aria-labelledby="compatibility-title">
         <div>
           <h2 id="compatibility-title">Compatibiliteit en installatie</h2>
@@ -129,7 +134,10 @@ export function ScreenAutomation({
           <li>Sony noemt HDMI-CEC <strong>BRAVIA Sync</strong>.</li>
         </ul>
       </section>
+      </details>
 
+      <details className={styles.supportDisclosure}>
+        <summary><span>Test- en uitvoeringshistorie</span><span>{latestCommand ? commandStatus(latestCommand.status) : `${automation.events.length} gebeurtenissen`}</span></summary>
       <section className={styles.history} aria-labelledby="automation-history-title">
         <div className={styles.sectionHeading}>
           <div>
@@ -185,6 +193,7 @@ export function ScreenAutomation({
           </p>
         ) : null}
       </section>
+      </details>
     </div>
   );
 }

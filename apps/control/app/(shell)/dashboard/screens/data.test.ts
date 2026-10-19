@@ -207,6 +207,24 @@ describe("screen fleet data", () => {
     expect(result.heartbeats.find(heartbeat => heartbeat.deviceId === pairedDevice?.id)).toBeUndefined();
   });
 
+  it("geeft de bestaande laatste niet-gearchiveerde releaseprojectie door aan schermdetail zonder extra releasequery", async () => {
+    const { client, fromCalls, rpcCalls } = createSupabaseMock({
+      screens: { data: [{ id: "own-screen", name: "Eigen scherm", status: "active", orientation: "landscape", created_at: "2026-10-19T10:00:00Z" }], error: null },
+      playlists: { data: [{ id: "live", name: "Eigen programma", status: "published" }, { id: "archive", name: "Archief", status: "archived" }], error: null }
+    }, { data: [
+      { id: "old", playlist_id: "live", published_at: "2026-10-18T10:00:00Z", version: 1 },
+      { id: "latest", playlist_id: "live", published_at: "2026-10-19T10:00:00Z", version: 2 },
+      { id: "archived", playlist_id: "archive", published_at: "2026-10-19T10:00:00Z", version: 3 }
+    ], error: null });
+    createControlSupabaseClient.mockResolvedValue(client);
+    const result = await loadScreenDetail("own-tenant", "own-screen");
+    expect(result.error).toBeNull();
+    expect(result.assignableReleases).toEqual([expect.objectContaining({ id: "latest", playlistId: "live", version: 2 })]);
+    expect(result.releases.map(release => release.id)).toEqual(["old", "latest", "archived"]);
+    expect(rpcCalls).toEqual([{ name: "list_screen_fleet_releases_v1", args: { p_tenant_id: "own-tenant" } }]);
+    expect(fromCalls).not.toContain("playlist_releases");
+  });
+
   it("pagineert schermen, devices, fleetreleases en playlistlabels voorbij 1.000 rijen", async () => {
     const screensPage = Array.from({ length: 1_000 }, (_, index) => ({
       active_assignment_source: "default",
