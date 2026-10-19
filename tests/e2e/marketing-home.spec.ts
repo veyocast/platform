@@ -14,38 +14,45 @@ test("renders the supplied Sync homepage and real workspace links", async ({ pag
   await expect(page.getByRole("link", {name:"Beleef de player",exact:true})).toHaveAttribute("href", process.env.NEXT_PUBLIC_PLAYER_URL ?? "https://player.veyocast.nl");
 });
 
-test("keeps hero overlays in front and separates the setup columns", async ({ page }) => {
+test("keeps one Source chrome and separates the real setup columns", async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1440 });
   await page.goto(`${marketingURL}/opstelling#opstelling`);
 
+  await expect(page.getByRole("banner")).toHaveCount(1);
+  await expect(page.getByRole("contentinfo")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bouw je VeyoCast-opstelling.");
+  await expect(page.locator("[data-sites=hero-stage], .prototype-home")).toHaveCount(0);
   const geometry = await page.evaluate(() => {
-    const stage = document.querySelector<HTMLElement>('[data-sites="hero-stage"]');
-    const media = document.querySelector<HTMLElement>('[data-sites="hero-media"]');
-    const chip = document.querySelector<HTMLElement>('[data-sites="hero-top-chip"]');
-    const player = document.querySelector<HTMLElement>('[data-sites="hero-player-bar"]');
     const map = document.querySelector<HTMLElement>(".setup-builder__venue-map");
     const zones = document.querySelector<HTMLElement>(".setup-builder__zone-list");
-
-    if (!stage || !media || !chip || !player || !map || !zones) return null;
-
+    const workspace = document.querySelector<HTMLElement>(".setup-builder__workspace");
+    const summary = document.querySelector<HTMLElement>(".setup-builder__summary");
+    if (!map || !zones || !workspace || !summary) return null;
     const mapRect = map.getBoundingClientRect();
     const zonesRect = zones.getBoundingClientRect();
-
     return {
-      chipZIndex: Number.parseInt(getComputedStyle(chip).zIndex, 10),
       columnGap: zonesRect.left - mapRect.right,
-      mediaOverflow: getComputedStyle(media).overflow,
-      playerZIndex: Number.parseInt(getComputedStyle(player).zIndex, 10),
-      stageOverflow: getComputedStyle(stage).overflow
+      mapWidth: mapRect.width,
+      zonesWidth: zonesRect.width,
+      summaryGap: summary.getBoundingClientRect().left - workspace.getBoundingClientRect().right,
+      viewport: document.documentElement.clientWidth,
+      document: document.documentElement.scrollWidth,
+      targets: [...document.querySelectorAll<HTMLElement>(".setup-builder button, .setup-builder select")]
+        .filter(element => element.checkVisibility())
+        .map(element => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }))
     };
   });
-
   expect(geometry).not.toBeNull();
-  expect(geometry?.stageOverflow).toBe("visible");
-  expect(geometry?.mediaOverflow).toBe("hidden");
-  expect(geometry?.chipZIndex).toBeGreaterThanOrEqual(2);
-  expect(geometry?.playerZIndex).toBeGreaterThanOrEqual(2);
   expect(geometry?.columnGap).toBeGreaterThanOrEqual(32);
+  expect(geometry?.mapWidth).toBeGreaterThan(0);
+  expect(geometry?.zonesWidth).toBeGreaterThan(0);
+  expect(geometry?.summaryGap).toBeGreaterThanOrEqual(24);
+  expect(geometry?.document).toBeLessThanOrEqual(geometry!.viewport);
+  expect(geometry?.targets.length).toBeGreaterThan(10);
+  for (const target of geometry!.targets) {
+    expect(target.width).toBeGreaterThanOrEqual(44);
+    expect(target.height).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("calculates and securely carries a venue setup into the demo journey", async ({ page }) => {

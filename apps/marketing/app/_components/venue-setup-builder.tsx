@@ -184,7 +184,7 @@ export function VenueSetupBuilder() {
         <header className="setup-builder__heading">
           <div>
             <p className="eyebrow">Jouw locatie, direct in beeld</p>
-            <h2 id="setup-builder-title">Bouw je VeyoCast-opstelling.</h2>
+            <h1 id="setup-builder-title">Bouw je VeyoCast-opstelling.</h1>
           </div>
           <p>
             Plaats schermen per zone, kies wat mensen daar nodig hebben en zie
@@ -324,7 +324,7 @@ export function VenueSetupBuilder() {
 
           <aside className="setup-builder__summary" aria-label="Samenvatting van je opstelling">
             <p className="eyebrow">Jouw opstelling</p>
-            <h3>{screenCount} {screenCount === 1 ? "scherm" : "schermen"}</h3>
+            <h2>{screenCount} {screenCount === 1 ? "scherm" : "schermen"}</h2>
             <dl>
               <div><dt>Zones</dt><dd>{selectedZones.length}</dd></div>
               <div><dt>Bronnen</dt><dd>{modules.length}</dd></div>

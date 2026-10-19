@@ -1,0 +1,58 @@
+/* Accessibility adapter for the real inquiry form; source previews stay intact. */
+.mk-site .mk-demo-section > div:first-child > p,
+.mk-site .mk-demo-section .mk-kicker,
+.mk-site .mk-demo-section > div:first-child > .mk-button,
+.mk-site .mk-demo-points > div,
+.mk-site .mk-demo-notice strong,
+.mk-site .mk-demo-notice p,
+.mk-site .mk-form-heading > small,
+.mk-site .mk-form-heading p,
+.mk-site .mk-form-fields label,
+.mk-site .mk-form-fields input,
+.mk-site .mk-form-fields select,
+.mk-site .mk-form-fields textarea,
+.mk-site .mk-form-fields .mk-check,
+.mk-site .mk-form-fields .mk-button,
+.mk-site .mk-form-success p,
+.mk-site .mk-form-success > strong,
+.mk-site .mk-privacy-notice p {
+  font-size: 14px;
+}
+
+.mk-site .mk-form-error {
+  /* The immutable source declares the smaller error size important. */
+  font-size: 14px !important;
+}
+
+.mk-site .mk-form-fields input:not([type="checkbox"]),
+.mk-site .mk-form-fields select,
+.mk-site .mk-form-fields textarea,
+.mk-site .mk-demo-section .mk-button,
+.mk-site .mk-form-fields .mk-check {
+  min-height: 44px;
+}
+
+.mk-site .mk-form-fields .mk-check input {
+  height: 24px;
+  width: 24px;
+}
+
+.mk-site .mk-privacy-notice p,
+.mk-site .mk-form-heading > small {
+  color: var(--mk-muted);
+}
+
+.mk-site .mk-form-fields input::placeholder,
+.mk-site .mk-form-fields textarea::placeholder {
+  color: var(--mk-muted);
+}
+
+.mk-site .mk-check a,
+.mk-site .mk-privacy-notice a {
+  align-items: center;
+  color: var(--accent);
+  display: inline-flex;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -14,6 +14,7 @@ import {
 
 import "./globals.css";
 import "./_sync/runtime.css";
+import "./_sync/accessibility.css";
 
 export const metadata: Metadata = {
   applicationName: "VeyoCast",
