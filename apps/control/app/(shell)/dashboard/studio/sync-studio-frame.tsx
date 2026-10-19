@@ -503,6 +503,7 @@ export function SyncStudioFrame(props: FrameProps) {
                     >
                       <div
                         className={`vc-theme-swatch ${theme === "onzetrots-tv" ? "onzetrots" : "fieldflow"}`}
+                        style={{ backgroundColor: presentation.style.accent }}
                       ><span>Aa</span><i /></div>
                       <strong>
                         {theme === "fieldflow" ? "FieldFlow" : "OnzeTrots TV"}

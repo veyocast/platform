@@ -352,3 +352,15 @@ oriëntatie via tokenauthority en slechts drie metadata-kolomgrants. Alle oude
 S142/S191 catch-upasserties behouden. Verse reset door `20261018104700`, RLS
 125/3489, app-schema DB-lint nul; Player 442, contracts 129, zestien browsercases
 pass. Geen hosted deployment.
+
+S252: lokale previewfidelity op `veyocast/s252-sync-preview-fidelity`, basis
+`bf458bee`. Clubaccent op thema-swatches; goalpreview schaalt aan eigen breedte
+met volledige80-tekens hoofdtekst/scorer/score en gevulde portraitstage.
+Origineel4 rood; kandidaat12/14; geometrie14/14 met native leegtestagebevinding;
+nieuwe stagecheck2 rood; finale dezelfde14/14 PASS,87,215s,0skip/retry.
+Root heeft4 lange native beelden geaccepteerd. Scopedlint groen; strictproduct0
+nieuwe diagnostics,4 oude test-TSCmeldingen expliciet baseline. Integratie/fullgates
+blijven rootowned. Eigen browsers/links gesloten;74 assetbytes/Source gelijk.
+Primaire roods/PNGs/closures bewaard; één overschreven metadatafile en onbekende
+oude SHA/tijd expliciet vermeld in docs/proof. Geen renderer/Worker/Player-, DB-,
+dependency-, Source- of assetwijziging; losse triage telt0/5 rondes.
