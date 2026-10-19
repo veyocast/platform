@@ -74,7 +74,8 @@ de bestaande name-attributen en eisen dezelfde exacte waarden Horeca / 1–3.
 Geen aXe-regel, waardeassertie, afstand of doelgebied is afgezwakt.
 
 De zes nieuwe cases gebruiken de werkelijke marketingroutes en product-CSS op
-390 en 1440 px. Ze dekken de oude hashhandoff, enkele landmarks/locked assets,
+390 en 1440 px in `tests/e2e/marketing-sync-setup-compatibility.spec.ts`.
+Ze dekken de oude hashhandoff, enkele landmarks/locked assets,
 menu en Escape/focus, echte locatie- en bronkeuzes, disabled opties, complete
 setup-payload, prijs, bestaande ondertekende serverhandoff en meegedragen
 demovelden. Ongeldige intents tonen de echte herstelmelding; native
@@ -149,3 +150,13 @@ toegevoegd; weglaten ervan levert exact de geteste bronbytes op. Er is geen
 markup-, routing- of runtimewijziging en daarom geen extra browser/buildrun.
 De oorspronkelijke 29/30-lintfout staat onveranderd in
 `/tmp/veyocast-s240-foundation-lint.log`.
+
+De eerste draft-PR-kandidaat `380b6996` registreerde de zes nieuwe cases alleen
+lokaal: `tests/marketing/` valt buiten de bestaande hosted gate-discovery.
+Volgens expliciete aanvullende ownership is de volledige spec daarom
+byte-identiek verplaatst naar de door de bestaande marketingbucket herkende
+`tests/e2e/marketing-sync-setup-compatibility.spec.ts`. Imports, alle zes
+casebodies, assertions en deadlines zijn gelijk. Runnerbucket en registratie
+van exact zes cases zijn opnieuw gecontroleerd, evenals strikte spec-TSC en
+gerichte lint. Hiervoor zijn geen browser, runnercode of productwijziging
+nodig; de eerste queued hosted runs blijven behouden.

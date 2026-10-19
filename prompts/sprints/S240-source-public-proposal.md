@@ -60,3 +60,13 @@ MemAvailable. Geen extra browser of productbuild. Bij groen mag de branch
 worden gepusht en een draftPR naar main gemaakt met body-file. Root verzorgt
 het verplichte attach_artifact zodra de PR-URL beschikbaar is. Geen PR-merge of
 deploy. Oude S227-branch, oorspronkelijke rode resultaten en outputs behouden.
+
+## Hosted discoveryclosure
+Root autoriseert aanvullend beide specpaden: verplaats de exacte zes nieuwe
+cases van tests/marketing/sync-setup-compatibility.spec.ts naar
+tests/e2e/marketing-sync-setup-compatibility.spec.ts met inhoudbytegelijke SHA.
+De bestaande hostedrunner ontdekt alleen de laatste locatie/marketingprefix;
+geen sharedrunnerwijziging. Controleer bucket plus registratie van exact6cases,
+strictspecTSC en scopedlint. Eigen doc/prompt/PRbody verwijzen naar de finale
+scope. Geen nieuwe browserrun bij byte-identieke inhoud. Followupcommit/push
+zonder force/amend; lees nieuwe head en CI terug, eerste queuedheadruns blijven.
