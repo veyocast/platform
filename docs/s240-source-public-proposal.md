@@ -123,3 +123,13 @@ PR-artifactattachment en de verdere integratie. Geen PR-merge of deploy door de
 S240-writer.
 Deze wijziging levert geen volledige Source-pariteit, V1-acceptatie,
 pixelacceptatie, provideraflevering of staging-/productiebewijs op.
+
+## Releasevoorbereiding
+
+Productcommit `a0ca1a40` is normaal samengevoegd met de door root aangewezen
+S234-basis `abbff5fc` in mergecommit `a782e631`. Alle 281 geërfde ledgerregels
+zijn byte-identiek behouden; de eigen S240-regel is toegevoegd. De geërfde
+wizardhelper had één extra lege EOF-regel. Alleen die ene newline is volgens
+de expliciete uitzondering verwijderd; fixture-inhoud en alle cases bleven
+gelijk. Voor/na-hashes staan in
+`/tmp/veyocast-s240-inherited-helper-eof-proof.json`.
