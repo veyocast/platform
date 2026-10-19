@@ -1,12 +1,12 @@
 .dialog .description.description { color:var(--vc-text); }
-/* Keep these new dialog controls above the scoped Source button selectors. */
+/* Confirmations use the same Source primary as the surrounding workspace. */
 .dialog.dialog button.confirm.confirm.confirm {
-  background:var(--vc-brand-electric-orange);
-  border-color:var(--vc-brand-electric-orange);
-  color:var(--vc-brand-ink-black);
+  background:var(--accent);
+  border-color:var(--accent);
+  color:var(--surface);
 }
 .dialog.dialog button.confirm.confirm.confirm:hover {
-  background:var(--vc-brand-electric-orange);
-  border-color:var(--vc-brand-electric-orange);
-  color:var(--vc-brand-ink-black);
+  background:var(--accent);
+  border-color:var(--accent);
+  color:var(--surface);
 }

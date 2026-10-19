@@ -161,12 +161,25 @@ for (const width of [320, 390, 768, 1024, 1100, 1280]) {
   await page.setViewportSize({ height: 900, width });
 
     for (const route of routes) {
+      const destination = ({
+        "/dashboard/integrations": "/dashboard/sources",
+        "/dashboard/integrations/twelve-products": "/dashboard/sources/twelve/products",
+        "/dashboard/releases": "/dashboard/publications",
+        "/dashboard/studio": "/dashboard/content",
+        "/dashboard/templates": "/dashboard/playlist-templates",
+        "/dashboard/auditlog": "/dashboard/activity"
+      } as Record<string, string>)[route] ?? route;
       await expect(async () => {
         try {
           await page.goto(route, { waitUntil: "domcontentloaded", timeout: 15_000 });
         } catch (error) {
           if (!(error instanceof Error) || !error.message.includes("ERR_ABORTED")) throw error;
         }
+        // App Router can render the shell before a server redirect finishes.
+        // Measure the settled destination, including Studio's Content redirect.
+        await page.waitForURL(url => url.pathname === destination, {
+          waitUntil: "domcontentloaded", timeout: 15_000
+        });
         await expect(page.locator("#control-content"), `${route} laadt na ontwikkelserverherstart op ${width}px`).toBeVisible();
       }, `${route} heeft maximaal 90 seconden om na een ontwikkelserverherstart te laden op ${width}px`).toPass({ timeout: 90_000 });
       expect.soft(
@@ -239,7 +252,8 @@ test("Sync Bronnen and Producten distinguish an empty library from a connected p
     await expect(page.getByRole("heading", { exact: true, level: 1, name: "Alles begint bij goede gegevens." })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Nog geen bronnen verbonden", exact: true })).toBeVisible();
     await expect(page.locator(".ad-source")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Bron toevoegen", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Bron toevoegen", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Bron toevoegen", exact: true })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await page.goto("/dashboard/products");
     await expect(page.getByRole("heading", { exact: true, level: 1, name: "Een frisse kaart voor je club." })).toBeVisible();
@@ -639,7 +653,7 @@ test("screens onboarding exposes labelled lifecycle and safely disabled creation
     } catch (error) {
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
-    await expect(page.getByLabel("Scherminstelstappen")).toContainText("Controleren");
+    await expect(page.getByRole("dialog", { name: "Een scherm toevoegen" })).toBeVisible();
   }).toPass({ timeout: 20_000 });
   await expect(async () => {
     try {
@@ -656,10 +670,21 @@ test("screens onboarding exposes labelled lifecycle and safely disabled creation
   await expect(page.locator(".px-screen-card")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
   await page.goto("/dashboard/screens/new");
-  await expect(page.getByLabel("Scherminstelstappen")).toContainText("Controleren");
-  await expect(page.getByLabel("Schermnaam")).toBeVisible();
-  await expect(page.getByLabel("Schermgroep", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Volgende", exact: true })).toBeDisabled();
+  const setup = page.getByRole("dialog", { name: "Een scherm toevoegen" });
+  await expect(setup).toBeVisible();
+  await expect(setup.getByRole("heading", { name: "Open VeyoCast op je scherm", exact: true })).toBeVisible();
+  const platforms = setup.getByRole("group", { name: "Installatie-instructie voor je Player" });
+  await expect(platforms.getByRole("button")).toHaveText(["Android", "LG webOS", "Web"]);
+  for (const button of await platforms.getByRole("button").all()) {
+    await expect(button).toBeEnabled();
+    const box = await button.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+  }
+  await expect(setup.getByLabel("Schermnaam")).toHaveCount(0);
+  await expect(setup.getByLabel("Schermgroep", { exact: true })).toHaveCount(0);
+  await expect(setup.locator("form")).toHaveCount(0);
+  await expect(setup.getByRole("button", { name: "Ik heb een koppelcode", exact: true })).toBeDisabled();
   await expect(page.getByRole("status").filter({ hasText: "Er wordt niets aangemaakt" })).toBeVisible();
 });
 

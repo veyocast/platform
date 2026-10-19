@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { fixture, mount, next, prepareWizardFixture } from "../helpers/sync-create-wizard-fixture";
+
+test.beforeAll(prepareWizardFixture);
 
 const demoProject = "/dashboard/studio/system-matchday-landscape-hd-v1";
 
@@ -31,75 +34,83 @@ test("Studio overview and creation journey use real responsive controls", async 
   await expect(picker).toBeVisible();
   await expect(picker.locator(".vc-template-card")).toHaveCount(36);
   await expect(picker.getByRole("button", {name: /^Vrij ontwerp /})).toBeDisabled();
-  // Exercise the retained advanced wizard directly. The Source picker correctly
-  // disallows creation without a live session; this does not simulate a click.
+  // The real demo route enforces the live-session boundary. Authoring below
+  // uses the separately identified shared component fixture, never that session.
+  const demoWrites: string[] = [];
+  page.on("request", request => {
+    if (!["GET", "HEAD"].includes(request.method())) demoWrites.push(request.method());
+  });
   await page.goto("/dashboard/studio/new?family=free");
   await expect(page).toHaveURL(/\/dashboard\/studio\/new\?family=free$/);
-  await expect(
-    page.getByRole("heading", { exact: true, level: 1, name: "Nieuw ontwerp" })
-  ).toBeVisible();
+  await expect(page.locator("#control-content").getByRole("alert")).toHaveText("De beveiligde wizard kan niet worden geopend. Er is niets aangemaakt; meld je opnieuw aan en probeer nogmaals.");
+  await expect(page.locator("#control-content form, [data-sync-create-family]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Ontwerp maken", exact: true })).toHaveCount(0);
+  expect(demoWrites).toEqual([]);
 
-  const nameInput = page.getByLabel("Ontwerpnaam");
-  const nextButton = page.getByRole("button", { name: "Volgende" });
+  const state = await mount(page, fixture("free"));
+  await expect(page.getByRole("heading", { exact: true, level: 1, name: "Vrij ontwerp" })).toBeVisible();
+  const wizard = page.locator('[data-sync-create-family="free"]');
+  const steps = page.getByRole("navigation", { name: "Ontwerpstappen" });
+  await expect(steps.locator("li")).toHaveText(["1Bron", "2Inhoud", "3Vormgeving", "4Controleren"]);
+  await expect(steps.locator('[aria-current="step"]')).toContainText("Bron");
+  await expect(page.getByRole("button", { name: /^Zelf samenstellen/ })).toHaveAttribute("aria-pressed", "true");
+  async function expectTouchTargets() {
+    for (const control of await wizard.locator("button:visible, input:visible, select:visible, textarea:visible").all()) {
+      const box = await control.boundingBox();
+      if (!box) continue;
+      expect.soft(box.height).toBeGreaterThanOrEqual(44);
+    }
+  }
+  await expectTouchTargets();
+  expect(state.creates).toEqual([]);
+  await next(page);
+
+  await expect(page.getByRole("heading", { exact: true, name: "Inhoud" })).toBeVisible();
+  const nameInput = page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true });
   await expect(nameInput).toBeVisible();
-  await expect(nextButton).toBeDisabled();
-  await expect(page.getByText("Naam ontbreekt", { exact: true })).toBeVisible();
-
+  await nameInput.fill("");
+  await next(page);
+  await expect(page.getByRole("alert")).toContainText("naam van 2 tot 120 tekens");
+  await expect(page.getByRole("heading", { exact: true, name: "Inhoud" })).toBeVisible();
+  expect(state.creates).toEqual([]);
   await nameInput.fill("Voorjaarscampagne");
-  await expect(
-    page.getByText("Invoer compleet", { exact: true })
-  ).toBeVisible();
-  await page.getByText("Staand HD", { exact: true }).click();
-  await expect(page.getByRole("radio", { name: /Staand HD/ })).toBeChecked();
-  await expect(page.getByText("1080 × 1920 · portrait signage")).toBeVisible();
-  await expect(nextButton).toBeEnabled();
-  await nextButton.click();
-
-  await expect(
-    page.getByRole("heading", { exact: true, name: "Startpunt" })
-  ).toBeVisible();
-  await expect(page.getByLabel("Zoek template")).toBeVisible();
-  await expect(page.getByLabel("Categorie", { exact: true })).toBeVisible();
-  const startPanel = page.getByRole("region", { name: "Startpunt" });
-  const actionFooter = page
-    .getByText("Stap 2 van 4 · Startpunt", { exact: true })
-    .locator("xpath=ancestor::footer");
+  await expect(nameInput).toHaveValue("Voorjaarscampagne");
+  await expect(page.getByRole("textbox", { name: "Titel op het scherm", exact: true })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Eigen toelichting", exact: true })).toBeVisible();
+  const startPanel = page.getByRole("region", { name: "Inhoud", exact: true });
+  const actionFooter = startPanel.locator("footer");
   const [panelBox, footerBox] = await Promise.all([
-    startPanel.boundingBox(),
+    startPanel.locator("fieldset").boundingBox(),
     actionFooter.boundingBox()
   ]);
   expect(panelBox).not.toBeNull();
   expect(footerBox).not.toBeNull();
   expect(footerBox!.y).toBeGreaterThanOrEqual(panelBox!.y + panelBox!.height);
+  await expectTouchTargets();
+  await next(page);
 
-  await nextButton.click();
-  await expect(
-    page.getByRole("heading", { exact: true, name: "Uitvoer" })
-  ).toBeVisible();
-  await page.getByText("Motion", { exact: true }).click();
-  await expect(page.getByRole("radio", { name: /Motion/ })).toBeChecked();
-  await nextButton.click();
+  await expect(page.getByRole("heading", { exact: true, name: "Vormgeving" })).toBeVisible();
+  const portrait = page.getByRole("button", { name: "Staand · 9:16", exact: true });
+  await portrait.click();
+  await expect(portrait).toHaveAttribute("aria-pressed", "true");
+  const preview = page.getByLabel("Voorbeeld van je ontwerp").locator(".vc-slide-preview");
+  const previewBox = await preview.boundingBox();
+  expect(previewBox).not.toBeNull();
+  expect(previewBox!.height / previewBox!.width).toBeCloseTo(16 / 9, 2);
+  await page.getByRole("combobox", { name: "Beweging", exact: true }).selectOption("dynamisch");
+  await expect(page.getByRole("combobox", { name: "Beweging", exact: true })).toHaveValue("dynamisch");
+  await expectTouchTargets();
+  expect(state.creates).toEqual([]);
+  await next(page);
 
-  await expect(
-    page.getByRole("heading", { exact: true, name: "Controleren" })
-  ).toBeVisible();
-  await expect(
-    page
-      .getByRole("region", { name: "Controleren" })
-      .getByText("Voorjaarscampagne", { exact: true })
-  ).toBeVisible();
-  await expect(page.getByText("Motion · MP4", { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Ontwerp maken" })).toBeEnabled();
-  await expect(page).toHaveURL(/\/dashboard\/studio\/new\?family=free$/);
-
-  for (const control of await page
-    .locator("form")
-    .locator("button:visible, input:not([type=radio]):visible, select:visible")
-    .all()) {
-    const box = await control.boundingBox();
-    if (!box) continue;
-    expect.soft(box.height).toBeGreaterThanOrEqual(44);
-  }
+  await expect(page.getByRole("heading", { exact: true, name: "Controleren" })).toBeVisible();
+  const review = page.getByRole("region", { name: "Controleren", exact: true });
+  await expect(review.getByText("Voorjaarscampagne", { exact: true })).toBeVisible();
+  await expect(review.getByText("Staand · 9:16 · OnzeTrots TV", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ontwerp maken", exact: true })).toBeEnabled();
+  expect(state.creates).toEqual([]);
+  expect(state.errors).toEqual([]);
+  await expectTouchTargets();
 });
 
 test("desktop Studio editor supports editing, preview and revision inspection", async ({

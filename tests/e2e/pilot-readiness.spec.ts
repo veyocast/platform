@@ -51,11 +51,12 @@ test("keeps the documented local demo pilot traceable across product planes", as
   await expect(page.getByRole("button", { name: "Scherm koppelen", exact: true })).toBeDisabled();
   await expect(page.getByRole("link", { name: "Scherm toevoegen" })).toHaveCount(0);
   await page.goto("/dashboard/screens/new");
-  const setup = page.getByRole("dialog", { name: "Nieuw scherm instellen" });
+  const setup = page.getByRole("dialog", { name: "Een scherm toevoegen" });
   await expect(setup).toBeVisible();
-  await expect(setup.getByLabel("Schermnaam", { exact: true })).toBeDisabled();
-  await expect(setup.getByRole("button", { name: "Volgende", exact: true })).toBeDisabled();
-  await expect(setup.getByRole("status")).toContainText("Er wordt niets aangemaakt");
+  await expect(setup.getByRole("heading", { name: "Open VeyoCast op je scherm" })).toBeVisible();
+  await expect(setup.getByLabel("Schermnaam", { exact: true })).toHaveCount(0);
+  await expect(setup.getByRole("button", { name: "Ik heb een koppelcode" })).toBeDisabled();
+  await expect(setup.getByRole("status").filter({ hasText: "Er wordt niets aangemaakt" })).toBeVisible();
 
   const manifestResponse = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`

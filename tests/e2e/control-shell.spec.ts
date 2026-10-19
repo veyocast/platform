@@ -44,7 +44,7 @@ test("renders the Sync shell with role-aware navigation", async ({ page }) => {
   await expect(manage.getByRole("link")).toHaveText(["Bronnen", "Producten", "Thema’s", "Sponsors", "Interactie", "Team & rechten", "Support", "Abonnement"]);
   await page.setViewportSize({height: 900, width: 1024});
   await page.getByLabel("Control navigatie").getByRole("button", {name: "Beheer", exact: true}).click();
-  const management = page.getByRole("dialog", {name: "Beheer", exact: true});
+  const management = page.getByRole("dialog", {name: "Beheer je werkplek", exact: true});
   await expect(management.getByRole("link", {name: "Media", exact: true})).toHaveAttribute("href", "/dashboard/media");
   await expect(management.getByRole("link", {name: "Menu Studio", exact: true})).toHaveAttribute("href", "/dashboard/slides/menu-studio");
   await expect(management.getByRole("link", {name: "Publicaties", exact: true})).toBeVisible();
@@ -76,7 +76,8 @@ test("renders the Sync shell with role-aware navigation", async ({ page }) => {
   await follow(page, () => manage.getByRole("link", {name: "Bronnen", exact: true}), /\/dashboard\/sources$/);
   await expect(page.getByRole("heading", {level: 1, name: "Alles begint bij goede gegevens."})).toBeVisible();
   await expect(page.getByRole("heading", {name: "Nog geen bronnen verbonden"})).toBeVisible();
-  await expect(page.getByRole("button", {name: "Bron toevoegen", exact: true})).toBeDisabled();
+  await expect(page.getByRole("button", {name: "Bron toevoegen", exact: true})).toHaveCount(0);
+  await expect(page.getByRole("link", {name: "Bron toevoegen", exact: true})).toHaveCount(0);
   await page.goto("/dashboard/sources/twelve/products");
   await expect(page.getByRole("heading", {level: 1, name: "Een frisse kaart voor je club."})).toBeVisible();
   await expect(page.getByRole("heading", {name: "Geen producten gevonden"})).toBeVisible();
@@ -93,12 +94,15 @@ test("renders the Sync shell with role-aware navigation", async ({ page }) => {
   await expect(page.locator(".px-screen-card")).toHaveCount(0);
   await expect(page.getByRole("button", {name: "Scherm koppelen", exact: true})).toBeDisabled();
   await page.goto("/dashboard/screens/new");
-  await expect(page.locator("h1").filter({hasText: "Scherm toevoegen"})).toHaveCount(1);
-  const setup = page.getByRole("dialog", {name: "Nieuw scherm instellen"});
+  await expect(page.locator("h1").filter({hasText: "Een scherm toevoegen"})).toHaveCount(1);
+  const setup = page.getByRole("dialog", {name: "Een scherm toevoegen"});
   await expect(setup).toBeVisible();
-  await expect(setup.getByLabel("Schermnaam", {exact: true})).toBeDisabled();
-  await expect(setup.getByRole("button", {name: "Volgende", exact: true})).toBeDisabled();
-  await expect(setup.getByRole("status")).toContainText("Er wordt niets aangemaakt");
+  await expect(setup.getByRole("heading", {name: "Open VeyoCast op je scherm", exact: true})).toBeVisible();
+  await expect(setup.getByRole("group", {name: "Installatie-instructie voor je Player"}).getByRole("button")).toHaveText(["Android", "LG webOS", "Web"]);
+  await expect(setup.getByLabel("Schermnaam", {exact: true})).toHaveCount(0);
+  await expect(setup.locator("form")).toHaveCount(0);
+  await expect(setup.getByRole("button", {name: "Ik heb een koppelcode", exact: true})).toBeDisabled();
+  await expect(setup.getByRole("status").filter({hasText: "Er wordt niets aangemaakt"})).toContainText("Er wordt niets aangemaakt");
   await setup.getByRole("button", {name: "Scherm instellen sluiten", exact: true}).click();
   await expect(setup).not.toBeVisible();
 
@@ -123,7 +127,7 @@ test("renders the Sync shell with role-aware navigation", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard\/activity$/);
   await page.setViewportSize({height: 900, width: 1024});
   await page.getByLabel("Control navigatie").getByRole("button", {name: "Beheer", exact: true}).click();
-  await expect(page.getByRole("dialog", {name: "Beheer", exact: true}).getByRole("link", {name: "Activiteit", exact: true})).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("dialog", {name: "Beheer je werkplek", exact: true}).getByRole("link", {name: "Activiteit", exact: true})).toHaveAttribute("aria-current", "page");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("heading", {name: "Activiteit"})).toBeVisible();
 });
