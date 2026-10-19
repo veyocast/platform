@@ -48,4 +48,12 @@ describe("Bronoverzicht leest alleen opgeslagen eigen tenantstatus", () => {
     const unavailable = await loadSourcesOverview(tenant);
     expect(unavailable.cards.every(card => card.health.label === "Status onbekend")).toBe(true); expect(JSON.stringify(unavailable)).not.toContain("private-credentials");
   });
+  it("exposes actual connection identities and names without sending raw provider config", async () => {
+    f.tables.sportlink_connections = { data: { id: "23400000-0000-4000-8000-000000000001", status: "active", detected_club_name: "Eigen vereniging", last_success_at: null, last_error_code: null, encrypted_client_id: "DO_NOT_EXPOSE" }, error: null };
+    f.tables.ledscores_connections = { data: [{ id: "23400000-0000-4000-8000-000000000002", name: "Eigen veld", status: "paused", health_status: "disconnected", last_connected_at: null, last_source_message_at: null, lease_expires_at: null, config_json: { private: "DO_NOT_EXPOSE" } }], error: null };
+    f.tables.youtube_sources = { data: [{ id: "23400000-0000-4000-8000-000000000003", title: "Eigen clubvideo", status: "active", validation_status: "verified", embeddable: true }], error: null };
+    const result = await loadSourcesOverview(tenant);
+    expect(result.resources.map(resource => [resource.provider, resource.id, resource.name])).toEqual([["sportlink", "23400000-0000-4000-8000-000000000001", "Eigen vereniging"], ["led", "23400000-0000-4000-8000-000000000002", "Eigen veld"], ["youtube", "23400000-0000-4000-8000-000000000003", "Eigen clubvideo"]]);
+    expect(JSON.stringify(result)).not.toContain("DO_NOT_EXPOSE");
+  });
 });

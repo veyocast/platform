@@ -37,12 +37,13 @@ export const setContentScheduleEnabled=input=>command('enable-schedule',input);`
 
 async function mount(page: Page, mode: string, scheduleConflicts: Record<string, unknown>[] = []) {
   const commands: { kind: string; input: Record<string, unknown> }[] = [];
-  const baseCss = ["tokens/veyocast-design-tokens.css", "packages/ui/src/styles.css", "apps/control/app/globals.css", "apps/control/app/fieldflow.css"].map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
-  await page.route("**/__sites-test/screens-planning*", route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><style>${baseCss}\n${bundle.css}</style></head><body><div id="root"></div><script>${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>` }));
+  const baseCss = ["tokens/veyocast-design-tokens.css", "packages/ui/src/styles.css", "apps/control/app/globals.css", "apps/control/app/fieldflow.css", ...(mode === "setup" ? ["apps/control/app/sync-source.css", "apps/control/app/sync-adapter.css"] : [])].map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
+  await page.route("**/__sites-test/screens-planning*", route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><style>${baseCss}\n${bundle.css}</style></head><body${mode === "setup" ? ' class="sync-control app-shell" style="display:block"' : ""}><div id="root"></div><script>${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>` }));
   await page.route("**/__sites-test/wizard-command", route => { const command = route.request().postDataJSON() as typeof commands[number]; commands.push(command); return route.fulfill({ contentType: "application/json", body: JSON.stringify(command.kind === "conflicts" ? { conflicts: scheduleConflicts, error: null } : command.kind === "composition" ? { status: "published", message: "Indeling bevestigd door het gecontroleerde transport." } : { status: "saved" }) }); });
   const manifest = JSON.parse(readFileSync("docs/sites-v11-overname/system-assets.json", "utf8")) as { files: { path: string; sha256: string; bytes: number; mimeType: string }[] };
   const assets = new Map(manifest.files.map(asset => [asset.path, asset]));
   for (const pattern of ["**/fonts/**", "**/fieldflow/**"]) await page.route(pattern, route => { const asset = assets.get(new URL(route.request().url()).pathname); if (!asset) return route.abort(); const bytes = readFileSync(join(process.cwd(), "apps/control/public", asset.path)); expect(bytes.byteLength).toBe(asset.bytes); expect(createHash("sha256").update(bytes).digest("hex")).toBe(asset.sha256); return route.fulfill({ contentType: asset.mimeType, body: bytes }); });
+  if (mode === "setup") await page.route("**/assets/*", route => { const name = new URL(route.request().url()).pathname.split("/").at(-1)!; if (!/^[a-zA-Z0-9_.-]+$/.test(name)) return route.abort(); return route.fulfill({ body: readFileSync(join(process.cwd(), "apps/control/public/assets", name)), contentType: name.endsWith("woff2") ? "font/woff2" : name.endsWith("ttf") ? "font/ttf" : "image/svg+xml" }); });
   await page.goto(`${origin}/__sites-test/screens-planning?mode=${mode}`);
   await page.getByRole("button", { name: mode === "setup" ? "Nieuw scherm" : mode === "composition" ? "Schermindeling" : "Nieuw moment", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -98,12 +99,29 @@ for (const row of cases) test(`original ${row.case_id} ${row.viewport} ${row.sta
   const commands = await mount(page, mode), dialog = page.getByRole("dialog");
   const labels = mode === "setup" ? ["Scherm", "Content", "Controleren"] : mode === "composition" ? ["Indeling", "Zonecontent", "Controleren"] : ["Content & schermen", "Wanneer", "Controleren"];
   const active = () => dialog.locator('ol li[aria-current="step"]');
-  await expect(active()).toContainText(labels[0]!);
+  if (mode !== "setup") await expect(active()).toContainText(labels[0]!);
   if (mode === "setup") {
-    await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await expect(active()).toContainText("Scherm"); await expect(dialog.getByLabel("Schermnaam", { exact: true })).toBeFocused();
-    await dialog.getByLabel("Schermnaam", { exact: true }).fill("Kantine TV 3"); await expect(dialog.locator(".field > span")).toHaveText(["Schermnaam", "Schermgroep", "Oriëntatie", "Locatie", "Breedte", "Hoogte"]);
-    if (step >= 1) { await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await dialog.getByLabel("Standaard afspeellijst").selectOption("19170000-0000-4000-8000-000000000041"); await expect(dialog.getByRole("img", { name: "Voorbeeld Clubhuis — Vandaag" })).toBeVisible(); await dialog.getByRole("button", { name: "Vorige", exact: true }).click(); await expect(dialog.getByLabel("Schermnaam", { exact: true })).toHaveValue("Kantine TV 3"); await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await expect(dialog.getByLabel("Standaard afspeellijst")).toHaveValue("19170000-0000-4000-8000-000000000041"); }
-    if (step === 2) { await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await expect(dialog.getByText("Kantine TV 3", { exact: true })).toBeVisible(); await expect(dialog.getByText("Clubhuis — Vandaag", { exact: true })).toBeVisible(); }
+    await expect(dialog.getByRole("heading", { name: "Open VeyoCast op je scherm", exact: true })).toBeVisible();
+    await expect(dialog.getByLabel("Koppelcode", { exact: true })).toHaveCount(0);
+    expect(commands).toHaveLength(0);
+    await dialog.getByRole("button", { name: "Ik heb een koppelcode", exact: true }).click();
+    await dialog.getByRole("button", { name: "Scherm opslaan en verder", exact: true }).click();
+    await expect(dialog.getByLabel("Schermnaam", { exact: true })).toBeFocused();
+    expect(commands).toHaveLength(0);
+    await dialog.getByLabel("Schermnaam", { exact: true }).fill("Kantine TV 3");
+    await expect(dialog.locator(".field > span")).toHaveText(["Koppelcode", "Schermnaam", "Locatie", "Schermgroep", "Oriëntatie", "Eerste playlist", "Breedte", "Hoogte"]);
+    if (step >= 1) {
+      await dialog.getByLabel("Eerste playlist", { exact: true }).selectOption("19170000-0000-4000-8000-000000000041");
+      await dialog.getByText("Resolutie en publicatievoorbeeld", { exact: true }).click();
+      await expect(dialog.getByRole("img", { name: "Voorbeeld Clubhuis — Vandaag" })).toBeVisible();
+      await dialog.getByRole("button", { name: "Vorige", exact: true }).click();
+      await expect(dialog.getByRole("heading", { name: "Open VeyoCast op je scherm", exact: true })).toBeVisible();
+      await dialog.getByRole("button", { name: "Ik heb een koppelcode", exact: true }).click();
+      await expect(dialog.getByLabel("Schermnaam", { exact: true })).toHaveValue("Kantine TV 3");
+      await expect(dialog.getByLabel("Eerste playlist", { exact: true })).toHaveValue("19170000-0000-4000-8000-000000000041");
+    }
+    if (step === 2) { await expect(dialog.getByLabel("Schermnaam", { exact: true })).toHaveValue("Kantine TV 3"); await expect(dialog.getByLabel("Eerste playlist", { exact: true }).locator("option:checked")).toHaveText("Clubhuis — Vandaag"); }
+    if (step === 0) await dialog.getByRole("button", { name: "Vorige", exact: true }).click();
   } else if (mode === "composition") {
     await dialog.getByLabel("Toepassen op").selectOption("group:19170000-0000-4000-8000-000000000030"); await dialog.getByRole("button", { name: "Drie zones", exact: true }).click(); await expect(dialog.getByRole("button", { name: "Drie zones", exact: true })).toHaveAttribute("aria-pressed", "true");
     if (step >= 1) { await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await expect(dialog.getByRole("alert")).toContainText("iedere zichtbare zone"); for (const label of ["Hoofdvlak", "Zijbalk", "Onderbalk"]) await dialog.getByLabel(label, { exact: true }).selectOption("playlist:19170000-0000-4000-8000-000000000040"); await dialog.getByLabel("Breedte hoofdvlak", { exact: true }).focus(); await page.keyboard.press("Home"); for(let index=0;index<3;index++)await page.keyboard.press("ArrowRight"); await dialog.getByLabel("Hoogte onderbalk", { exact: true }).focus(); await page.keyboard.press("Home"); for(let index=0;index<2;index++)await page.keyboard.press("ArrowRight"); await dialog.getByRole("button", { name: "Vorige", exact: true }).click(); await expect(dialog.getByLabel("Toepassen op")).toHaveValue("group:19170000-0000-4000-8000-000000000030"); await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await expect(dialog.getByLabel("Breedte hoofdvlak", { exact: true })).toHaveValue("65"); }
@@ -113,7 +131,8 @@ for (const row of cases) test(`original ${row.case_id} ${row.viewport} ${row.sta
     if (step >= 1) { await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await dialog.getByLabel("Van", { exact: true }).fill("12:00"); await dialog.getByLabel("Tot", { exact: true }).fill("14:00"); await dialog.getByLabel("Kalenderkleur").selectOption("orange"); await dialog.getByRole("button", { name: "Vorige", exact: true }).click(); await expect(dialog.getByLabel("Naam van het moment")).toHaveValue("Wedstrijddag Heren 1"); await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await expect(dialog.getByLabel("Van", { exact: true })).toHaveValue("12:00"); await expect(dialog.getByLabel("Kalenderkleur")).toHaveValue("orange"); }
     if (step === 2) { await dialog.getByRole("button", { name: "Volgende", exact: true }).click(); await expect(active()).toContainText("Controleren"); await expect(dialog.getByRole("heading", { name: "Wedstrijddag Heren 1" })).toBeVisible(); expect(commands).toHaveLength(1); expect(commands[0]).toMatchObject({ kind: "conflicts", input: { startsAtIso: "2026-10-11T10:00:00.000Z", endsAtIso: "2026-10-11T12:00:00.000Z", targetKind: "all" } }); }
   }
-  await expect(active()).toContainText(labels[step]!); await expect(dialog.getByRole("button", { name: step < 2 ? "Volgende" : mode === "setup" ? "Scherm toevoegen" : mode === "composition" ? "Indeling opslaan" : "Moment inplannen", exact: true })).toBeVisible();
+  if (mode === "setup") await expect(dialog.getByRole("button", { name: step === 0 ? "Ik heb een koppelcode" : "Scherm opslaan en verder", exact: true })).toBeVisible();
+  else { await expect(active()).toContainText(labels[step]!); await expect(dialog.getByRole("button", { name: step < 2 ? "Volgende" : mode === "composition" ? "Indeling opslaan" : "Moment inplannen", exact: true })).toBeVisible(); }
   const geometry = await dialog.evaluate(element => { const box = element.getBoundingClientRect(); return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, overflow: document.documentElement.scrollWidth > innerWidth + 1 }; }); expect(geometry.left).toBeGreaterThanOrEqual(-1); expect(geometry.right).toBeLessThanOrEqual(width! + 1); expect(geometry.top).toBeGreaterThanOrEqual(-1); expect(geometry.bottom).toBeLessThanOrEqual(height! + 1); expect(geometry.overflow).toBe(false);
   await page.evaluate(async () => { await Promise.all([document.fonts.load('14px "Inter Variable"'), document.fonts.load('14px "Manrope Variable"')]); await document.fonts.ready; await Promise.all([...document.images].filter(image => image.getBoundingClientRect().width > 0).map(image => image.decode())); await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))); });
   const fonts = await page.evaluate(() => ({ inter: [...document.fonts].some(font => font.family.includes("Inter Variable") && font.status === "loaded"), manrope: [...document.fonts].some(font => font.family.includes("Manrope Variable") && font.status === "loaded") })); expect(fonts.inter).toBe(true); expect(fonts.manrope).toBe(true);

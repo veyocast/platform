@@ -2,245 +2,76 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Plus } from "lucide-react";
-import {
-  Button,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@veyocast/ui";
-import {
-  syncContentFamilies,
-  type SyncContentFamily,
-} from "@veyocast/contracts";
-import {
-  createSyncStudioStarter,
-  safeParseStudioDocument,
-  type StudioDocument,
-} from "@veyocast/studio";
+import { ArrowRight, Plus, X } from "lucide-react";
+import { Button, Dialog, DialogBody, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@veyocast/ui";
+import { syncContentFamilies, type SyncContentFamily } from "@veyocast/contracts";
 import { SyncSlideStaticView } from "@veyocast/content-templates/sync-slide-static-view";
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
-import { createSyncStudioProjectAction } from "./sync-studio-actions";
+import { createSyncTemplatePreview } from "./sync-template-preview";
+import { resolveSyncCreationReceiptAction } from "./sync-create-wizard-actions";
+import styles from "./sync-studio-create-dialog.module.css";
 
-type Command = { document: StudioDocument; idempotencyKey: string };
-/** Source template picker. A lost response retains the original command, including across reloads. */
-export function SyncStudioCreateDialog({
-  tenantId,
-  tenantName,
-  canCreate,
-  initialOpen = false,
-  children,
-}: {
-  tenantId: string | null;
-  tenantName: string;
-  canCreate: boolean;
-  initialOpen?: boolean;
-  children?: ReactNode;
+const groups = ["Alles", "Sport", "Kantine", "Club", "Media", "Vrij"];
+/** A choice only navigates. All new writes and their scoped journals belong to the wizard. */
+export function SyncStudioCreateDialog({ tenantId, actorScope, canCreate, initialOpen = false, initialGroup = "Alles", preferredMode, children }: {
+  tenantId: string | null; tenantName: string; actorScope: string; canCreate: boolean; initialOpen?: boolean;
+  initialGroup?: string; preferredMode?: "manual" | "connected"; children?: ReactNode;
 }) {
-  const router = useRouter(),
-    [open, setOpen] = useState(initialOpen),
-    [group, setGroup] = useState("Alles"),
-    [busy, setBusy] = useState(false),
-    [pending, setPending] = useState<Command | null>(null),
-    [error, setError] = useState<string | null>(null),
-    [hydrated, setHydrated] = useState(false),
-    [cacheBlocked, setCacheBlocked] = useState(false);
-  const key = `veyocast-sync-create-v1:${tenantId}`,
-    attempt = useRef<Command | null>(null),
-    confirmed = useRef<string | null>(null);
+  const router = useRouter();
+  const [open, setOpen] = useState(initialOpen), [group, setGroup] = useState(groups.includes(initialGroup) ? initialGroup : "Alles");
+  const [hydrated, setHydrated] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [legacyNonce, setLegacyNonce] = useState<string | null>(null);
+  const generation = useRef(0), inflight = useRef(false);
   useEffect(() => {
+    generation.current++; inflight.current = false; setBusy(false); setLegacyNonce(null); setError(null);
     try {
-      const raw = sessionStorage.getItem(key);
+      const raw = sessionStorage.getItem(`veyocast-sync-create-v1:${tenantId}`);
       if (raw) {
-        if (raw.length > 700000) throw Error("Oversized command");
+        if (raw.length > 700000) throw Error("bounds");
         const stored = JSON.parse(raw);
-        const document = safeParseStudioDocument(stored.document);
-        if (
-          stored.tenantId !== tenantId ||
-          !document.success ||
-          !document.data.syncPresentation ||
-          typeof stored.idempotencyKey !== "string" ||
-          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-            stored.idempotencyKey,
-          )
-        )
-          throw Error("Invalid command");
-        attempt.current = {
-          document: document.data,
-          idempotencyKey: stored.idempotencyKey,
-        };
-        setPending(attempt.current);
-        setOpen(true);
-        setError(
-          "Een eerdere keuze is nog niet bevestigd. Bevestig dezelfde keuze opnieuw om een dubbel ontwerp te voorkomen.",
-        );
+        if (stored.tenantId !== tenantId || typeof stored.idempotencyKey !== "string" || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(stored.idempotencyKey)) throw Error("scope");
+        setLegacyNonce(stored.idempotencyKey);
+        setError("Een eerdere keuze is nog niet bevestigd. De oorspronkelijke opdracht blijft bewaard; controleer het ontvangstbewijs binnen het oorspronkelijke account.");
       }
-    } catch {
-      setCacheBlocked(true);
-      setError(
-        "Je eerdere keuze kan niet veilig worden gelezen. Houd dit venster open en controleer je bibliotheek voordat je een nieuw ontwerp maakt.",
-      );
-    }
+    } catch { setError("Een eerdere keuze kan niet veilig worden gelezen. De opgeslagen opdracht blijft behouden; controleer je bibliotheek voordat je een nieuw ontwerp maakt."); }
     setHydrated(true);
-  }, [key, tenantId]);
-  async function create(family?: SyncContentFamily) {
-    if (!canCreate || !tenantId || busy || cacheBlocked || !hydrated) return;
-    if (confirmed.current) {
-      router.push(`/dashboard/studio/${confirmed.current}`);
-      return;
-    }
-    const replaying = Boolean(attempt.current);
-    const command =
-      attempt.current ??
-      (family
-        ? {
-            document: JSON.parse(
-              JSON.stringify(createSyncStudioStarter({ family, tenantName })),
-            ) as StudioDocument,
-            idempotencyKey: crypto.randomUUID(),
-          }
-        : null);
-    if (!command) return;
-    try {
-      sessionStorage.setItem(key, JSON.stringify({ tenantId, ...command }));
-    } catch {
-      setCacheBlocked(true);
-      setError(
-        "Je keuze kon niet lokaal worden bewaard. Er is nog geen opdracht verstuurd; maak ruimte vrij en open deze pagina opnieuw.",
-      );
-      return;
-    }
-    attempt.current = command;
-    setPending(command);
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await createSyncStudioProjectAction(command);
-      if (!result.ok) {
-        if (result.rejected && !replaying) {
-          attempt.current = null;
-          setPending(null);
-          try {
-            sessionStorage.removeItem(key);
-          } catch {
-            /* A rejected transaction creates no project. */
-          }
-        }
-        setError(result.error);
-        return;
-      }
-      confirmed.current = result.projectId;
-      attempt.current = null;
-      setPending(null);
-      try {
-        sessionStorage.removeItem(key);
-      } catch {
-        /* A cache failure does not undo the confirmed writer receipt. */
-      }
-      router.push(`/dashboard/studio/${result.projectId}`);
-    } catch {
-      setError(
-        "Het ontwerp is nog niet bevestigd. Bevestig dezelfde keuze opnieuw zodra je verbinding terug is.",
-      );
-    } finally {
-      setBusy(false);
-    }
+    return () => { generation.current++; };
+  }, [tenantId, actorScope]);
+  function choose(family: SyncContentFamily) {
+    if (!canCreate || !tenantId || !hydrated || busy) return;
+    const query = new URLSearchParams({ family });
+    if (preferredMode) query.set("mode", preferredMode);
+    router.push(`/dashboard/studio/new?${query}`);
   }
-  return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          {children ?? (
-            <Button disabled={!canCreate || !hydrated}>
-              <Plus size={18} strokeWidth={1.7}/>
-              Nieuw ontwerp
-            </Button>
-          )}
-        </DialogTrigger>
-        <DialogContent size="wide">
-          <DialogHeader>
-            <DialogTitle>Wat wil je maken?</DialogTitle>
-            <DialogDescription>
-              Van wedstrijddag tot kantinemenu. Elke template werkt in liggend
-              én staand formaat.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogBody>
-            <style>{syncSlideCss}</style>
-            {error && <p role="alert">{error}</p>}
-            {pending ? (
-              <div className="vc-source-binding">
-                <strong>{pending.document.syncPresentation!.name}</strong>
-                <p>
-                  De oorspronkelijke keuze blijft behouden totdat de server
-                  bevestigt welk ontwerp is aangemaakt.
-                </p>
-                <Button
-                  disabled={busy || !canCreate || cacheBlocked}
-                  onClick={() => void create()}
-                >
-                  {busy ? "Bezig…" : "Dezelfde keuze bevestigen"}
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="vc-modal-family-tabs">
-                  {["Alles", "Sport", "Kantine", "Club", "Media", "Vrij"].map(
-                    (value) => (
-                      <button
-                        type="button"
-                        key={value}
-                        className={group === value ? "active" : ""}
-                        aria-pressed={group === value}
-                        onClick={() => setGroup(value)}
-                      >
-                        {value}
-                      </button>
-                    ),
-                  )}
-                </div>
-                <div className="vc-template-grid">
-                  {syncContentFamilies
-                    .filter(
-                      (family) => group === "Alles" || family.group === group,
-                    )
-                    .map((family) => (
-                      <button
-                        type="button"
-                        className="vc-template-card"
-                        key={family.id}
-                        disabled={
-                          !canCreate || busy || !hydrated || cacheBlocked
-                        }
-                        onClick={() => void create(family.id)}
-                      >
-                        <SyncSlideStaticView
-                          presentation={
-                            createSyncStudioStarter({
-                              family: family.id,
-                              tenantName,
-                            }).syncPresentation!
-                          }
-                          compact
-                          includeStyles={false}
-                        />
-                        <span>
-                          <strong>{family.name}</strong>
-                          <small>{family.description}</small>
-                          <ArrowRight size={16} />
-                        </span>
-                      </button>
-                    ))}
-                </div>
-              </>
-            )}
-          </DialogBody>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+  async function readReceipt() {
+    if (!legacyNonce || inflight.current) return;
+    const sequence = generation.current; inflight.current = true; setBusy(true);
+    try {
+      const result = await resolveSyncCreationReceiptAction({ idempotencyKey: legacyNonce }, actorScope);
+      if (sequence !== generation.current) return;
+      if (!result.ok) setError(result.error);
+      else if (result.href) router.push(result.href);
+      else setError("Dit account heeft geen bevestigd ontvangstbewijs voor die eerdere keuze. Er is niets opnieuw uitgevoerd; de oorspronkelijke opdracht blijft bewaard. Controleer het oorspronkelijke account en de bibliotheek.");
+    } catch { if (sequence === generation.current) setError("Het ontvangstbewijs kon niet worden gecontroleerd. De oorspronkelijke opdracht blijft bewaard; probeer opnieuw zodra je verbinding terug is."); }
+    finally { if (sequence === generation.current) { inflight.current = false; setBusy(false); } }
+  }
+  return <Dialog open={open} onOpenChange={setOpen}>
+    <DialogTrigger asChild>{children ?? <Button disabled={!canCreate || !hydrated}><Plus size={18} strokeWidth={1.7} />Nieuw ontwerp</Button>}</DialogTrigger>
+    <DialogContent size="wide" showClose={false} className={styles.dialog}>
+      <header className={styles.header}><DialogTitle className={styles.title}>Wat wil je maken?</DialogTitle><DialogClose className={`icon-button ${styles.close}`} aria-label="Sluiten"><X size={18} /></DialogClose></header>
+      <DialogBody className={styles.body}>
+        <DialogDescription className={styles.description}>Van wedstrijddag tot kantinemenu. Elke template werkt in liggend én staand formaat.</DialogDescription>
+        <p className={styles.exampleHint}>Opmaakvoorbeelden. In de volgende stap kies je je eigen gegevens.</p>
+        <style>{syncSlideCss}</style>
+        {error && <p role="alert">{error}</p>}
+        {legacyNonce && <Button variant="secondary" disabled={busy || !hydrated} onClick={() => void readReceipt()}>{busy ? "Ontvangstbewijs controleren…" : "Eerder ontvangstbewijs controleren"}</Button>}
+        <div className="vc-modal-family-tabs">{groups.map(value => <button type="button" key={value} className={group === value ? "active" : ""} aria-pressed={group === value} onClick={() => setGroup(value)}>{value}</button>)}</div>
+        <div className={`vc-template-grid ${styles.grid}`}>
+          {syncContentFamilies.filter(family => group === "Alles" || family.group === group).map(family => <button type="button" className="vc-template-card" key={family.id} disabled={!canCreate || busy || !hydrated} onClick={() => choose(family.id)}>
+            <SyncSlideStaticView presentation={createSyncTemplatePreview(family.id)} compact includeStyles={false} />
+            <span><strong>{family.name}</strong><small>{family.description}</small><ArrowRight size={16} /></span>
+          </button>)}
+        </div>
+      </DialogBody>
+    </DialogContent>
+  </Dialog>;
 }

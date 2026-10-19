@@ -94,7 +94,7 @@ export default async function ContentLibrary({
   const href = (target: number, nextFilter = filter) =>
     `/dashboard/content?${new URLSearchParams({ q: query, filter: nextFilter, page: String(target) })}`;
   const canCreate =
-    hasCapability(session.capabilities, "tenant.studio.create") &&
+    (hasCapability(session.capabilities, "tenant.studio.create") || hasCapability(session.capabilities, "tenant.dynamic_slide.write")) &&
     session.tenantStatus === "active";
   const canUpload =
     hasCapability(session.capabilities, "tenant.media.write") &&
@@ -122,7 +122,7 @@ export default async function ContentLibrary({
             </Link>
           )}
           {canCreate && (
-            <SyncStudioCreateDialog tenantId={session.tenantId} tenantName={session.tenant} canCreate={canCreate && session.isLive}/>
+            <SyncStudioCreateDialog tenantId={session.tenantId} tenantName={session.tenant} actorScope={`${session.tenantId}:${session.userId}`} canCreate={canCreate && session.isLive}/>
           )}
         </div>
       </header>

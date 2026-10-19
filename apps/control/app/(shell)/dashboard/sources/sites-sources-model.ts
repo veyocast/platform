@@ -11,7 +11,35 @@ export type SourceOverviewCard = {
   id: "sportlink" | "led" | "twelve" | "youtube";
   health: SourceOverviewHealth; detail: string; connectionCount: number;
 };
-export type SourceOverviewData = { cards: SourceOverviewCard[]; sources: SourceOverviewRow[]; failed: boolean };
+export const sourceProviders = ["sportlink", "twelve", "rss", "led", "youtube"] as const;
+export type SourceProvider = (typeof sourceProviders)[number];
+export type SourceSelection = { mode: "detail"; provider: SourceProvider; id: string } | { mode: "create"; provider: SourceProvider };
+export type SourceOverviewResource = {
+  id: string; name: string; provider: SourceProvider; health: SourceOverviewHealth;
+  lastSuccessAt: string | null;
+};
+export type SourceOverviewData = { cards: SourceOverviewCard[]; sources: SourceOverviewRow[]; resources: SourceOverviewResource[]; failed: boolean };
+export type SourceDetail = {
+  id: string; provider: SourceProvider; name: string; status: string; health: SourceOverviewHealth;
+  lastSuccessAt: string | null; lastAttemptAt: string | null; itemCount: number | null;
+  fields: Array<{ label: string; value: string }>;
+  items: Array<{ id: string; title: string; detail: string; href?: string }>;
+  truncated: boolean;
+  issue?: string | null;
+};
+const resourceId = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+export function parseSourceSelection(params: { source?: string; connect?: string }): SourceSelection | null {
+  if (params.source) {
+    const [provider, id, extra] = params.source.split(":");
+    if (!extra && sourceProviders.includes(provider as SourceProvider) && id && resourceId.test(id)) return { mode: "detail", provider: provider as SourceProvider, id };
+    return null;
+  }
+  return sourceProviders.includes(params.connect as SourceProvider) ? { mode: "create", provider: params.connect as SourceProvider } : null;
+}
+export function sourceSelectionHref(selection: SourceSelection) {
+  const query = new URLSearchParams(selection.mode === "create" ? { connect: selection.provider } : { source: `${selection.provider}:${selection.id}` });
+  return `/dashboard/sources?${query}`;
+}
 export type SourceOverviewLedConnection = {
   status: string; health_status: string; last_connected_at: string | null;
   last_source_message_at: string | null; lease_expires_at: string | null;

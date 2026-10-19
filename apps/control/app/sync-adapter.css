@@ -15,6 +15,10 @@ html[data-design-system="fieldflow"] .sync-control { --vc-font-display:Manrope,I
 .sync-control .vx-header.topbar { min-height: 79px; margin: 0; border-radius: 0; box-shadow: none; }
 .sync-control .vx-content.main-content { max-width:1760px; margin:0 auto; padding:32px 36px 36px; }
 .sync-control .vx-sidebar.nav-panel { min-width:0; width:auto; }
+/* Source captions and old footer links must remain readable on its white sidebar. */
+.sync-control .nav-heading,
+.sync-control .vx-side-settings,
+.sync-control .vx-website { color:var(--muted); }
 @media (min-width:1700px) { .sync-control .vx-content.main-content { padding-top:44px; } }
 @media (min-width:761px) and (max-width:1200px) { .sync-control .vx-content.main-content { padding:26px 24px; } }
 .sync-control .sync-management-expanded { display: none; }
@@ -27,6 +31,17 @@ html[data-design-system="fieldflow"] .sync-control { --vc-font-display:Manrope,I
 .sync-control .vx-account .avatar-button { padding:1px 6px; }
 .sync-control.app-shell :is(.btn,.vc-button) { min-height:44px; }
 .sync-control .vc-button { line-height:inherit; }
+/* Server-rendered action links share the Source button treatment. */
+.sync-control .button-link--primary {
+  min-height:44px;
+  background:var(--accent);
+  color:var(--surface);
+  border-color:transparent;
+}
+.sync-control .button-link--primary:hover {
+  background:color-mix(in oklch,var(--accent),black 12%);
+  filter:none;
+}
 .sync-control .vc-library-search button { padding:1px 6px; }
 @media (max-width: 760px) {
   /* Source padding/border around the canon's 44px minimum touch target. */
@@ -87,3 +102,6 @@ html[data-design-system="fieldflow"] .sync-control { --vc-font-display:Manrope,I
 .sync-control .sync-studio-frame .vc-studio-properties .field :is(input,select,textarea) { min-height:0; height:auto; }
 .sync-control .sync-studio-frame .vc-studio-properties .field textarea { min-height:90px; }
 @media(max-width:760px) { .sync-control .sync-studio-frame .vc-studio-properties .field { font-size:12px; } }
+
+/* Keep permitted tasks beyond the eight sidebar shortcuts reachable. */
+.sync-control .manage-trigger.sync-management-access { display:flex; }

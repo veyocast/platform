@@ -4,7 +4,7 @@ import { deriveLedScoresFeatureAvailability, parseLedScoresEffectiveState } from
 import { loadLatestSportlinkRuns } from "../data-sources/sportlink/sportlink-status";
 import {
   sourceOverviewLedHealth, sourceOverviewSportlinkHealth, sourceOverviewHealth,
-  worstSourceOverviewHealth, type SourceOverviewData, type SourceOverviewRow
+  worstSourceOverviewHealth, type SourceOverviewData, type SourceOverviewRow, type SourceOverviewResource
 } from "./sites-sources-model";
 
 export async function loadSourcesOverview(tenantId: string): Promise<SourceOverviewData> {
@@ -13,7 +13,7 @@ export async function loadSourcesOverview(tenantId: string): Promise<SourceOverv
   try {
     const [sources, connection, ledFeature, flags] = await Promise.all([
       client.from("dynamic_data_sources").select("id,name,kind,status,provider_status,last_successful_sync_at,last_error_code,config_json").eq("tenant_id", tenantId).neq("status", "archived").order("name").limit(500),
-      client.from("sportlink_connections").select("id,status,last_error_code").eq("tenant_id", tenantId).neq("status", "revoked").maybeSingle(),
+      client.from("sportlink_connections").select("id,status,last_error_code,detected_club_name,last_success_at").eq("tenant_id", tenantId).neq("status", "revoked").maybeSingle(),
       client.rpc("get_ledscores_feature_effective_state_v1", { p_tenant_id: tenantId }),
       client.from("tenant_feature_flags").select("flag_key,enabled").eq("tenant_id", tenantId).eq("flag_key", "youtube_integration").maybeSingle()
     ]);
@@ -21,8 +21,8 @@ export async function loadSourcesOverview(tenantId: string): Promise<SourceOverv
     const latestRuns = connection.data ? await loadLatestSportlinkRuns(client, tenantId, connection.data.id, (policies.data ?? []).map(policy => policy.dataset_group)) : new Map();
     const ledAvailability = ledFeature.error ? "unavailable" : deriveLedScoresFeatureAvailability(parseLedScoresEffectiveState(ledFeature.data, tenantId));
     const [led, youtube] = await Promise.all([
-      ledAvailability === "available" ? client.from("ledscores_connections").select("status,health_status,last_connected_at,last_source_message_at,lease_expires_at").eq("tenant_id", tenantId).limit(100) : Promise.resolve({ data: [], error: null }),
-      flags.data?.enabled ? client.from("youtube_sources").select("status,validation_status,embeddable").eq("tenant_id", tenantId).in("status", ["active", "paused"]).limit(500) : Promise.resolve({ data: [], error: null })
+      ledAvailability === "available" ? client.from("ledscores_connections").select("id,name,status,health_status,last_connected_at,last_source_message_at,lease_expires_at").eq("tenant_id", tenantId).limit(100) : Promise.resolve({ data: [], error: null }),
+      flags.data?.enabled ? client.from("youtube_sources").select("id,title,status,validation_status,embeddable").eq("tenant_id", tenantId).in("status", ["active", "paused"]).limit(500) : Promise.resolve({ data: [], error: null })
     ]);
     const rows: SourceOverviewRow[] = (sources.data ?? []).map(source => {
       const refresh = source.config_json && typeof source.config_json === "object" && !Array.isArray(source.config_json) ? (source.config_json as Record<string, unknown>).refreshMinutes : null;
@@ -41,8 +41,13 @@ export async function loadSourcesOverview(tenantId: string): Promise<SourceOverv
     const ledHealth = ledFeature.error || led.error || ledAvailability === "unavailable" ? { label: "Status onbekend", tone: "warning" as const }
       : ledAvailability !== "available" ? { label: ledAvailability === "globally_blocked" || ledAvailability === "tenant_blocked" ? "Gepauzeerd" : "Niet vrijgegeven", tone: "neutral" as const }
       : sourceOverviewLedHealth(led.data ?? []);
+    const resources: SourceOverviewResource[] = [
+      ...(connection.data ? [{ id: connection.data.id, name: connection.data.detected_club_name ?? "Sportlink", provider: "sportlink" as const, health: sportHealth, lastSuccessAt: connection.data.last_success_at ?? null }] : []),
+      ...(led.data ?? []).map(item => ({ id: item.id, name: item.name, provider: "led" as const, health: sourceOverviewLedHealth([item]), lastSuccessAt: item.last_source_message_at })),
+      ...(youtube.data ?? []).map(item => ({ id: item.id, name: item.title, provider: "youtube" as const, health: item.status === "paused" ? { label: "Gepauzeerd", tone: "neutral" as const } : item.validation_status !== "verified" || !item.embeddable ? { label: "Validatie nodig", tone: "warning" as const } : { label: "Gevalideerd · online", tone: "success" as const }, lastSuccessAt: null }))
+    ];
     return {
-      sources: rows, failed: Boolean(sources.error || connection.error || policies.error || flags.error || ledFeature.error || led.error || youtube.error),
+      sources: rows, resources, failed: Boolean(sources.error || connection.error || policies.error || flags.error || ledFeature.error || led.error || youtube.error),
       cards: [
         { id: "sportlink", health: sportHealth, connectionCount: connection.data ? 1 : 0, detail: connection.data ? "De meest recente poging en versheid per dataset bepalen deze status." : "Koppel je club om gegevens veilig te synchroniseren." },
         { id: "youtube", health: youtubeHealth, connectionCount: youtube.data?.length ?? 0, detail: "Officiële online playback met lokale fallback; geen offline videovoorraad." },
@@ -53,5 +58,5 @@ export async function loadSourcesOverview(tenantId: string): Promise<SourceOverv
   } catch { return unavailableSourcesOverview(); }
 }
 export function unavailableSourcesOverview(): SourceOverviewData {
-  return { failed: true, sources: [], cards: (["sportlink", "youtube", "twelve", "led"] as const).map(id => ({ id, health: { label: "Status onbekend", tone: "warning" }, connectionCount: 0, detail: "Bronstatus kon niet worden gelezen. Je opgeslagen gegevens blijven behouden. Vernieuw de pagina." })) };
+  return { failed: true, sources: [], resources: [], cards: (["sportlink", "youtube", "twelve", "led"] as const).map(id => ({ id, health: { label: "Status onbekend", tone: "warning" }, connectionCount: 0, detail: "Bronstatus kon niet worden gelezen. Je opgeslagen gegevens blijven behouden. Vernieuw de pagina." })) };
 }

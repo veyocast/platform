@@ -12,8 +12,8 @@ async function navigate(page: Page, pathname: string) {
       // The portal is mounted by the real hydrated client. A dev-server
       // restart can leave an already rendered server page with stale chunks;
       // retry the finite navigation until this actual wizard is available.
-      await expect(page.getByRole("dialog", { name: "Nieuw scherm instellen" })).toBeVisible();
-      await expect(page.locator("[data-screen-setup-grid]:visible").first()).toBeVisible();
+      await expect(page.getByRole("dialog", { name: "Een scherm toevoegen" })).toBeVisible();
+      await expect(page.getByRole("group", { name: "Installatie-instructie voor je Player" })).toBeVisible();
     }
   }).toPass({ timeout: 90_000 });
 }
@@ -96,20 +96,41 @@ function expectCanonicalGeometry(
   }
 }
 
+async function expectScreenIntro(page: Page) {
+  const dialog = page.getByRole("dialog", { name: "Een scherm toevoegen" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Open VeyoCast op je scherm", exact: true })).toBeVisible();
+  const platforms = dialog.getByRole("group", { name: "Installatie-instructie voor je Player" });
+  await expect(platforms.getByRole("button")).toHaveText(["Android", "LG webOS", "Web"]);
+  for (const button of await platforms.getByRole("button").all()) {
+    await expect(button).toBeEnabled();
+    const box = await button.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+  }
+  await expect(dialog.getByRole("button", { name: "Ik heb een koppelcode", exact: true })).toBeDisabled();
+  await expect(dialog.getByLabel("Schermnaam", { exact: true })).toHaveCount(0);
+  await expect(dialog.getByLabel("Schermgroep", { exact: true })).toHaveCount(0);
+  await expect(dialog.locator("form, [data-screen-setup-grid]")).toHaveCount(0);
+  await expect(dialog.getByRole("status").filter({ hasText: "Er wordt niets aangemaakt" })).toBeVisible();
+  return dialog;
+}
+
 test("screen onboarding becomes a sequential mobile flow without horizontal overflow", async ({
   page
 }) => {
   await page.setViewportSize({ height: 844, width: 390 });
   await page.goto("/dashboard/screens/new");
 
-  const dialog = page.getByRole("dialog", { name: "Nieuw scherm instellen" });
-  const steps = dialog.getByLabel("Scherminstelstappen");
-  await expect(dialog).toBeVisible();
-  await expect(steps.locator("li")).toHaveText(["1Scherm", "2Content", "3Controleren"]);
-  await expect(steps.locator('[aria-current="step"]')).toContainText("Scherm");
-  await expect(dialog.getByLabel("Schermnaam", { exact: true })).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Volgende", exact: true })).toBeDisabled();
-  await expect(dialog.getByRole("status")).toContainText("Er wordt niets aangemaakt");
+  const dialog = await expectScreenIntro(page);
+  await expect(dialog.getByRole("button", { name: "Android", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await dialog.getByRole("button", { name: "LG webOS", exact: true }).click();
+  await expect(dialog.getByRole("button", { name: "LG webOS", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.getByRole("status").filter({ hasText: "LG-scherm" })).toBeVisible();
+  await dialog.getByRole("button", { name: "Web", exact: true }).click();
+  await expect(dialog.getByRole("button", { name: "Web", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.getByRole("status").filter({ hasText: "in de browser" })).toBeVisible();
+  await expect(dialog.getByRole("status").filter({ hasText: "Er wordt niets aangemaakt" })).toContainText("Er wordt niets aangemaakt");
   const box = await dialog.boundingBox();
   expect(box).not.toBeNull(); expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(390);
@@ -170,6 +191,23 @@ test("dashboard forms and surfaces share canonical alignment", async ({ page }) 
     for (const route of ["/dashboard/settings", "/dashboard/screens/new"]) {
       await navigate(page, route);
       await expect(page.locator("#control-content")).toBeVisible();
+      if (route === "/dashboard/screens/new") {
+        const dialog = await expectScreenIntro(page);
+        // Demo cannot enter authoring. Its actual platform intro replaces the
+        // old three-step form here; field/validation/alignment evidence remains
+        // in sync-screen-source and WIZARD47–52 component cases.
+        await expect(async () => {
+          const geometry = await dialog.evaluate(element => {
+            const surface = element.querySelector<HTMLElement>("[data-screen-setup-surface]")!;
+            const buttons = Array.from(element.querySelectorAll<HTMLElement>('.px-platform-picks > button'));
+            return { padding: Number.parseFloat(getComputedStyle(surface).paddingLeft), tops: buttons.map(button => button.getBoundingClientRect().top) };
+          });
+          expect(geometry.padding).toBe(viewport.width < 768 ? 18 : 26);
+          expect(geometry.tops).toHaveLength(3);
+          expect(Math.max(...geometry.tops) - Math.min(...geometry.tops)).toBeLessThanOrEqual(1);
+        }).toPass({ timeout: 10_000 });
+        continue;
+      }
       await expect(page.locator(".form-grid:visible, [data-settings-field-grid]:visible, [data-screen-setup-grid]:visible").first()).toBeVisible();
       await expect(
         page

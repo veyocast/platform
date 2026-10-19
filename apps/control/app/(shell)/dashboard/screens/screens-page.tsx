@@ -50,12 +50,14 @@ import { loadCompositionWorkspace } from "./screen-composition-data";
 import { ScreenCompositionEditor } from "./screen-composition-editor";
 import { ScreenSetupDialog } from "./screen-setup-dialog";
 import { SyncFleet } from "./sync-fleet";
+import { reportedScreenPlatforms } from "./sync-screen-detail-model";
 
 type ScreensPageProps = {
   searchParams: Promise<{
     fout?: string;
     group?: string;
     q?: string;
+    platform?: string;
     status?: string;
     succes?: string;
     sync?: string;
@@ -89,6 +91,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const releaseById = new Map(data.releases.map((release) => [release.id, release]));
   const statuses = data.screens.map((screen) => screenStatus(screen, devicesByScreen.get(screen.id)));
   const normalizedQuery = query.q?.trim().toLocaleLowerCase("nl-NL") ?? "";
+  const platformFilter = reportedScreenPlatforms([...devicesByScreen.values()]).includes(query.platform ?? "") ? query.platform! : "";
   const requestedStatus = query.sync === "pending" ? "syncing" : query.status;
   const statusFilter = new Set(["online", "stale", "offline", "unknown", "syncing", "unpaired", "maintenance", "disabled"]).has(requestedStatus ?? "")
     ? requestedStatus!
@@ -103,6 +106,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
       const device = devicesByScreen.get(screen.id);
       const status = screenStatus(screen, device);
       return (!selectedMemberIds || selectedMemberIds.has(screen.id)) &&
+        (!platformFilter || device?.platform === platformFilter) &&
         (statusFilter === "all" || status.kind === statusFilter) &&
         (!normalizedQuery || [screen.name, screen.location, device?.deviceName].some((value) => value?.toLocaleLowerCase("nl-NL").includes(normalizedQuery)));
     });
@@ -156,7 +160,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   if (view === "overview" && !visualReference) return <>
     {query.fout ? <p className="notice notice--critical" role="alert">Actie mislukt. {query.fout}</p> : null}
     {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
-    <SyncFleet tenantId={session.tenantId} data={data} screens={filteredScreens} devices={devicesByScreen} query={query.q ?? ""} status={statusFilter} group={selectedGroup}
+    <SyncFleet tenantId={session.tenantId} data={data} screens={filteredScreens} devices={devicesByScreen} query={query.q ?? ""} status={statusFilter} group={selectedGroup} platform={platformFilter}
       setup={<ScreenSetupDialog disabled={!canManage || data.screens.length >= data.limit} groups={data.groups} releases={data.assignableReleases} previews={compositionData.playlists} settings={data.settings} triggerLabel="Scherm koppelen" />}
       advanced={<><div className="row"><ScreenCompositionEditor canPublish={canManage && canPublish} data={compositionData} groups={data.groups} initialTarget={selectedGroup ? `group:${selectedGroup}` : "all"} screens={data.screens.filter(screen => screen.status === "active")} /><Link className="btn btn-secondary" href="/dashboard/screens/groups">Schermgroepen beheren</Link><Link className="btn btn-secondary" href="/dashboard/screens?view=health">Gezondheid</Link></div><ScreenBulkForm addToGroupAction={addBulkScreensToGroup} assignReleaseAction={assignBulkScreenRelease} canPublish={canPublish} groups={data.groups} idempotencyKey={randomUUID()} playlists={playlistOptions(data.assignableReleases)} syncAction={requestBulkScreenSyncRetry}><CompactFleetTable canManage={canManage} data={data} devicesByScreen={devicesByScreen} releaseById={releaseById} screens={filteredScreens} visualReference={false} /></ScreenBulkForm></>}
     />

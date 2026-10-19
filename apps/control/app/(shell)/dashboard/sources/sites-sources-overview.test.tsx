@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { SourcesOverview } from "./sites-sources-overview";
 import type { SourceOverviewData } from "./sites-sources-model";
 vi.stubGlobal("React", React);
-const data: SourceOverviewData = { failed: false, sources: [], cards: [{ id: "sportlink", health: { label: "Aandacht nodig", tone: "critical" }, connectionCount: 1, detail: "Laatste datasetpoging mislukt." }] };
+const data: SourceOverviewData = { failed: false, sources: [], resources: [{ id: "23400000-0000-4000-8000-000000000001", name: "Sportlink", provider: "sportlink", health: { label: "Aandacht nodig", tone: "critical" }, lastSuccessAt: null }], cards: [{ id: "sportlink", health: { label: "Aandacht nodig", tone: "critical" }, connectionCount: 1, detail: "Laatste datasetpoging mislukt." }] };
 describe("Exacte Sources-kaarten sluiten op echte bronroutes en rollen aan", () => {
   it("toont uitsluitend werkelijk opgeslagen koppelingen zonder voorbeeldproviders als verbonden te tellen", () => {
     const html = renderToStaticMarkup(createElement(SourcesOverview, { data, canManage: true, canDesign: true, canReadProducts: true }));
@@ -15,5 +15,12 @@ describe("Exacte Sources-kaarten sluiten op echte bronroutes en rollen aan", () 
   it("biedt zonder schrijfrol alleen lezen en maakt statusproblemen herstelbaar", () => {
     const html = renderToStaticMarkup(createElement(SourcesOverview, { data: { ...data, failed: true }, canManage: false, canDesign: false, canReadProducts: false }));
     expect(html).toContain("Vernieuw de pagina"); expect(html).not.toContain("Open Sportlink Studio"); expect(html).not.toContain('href="/dashboard/integrations/twelve-products"'); expect(html).toContain("Vernieuw de pagina");
+  });
+  it("opens a typed selected-resource URL and keeps corrected Source Studio entry routes", () => {
+    const html = renderToStaticMarkup(createElement(SourcesOverview, { data, canManage: true, canDesign: true, canReadProducts: true }));
+    expect(html).toContain('href="/dashboard/sources?source=sportlink%3A23400000-0000-4000-8000-000000000001"');
+    expect(html).toContain('href="/dashboard/sources?connect=sportlink"');
+    expect(html).toContain('/dashboard/studio/new?group=Sport&amp;mode=connected');
+    expect(html).not.toContain('source=sportlink%3Asportlink');
   });
 });

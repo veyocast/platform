@@ -6,7 +6,7 @@ vi.mock("../../../../lib/supabase/server", () => ({
   createControlSupabaseClient
 }));
 
-import { loadScreenFleet } from "./data";
+import { loadScreenDetail, loadScreenFleet } from "./data";
 
 type MockError = { message: string } | null;
 type MockResult = {
@@ -189,6 +189,22 @@ describe("screen fleet data", () => {
       releases: [],
       screens: []
     });
+  });
+
+  it("bewaart de device-identiteit zodat een oude heartbeat herkoppeling niet voltooit", async () => {
+    const { client } = createSupabaseMock({
+      screens: { data: [{ id: "own-screen", name: "Eigen scherm", status: "active", orientation: "landscape", created_at: "2026-10-19T10:00:00Z" }], error: null },
+      player_devices: { data: [{ id: "current-player", screen_id: "own-screen", status: "paired", paired_at: "2026-10-19T11:00:00Z" }, { id: "old-player", screen_id: "own-screen", status: "revoked", paired_at: "2026-10-18T11:00:00Z" }], error: null },
+      player_heartbeats: { data: [{ id: "old-heartbeat", device_id: "old-player", runtime_state: "PLAYING", created_at: "2026-10-19T10:59:00Z" }], error: null },
+    }, { data: [], error: null });
+    createControlSupabaseClient.mockResolvedValue(client);
+
+    const result = await loadScreenDetail("own-tenant", "own-screen");
+    expect(result.error).toBeNull();
+    expect(result.heartbeats).toEqual([expect.objectContaining({ id: "old-heartbeat", deviceId: "old-player" })]);
+    const pairedDevice = result.devices.find(device => device.status === "paired");
+    expect(pairedDevice?.id).toBe("current-player");
+    expect(result.heartbeats.find(heartbeat => heartbeat.deviceId === pairedDevice?.id)).toBeUndefined();
   });
 
   it("pagineert schermen, devices, fleetreleases en playlistlabels voorbij 1.000 rijen", async () => {

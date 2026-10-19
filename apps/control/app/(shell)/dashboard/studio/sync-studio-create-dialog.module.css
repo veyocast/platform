@@ -1,0 +1,101 @@
+/* Original Source Modal geometry, scoped to this chooser. Keep one vertical
+   scroller instead of compressing the nested template grid's implicit rows. */
+.dialog.dialog.dialog {
+  width: min(960px, calc(100vw - 50px));
+  max-height: 90dvh;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 30px 100px #0004;
+}
+
+:global(.vc-dialog__overlay):has(+ .dialog.dialog) {
+  background: #071e2b88;
+  backdrop-filter: blur(8px);
+}
+
+.dialog .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.dialog .title.title {
+  margin: 0;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 750;
+  font-variation-settings: normal;
+  letter-spacing: -0.045em;
+  line-height: 1.22;
+}
+
+/* Source's 35px close-control footprint, with a real 44px touch target around
+   its same icon center. The extra target space does not enlarge the header. */
+.header .close.close {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-block: -4.5px;
+  margin-inline-end: -4.5px;
+}
+
+.dialog .body {
+  display: block;
+  padding: 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog .description.description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.dialog .exampleHint {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.body .grid.grid {
+  grid-auto-rows: max-content;
+  align-content: start;
+  max-height: none;
+  overflow: visible;
+}
+
+.body :global(.vc-modal-family-tabs) > button {
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .dialog.dialog.dialog {
+    width: calc(100vw - 20px);
+    max-height: 94dvh;
+    border-radius: 18px;
+  }
+
+  .dialog .header,
+  .dialog .body {
+    padding: 18px;
+  }
+
+  .dialog .title.title {
+    font-size: 17px;
+  }
+}
