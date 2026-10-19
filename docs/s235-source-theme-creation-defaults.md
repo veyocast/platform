@@ -81,3 +81,8 @@ de geïntegreerde versie groen (44,8s,1worker,0retry/0skip), rapport
 `/tmp/veyocast-s235-wizard-integrated.json`. Een overgenomen lege EOFregel
 in de helper is verwijderd voor de whitespacegate, zonder JavaScriptdelta.
 Gecombineerde foundation en hosted databasegates volgen op deze exacte merge.
+
+De geïntegreerde volledige foundation is groen:68/68taken,57cached; Control
+1.637PASS/34bestaandeSKIP. Log `/tmp/veyocast-s235-integrated-foundation.log`.
+Dit omvat de normale S234/S232/S236-dependencymerge. Hosted exact-head CI en
+staging/productie blijven afzonderlijke releasegates.
