@@ -86,7 +86,7 @@
   .mobileMedia .mediaControls input:checked { border-color:#1d7758; background:#1d7758 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 4 4L19 6'/%3E%3C/svg%3E") center/23px 23px no-repeat; }
   .mobileMedia .mediaControls button { width:44px; height:44px; background:#fffffff2; color:#486d5e; }
   .mobileMedia .mediaControls button[aria-pressed=true] { color:#97601a; }
-  .mobileMedia .mediaControls :focus-visible { outline:3px solid #f07d2c; outline-offset:2px; }
+  .mobileMedia .mediaControls :focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
   .mobileMedia .tags { gap:5px; padding:0 10px 11px; }
   .mobileMedia .tags span { font-size:11px; color:#4e6d5d; }
   .mobileMedia .mediaList { padding:0 12px; }
