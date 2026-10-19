@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "status": "SCOPED_IMPLEMENTATION_FROZEN_TARGETED_GATES_PASS",
+  "recordedAt": "2026-10-18T21:58:02.358386+00:00",
+  "worktree": "/home/codex/repos/castivo-s233",
+  "originalBaselineSha": "7638a844df30452ec92b73f2fd5bf940fc795344",
+  "ownership": [
+    "packages/integrations/src/ledscores.ts",
+    "packages/integrations/test/ledscores.test.ts",
+    "apps/media-worker/test/ledscores-connector-runner.test.ts"
+  ],
+  "sourceBindings": [
+    {
+      "path": "/home/codex/repos/castivo-s233/packages/integrations/src/ledscores.ts",
+      "sha256": "a46a0c1a503ec4cd2b6e22f5c11b54942a73efc5dd5cf8bee6688858bfddd59d",
+      "bytes": 35576,
+      "baselineSha256": "587c6a800e6f82df7af63480168d898808aa9785c33c4ac3440f74f65b78c9de"
+    },
+    {
+      "path": "/home/codex/repos/castivo-s233/packages/integrations/test/ledscores.test.ts",
+      "sha256": "dc53984300d88825b5709a1bc02db0ceecc25f691d2f19e7f3917df21d43de28",
+      "bytes": 32929,
+      "baselineSha256": "c9094940c881e46b045e87c0df4e8101ad5a287e34fffa487d027a49132a23a2"
+    },
+    {
+      "path": "/home/codex/repos/castivo-s233/apps/media-worker/test/ledscores-connector-runner.test.ts",
+      "sha256": "adeb4cc757a62ec3b32c36611ef61caf3d22b358c2872bec54d0920cd5707092",
+      "bytes": 61670,
+      "baselineSha256": "69270ab5a245425d891c990a54b5be903aaf05ca2350dcc77432e146525e0e4f"
+    }
+  ],
+  "unchangedBoundaries": {
+    "validationSchemaByteIdentical": true,
+    "validationSchemaSha256": "df0273a4f136a251c9bfc93d64d32d5d0feadf2270f3a24f7830258c5b76169e",
+    "runnerSourceByteIdentical": true,
+    "runnerSource": {
+      "path": "/home/codex/repos/castivo-s233/apps/media-worker/src/ledscores-connector-runner.ts",
+      "sha256": "965914f5cf8b92c433bad105ccf11d201c97c9c0256846c54da9b80e417e48db",
+      "bytes": 62039
+    },
+    "existingParserAndWorkerTestAssertionsPreserved": true,
+    "oldTestRemovedLineCount": 0,
+    "parserAcceptanceRelaxed": false,
+    "transportTimersThrottleOrLkgChanged": false,
+    "sqlWorkflowConfigDependencyPlayerUiEditsByWriter": false
+  },
+  "metadataContract": {
+    "location": "existing validationIssues[].shape",
+    "guard": "invalid_union at exactly message.teams.away or message.teams.home",
+    "maxShapeRecords": 2,
+    "topLevelTypes": [
+      "missing",
+      "null",
+      "boolean",
+      "number",
+      "string",
+      "array",
+      "object"
+    ],
+    "objectPrimitiveFieldAllowlist": [
+      "id",
+      "name",
+      "type",
+      "active"
+    ],
+    "primitiveFieldTypes": [
+      "null",
+      "boolean",
+      "number",
+      "string"
+    ],
+    "maxPrimitiveFieldsPerObject": 4,
+    "arbitraryKeysValuesLengthsUrlsNestedContentsOrZodMessagesRetained": false,
+    "newProviderRequestOrAdditionalEventWrite": false
+  },
+  "tests": [
+    {
+      "name": "redBefore",
+      "success": false,
+      "numTotalTests": 48,
+      "numPassedTests": 2,
+      "numFailedTests": 7,
+      "numPendingTests": 39
+    },
+    {
+      "name": "integrations",
+      "success": true,
+      "numTotalTests": 203,
+      "numPassedTests": 203,
+      "numFailedTests": 0,
+      "numPendingTests": 0
+    },
+    {
+      "name": "worker",
+      "success": true,
+      "numTotalTests": 695,
+      "numPassedTests": 371,
+      "numFailedTests": 0,
+      "numPendingTests": 324
+    }
+  ],
+  "connectorSuite": {
+    "passed": 30,
+    "skipped": 0,
+    "failed": 0
+  },
+  "workerConditionalSkips": [
+    {
+      "path": "apps/media-worker/test/sites-broadcast-source-cases.test.ts",
+      "count": 1
+    },
+    {
+      "path": "apps/media-worker/test/sites-dom-capture.test.tsx",
+      "count": 8
+    },
+    {
+      "path": "apps/media-worker/test/sites-dynamic-source-comparison.test.ts",
+      "count": 92
+    },
+    {
+      "path": "apps/media-worker/test/sites-source-comparison.test.ts",
+      "count": 76
+    },
+    {
+      "path": "apps/media-worker/test/sites-source-starter-extraction.test.ts",
+      "count": 1
+    },
+    {
+      "path": "apps/media-worker/test/sites-starter-browser-matrix.test.ts",
+      "count": 140
+    },
+    {
+      "path": "apps/media-worker/test/sync-dom-capture.test.tsx",
+      "count": 6
+    }
+  ],
+  "staticChecks": [
+    {
+      "command": "pnpm --filter @veyocast/integrations lint",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm --filter @veyocast/integrations typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm --filter @veyocast/media-worker lint",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm --filter @veyocast/media-worker typecheck",
+      "exitCode": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/veyocast-s233-led-parser-before.json",
+      "sha256": "54bc52cb02ddadcc7851ec548b21ad4e9ac3b2c0ece7dd0936d1c0f5808f1357",
+      "bytes": 24675
+    },
+    {
+      "path": "/tmp/veyocast-s233-led-parser-before.log",
+      "sha256": "53dfacdb7e312d3ca02dabd8a063a26b8428bbd1f9de1f2cdac4b0063d6281f4",
+      "bytes": 353
+    },
+    {
+      "path": "/tmp/veyocast-s233-integrations-final.json",
+      "sha256": "91bc49b2e9eb132352a23b6ebdc110291af65c1b0dbde767d3bd497efb52ef23",
+      "bytes": 64580
+    },
+    {
+      "path": "/tmp/veyocast-s233-integrations-final.log",
+      "sha256": "916c49f2e4395475aa88ffb6565d227f2f74cca44cdfe430d26e74032db95f7e",
+      "bytes": 66
+    },
+    {
+      "path": "/tmp/veyocast-s233-worker-final.json",
+      "sha256": "31fd9d1cfacc4ca70cac0a09e21138a4a73997aed9ff9ba598fd22ac54ef2b51",
+      "bytes": 243501
+    },
+    {
+      "path": "/tmp/veyocast-s233-worker-final.log",
+      "sha256": "42a708c5baee991e7f0c6be606eea90b56ddb143e70cc97eb3060c5f21551b8a",
+      "bytes": 3686
+    },
+    {
+      "path": "/tmp/veyocast-s233-integrations-lint.log",
+      "sha256": "b543827ce56a63357c629028555ecec2cc964dda33dbbf2a9a2872b1a2ab20f8",
+      "bytes": 28
+    },
+    {
+      "path": "/tmp/veyocast-s233-integrations-typecheck.log",
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+      "bytes": 15
+    },
+    {
+      "path": "/tmp/veyocast-s233-worker-lint.log",
+      "sha256": "b543827ce56a63357c629028555ecec2cc964dda33dbbf2a9a2872b1a2ab20f8",
+      "bytes": 28
+    },
+    {
+      "path": "/tmp/veyocast-s233-worker-typecheck.log",
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+      "bytes": 15
+    }
+  ],
+  "writerActions": {
+    "remoteReads": 0,
+    "providerRequests": 0,
+    "browserRuns": 0,
+    "installs": 0,
+    "builds": 0,
+    "gitMutations": 0,
+    "commitsPushesDeploys": 0
+  },
+  "limitations": [
+    "Production team types remain unobserved. No compatibility or recovery claim.",
+    "Future normal connector reception after exact-SHA rollout must supply actual sanitized metadata before any parser acceptance change.",
+    "Root owns combined-tree CI, PR, deployment and production readback.324conditional renderer/browser cases were skipped by their existing gates, not executed."
+  ],
+  "integrationBase": "6b8b914665cb951e8da6a070ebe7a69336b91b0c",
+  "baseIntegration": "Normal fast-forward of disjoint S231 before final CI; no rebase/amend"
+}

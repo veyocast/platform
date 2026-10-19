@@ -1076,6 +1076,154 @@ describe("LED Scores connector loop", () => {
     }
   });
 
+  it("persists only bounded team shapes within the existing throttle and retains the last valid state", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      vi.setSystemTime(new Date("2026-10-18T08:00:00.000Z"));
+      let claimed = false;
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claimed) return [];
+          claimed = true;
+          return [connection];
+        })
+      });
+      const socket = new FakeWebSocket();
+      const webSocketFactory = vi.fn(() => {
+        queueMicrotask(() => {
+          socket.emit("open", new Event("open"));
+          socket.message(providerMessage(Date.now(), "valid-before-shape-error"));
+        });
+        return socket as unknown as WebSocket;
+      });
+      loop = runLedScoresConnectorLoop({
+        backend, claimIntervalMs: 1_000, leaseSeconds: 45, maxConnections: 1,
+        persistIntervalMs: 15_000, signal: controller.signal, webSocketFactory,
+        workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(1);
+      expect(backend.touch).toHaveBeenCalledOnce();
+      expect(backend.upsertLiveState).toHaveBeenCalledOnce();
+      const lastValidCalls = JSON.stringify(vi.mocked(backend.upsertLiveState).mock.calls);
+      const invalid = () => providerMessage(Date.now(), "private-invalid-shape-update", {
+        teams: {
+          away: null,
+          home: { id: "PRIVATE_TEAM_ID", name: "PRIVATE_TEAM_NAME", type: "PRIVATE_TEAM_TYPE",
+            active: true, "PRIVATE_UNKNOWN_KEY": "PRIVATE_TOKEN_VALUE",
+            players: [{ name: "PRIVATE_PLAYER_NAME" }],
+            url: "https://private.example.invalid/?token=PRIVATE_URL_TOKEN" }
+        }
+      });
+      socket.message(invalid());
+      socket.message(invalid());
+      await vi.advanceTimersByTimeAsync(1);
+      const invalidRecords = () => vi.mocked(backend.recordState).mock.calls
+        .map(([input]) => input).filter(input => input.eventType === "invalid_message");
+      expect(invalidRecords()).toHaveLength(1);
+      expect(invalidRecords()[0]).toMatchObject({
+        eventType: "invalid_message", healthStatus: "error", invalidMessage: true,
+        detail: {
+          code: "LEDSCORES_MESSAGE_INVALID",
+          validationIssues: [
+            { code: "invalid_union", path: "message.teams.away", shape: { type: "null" } },
+            { code: "invalid_union", path: "message.teams.home", shape: {
+              type: "object", primitiveFields: [
+                { key: "id", type: "string" }, { key: "name", type: "string" },
+                { key: "type", type: "string" }, { key: "active", type: "boolean" }
+              ]
+            } }
+          ]
+        }
+      });
+      const diagnostic = JSON.stringify(invalidRecords());
+      expect(diagnostic).not.toContain("PRIVATE_");
+      expect(diagnostic).not.toContain("private-invalid-shape-update");
+      expect(diagnostic).not.toContain("private.example.invalid");
+      expect(Buffer.byteLength(diagnostic)).toBeLessThan(2_000);
+      expect(backend.touch).toHaveBeenCalledOnce();
+      expect(JSON.stringify(vi.mocked(backend.upsertLiveState).mock.calls)).toBe(lastValidCalls);
+      expect(backend.dispatch).not.toHaveBeenCalled();
+      expect(backend.dispatchOverlay).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(30_000);
+      socket.message(invalid());
+      await vi.advanceTimersByTimeAsync(1);
+      expect(invalidRecords()).toHaveLength(2);
+      expect(webSocketFactory).toHaveBeenCalledOnce();
+      expect(backend.touch).toHaveBeenCalledOnce();
+      expect(JSON.stringify(vi.mocked(backend.upsertLiveState).mock.calls)).toBe(lastValidCalls);
+
+      const recoveredAt = Date.now();
+      socket.message(providerMessage(recoveredAt, "valid-after-shape-error"));
+      await vi.advanceTimersByTimeAsync(1);
+      expect(backend.touch).toHaveBeenCalledTimes(2);
+      expect(vi.mocked(backend.touch).mock.calls.at(-1)?.[2]).toMatchObject({
+        awayTeamId: "27753", homeTeamId: "23603", updateId: "valid-after-shape-error",
+        updatedAt: new Date(recoveredAt).toISOString()
+      });
+      expect(backend.dispatch).not.toHaveBeenCalled();
+      expect(backend.dispatchOverlay).not.toHaveBeenCalled();
+      expect(webSocketFactory).toHaveBeenCalledOnce();
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
+  it("keeps the default 45 second initial-message guard active for rejected team shapes", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      let claimed = false;
+      const backend = fakeBackend({
+        claim: vi.fn(async () => {
+          if (claimed) return [];
+          claimed = true;
+          return [connection];
+        }),
+        recordState: vi.fn(async (input: Parameters<LedScoresConnectorBackend["recordState"]>[0]) => {
+          if (input.eventType === "connection_error") controller.abort();
+          return true;
+        })
+      });
+      loop = runLedScoresConnectorLoop({
+        backend, claimIntervalMs: 1_000, leaseSeconds: 45, maxConnections: 1,
+        signal: controller.signal,
+        webSocketFactory: () => {
+          const socket = new FakeWebSocket();
+          queueMicrotask(() => {
+            socket.emit("open", new Event("open"));
+            socket.message(providerMessage(Date.now(), "invalid-initial-team-shape", {
+              teams: { away: null, home: null }
+            }));
+          });
+          return socket as unknown as WebSocket;
+        },
+        workerId: "worker:test"
+      });
+      await vi.advanceTimersByTimeAsync(44_999);
+      expect(backend.recordState).toHaveBeenCalledWith(expect.objectContaining({ eventType: "invalid_message" }));
+      expect(backend.recordState).not.toHaveBeenCalledWith(expect.objectContaining({ eventType: "connection_error" }));
+      await vi.advanceTimersByTimeAsync(1);
+      await loop;
+      expect(backend.recordState).toHaveBeenCalledWith(expect.objectContaining({
+        eventType: "connection_error", detail: expect.objectContaining({ code: "ledscores_initial_message_timeout" })
+      }));
+      expect(backend.recordState).not.toHaveBeenCalledWith(expect.objectContaining({ healthStatus: "connected" }));
+      expect(backend.touch).not.toHaveBeenCalled();
+      expect(backend.upsertLiveState).not.toHaveBeenCalled();
+      expect(backend.dispatch).not.toHaveBeenCalled();
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
   it("marks invalid source data as unhealthy and immediately recovers on the next valid message", async () => {
     vi.useFakeTimers();
     const controller = new AbortController();
