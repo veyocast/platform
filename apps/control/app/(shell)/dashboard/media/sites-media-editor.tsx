@@ -4,7 +4,7 @@
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ReactNode } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@veyocast/ui";
+import { Button, Dialog, DialogContent, DialogTitle } from "@veyocast/ui";
 import type { MediaLibraryAsset } from "./media-library-workspace";
 import { saveSitesMediaMetadata, type SitesMediaMetadataResult } from "./sites-media-metadata-actions";
 import styles from "./sites-media.module.css";
@@ -38,7 +38,7 @@ export function SitesMediaEditor({ asset, canWrite, folders, onClose, addAction,
   }
   function changed(change: () => void) { if (pendingRef.current) return; change(); command.current = null; setNotice(null); }
   return <Dialog open onOpenChange={next => { if (!next) close(); }}>
-    <DialogContent className={`sites-control demo-modal wide ${styles.page} ${styles.mobileMedia} ${styles.metadataDialog}`} size="wide" showClose={false} onEscapeKeyDown={event => { if (dirty || pending) { event.preventDefault(); close(); } }} onPointerDownOutside={event => { if (dirty || pending) { event.preventDefault(); close(); } }}>
+    <DialogContent className={`sync-control sync-retained-media sites-control demo-modal wide ${styles.page} ${styles.mobileMedia} ${styles.metadataDialog}`} size="wide" showClose={false} onEscapeKeyDown={event => { if (dirty || pending) { event.preventDefault(); close(); } }} onPointerDownOutside={event => { if (dirty || pending) { event.preventDefault(); close(); } }}>
       <div className="demo-modal-heading"><DialogTitle>{asset.title}</DialogTitle><button aria-label="Mediavenster sluiten" className="demo-icon" disabled={pending} onClick={close} type="button"><X aria-hidden="true" size={20} /></button></div>
       <div className={styles.previewLayout}>
         <div className={styles.imagePreview}>{asset.previewUrl ? asset.kind === "video" ? <video controls muted preload="metadata" src={asset.previewUrl}><track kind="captions" /></video> : <img alt={asset.title} src={asset.previewUrl} /> : <p>Voorbeeld niet beschikbaar. Controleer de verwerking en probeer opnieuw.</p>}</div>
@@ -51,7 +51,7 @@ export function SitesMediaEditor({ asset, canWrite, folders, onClose, addAction,
           <label className={styles.checkLabel}><input checked={favorite} disabled={!canWrite || pending} onChange={event => changed(() => setFavorite(event.target.checked))} type="checkbox" />Favoriet beeld</label>
           <div className={styles.usageBox}><strong>{asset.usage}</strong>{asset.draftCount + asset.releaseCount === 0 ? <span>Nog geen playlistgebruik</span> : null}</div>
           {notice ? <p className={styles.metadataNotice} role="alert">{notice.message}</p> : null}
-          <button className="demo-button primary" disabled={!canWrite || pending || title.trim().length < 2 || !asset.updatedAt} onClick={() => void save()} type="button">{pending ? "Opslaan…" : "Wijzigingen opslaan"}</button>
+          <Button disabled={!canWrite || pending || title.trim().length < 2 || !asset.updatedAt} onClick={() => void save()} type="button" variant="primary">{pending ? "Opslaan…" : "Wijzigingen opslaan"}</Button>
           {addAction(pending)}<div className={styles.archiveAction}>{archiveAction(pending)}</div>
           <a className={styles.metadataDetails} href={asset.manageHref} onClick={event => { if (dirty || pending) { event.preventDefault(); close(); } }}>Bestandsdetails en gebruik bekijken</a>
           {!canWrite ? <p className={styles.metadataNotice}>Alleen lezen. Je hebt geen rechten om deze media te wijzigen.</p> : null}

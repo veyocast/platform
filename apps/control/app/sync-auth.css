@@ -1,0 +1,331 @@
+/* Real account flows use the chosen Sync surface; the immutable Source stays intact. */
+.sync-control.sync-auth {
+  --sync-auth-action: var(--accent);
+  --vc-background: var(--bg);
+  --vc-surface: var(--surface);
+  --vc-surface-muted: var(--surface-2);
+  --vc-text: var(--text);
+  --vc-text-muted: var(--muted);
+  --vc-border: var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.55 Manrope, Inter, sans-serif;
+  min-width: 0;
+}
+
+.sync-control.sync-auth.auth-shell {
+  min-height: 100dvh;
+  padding: 20px;
+}
+
+.sync-auth .auth-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  gap: 18px;
+  max-width: 540px;
+  padding: 26px;
+  width: min(540px, 100%);
+}
+
+.sync-auth .auth-panel--wide {
+  max-width: 960px;
+  width: min(960px, 100%);
+}
+
+.sync-auth .auth-brand {
+  height: auto;
+  margin-bottom: 10px;
+  max-width: 100%;
+  width: 210px;
+}
+
+.sync-auth :is(.auth-title, .work-panel__title) {
+  color: var(--text);
+  font-family: Manrope, Inter, sans-serif;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -.045em;
+  line-height: 1.22;
+}
+
+.sync-auth :is(.auth-kicker, .auth-copy, .auth-footnote, .field p, .field label, .auth-consent, .notice) {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.sync-auth :is(.auth-kicker, .auth-copy, .auth-footnote, .field p) {
+  color: var(--muted);
+}
+
+.sync-auth :is(.auth-form, .onboarding-form, .onboarding-operational-step, .mfa-section, .mfa-enrollment) {
+  gap: 18px;
+  min-width: 0;
+}
+
+.sync-auth .field {
+  gap: 7px;
+}
+
+.sync-auth .field label {
+  color: var(--text);
+  font-weight: 650;
+  overflow: visible;
+  white-space: normal;
+}
+
+.sync-auth :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.sync-auth :is(.field input, .field select, .field textarea, .mfa-challenge-form input) {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  min-height: 44px;
+  padding: 11px 13px;
+}
+
+.sync-control :is(.auth-button, .button-link--primary),
+.sync-control.sync-retained-media .vc-button--primary {
+  background: var(--sync-auth-action, var(--accent));
+  border: 1px solid transparent;
+  color: var(--surface);
+}
+
+.sync-control :is(.auth-button, .button-link--primary):hover:not(:disabled):not([aria-disabled="true"]),
+.sync-control.sync-retained-media .vc-button--primary:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--sync-auth-action, var(--accent)), black 12%);
+  filter: none;
+}
+
+.sync-control.sync-retained-media .vc-button {
+  border-radius: 10px;
+  min-height: 44px;
+}
+
+.sync-auth :is(.auth-button, .button-link) {
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  min-height: 44px;
+  padding: 11px 16px;
+  white-space: normal;
+}
+
+.sync-auth .button-link--secondary {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.sync-auth .button-link--secondary:hover {
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+
+.sync-auth .auth-footnote {
+  display: grid;
+  gap: 8px;
+}
+
+.sync-auth .auth-footnote a:not(.button-link) {
+  align-items: center;
+  color: var(--accent);
+  display: inline-flex;
+  min-height: 44px;
+}
+
+.sync-auth .auth-consent {
+  align-items: center;
+  min-height: 44px;
+}
+
+.sync-auth .auth-consent input,
+.sync-auth .onboarding-choice-grid input {
+  accent-color: var(--accent);
+  height: 20px;
+  width: 20px;
+}
+
+.sync-auth .auth-consent a {
+  color: var(--accent);
+}
+
+.sync-auth .notice {
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  padding: 13px;
+}
+
+.sync-auth .mfa-section {
+  border-color: var(--line);
+  padding-top: 18px;
+}
+
+.sync-auth .mfa-factor {
+  background: var(--surface-2);
+  border-color: var(--line);
+  border-radius: 12px;
+  flex-wrap: wrap;
+  padding: 18px;
+}
+
+.sync-auth .mfa-factor > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sync-auth .mfa-factor span {
+  color: var(--muted);
+}
+
+.sync-auth .mfa-challenge-form {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.sync-auth .mfa-enrollment summary {
+  align-content: center;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.sync-auth.onboarding-shell {
+  align-content: start;
+  gap: 26px;
+  min-height: 100dvh;
+  padding: 26px;
+}
+
+.sync-auth.onboarding-shell > .auth-brand {
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+.sync-auth .vc-journey-shell {
+  gap: 18px;
+}
+
+.sync-auth :is(.vc-journey-shell__header, .vc-journey-shell__content, .vc-journey-shell__aside) {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 26px;
+}
+
+.sync-auth .vc-journey-shell__eyebrow {
+  color: var(--accent);
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.sync-auth .vc-journey-shell__title {
+  color: var(--text);
+  font: 750 clamp(27px, 2.6vw, 36px)/1.22 Manrope, Inter, sans-serif;
+  letter-spacing: -.045em;
+}
+
+.sync-auth .vc-journey-shell__description {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.sync-auth .vc-journey-shell__steps li[data-state="current"] {
+  border-color: var(--accent);
+}
+
+.sync-auth .vc-journey-shell__step-index {
+  background: var(--surface-2);
+  font-size: 14px;
+}
+
+.sync-auth .vc-journey-shell__layout {
+  gap: 18px;
+}
+
+.sync-auth .onboarding-choice-grid > label {
+  background: var(--surface);
+  border-color: var(--line);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.sync-auth .onboarding-choice-grid small {
+  font-size: 14px;
+}
+
+.sync-auth .onboarding-choice-grid > label:has(input:checked) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.sync-auth.sync-auth--context {
+  background: transparent;
+  gap: 18px;
+  max-width: 1180px;
+}
+
+.sync-auth--context .work-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
+
+.sync-auth--context :is(.work-panel__header, .context-list__item) {
+  border-color: var(--line);
+  padding: 18px 26px;
+}
+
+.sync-auth--context .context-list__item p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .sync-auth .auth-panel,
+  .sync-auth :is(.vc-journey-shell__header, .vc-journey-shell__content, .vc-journey-shell__aside) {
+    padding: 18px;
+  }
+
+  .sync-auth.onboarding-shell {
+    padding: 20px;
+  }
+
+  .sync-auth .vc-journey-shell__layout--with-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sync-auth .vc-journey-shell__aside {
+    order: 0;
+    position: static;
+  }
+
+  .sync-auth .onboarding-choice-grid--sources {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sync-auth--context .context-list__item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sync-auth--context :is(.work-panel__header, .context-list__item) {
+    padding: 18px;
+  }
+
+  .sync-auth--context .context-list__item .button-link {
+    width: 100%;
+  }
+}
+
+/* The retained body portal keeps readable metadata controls at both sizes. */
+.sync-control.sync-retained-media .demo-field.demo-field,
+.sync-control.sync-retained-media .demo-field.demo-field :is(span,label,input,select,textarea),
+.sync-control.sync-retained-media .vc-button.vc-button{font-size:14px;line-height:1.5}

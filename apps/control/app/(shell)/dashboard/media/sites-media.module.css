@@ -134,3 +134,8 @@
 /* Original Source spacing, with canonical primary and mobile targets. */
 @media(min-width:768px){.page>.heading{margin-bottom:0}.headingActions :global(.vc-button){line-height:1.3}.storageCard :global(.vc-button){font-size:11px!important;line-height:1.3!important}.mobileMedia :global(.vc-button){height:auto!important;min-height:42px!important}.mobileMedia :global(.vc-button--primary){min-height:44px!important}}
 @media(max-width:767px){.mobileMedia{gap:16px}.mobileMedia .collectionBanner :global(.vc-button){display:none}.mobileMedia .headingActions>:global(.vc-button){height:48px!important;min-height:48px!important}}
+
+/* Retained metadata uses the surrounding Source text tokens at readable sizes. */
+.metadataDialog .inspector :global(.demo-badge){color:var(--text);font-size:14px;line-height:1.5;justify-self:start}
+.metadataDialog .usageBox>span{color:var(--text);font-size:14px;line-height:1.5}
+.metadataDialog .metadataDetails{display:flex;align-items:center;min-height:44px;font-size:14px;color:var(--accent)}

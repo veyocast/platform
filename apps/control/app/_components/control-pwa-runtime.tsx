@@ -81,7 +81,7 @@ export function ControlPwaRuntime() {
       <div className={styles.toast} data-kind="update" role="status">
         <RefreshCw aria-hidden="true" />
         <span>
-          <strong>VeyoCast is bijgewerkt</strong>
+          <strong>Nieuwe versie beschikbaar</strong>
           <small>Herlaad om de nieuwste veilige versie te gebruiken.</small>
         </span>
         <button onClick={activateUpdate} type="button">Nu herladen</button>

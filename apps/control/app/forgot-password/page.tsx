@@ -13,7 +13,7 @@ export default async function ForgotPasswordPage({
   const { status } = await searchParams;
 
   return (
-    <main className="auth-shell">
+    <main className="sync-control sync-auth auth-shell">
       <section className="auth-panel" aria-labelledby="forgot-password-title">
         <AuthBrand />
         <div>

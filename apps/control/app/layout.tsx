@@ -12,6 +12,7 @@ import "./globals.css";
 import "./fieldflow.css";
 import "./sync-source.css";
 import "./sync-adapter.css";
+import "./sync-auth.css";
 import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
 
 export const metadata: Metadata = {
