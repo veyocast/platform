@@ -61,3 +61,8 @@ De eerdere108,39px metricbevinding blijft in het v1rapport bewaard; padding
 en gap zijn gericht verminderd, de100px-grens blijft gelijk. Het voorafgaande
 volledige actuele foundationcohort heeft68/68PASS,64cached. Geïntegreerde
 foundation na normale S234merge, exacte hosted CI en uitrol volgen apart.
+
+Na de normale S234/S232/S236-dependencymerge is de volledige actuele
+foundation68/68PASS,64cached; Control1.401PASS/34bestaandeSKIP. Log
+`/tmp/veyocast-s237-integrated-foundation.log`. Eigencampagne-/CRMcode bleef
+bij de merge ongewijzigd; hosted exacte CI en release blijven aparte gates.
