@@ -4,6 +4,7 @@ import {
   sportDynamicSlideTypes,
   sportlinkBirthdayConfigurationSchema,
   syncSlidePresentationSchema,
+  syncBackgroundScenes,
   type PlayerDynamicTemplatePayload,
   type SyncContentFamily,
 } from "@veyocast/contracts";
@@ -66,6 +67,20 @@ function presentation(result: ReturnType<typeof projectSyncDynamicSnapshot>) {
 }
 
 describe("new Source projections of existing canonical snapshots", () => {
+  it("keeps each frozen scene, crop and authored style while canonical menu facts update in either orientation", () => {
+    for (const scene of syncBackgroundScenes) for (const orientation of ["landscape", "portrait"] as const) {
+      const asset = scene[orientation], selected = seed("menu");
+      selected.orientation = orientation;
+      selected.style = { ...selected.style, background: "photo", backgroundPosition: "right", backgroundAsset: { kind: "system", path: asset.path, checksumSha256: asset.sha256 } };
+      const before = JSON.stringify(selected);
+      const project = (name: string, priceMinor: number) => presentation(projectSyncDynamicSnapshot({ ...payload("menu", { menu: { products: [{ id: "own-product", name, category: "Eigen kaart", priceMinor }] } }), orientation }, selected, now));
+      const old = project("Koffie", 250), fresh = project("Nieuwe koffie", 325);
+      expect(old.rows[0]?.[0]).toBe("Koffie"); expect(fresh.rows[0]?.[0]).toBe("Nieuwe koffie"); expect(fresh.rows[0]?.[1]).toContain("3,25");
+      expect(fresh.style).toEqual(selected.style); expect(old.style).toEqual(fresh.style);
+      expect(resolveSyncDynamicAsset({ ...payload("menu", {}), orientation }, selected.style.backgroundAsset!)).toBe(asset.path);
+      expect(JSON.stringify(selected)).toBe(before);
+    }
+  });
   it.each(sportDynamicSlideTypes)(
     "supports the actual %s family without broadening historical renderer identity",
     (slideType) => {

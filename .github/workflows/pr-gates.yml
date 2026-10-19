@@ -103,6 +103,25 @@ jobs:
         run: pnpm --filter @veyocast/marketing build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Prepare complete gallery video fixtures
+        if: matrix.group == 'player'
+        shell: bash
+        env:
+          S238_BACKGROUND_BINARIES: ${{ runner.temp }}/browser-gates/s238-background-binaries-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -Eeuo pipefail
+          if ! command -v ffmpeg > /dev/null || ! command -v ffprobe > /dev/null; then
+            sudo apt-get update
+            sudo apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version
+          ffprobe -version
+          export SITES_CAPTURE_TEST_CHROMIUM
+          SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')
+          test -x "$SITES_CAPTURE_TEST_CHROMIUM"
+          mkdir -p "$RUNNER_TEMP/browser-gates"
+          pnpm exec tsx tests/helpers/sync-background-binary.ts
+          printf 'S238_BACKGROUND_BINARIES=%s\n' "$S238_BACKGROUND_BINARIES" >> "$GITHUB_ENV"
       - name: Verify every discovered spec in the application group
         env:
           PLAYWRIGHT_GATE_GROUP: ${{ matrix.group }}

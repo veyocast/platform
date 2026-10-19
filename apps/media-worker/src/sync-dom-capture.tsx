@@ -10,6 +10,8 @@ import {
   syncSlideAssets,
   syncSlidePresentationSchema,
   syncSystemAssets,
+  syncBackgroundAssets,
+  syncBackgroundAssetForRef,
   syncSlideTransition,
   type SyncSlidePresentation,
 } from "@veyocast/contracts";
@@ -29,7 +31,7 @@ import {
 
 const origin = "http://sync-render.invalid";
 const files = new Map(
-  syncSystemAssets.map((asset) => [asset.path as string, asset]),
+  [...syncSystemAssets, ...syncBackgroundAssets].map((asset) => [asset.path as string, asset]),
 );
 const publicDirectoryDefault = fileURLToPath(
   new URL("../../player/public/", import.meta.url),
@@ -201,13 +203,20 @@ export async function createSyncSlideCapture({
       failureStage = "font_load";
       await loadSitesCaptureFonts(page);
       failureStage = "dependency_decode";
-      await page.evaluate(async () => {
+      await page.evaluate(async (background) => {
         await Promise.all([...document.images].map((image) => image.decode()));
+        if (background) {
+          const image = new Image();
+          image.src = background.path;
+          await image.decode();
+          if (image.naturalWidth !== background.width || image.naturalHeight !== background.height)
+            throw Error("Sync background dimensions invalid");
+        }
         document.getAnimations().forEach((animation) => {
           animation.pause();
           animation.currentTime = 0;
         });
-      });
+      }, syncBackgroundAssetForRef(input.style.backgroundAsset) ?? null);
       if (assetFailed) throw new SitesDomCaptureError("asset_integrity");
       failureStage = "raster_capture";
       settledPng = await captureSettledSitesRaster(page);

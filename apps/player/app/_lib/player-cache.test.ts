@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { syncBackgroundAssets, syncSlidePresentationSchema, syncSystemAssets } from "@veyocast/contracts";
 
 import {
   demoOnlineDeviceToken,
@@ -589,3 +591,82 @@ function createPendingEnvelope({
     state: "PLAYING"
   };
 }
+
+async function approvedBackgroundCache(background = syncBackgroundAssets[0]!) {
+  const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
+  if (!lookup.ok) throw Error("fixture missing");
+  const envelope = structuredClone(lookup.body), binary = new TextEncoder().encode("complete verified binary");
+  envelope.manifest.items = [envelope.manifest.items[0]!];
+  const item = envelope.manifest.items[0]!;
+  item.source = { bytes: binary.byteLength, checksumSha256: await sha256Hex(binary.buffer), mimeType: "image/png", url: "https://media.example/complete.png" };
+  item.syncStudioPresentation = syncSlidePresentationSchema.parse({ schemaVersion: 1, rendererVersion: "sync-v1", sourceRevision: "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a", family: "free", orientation: "landscape", theme: "onzetrots-tv", name: "Eigen ontwerp", title: "Eigen titel", club: { name: "Eigen club" }, style: { background: "photo", backgroundAsset: { kind: "system", path: background.path, checksumSha256: background.sha256 } } });
+  item.syncStudioDurationMs = 3000; item.syncStudioAssets = {};
+  envelope.manifest.syncSystemAssets = [...syncSystemAssets, background].map(asset => ({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType }));
+  const store = new MemoryMediaStore(), assets = getCacheableAssets(envelope.manifest);
+  for (const asset of assets) await store.put(asset.cacheKey, new Response(asset.kind === "system" ? readFileSync(new URL(`../../public${asset.url}`, import.meta.url)) : binary, { headers: { "Content-Type": asset.kind === "system" ? envelope.manifest.syncSystemAssets.find(value => value.path === asset.url)!.mimeType : "image/png" } }));
+  return { envelope, assets, store, background, key: `/__veyocast-player-cache/${background.sha256}` };
+}
+
+describe("approved background hydration before activation", () => {
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  it.each(syncBackgroundAssets)("verifies $path and waits for its local image decode", async background => {
+    const value = await approvedBackgroundCache(background), decoded: string[] = [];
+    let complete!: () => void;
+    vi.stubGlobal("Image", class { src = ""; naturalWidth = background.width; naturalHeight = background.height; removeAttribute() {} decode() { decoded.push(this.src); return new Promise<void>(resolve => { complete = resolve; }); } });
+    let ready = false;
+    const hydration = hydratePreparedRelease(value, value.store).then(result => { ready = true; return result; });
+    await vi.waitFor(() => expect(decoded).toEqual([value.key]));
+    expect(ready).toBe(false); complete();
+    const result = await hydration;
+    expect(result.envelope.manifest.items[0]!.syncSystemAssetUrls?.[background.path]).toBe(value.key);
+    expect(ready).toBe(true);
+  });
+  it("rejects missing, corrupt, wrong-size and wrong-MIME cached photographs before readiness", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch");
+    for (const fault of ["missing", "corrupt", "size", "mime"]) {
+      const value = await approvedBackgroundCache();
+      if (fault === "missing") await value.store.delete(value.key);
+      else if (fault === "mime") await value.store.put(value.key, new Response(readFileSync(new URL(`../../public${value.background.path}`, import.meta.url)), { headers: { "Content-Type": "image/png" } }));
+      else { const original = readFileSync(new URL(`../../public${value.background.path}`, import.meta.url)), bytes = fault === "size" ? original.subarray(1) : Buffer.from(original); if (fault === "corrupt") bytes[20] = bytes[20]! ^ 1; await value.store.put(value.key, new Response(bytes, { headers: { "Content-Type": "image/webp" } })); }
+      const resolve = vi.spyOn(value.store, "resolvePlaybackUrl");
+      await expect(hydratePreparedRelease(value, value.store)).rejects.toThrow(fault === "mime" ? "SYNC_BACKGROUND_MIME_INVALID" : "missing or corrupt");
+      expect(resolve).not.toHaveBeenCalled();
+    }
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it.each(["decode", "dimensions", "timeout"])("a %s failure revokes only candidate URLs and retains LKG bytes", async fault => {
+    const value = await approvedBackgroundCache();
+    vi.stubGlobal("location", { origin: "https://player.veyocast.nl" });
+    let sequence = 0;
+    const created: string[] = [], revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    vi.spyOn(value.store, "resolvePlaybackUrl").mockImplementation(async key => { const url = `blob:https://player.veyocast.nl/${key.split("/").at(-1)}-${sequence++}`; created.push(url); return { url, objectUrl: url }; });
+    const activeEnvelope = structuredClone(value.envelope);
+    activeEnvelope.manifest.items[0]!.syncStudioPresentation!.style.background = "clubmuur";
+    delete activeEnvelope.manifest.items[0]!.syncStudioPresentation!.style.backgroundAsset;
+    activeEnvelope.manifest.syncSystemAssets!.pop();
+    const active = await hydratePreparedRelease({ envelope: activeEnvelope, assets: getCacheableAssets(activeEnvelope.manifest) }, value.store);
+    const activeUrls = Object.values(active.objectUrls), activeBytes = await (await value.store.get(active.assets[0]!.cacheKey))!.arrayBuffer();
+    created.length = 0;
+    let decodeStarted = false;
+    vi.stubGlobal("Image", class { src = ""; naturalWidth = fault === "dimensions" ? 1 : value.background.width; naturalHeight = value.background.height; removeAttribute() {} decode() { decodeStarted = true; return fault === "timeout" ? new Promise<void>(() => {}) : fault === "decode" ? Promise.reject(Error("bad decoder")) : Promise.resolve(); } });
+    if (fault === "timeout") vi.useFakeTimers();
+    const assertion = expect(hydratePreparedRelease(value, value.store)).rejects.toThrow("SYNC_BACKGROUND_DECODE_FAILED");
+    if (fault === "timeout") { await vi.waitFor(() => expect(decodeStarted).toBe(true)); await vi.advanceTimersByTimeAsync(5000); }
+    await assertion;
+    expect(new Set(revoke.mock.calls.map(([url]) => url))).toEqual(new Set(created));
+    for (const url of activeUrls) expect(revoke).not.toHaveBeenCalledWith(url);
+    expect(await (await value.store.get(active.assets[0]!.cacheKey))!.arrayBuffer()).toEqual(activeBytes);
+    expect(activeUrls).toContain(active.envelope.manifest.items[0]!.source.url);
+    expect(value.envelope.manifest.items[0]!.source.url).toBe("https://media.example/complete.png");
+    expect(await value.store.keys()).toHaveLength(value.assets.length);
+  });
+  it("boots an old eleven-asset cache without creating a photograph decoder", async () => {
+    const value = await approvedBackgroundCache();
+    value.envelope.manifest.items[0]!.syncStudioPresentation!.style.background = "clubmuur";
+    delete value.envelope.manifest.items[0]!.syncStudioPresentation!.style.backgroundAsset;
+    value.envelope.manifest.syncSystemAssets!.pop(); value.assets = getCacheableAssets(value.envelope.manifest);
+    const image = vi.fn(() => { throw Error("old cache must not gain a decoder"); }); vi.stubGlobal("Image", image);
+    const result = await hydratePreparedRelease(value, value.store);
+    expect(result.envelope.manifest.syncSystemAssets).toHaveLength(11); expect(image).not.toHaveBeenCalled();
+  });
+});

@@ -1,5 +1,6 @@
 import {
   syncSystemAssets,
+  syncBackgroundAssetForRef,
   syncSlideAssets,
   syncSlidePageCount,
   syncSlidePresentationSchema,
@@ -29,15 +30,20 @@ export function assertSyncPlayerAssetManifest(
   for(const item of manifest.items)if(item.syncDynamicBinary!==undefined){const parsed=syncDynamicBinaryPlaybackSchema.safeParse(item.syncDynamicBinary);if(!parsed.success||item.syncDynamic||item.syncStudioPresentation||item.sitesStudioPresentation||item.dynamicTemplate||parsed.data.fallbackChecksumSha256!==item.source.checksumSha256)throw Error('SYNC_DYNAMIC_BINARY_INVALID');}
   if (items.length && !declared) throw Error("SYNC_ASSET_MANIFEST_INVALID");
   if (declared) {
+    const extraBackgrounds = items.flatMap(item => {
+      const parsed = syncSlidePresentationSchema.safeParse(item.syncDynamic?.presentation ?? item.syncStudioPresentation);
+      const asset = parsed.success && syncBackgroundAssetForRef(parsed.data.style.backgroundAsset);
+      return asset ? [asset] : [];
+    });
     const expected = new Map(
-      syncSystemAssets.map((asset) => [asset.path, asset]),
+      [...syncSystemAssets,...extraBackgrounds].map((asset) => [asset.path as string, asset]),
     );
     if (
       declared.length !== expected.size ||
       new Set(declared.map((asset) => asset.path)).size !== expected.size ||
       declared.some((asset) => {
         const actual = expected.get(
-          asset.path as (typeof syncSystemAssets)[number]["path"],
+          asset.path,
         );
         return (
           !actual ||
