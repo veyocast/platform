@@ -72,3 +72,12 @@ Dit is lokaal werkelijk write-/replay-/databehoudbewijs, geen productie-
 accountacceptatie, vijf volledige audit­ronden, algemene pixelpariteit of
 volledige V1-acceptatie. Fysieke apparaten/24u en de door de gebruiker
 uitgestelde externe diensten blijven apart.
+
+## Normale dependencyintegratie
+S234 is met gewone merge geïntegreerd. Alleen de imports van de eigen
+wizardspec zijn samengevoegd met de nieuwe gedeelde fixture; twee nieuwe en
+elf bestaande cases blijven behouden. Alle20wizard-/defaultscases zijn op
+de geïntegreerde versie groen (44,8s,1worker,0retry/0skip), rapport
+`/tmp/veyocast-s235-wizard-integrated.json`. Een overgenomen lege EOFregel
+in de helper is verwijderd voor de whitespacegate, zonder JavaScriptdelta.
+Gecombineerde foundation en hosted databasegates volgen op deze exacte merge.

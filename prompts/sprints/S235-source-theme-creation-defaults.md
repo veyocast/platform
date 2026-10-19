@@ -155,3 +155,11 @@ controls of echteveldenverbergen. Primairecataloguscopy/metadata14px. Geen
 manifest/token/SourceCSS/security/writer/schemawijziging. Echteharnessvorige
 0command/alleoudegegevensbehouden; origineleaXerood blijft. Verduidelijkte
 wrappedselectlocators en gebatchteidentieke162tabel-hashreads zijnharnessdelta's.
+
+## Root normale dependencyintegratie
+Integreer S234 via gewone merge, behoud2nieuwe defaults-browsercases en alle
+11bestaandecases bytegelijk; importeer het door S234 geëxtraheerde gedeelde
+fixturehelper. Root ownership omvat uitsluitend imports in eigen spec en
+het verwijderen van één bestaande lege EOFregel in die helper (geen gedrag).
+Actuele20wizard/defaultscases na integratiePASS0skip0retry; oorspronkelijke
+merge-/whitespacebevinding bewaard. SQL blijft identiek aan echteQA-forward.

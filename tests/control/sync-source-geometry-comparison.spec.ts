@@ -105,7 +105,15 @@ for(const row of originalRows())test(`original ${row.case_id} chosen Sync ${row.
    copyComparisons.push({selector,production,reference,reason:'Startprompt explicitly replaces false prototype/demo claims with factual production status. Isolate only the resulting intrinsic text-width reflow; raw screenshot/metrics remain production.'});
    await current.locator(selector).evaluate((element,text)=>{element.textContent=text;},reference);
   }
-  const normalization=route.current==='/website'?null:await current.addStyleTag({content:touchComparisonCss});
+  const sourceFilterTouchCss=route.source==='sources'&&!route.scope
+   ? '.sync-control .admin-page .ad-tabs > button{min-height:0!important}' : '';
+  if(sourceFilterTouchCss){
+   const targets=await current.locator('.ad-tabs > button').evaluateAll(elements=>elements.map(element=>element.getBoundingClientRect().height));
+   expect(targets).toHaveLength(6);
+   expect(targets.every(height=>height>=44),'Actual Source filters retain canonical 44px hit areas').toBe(true);
+  }
+  const comparisonCss=touchComparisonCss+'\n'+sourceFilterTouchCss;
+  const normalization=route.current==='/website'?null:await current.addStyleTag({content:comparisonCss});
   if(normalization&&width<=760){
    // Probes observed stale computed media styles after two mocked rAF
    // callbacks, settled by the first sample after 25ms of host-time waiting.
@@ -125,7 +133,7 @@ for(const row of originalRows())test(`original ${row.case_id} chosen Sync ${row.
   const accessibility=process.env.VEYOCAST_SYNC_RESP_AXE==='1'?{source:(await new AxeBuilder({page:source}).analyze()).violations,current:(await new AxeBuilder({page:current}).analyze()).violations}:undefined;
   const criteria={noHorizontalOverflow:a.overflow===0&&production.overflow===0&&b.overflow===0,assetsLoaded:a.images.every(image=>image.loaded)&&production.images.every(image=>image.loaded)&&b.images.every(image=>image.loaded),shellAndControlGeometry:differences.length===0,activeNavigation:route.scope?b.active.every(label=>label==='Beheer'||label==='Instellingen'):JSON.stringify(a.active)===JSON.stringify(b.active),sourceHeadingOrder:Boolean(route.scope)||JSON.stringify(a.headings.map(h=>h.text))===JSON.stringify(b.headings.map(h=>h.text)),sourceSectionGeometry:headingDifferences.length===0,mobileTouchTargets:production.mobileTargets.every(target=>target.width>=44&&target.height>=44),browserErrors:errors.length===0,accessibility:!accessibility||accessibility.current.length===0};
 
-  const unmet=Object.entries(criteria).filter(([,passed])=>!passed).map(([name])=>name);readbacks.push({caseId:row.case_id,viewport:row.viewport,originalRoute:row.reference_route,currentRoute:route.current,sourceRoute:route.source,status:unmet.length?'PARTIAL':'PASS',criteria,unmet,differences,headingDifferences,scope:route.scope??'Actual chosen Source route',source:a,current:production,referenceState,copyComparisons,sourceContentAvailable:!route.scope,touchCanonComparison:normalization?{css:touchComparisonCss,measurement:b,scope:'Counterfactual Source-size hit areas only; raw production is recorded separately. Not an actual pixel-equality claim.'}:null,errors,accessibility});
+  const unmet=Object.entries(criteria).filter(([,passed])=>!passed).map(([name])=>name);readbacks.push({caseId:row.case_id,viewport:row.viewport,originalRoute:row.reference_route,currentRoute:route.current,sourceRoute:route.source,status:unmet.length?'PARTIAL':'PASS',criteria,unmet,differences,headingDifferences,scope:route.scope??'Actual chosen Source route',source:a,current:production,referenceState,copyComparisons,sourceContentAvailable:!route.scope,touchCanonComparison:normalization?{css:comparisonCss,measurement:b,scope:'Counterfactual Source-size hit areas only; raw production is recorded separately. Not an actual pixel-equality claim.'}:null,errors,accessibility});
   expect(criteria.noHorizontalOverflow).toBe(true);expect(criteria.assetsLoaded).toBe(true);expect(errors).toEqual([]);
   if(accessibility)expect(accessibility.current).toEqual([]);
   if(process.env.VEYOCAST_SYNC_RESP_REQUIRE_COMPLETE==='1')expect(unmet,`${row.case_id} has unexplained chosen Sync differences`).toEqual([]);

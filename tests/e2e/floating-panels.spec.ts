@@ -129,7 +129,7 @@ test("het volledige Beheer-paneel blijft bereikbaar op echte mobiele viewports",
     const trigger = sidebar.getByRole("button", {name: "Beheer", exact: true});
     await trigger.scrollIntoViewIfNeeded();
     await trigger.click();
-    const panel = page.getByRole("dialog", {name: "Beheer", exact: true});
+    const panel = page.getByRole("dialog", {name: "Beheer je werkplek", exact: true});
     await expect(panel).toBeVisible();
     const last = panel.getByRole("link").last();
     await last.scrollIntoViewIfNeeded();

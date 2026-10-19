@@ -19,7 +19,7 @@
     "wizardRecoveryFollowup": 2,
     "management": 4,
     "note": "Final production-built management and RSS warning Source captures passed their bounded geometry/aXe/no-write guards. Raw differences remain, including safe real data versus Source demos. Full five rounds and domain parity remain open.",
-    "chooserFinal": 7,
+    "chooserFinal": 8,
     "wizardCachedSourceFollowup": 1,
     "sourcesOriginal": 6,
     "sourcesRecoveryFollowup": 6,
@@ -74,10 +74,10 @@
     "Old theme defaults versus global rollout, rawmedia filmstrip/series and other inventoried Source routes require further real implementation; no fake controls or general V1/pixel claim."
   ],
   "latestFoundation": {
-    "lint": "latest30/30PASS,29cached",
+    "lint": "integrated mainb342 + chooserfix:30/30PASS",
     "controlTypecheck": "PASS after Source readback fixes",
-    "test": "latest30/30PASS,Control1272PASS34existingSKIP",
-    "fullTypecheck": "latest30/30PASS,29cached",
+    "test": "integrated mainb342 + chooserfix:30/30PASS,Control1272PASS34existingSKIP",
+    "fullTypecheck": "integrated mainb342 + chooserfix:30/30PASS",
     "productionBuild": "PASS with dynamic protected routes and secret-free client bundle; separate RAM output",
     "productionBuildProof": {
       "path": "/tmp/veyocast-s234-production-build-runtime.json",
@@ -131,5 +131,64 @@
     "blockedWrites": 0,
     "oldTenantTablesUnchanged": 15,
     "sourceFilesUnchanged": 60
-  }
+  },
+  "actorChangeRecovery": {
+    "before": {
+      "path": "/tmp/veyocast-s234-actor-before.json",
+      "sha256": "a8f409c5584d4e07197bb60e6225ab412026df81c80c4e609834b0e4e15563d9",
+      "result": "1FAIL after actor change during held receipt"
+    },
+    "after": {
+      "path": "/tmp/veyocast-s234-picker-final-actor.json",
+      "sha256": "f05ef792604e28d87f960c38e632906560ad956247cc9632b5220fb53a9f074f",
+      "result": "8/8PASS0skip/retry/flaky"
+    },
+    "fix": "Reset busy/inflight on scope change; old finally cannot unlock newer-generation read; legacy body remains byte-identical and no create issued",
+    "peer": "release_audit read-only ACK"
+  },
+  "postHostedCICorrection": {
+    "status": "LOCAL_PASS_EXACT_HOSTED_CI_AND_DEPLOY_PENDING",
+    "fullFlowCases": 78,
+    "workers": 1,
+    "retries": 0,
+    "skips": 0,
+    "compiledDemoNotProductionLive": true,
+    "foundationTasks": 68,
+    "foundationLog": {
+      "path": "/tmp/veyocast-s234-final-flow-integrated-foundation.log",
+      "sha256": "6ba8e6abd2fda668ede3b32a20a864667ebf881575d8f7331296b9dd0614c6aa"
+    },
+    "flowLog": {
+      "path": "/tmp/veyocast-s234-flow-repair-78-built-scoped-alert.log",
+      "sha256": "a662b2b114928b1fdfe8c799444af08371ef73a7418acb4db8951c84892a773a"
+    },
+    "originalWizardCaseBodiesByteEqual": 11,
+    "firstRedPreserved": [
+      "/tmp/veyocast-s234-flow-repair-78-first.log",
+      "/tmp/veyocast-s234-flow-repair-78-built-first.log"
+    ],
+    "archiveCardCases": 14,
+    "sourcesManagementCases": 12,
+    "savedClubmuurCase": 1,
+    "boundaries": [
+      "Full five rounds remain open",
+      "Built demo uses existing NODE_ENV development demo guard without Supabase credentials",
+      "Original component-spec TS18046 independently reproduced at HEAD remains; changed helper/specs strictTSC pass",
+      "No new SQL, authguard, dependency, SourceCSS, immutable publication or offline change"
+    ]
+  },
+  "resourcePreservationFollowup": [
+    {
+      "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-retired-dev-output-ram-relocation.json",
+      "sha256": "2484c43d8a269bf2329f5cf1d18b48935c17d6d5030ee74be5b0fc14e95a1d7b"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-inactive-browser-artifact-ram-relocation.json",
+      "sha256": "a76a7743bf52900f4045506cf67f9981f45ba8eca9abaebd29ce54c508da4d6e"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s232-completed-runtime-stop.json",
+      "sha256": "327290c121bb9ae3187dd47c8604745b4ec27efdb1caa206b093940db45e71d0"
+    }
+  ]
 }

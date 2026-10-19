@@ -15,7 +15,7 @@ const compiler = require.resolve("esbuild", { paths: [require.resolve("tsx")] })
 let bundle: { js: string; css: string };
 
 test.beforeAll(() => {
-  const entry = `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'./packages/ui/src/components/dialog';import{SyncStudioCreateDialog}from'./apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog';function App(){const[portal,setPortal]=useState(null);return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Templatekiezercontrole</h1><SyncStudioCreateDialog tenantId="23400000-0000-4000-8000-000000000001" tenantName="Acceptatieclub" actorScope="23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000003" canCreate={globalThis.fixtureCanCreate}/></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
+  const entry = `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'./packages/ui/src/components/dialog';import{SyncStudioCreateDialog}from'./apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog';function App(){const[portal,setPortal]=useState(null),[scope,setScope]=useState('23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000003');globalThis.setPickerActor=setScope;return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Templatekiezercontrole</h1><SyncStudioCreateDialog tenantId="23400000-0000-4000-8000-000000000001" tenantName="Acceptatieclub" actorScope={scope} canCreate={globalThis.fixtureCanCreate}/></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
   const script = `const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/control/node_modules'],bundle:true,write:false,outfile:'fixture.js',platform:'browser',format:'iife',jsx:'automatic',loader:{'.module.css':'local-css','.css':'css'},plugins:[{name:'controlled-boundaries',setup(b){b.onResolve({filter:/sync-create-wizard-actions$/},a=>({path:a.path,namespace:'actions'}));b.onLoad({filter:/.*/,namespace:'actions'},()=>({contents:'export async function resolveSyncCreationReceiptAction(input,scope){const r=await fetch("/__picker/receipt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({input,scope})});if(!r.ok)throw Error("Transport unavailable");return r.json()}',loader:'js'}));b.onResolve({filter:/^next\\/navigation$/},a=>({path:a.path,namespace:'navigation'}));b.onLoad({filter:/.*/,namespace:'navigation'},()=>({contents:'export function useRouter(){return{push:path=>{globalThis.visited=(globalThis.visited||[]).concat(path)}}}',loader:'js'}));}}]});const js=result.outputFiles.find(f=>f.path.endsWith('.js'))?.text,css=result.outputFiles.find(f=>f.path.endsWith('.css'))?.text??'';if(!js)throw Error('Missing fixture JavaScript');process.stdout.write(JSON.stringify({js,css}));`;
   bundle = JSON.parse(execFileSync(process.execPath, ["-e", `(async()=>{${script}})().catch(e=>{console.error(e);process.exitCode=1})`], {
     encoding: "utf8", timeout: 30_000, maxBuffer: 16 * 1024 * 1024,
@@ -179,4 +179,34 @@ test("viewer cannot open creation or issue a command", async ({ page }) => {
   await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(fixture.commands).toEqual([]);
   expect(fixture.errors).toEqual([]);
+});
+
+
+test("a changed actor unlocks its chooser and old receipt completion cannot unlock a new read", async ({ page }) => {
+  const fixture = await mount(page);
+  const key = "veyocast-sync-create-v1:23400000-0000-4000-8000-000000000001";
+  const original = JSON.stringify({ tenantId: "23400000-0000-4000-8000-000000000001", idempotencyKey: "23400000-0000-4000-8000-000000000004" });
+  await page.evaluate(({ key, original }) => sessionStorage.setItem(key, original), { key, original });
+  await page.reload(); await fixture.trigger.click();
+  type Held = { body: unknown; finish: () => Promise<void> };
+  const held: Held[] = [];
+  await page.route(`${origin}/__picker/receipt`, async route => {
+    await new Promise<void>(resolve => held.push({ body: route.request().postDataJSON(), finish: async () => { await route.fulfill({ json: { ok: true, href: null } }); resolve(); } }));
+  });
+  const read = page.getByRole("button", { name: "Eerder ontvangstbewijs controleren", exact: true });
+  await read.click(); await expect.poll(() => held.length).toBe(1);
+  await page.evaluate(() => (globalThis as typeof globalThis & { setPickerActor: (scope: string) => void }).setPickerActor("23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000005"));
+  await expect(read).toBeEnabled();
+  await read.click(); await expect.poll(() => held.length).toBe(2);
+  await held[0]!.finish();
+  await expect(page.getByRole("button", { name: "Ontvangstbewijs controleren…", exact: true })).toBeDisabled();
+  await held[1]!.finish(); await expect(read).toBeEnabled();
+  await read.click(); await expect.poll(() => held.length).toBe(3); await held[2]!.finish(); await expect(read).toBeEnabled();
+  expect(held.map(value => (value.body as { scope: string }).scope)).toEqual([
+    "23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000003",
+    "23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000005",
+    "23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000005",
+  ]);
+  expect(await page.evaluate(key => sessionStorage.getItem(key), key)).toBe(original);
+  expect(fixture.commands).toEqual([]); expect(fixture.errors).toEqual([]);
 });
