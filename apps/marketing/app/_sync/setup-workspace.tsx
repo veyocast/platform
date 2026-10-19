@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-html-link-for-pages -- Preserve the supplied Source chrome's native public navigation. */
 import { useRef, useState, type KeyboardEvent } from "react";
 
 import { VenueSetupBuilder } from "../_components/venue-setup-builder";

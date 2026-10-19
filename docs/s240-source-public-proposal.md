@@ -117,8 +117,14 @@ Beide runners zijn exit 0; de browserqueue is vrijgegeven met nul actieve
 Chromiumprocessen. Het lokale eindbewijs staat in
 `/tmp/veyocast-s240-final-proof.json`.
 
-De volledige gecombineerde foundationgate en exacte hosted CI volgen onder de
-afzonderlijk geautoriseerde releasevoorbereiding. Root beheert de verplichte
+De volledige gecombineerde foundationgates slagen na de normale integratie:
+lint, typecheck en test ieder 30/30 taken, CPU6,7 en concurrency1. Respectievelijk
+29, 29 en 28 taken gebruiken een geldige Turbocachehit; de marketinggates zijn
+opnieuw uitgevoerd, inclusief dezelfde twintig units. Zware gates startten
+boven de afgesproken 3500 MiB MemAvailable-grens. Logs staan in
+`/tmp/veyocast-s240-foundation-lint-corrective.log`,
+`/tmp/veyocast-s240-foundation-typecheck.log` en
+`/tmp/veyocast-s240-foundation-test.log`. Exacte hosted CI volgt. Root beheert de verplichte
 PR-artifactattachment en de verdere integratie. Geen PR-merge of deploy door de
 S240-writer.
 Deze wijziging levert geen volledige Source-pariteit, V1-acceptatie,
@@ -133,3 +139,13 @@ wizardhelper had één extra lege EOF-regel. Alleen die ene newline is volgens
 de expliciete uitzondering verwijderd; fixture-inhoud en alle cases bleven
 gelijk. Voor/na-hashes staan in
 `/tmp/veyocast-s240-inherited-helper-eof-proof.json`.
+
+De eerste volledige marketinglint vanuit de app-directory controleerde wel
+de Next-routeankers en faalde op de Source-native publieke `<a>`-elementen;
+de eerdere scoped repo-rootlint kende die routes niet. De eigen chrome heeft
+nu dezelfde gerichte `no-html-link-for-pages`-documentatiepragma als de
+immutable Source. Alleen die comment is na het gebouwde browserbewijs
+toegevoegd; weglaten ervan levert exact de geteste bronbytes op. Er is geen
+markup-, routing- of runtimewijziging en daarom geen extra browser/buildrun.
+De oorspronkelijke 29/30-lintfout staat onveranderd in
+`/tmp/veyocast-s240-foundation-lint.log`.
