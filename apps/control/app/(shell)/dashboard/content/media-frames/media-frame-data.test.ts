@@ -2,10 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mediaFrameDefaultSettings } from "@veyocast/contracts";
 import type { MediaFrameSource } from "./media-frame-types";
 
-const f = vi.hoisted(() => ({ session: vi.fn(), client: vi.fn(), readSource: vi.fn(), sign: vi.fn() }));
+const f = vi.hoisted(() => ({ session: vi.fn(), client: vi.fn(), readSource: vi.fn(), sign: vi.fn(), filmstrip: vi.fn(), binding: vi.fn() }));
 vi.mock("../../../../../lib/control-session", () => ({ requireTenantControlSession: f.session }));
 vi.mock("../../../../../lib/supabase/server", () => ({ createControlSupabaseClient: f.client }));
 vi.mock("./media-frame-actions", () => ({ readMediaFrameSourceAction: f.readSource }));
+vi.mock("./media-frame-filmstrip-data.server", () => ({ loadContentFilmstripPage: f.filmstrip, loadMediaFrameSeriesBinding: f.binding }));
 import { loadMediaFrameEditor } from "./media-frame-data.server";
 
 const tenant = "19170000-0000-4000-8000-000000000010";
@@ -68,6 +69,8 @@ function expectScopedReads() {
 
 beforeEach(() => {
   vi.resetAllMocks(); reads = []; recent = [];
+  f.filmstrip.mockResolvedValue({ items: [], offset: 0, total: 0, hasMore: false });
+  f.binding.mockResolvedValue({ membership: null, series: null });
   frame = { id: frameId, source_asset_id: mainId, is_primary: true, status: "active", revision: 7, current_version_id: versionId };
   refs = [
     { version_id: versionId, role: "media", media_asset_id: mainId, variant_id: mainVariant, checksum_sha256: "b".repeat(64), byte_size: 1234, storage_bucket: "tenant-media", storage_path: mainPath, mime_type: "image/webp", width: 1920, height: 1080, duration_seconds: null },
@@ -128,5 +131,27 @@ describe("Media-frame GET recovery admission and frozen backgrounds", () => {
     expect(result).toMatchObject({ ok: true, archived: false, props: { isNew: true, frameRevision: 0, canWrite: true, canReplayPending: true, actorScope } });
     expect(f.readSource).toHaveBeenCalledWith({ tenantId: tenant, mediaAssetId: mainId, role: "media" }, actorScope);
     expect(reads.map(read => read.table)).toEqual(["media_frames", "media_assets"]);
+  });
+});
+
+
+describe("Media editor atomic series integration", () => {
+  it("passes the exact loaded immutable frame snapshot to the atomic series fence", async () => {
+    expect(await loadMediaFrameEditor({ frameId })).toMatchObject({ ok: true, props: { mediaSeries: { contentKey: `media:${mainId}`, membership: null, series: null, filmstrip: { offset: 0, total: 0 } } } });
+    expect(f.binding).toHaveBeenCalledWith(expect.anything(), tenant, { frameId, frameRevision: 7, versionId, versionNumber: 7 });
+  });
+  it("fails closed on concurrent binding snapshot or missing full-library page", async () => {
+    f.binding.mockResolvedValueOnce(null); expect(await loadMediaFrameEditor({ frameId })).toMatchObject({ ok: false, missing: false });
+    f.filmstrip.mockResolvedValueOnce(null); expect(await loadMediaFrameEditor({ frameId })).toMatchObject({ ok: false, missing: false });
+  });
+  it("keeps unsaved primary source identity and never reads atomic metadata for a provisional UUID", async () => {
+    frame = null;
+    expect(await loadMediaFrameEditor({ assetId: mainId })).toMatchObject({ ok: true, props: { frameRevision: 0, isNew: true, mediaSeries: { contentKey: `media:${mainId}`, membership: null, series: null } } });
+    expect(f.binding).not.toHaveBeenCalled();
+  });
+  it("keeps a logical copy's actual content key and archived recovery metadata", async () => {
+    frame!.is_primary = false; frame!.status = "archived";
+    f.binding.mockResolvedValue({ membership: { seriesId: frameId, seriesRevision: 21, seriesTitle: "", position: 20 }, series: { id: frameId, revision: 21, memberCount: 21 } });
+    expect(await loadMediaFrameEditor({ frameId })).toMatchObject({ ok: true, archived: true, props: { mediaSeries: { contentKey: `media-frame:${frameId}`, membership: { seriesTitle: "", position: 20 }, series: { memberCount: 21 } }, canWrite: false, canReplayPending: true } });
   });
 });

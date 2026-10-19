@@ -90,3 +90,10 @@ branch en maak een draft-PR naar `main` met een concrete body via
 beschikbaar is; rapporteer anders de expliciete toolgrens aan root. Rapporteer
 de exacte SHA, PR-URL en werkelijke CI-status. Geen PR-merge, deployment of
 repository-/securitysettingswijziging.
+
+Uitvoeringsreadback: productcommit `c54b34e6` is vastgelegd na de groene
+lokale gates. De merge van exact `abbff5fc` is automatisch conflictvrij;
+beide ledgerbijdragen blijven behouden. De gedeelde Sync-framebron is exact
+S234 met uitsluitend de S241-propertiesclass erbij. Zowel staged als gewone
+diffcheck zijn groen; een EOF-helpertrim was dus niet nodig. Er is geen
+productcodeconflict en daarom geen extra browserrun of build voor deze merge.

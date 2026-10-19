@@ -126,3 +126,15 @@ bewijsafsluiting is de writer aanvullend geautoriseerd om de eigen wijziging
 te committen, de bestaande S234-branch via een normale merge te integreren en
 na groene geïntegreerde gates uitsluitend de eigen branch te pushen en een
 draft-PR te openen. Mainmerge en deployment blijven uitgesloten.
+
+Releasevoorbereiding: de product-/test-/documentatie-eenheid is vastgelegd als
+`c54b34e6`. De normale merge van S234 op
+`abbff5fc4b608e54944c2b8390fa2887103c3e1c` is automatisch conflictvrij.
+Beide ledgerbijdragen zijn exact behouden. Het gedeelde
+`sync-studio-frame.tsx` is exact die upstreambron met alleen de S241-fieldsetclass
+toegevoegd; de bestaande filmstrip- en navigatiecallbacks blijven behouden.
+De staged en gewone diffchecks zijn groen, zodat geen inherited EOF-helpertrim
+nodig was. Er was geen productcodeconflict; de acht laatste S241-browsercases
+blijven daarom het expliciete pre-integratiebewijs en zijn niet ten onrechte
+als nieuwe meting van de merge gepresenteerd. De geïntegreerde volledige
+foundationgates worden hieronder afzonderlijk geregistreerd.
