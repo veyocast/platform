@@ -184,3 +184,62 @@ de volledige actuele kiezercohort is8/8groen met exactoude journal en nul
 createcommands. Lint/typecheck/tests na normale mainb342integratie zijn elk
 30/30groen. De voorafgaande productiebuild-/leesbewijzen zijn afzonderlijk
 behouden; exacte gecommitteerde CI blijft de volgende releasegrens.
+
+
+## Aanvullende gebruikersaudit: oude knoppen en ontbrekende Clubmuur
+
+De expliciete latere gebruikersafwijzing van de oude oranje knoppen is leidend
+voor de gemapte Sync-UI. Twee nieuwe echte componentregressies tonen eerst
+rgb(255,92,32) op rawprimary-links. De specifieke archive-/restoreoverride en
+ontbrekende rawlinkalias gebruiken nu bestaande Sourceaccent/surface. Alle14
+card-actioncases slagen, inclusief oorspronkelijke gebruikscontrole, behoud
+publicaties, expliciete bevestiging en exacte command/recoverysemantiek.
+
+Eerste hosted CI op0b7619 wordt niet als groen behandeld: de crosscase verwachtte
+oude schermsetup; de Sourcecohort had58PASS/8FAIL. De setupcase volgt nu de echte
+intro→codeflow en blijft zonder livesessie gesloten. De bronnenfixture miste
+het verplichte lege resources-array. Team/Support toonden daadwerkelijk dubbel
+actieve navigatie; een responsive selectie markeert Beheer nu uitsluitend waar
+zijn actieve bestemming geen zichtbare rechtstreekse shortcut heeft.
+
+Daarna slagen dezelfde acht Sourcegevallen plus alle vier Beheergevallen:
+12PASS,0SKIP,0retry. De zes Sourcesgevallen behouden hun werkelijke44pxfilters.
+Hun ruwe productbeelden/metingen blijven apart; de reeds expliciet gelabelde
+counterfactual herstelt alleen de oorspronkelijke minimale hit-area-hoogte om
+de overige geometrie te vergelijken. Geen pixelgelijkheidsclaim of bredere
+spacings-/lettertype-/kleur-/contentnormalisatie. De eerste zes verder ontdekte
+rode geometryresultaten zijn eveneens behouden.
+
+De opgeslagen gedeelde editor miste de bestaande Clubmuurkeuze. Die is als
+vijfde vaste keuze met echte miniatuur teruggezet; canonical schema/SQL,
+renderer en offlineketen kenden deze keuze al. Dit herstelt niet automatisch
+de aanvullende Houtrust/De wijk/Aan zee-galerij. Die krijgt eigen S238-scope
+met background-onlyvalidatie, oude-clientcompatibiliteit en complete offline-
+acceptatie. Auth/PWA/oude Media-inspector blijven de andere concreet gevonden
+oranjegrenzen voor de volgende gerichte correctie; geen globale tokenflip.
+
+
+## Exacte lokale opvolgcontrole op eerste hosted CI
+
+De zeven bestaande flow-/a11yspecs gebruiken nu dezelfde echte gemapte Source-
+navigatie, schermintro en vier wizardstappen. De elf oorspronkelijke wizard-
+casebodies zijn bytegelijk; alleen de bestaande productcomponentfixture is
+gedeeld. De echte demo zonder livesessie moet authoring blijven weigeren; de
+positieve UIflow gebruikt daarna expliciet de afzonderlijke transportfixture.
+
+De eerste78run op de devserver eindigt4PASS/2cold-navigation-timeoutFAIL/
+1SIGINTinterrupt/71nietuitgevoerd onder resourcebelasting. Die uitslag blijft.
+De eerste run op de gebouwde3395demo eindigt75PASS/1selectorFAIL/2nietuitgevoerd:
+Nexts routeannouncer matchte dezelfde globale alertlocator. Alleen de locator
+voor de exactzelfde beveiligde tekst is beperkt tot #control-content. Het
+volledige cohort slaagt daarna78/78,0SKIP/0retry,1worker in2,3minuten. Dit
+betreft een gebouwde app met de bestaande lokale development-demoguard, geen
+productielivesessie of vervanging voor de eerdere echte AAL2acceptatie.
+
+Alle huidige productcorrecties en flowtests slagen samen in68foundationtaken
+(lint/typecheck/unit; concurrency2). Control1272PASS/34bestaandeconditioneleSKIP.
+De nieuwe opgeslagen-editor Clubmuurcase slaagt1/1; alle14mediaframekaartcases
+en12gerichte Sources/Beheercases slagen afzonderlijk zonder retry. De bestaande
+strict-TSCdiagnose in de oorspronkelijke wizardcomponentspec is apart bewezen
+aanHEAD en onveranderd; geen volledige strictspecTSCclaim. Exacte nieuwe hosted
+CI en staging/productie volgen; de vijf volledige auditronden blijven open.

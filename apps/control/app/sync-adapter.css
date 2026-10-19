@@ -31,6 +31,17 @@ html[data-design-system="fieldflow"] .sync-control { --vc-font-display:Manrope,I
 .sync-control .vx-account .avatar-button { padding:1px 6px; }
 .sync-control.app-shell :is(.btn,.vc-button) { min-height:44px; }
 .sync-control .vc-button { line-height:inherit; }
+/* Server-rendered action links share the Source button treatment. */
+.sync-control .button-link--primary {
+  min-height:44px;
+  background:var(--accent);
+  color:var(--surface);
+  border-color:transparent;
+}
+.sync-control .button-link--primary:hover {
+  background:color-mix(in oklch,var(--accent),black 12%);
+  filter:none;
+}
 .sync-control .vc-library-search button { padding:1px 6px; }
 @media (max-width: 760px) {
   /* Source padding/border around the canon's 44px minimum touch target. */

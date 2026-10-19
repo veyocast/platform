@@ -158,6 +158,7 @@ export function ControlShell({
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isManagementOpen, setManagementOpen] = useState(false);
+  const [isSecondaryNavigationVisible, setSecondaryNavigationVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [resourceResults, setResourceResults] = useState<ControlSearchResult[]>([]);
   const [isResourceSearchPending, setResourceSearchPending] = useState(false);
@@ -262,6 +263,14 @@ export function ControlShell({
 
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width:1201px) and (min-height:851px)");
+    const update = () => setSecondaryNavigationVisible(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
@@ -408,6 +417,8 @@ export function ControlShell({
     ? syncManagePaths.flatMap(href => availableItems.filter(item => item.href === href)) : [];
   const managementItems = hasTenantNavigationContext ? availableItems.filter(item => !primaryLabels.includes(item.label)) : [];
   const hasAdditionalManagement = managementItems.some(item => !secondaryNavigation.some(visible => visible.href === item.href));
+  const isManagementActive = managementItems.some(item => isActive(pathname, item))
+    && (!isSecondaryNavigationVisible || !secondaryNavigation.some(item => isActive(pathname, item)));
   const navigation = (items: ControlNavigationItem[]) => items.map((item) => {
     const label = ({ Vandaag: "Overzicht", "Sponsor Hub": "Sponsors", Engage: "Interactie", Team: "Team & rechten", "Thema's": "Thema’s" } as Record<string, string>)[item.label] ?? item.label;
     const Icon = navigationIcons[label] ?? LayoutDashboard;
@@ -491,7 +502,7 @@ export function ControlShell({
           </FloatingPanel>
           <div className="nav-heading">WERKPLEK</div>
           <nav aria-label="Hoofdnavigatie" className="main-nav">{navigation(primaryNavigation)}</nav>
-          {managementItems.length ? <>{secondaryNavigation.length ? <><div className="nav-heading">BEHEREN</div><nav aria-label="Beheer" className="secondary-nav sidebar-manage">{navigation(secondaryNavigation)}</nav></> : null}<SyncManagementDialog open={isManagementOpen} onOpenChange={setManagementOpen} items={managementItems.map(item=>({...item,active:isActive(pathname,item)}))} onNavigate={()=>closeMobileNavigation(false)}><button className={`nav-link vx-more manage-trigger${hasAdditionalManagement?" sync-management-access":""}${managementItems.some(item=>isActive(pathname,item))?" active":""}`} type="button"><Settings2 size={18} strokeWidth={1.7} aria-hidden="true" /><span>Beheer</span><ChevronDown size={14} strokeWidth={1.7} aria-hidden="true" /></button></SyncManagementDialog></> : null}
+          {managementItems.length ? <>{secondaryNavigation.length ? <><div className="nav-heading">BEHEREN</div><nav aria-label="Beheer" className="secondary-nav sidebar-manage">{navigation(secondaryNavigation)}</nav></> : null}<SyncManagementDialog open={isManagementOpen} onOpenChange={setManagementOpen} items={managementItems.map(item=>({...item,active:isActive(pathname,item)}))} onNavigate={()=>closeMobileNavigation(false)}><button className={`nav-link vx-more manage-trigger${hasAdditionalManagement?" sync-management-access":""}${isManagementActive?" active":""}`} type="button"><Settings2 size={18} strokeWidth={1.7} aria-hidden="true" /><span>Beheer</span><ChevronDown size={14} strokeWidth={1.7} aria-hidden="true" /></button></SyncManagementDialog></> : null}
           <div className="vx-side-footer">
             {hasTenantNavigationContext && tenantSettingsItem ? <Link aria-current={isActive(pathname, tenantSettingsItem) ? "page" : undefined} className="vx-side-settings" href={tenantSettingsItem.href}><Settings size={17} aria-hidden="true" /><span>Instellingen</span></Link> : null}
 

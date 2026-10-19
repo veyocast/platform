@@ -839,3 +839,29 @@ test('Source YouTube chooses an existing verified source without saving, renderi
  await page.getByRole('button',{name:'Opslaan',exact:true}).click();await expect(page.getByText('Versie 2 is veilig opgeslagen.',{exact:true})).toBeVisible();expect(fixture.state.document.syncPresentation?.youtubeUrl).toBe(url);expect(fixture.writes).toHaveLength(1);expect(fixture.renderWrites).toHaveLength(0);expect(reads).toBe(1);
  await page.reload();await page.getByRole('button',{name:'Gegevensbron',exact:true}).click();await expect(page.getByLabel('Gecontroleerde YouTube-bron',{exact:true})).toHaveValue(url);const axe=await new AxeBuilder({page}).analyze();expect(axe.violations).toEqual([]);for(const width of[390,768,1024,1440,1920]){await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}expect(fixture.errors).toEqual([]);
 });
+
+
+test("an existing OnzeTrots design can choose Clubmuur again and retain it after saving and reloading", async ({ page }) => {
+  const fixture = await mount(page);
+  await page.getByRole("button", { name: "Vormgeving", exact: true }).click();
+  await page.getByRole("button", { name: /OnzeTrots TV/ }).click();
+  const light = page.getByRole("button", { name: "Licht", exact: true });
+  const wall = page.getByRole("button", { name: "Clubmuur", exact: true });
+  await light.click();
+  await expect(light).toHaveAttribute("aria-pressed", "true");
+  await wall.click();
+  await expect(wall).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".vc-stage-canvas .vc-slide-preview").first()).toHaveClass(/bg-clubmuur/);
+  expect(await page.locator(".vc-stage-canvas .vc-slide-preview").first().evaluate(element => getComputedStyle(element).backgroundImage)).toContain("/assets/clubmuur-wall.webp");
+  expect(fixture.writes).toHaveLength(0);
+  await page.getByRole("button", { name: "Opslaan", exact: true }).click();
+  await expect(page.getByText("Versie 2 is veilig opgeslagen.", { exact: true })).toBeVisible();
+  expect(fixture.state.document.syncPresentation?.style.background).toBe("clubmuur");
+  expect(fixture.state.document.syncPresentation?.style.backgroundAsset).toBeUndefined();
+  await page.reload();
+  await page.getByRole("button", { name: "Vormgeving", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Clubmuur", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".vc-stage-canvas .vc-slide-preview").first()).toHaveClass(/bg-clubmuur/);
+  expect(fixture.writes).toHaveLength(1);
+  expect(fixture.errors).toEqual([]);
+});

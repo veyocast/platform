@@ -71,3 +71,8 @@ Alleen lokale Source teksttokens en14px/readable detailslink aanpassen;
 statuscopy/iconen/softstatusvlakken/commands blijven. Test wacht uitsluitend
 op werkelijk afgelopen dialoganimaties vóór geometrie; geen toleranties,
 assertieverwijdering of doelvergroting ter maskering. Eerste rood behouden.
+
+## Root normale dependencyintegratie
+S234 via gewone merge; root mag uitsluitend één overgenomen lege EOFregel
+in `tests/helpers/sync-create-wizard-fixture.ts` verwijderen voor diffcheck.
+Geen functionele helper-/casewijziging. Alle eigen19padproducthashes behouden.
