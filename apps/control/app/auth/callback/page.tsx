@@ -16,7 +16,7 @@ export default async function AuthCallbackPage() {
   const verified = live && session?.isLive && Boolean(session.userId);
 
   return (
-    <main className="auth-shell">
+    <main className="sync-control sync-auth auth-shell">
       <section className="auth-panel" aria-labelledby="callback-title">
         <AuthBrand />
         <div className="status-row">

@@ -13,7 +13,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   const live = getControlRuntimeMode() === "live";
 
   return (
-    <main className="auth-shell auth-shell--vector">
+    <main className="sync-control sync-auth auth-shell auth-shell--vector">
       <section className="auth-panel" aria-labelledby="register-title">
         <AuthBrand />
         <div>

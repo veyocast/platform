@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { fout, reden } = await searchParams;
 
   return (
-    <main className="auth-shell">
+    <main className="sync-control sync-auth auth-shell">
       {live && supabaseConfig ? (
         <RecoveryFragmentBridge
           anonKey={supabaseConfig.anonKey}
@@ -41,7 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
         <p className="auth-copy">
           {live
-            ? "Log in met je VeyoCast-account. Je tenant- en platformrollen worden na het inloggen server-side geladen."
+            ? "Log in om je beveiligde werkplek te openen."
             : demo
               ? "De lokale demo draait zonder Supabase-account. Configureer Supabase om de live pilotflow te gebruiken."
               : "Inloggen is tijdelijk niet beschikbaar. De beheerconfiguratie kon niet veilig worden geladen."}

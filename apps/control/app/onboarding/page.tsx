@@ -84,7 +84,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
   const releaseCount = releaseResult.data?.length ?? 0;
 
   return (
-    <main className="onboarding-shell">
+    <main className="sync-control sync-auth onboarding-shell">
       <AuthBrand />
       <JourneyShell
         aside={<OnboardingPulse pairedCount={pairedCount} releaseCount={releaseCount} screenCount={screens.length} />}
@@ -124,7 +124,7 @@ async function OrganizationClaim({ error }: Readonly<{ error?: string }>) {
       : "internal_communication";
 
   return (
-    <main className="onboarding-shell">
+    <main className="sync-control sync-auth onboarding-shell">
       <AuthBrand />
       <JourneyShell
         aside={setup ? <SetupIntentSummary setup={setup} /> : <OnboardingPromise />}

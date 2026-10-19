@@ -13,6 +13,7 @@ import "./fieldflow.css";
 import "./sync-source.css";
 import "./sync-adapter.css";
 import "./(shell)/dashboard/studio/sync-retained-studio.css";
+import "./sync-auth.css";
 import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
 
 export const metadata: Metadata = {

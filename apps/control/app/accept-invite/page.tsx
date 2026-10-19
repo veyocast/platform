@@ -43,7 +43,7 @@ export default async function AcceptInvitePage({
   const invitationPreview = invitation.data?.[0] ?? null;
 
   return (
-    <main className="auth-shell">
+    <main className="sync-control sync-auth auth-shell">
       <section className="auth-panel" aria-labelledby="invite-title">
         <AuthBrand />
         <div>
