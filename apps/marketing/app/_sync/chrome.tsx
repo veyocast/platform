@@ -12,6 +12,6 @@ export function MarketingChrome({ children, controlOrigin }: { children: ReactNo
   useEffect(() => {
     if (pathname === "/" && window.location.hash === "#opstelling") window.location.replace("/opstelling#opstelling");
   }, [pathname]);
-  if (marketingPages[normalizeMarketingPath(pathname)]) return children;
+  if (marketingPages[normalizeMarketingPath(pathname)] || normalizeMarketingPath(pathname) === "/opstelling/") return children;
   return <><a className="skip-link" href="#main-content">Naar de inhoud</a><MarketingHeader controlOrigin={controlOrigin} />{children}<MarketingFooter /></>;
 }

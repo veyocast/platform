@@ -1,0 +1,193 @@
+.workspace {
+  --vc-vector-action-default: var(--mk-mint);
+  --vc-vector-action-on-action: var(--mk-ink);
+  --vc-vector-ink: var(--mk-ink);
+  --vc-vector-ink-muted: var(--mk-muted);
+  --vc-vector-ink-subtle: var(--mk-muted);
+  --vc-vector-line: var(--mk-line);
+  --vc-vector-line-strong: var(--mk-muted);
+  --vc-vector-surface: var(--surface);
+  --vc-vector-surface-raised: var(--surface);
+  --vc-vector-surface-muted: var(--surface-2);
+  --vc-vector-canvas: var(--mk-paper);
+  --vc-vector-font-display: Manrope, Inter, sans-serif;
+  --vc-vector-font-size-caption: 14px;
+  --vc-vector-success-default: var(--accent);
+  color-scheme: light;
+}
+
+.workspace :global(.mk-header) {
+  gap: 24px;
+}
+
+.workspace :global(.mk-header > nav) {
+  gap: 18px;
+}
+
+.workspace :global(.mk-header a),
+.workspace :global(.mk-header summary),
+.workspace :global(.mk-footer a) {
+  align-items: center;
+  display: inline-flex;
+  min-height: 44px;
+}
+
+.workspace :global(.mk-header > nav),
+.workspace :global(.mk-header-actions .mk-button),
+.workspace :global(.mk-login),
+.workspace :global(.mk-footer-top > div),
+.workspace :global(.mk-footer-top strong),
+.workspace :global(.mk-footer-top > div:first-child p),
+.workspace :global(.mk-footer-top > div:first-child > span),
+.workspace :global(.mk-footer-bottom) {
+  font-size: 14px;
+}
+
+.workspace :global(.mk-menu-button) {
+  height: 44px;
+  width: 44px;
+}
+
+.workspace :global(.setup-builder) {
+  padding: 44px 20px 64px;
+  scroll-margin-top: 20px;
+}
+
+.workspace :global(.marketing-container) {
+  margin-inline: auto;
+  max-width: 1240px;
+  width: 100%;
+}
+
+.workspace :global(.setup-builder__heading) {
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 28px;
+}
+
+.workspace :global(.setup-builder__heading h1) {
+  font-size: clamp(30px, 3.2vw, 44px);
+  line-height: 1.15;
+  margin-top: 12px;
+}
+
+.workspace :global(.setup-builder .eyebrow) {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.workspace :global(.setup-builder__heading > p) {
+  font-size: 15px;
+}
+
+.workspace :global(.setup-builder__workspace) {
+  gap: 32px;
+  padding: 26px;
+}
+
+.workspace :global(.setup-builder__venue) {
+  gap: 32px;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+}
+
+.workspace :global(.setup-builder__venue-map) {
+  min-height: 260px;
+  min-width: 0;
+  width: 100%;
+}
+
+.workspace :global(.setup-builder button),
+.workspace :global(.setup-builder select),
+.workspace :global(.setup-builder small),
+.workspace :global(.setup-builder em),
+.workspace :global(.setup-builder__zone-list label > span),
+.workspace :global(.setup-builder__summary dt),
+.workspace :global(.setup-builder__fineprint) {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.workspace :global(.setup-builder__summary) {
+  box-shadow: var(--shadow);
+  top: 24px;
+}
+
+.workspace :global(.setup-builder__summary h2) {
+  font-size: 30px;
+  margin: 8px 0 20px;
+}
+
+.workspace :global(.setup-builder .button) {
+  border: 1px solid var(--mk-line);
+  border-radius: 9px;
+  font-weight: 750;
+  gap: 10px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 13px 16px;
+  white-space: normal;
+}
+
+.workspace :global(.setup-builder .button--primary) {
+  background: var(--mk-mint);
+  color: var(--mk-ink);
+}
+
+.workspace :global(.setup-builder .button--secondary) {
+  background: var(--surface);
+  color: var(--mk-ink);
+}
+
+.workspace :global(.setup-builder__summary .button) {
+  width: 100%;
+}
+
+@media (max-width: 1180px) {
+  .workspace :global(.mk-header) { gap: 16px; padding-inline: 20px; }
+  .workspace :global(.mk-header > nav) {
+    align-items: stretch;
+    background: var(--surface);
+    border: 1px solid var(--mk-line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    left: 20px;
+    padding: 17px;
+    position: absolute;
+    right: 20px;
+    top: calc(100% - 8px);
+  }
+  .workspace :global(.mk-header > nav.is-open) { display: flex; }
+  .workspace :global(.mk-header > nav > a) { padding: 11px; }
+  .workspace :global(.mk-menu-button) { display: flex; }
+  .workspace :global(.mk-header-actions) { margin-left: auto; }
+  .workspace :global(.mk-header-actions) { gap: 10px; }
+  .workspace :global(.mk-header-actions .mk-button) { padding-inline: 10px; }
+}
+
+@media (max-width: 767px) {
+  .workspace :global(.setup-builder) { padding: 28px 16px 44px; }
+  .workspace :global(.setup-builder__workspace) { gap: 24px; padding: 18px; }
+  .workspace :global(.setup-builder__heading) { gap: 16px; }
+  .workspace :global(.setup-builder__venue) { grid-template-columns: minmax(0, 1fr); }
+  .workspace :global(.setup-builder__venue-map) { min-height: 240px; }
+  .workspace :global(.mk-header) { gap: 12px; }
+  .workspace :global(.mk-logo .brand) { width: 128px; }
+  .workspace :global(.mk-header .mk-login) { display: none; }
+  .workspace :global(.mk-header-actions) { gap: 10px; }
+  .workspace :global(.mk-header-actions .mk-button) { padding-inline: 12px; }
+  .workspace :global(.mk-footer-top > div:not(:first-child)) { gap: 4px; }
+}
+
+@media (max-width: 380px) {
+  .workspace :global(.mk-header) { gap: 8px; padding-inline: 16px; }
+  .workspace :global(.mk-logo .brand) { width: 112px; }
+  .workspace :global(.mk-header-actions) { gap: 8px; }
+  .workspace :global(.mk-header-actions .mk-button) { gap: 6px; white-space: normal; width: 112px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace :global(.setup-builder button) { transition: none; }
+}
