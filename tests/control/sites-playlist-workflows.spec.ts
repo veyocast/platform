@@ -190,3 +190,102 @@ for(const row of matrix){
   await contained(page);await page.evaluate(async()=>{await Promise.all([document.fonts.load('14px "Inter Variable"'),document.fonts.load('14px "Manrope Variable"')]);await document.fonts.ready;await Promise.all([...document.images].filter(image=>image.getBoundingClientRect().width>0).map(image=>image.decode()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});const fonts=await page.evaluate(()=>({inter:[...document.fonts].some(font=>font.family.includes("Inter Variable")&&font.status==="loaded"),manrope:[...document.fonts].some(font=>font.family.includes("Manrope Variable")&&font.status==="loaded"),computed:getComputedStyle(document.querySelector("dialog")!).fontFamily}));expect(fonts.inter).toBe(true);expect(fonts.manrope).toBe(true);const screenshot=join(evidenceDirectory,`${row.case_id}.png`);mkdirSync(evidenceDirectory,{recursive:true});await page.screenshot({path:screenshot,fullPage:true});const previousIndex=caseReadbacks.findIndex(item=>item.caseId===row.case_id);if(previousIndex>=0)caseReadbacks.splice(previousIndex,1);caseReadbacks.push({caseId:row.case_id,viewport:row.viewport,setup:row.setup,state:row.state,status:"PASS",date:new Date().toISOString(),expected:row.assertions,actual:"Exact QA-01 setup completed; controls/state/order/dirty/selection assertions passed; viewport/dialog contained; audited fonts and visible assets ready; no inferred server publication success.",screenshot,screenshotSha256:createHash("sha256").update(readFileSync(screenshot)).digest("hex"),fonts,acknowledgedSaveCount:transport.saves.length});await page.unrouteAll({behavior:"ignoreErrors"});
  });
 }
+
+// S242: real native editor and its continuation panels. These cases measure
+// application controls only; miniature content and broadcast previews keep
+// their own typography. The existing command/receipt cases above stay intact.
+for (const width of [390, 1440]) test(`S242 native playlist task presentation and focus at ${width}px`, async ({ page }, testInfo) => {
+ await page.setViewportSize({ width, height: 1000 });
+ const transport = await mount(page, true);
+ const dialog = page.getByRole('dialog');
+ const sourceAccent = await page.locator('main.sync-control').evaluate(node => getComputedStyle(node).getPropertyValue('--accent').trim());
+ const expectedAccent = await page.evaluate(value => { const probe = document.createElement('span'); probe.style.color = value; document.body.append(probe); const resolved = getComputedStyle(probe).color; probe.remove(); return resolved; }, sourceAccent);
+ const proof = process.env.S242_EVIDENCE_DIRECTORY;
+ const measurements: Record<string, unknown>[] = [];
+ async function inspect(name: string, locator: ReturnType<Page['locator']>, options: { primary?: boolean; control?: boolean; text?: boolean } = {}) {
+  await expect(locator).toBeVisible();
+  const state = await locator.evaluate(node => { const style = getComputedStyle(node), box = node.getBoundingClientRect(); return { text: node.textContent?.trim().slice(0, 100), fontSize: Number.parseFloat(style.fontSize), width: box.width, height: box.height, background: style.backgroundColor, color: style.color, outlineColor: style.outlineColor, outlineWidth: Number.parseFloat(style.outlineWidth) }; });
+  measurements.push({ name, ...state });
+  if (options.text !== false) expect.soft(state.fontSize, `${name}: readable task text`).toBeGreaterThanOrEqual(14);
+  if (options.control) { expect.soft(state.width, `${name}: touch width`).toBeGreaterThanOrEqual(44); expect.soft(state.height, `${name}: touch height`).toBeGreaterThanOrEqual(44); }
+  if (options.primary) expect.soft(state.background, `${name}: chosen Source primary`).toBe(expectedAccent);
+ }
+ async function capture(state: string) {
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  const geometry = await dialog.evaluate(node => { const box = node.getBoundingClientRect(); return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, viewportWidth: innerWidth, viewportHeight: innerHeight }; });
+  expect.soft(geometry.left).toBeGreaterThanOrEqual(0); expect.soft(geometry.top).toBeGreaterThanOrEqual(0); expect.soft(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth); expect.soft(geometry.bottom).toBeLessThanOrEqual(geometry.viewportHeight);
+  const axe = await new AxeBuilder({ page }).include('dialog[open]').analyze();
+  expect.soft(axe.violations, `${state}: aXe`).toEqual([]);
+  measurements.push({ state, geometry, axeViolations: axe.violations });
+  if (proof) { mkdirSync(proof, { recursive: true }); await page.screenshot({ path: join(proof, `${width}-${state}.png`) }); }
+ }
+ try {
+  await inspect('editor save', page.getByRole('button', { name: 'Opslaan', exact: true }), { primary: true, control: true });
+  await capture('content');
+  await page.getByRole('button', { name: 'Welkom bij Duindorp SV, 12 seconden, instellingen openen', exact: true }).click();
+  const contents = page.getByRole('region', { name: 'Playlistinhoud', exact: true });
+  await inspect('item name label', contents.getByLabel('Naam in playlist', { exact: true }).locator('..'));
+  await inspect('duration label', contents.getByLabel('Seconden in beeld', { exact: true }).locator('..'));
+  await inspect('duration preset', contents.getByRole('button', { name: '10s', exact: true }), { control: true });
+  const theme = contents.getByRole('button', { name: /Oorspronkelijke stijl/ });
+  await inspect('theme choice copy', theme.locator('strong'));
+  await theme.focus(); await page.keyboard.press('Tab');
+  const focused = dialog.locator(':focus-visible');
+  await expect(focused).toHaveCount(1);
+  const ring = await focused.evaluate(node => ({ color: getComputedStyle(node).outlineColor, width: Number.parseFloat(getComputedStyle(node).outlineWidth) }));
+  expect.soft(ring.color, 'Source keyboard focus').toBe(expectedAccent); expect.soft(ring.width).toBeGreaterThanOrEqual(2);
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  const focusBounds = await focused.evaluate(node => {
+   const card = node.closest('li')!, box = node.getBoundingClientRect(), parent = card.getBoundingClientRect(), style = getComputedStyle(node), cardStyle = getComputedStyle(card), outset = Number.parseFloat(style.outlineWidth) + Number.parseFloat(style.outlineOffset);
+   return { ringLeft: box.left - outset, ringRight: box.right + outset, ringTop: box.top - outset, ringBottom: box.bottom + outset, clipLeft: parent.left + Number.parseFloat(cardStyle.borderLeftWidth), clipRight: parent.right - Number.parseFloat(cardStyle.borderRightWidth), clipTop: parent.top + Number.parseFloat(cardStyle.borderTopWidth), clipBottom: parent.bottom - Number.parseFloat(cardStyle.borderBottomWidth) };
+  });
+  measurements.push({ name: 'theme focus ring containment', ...focusBounds });
+  expect.soft(focusBounds.ringLeft).toBeGreaterThanOrEqual(focusBounds.clipLeft); expect.soft(focusBounds.ringRight).toBeLessThanOrEqual(focusBounds.clipRight);
+  expect.soft(focusBounds.ringTop).toBeGreaterThanOrEqual(focusBounds.clipTop); expect.soft(focusBounds.ringBottom).toBeLessThanOrEqual(focusBounds.clipBottom);
+  await capture('item');
+  await page.getByRole('button', { name: 'Selecteer', exact: true }).click();
+  const firstCheck = contents.getByRole('checkbox', { name: 'Welkom bij Duindorp SV selecteren', exact: true });
+  await firstCheck.check();
+  await inspect('selection label target', firstCheck.locator('..'), { control: true, text: false });
+  await page.getByRole('button', { name: 'Klaar', exact: true }).click();
+  await page.getByRole('button', { name: 'Toevoegen', exact: true }).click();
+  await inspect('picker upload', dialog.getByRole('button', { name: /Upload/ }).first(), { control: true });
+  await page.getByRole('button', { name: 'Nieuwe clubfoto, selecteren', exact: true }).click();
+  await inspect('picker confirm', page.getByRole('button', { name: '1 item toevoegen', exact: true }), { primary: true, control: true });
+  await page.getByRole('button', { name: '1 geselecteerd', exact: true }).click();
+  await inspect('selection tray copy', page.locator('#playlist-picker-selection strong'));
+  await inspect('selection remove', page.getByRole('button', { name: 'Nieuwe clubfoto uit selectie verwijderen', exact: true }), { control: true, text: false });
+  await capture('picker');
+  await page.getByRole('button', { name: '1 item toevoegen', exact: true }).click();
+  await page.getByRole('button', { name: 'Details', exact: true }).click();
+  const name = page.getByLabel('Naam playlist', { exact: true });
+  await inspect('playlist name label', name.locator('..'));
+  await inspect('playlist explanation', page.getByText('Pas hetzelfde thema toe op foto’s, Studio-ontwerpen en dynamische slides. Alle inhoud en de duur per pagina blijven behouden.', { exact: true }));
+  await capture('details');
+  await name.fill('Eigen playlistnaam behouden');
+  await page.getByRole('button', { name: 'Terug naar playlists', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Je hebt nog wijzigingen', exact: true })).toBeVisible();
+  await inspect('dirty leave save', page.getByRole('button', { name: 'Opslaan en sluiten', exact: true }), { primary: true, control: true });
+  await capture('dirty-leave');
+  await page.getByRole('button', { name: 'Verder bewerken', exact: true }).click();
+  await expect(name).toHaveValue('Eigen playlistnaam behouden'); expect(transport.saves).toHaveLength(0);
+  await page.getByRole('button', { name: 'Schermen kiezen en publiceren', exact: true }).first().click();
+  const screen = page.getByRole('checkbox', { name: /Kantine TV 1/ }); await screen.check();
+  await inspect('publication screen target', screen.locator('..'), { control: true });
+  const screenText = await screen.locator('..').evaluate(node => {
+   const title = node.querySelector('strong')!, metadata = node.querySelector('small')!, status = node.querySelector('[data-offline]')!, card = node.getBoundingClientRect(), name = title.getBoundingClientRect(), meta = metadata.getBoundingClientRect(), badge = status.getBoundingClientRect();
+   return { titleHeight: name.height, titleLineHeight: Number.parseFloat(getComputedStyle(title).lineHeight), cardLeft: card.left, cardRight: card.right, nameLeft: name.left, nameRight: name.right, metadataBottom: meta.bottom, statusLeft: badge.left, statusRight: badge.right, statusTop: badge.top, title: title.textContent, status: status.textContent };
+  });
+  measurements.push({ name: 'publication name and honest status fit', ...screenText });
+  expect.soft(screenText.title).toBe('Kantine TV 1'); expect.soft(screenText.status).toBe('Nog niet bevestigd');
+  expect.soft(screenText.titleHeight).toBeLessThanOrEqual(screenText.titleLineHeight);
+  expect.soft(screenText.nameLeft).toBeGreaterThanOrEqual(screenText.cardLeft); expect.soft(screenText.nameRight).toBeLessThanOrEqual(screenText.cardRight);
+  expect.soft(screenText.statusLeft).toBeGreaterThanOrEqual(screenText.cardLeft); expect.soft(screenText.statusRight).toBeLessThanOrEqual(screenText.cardRight);
+  if (width === 390) expect.soft(screenText.statusTop).toBeGreaterThanOrEqual(screenText.metadataBottom);
+  await inspect('publication confirm', page.getByRole('button', { name: 'Publiceren', exact: true }), { primary: true, control: true });
+  await capture('publish');
+  expect(transport.saves).toHaveLength(0);
+ } finally {
+  if (proof) { mkdirSync(proof, { recursive: true }); writeFileSync(join(proof, `${width}-readback.json`), JSON.stringify({ test: testInfo.title, width, sourceAccent, expectedAccent, scope: 'Actual native Editor/Picker/Theme components; controlled transport. No real authenticated publication/receipt claim.', measurements }, null, 2)); }
+ }
+});
