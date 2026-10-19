@@ -352,3 +352,5 @@ oriëntatie via tokenauthority en slechts drie metadata-kolomgrants. Alle oude
 S142/S191 catch-upasserties behouden. Verse reset door `20261018104700`, RLS
 125/3489, app-schema DB-lint nul; Player 442, contracts 129, zestien browsercases
 pass. Geen hosted deployment.
+
+| S250 | review | veyocast/s250-control-stream-hydration | studio_surfaces | Control SSR-parser vóór Reactwerk | Alleen SSRhtml-optin + Next15.5.20vendoredschedulerpatch prod/dev; lockregistratie; echte streamspec/docs/prompt | Finale ongewijzigde baseline2FAIL/2PASS→gepatcht4PASS/0skip; Nodeprod/dev, NodeSSR, unmarkedbypass, SSRidentiteit en mismatchmelding; scoped lint/strict TSC/diff groen; lockgraph20/1387/1409 exact behouden; Chrome[] | Geen commit/push. Controlinitwerk wacht parserloading af; hangende response/backgroundtimers kunnen interactie uitstellen. Root voert echte patched install/Nextbuild/volledige foundation/actuele routes uit. Zie docs/s250-control-stream-hydration.md. |
