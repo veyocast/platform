@@ -7,6 +7,7 @@ import { loadProductsWorkspace } from "./data";
 import { loadFrozenProductPrices } from "./frozen-product-prices.server";
 import type { ProductPriceEvidence } from "./frozen-product-prices";
 import styles from "./products.module.css";
+import { readMenuPriceImpactAction } from "./menu-price-actions";
 
 type ProductsPageProps = Readonly<{
   searchParams: Promise<{ fout?: string; succes?: string }>;
@@ -42,6 +43,10 @@ export default async function ProductsPage({
     session.isLive &&
     session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.product.write");
+  const priceReads = ["tenant.dynamic_slide.read", "tenant.playlist.read", "tenant.screen.read"] as const;
+  const canReadPrices = session.isLive && priceReads.every(capability => hasCapability(session.capabilities, capability));
+  const canPreparePrices = canReadPrices && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.dynamic_slide.write");
+  const initialPriceImpact = canReadPrices ? await readMenuPriceImpactAction() : undefined;
   const canUploadLogo =
     canWrite && hasCapability(session.capabilities, "tenant.media.write");
   return (
@@ -77,6 +82,10 @@ export default async function ProductsPage({
       <SitesProductsWorkspace
         key={session.tenantId ?? "unconfigured"}
         priceEvidence={priceEvidence}
+        initialPriceImpact={initialPriceImpact}
+        canPreparePrices={canPreparePrices}
+        canPublishPrices={canPreparePrices}
+        priceActorScope={session.tenantId ? `${session.tenantId}:${session.userId}` : undefined}
         catalog={data.catalog}
         canRead={session.isLive && Boolean(session.tenantId)}
         manualSources={data.manualSources}

@@ -23,13 +23,19 @@ export async function mutateSyncDynamicAuthoringAction(input:SyncDynamicCommand)
  if(!session.isLive||!session.tenantId||session.tenantStatus!=='active'||!parsed.success)return{ok:false,rejected:true,error:'Controleer je sessie, rechten en ontwerpkeuze. Je invoer blijft behouden.'}as const;
  const client=await createControlSupabaseClient();
  if(!client)return{ok:false,error:'De veilige verbinding ontbreekt. Bevestig dezelfde opdracht opnieuw zodra je verbonden bent.'}as const;
- const value=parsed.data,result=await client.rpc('mutate_sync_dynamic_authoring_v1',{p_tenant_id:session.tenantId,p_action:value.action,p_slide_id:value.slideId,p_version_id:value.versionId,p_expected_revision:value.expectedRevision,p_request:value.request,p_idempotency_key:value.idempotencyKey});
+ const value=parsed.data;
+ const sourceReview=value.action==='save'&&'configuration'in value.request&&Boolean(value.request.configuration.menuPriceSourceReview);
+ const result=await client.rpc('mutate_sync_dynamic_authoring_v1',{p_tenant_id:session.tenantId,p_action:value.action,p_slide_id:value.slideId,p_version_id:value.versionId,p_expected_revision:value.expectedRevision,p_request:value.request,p_idempotency_key:value.idempotencyKey});
+ if(result.error?.code==='40001'&&sourceReview)return{ok:false,rejected:true,conflict:true,error:'De nieuwe bronprijzen of conceptversie zijn gewijzigd. Lees het voorbeeld opnieuw en bevestig de actuele bron en prijzen.'}as const;
  if(result.error)return{ok:false,rejected:['22023','23514','42501','23503','23505','P0002','55000'].includes(result.error.code),error:'De bronopdracht kon niet worden bevestigd. Controleer de selectie en je rechten; probeer dezelfde opdracht opnieuw bij verbindingsverlies.'}as const;
  const data=result.data as Record<string,unknown>|null;
  if(!data||typeof data.slideId!=='string')return{ok:false,error:'Het ontvangstbewijs is onvolledig. Bevestig dezelfde opdracht opnieuw.'}as const;
+ const canonicalConfiguration=data.configuration&&typeof data.configuration==='object'&&!Array.isArray(data.configuration)?data.configuration as Record<string,unknown>:undefined;
  if(data.outcome==='conflict')return{ok:false,rejected:true,conflict:true,error:'Dit concept is intussen gewijzigd. Je invoer blijft behouden; lees de actuele versie voordat je verdergaat.'}as const;
+ const canonicalPriceSet=canonicalConfiguration?.menuPriceSet as Record<string,unknown>|undefined;
+ if(sourceReview&&(!canonicalConfiguration||!syncDynamicConfigurationSchema.safeParse(canonicalConfiguration.syncConfiguration).success||!canonicalPriceSet||canonicalPriceSet.dataSourceId!==('dataSourceId'in value.request?value.request.dataSourceId:undefined)||typeof canonicalPriceSet.hash!=='string'||!/^[a-f0-9]{64}$/.test(canonicalPriceSet.hash)))return{ok:false,error:'De nieuwe bron en prijsset zijn niet volledig bevestigd. Controleer dezelfde opdracht opnieuw.'}as const;
  for(const path of['/dashboard/slides','/dashboard/content',`/dashboard/slides/${data.slideId}`,`/dashboard/slides/${data.slideId}/edit`])revalidatePath(path);
- return{ok:true,slideId:data.slideId,editRevision:typeof data.editRevision==='number'?data.editRevision:undefined}as const;
+ return{ok:true,slideId:data.slideId,editRevision:typeof data.editRevision==='number'?data.editRevision:undefined,...(canonicalConfiguration?{configuration:canonicalConfiguration}:{})}as const;
 }
 
 /** Read-only canonical preview. Only authorized output supplies provider IDs. */
@@ -49,5 +55,6 @@ export async function previewSyncDynamicAuthoringAction(input:SyncDynamicRequest
  if(!payload.success)return{ok:false,error:'De brongegevens voldoen niet aan het afspeelcontract. Controleer de bron; je ontwerp is behouden.'}as const;
  const projected=projectSyncDynamicSnapshot(payload.data,cfg.data.seed);
  if(!projected.ok)return{ok:false,error:'Deze bronselectie past niet volledig in het ontwerp. Beperk de selectie of verdeel de inhoud over een reeks.'}as const;
- return{ok:true,presentation:projected.presentation,assets:Object.fromEntries(assets)as Record<string,PlayerDynamicTemplateAsset>,source:data.source as {providerStatus:string;lastSuccessfulSyncAt:string|null;lastErrorCode:string|null}}as const;
+ const priceReviewHash=typeof data.priceReviewHash==='string'&&/^[a-f0-9]{64}$/.test(data.priceReviewHash)?data.priceReviewHash:undefined;
+ return{ok:true,...(priceReviewHash?{priceReviewHash}:{}),presentation:projected.presentation,assets:Object.fromEntries(assets)as Record<string,PlayerDynamicTemplateAsset>,source:data.source as {providerStatus:string;lastSuccessfulSyncAt:string|null;lastErrorCode:string|null}}as const;
 }
