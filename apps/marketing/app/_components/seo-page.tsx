@@ -204,7 +204,8 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
           <div className="marketing-container page-intro__grid">
             <Reveal>
               <p className="eyebrow">Waarom dit werkt</p>
-              <h2>{page.summary}</h2>
+              <h2>{page.pathname === "/prijzen" ? page.summary : page.kind === "contact" ? "Onze contactgegevens." : "Wat dit voor je oplevert."}</h2>
+              {page.pathname !== "/prijzen" ? <p className="page-intro__summary">{page.summary}</p> : null}
             </Reveal>
             <Reveal className="page-intro__examples" delay={0.05}>
               <p>Veelgebruikte toepassingen</p>
@@ -220,6 +221,7 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
           </div>
         </section>
 
+        {page.kind !== "contact" ? (
         <section className="benefits-section marketing-section">
           <div className="marketing-container">
             <SectionHeading
@@ -241,13 +243,14 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
             </div>
           </div>
         </section>
+        ) : null}
 
         {page.kind === "pricing" ? (
           <section className="pricing-section marketing-section">
             <div className="marketing-container">
               <SectionHeading
                 align="center"
-                description="Je betaalt voor het aantal actieve schermen. De calculator gebruikt uitsluitend hele centen en toont het bruto maandbedrag."
+                description="Kies hoeveel actieve schermen je gebruikt en bekijk je maandbedrag inclusief btw."
                 eyebrow="14 dagen gratis"
                 title="Eén prijs per actief scherm."
               />
@@ -256,11 +259,12 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
           </section>
         ) : null}
 
+        {page.kind !== "contact" ? (
         <section className="workflow-section marketing-section">
           <div className="marketing-container">
             <SectionHeading
               eyebrow="Zo pak je het aan"
-              title="Van eerste keuze naar een actieve release."
+              title={page.kind === "pricing" ? "Van proefperiode naar dagelijks gebruik." : "Van eerste keuze naar een actieve release."}
             />
             <ol className="workflow-list">
               {page.steps.map((step, index) => (
@@ -277,6 +281,7 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
             </ol>
           </div>
         </section>
+        ) : null}
 
         {page.kind === "demo" || page.kind === "contact" ? (
           <section className="form-section marketing-section">
@@ -314,7 +319,7 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
         <section className="faq-section marketing-section">
           <div className="marketing-container faq-section__grid">
             <SectionHeading
-              description="Kort, feitelijk en zonder een productstatus mooier te maken dan die is."
+              description="Antwoorden op veelgestelde vragen over VeyoCast."
               eyebrow="Veelgestelde vragen"
               title="Wat je vooraf wilt weten."
             />
@@ -332,6 +337,7 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
           </div>
         </section>
 
+        {page.kind !== "contact" ? (
         <FinalCtaBand
           primary={page.primaryCta ?? demoCta}
           title={
@@ -340,6 +346,7 @@ export function SeoPageShell({ page, setupIntent, setupIntentToken, setupStatus 
               : undefined
           }
         />
+        ) : null}
       </main>
     </>
   );

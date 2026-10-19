@@ -56,14 +56,12 @@ function featurePage(input: {
   summary: string;
   title: string;
 }): MarketingPageDefinition {
-  const subject = input.title.replace(/\.$/, "").toLowerCase();
-
   return {
     ...input,
     eyebrow: "VeyoCast functies",
     faqs: [
       {
-        title: `Voor wie is ${subject} bedoeld?`,
+        title: "Voor wie is deze functie bedoeld?",
         body:
           "Voor beheerders en redacteuren die club- of organisatiecontent actueel willen houden zonder per scherm losse bestanden te beheren."
       },
@@ -85,7 +83,7 @@ function featurePage(input: {
     steps: [
       {
         title: "Bereid je inhoud voor",
-        body: `Open VeyoCast Publisher en verzamel precies wat voor ${subject} nodig is.`
+        body: "Open je VeyoCast-werkplek en verzamel de afbeeldingen, video’s en informatie die je wilt tonen."
       },
       {
         title: "Controleer het resultaat",
@@ -1059,9 +1057,9 @@ const corePages: MarketingPageDefinition[] = [
   ...integrationDetailPages,
   {
     benefits: [
-      { title: "14 dagen gratis", body: "De proefperiode duurt 14 × 24 uur vanaf de eerste succesvolle billable schermactivatie na acceptatie." },
-      { title: "Per actief scherm", body: "Je betaalt € 5,95 inclusief btw per actief scherm per maand; inactieve schermrecords tellen niet als actief scherm." },
-      { title: "Bedragen in hele centen", body: "Prijsberekeningen gebruiken integer cents, zodat totalen voorspelbaar en controleerbaar blijven." }
+      { title: "14 dagen gratis", body: "Je probeert VeyoCast 14 dagen gratis vanaf de eerste schermactivatie, na acceptatie van de voorwaarden." },
+      { title: "Per actief scherm", body: "Je betaalt € 5,95 inclusief btw per actief scherm per maand. Alleen actieve schermen tellen mee." },
+      { title: "Direct inzicht in je maandbedrag", body: "Kies het aantal actieve schermen en zie direct wat je per maand betaalt." }
     ],
     description:
       "Bereken de VeyoCast-maandprijs op basis van € 5,95 inclusief btw per actief scherm, na 14 dagen gratis proberen.",
@@ -1069,14 +1067,14 @@ const corePages: MarketingPageDefinition[] = [
     examples: ["1 scherm: € 5,95 per maand", "2 schermen: € 11,90 per maand", "6 schermen: € 35,70 per maand", "14 dagen gratis proberen"],
     faqs: [
       { title: "Wat kost VeyoCast?", body: "€ 5,95 inclusief btw per actief scherm per maand, na een proefperiode van 14 dagen." },
-      { title: "Wanneer begint de proefperiode?", body: "Bij de eerste succesvolle activering van een billable scherm nadat de voorwaarden zijn geaccepteerd. Een juridische billingaccount krijgt één proefperiode." },
+      { title: "Wanneer begint de proefperiode?", body: "De proefperiode begint bij de eerste succesvolle schermactivatie nadat je de voorwaarden hebt geaccepteerd. Iedere factuuraccount heeft één proefperiode." },
       { title: "Kan btw afwijken?", body: "Voor Nederland rekent de calculator met 21% btw. Afwijkende grensoverschrijdende fiscale behandeling wordt vóór contractering bevestigd." }
     ],
     imageId: "product-screen-status",
     index: true,
     kind: "pricing",
     lead:
-      "Eén transparant tarief per actief scherm. Kies het aantal schermen en zie direct het bruto maandbedrag na de proefperiode.",
+      "Eén duidelijk tarief per actief scherm. Kies het aantal schermen en bekijk je maandbedrag inclusief btw na de proefperiode.",
     pathname: "/prijzen",
     primaryCta: { href: "/demo", label: "Plan een demo" },
     related: [
@@ -1086,12 +1084,12 @@ const corePages: MarketingPageDefinition[] = [
     ],
     secondaryCta: { href: "/#opstelling", label: "Bouw je opstelling" },
     steps: [
-      { title: "Start je proefperiode", body: "Accepteer de voorwaarden en activeer het eerste billable scherm; vanaf dat moment loopt 14 × 24 uur." },
-      { title: "Activeer alleen wat je gebruikt", body: "De facturatie volgt het aantal billable actieve schermen en maakt de ingangsdatum per scherm inzichtelijk." },
+      { title: "Start je proefperiode", body: "Accepteer de voorwaarden en activeer je eerste scherm. Na de succesvolle activatie begint je proefperiode van 14 dagen." },
+      { title: "Activeer alleen wat je gebruikt", body: "Je betaalt alleen voor actieve schermen. Je ziet per scherm vanaf welke datum het meetelt." },
       { title: "Betaal per maand", body: "Na de proefperiode wordt € 5,95 inclusief btw per actief scherm per maand berekend." }
     ],
     summary:
-      "De prijs groeit lineair mee met het aantal actieve schermen. Bestaande billing- en entitlementgates bepalen wanneer een scherm billable wordt.",
+      "Betaal voor de schermen die je gebruikt.",
     title: "Duidelijke prijzen voor ieder scherm"
   },
   {
@@ -1184,7 +1182,7 @@ const corePages: MarketingPageDefinition[] = [
     faqs: [
       { title: "Welk e-mailadres gebruik ik?", body: "Gebruik support@veyocast.nl voor product en ondersteuning, en privacy@veyocast.nl voor privacyrechten." },
       { title: "Kan ik gevoelige tokens meesturen?", body: "Nee. Stuur nooit wachtwoorden, pairingcodes, sessietokens of volledige signed media-URL’s per e-mail." },
-      { title: "Is het formulier al gekoppeld?", body: "Nog niet. Het formulier valideert veilig maar meldt eerlijk dat aflevering pas werkt na keuze en configuratie van een provider." }
+      { title: "Wat gebeurt er met mijn bericht?", body: "Na verzending bevestigt het formulier of je bericht is ontvangen. Automatische e-mailbevestigingen zijn nog niet beschikbaar." }
     ],
     index: true,
     kind: "contact",
