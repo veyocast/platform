@@ -28,7 +28,7 @@ const devices=[1,2].map(n=>({id:id(10+n),screen_id:id(n),status:'paired',active_
 const data={availability:{audit:true,devices:true,integrations:true,media:true,members:true,playlists:true,screens:true,telemetry:true,tenant:true},screens,devices,heartbeats:[{screen_id:id(1),active_release_id:id(9),created_at:stamp,runtime_state:'PLAYING'}],integrations:{dynamicSources:[],sportlinkConnections:[]},invitations:[],memberCount:1,mediaStorageLimitBytes:100000,media:[{id:id(7),title:'Eigen afbeelding',status:'ready',created_at:stamp,file_size_bytes:100,validation_error:null}],playlistItems:[{playlist_id:id(8),media_asset_id:id(7)}],playlists:[{id:id(8),name:'Eigen clubprogramma',status:'active',updated_at:stamp}],releases:[{id:id(9),playlist_id:id(8),version:1,published_at:stamp}],screenLimit:10,auditEvents:[],error:false,loadState:'complete',unavailable:[]};
 const healthy=deriveOperationalDashboard({...data,screens:[screens[0]],devices:[devices[0]]},now).status;if(healthy.id!=='healthy')throw Error('Fixture must derive a genuinely healthy operational status: '+healthy.id);
 const overview=await SyncOverview({canCreateStudio:false,canManageScreens:false,data,schedules:[],tenant:'Eigen vereniging',userName:'Eigen lezer',tenantId:id(20)});
-const content=<><ControlThemeBootstrap/><main className='sites-control sync-control' style={{padding:20}}>{overview}<section aria-label='Statuscomponenten'><h2>Statuscomponenten</h2><div data-proof='concept'><SourceBadge tone='amber'>Concept</SourceBadge></div><div data-proof='shared-success'><StatusPill label={healthy.label} tone={healthy.tone}/></div><div data-proof='shared-confirmation'><Badge status='success'>AAL2 bevestigd</Badge></div>{['green','red','blue','neutral'].map(tone=><div data-proof={'source-'+tone} key={tone}><SourceBadge tone={tone}>Andere Source-status {tone}</SourceBadge></div>)}{['neutral','warning','critical','info'].map(status=><div data-proof={'shared-'+status} key={status}><Badge status={status}>Andere gedeelde status {status}</Badge></div>)}</section></main><aside className='sites-control' aria-label='Buiten Sync' data-proof='outside-success'><Badge status='success'>Buiten Sync ongewijzigd</Badge></aside></>;
+const content=<><ControlThemeBootstrap/><main className='sites-control sync-control' style={{padding:20}}>{overview}<section aria-label='Statuscomponenten'><h2>Statuscomponenten</h2><div data-proof='concept'><SourceBadge tone='amber'>Concept</SourceBadge></div><div data-proof='shared-success'><StatusPill label={healthy.label} tone={healthy.tone}/></div><div data-proof='shared-confirmation'><Badge status='success'>AAL2 bevestigd</Badge></div>{['green','red','blue','neutral'].map(tone=><div data-proof={'source-'+tone} key={tone}><SourceBadge tone={tone}>Andere Source-status {tone}</SourceBadge></div>)}{['neutral','warning','critical','info'].map(status=><div data-proof={'shared-'+status} key={status}><Badge status={status}>Andere gedeelde status {status}</Badge></div>)}</section></main><aside className='sites-control' aria-label='Buiten Sync' data-proof='outside-success'><Badge status='success'>Buiten Sync ongewijzigd</Badge><div data-proof='outside-neutral'><Badge status='neutral'>Buiten Sync neutraal ongewijzigd</Badge></div></aside></>;
 process.stdout.write(await new Response(await renderToReadableStream(content)).text());}run().catch(error=>{console.error(error);process.exitCode=1});`;
   const server = String.raw`const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/control/node_modules'],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',loader:{'.css':'empty','.module.css':'empty'},plugins:[{name:'readonly-host-boundary',setup(b){b.onResolve({filter:/^next\/link$/},a=>({path:a.path,namespace:'fixture',pluginData:{contents:'import React from"react";export default function Link({children,...props}){return React.createElement("a",props,children)}'}}));b.onResolve({filter:/release-preview.server$/},a=>({path:a.path,namespace:'fixture',pluginData:{contents:'export async function loadFrozenReleasePreviews(){return new Map()}'}}));b.onLoad({filter:/.*/,namespace:'fixture'},a=>({contents:a.pluginData.contents,loader:'js',resolveDir:process.cwd()}))}}]});const m={exports:{}};new Function('require','module','exports',result.outputFiles[0].text)(require,m,m.exports);`;
   rendered = compile(server);
@@ -68,7 +68,7 @@ async function measurements(page: Page) {
     const background = rgb(style.backgroundColor), text = rgb(style.color);
     if (background.length === 4 && background[3] !== 1) throw Error("Badge must have an opaque measured surface");
     const a = luminance(background), b = luminance(text);
-    return { key: node.closest("[data-proof]")?.getAttribute("data-proof") ?? node.textContent!.trim(), label: node.textContent!.trim(), directText: [...node.childNodes].filter(child => child.nodeType === Node.TEXT_NODE).map(child => child.textContent).join("").trim(), color: style.color, background: style.backgroundColor, border: [style.borderTopWidth, style.borderTopStyle, parseFloat(style.borderTopWidth) ? style.borderTopColor : "not-painted"], radius: style.borderRadius, padding: style.padding, gap: style.gap, font: [style.fontFamily, style.fontSize, style.fontWeight, style.lineHeight], width: box.width, height: box.height, dot: dot ? { color: getComputedStyle(dot).backgroundColor, width: dot.getBoundingClientRect().width, height: dot.getBoundingClientRect().height, hidden: dot.getAttribute("aria-hidden") } : null, contrast: (Math.max(a, b) + .05) / (Math.min(a, b) + .05), target: Boolean(node.closest(".sync-control")) && (node.classList.contains("badge-amber") || node.classList.contains("vc-badge--success")) };
+    return { key: node.closest("[data-proof]")?.getAttribute("data-proof") ?? node.textContent!.trim(), label: node.textContent!.trim(), directText: [...node.childNodes].filter(child => child.nodeType === Node.TEXT_NODE).map(child => child.textContent).join("").trim(), color: style.color, background: style.backgroundColor, border: [style.borderTopWidth, style.borderTopStyle, parseFloat(style.borderTopWidth) ? style.borderTopColor : "not-painted"], radius: style.borderRadius, padding: style.padding, gap: style.gap, font: [style.fontFamily, style.fontSize, style.fontWeight, style.lineHeight], width: box.width, height: box.height, dot: dot ? { color: getComputedStyle(dot).backgroundColor, width: dot.getBoundingClientRect().width, height: dot.getBoundingClientRect().height, hidden: dot.getAttribute("aria-hidden") } : null, contrast: (Math.max(a, b) + .05) / (Math.min(a, b) + .05), target: Boolean(node.closest(".sync-control")) && (node.classList.contains("badge-amber") || node.classList.contains("vc-badge--success")), sourceNeutral: Boolean(node.closest(".sync-control")) && node.classList.contains("vc-badge--neutral") };
   }));
 }
 
@@ -86,6 +86,7 @@ for (const width of [390, 1440]) {
     });
     await page.route(`${origin}/__statuses?*`, route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sync-statuscontrole</title><style>${css(cssBeforeAdapter)}</style></head><body>${rendered}</body></html>` }));
     let lightTargetPresentation: unknown[] = [];
+    let lightNeutralPresentation: unknown[] = [];
     for (const theme of ["light", "dark"] as const) {
       await page.goto(`${origin}/__statuses?theme=${theme}`);
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
@@ -96,26 +97,43 @@ for (const width of [390, 1440]) {
       await page.addStyleTag({ content: css(["apps/control/app/sync-adapter.css", ...cssAfterAdapter]) });
       const after = await measurements(page);
       const retained = (value: typeof after[number]) => Object.fromEntries(Object.entries(value).filter(([key]) => !["color", "contrast"].includes(key)));
+      // S247 intentionally changes neutral ink and its currentColor dot only.
+      const retainedNeutral = (value: typeof after[number]) => ({ ...retained(value), dot: value.dot ? Object.fromEntries(Object.entries(value.dot).filter(([key]) => key !== "color")) : null });
       const presentation = after.filter(row => row.target).map(retained);
+      const neutralPresentation = after.filter(row => row.sourceNeutral);
       if (theme === "light") lightTargetPresentation = presentation;
       else expect(presentation, "Fixed Source status surfaces, borders, geometry, typography and dots survive the actual dark preference").toEqual(lightTargetPresentation);
+      if (theme === "light") lightNeutralPresentation = neutralPresentation;
+      else expect(neutralPresentation, "The integrated neutral Source foreground, surface, geometry and currentColor dot survive the actual dark preference").toEqual(lightNeutralPresentation);
       const resolvedRoles = await page.locator(".sites-control.sync-control").evaluate(node => {
         const style = getComputedStyle(node);
-        return Object.fromEntries(["--vc-semantic-warning-text", "--vc-semantic-success-text", "--vc-vector-warning-on-surface", "--vc-vector-success-on-surface"].map(role => [role, style.getPropertyValue(role).trim()]));
+        const neutral = document.createElement("span").style;
+        neutral.color = style.getPropertyValue("--text").trim();
+        return { ...Object.fromEntries(["--vc-semantic-warning-text", "--vc-semantic-success-text", "--vc-vector-warning-on-surface", "--vc-vector-success-on-surface", "--text"].map(role => [role, style.getPropertyValue(role).trim()])), sourceNeutralForeground: neutral.color };
       });
       await record(info, `computed-statuses-${theme}-${width}`, { body: Buffer.from(JSON.stringify({ theme, resolvedRoles, before, after }, null, 2)), contentType: "application/json" });
       await record(info, `actual-statuses-${theme}-${width}`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
       expect(after.map(row => row.label)).toEqual(before.map(row => row.label));
       expect(after.filter(row => row.target).map(row => row.label)).toEqual(["Offline", "Concept", "Actueel", "AAL2 bevestigd"]);
+      expect(neutralPresentation.map(row => row.key)).toEqual(["shared-neutral"]);
+      expect(after.filter(row => row.key === "outside-neutral").map(row => row.label)).toEqual(["Buiten Sync neutraal ongewijzigd"]);
       for (const [index, row] of after.entries()) {
         const original = before[index];
         if (row.target) {
           expect(row.directText, row.label).toBe(row.label);
           expect.soft(row.contrast, `${row.label}: direct small text on its actual surface`).toBeGreaterThanOrEqual(4.5);
           expect(retained(row), `${row.label}: surface, painted border, geometry, typography, status and dot`).toEqual(retained(original));
+        } else if (row.sourceNeutral) {
+          expect(row.directText, row.label).toBe(row.label);
+          expect(row.color, `${row.label}: the approved fixed Source foreground`).toBe(resolvedRoles.sourceNeutralForeground);
+          expect.soft(row.contrast, `${row.label}: direct small text on its preserved neutral surface`).toBeGreaterThanOrEqual(4.5);
+          expect(row.dot, `${row.label}: the actual shared status retains its dot`).not.toBeNull();
+          expect(row.dot!.color, `${row.label}: currentColor follows the approved foreground`).toBe(row.color);
+          expect(original.dot!.color, `${row.label}: the original dot also follows currentColor`).toBe(original.color);
+          expect(retainedNeutral(row), `${row.label}: surface, painted border, geometry, typography, status and dot structure`).toEqual(retainedNeutral(original));
         } else expect(row, `${row.label}: outside Sync or another status remains unchanged`).toEqual(original);
       }
-      const axe = await new AxeBuilder({ page }).include(".sync-control .badge-amber").include(".sync-control .vc-badge--success").withRules(["color-contrast"]).analyze();
+      const axe = await new AxeBuilder({ page }).include(".sync-control .badge-amber").include(".sync-control .vc-badge--success").include(".sync-control .vc-badge--neutral").withRules(["color-contrast"]).analyze();
       await record(info, `targeted-axe-${theme}-${width}`, { body: Buffer.from(JSON.stringify({ violations: axe.violations, incomplete: axe.incomplete }, null, 2)), contentType: "application/json" });
       expect.soft(axe.violations).toEqual([]);
       expect(axe.incomplete, "The target badge colors must be evaluated, not silently incomplete").toEqual([]);
