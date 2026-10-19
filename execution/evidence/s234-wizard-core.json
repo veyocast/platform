@@ -145,5 +145,50 @@
     },
     "fix": "Reset busy/inflight on scope change; old finally cannot unlock newer-generation read; legacy body remains byte-identical and no create issued",
     "peer": "release_audit read-only ACK"
-  }
+  },
+  "postHostedCICorrection": {
+    "status": "LOCAL_PASS_EXACT_HOSTED_CI_AND_DEPLOY_PENDING",
+    "fullFlowCases": 78,
+    "workers": 1,
+    "retries": 0,
+    "skips": 0,
+    "compiledDemoNotProductionLive": true,
+    "foundationTasks": 68,
+    "foundationLog": {
+      "path": "/tmp/veyocast-s234-final-flow-integrated-foundation.log",
+      "sha256": "6ba8e6abd2fda668ede3b32a20a864667ebf881575d8f7331296b9dd0614c6aa"
+    },
+    "flowLog": {
+      "path": "/tmp/veyocast-s234-flow-repair-78-built-scoped-alert.log",
+      "sha256": "a662b2b114928b1fdfe8c799444af08371ef73a7418acb4db8951c84892a773a"
+    },
+    "originalWizardCaseBodiesByteEqual": 11,
+    "firstRedPreserved": [
+      "/tmp/veyocast-s234-flow-repair-78-first.log",
+      "/tmp/veyocast-s234-flow-repair-78-built-first.log"
+    ],
+    "archiveCardCases": 14,
+    "sourcesManagementCases": 12,
+    "savedClubmuurCase": 1,
+    "boundaries": [
+      "Full five rounds remain open",
+      "Built demo uses existing NODE_ENV development demo guard without Supabase credentials",
+      "Original component-spec TS18046 independently reproduced at HEAD remains; changed helper/specs strictTSC pass",
+      "No new SQL, authguard, dependency, SourceCSS, immutable publication or offline change"
+    ]
+  },
+  "resourcePreservationFollowup": [
+    {
+      "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-retired-dev-output-ram-relocation.json",
+      "sha256": "2484c43d8a269bf2329f5cf1d18b48935c17d6d5030ee74be5b0fc14e95a1d7b"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s234-inactive-browser-artifact-ram-relocation.json",
+      "sha256": "a76a7743bf52900f4045506cf67f9981f45ba8eca9abaebd29ce54c508da4d6e"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s226/release-evidence/s232-completed-runtime-stop.json",
+      "sha256": "327290c121bb9ae3187dd47c8604745b4ec27efdb1caa206b093940db45e71d0"
+    }
+  ]
 }

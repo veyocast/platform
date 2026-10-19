@@ -301,3 +301,142 @@ niet alleen een generieke informatietekst. Geef uitsluitend bestaande veilige
 foutcopy door, geen rawconfig/providererror. Geen controller/action/RPC/SQL-
 wijziging. Oude ruwe PNG's en oorspronkelijke mislukte harnasrapporten blijven
 behouden; daarna dezelfde echte routes opnieuw vastleggen.
+
+## Gerichte correctie na oranje- en hosted-crossaudit
+
+De gebruiker wijst de oude oranje knoppen expliciet af. Deze latere concrete
+opdracht en gekozen Sync-prototype gaan voor de historische generieke
+Electric-Orange-primaryregel. Bestaande Source `--accent` / `--surface` zijn
+leidend; geen globale merk-tokenflip, geen immutable SourceCSSwijziging.
+Root bezit vóór writes uitsluitend aanvullend
+`dashboard/content/media-frames/media-frame-archive-actions.module.css`,
+`app/sync-adapter.css`, aanvullend uitsluitend twee nieuwe regressiegevallen
+en een raw-primary-link in de bestaande echte componentfixture van
+`tests/control/sync-media-frame-card-actions.spec.ts` en de bestaande setupverwachting
+in `tests/e2e/pilot-readiness.spec.ts`. De archiveconfirmselector forceert
+oude orange boven de Sourceadapter; raw `.button-link--primary` mist de
+scoped Sourcealias. Corrigeer alleen deze selectors en toets echte product-
+componenten/CSS plus semantiek op44px en aXe.
+
+De eerste hosted crossgate39181002667 blijft rood bewaard:3PASS,1FAIL,
+2bestaandeconditioneleSKIP. Zijn democrossroute verwacht nog het oude
+setupdialoog Nieuw scherm instellen en gemounte velden. De echte Sourceflow
+toont Een scherm toevoegen, eerst platforminstructie en pas na toegestane
+vervolgstap code/gegevens. Pas uitsluitend deze concrete flowasserties aan:
+introtitel zichtbaar, Ik heb een koppelcode zonder live sessie disabled,
+geen authoringvelden vóór vervolg, status Er wordt niets aangemaakt.
+Behoud alle overige crossplane-/rechtenasserties, aantallen en deadlines.
+Geen productomzeiling, skip of bredere tolerantie. Nieuwe exacte head moet
+de volledige normale CI opnieuw doorlopen vóór merge/deploy.
+
+Dezelfde exacte hostedhead toont acht gekozen-Source-gatefouten. Zes
+Sourcesgevallen hebben in de bestaande leesfixture geen verplicht
+`resources`-array; de echte DTO vereist die en de productloader geeft die.
+Root bezit uitsluitend aanvullend de SourcesOverview-empty-prop in
+`tests/helpers/control-responsive-fixture.ts`: voeg resources:[] toe,
+geen productfallback of wijziging aan de66 Sourcecriteria.
+Twee1440x900gevallen (Team/Support) bewijzen een echte dubbele navigatie-
+markering: de extra bereikbare Beheertrigger wordt actief naast de zichtbare
+rechtstreekse link. Root bezit uitsluitend aanvullend de triggerselectie en
+responsive waarneming in `app/(shell)/_components/control-shell.tsx`.
+Gebruik dezelfde Source-breakpoints: alleen wanneer de secundaire links
+verborgen zijn markeert Beheer hun actieve route; een actieve extra taak
+zonder sidebarshortcut markeert Beheer altijd. Bereikbaarheid/capabilities
+blijven behouden. Geen aanpassing aan navigatiecriteria om rood te verbergen;
+dezelfde acht cases en bestaande managementchecks moeten opnieuw slagen.
+
+Na die twee correcties slagen Team/Support; de zes Sourcescases onthullen nu
+uitsluitend de reeds bedoelde44pxfilterknoppen versus35–37px Sourceknoppen,
+met precies die extra hoogte als verschuiving van de lege state. Product44px
+blijft behouden. Root bezit aanvullend uitsluitend de expliciete Sources-
+hit-area-vergelijking in `tests/control/sync-source-geometry-comparison.spec.ts`:
+behoud ruwe productmetingen/PNGs en alle66criteria/toleranties, toets echte
+productfilterknoppen>=44px en herstel alleen in de apart gelabelde bestaande
+counterfactual-meting hun Source-min-height. Geen normalisatie van copy,
+fonts, spacing, kleuren of content. Eerste6rode rapporten/ruwebeelden blijven
+bewaard. Dit is verklaarde touchcanonafwijking, geen productpixelgelijkheid.
+
+De OnzeTrots-audit bewijst een concrete UI-only-omissie: verse wizard kent
+clubmuur maar de opgeslagen gedeelde SyncStudioFrame toont die keuze niet.
+Root bezit vóór writes uitsluitend aanvullend de bestaande achtergrondkeuzes
+in `dashboard/studio/sync-studio-frame.tsx` en één nieuwe save/reloadcase in
+`tests/control/sync-studio-workflows.spec.ts`. Voeg de reeds canoniek
+ondersteunde Clubmuur-keuze toe met dezelfde bestaande setStyle-route en
+backgroundAsset-reset; geen schema/RPC/renderer/assets/Playerverandering.
+Deze keuze herstelt alleen clubmuur. De bredere goedgekeurde galerij is een
+aparte noodzakelijke implementatie met eigen compatibiliteits-/offlinegates,
+geen claim dat alle achtergronden daarmee af zijn. Nieuwe test behoudt alle
+oude tests en controleert echte renderer + opgeslagen keuze na herladen.
+
+Voor de herstelde Clubmuurkeuze bezit root aanvullend uitsluitend de eigen
+`sync-studio-frame.module.css`-thumbnailclass en die className op de bestaande
+keuzegroep. Toon het al aanwezige goedgekeurde clubmuurbestand als kleine
+keuzepreview, geen gereconstrueerd artwork/rendererpatch/SourceCSS.
+
+## Hosted Control zestien bestaande flowverwachtingen
+
+Het volledige eerste Controlcohort39181002667/job117833531901 geeft
+451PASS,16FAIL,629bestaandeconditioneleSKIP,2nietuitgevoerd. Rood log en
+artefacts blijven behouden; geen groen- of afrondingsclaim. Na de afzonderlijke
+S237-freeze krijgt `release_audit` uitsluitend schrijfownership voor de concrete
+zestien bestaande gevallen in onderstaande zeven tests:
+
+- `tests/a11y/control-shell.spec.ts`
+- `tests/a11y/screens-mobile.spec.ts`
+- `tests/control/sites-shell-workflows.spec.ts`
+- `tests/e2e/control-shell.spec.ts`
+- `tests/e2e/dynamic-content-recovery.spec.ts`
+- `tests/e2e/floating-panels.spec.ts`
+- `tests/e2e/studio.spec.ts`
+
+Vooraf read-only gemapt: vijf routecrawls meten vóór Studio→Contentredirect
+uitvoering van losse evaluate; twee Sources-democases verwachten disabledbutton
+in plaats van correct verborgen writerlink; drie Screengevallen verwachten de
+oude drie stappen in plaats van Sourceplatformintro en veilige deniedstate;
+twee accountgevallen heten nu Mijn werkplek met dezelfde identiteit; drie
+Beheergevallen Beheer je werkplek met dezelfde permittedhrefset; één vrije
+Studioflow toont vier echte Sourcestappen en familyheading Vrij ontwerp.
+
+Pas uitsluitend deze feitelijke interactieroutes/namen aan, geen productguard
+omzeilen. Navigationstable eindroute expliciet afwachten; dezelfde overflow-
+assertie behouden, geen langere deadlines/toleranties/retries. Account/Beheer
+moeten dezelfde echte identiteit/rol/volledige toegestane hrefs blijven toetsen.
+Voor schermen mag de demo niet door de disabledintro heen. Toets de echte
+instructie/44px/gelabelde platformkeuzes en afwezigheid van writerformulier;
+behoud authoringveld-/validatie-/alignmentbewijs in de bestaande geautoriseerde
+Sourcecomponentgevallen. Als extra fixturepath noodzakelijk is, eerst report;
+geen assertiedekking stil schrappen of demo-invoer faken.
+
+Behoud caseaantallen, bestaande skips, andere fixtures en alle overige
+asserties bytegelijk. Bevestig echte fouten eerst als productdefect; niet weg-
+testen. Eerst lint/strikte types, dan gerichte browsercases op de echte bestaande
+demoruntime zonder productiecredentials. Browser alleen rootGO; root start
+apart de gecontroleerde runtime, behoudt S232-QAbrowser en release-integratie.
+
+De Clubmuurminiatuur gebruikt uiteindelijk de bestaande goedgekeurde URL in
+zijn eigen conditionele buttonstyle; er is geen module-CSSassetimport nodig.
+Eerste lokale browsercompilerfout op absolute CSSurl blijft bewaard; de
+ongewijzigde echte save/reloadcase slaagt daarna1/1,0retry. De eerdere
+suggestie van een nieuwe moduleclass is ingetrokken; dat stylesheet blijft
+bytegelijk. Own inactieve compileroutputs en afgesloten tijdelijke browser-
+artefacts zijn bytegelijk naar RAM verplaatst met beschermde manifesten;
+alle originele artefactpaden blijven leesbaar via symlinks. Geen bron/data/
+auth/dependencybestanden of actieve output verwijderd.
+
+Na capacityuitval van de vorige writer neemt `ci_flow_repair` uitsluitend de
+zeven bovengenoemde specs over. Hij bewijst aanvullend dat de verse wizard-
+loader zonder livesessie null geeft: de echte demoflow eindigt terecht met een
+beveiligde alert, niet in de Sourceauthoringstappen. Verzwak die guard niet.
+Voor behoud van de positieve naam/oriëntatie/vormgeving/preview/review/44px-
+dekking krijgt hij uitsluitend aanvullend nieuw
+`tests/helpers/sync-create-wizard-fixture.ts` en de bestaande fixturedefinities
+boven de cases in `tests/control/sync-create-wizard.spec.ts` vrij. Extraheer
+uitsluitend bestaande echte component-/CSS-/transportfixture, hergebruik die
+in dezelfde Studio-e2ecase ná de echte deniedstate. Geen fake livesessie op
+demoruntime, geen productsubstitutie. Alle oorspronkelijke componentgevallen
+blijven inhoudelijk en qua aantallen/deadlines/fixtures/receipts/asserties gelijk.
+De oude legacybuilderlabels krijgen een expliciete mapping naar de echte vier
+Sourcestappen; naam/invoer/oriëntatie/beweging/review/nulwrites vóórconfirm en
+44px blijven betekenisvol getoetst. Werkelijke AAL2manual/connectedcreates zijn
+apart reeds bewezen; deze transportfixture wordt niet als echt serverbewijs
+geclaimd. Root regelt integratie met S235/S238's additive wizardfixturevelden.

@@ -163,3 +163,10 @@ Root screenshotreview compact-v2 toont afgesneden zoekplaceholder ondanks
 vollezoekbalk. Uitsluitend owned inputflex1/min-width0/width100 toegevoegd;
 bestaande tweeviewportcases controlerenwerkelijke zoekinputbreedte naast
 behoudquery/filter/actiontests. Geen dataselectie- of commandwijziging.
+
+## Root normale dependencyintegratie
+Integreer S234 via gewone merge, alleledgerrows behouden. Uitsluitend één
+overgenomen legeEOFregel in `tests/helpers/sync-create-wizard-fixture.ts`
+mag worden verwijderd voor mergebasediffcheck; geen JavaScript-/casewijziging.
+Actuele8/8sponsorbrowsers zijn vóór deze dependencymerge uitgevoerd;
+geïntegreerdefoundation en hostedbrowsers worden apart gerapporteerd.

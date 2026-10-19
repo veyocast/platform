@@ -6,6 +6,7 @@
 .feedback:empty { display:none; }
 .feedback { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
 .feedback p { flex-basis:100%; margin:0; }
+.confirmedDestination { display:inline-flex; align-items:center; min-height:44px; color:var(--text); text-decoration:underline; }
 .feedback:not(:empty) { margin-bottom:16px; }
 .versions { display:grid; gap:12px; }
 .versions>div { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; border-top:1px solid var(--line); padding-top:12px; }

@@ -1,4 +1,5 @@
 import type { MediaFrameExpectedSource, MediaFrameSettings } from "@veyocast/contracts";
+import type { MediaSeriesEditorExtraProps } from "./media-frame-series-types";
 
 /** Signed URLs are transient display values; only fingerprint identities are saved. */
 export type MediaFrameSource = {
@@ -25,6 +26,8 @@ export type MediaFrameVersion = {
 };
 
 export type MediaFrameEditorProps = {
+  /** Additive Source filmstrip/recovery context; older editor fixtures remain valid. */
+  mediaSeries?: MediaSeriesEditorExtraProps;
   tenantId: string;
   actorScope: string;
   frameId: string;

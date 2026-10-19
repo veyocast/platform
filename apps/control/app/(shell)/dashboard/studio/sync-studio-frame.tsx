@@ -113,6 +113,8 @@ type FrameProps = {
   onBackgroundUpload?: (file:File)=>Promise<void>;
   uploading?:boolean;
   seriesControls?:ReactNode;
+  filmstripContent?:ReactNode;
+  onBeforeLibraryNavigate?:()=>boolean;
   filmstrip?:Array<{id:string;name:string;presentation:SyncSlidePresentation;assetUrls?:Record<string,string>}>;
   currentProjectId?:string;
   onSelectDesign?:(id:string)=>void;
@@ -274,6 +276,7 @@ export function SyncStudioFrame(props: FrameProps) {
             className="vc-back-button"
             aria-label="Terug naar bibliotheek"
             href="/dashboard/content"
+            onClick={event => { if (props.onBeforeLibraryNavigate && !props.onBeforeLibraryNavigate()) event.preventDefault(); }}
           >
             <ArrowLeft size={19} />
           </Link>
@@ -559,7 +562,7 @@ export function SyncStudioFrame(props: FrameProps) {
                   {([['left','Links'],['center','Midden'],['right','Rechts']] as const).map(([alignment,label])=><button type="button" key={alignment} className={presentation.style.alignment===alignment?'active':''} aria-pressed={presentation.style.alignment===alignment} onClick={()=>setStyle({alignment})}>{label}</button>)}
                 </FieldGroup>
                 <FieldGroup label="Achtergrond" className="vc-background-choices">
-                  {([['stadium','Stadion'],['gradient','Verloop'],['stripes','Strepen'],['light','Licht']] as const).map(([background,label])=><button type="button" key={background} className={`${background} ${presentation.style.background===background?'active':''}`} aria-pressed={presentation.style.background===background} onClick={()=>setStyle({background,backgroundAsset:undefined})}><span>{label}</span></button>)}
+                  {([['stadium','Stadion'],['gradient','Verloop'],['stripes','Strepen'],['light','Licht'],['clubmuur','Clubmuur']] as const).map(([background,label])=><button type="button" key={background} className={`${background} ${presentation.style.background===background?'active':''}`} style={background==='clubmuur'?{backgroundImage:"url('/assets/clubmuur-wall.webp')",backgroundSize:'cover',backgroundPosition:'center'}:undefined} aria-pressed={presentation.style.background===background} onClick={()=>setStyle({background,backgroundAsset:undefined})}><span>{label}</span></button>)}
                 </FieldGroup>
                 {props.onBackgroundUpload&&<><Button variant="secondary" onClick={()=>imageInput.current?.click()}><ImagePlus size={16}/>{props.uploading?'Achtergrond controleren…':'Eigen achtergrond uploaden'}</Button><input ref={imageInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden aria-label="Achtergrond uploaden" onChange={event=>{const file=event.target.files?.[0];event.target.value='';if(file)void props.onBackgroundUpload?.(file);}}/></>}
                 <Field label={`Veilige marge · ${presentation.style.safeMargin}%`}>
@@ -873,19 +876,19 @@ export function SyncStudioFrame(props: FrameProps) {
                 <Layers3 size={14} />
                 ONTWERPEN IN JE BIBLIOTHEEK
               </span>
-              <Link href="/dashboard/content">
+              <Link href="/dashboard/content" onClick={event => { if (props.onBeforeLibraryNavigate && !props.onBeforeLibraryNavigate()) event.preventDefault(); }}>
                 Alles bekijken <ArrowRight size={13} />
               </Link>
             </div>
             <div className={`vc-filmstrip-items ${styles.filmstrip}`}>
-              {props.filmstrip?.length?props.filmstrip.map(member=><button type="button"key={member.id}className={member.id===props.currentProjectId?'active':''}disabled={props.busy}aria-label={`${member.id===props.currentProjectId?'Huidig ontwerp':'Ontwerp openen'}: ${member.name}`}onClick={()=>{if(member.id!==props.currentProjectId)props.onSelectDesign?.(member.id);}}><SyncSlideStaticView presentation={member.id===props.currentProjectId?preview:member.presentation}compact resolveAsset={asset=>asset.kind==='tenant'&&member.id!==props.currentProjectId?member.assetUrls?.[asset.mediaAssetId]??resolveAsset(asset):resolveAsset(asset)}includeStyles={false}/><span>{member.name}</span></button>):<button
+              {props.filmstripContent ?? (props.filmstrip?.length?props.filmstrip.map(member=><button type="button"key={member.id}className={member.id===props.currentProjectId?'active':''}disabled={props.busy}aria-label={`${member.id===props.currentProjectId?'Huidig ontwerp':'Ontwerp openen'}: ${member.name}`}onClick={()=>{if(member.id!==props.currentProjectId)props.onSelectDesign?.(member.id);}}><SyncSlideStaticView presentation={member.id===props.currentProjectId?preview:member.presentation}compact resolveAsset={asset=>asset.kind==='tenant'&&member.id!==props.currentProjectId?member.assetUrls?.[asset.mediaAssetId]??resolveAsset(asset):resolveAsset(asset)}includeStyles={false}/><span>{member.name}</span></button>):<button
                 type="button"
                 className="active"
                 aria-label={`Huidig ontwerp: ${presentation.name}`}
               >
                 {props.compactPreviewContent ?? <SyncSlideStaticView presentation={preview} compact resolveAsset={resolveAsset} includeStyles={false}/>}
                 <span>{presentation.name}</span>
-              </button>}
+              </button>)}
             </div>
           </div>
         </section>

@@ -319,6 +319,71 @@ describe("LED Scores live match state", () => {
 });
 
 describe("LED Scores connector loop", () => {
+
+  it("stores observed team objects then delivers one fresh mapped goal without retaining raw reference names", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    let loop: Promise<void> | null = null;
+    try {
+      vi.setSystemTime(new Date("2026-10-19T00:28:30.000Z"));
+      let claimed = false;
+      const backend = fakeBackend({ claim: vi.fn(async () => {
+        if (claimed) return [];
+        claimed = true;
+        return [connection];
+      }) });
+      const teams = {
+        away: { id: 27753, name: "PRIVATE_PROVIDER_AWAY", unconsumed: "PRIVATE_TOKEN" },
+        home: { id: 23603, name: "PRIVATE_PROVIDER_HOME", logo: "https://private.invalid/logo" }
+      };
+      const socket = new FakeWebSocket();
+      const webSocketFactory = vi.fn(() => {
+        queueMicrotask(() => socket.emit("open", new Event("open")));
+        return socket as unknown as WebSocket;
+      });
+      loop = runLedScoresConnectorLoop({ backend, claimIntervalMs: 1_000, leaseSeconds: 45, maxConnections: 1,
+        persistIntervalMs: 15_000, signal: controller.signal, webSocketFactory, workerId: "worker:test" });
+      await vi.advanceTimersByTimeAsync(1);
+      socket.message(providerMessage(Date.now(), "object-baseline", { teams }));
+      await vi.advanceTimersByTimeAsync(1);
+      expect(backend.touch).toHaveBeenCalledOnce();
+      expect(backend.upsertLiveState).toHaveBeenCalledWith(expect.objectContaining({ state: expect.objectContaining({
+        home: expect.objectContaining({ teamKey: "23603", name: connection.mappings[0]?.teamName, score: 0 }),
+        away: expect.objectContaining({ teamKey: "27753", name: connection.mappings[1]?.teamName, score: 0 })
+      }) }));
+      expect(backend.dispatch).not.toHaveBeenCalled();
+      const goal = providerMessage(Date.now(), "object-next-real-score", { teams,
+        scoreboard: { away: 0, home: 1, scored: { date: new Date(Date.now()).toISOString(), id: 1, side: "home" } }
+      });
+      socket.message(goal);
+      socket.message(goal);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(backend.dispatch).toHaveBeenCalledOnce();
+      expect(backend.dispatch).toHaveBeenCalledWith(connection, "worker:test", expect.objectContaining({
+        homeTeamKey: "23603", awayTeamKey: "27753", scoringTeamKey: "23603", scoringSide: "own",
+        homeScore: 1, previousHomeScore: 0, matchIdentity: "match:wedstrijd-1"
+      }));
+      expect(vi.mocked(backend.upsertLiveState).mock.calls.at(-1)?.[0].state).toMatchObject({
+        home: { teamKey: "23603", score: 1 }, away: { teamKey: "27753", score: 0 }
+      });
+      const lastGood = JSON.stringify(vi.mocked(backend.upsertLiveState).mock.calls);
+      socket.message(providerMessage(Date.now(), "object-invalid-id", { teams: { ...teams, home: { id: false, name: "PRIVATE_INVALID_NAME" } } }));
+      await vi.advanceTimersByTimeAsync(1);
+      expect(JSON.stringify(vi.mocked(backend.upsertLiveState).mock.calls)).toBe(lastGood);
+      expect(backend.recordState).toHaveBeenCalledWith(expect.objectContaining({ eventType: "invalid_message", invalidMessage: true }));
+      expect(backend.dispatch).toHaveBeenCalledOnce();
+      expect(webSocketFactory).toHaveBeenCalledOnce();
+      const persisted = JSON.stringify([vi.mocked(backend.recordState).mock.calls, vi.mocked(backend.touch).mock.calls,
+        vi.mocked(backend.upsertLiveState).mock.calls, vi.mocked(backend.dispatch).mock.calls]);
+      expect(persisted).not.toContain("PRIVATE_");
+      expect(persisted).not.toContain("private.invalid");
+    } finally {
+      controller.abort();
+      try { if (loop) await loop; }
+      finally { vi.useRealTimers(); }
+    }
+  });
+
   it("baselines first and dispatches exactly one fresh score transition", async () => {
     const controller = new AbortController();
     const now = Date.now();
@@ -1110,7 +1175,8 @@ describe("LED Scores connector loop", () => {
       const invalid = () => providerMessage(Date.now(), "private-invalid-shape-update", {
         teams: {
           away: null,
-          home: { id: "PRIVATE_TEAM_ID", name: "PRIVATE_TEAM_NAME", type: "PRIVATE_TEAM_TYPE",
+          // Keep this rejection-only fixture invalid after reference support.
+          home: { id: false, name: "PRIVATE_TEAM_NAME", type: "PRIVATE_TEAM_TYPE",
             active: true, "PRIVATE_UNKNOWN_KEY": "PRIVATE_TOKEN_VALUE",
             players: [{ name: "PRIVATE_PLAYER_NAME" }],
             url: "https://private.example.invalid/?token=PRIVATE_URL_TOKEN" }
@@ -1130,7 +1196,7 @@ describe("LED Scores connector loop", () => {
             { code: "invalid_union", path: "message.teams.away", shape: { type: "null" } },
             { code: "invalid_union", path: "message.teams.home", shape: {
               type: "object", primitiveFields: [
-                { key: "id", type: "string" }, { key: "name", type: "string" },
+                { key: "id", type: "boolean" }, { key: "name", type: "string" },
                 { key: "type", type: "string" }, { key: "active", type: "boolean" }
               ]
             } }
