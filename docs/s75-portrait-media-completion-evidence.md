@@ -50,6 +50,25 @@ gewijzigd.
 - volledige parallelle browsermatrix: 125 groen, acht bewuste live/visual skips;
   de viewportmatrix en Marketing-link overschreden alleen onder parallelle
   devserverbelasting hun grens en zijn beide geïsoleerd groen;
-- na deployment één bestaande mislukte portraitupload via
-  **Verwerking opnieuw proberen** hervatten;
-- bevestigen dat het asset `Gereed`, `1080 × 1920` en zonder validatiefout wordt.
+- staging en production zijn op 1 augustus 2026 met dezelfde release
+  `47287efc8af953849a86be1ea54587b037d2dbb9` uitgerold;
+- Control, Player en Marketing rapporteerden op production voor die release
+  `status: ok`;
+- de productionworkflow bewees live pairing en de zelfstandige LG-recovery;
+- de opdrachtgever hervatte een bestaande mislukte portraitupload via
+  **Verwerking opnieuw proberen**;
+- de opdrachtgever bevestigde daarna dat de opnieuw verwerkte portraitvideo op
+  de fysieke LG 43UL3J-EP via `/lg/legacy` correct werd afgespeeld.
+
+## Productiebewijs
+
+- merge: PR `#94`;
+- release-SHA: `47287efc8af953849a86be1ea54587b037d2dbb9`;
+- productiondeployment: GitHub Actions-run `30703849947`;
+- fysieke acceptatiedatum: 1 augustus 2026;
+- bevestiging: expliciete waarneming door de opdrachtgever op de productie-LG.
+
+De S75-incidentketen is hiermee gesloten. De bevestiging geldt voor de
+portraitverwerking en zichtbare playback op dit exacte scherm. Reboot,
+netwerkverlies, offlinevideoplayback en de 24-uurs mixed-media soak blijven
+afzonderlijke acceptatiepunten en worden niet door deze bevestiging afgetekend.
