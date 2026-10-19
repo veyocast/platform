@@ -377,3 +377,5 @@ kandidaat6/6; escaped-/ingesprongen-rootregressies ieder6/7 vóór herstel;
 finale7/7 PASS en echte
 registryguard exit0. Versie/toolchain/echte checks/actions/digests behouden.
 Geen install/browser/build/workflowrerun; volledige geïntegreerde CI volgt.
+
+| S255 | lokale review | veyocast/s255-sync-saved-studio-touch | studio_surfaces | Bewaarde Sync Studio-uitlijning en native disclosures | Alleen lokale properties-CSS, bestaande Clubmuur/save/reloadcase en eigen docs/prompt | Echte390-nulmeting10px/29,5px en summary21,6875px; dezelfde uitgebreide controlledcase baseline1FAIL→kandidaat1PASS/0skip/0retry,14px/min44px/Enter/state/save/reload/1440/properties-aXe0. Scopedlint/syntax/diff groen; infraENOENT afzonderlijk behouden; alle14linksweg/Chrome[]/bron-deps-assets-tokensgelijk | Volledige foundation/strictspecTSC/geïntegreerde Next-capture en releasebesluit open; root autoriseert eigen scoped commit/push/draft-PR; geen install/build/runtime/QA-DB/deploy. Geen volledige visuele ronde of acceptatieclaim. |

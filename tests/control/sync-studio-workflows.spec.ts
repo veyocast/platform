@@ -842,9 +842,47 @@ test('Source YouTube chooses an existing verified source without saving, renderi
 
 
 test("an existing OnzeTrots design can choose Clubmuur again and retain it after saving and reloading", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   const fixture = await mount(page);
   await page.getByRole("button", { name: "Vormgeving", exact: true }).click();
   await page.getByRole("button", { name: /OnzeTrots TV/ }).click();
+  const assertAuthoringTouch = async () => {
+    const alignment = page.getByRole("group", { name: "Uitlijning", exact: true });
+    for (const name of ["Links", "Midden", "Rechts"]) {
+      const control = alignment.getByRole("button", { name, exact: true });
+      await control.scrollIntoViewIfNeeded();
+      await expect(control).toHaveCSS("font-size", "14px");
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      const box = await control.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.width).toBeGreaterThanOrEqual(44);
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+    }
+    const summary = page.locator(".vc-studio-properties details > summary").filter({ hasText: /^Clubbeelden en achtergrond$/ });
+    await summary.scrollIntoViewIfNeeded();
+    await expect(summary).toHaveCSS("display", "list-item");
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    const box = await summary.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    const details = summary.locator("..");
+    await expect(details).not.toHaveAttribute("open", "");
+    await summary.focus();
+    await expect(summary).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(details).toHaveAttribute("open", "");
+    await expect(page.getByLabel("Uitsnede foto", { exact: true })).toBeVisible();
+    await summary.focus();
+    await page.keyboard.press("Enter");
+    await expect(details).not.toHaveAttribute("open", "");
+  };
+  await assertAuthoringTouch();
+  const alignment = page.getByRole("group", { name: "Uitlijning", exact: true });
+  await alignment.getByRole("button", { name: "Midden", exact: true }).click();
+  await expect(alignment.getByRole("button", { name: "Midden", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await alignment.getByRole("button", { name: "Links", exact: true }).click();
+  await expect(alignment.getByRole("button", { name: "Links", exact: true })).toHaveAttribute("aria-pressed", "true");
   const light = page.getByRole("button", { name: "Licht", exact: true });
   const wall = page.getByRole("button", { name: "Clubmuur", exact: true });
   await light.click();
@@ -862,6 +900,11 @@ test("an existing OnzeTrots design can choose Clubmuur again and retain it after
   await page.getByRole("button", { name: "Vormgeving", exact: true }).click();
   await expect(page.getByRole("button", { name: "Clubmuur", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".vc-stage-canvas .vc-slide-preview").first()).toHaveClass(/bg-clubmuur/);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await assertAuthoringTouch();
+  const axe = await new AxeBuilder({ page }).include(".vc-studio-properties").analyze();
+  expect(axe.violations).toEqual([]);
+  expect(fixture.renderWrites).toEqual([]);
   expect(fixture.writes).toHaveLength(1);
   expect(fixture.errors).toEqual([]);
 });

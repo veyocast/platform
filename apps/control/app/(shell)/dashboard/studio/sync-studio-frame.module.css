@@ -41,3 +41,15 @@
 .properties:global(.vc-studio-properties) :global(.vc-checkbox-field) {
   min-height: 44px;
 }
+
+/* Saved-design authoring controls keep their native behavior and Source palette.
+   The named FieldGroup is alignment; the data-mode group uses aria-label. */
+:global(.sync-control) .properties:global(.vc-studio-properties) :global(.vc-segmented)[aria-labelledby] > button {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+:global(.sync-control) .properties:global(.vc-studio-properties) details > summary {
+  min-height: 44px;
+  padding-block: 11px;
+}
