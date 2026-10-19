@@ -1,5 +1,9 @@
 /* Runtime adapters for the authenticated shell; source geometry is in sync-source.css. */
 html[data-design-system="fieldflow"] .sync-control { --vc-font-display:Manrope,Inter,sans-serif; --vc-font-ui:Manrope,Inter,sans-serif; }
+/* Fixed light Source status surfaces use their official on-surface roles. */
+.sync-control .badge-amber { color:var(--vc-vector-warning-on-surface); }
+html[data-design-system="fieldflow"] .sync-control .vc-badge--success { color:var(--vc-vector-success-on-surface); }
+.sync-control .vc-badge--success .vc-badge__dot { background:var(--ff-sites-badge-success-text,var(--vc-semantic-success-solid)); }
 .sync-control svg { display:inline; vertical-align:baseline; }
 .sync-control .nav-panel { border-radius: 0; gap:normal; margin: 0; transform: none; box-shadow: none; }
 .sync-control .ov-page svg,.sync-control .topbar svg { stroke-width:1.7; }
