@@ -850,6 +850,20 @@
   color: var(--vc-on-action);
 }
 
+:global(.sync-control) .previewToolbar button,
+:global(.sync-control) .previewKinds button {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+:global(.sync-control) .previewToolbar button[aria-pressed="true"],
+:global(.sync-control) .previewKinds button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .previewKinds {
   display: flex;
   gap: var(--vc-space-6);
@@ -1826,4 +1840,49 @@
   .momentCard:hover {
     transform: none;
   }
+}
+
+:global(.sync-control) .moduleIcon,
+:global(.sync-control) .momentIcon {
+  background: var(--accent-soft);
+  border-color: var(--line);
+  color: var(--accent);
+}
+
+:global(.sync-control) .wizardNav button[aria-current="step"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: inset 0.1875rem 0 var(--accent);
+  color: var(--text);
+}
+
+:global(.sync-control) .wizardNav button[aria-current="step"] > span:first-child {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+}
+
+:global(.sync-control) .momentCard[data-selected="true"],
+:global(.sync-control) .orientationChoices > label[data-selected="true"],
+:global(.sync-control) .templateChoices > label[data-selected="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+@media (max-width: 68rem) {
+  :global(.sync-control) .wizardNav button[aria-current="step"] {
+    box-shadow: inset 0 -0.1875rem var(--accent);
+  }
+}
+
+:global(.sync-control) .sectionHeading > div > span,
+:global(.sync-control) .fallbackFlow li::before,
+:global(.sync-control) .publishExplanation > div > span {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+:global(.sync-control) .liveSlideIntro {
+  background: linear-gradient(135deg, var(--vc-brand-ink-black), color-mix(in srgb, var(--vc-brand-ink-black) 82%, var(--accent)));
 }
