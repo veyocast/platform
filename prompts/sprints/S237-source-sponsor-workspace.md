@@ -170,3 +170,69 @@ overgenomen legeEOFregel in `tests/helpers/sync-create-wizard-fixture.ts`
 mag worden verwijderd voor mergebasediffcheck; geen JavaScript-/casewijziging.
 Actuele8/8sponsorbrowsers zijn vóór deze dependencymerge uitgevoerd;
 geïntegreerdefoundation en hostedbrowsers worden apart gerapporteerd.
+
+## Root CI-vervolg: bestaande bereikbare regressiecases
+
+De eerste hosted Control-run op19549305 heeft4FAIL/485PASS/629bestaandeSKIP.
+Bewaar `/tmp/veyocast-s237-first-ci-control-failure.log` ongewijzigd. Drie
+Sponsor390/768/1440cases verwachten de verwijderde badge Geen beeld en
+mounten nog de oude losse component plus een kunstmatig details-/anchorstub.
+De shellcase verwacht eveneens de verdwenen details, navigation en KPI-region.
+
+Root autoriseert studio_surfaces uitsluitend aanvullend de twee bestaande
+`tests/control/sites-engage-sponsors-workflows.spec.ts` en
+`tests/e2e/control-shell.spec.ts`, plus deze prompt en de eigen doc. De concrete
+readonlymapping is door root akkoord bevonden vóór schrijven: Sponsorfixture
+mount dezelfde echte SyncSponsorWorkspace met native tablist en beheerdialog;
+geen productcode wijzigen. Controleer de feitelijke tekst Nog geen campagnebeeld
+gekoppeld, geverifieerde preview/disclaimer en onbekende preview/hersteltekst,
+button Beheren naar de echte geselecteerde campagnedialoog, Escape/focusterug
+en bestaande search/empty/viewportgevallen. Shell volgt dezelfde vier tabs en
+feitelijke metrics, opent Publicatie en posities en controleert bestaande
+Publicatie/Beschikbare posities; alle overige route-/rolechecks blijven.
+
+Alle bestaande Engage-casebodies, CAS/retry/permissions, HTTP-/assettransport,
+viewport/preview/emptysemantiek en eventuele aXe-asserties blijven behouden.
+Geen skips, timeoutwijziging of cold missing-server-runs. RootGO geldt voor
+de gerichte3Sponsor+relevanteEngagecases,1worker0retry/externe servers. Shell
+vereist een actuele echte Controlruntime; geen eigen server/build zonder GO.
+Hosted rood blijft apart bewaard; lokale correctieve proof vervangt dit niet.
+
+Root vervolg na lokale runtimegrenzen: de tien gerichte Sponsor/Engagecases
+slagen. De volledige oude shellcase behoudt zijn bestaande deadlines en is
+nog niet lokaal groen: eerst een expliciete Nextdev2048-geheugendrempelrestart
+bij Schermen, daarna op3072 een zichtbare loadingfallback bij Content zonder
+restart. MemAvailable was toen453440KiB; causale toeschrijving aan geheugen
+is niet bewezen. Bewaar beide rode JSONs/traces/runtime-/HTTPlogs en voer geen
+extra devherhaling uit. Root integreert producthead19549305 gewoon in S244 en
+neemt deze twee testcorrecties plus prompt/doc byte-identiek over. De gehele
+shell wordt op de gecombineerde productiebuild getoetst. Tot dat bewijs blijven
+commit/push van deze testcorrectie en een fullshellPASS-claim achterwege.
+
+## Root aanvullende gesloten productiebuildgrens
+
+Root gaf na gesloten S238/S243-queues een afzonderlijke bounded productiebuild
+plus dezelfde volledige shellcase vrij. Gebruik default.next: QA_OUTPUT zou
+Next twee tracked typeconfigbestanden laten herschrijven. De eigen inactieve
+dev.next-symlink is daarom uitsluitend hernoemd naar een unieke reeds genegeerde
+.cache/.next-s237-dev-preserved-UTC-symlink. De oorspronkelijke RAMtargetbytes
+zijn vooraf volledig gehasht en achteraf bytegelijk; nieuwe unieke RAM.next-
+output bevat de productiebuild. Geen trackedconfigmutaties toegestaan.
+
+Build NODE_ENVproduction en vervolgens nextstart NODE_ENVdevelopment volgens
+de bestaande runtimeconfigdemo-route, zonder Supabase/deploymentenv of nieuwe
+config. CPU4,5/3072heap, één Nextstaticworker, freshMemAvailable>3500MiB;
+helper bewaart eerdere versie en stopt uitsluitend eigen procesgroep bij druk.
+Idle-guard herkent alleen exact eigen app of geverifieerde taskworktree plus
+acceptancetag, behoudt ongerelateerde host-/Dockerprocessen en gebruikt de
+globaleChromequeuegrens. Root verleende de daadwerkelijke heavyGO afzonderlijk.
+
+Actuele build97.10sexit0, BUILD_ID MMH-5Ur-pGvA_B7wtCkvr; bron-/config-/
+oudeoutputinvarianten slagen. Exact dezelfde volledige shellcase slaagt nu
+1/1PASS9.4s,1worker0retry0skip, runnerexit0. Browsergracefulexit0 en eigen
+3403procesgroep gestopt/poortdicht bewezen. Bewaar ruwe consolemeldingen van
+localhost/127-prefetchCORS; geen consoleclean- of algemene productfixclaim.
+De twee testhashes blijven exact gelijk aan de eerdere10geslaagde gerichte
+Sponsor/Engagecases; die hoeven niet opnieuw. Root neemt de vier bevroren
+test/prompt/docpaden byte-identiek over na gewone19549305integratie inS244.
+Geen afzonderlijke commit/push/PRupdate of extra CI-herstart door deze agent.
