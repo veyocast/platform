@@ -285,7 +285,13 @@ for (const width of [390, 1440]) {
     const scope = page.locator('.sync-control [data-proof="theme"]');
     await expect(scope.getByRole("button", { name: "Blauw", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.evaluate(() => document.fonts.ready);
-    const accent = await page.locator('[data-proof="source-roles"]').evaluate(element => getComputedStyle(element).color);
+    const roles = await page.locator('[data-proof="source-roles"]').evaluate(element => { const s = getComputedStyle(element); return { accent: s.color, accentSoft: s.backgroundColor, line: s.borderColor }; });
+    const accent = roles.accent;
+    const scopeBadge = scope.locator('[class*="editorialThemeScope"]');
+    await expect(scopeBadge).toHaveText("Tenantbreed");
+    await expect(scopeBadge).toHaveCSS("color", roles.accent);
+    await expect(scopeBadge).toHaveCSS("background-color", roles.accentSoft);
+    await expect(scopeBadge).toHaveCSS("border-color", roles.line);
     const eyebrow = scope.locator('[class*="editorialThemeEyebrow"]');
     await expect(eyebrow).toHaveCSS("color", accent);
     const label = scope.locator("label.settings-check-card"), checkbox = label.getByRole("checkbox"), title = label.locator("strong"), help = label.locator("small");

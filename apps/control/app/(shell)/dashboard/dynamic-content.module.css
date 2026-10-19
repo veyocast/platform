@@ -111,6 +111,10 @@
   color: var(--vc-action);
 }
 
+:global(.sync-control) .previewPlaceholder svg {
+  color: var(--accent);
+}
+
 .previewTypeBadge {
   position: absolute;
   right: var(--vc-space-8);
@@ -1293,6 +1297,12 @@
   font-weight: 700;
   min-height: 30px;
   padding: var(--vc-space-4) var(--vc-space-10);
+}
+
+:global(.sync-control) .editorialThemeScope {
+  background: var(--accent-soft);
+  border-color: var(--line);
+  color: var(--accent);
 }
 
 .editorialThemeWorkspace {

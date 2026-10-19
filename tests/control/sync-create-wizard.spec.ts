@@ -67,8 +67,29 @@ for (const width of [390, 1440]) {
     expect(imageReferences).not.toContain("http:"); expect(imageReferences).toContain("checksumSha256");
     const bounds = await page.getByLabel("Voorbeeld van je ontwerp").locator(".vc-slide-preview").boundingBox();
     expect(bounds!.height / bounds!.width).toBeCloseTo(16 / 9, 2);
+    const galleryScroll = await page.evaluate(() => ({ x: scrollX, y: scrollY }));
+    const decodedGallery = [];
+    for (const scene of syncBackgroundScenes) {
+      const thumbnail = page.getByRole("button", { name: scene.label, exact: true }).locator("img");
+      await expect(thumbnail).toHaveCount(1);
+      await thumbnail.scrollIntoViewIfNeeded();
+      const decoded = await thumbnail.evaluate(async element => {
+        const image = element as HTMLImageElement;
+        await image.decode();
+        return { path: new URL(image.currentSrc).pathname, complete: image.complete, width: image.naturalWidth, height: image.naturalHeight };
+      });
+      expect(decoded.width, scene.label).toBeGreaterThan(0);
+      expect(decoded).toEqual({ path: scene.portrait.path, complete: true, width: scene.portrait.width, height: scene.portrait.height });
+      decodedGallery.push({ scene: scene.id, ...decoded });
+    }
+    await page.evaluate(async position => {
+      scrollTo(position.x, position.y);
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    }, galleryScroll);
+    await info.attach("actual-gallery-decode", { body: Buffer.from(JSON.stringify(decodedGallery)), contentType: "application/json" });
     await info.attach("actual-design-step", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
     await next(page); expect(state.creates).toEqual([]);
+    await expect(page.getByText("Duur", { exact: true }).locator("..").locator("dd")).toHaveText("5 seconden per pagina · 1 pagina");
     const primary = page.getByRole("button", { name: "Ontwerp maken", exact: true });
     expect(await primary.evaluate(button => getComputedStyle(button).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -386,3 +386,24 @@ Native2labels door agent+root bekeken/lokaal geaccepteerd; productpeer zonder
 blocker. Chrome[] en
 alle13links verwijderd;16asset-/trackedtoken-/dependencyinputs gelijk.
 Geen install/build/authrefresh/DB; integratie/fullgates/actualbuild volgen.
+S256 gerichte kleurfollow-up na75d4ca0c: vijf lokale Syncselectorvoorstellen,
+vier CSSpaden inclusief drie expliciete ownershipuitbreidingen; Tenantbreed
+asserties in dezelfde echte twee themecases, geen fake routefixture. Vooralsnog
+RAM-only wegens reserve<100MiB; nieuwe4cases/scopedlint/actualglyphcapture OPEN.
+Oude2rood/4groen/12units en eerstecommit blijven ongewijzigd bewaard.
+S256 dezelfde RAM-follow-up omvat twee gebruikershints en pagina/pagina’s in
+het bestaande wizardreviewlabel; één duurassert in bestaande390/1440cases.
+Nieuwe wizardSHA/finalB-binding vereist; oude B uitsluitend historisch.
+S256 resourcehersteld: exact RAM69bb7744 toegepast; scopedlint99000 actual0,
+specsyntax2×0/CSSparse4×0;13links weg,1177unrelatedfiles+tokens/assets/deps
+gelijk. Nieuwe6browsercases/finalB/actualbuild/fullgates/ronden nog OPEN.
+S256 finale gerichte follow-up:6/6 kleuren/copyPASS32,988s/36772exit0;
+96595blijft0caseNOT_RUN_LOADER_INFRA, geenproductFAIL. Echte broken Design
+thumbs onthulden fixture-/onzetrotsroutegat; helperownership expliciet erbij.
+Exact6immutableWebPbytes/sha+querylozeGET; bestaande390/1440cases
+3portraitdecode941×1672 vóórDesignPNG, alle oude flow/asserties behouden.
+Afzonderlijk2/2PASS10,407s/38972exit0; scopedlint41604exit0. Agent/root
+zagen beide native Designbeelden:3foto’s zichtbaar, geenbrokenimg. Oude6PASS
+enbrokenframes bewaard, geen eerderegalleryPASS. Alle14links/2legeparents
+weg,Chrome[];11owned/1176unrelated/65canonical/16assets/token0640/Next/deps
+en6WebPguards gelijk. Fullgates/newbuild/finalB/five/deploy rootownedOPEN.
