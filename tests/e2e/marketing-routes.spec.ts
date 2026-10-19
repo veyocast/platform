@@ -222,7 +222,7 @@ for (const width of [390, 1440]) {
         await expect(page.locator("main")).not.toContainText(/billable|billing|entitlement|integer cents/i);
         const trial = page.getByRole("button", { name: "Wanneer begint de proefperiode?", exact: true });
         await trial.click();
-        await expect(page.getByText("De proefperiode begint bij de eerste succesvolle schermactivatie nadat je de voorwaarden hebt geaccepteerd. Iedere factuuraccount heeft één proefperiode.", { exact: true })).toBeVisible();
+        await expect(page.getByText("De proefperiode begint bij de eerste succesvolle schermactivatie nadat je de voorwaarden hebt geaccepteerd. Elk factuuraccount heeft één proefperiode.", { exact: true })).toBeVisible();
         await trial.click();
         const count = page.getByRole("spinbutton", { name: "Aantal actieve schermen", exact: true });
         await expect(count).toHaveValue("1");

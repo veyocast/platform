@@ -1067,7 +1067,7 @@ const corePages: MarketingPageDefinition[] = [
     examples: ["1 scherm: € 5,95 per maand", "2 schermen: € 11,90 per maand", "6 schermen: € 35,70 per maand", "14 dagen gratis proberen"],
     faqs: [
       { title: "Wat kost VeyoCast?", body: "€ 5,95 inclusief btw per actief scherm per maand, na een proefperiode van 14 dagen." },
-      { title: "Wanneer begint de proefperiode?", body: "De proefperiode begint bij de eerste succesvolle schermactivatie nadat je de voorwaarden hebt geaccepteerd. Iedere factuuraccount heeft één proefperiode." },
+      { title: "Wanneer begint de proefperiode?", body: "De proefperiode begint bij de eerste succesvolle schermactivatie nadat je de voorwaarden hebt geaccepteerd. Elk factuuraccount heeft één proefperiode." },
       { title: "Kan btw afwijken?", body: "Voor Nederland rekent de calculator met 21% btw. Afwijkende grensoverschrijdende fiscale behandeling wordt vóór contractering bevestigd." }
     ],
     imageId: "product-screen-status",
