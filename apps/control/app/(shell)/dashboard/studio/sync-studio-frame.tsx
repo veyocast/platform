@@ -363,7 +363,7 @@ export function SyncStudioFrame(props: FrameProps) {
             ))}
           </div>
           <fieldset
-            className="vc-studio-properties"
+            className={`vc-studio-properties ${styles.properties}`}
             disabled={props.readOnly || props.busy || props.inputsDisabled}
           >
             {tab === "content" && (props.mediaControls?.content ?? (

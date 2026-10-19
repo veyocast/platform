@@ -902,6 +902,7 @@ export function StudioEditorWorkspace({
         assets={assets}
         canEdit={permissions.canEdit}
         dispatch={dispatch}
+        onOpenRevisions={() => setRevisionPanelOpen(true)}
         onRename={renameProject}
         projectName={projectName}
         requestRender={requestRender}
@@ -3362,6 +3363,7 @@ function MobileQuickEdit({
   assets,
   canEdit,
   dispatch,
+  onOpenRevisions,
   onRename,
   projectName,
   requestRender,
@@ -3370,6 +3372,7 @@ function MobileQuickEdit({
   assets: StudioMediaAsset[];
   canEdit: boolean;
   dispatch: (action: StudioEditorAction) => void;
+  onOpenRevisions: () => void;
   onRename: (name: string) => Promise<boolean>;
   projectName: string;
   requestRender: () => void;
@@ -3401,6 +3404,16 @@ function MobileQuickEdit({
       <div className={styles.mobileSection}>
         <h2>Snel bewerken</h2>
         <p>Pas tekst en beeldslots aan. Gebruik desktop voor vrije positionering.</p>
+        <Button
+          aria-label="Revisiegeschiedenis openen"
+          className={styles.mobileHistoryAction}
+          onClick={onOpenRevisions}
+          size="sm"
+          variant="secondary"
+        >
+          <History aria-hidden="true" />
+          Revisiegeschiedenis
+        </Button>
       </div>
       <article className={styles.mobileElementCard}>
         <div>
@@ -3610,7 +3623,7 @@ function PreviewDialog({
   }, [onClose, open]);
   if (!open) return null;
   return createPortal(
-    <div className={styles.previewBackdrop} role="presentation">
+    <div className={`sync-control sync-retained-studio sync-retained-studio--backdrop ${styles.previewBackdrop}`} role="presentation">
       <section
         aria-labelledby="studio-preview-title"
         aria-modal="true"
@@ -3723,7 +3736,7 @@ function RevisionDialog({
   if (!open) return null;
 
   return createPortal(
-    <div className={styles.previewBackdrop} role="presentation">
+    <div className={`sync-control sync-retained-studio sync-retained-studio--backdrop ${styles.previewBackdrop}`} role="presentation">
       <section
         aria-labelledby="studio-revisions-title"
         aria-modal="true"

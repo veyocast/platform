@@ -168,6 +168,7 @@ export function StudioKonvaCanvas({
   return (
     <div
       aria-label="Studio-artboard"
+      role="group"
       className={styles.canvasViewport}
       data-grid={showGrid ? "visible" : "hidden"}
       data-panning={activePan || dragPanning}

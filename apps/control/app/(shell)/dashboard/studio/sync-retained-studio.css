@@ -1,0 +1,57 @@
+/* The retained Studio portals mount directly in document.body. Keep their
+   Source roles local: DialogPortalProvider does not own these portal roots. */
+.sync-control.sync-retained-studio {
+  --vc-surface: var(--surface);
+  --vc-surface-muted: var(--surface-2);
+  --vc-text: var(--text);
+  --vc-text-muted: var(--muted);
+  --vc-border: var(--line);
+  --vc-border-strong: var(--line);
+  --vc-action: var(--accent);
+  --vc-focus: var(--accent);
+  --vc-font-ui: Manrope, Inter, sans-serif;
+  --vc-font-display: Manrope, Inter, sans-serif;
+  color: var(--text);
+  font: 14px/1.55 Manrope, Inter, sans-serif;
+}
+
+.sync-control.sync-retained-studio--backdrop {
+  background: color-mix(in srgb, var(--text) 54%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.sync-control.sync-retained-studio .vc-button {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 650;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+}
+
+.sync-control.sync-retained-studio .vc-button:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.sync-control.sync-retained-studio .vc-button.vc-button--primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--surface);
+}
+
+.sync-control.sync-retained-studio .vc-button.vc-button--primary:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--accent), black 12%);
+}
+
+.sync-control.sync-retained-studio :is(button, input, select, textarea, a):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.sync-control.sync-retained-studio :is(input, select, textarea) {
+  border-radius: 10px;
+  font-size: 14px;
+}
