@@ -53,3 +53,9 @@
   min-height: 44px;
   padding-block: 11px;
 }
+
+/* The saved-design output block contains text and actions, not an icon row. */
+.properties:global(.vc-studio-properties) > section:global(.vc-source-binding) {
+  flex-direction: column;
+  align-items: stretch;
+}
