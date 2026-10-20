@@ -1,7 +1,7 @@
 diff --git a/dist/compiled/scheduler/cjs/scheduler.development.js b/dist/compiled/scheduler/cjs/scheduler.development.js
 --- a/dist/compiled/scheduler/cjs/scheduler.development.js
 +++ b/dist/compiled/scheduler/cjs/scheduler.development.js
-@@ -12,6 +12,16 @@
+@@ -12,6 +12,20 @@
  "production" !== process.env.NODE_ENV &&
    (function () {
      function performWorkUntilDeadline() {
@@ -10,7 +10,11 @@ diff --git a/dist/compiled/scheduler/cjs/scheduler.development.js b/dist/compile
 +        "undefined" !== typeof document &&
 +        document.documentElement &&
 +        "1" === document.documentElement.getAttribute("data-veyocast-document-ready") &&
-+        "loading" === document.readyState
++        ("loading" === document.readyState ||
++          ("undefined" !== typeof window &&
++            null !== window &&
++            Array.isArray(window.$RB) &&
++            window.$RB.length > 0))
 +      ) {
 +        localSetTimeout(performWorkUntilDeadline, 8);
 +        return;
@@ -21,7 +25,7 @@ diff --git a/dist/compiled/scheduler/cjs/scheduler.development.js b/dist/compile
 diff --git a/dist/compiled/scheduler/cjs/scheduler.production.js b/dist/compiled/scheduler/cjs/scheduler.production.js
 --- a/dist/compiled/scheduler/cjs/scheduler.production.js
 +++ b/dist/compiled/scheduler/cjs/scheduler.production.js
-@@ -119,6 +119,16 @@
+@@ -119,6 +119,20 @@
        : !0;
  }
  function performWorkUntilDeadline() {
@@ -30,7 +34,11 @@ diff --git a/dist/compiled/scheduler/cjs/scheduler.production.js b/dist/compiled
 +    "undefined" !== typeof document &&
 +    document.documentElement &&
 +    "1" === document.documentElement.getAttribute("data-veyocast-document-ready") &&
-+    "loading" === document.readyState
++    ("loading" === document.readyState ||
++      ("undefined" !== typeof window &&
++        null !== window &&
++        Array.isArray(window.$RB) &&
++        window.$RB.length > 0))
 +  ) {
 +    localSetTimeout(performWorkUntilDeadline, 8);
 +    return;

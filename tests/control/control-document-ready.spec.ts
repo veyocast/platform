@@ -337,3 +337,33 @@ test("a document already parsed before hydration keeps its SSR nodes and becomes
 test("a genuine structural mismatch after DOMContentLoaded remains reported", async ({ page }, info) => {
   await exercise(page, info, "mismatch");
 });
+
+// Playwright requires fixture destructuring; this Node-only test needs no page.
+// eslint-disable-next-line no-empty-pattern
+test("pending Fizz reveals defer Control callbacks after parsing without delaying other documents", async ({}, info) => {
+  const cases = ["control-pending", "control-empty", "other-pending", "other-loading", "control-no-window", "control-null-window"] as const;
+  const results: Array<{ mode: string; scenario: string; beforeRelease: number; callbackCalls: number; callbackReadyState: string; callbackQueueLength: number | null }> = [];
+  for (const mode of ["production", "development"]) {
+    for (const scenario of cases) {
+      // Execute the actual public Scheduler. Node's FIFO host turns expose an
+      // early callback deterministically; no Scheduler/timer/RAF API is replaced.
+      // This document/window stub tests the callback contract, not Next hydration.
+      const script = `const scheduler=require(${JSON.stringify(join(nextRoot, "dist/compiled/scheduler"))});
+const scenario=${JSON.stringify(scenario)},control=scenario.startsWith('control-');
+global.document={readyState:scenario==='other-loading'?'loading':'interactive',documentElement:{getAttribute:name=>name==='data-veyocast-document-ready'&&control?'1':null}};
+if(scenario==='control-null-window')global.window=null;else if(scenario!=='control-no-window')global.window={$RB:scenario==='control-empty'?[]:[{},{}]};
+let callbackCalls=0,beforeRelease=-1,callbackReadyState,callbackQueueLength;
+function emit(){if(callbackCalls&&beforeRelease>=0)process.stdout.write(JSON.stringify({beforeRelease,callbackCalls,callbackReadyState,callbackQueueLength}))}
+scheduler.unstable_scheduleCallback(scheduler.unstable_NormalPriority,()=>{callbackCalls++;callbackReadyState=document.readyState;callbackQueueLength=Array.isArray(global.window?.$RB)?global.window.$RB.length:null;emit()});
+setImmediate(()=>{beforeRelease=callbackCalls;if(Array.isArray(global.window?.$RB))global.window.$RB.length=0;emit()});`;
+      const output = execFileSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 5_000, env: { ...process.env, NODE_ENV: mode } });
+      results.push({ mode, scenario, ...JSON.parse(output) });
+    }
+  }
+  await info.attach("parsed-document-reveal-scheduler-contract", { body: JSON.stringify({ documentWindowStub: true, results }, null, 2), contentType: "application/json" });
+  expect(results).toEqual(["production", "development"].flatMap(mode => cases.map(scenario => ({
+    mode, scenario, beforeRelease: scenario === "control-pending" ? 0 : 1, callbackCalls: 1,
+    callbackReadyState: scenario === "other-loading" ? "loading" : "interactive",
+    callbackQueueLength: scenario === "control-no-window" || scenario === "control-null-window" ? null : scenario.startsWith("other-") ? 2 : 0
+  }))));
+});
