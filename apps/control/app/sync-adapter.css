@@ -56,6 +56,20 @@ html[data-design-system="fieldflow"][data-theme="dark"] .sync-control.sites-cont
   --vc-border-strong:var(--line);
   color-scheme:light;
 }
+/* MultiSelect inherits resolved root vector colours; scope its UI palette here. */
+.sync-control .vc-multi-select {
+  --vc-vector-surface:var(--surface);
+  --vc-vector-surface-raised:var(--surface);
+  --vc-vector-surface-muted:var(--surface-2);
+  --vc-vector-ink:var(--text);
+  --vc-vector-ink-muted:var(--muted);
+  --vc-vector-line:var(--line);
+  --vc-vector-line-strong:var(--line);
+  --vc-vector-selection-surface:var(--accent-soft);
+  --vc-vector-selection-line:var(--line);
+  --vc-vector-link:var(--accent);
+  --vc-vector-focus:color-mix(in srgb,var(--accent) 70%,var(--mint) 30%);
+}
 /* Small Source UI status text uses existing readable on-surface roles. */
 .sync-control .ov-today-copy { color:var(--muted); }
 .sync-control .px-tiny-status:not(.good) { color:var(--vc-vector-warning-on-surface); }
