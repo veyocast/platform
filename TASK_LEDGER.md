@@ -478,4 +478,5 @@ Echte MP4/gedecodeerdeQR-keten alleen voorbereid; geïntegreerde foundation/norm
 CI/volledige Player-offline/fysieke proeven/staging/productie blijven open.
 **0/5 volledige prototypevergelijkingsronden.** Zie `docs/s262-engage-full-options.md`.
 
+| S266 | Galerijlabels beïnvloeden geen tekst binnen slidepreviews | Zes kaartselectors begrensd tot directe metadata; alle36 previews op390/700/1440 gelijk aan dezelfde zelfstandige renderer. Baseline3 native rood; kandidaat11/11 groen, nul skips/retries, keyboard/aXe/receipt/viewer behouden. Bronrenderer, assets en dependencies gelijk. Integratie/CI/actuele build, 0/5 volledige visuele rondes en uitrol blijven S244. |
 | S264 | CI-integratiefouten Source-request en oude browserfixtures | Gerichte lint + volledige Control-typecheck groen; 11/11 native Chromiumcases plus2/2 Source-/prijsjourneys groen, 0 skips/retries. Vier begrensde code/testcorrecties, aparte scope en behoud van alle rode bewijzen. Gecombineerde finale gates, 0/5 volledige visuele rondes en uitrol blijven S244. |
