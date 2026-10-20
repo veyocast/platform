@@ -234,3 +234,28 @@ Alle oude Source-/SDK-/capturefails en de nieuwe runtime-outer143 blijven met
 hun eigen uitslagen behouden. Afzonderlijke lege procesgroepen/idle/fullSDK-
 controle is geen herschrijving van die143. Geen extra provideraccount- of
 fysieke testvraag; de eerder door gebruiker uitgestelde grenzen blijven expliciet.
+
+## 21 oktober — integratie van de laatste werkelijke beeldbevindingen
+
+S277 en S278 hebben nu ieder tien groene exacte featurechecks. Behoud ook de
+oorspronkelijke S277-Control-failure met de gemeten43,999969px en de ene normale
+rerun op dezelfde SHA; de oorzaak is niet bewezen. Integreer de gereviewde
+S279/S280/S281-heads normaal. Hun afzonderlijke ownership, native tegenproeven,
+autentieke AAL2-readbacks en oorspronkelijke failures blijven behouden. Geen
+sourcewijziging buiten die scopes. S281 voegt uitsluitend een lokale begrensde
+Goal-previewfont-/stijlgrens toe; gedeelde renderers/Player blijven ongewijzigd.
+
+De afhankelijke S279-Control-CI faalt op de oudere wizardtestbasis: die mist
+exact de reeds bewezen S275-readinessregels die Root74 wel bevat. Dit is geen
+groene featuregate en wordt niet zo genoemd. De gezamenlijke integratie krijgt
+de bestaande S275-regels en moet alle normale exacte PR270-gates opnieuw halen.
+Geen blinde rerun van de oude bronbasis, aangepaste tolerantie of skip.
+
+Bevries de nieuwe gezamenlijke bron, bind de bestaande normale SDK-installatie
+met een nieuwe continuïteitsverklaring en bouw Control/Marketing werkelijk
+opnieuw. Bewaar de74eb-builds/captures als historisch bewijs. Controleer de
+nieuwe kleine contrastrollen/keuzevelden en de koude Goal-preview in de echte
+app; voltooi daarna de volledige matrixronden4–5. De148 scenario’s behouden hun
+aantoonbare bewijsniveau en expliciet uitgestelde externe grenzen. Daarna de
+exacte gecombineerde CI, normale main-integratie, staging-smokes en productie
+met dezelfde immutable SHA/digests. Nog geen nieuwe deployment of V1-compleet.
