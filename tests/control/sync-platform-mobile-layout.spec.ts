@@ -20,7 +20,7 @@ const protectedHashes: Record<string, string> = {
   "apps/control/app/(shell)/platform/support/settings/page.tsx": "45a78393a0b1067e56dbd76e56dac219e0fb56abdbb847af85db57ff2639a2ef",
   "apps/control/app/(shell)/platform/support/actions.ts": "3b8db2b0e11df5eb327f4859d4a6e48d2297b938a286d112830a05bbc3b6f6e9",
   "apps/control/app/(shell)/platform/layout.tsx": "aeca3ede7041ffaeabc06578cb1159118ad0bd3623df3421fbc2230d93814807",
-  "apps/control/app/(shell)/_components/control-shell.tsx": "0f6ed3165ca070853c4bc9e8aa33b0156d4ad600ced0d862ef55ad5e0ff6c784",
+  "apps/control/app/(shell)/_components/control-shell.tsx": "28141d7a24382924f1eb46acbd95168eae59bfdaeeb0b4e89184e073bb94490f",
   "apps/control/lib/control-session.ts": "d91e3675c86090cae4caa58e4b89595342e4066203376a8af7172f13dc8ac367",
   "packages/ui/src/components/summary-strip.tsx": "9249c886cd1e8df1cd3a1d27b466dca05bc32dcec52504f865572b3018b743b2",
   "packages/ui/src/styles.css": "92f1a37f22f1f58bdedcec9bff5b65d37510e3121de629db02f6797e92ca4f15",

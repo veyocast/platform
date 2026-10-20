@@ -1,4 +1,4 @@
-# S265 — Control wacht op resterende serverinvoegingen
+# S265 — Control wacht tot document en serverinvoegingen gereed zijn
 
 De actuele normale productiebuild op `177e5d02…` meldde zeven React418-fouten
 tijdens 182 route-readbacks en 559 native beelden. De 22 axe-metingen hadden
@@ -14,19 +14,37 @@ De diagnose verving uitsluitend drie gepinde tijdelijke JS-responses met een
 tag-only meetpunt bij de bestaande throw. Zij wijzigde geen productbron of
 buildbestand en is geen acceptatiebewijs van een ongewijzigde build.
 
+De eerste kandidaat op `188c806c…` doorstond de vier toepasselijke CI-workflows,
+de gewone installatie en een echte productiebuild. Een extra ongewijzigde
+browserproef bleef echter rood: 29/36 gevallen, twee React418-fouten en een
+accountmenu dat na een vroege klik niet opende. Een afzonderlijk gedeclareerd
+meetpunt registreerde vervolgens twee mismatches vóór de eerste klik: opnieuw
+een verwachte `div` tegenover een Suspense-comment, nu bij een lege queue en
+`interactive`. Dit toont dat de queuegrens alleen onvoldoende is; deze
+geïnstrumenteerde 36-gevalproef is geen acceptatiebewijs.
+
 ## Correctie
 
-De bestaande S250-parserbeveiliging in gepind Next 15.5.20 wacht voortaan voor
-het gemarkeerde Control-document ook zolang de native `window.$RB`-array
-entries bevat. De bestaande 8ms-herplanning geeft de browser gelegenheid de
-serverfragmenten in te voegen. De queue en React-cursors worden alleen gelezen;
-de oorspronkelijke Schedulerbody, fouten en herstelpaden blijven behouden.
+De bestaande S250-beveiliging in gepind Next 15.5.20 wacht voor het gemarkeerde
+Control-document tot `readyState` volledig `complete` is en daarnaast zolang
+de native `window.$RB`-array entries bevat. De bestaande 8ms-herplanning geeft
+de browser gelegenheid de documentfase en serverinvoegingen af te ronden.
+De queue en React-cursors worden alleen gelezen; de oorspronkelijke
+Schedulerbody, fouten en herstelpaden blijven behouden. De echte nieuwe build
+moet deze strengere grens nog bevestigen.
 
-Alleen `scheduler.production.js` en `scheduler.development.js` veranderen.
+Binnen Next veranderen alleen `scheduler.production.js` en
+`scheduler.development.js`.
 Node zonder document en documenten zonder Control-optin behouden de bypass.
 Een volledige geïsoleerde Next-copy is vóór/na vergeleken: alle overige entries
 en de gedeelde canonieke installatie zijn gelijk. `$RB` is een interne Fizz-grens
 van deze vastgezette versie; een frameworkupdate vereist herbeoordeling.
+
+Het accountmenu gebruikt daarnaast de bestaande `isInteractive`-grens van de
+shell, net als zoeken en navigatieknoppen. De serverknop blijft disabled tot
+de echte clienteffecten gestart zijn. Beide varianten krijgen deze expliciete
+prop; na initialisatie blijven account, voorkeuren en uitloggen beschikbaar.
+De platformfixture krijgt uitsluitend de exacte nieuwe shellbronhash.
 
 Het open [React-issue37321](https://github.com/react/react/issues/37321)
 beschrijft een parser-/revealrace en een vergelijkbare Schedulergrens. De
@@ -36,15 +54,24 @@ fix heeft uitgebracht. De eigen diagnose en regressietests vormen het lokale bew
 
 ## Lokale regressie en dependencycontrole
 
-- Nieuwe publieke Schedulercontracttest: de oude parser-only versie faalt
+- Eerste publieke Schedulercontracttest: de oude parser-only versie faalt
   deterministisch in productie én development omdat de callback al bij twee
   pending nodes loopt. De kandidaat wacht tot de native Node-hostturn de queue
   vrijgeeft. Een document/windowstub bewijst hier de callbackgrens, geen Nextpagina.
-- Kandidaat: **5/5 tests, 3,8s, nul skips/retries**, waaronder de vier behouden
+- Eerste kandidaat: **5/5 tests, 3,8s, nul skips/retries**, waaronder de vier behouden
   echte SSR/Suspense/browsercases. De opzettelijke structurele fout blijft React418
   melden. Lege queues, ongemarkeerde documenten en ontbrekend/null-window zijn meegenomen.
-- Gerichte ESLint en strict spec-typecheck: echte exit0.
-- PatchSHA `c6c7da4d389b1f7f5f1bf95cf5976a4753d92f4ed0977e45dc1941a24b5adcd5`.
+- Nieuwe lege-queue/interactieve contracttest en twee echte shell-SSR-tests
+  falen alle drie op 188c. De herziening slaagt in **16/16 gevallen, 20,3s,
+  nul skips/retries**: vier behouden echte streaming/Suspense/browsergevallen,
+  twee Schedulercontracten, twee serverknopgevallen, zes bestaande complete
+  account/voorkeur/aXe-gevallen en twee platformlayouts. Een opzettelijke
+  structurele mismatch blijft React418 melden. Node-documentstubs bewijzen
+  callbackvolgorde; zij vervangen geen actuele Next-routeacceptatie.
+- Gerichte ESLint, volledige Control-typecheck en strict spec-typecheck van
+  de herziening: alle echte exit0.
+- Nieuwe patchSHA `4aa457ae66bd40d5bcf23ace1d2bdcdd26eb6bf05dc68adb3d9388bce352ee88`.
+  Nieuwe lockSHA `f4df9b0ce4d4c67d0eca643bd0278867462ca4f345fef2c1f59c82693e2c75b8`.
   De twintig manifests zijn bytegelijk. Alleen vijf oude patchhashverwijzingen
   zijn gesynchroniseerd; na hashterugzetting zijn de lockbytes exact gelijk.
   Normale `pnpm install --frozen-lockfile --lockfile-only --offline --ignore-scripts`
@@ -67,6 +94,12 @@ Private lokale bewijsroots zijn behouden:
 - Geïsoleerde Next-copy `737a7f10…`, closureSHA `43f3ef6dab79ba247ef1d700f2818342772e2c4d8d4b64fa096427f298a01a21`.
 - Frozen-lockvalidatie `a1c15a36…`: echte exit0; de oorspronkelijke offlinefout
   `59938321…` blijft afzonderlijk bewaard.
+- Nieuwe baseline `502da958…`: drie echte regressiefouten; herziening
+  `c3352f35…`: 16/16 echte exit0, gesloten eigen processen.
+- Nieuwe geïsoleerde Next-copy `dac68e4e…`: alleen twee Schedulerpayloads
+  gewijzigd; de normale geïnstalleerde 188c-kandidaat blijft onaangeraakt.
+- Nieuwe frozen-lockvalidatie `08917e4f…`: normale offline exit0, precies vijf
+  patchhashverwijzingen, overige lockbytes/manifests gelijk.
 
 Normale CI, daadwerkelijke geïntegreerde installatie, foundation, nieuwe
 productiebuilds en de volledige ongewijzigde browserroutes blijven vereist.

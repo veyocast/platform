@@ -10,7 +10,7 @@ diff --git a/dist/compiled/scheduler/cjs/scheduler.development.js b/dist/compile
 +        "undefined" !== typeof document &&
 +        document.documentElement &&
 +        "1" === document.documentElement.getAttribute("data-veyocast-document-ready") &&
-+        ("loading" === document.readyState ||
++        ("complete" !== document.readyState ||
 +          ("undefined" !== typeof window &&
 +            null !== window &&
 +            Array.isArray(window.$RB) &&
@@ -34,7 +34,7 @@ diff --git a/dist/compiled/scheduler/cjs/scheduler.production.js b/dist/compiled
 +    "undefined" !== typeof document &&
 +    document.documentElement &&
 +    "1" === document.documentElement.getAttribute("data-veyocast-document-ready") &&
-+    ("loading" === document.readyState ||
++    ("complete" !== document.readyState ||
 +      ("undefined" !== typeof window &&
 +        null !== window &&
 +        Array.isArray(window.$RB) &&

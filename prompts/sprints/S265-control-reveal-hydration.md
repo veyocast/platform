@@ -9,6 +9,17 @@ Basis `177e5d02e5bf953e70676ee7db3fcb9e696c6d04`, eigen branch/worktree
 Uitsluitend `patches/next@15.5.20.patch`, `pnpm-lock.yaml`,
 `tests/control/control-document-ready.spec.ts`,
 `docs/s265-control-reveal-hydration.md`, deze prompt en de eigen S265-ledgerregel.
+Na expliciete stop-and-report op 20 oktober zijn daarnaast uitsluitend
+`apps/control/app/(shell)/_components/control-shell.tsx` en
+`tests/control/control-shell-ready.spec.ts` aan de ownership toegevoegd.
+Ook `tests/control/sync-platform-mobile-layout.spec.ts` is uitsluitend voor de
+exacte beschermde bronhash van deze shellwijziging toegevoegd; alle overige
+hashes, fixtures en assertions blijven gelijk.
+De echte 188c-productiebuild bleef bij een lege Fizz-queue tijdens interactive
+een mismatch vóór de eerste klik melden. Wacht daarom ook op de volledige
+documentfase, met behoud van de queuegrens daarna. Het accountmenu gebruikt
+dezelfde bestaande `isInteractive`-grens als de overige shellknoppen, zodat
+een zichtbare serverknop geen vroege klik verliest of hydration forceert.
 De patch- en lockwijziging horen expliciet bij deze dependency-taak; packageversies,
 integrities en alle overige dependencyrelaties blijven gelijk.
 
