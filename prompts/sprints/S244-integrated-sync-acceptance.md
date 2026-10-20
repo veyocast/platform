@@ -201,3 +201,36 @@ Gebruiker heeft lokale opruiming expliciet toegestaan. Ongebruikte Docker-buildc
 92cc-CI vond een Source-save-request-typefout en vier oude browsercases. S264a5bff348 is normaal geïntegreerd via be970f94 (PR289): de bestaande strikte requestparser vernauwt het bevestigde save-request; drie fixtures volgen de reeds goedgekeurde focuskleur/bronhash en weigeren onverwachte nieuwe prijsacties. Gerichte lint, volledige Control-typecheck en11bestaande+2Source/prijs-Chromiumcases zijn groen,0skips/retries. Eerste pnpm-autocontrole verwijderde gedeelde dependencylinks; normale frozen/offline-install met uitsluitend optimistic-repeat uit herstelde deze. Bron/lockfile gelijk, geen dependencyversies gewijzigd. De eerste1024MiB-typecheck bleef heap-rood; de toepasselijke2048MiB-foundationheap slaagde. Alle originele rode logs blijven behouden.
 
 De gewone hosted Database/RLS-gate op92cc is groen; de rode PR/ControlMobile-gates blijven voor die SHA rood. Geen resultaat wordt later-head-PASS genoemd. Volgende acties: nieuwe bron/installcontinuïteit en volledige foundation, Control/Marketingbuilds, MP4-keten, exact twee QA-forwards zonder reset, herstelS215analytics en echte finale browsercohorts. De negen eerdere React418 en0/5 complete visuele reviews blijven open; er is nog geen nieuwe staging-/productie-uitrol. Bewijspins staan in de nieuwe post92ccMaintenanceAndS264-epoch; oudere epochs en148scenario’s/36contracten blijven behouden.
+
+## 20 oktober — aanvullende matrixbevindingen en lokale gecombineerde kandidaat
+
+Root heeft drie volledige matrixreviews met bevindingen/beperkingen afgerond:
+alle617 cellen/337 groepen en148 criteria gelezen,3.200 oorspronkelijke native
+PNG plus aanvullingen; dit is geen vijf-ronden-/algemene pixel-/V1-acceptatie.
+De huidige originalindex/ruwe failures blijven ongewijzigd. S268–S276 zijn
+noodzakelijke, afzonderlijk gereviewde vervolgcorrecties met eigen ownership.
+Hun exacte featureheads worden normaal geïntegreerd; S268–S274 en S275/S276
+hebben ieder tien groene exacte featurechecks. De bestaande normale
+8e03-installatie blijft bytegetrouw in gebruik; geen herinstallatie.
+
+Integreer ook de afzonderlijke S277/S278-CSS-scopes normaal. S277 koppelt
+behouden beheerrollen aan de gekozen vaste lichte Sync-werkruimte onder de
+oude donkere voorkeur. S278 corrigeert concrete kleinere status-/surface-
+bevindingen, exact drie lokale CSS-modules en uitsluitend de adapterfixturehash.
+Source, roottokens, inhoudsrenderers, writers en gegevens blijven behouden.
+177 echte S277defaultrequests,28 S278routegevallen en36×2 bestaande handmatige
+beginpreviews hebben afzonderlijke oorspronkelijke nativebewijzen. Lege
+beginsituaties zijn geen ingevulde/gekopppelde-data-acceptatie.
+
+Een lokale normale integratiekandidaat mag nu alvast worden gebouwd en gelezen
+terwijl de exacte S277/S278-featurechecks lopen. Dit publiceert niets: geen
+Rootintegratiepush/mainmerge/deploy zolang die featuregates niet exact groen
+zijn. Daarna blijven de gecombineerde exacte PR270-gates, de nieuwe werkelijke
+appbuilds, matrixronden4–5, staging-smokes en dezelfde-SHA-productiepromotie
+verplicht. Nieuwe SDK-continuïteit noemt de eerdere normale installatie bij
+haar echte8e03-basis; zij wordt niet als nieuwe installatie voorgesteld.
+
+Alle oude Source-/SDK-/capturefails en de nieuwe runtime-outer143 blijven met
+hun eigen uitslagen behouden. Afzonderlijke lege procesgroepen/idle/fullSDK-
+controle is geen herschrijving van die143. Geen extra provideraccount- of
+fysieke testvraag; de eerder door gebruiker uitgestelde grenzen blijven expliciet.
