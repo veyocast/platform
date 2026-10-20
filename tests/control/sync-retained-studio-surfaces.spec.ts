@@ -232,3 +232,53 @@ test("read-only retained cards expose no mutation action", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Bekijken", exact: true })).toHaveAttribute("href", `/dashboard/studio/${projectId}`);
   expect(fixture.commands).toEqual([]); expect(fixture.errors).toEqual([]);
 });
+
+
+for (const width of [390, 1440]) {
+  test(`saved Studio properties keep every tab and output action inside the panel at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 1000 });
+    const fixture = await mount(page, "sync");
+    const properties = page.locator(".vc-studio-properties");
+    const rows = [];
+    for (const tab of ["Inhoud", "Vormgeving", "Gegevensbron", "Instellingen"]) {
+      await page.getByRole("button", { name: tab, exact: true }).click();
+      await expect(properties).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+      rows.push(await properties.evaluate((element, tab) => ({
+        tab,
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        text: element.textContent,
+      }), tab));
+    }
+    const output = properties.locator("section.vc-source-binding");
+    await expect(output.getByText("Schermvoorbeeld", { exact: true })).toBeVisible();
+    await expect(output.getByText("Maak na het opslaan de uitvoer voor je bibliotheek.", { exact: true })).toBeVisible();
+    const actions = [output.getByRole("button", { name: "Schermvoorbeeld maken", exact: true }), output.getByRole("link", { name: "Naar de bibliotheek", exact: true })];
+    for (const action of actions) {
+      await action.scrollIntoViewIfNeeded();
+      await expect(action).toBeVisible();
+      await expect(action).toBeInViewport();
+    }
+    const geometry = await output.evaluate(element => ({
+      width: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      actions: [...element.querySelectorAll("button,a")].map(action => {
+        const r = action.getBoundingClientRect(), p = element.getBoundingClientRect();
+        return { name: action.textContent, left: r.left - p.left, right: r.right - p.left, height: r.height };
+      })
+    }));
+    await testInfo.attach("properties-layout.json", { body: JSON.stringify({ width, rows, geometry }), contentType: "application/json" });
+    await testInfo.attach("properties-output.png", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    expect(rows.map(row => ({ tab: row.tab, excess: row.scrollWidth - row.clientWidth }))).toEqual(["Inhoud", "Vormgeving", "Gegevensbron", "Instellingen"].map(tab => ({ tab, excess: 0 })));
+    expect(geometry.scrollWidth).toBe(geometry.width);
+    for (const action of geometry.actions) {
+      expect(action.left).toBeGreaterThanOrEqual(0);
+      expect(action.right).toBeLessThanOrEqual(geometry.width + 2);
+      expect(action.height).toBeGreaterThanOrEqual(44);
+    }
+    expect(fixture.commands).toEqual([]);
+    expect(fixture.errors).toEqual([]);
+    fixture.historyUnchanged();
+  });
+}
