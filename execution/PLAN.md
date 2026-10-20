@@ -1,3 +1,27 @@
+# Actueel vervolg · 21 oktober 2026
+
+1. Gereviewde productbron t/m S281, bestaande SDK-continuïteit, foundation en
+   echte Control-/Marketingbuilds zijn lokaal gesloten.
+2. Vijf volledige matrixreviews met bevindingen/grenzen zijn vastgelegd;
+   alle617 cellen/337 groepen en148 criteria gelezen. Individuele scenario-
+   bewijsniveaus, oorspronkelijke failures en niet-geobserveerde ranges blijven
+   herkenbaar. Zie `evidence/s244-final-local-review.json`.
+3. Laat de exacte gecombineerde PR270-commit alle14 uitvoerbare bestaande
+   CI-controles halen, met de bestaande conditionele IPK-inspectie apart.
+4. Merge normaal naar main. Volg automatische staging en verplichte pairing-/
+   LG-herstel-smokes. Promoveer daarna dezelfde immutable SHA/digests met de
+   bestaande productionworkflow en gewone environmentreview.
+5. Controleer vijf publieke health-/versieroutes, de negen gekozen publieke
+   routes, indexeringsmetadata en release-/image-identiteit. Leg de werkelijk
+   uitgevoerde run-IDs op PR270 vast. Behoud de bestaande rollbackrelease.
+
+Lokale eerste-readPGRST303 blijft met onbekende oorzaak geregistreerd. De
+uitgestelde diensten/apparaatproeven blijven afzonderlijk; de148 scenariostatussen
+zijn niet tot een algemene V1-compleetclaim opgewaardeerd. Er is nog geen nieuwe
+staging-/productiedeployment vanuit deze finale bron.
+
+## Historische uitvoeringsplannen
+
 # S244 · Finale Sync-acceptatie en uitrol
 
 Actuele aanvulling: S261/S262/S263 zijn normaal geïntegreerd. Gecombineerde

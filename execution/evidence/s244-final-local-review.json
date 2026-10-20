@@ -1,0 +1,154 @@
+{
+  "status": "LOCAL_BUILDS_AND_FIVE_MATRIX_REVIEWS_COMPLETE_WITH_EXPLICIT_BOUNDS_CI_AND_DEPLOY_PENDING",
+  "at": "2026-10-20T23:34:03.995766+00:00",
+  "productHead": "ca097224a7ca017f6bf858beed8915ccd1a5ad92",
+  "appTrees": {
+    "control": "820a1d1f846d9098214c04640de9a8afc33a0c25",
+    "player": "f966aca7cf597f4544dad448c6cbb1adb03b0057",
+    "marketing": "7bbaeafdb6c62827d28a5a12a3d9bcb73d5323ae"
+  },
+  "builds": {
+    "control": {
+      "buildId": "4kXLrPfsBH4fFNkQYXUGV",
+      "actualBuildExit": 0
+    },
+    "marketing": {
+      "buildId": "G3hY_JGNC_17qSM21VwGl",
+      "actualBuildExit": 0
+    }
+  },
+  "foundation": {
+    "lint": "30/30",
+    "typecheck": "30/30",
+    "test": "30/30",
+    "actualExits": [
+      0,
+      0,
+      0
+    ]
+  },
+  "reviewRounds": [
+    {
+      "round": 1,
+      "path": "/home/codex/.local/state/veyocast-s244/whole-matrix-round-1.json",
+      "sha256": "dd38cd3abf458733775246972ca55d1c94fe643071d209ce01986f65b351bbac",
+      "state": "WHOLE_MATRIX_REVIEW_COMPLETED_WITH_FINDINGS_NOT_FINAL_ACCEPTANCE",
+      "reviewer": "Codex /root, same AI reviewer"
+    },
+    {
+      "round": 2,
+      "path": "/home/codex/.local/state/veyocast-s244/whole-matrix-round-2.json",
+      "sha256": "ea04e6d167a0a492df061495338805f07599af6b7977491b78e5cf318481ad12",
+      "state": "WHOLE_MATRIX_SOURCE_AND_STATE_REVIEW_COMPLETED_WITH_BOUNDARIES",
+      "reviewer": "Codex /root, same AI reviewer"
+    },
+    {
+      "round": 3,
+      "path": "/home/codex/.local/state/veyocast-s244/whole-matrix-round-3.json",
+      "sha256": "7809ada7cc7b917551e0dd6798460810236309c5add8d2af4361d4e214610c37",
+      "state": "WHOLE_MATRIX_QUALITY_AND_SCENARIO_REVIEW_COMPLETED_WITH_FINDINGS_BOUNDARIES",
+      "reviewer": "Codex /root, same AI reviewer"
+    },
+    {
+      "round": 4,
+      "path": "/home/codex/.local/state/veyocast-s244/whole-matrix-round-4.json",
+      "sha256": "66db2be916201d007f2e20dbdd8dbd9545e6c9da899cfec676792551dbe178c0",
+      "state": "WHOLE_MATRIX_CONTEXT_AND_CHANGED_BUILT_SURFACES_REVIEW_COMPLETED_WITH_BOUNDARIES",
+      "reviewer": "Codex /root, same AI reviewer"
+    },
+    {
+      "round": 5,
+      "path": "/home/codex/.local/state/veyocast-s244/whole-matrix-round-5.json",
+      "sha256": "79b2e2515c87e3a18d0985adcd689eda19412fd988d4de0e1845ae7fe24ab2f2",
+      "state": "WHOLE_MATRIX_FINAL_CONSISTENCY_REVIEW_COMPLETED_WITH_EXPLICIT_BOUNDS",
+      "reviewer": "Codex /root, same AI reviewer; not5independent reviewers"
+    }
+  ],
+  "reviewScope": {
+    "originalCells": 617,
+    "reviewGroups": 337,
+    "scenarioCriteriaRead": 148,
+    "sameAiReviewer": true,
+    "originalImages": 3200,
+    "newDefaultObservations": 236,
+    "newDefaultPNGsActuallyViewed": 390,
+    "publicViewportsActuallyViewed": 22,
+    "actualGoalOrientationViewportsActuallyViewed": 4,
+    "namedTextObservations": 348,
+    "namedMinimumContrast": 4.703622349543593,
+    "universalPixelOrAAAcceptance": false
+  },
+  "refs": {
+    "sourceFreeze": {
+      "path": "/home/codex/.local/state/veyocast-s244/root-ca09-source-freeze.json",
+      "sha256": "486d8c681eac7349979284551520b358a86d582d35823e9ec386503a935318ed"
+    },
+    "binaryAndAndroid": {
+      "path": "/home/codex/.local/state/veyocast-s244/ca09-binary-and-android-source-equivalence.json",
+      "sha256": "71fef76213a42071dd564bcb20fa109be58c035cc3ed7fa903c8ef608e04c80b"
+    },
+    "firstReadFailure": {
+      "path": "/home/codex/.local/state/veyocast-s244/ca09-original-first-read-failure-disposition.json",
+      "sha256": "ebb472b36a31939f089e5a63dabce8109bf904ecb28bcef2232034ea14732795"
+    },
+    "branches": {
+      "path": "/home/codex/.local/state/veyocast-s244/ca09-current-branch-and-worktree-inventory.json",
+      "sha256": "3fb097822bc0d2c3d040d078ca653bd91b3fdb2f7050ade0292f12c741fc940b"
+    },
+    "sdk": {
+      "path": "/dev/shm/veyocast-s244-final-sdk-continuity-5920d92d-3dbb-43bc-9498-aa1e60598b9a/closed.json",
+      "sha256": "921305eef4dfff62988dad1ebe74499b82573fae622e1289c51e445290e651b5"
+    },
+    "foundation": {
+      "path": "/dev/shm/veyocast-s244-final-foundation-integrated-20565e42-b064-4d05-854f-ba3349a6b775/closed.json",
+      "sha256": "b63ebb68a1575d0e9faf488f227715df35c34d690a705bbc36d5c48b222b8f49"
+    },
+    "builds": {
+      "path": "/dev/shm/veyocast-s244-final-builds-integrated-e1297bde-8a20-4ad5-930f-efdcad5f1f40/closed.json",
+      "sha256": "8da2e7659a47340a7c405c4199727d11786d113244e31eb6ea2359b9250dd414"
+    },
+    "runtime": {
+      "path": "/dev/shm/veyocast-s244-final-runtime-pair-integrated-38a9da46-c80b-448f-9f73-4faf79eefcd7/closed.json",
+      "sha256": "ac285f01d0f7296135551413be0e4267cdcadb5e2818f8097a5e00da1a33d6fb"
+    },
+    "publicReadback": {
+      "path": "/dev/shm/veyocast-s244-ca09-public-readback-eebb59bb-0289-4be4-944f-a10a15a6ec44/closed.json",
+      "sha256": "bbe1d728d10cb3c55c3166e758dcb4beb225a02c9fcb72aaa34d638fb7ab0080"
+    }
+  },
+  "selectedOriginalPngs": [
+    {
+      "file": "execution/evidence/s244-current-control-chooser-1440.png",
+      "sha256": "5434885018253864f32c756583e87be3817161cadd5ed8c6f5ae9a044ac3282c",
+      "actualBuildHead": "ca097224a7ca017f6bf858beed8915ccd1a5ad92",
+      "source": "/dev/shm/veyocast-s244-separate-aux-runs/e0c15048-b381-4c26-a523-457ec35ac60f/64-ca09-light-40-top.png"
+    },
+    {
+      "file": "execution/evidence/s244-current-sponsors-1440.png",
+      "sha256": "76a9f066736a479c66f55ea232afe91dc010ba29a04c1458d5cf70b0bcff2f95",
+      "actualBuildHead": "ca097224a7ca017f6bf858beed8915ccd1a5ad92",
+      "source": "/dev/shm/veyocast-s244-separate-aux-runs/e0c15048-b381-4c26-a523-457ec35ac60f/61-ca09-light-38-top.png"
+    },
+    {
+      "file": "execution/evidence/s244-current-goal-390-portrait.png",
+      "sha256": "e8b013339bfb01b9c191e5f8c75cf4fe579d3a7222fe1c148745368b81e1b894",
+      "actualBuildHead": "ca097224a7ca017f6bf858beed8915ccd1a5ad92",
+      "source": "/dev/shm/veyocast-s244-separate-aux-runs/1ed27e81-1ee3-4375-bbcc-fd21d62d9800/02-actualGoal-390-portrait.png"
+    },
+    {
+      "file": "execution/evidence/s244-current-goal-1440-landscape.png",
+      "sha256": "42db8874fad11974e8cb325386e92c208b6e4a8ff2de445f293f7229fdcc675b",
+      "actualBuildHead": "ca097224a7ca017f6bf858beed8915ccd1a5ad92",
+      "source": "/dev/shm/veyocast-s244-separate-aux-runs/1ed27e81-1ee3-4375-bbcc-fd21d62d9800/03-actualGoal-1440-landscape.png"
+    }
+  ],
+  "bounds": [
+    "Original failures and all148 individual evidence levels preserved; no massPASS.",
+    "Current new236route observations do not erase the repeated initial localQA role401/server500; cause unproven, normal fresh-sessionfirstreads200; no productretry, skew override or permission bypass.",
+    "Only9publishedSource routes have literalpubliccounterparts. Retained realroutes and nativeproductionwizards use Source conventions and real contractstates, no fabricated mockdata.",
+    "Sourcefilmstrip middlepositions/two original changedroots/LEDfragment-help observations keep their exact sampled bounds; current24defaultalias gaps have genuine separate route proofs.",
+    "Physical Android/TV/LG upgrade/24h,SendGridaccount,YouTube,Mollie deferred by user. FirstControl-store setup separately open.",
+    "Latest exactcombined CI, staging and sameSHA productionpromotion still required; no new deployment yet."
+  ],
+  "scope": "S244 documentation/evidence only; product source remains frozen at productHead."
+}

@@ -1,3 +1,62 @@
+# Geïntegreerde Sync-acceptatie en uitrol
+
+## Actuele stand · 21 oktober 2026
+
+De gereviewde vervolgcorrecties tot en met S281 zijn normaal samengevoegd op
+productbron `ca097224a7ca017f6bf858beed8915ccd1a5ad92`. Lint, typecheck en tests
+zijn elk30/30 groen. Control en Marketing zijn werkelijk opnieuw gebouwd;
+Control `4kXLrPfsBH4fFNkQYXUGV`, Marketing `G3hY_JGNC_17qSM21VwGl`.
+De bestaande normale Next15.5.20-installatie bleef bytegelijk; geen herinstallatie.
+
+Vijf volledige matrixreviews zijn uitgevoerd door dezelfde Codex-Root, met
+bevindingen en expliciete dekkingsgrenzen:617 cellen/337 groepen en148 criteria.
+De oorspronkelijke3.200 native beelden en Source-contexten zijn behouden.
+De nieuwe gezamenlijke build heeft236 echte route-/viewportobservaties
+(59×390/1440×lichte/donkere voorkeur),390 beoordeelde screenshots,22 publieke
+routeviewports en4 Goal-previewbeelden in beide oriëntaties. De348 gemeten
+kleine tekstrollen halen minimaal4,7036:1. Deze gerichte meting is het bewijsniveau;
+de individuele scenariostatussen blijven leidend.
+
+De templatekiezer toont weer volledige16:9-kaarten; de sponsorwerkplek heeft
+compacte tabs en losse acties. De zes goedgekeurde OnzeTrots-fotobestanden
+blijven checksumgelijk, decodeerbaar en beschikbaar in de bewaarde echte
+fotoselectieproeven in beide formaten. Goal start met leesbare tekstmaten en
+blijft binnen zijn kaart; vertraagde fonts blokkeren het formulier niet.
+Gedeelde renderers, immutable releases, Player/offline, Android-bron en de
+bestaande deploymentworkflows zijn behouden. De107 oorspronkelijke MP4-
+compileinputs en8 renderer/worker/DB-trees zijn opnieuw bytegelijk bevonden.
+Bestaande gesigneerde Player-internalupdates behouden hun echte eerdere runs.
+
+Een lokale QA-eerste-readfout blijft expliciet open: rolreads gavenPGRST303 en
+Control500, terwijl Auth/AAL2 geldig waren. Gewone reads met dezelfde en daarna
+vernieuwde sessie slagen; de oorzaak is niet bewezen. De gedocumenteerde klokbug
+in de lokale PostgREST14.14 is een hypothese. De oorspronkelijke failures en
+alle guards blijven bewaard; er is geen authretry of permissie-omzeiling toegevoegd.
+
+De actuele529 refs en63 worktrees zijn met heads en unieke commits geïnventariseerd.
+Ongebruikte buildercache en1.152 oude pnpm-HTTP-metadatabestanden zijn opgeruimd;
+actieve data, uploads, volumes, images, signing, configuratie en herstelversies
+zijn behouden. Een afwijkende inspectiemetadatahash van één gelijk gebleven
+Debian-image en bestaande externe restarts blijven apart geregistreerd.
+Het aanvullende private bewijsarchief bevat7.129 geverifieerde entries uit185
+roots. Afgesloten bewijsbestanden zijn bovendien byte-/mode-/nanomtimegelijk
+verplaatst om circa450MiB RAM vrij te maken; hun oorspronkelijke paden zijn
+expliciete symlinks. Eerdere archieven en rode runs blijven bestaan.
+
+Het actuele lokale bewijs en geselecteerde oorspronkelijke beelden staan in
+[`s244-final-local-review.json`](../execution/evidence/s244-final-local-review.json).
+Alle148 scenario-IDs en bewijsniveaus zijn behouden. Fysieke Android/TV/LG- en24u-
+proeven, SendGrid-accountconfiguratie, YouTube en Mollie zijn door de gebruiker
+uitgesteld; eerste Control-storeinrichting blijft afzonderlijk open.
+
+De exacte gecombineerde PR270-CI, normale main-integratie, automatische staging
+met verplichte pairing/LG-smokes en productiepromotie van dezelfde immutable
+SHA/digests volgen nog. Op dit documentmoment is geen nieuwe uitrol uitgevoerd.
+Run-IDs, vijf healthversies en publieke readbacks worden na uitvoering op
+[PR270](https://github.com/veyocast/platform/pull/270) vastgelegd.
+
+## Historische werkstanden en oorspronkelijke grenzen
+
 # Geïntegreerde Sync-acceptatie — in uitvoering
 
 S244 combineert de afzonderlijk gerepareerde werkplekken voor één actuele

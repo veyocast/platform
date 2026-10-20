@@ -259,3 +259,21 @@ app; voltooi daarna de volledige matrixronden4–5. De148 scenario’s behouden 
 aantoonbare bewijsniveau en expliciet uitgestelde externe grenzen. Daarna de
 exacte gecombineerde CI, normale main-integratie, staging-smokes en productie
 met dezelfde immutable SHA/digests. Nog geen nieuwe deployment of V1-compleet.
+
+## 21 oktober — vijf matrixreviews en lokale actuele appbewijzen gesloten
+
+Vijf volledige reviews met bevindingen/grenzen zijn nu werkelijk vastgelegd;
+zelfde Rootreviewer,617cellen/337groepen/148criteria. Behoud oorspronkelijke
+ruwe statussen en failures. De nieuwe ca097224-productbron heeft foundation
+30/30 per gate, twee echte appbuilds,236defaultobservaties/390beoordeeldePNG,
+22publiekeviewports en4echteGoal-oriëntatiebeelden. De eerste lokale QA-
+rolreadfout blijft onbekende oorzaak; latere200's zijn geen causaliteitsbewijs.
+De24 oorspronkelijke ontbrekende defaultalias-/viewportrequests hebben in de
+nieuwe59×4cohort wel afzonderlijke genuine200/BID-/terminalbewijzen.
+
+Werk uitsluitend eigen docs/ledger/execution/evidence bij. Een volgende
+commit met alleen deze registratie krijgt een expliciete app-tree-equivalentie
+naar ca097224; oude nativeexecuties worden niet naar een andere head hernoemd.
+Daarna normale Rootpush en exacte gecombineerde14CI-gates plus bestaande
+conditioneleIPK-skip, vóór main/staging/productie. Geen force/historyrewrite,
+nieuwe provider-/hardwarevraag of ongevraagde financiële flagactivatie.

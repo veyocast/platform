@@ -1,0 +1,62 @@
+{
+  "status": "ACTUAL_OWN_CACHE_CLEANUP_AND_CLOSED_PROOF_PRESERVATION_REGISTERED",
+  "receipts": [
+    {
+      "path": "/home/codex/.local/state/veyocast-s244/unused-development-builder-cache-one-hour-f76c2852-8543-492d-9fbb-e4313a2699a1/closed.json",
+      "sha256": "804f41fc8fc955d81607644f1b3a4a41aeab24519ce5d2732a31a90192e00212",
+      "receiptWrittenUtc": "2026-10-20T14:17:47.837656+00:00"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s244/unused-development-builder-cache-all-dc9f7a43-9abe-41c7-b68d-08a9d0a07bc6/identity-closure.json",
+      "sha256": "79927a3e6102565fd84d80882277f2bf879eb939ed464df4b4f32a0656341d67",
+      "receiptWrittenUtc": "2026-10-20T14:29:39.106367+00:00"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s244/inactive-pnpm-http-metadata-7d9a4517-79a1-4140-ad32-069776473e5a/closed.json",
+      "sha256": "b8182dc3eb656e0386b30527c9cd6a48fba4858b7aaffa38f46877973e6f3675",
+      "receiptWrittenUtc": "2026-10-20T13:06:00.022717+00:00"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s244/closed-native-capture-preservation-6917c982-9ddd-4719-a2fa-98625dbe4435/closed.json",
+      "sha256": "d42ff82e165bd77511dffbbf69bfe51f5aa0c578deab58a4f0aba1b7375f65de",
+      "receiptWrittenUtc": "2026-10-20T19:54:01.760043+00:00"
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s244/closed-incremental-ram-preservation-6b72dfc6-cff3-46c5-a060-c56d0127593c/closed.json",
+      "sha256": "f51e1c63ef67c474af596974daf683a0143f14cddb6328a6daa9c2d5aaf18117",
+      "receiptWrittenUtc": "2026-10-20T23:09:22.069662+00:00"
+    }
+  ],
+  "privateArchives": [
+    {
+      "path": "/home/codex/.local/state/veyocast-s244/durable-final-proofs-0811995a-4694-42c4-9349-df3921b3fa18/verified.json",
+      "sha256": "453920401ec1e3c227605f7cf7322212aa3072030a9b3007c1e10674609af376",
+      "archive": {
+        "path": "/home/codex/.local/state/veyocast-s244/durable-final-proofs-0811995a-4694-42c4-9349-df3921b3fa18/proofs.tar.zst",
+        "sha256": "344ed5e837e27be29c8d5dbb94c4b67bedf71d68373326fe81ea453774cacf85",
+        "bytes": 360370789,
+        "mode": "0o600"
+      }
+    },
+    {
+      "path": "/home/codex/.local/state/veyocast-s244/durable-incremental-proofs-4a8d88c8-08bc-4a38-90ce-87b0d497335e/verified.json",
+      "sha256": "ba794ea93de08b232a3993e2bb0b5d306be34ea7d4371051e23c92cb9fb93d6a",
+      "archive": {
+        "path": "/home/codex/.local/state/veyocast-s244/durable-incremental-proofs-4a8d88c8-08bc-4a38-90ce-87b0d497335e/proofs.tar.zst",
+        "sha256": "ea720ec8c3ca96211b99c556718e0998d4d96ffe6d9f81fbdde0e087862dbfbf",
+        "bytes": 259870486,
+        "mode": "0o600"
+      }
+    }
+  ],
+  "currentInventory": {
+    "path": "/home/codex/.local/state/veyocast-s244/ca09-current-branch-and-worktree-inventory.json",
+    "sha256": "3fb097822bc0d2c3d040d078ca653bd91b3fdb2f7050ade0292f12c741fc940b",
+    "refs": 529,
+    "worktrees": 63
+  },
+  "branchDeleteOrForcePushOrHistoryRewrite": false,
+  "allOldBranchesCleanedClaim": false,
+  "originalImageMetadataHashFailurePreserved": true,
+  "atUtc": "2026-10-20T23:36:22.989339+00:00"
+}
