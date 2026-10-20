@@ -12,6 +12,7 @@
 .picker button span:last-child { overflow-wrap:anywhere; }
 .swatch { display:block; width:100%; height:32px; border-radius:5px; }
 .stadium,.clubmuur { background-position:center; background-size:cover; }
+.stadium { background:repeating-linear-gradient(110deg,#2c4b7b 0 6px,#1d3155 6px 7px); }
 .gradient { background:linear-gradient(130deg,var(--vc-focus),var(--vc-text)); }
 .stripes { background:repeating-linear-gradient(130deg,var(--vc-text) 0 8px,var(--vc-focus) 8px 16px); }
 .light { background:var(--vc-surface-muted); border:1px solid var(--line,var(--vc-border)); }
