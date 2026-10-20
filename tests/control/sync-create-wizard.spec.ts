@@ -201,11 +201,15 @@ test("a refusal during receipt recovery preserves the earlier possibly committed
 test("temporarily incomplete source names and duration survive back, reload and repair without crashing or submitting", async ({ page }) => {
   const state = await mount(page, fixture("menu", true));
   await page.getByRole("combobox", { name: "Gekoppelde bron", exact: true }).selectOption(id(3)); await next(page);
+  await expect(page.getByRole("heading", { name: "Inhoud", exact: true })).toBeFocused();
   await page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true }).fill("");
+  await expect(page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true })).toHaveValue("");
   await next(page); await expect(page.getByRole("alert")).toContainText("naam van 2 tot 120 tekens");
   await page.reload(); await expect(page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true })).toHaveValue("");
   await page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true }).fill("Eigen menukaart"); await next(page);
-  await page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true }).fill(""); await next(page);
+  await expect(page.getByRole("heading", { name: "Vormgeving", exact: true })).toBeFocused();
+  await page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true }).fill("");
+  await expect(page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true })).toHaveValue(""); await next(page);
   await expect(page.getByRole("button", { name: "Ontwerp maken", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "Vorige", exact: true }).click();
   await page.reload(); await expect(page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true })).toHaveValue("");

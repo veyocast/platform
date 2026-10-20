@@ -29,3 +29,26 @@ De echte JSX/CSS gebruikt gecontroleerde lege readmodels plus de bevroren echte
 MarketingGET en originele immutable Source. Geen echteAuth/RLS-/provider-,
 algemeneAA-/pixel- of volledige visuele reviewronde. Nieuwe exacte-headCI en
 normale integratie blijven vereist; de oorspronkelijke S271CI blijft rood.
+
+## Native wizardinvoer na stapfocus
+
+De eerste Control-CI op96df3dd239/synthetische merge8d2366bb sloot
+579PASS/1FAIL/629bestaandeSKIP. De volledige originele trace/log/artifact
+blijven behouden. Bij het bestaande geval voor tijdelijk onvolledige naam/duur
+toont de snapshot vóór Verder nog `Kantinemenu`, ondanks een afgeronde
+`fill("")`. De wizard ging vervolgens naar Vormgeving. De test had de naam dus
+niet werkelijk leeggemaakt; dit is geen bewijs dat lege namen de validatie
+passeren. De uitgestelde kopfocus via requestAnimationFrame is een uit code en
+timing afgeleide verklaring; de oorspronkelijke trace bevat geen afzonderlijk
+focus-eventlog.
+
+Uitsluitend dit bestaande geval wacht nu na twee stapwissels op de bedoelde
+werkelijke kopfocus en bevestigt dat naam en duur werkelijk leeg zijn. Alle
+oorspronkelijke validatie-, reload-, herstel- en geen-createasserties blijven
+behouden. Geen productcode, transport, testhelper, timeout, retry, skip of
+tolerantie verandert. De volledige bestaande wizardspec sloot19PASS53,926s,
+0skips/retries: `/dev/shm/veyocast-s275-wizard-native-candidate-6b0e492f-cd77-4769-89d2-95575c3be91b`.
+Eigen dependency/publicaliases zijn verwijderd; Rootbron en SDK zijn gelijk.
+Een eerdere preflight stopte terecht vóór een browser bij te weinig vrij
+geheugen; de3500MiB-grens is niet aangepast. De66 Sourcecases blijven
+bytegelijk aan hun genoemde native PASS. Nieuwe exacte CI is vereist.
