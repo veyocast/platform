@@ -35,7 +35,7 @@
   flex: none;
   place-items: center;
   border-radius: 50%;
-  background: var(--muted);
+  background: var(--surface-2);
 }
 
 .steps svg {
@@ -144,7 +144,7 @@
   padding: 1rem;
   border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 8px;
-  background: var(--muted);
+  background: var(--surface-2);
 }
 
 .statusGrid span,
@@ -292,7 +292,7 @@
 
 .teamOptions > .teamOptionFeatured {
   grid-template-columns: 1.25rem 1.25rem minmax(0, 1fr);
-  background: var(--muted);
+  background: var(--surface-2);
 }
 
 .teamOptions input {
@@ -427,7 +427,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem;
-  background: var(--muted);
+  background: var(--surface-2);
 }
 
 .resourcePicker header > div {
@@ -555,7 +555,7 @@
 .allPages div {
   padding: .45rem .65rem;
   border-radius: 6px;
-  background: var(--muted);
+  background: var(--surface-2);
   font-size: .8rem;
 }
 

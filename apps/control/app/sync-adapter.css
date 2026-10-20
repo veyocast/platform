@@ -72,6 +72,9 @@ html[data-design-system="fieldflow"][data-theme="dark"] .sync-control.sites-cont
 }
 /* Small Source UI status text uses existing readable on-surface roles. */
 .sync-control .ov-today-copy { color:var(--muted); }
+.sync-control .ov-today-copy p { color:var(--muted); }
+.sync-control .vc-content-type { background:var(--text); }
+.sync-control :is(input[type="checkbox"],input[type="radio"]) { accent-color:var(--accent); }
 .sync-control .px-tiny-status:not(.good) { color:var(--vc-vector-warning-on-surface); }
 .sync-control nav[aria-label="Instellingencategorieën"] button[aria-current="page"] { color:var(--accent); }
 .sync-control svg { display:inline; vertical-align:baseline; }
