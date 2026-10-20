@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
 
 // Actual async pages, PlatformLayout and ControlShell SSR. The session,
@@ -27,7 +28,7 @@ const protectedHashes: Record<string, string> = {
   "apps/control/app/globals.css": "1998a4016e57fa1eb0a38cb2c23b4c1f43f0f58d2d9a88f5e10662e85a659d11",
   "apps/control/app/fieldflow.css": "91131b1c2666d8670d953c027ab5c40938a3822778272a8f5d9eca641cbd4418",
   "apps/control/app/sync-source.css": "83cc3d45446e1f61119b1126f336e59574675cec1b4cd1617b678ad4c28e4153",
-  "apps/control/app/sync-adapter.css": "33b6b6e7c37fbcf8d1a6ca3e4336f76531fdb8a176903e7f22319fd9beaf5744"
+  "apps/control/app/sync-adapter.css": "918593ea27e734f386be8d09f49bf40dcbe9fb4e1ac635c6e120b02b15bfca04"
 };
 let fixture: { pages: Record<string, string>; css: string; boundaryCalls: { capability: string; options?: unknown }[] };
 
@@ -148,6 +149,30 @@ for (const width of [390, 1440]) {
         await expect(page.getByRole("button", { name: "Werkrol maken", exact: true })).toBeEnabled(); await expect(page.getByRole("button", { name: "Afdeling toevoegen", exact: true })).toBeEnabled();
         await departments.scrollIntoViewIfNeeded();
         await record(info, `support-cards-${width}`, Buffer.from(JSON.stringify({ roles: a, departments: b, gap: b.y - a.y - a.height }, null, 2)), "application/json"); await record(info, `support-cards-${width}`, await page.screenshot(), "image/png");
+        const initialTheme = await page.locator("html").getAttribute("data-theme");
+        for (const preference of ["light", "dark"]) {
+          await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), preference);
+          const palette = await page.locator("#control-content .vc-multi-select").evaluateAll(fields => fields.map(field => {
+            const label = field.querySelector(".vc-multi-select__label")!;
+            const rgb = (value: string) => value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+            const luminance = (values: number[]) => values.map(value => { const n = value / 255; return n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4; }).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i]!, 0);
+            const background = getComputedStyle(field).backgroundColor, foreground = getComputedStyle(label).color;
+            const a = luminance(rgb(foreground)), b = luminance(rgb(background));
+            return { text: label.textContent!.trim(), background, foreground, contrast: (Math.max(a, b) + .05) / (Math.min(a, b) + .05), width: field.clientWidth, scrollWidth: field.scrollWidth };
+          }));
+          expect(palette.length).toBeGreaterThan(0);
+          for (const field of palette) {
+            expect(field.background, `${preference}: the choice field follows the light Source surface`).toBe("rgb(255, 255, 255)");
+            expect(field.contrast, `${preference}: ${field.text} is readable`).toBeGreaterThanOrEqual(4.5);
+            expect(field.scrollWidth).toBeLessThanOrEqual(field.width);
+          }
+          const accessibility = await new AxeBuilder({ page }).include("#control-content .vc-multi-select").withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+          expect(accessibility.violations).toEqual([]);
+          await record(info, `support-choice-${width}-${preference}`, Buffer.from(JSON.stringify(palette, null, 2)), "application/json");
+          await record(info, `support-choice-${width}-${preference}`, await page.screenshot(), "image/png");
+        }
+        await page.evaluate(theme => { if (theme === null) document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", theme); }, initialTheme);
+
       }
     }
     expect(errors).toEqual([]); expect(writes).toEqual([]);

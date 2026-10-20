@@ -2817,3 +2817,8 @@
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* This label belongs to the Sync form; the inner preview keeps its frozen palette. */
+:global(.sync-control) .editorialThemePreview > header {
+  color: var(--muted);
+}
