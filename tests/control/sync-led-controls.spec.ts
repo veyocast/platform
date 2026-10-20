@@ -214,7 +214,16 @@ for (const [width, height] of [[390, 844], [1440, 1000]]) test(`actual LED previ
   await expect(preview.getByText("Staande compositie.", { exact: true })).toBeVisible();
   await expect(portrait).toHaveCSS("outline-style", "solid");
   await expect(portrait).toHaveCSS("outline-width", "3px");
-  await expect(portrait).toHaveCSS("outline-color", "rgb(89, 228, 176)");
+  // S263 approved accent/mint focus. Read native sRGB bytes so CSS Color 4
+  // serialization does not change the assertion across Chromium versions.
+  const focusRgba = await portrait.evaluate(element => {
+    const canvas = document.createElement("canvas"); canvas.width = canvas.height = 1;
+    const context = canvas.getContext("2d", { colorSpace: "srgb" })!;
+    context.fillStyle = getComputedStyle(element).outlineColor;
+    context.fillRect(0, 0, 1, 1);
+    return [...context.getImageData(0, 0, 1, 1).data];
+  });
+  expect(focusRgba).toEqual([27, 145, 133, 255]);
   await opponent.click();
   await expect(opponent).toHaveAttribute("aria-pressed", "true");
   await expect(own).toHaveAttribute("aria-pressed", "false");

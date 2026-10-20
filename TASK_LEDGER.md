@@ -477,3 +477,5 @@ Nativeclosure44956f3e…; DBV18closure1bb27a0b…. Root autoriseerde de gewone d
 Echte MP4/gedecodeerdeQR-keten alleen voorbereid; geïntegreerde foundation/normalCLI/
 CI/volledige Player-offline/fysieke proeven/staging/productie blijven open.
 **0/5 volledige prototypevergelijkingsronden.** Zie `docs/s262-engage-full-options.md`.
+
+| S264 | CI-integratiefouten Source-request en oude browserfixtures | Gerichte lint + volledige Control-typecheck groen; 11/11 native Chromiumcases plus2/2 Source-/prijsjourneys groen, 0 skips/retries. Vier begrensde code/testcorrecties, aparte scope en behoud van alle rode bewijzen. Gecombineerde finale gates, 0/5 volledige visuele rondes en uitrol blijven S244. |
