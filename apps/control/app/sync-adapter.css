@@ -118,3 +118,5 @@ html[data-design-system="fieldflow"] .sync-control .vc-badge--neutral { color:va
 
 /* Keep permitted tasks beyond the eight sidebar shortcuts reachable. */
 .sync-control .manage-trigger.sync-management-access { display:flex; }
+/* Clipped table labels belong to their own scroll frame, not the main viewport. */
+.sync-control :is(.ad-table-scroll,.data-table-frame,.vc-data-table-frame) { position:relative; }
