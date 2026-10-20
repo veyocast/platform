@@ -112,8 +112,8 @@ export function SyncDynamicEditor(props:Props){
    }else{
     if(!Number.isInteger(result.editRevision)){setError('De server bevestigde geen volledige revisie. Controleer dezelfde opdracht opnieuw.');setAttempt(next);if(priceChangeAttempt)setUncertainPriceAttempt(true);return;}
     const savedConfiguration='configuration'in result?result.configuration:undefined;
-    const savedRequest='configuration'in next.request?next.request:request;
-    const canonicalDraft=savedConfiguration?{...draft,request:{...savedRequest,configuration:savedConfiguration}}:draft;
+    const savedRequest=syncDynamicRequestSchema.parse(next.request);
+    const canonicalDraft:Draft=savedConfiguration?{...draft,request:{...savedRequest,configuration:savedConfiguration}}:draft;
     if(savedConfiguration){setDraft(canonicalDraft);setSavedSource({sourceId:savedRequest.dataSourceId,priceSet:savedConfiguration.menuPriceSet});setConfirmedPriceReview(null);}
     setRevision(result.editRevision!);setBaseline(serial(canonicalDraft));setMessage('Je bronontwerp is opgeslagen. De gepubliceerde scherminhoud blijft behouden.');
     if(result.editRevision!<props.initialRevision){setConflict(true);setMessage('De oorspronkelijke opdracht is bevestigd. Lees de actuele serverversie voordat je verder bewerkt.');}
