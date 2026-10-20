@@ -114,7 +114,7 @@ if(scenario==='outside'){unstable_scheduleCallback(unstable_NormalPriority,()=>{
   nodeSchedulerContract = ["production", "development"].map(mode => {
     // Node's actual setImmediate queue is FIFO: the scheduler gets its first
     // host turn before the explicit release turn. No timer/time/React patch.
-    const script = `const scheduler=require(${JSON.stringify(join(nextRoot, "dist/compiled/scheduler"))});global.document={readyState:'loading',documentElement:{getAttribute:name=>name==='data-veyocast-document-ready'?'1':null}};let callbackCalls=0,beforeRelease=-1,callbackReadyState;function flush(){if(callbackCalls&&beforeRelease>=0)process.stdout.write(JSON.stringify({callbackCalls,beforeRelease,callbackReadyState}))}scheduler.unstable_scheduleCallback(scheduler.unstable_NormalPriority,()=>{callbackCalls++;callbackReadyState=document.readyState;flush()});setImmediate(()=>{beforeRelease=callbackCalls;document.readyState='interactive';flush()});`;
+    const script = `const scheduler=require(${JSON.stringify(join(nextRoot, "dist/compiled/scheduler"))});global.document={readyState:'loading',documentElement:{getAttribute:name=>name==='data-veyocast-document-ready'?'1':null}};let callbackCalls=0,beforeRelease=-1,callbackReadyState;function flush(){if(callbackCalls&&beforeRelease>=0)process.stdout.write(JSON.stringify({callbackCalls,beforeRelease,callbackReadyState}))}scheduler.unstable_scheduleCallback(scheduler.unstable_NormalPriority,()=>{callbackCalls++;callbackReadyState=document.readyState;flush()});setImmediate(()=>{beforeRelease=callbackCalls;document.readyState='complete';flush()});`;
     const result = execFileSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 5_000, env: { ...process.env, NODE_ENV: mode } });
     return { mode, ...JSON.parse(result) };
   });
@@ -264,7 +264,7 @@ async function exercise(page: Page, info: TestInfo, scenario: "stream" | "suspen
       expect(final.stylesheetCount).toBe(1);
       expect(final.version).toBe(runtime.version);
       if (scenario === "stream") {
-        expect(nodeSchedulerContract).toEqual(["production", "development"].map(mode => ({ mode, beforeRelease: 0, callbackCalls: 1, callbackReadyState: "interactive" })));
+        expect(nodeSchedulerContract).toEqual(["production", "development"].map(mode => ({ mode, beforeRelease: 0, callbackCalls: 1, callbackReadyState: "complete" })));
       }
       if (scenario === "stream" || scenario === "suspense") {
         expect(partial).toMatchObject({ readyState: "loading", committed: 0, visibleServerButton: true, tailPresent: false });
@@ -336,4 +336,53 @@ test("a document already parsed before hydration keeps its SSR nodes and becomes
 
 test("a genuine structural mismatch after DOMContentLoaded remains reported", async ({ page }, info) => {
   await exercise(page, info, "mismatch");
+});
+
+// Playwright requires fixture destructuring; this Node-only test needs no page.
+// eslint-disable-next-line no-empty-pattern
+test("pending Fizz reveals defer Control callbacks after parsing without delaying other documents", async ({}, info) => {
+  const cases = ["control-pending", "control-empty", "other-pending", "other-loading", "control-no-window", "control-null-window"] as const;
+  const results: Array<{ mode: string; scenario: string; beforeRelease: number; callbackCalls: number; callbackReadyState: string; callbackQueueLength: number | null }> = [];
+  for (const mode of ["production", "development"]) {
+    for (const scenario of cases) {
+      // Execute the actual public Scheduler. Node's FIFO host turns expose an
+      // early callback deterministically; no Scheduler/timer/RAF API is replaced.
+      // This document/window stub tests the callback contract, not Next hydration.
+      const script = `const scheduler=require(${JSON.stringify(join(nextRoot, "dist/compiled/scheduler"))});
+const scenario=${JSON.stringify(scenario)},control=scenario.startsWith('control-');
+global.document={readyState:scenario==='other-loading'?'loading':'complete',documentElement:{getAttribute:name=>name==='data-veyocast-document-ready'&&control?'1':null}};
+if(scenario==='control-null-window')global.window=null;else if(scenario!=='control-no-window')global.window={$RB:scenario==='control-empty'?[]:[{},{}]};
+let callbackCalls=0,beforeRelease=-1,callbackReadyState,callbackQueueLength;
+function emit(){if(callbackCalls&&beforeRelease>=0)process.stdout.write(JSON.stringify({beforeRelease,callbackCalls,callbackReadyState,callbackQueueLength}))}
+scheduler.unstable_scheduleCallback(scheduler.unstable_NormalPriority,()=>{callbackCalls++;callbackReadyState=document.readyState;callbackQueueLength=Array.isArray(global.window?.$RB)?global.window.$RB.length:null;emit()});
+setImmediate(()=>{beforeRelease=callbackCalls;if(Array.isArray(global.window?.$RB))global.window.$RB.length=0;emit()});`;
+      const output = execFileSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 5_000, env: { ...process.env, NODE_ENV: mode } });
+      results.push({ mode, scenario, ...JSON.parse(output) });
+    }
+  }
+  await info.attach("parsed-document-reveal-scheduler-contract", { body: JSON.stringify({ documentWindowStub: true, results }, null, 2), contentType: "application/json" });
+  expect(results).toEqual(["production", "development"].flatMap(mode => cases.map(scenario => ({
+    mode, scenario, beforeRelease: scenario === "control-pending" ? 0 : 1, callbackCalls: 1,
+    callbackReadyState: scenario === "other-loading" ? "loading" : "complete",
+    callbackQueueLength: scenario === "control-no-window" || scenario === "control-null-window" ? null : scenario.startsWith("other-") ? 2 : 0
+  }))));
+});
+
+// eslint-disable-next-line no-empty-pattern
+test("interactive Control with an empty Fizz queue waits for document completion", async ({}, info) => {
+  const results: Array<{ mode: string; control: boolean; beforeComplete: number; calls: number; readyState: string }> = [];
+  for (const mode of ["production", "development"]) {
+    for (const control of [true, false]) {
+      const script = `const scheduler=require(${JSON.stringify(join(nextRoot, "dist/compiled/scheduler"))});
+global.document={readyState:'interactive',documentElement:{getAttribute:name=>name==='data-veyocast-document-ready'&&${control}?'1':null}};global.window={$RB:[]};
+let calls=0,beforeComplete=-1,readyState;
+function emit(){if(calls&&beforeComplete>=0)process.stdout.write(JSON.stringify({calls,beforeComplete,readyState}))}
+scheduler.unstable_scheduleCallback(scheduler.unstable_NormalPriority,()=>{calls++;readyState=document.readyState;emit()});
+setImmediate(()=>{beforeComplete=calls;document.readyState='complete';emit()});`;
+      const output = execFileSync(process.execPath, ["-e", script], { encoding: "utf8", timeout: 5_000, env: { ...process.env, NODE_ENV: mode } });
+      results.push({ mode, control, ...JSON.parse(output) });
+    }
+  }
+  await info.attach("interactive-empty-queue-completion-contract", { body: JSON.stringify({ documentWindowStub: true, results }, null, 2), contentType: "application/json" });
+  expect(results).toEqual(["production", "development"].flatMap(mode => [true, false].map(control => ({ mode, control, beforeComplete: control ? 0 : 1, calls: 1, readyState: control ? "complete" : "interactive" }))));
 });
