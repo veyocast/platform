@@ -118,3 +118,13 @@ html[data-design-system="fieldflow"] .sync-control .vc-badge--neutral { color:va
 
 /* Keep permitted tasks beyond the eight sidebar shortcuts reachable. */
 .sync-control .manage-trigger.sync-management-access { display:flex; }
+
+/* Clipped table labels belong to their own scroll frame, not the main viewport. */
+.sync-control :is(.ad-table-scroll,.data-table-frame,.vc-data-table-frame) { position:relative; }
+@media(max-width:767px) {
+  .sync-control .vc-data-table--responsive td { white-space:normal; overflow-wrap:anywhere; }
+  .sync-control .vc-data-table--responsive td > * { min-width:0; }
+  .sync-control .workspace-section .context-list__item,
+  .sync-control .workspace-section .context-list__item > div { min-width:0; }
+  .sync-control .workspace-section .context-list__item > div { overflow-wrap:anywhere; }
+}
