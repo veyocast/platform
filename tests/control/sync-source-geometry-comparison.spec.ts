@@ -114,6 +114,11 @@ for(const row of originalRows())test(`original ${row.case_id} chosen Sync ${row.
   }
   const comparisonCss=touchComparisonCss+'\n'+sourceFilterTouchCss;
   const normalization=route.current==='/website'?null:await current.addStyleTag({content:comparisonCss});
+  if(sourceFilterTouchCss){
+   // The mocked page clock does not establish host rendering readiness at tablet
+   // widths either. Observe the existing counterfactual rule before measuring.
+   await expect.poll(()=>current.locator('.admin-page .ad-tabs > button').evaluateAll(elements=>elements.map(element=>getComputedStyle(element).minHeight)),{timeout:2000,intervals:[25,50,100,250],message:`${row.case_id}: existing Source filter counterfactual CSS must apply before measurement`}).toEqual(Array(6).fill('0px'));
+  }
   if(normalization&&width<=760){
    // Probes observed stale computed media styles after two mocked rAF
    // callbacks, settled by the first sample after 25ms of host-time waiting.
