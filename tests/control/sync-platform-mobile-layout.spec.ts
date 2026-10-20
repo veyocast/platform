@@ -26,7 +26,7 @@ const protectedHashes: Record<string, string> = {
   "packages/ui/src/styles.css": "92f1a37f22f1f58bdedcec9bff5b65d37510e3121de629db02f6797e92ca4f15",
   "apps/control/app/globals.css": "1998a4016e57fa1eb0a38cb2c23b4c1f43f0f58d2d9a88f5e10662e85a659d11",
   "apps/control/app/fieldflow.css": "91131b1c2666d8670d953c027ab5c40938a3822778272a8f5d9eca641cbd4418",
-  "apps/control/app/sync-source.css": "3be3511812c21f57aa6acf4a35c420aa11778ea40aa74e35afea8d6437e0f7b8",
+  "apps/control/app/sync-source.css": "83cc3d45446e1f61119b1126f336e59574675cec1b4cd1617b678ad4c28e4153",
   "apps/control/app/sync-adapter.css": "fc468fcbe70e3a0949a8a08ca13b0ac542fcd075acd03f225d94dd1514fe1cad"
 };
 let fixture: { pages: Record<string, string>; css: string; boundaryCalls: { capability: string; options?: unknown }[] };

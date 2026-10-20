@@ -9,6 +9,10 @@ Ownership: `apps/control/app/sync-source.css`,
 `docs/s266-gallery-preview-typography.md`, deze prompt en uitsluitend de eigen
 S266-regel in `TASK_LEDGER.md`. Geen dependency-, token-, renderer-, database-,
 asset- of Playerwijzigingen. Nieuwe scope is gemeld vóór de wijziging.
+Na de echte CI-hashfout is daarnaast alleen
+`tests/control/sync-platform-mobile-layout.spec.ts` toegevoegd: uitsluitend
+de exacte stylesheetsha van de zes gereviewde selectorwijzigingen wordt
+bijgewerkt. Overige beschermde hashes, fixtures en assertions blijven gelijk.
 
 De echte ongewijzigde galerijcapture op 177e toont een te grote clubslogan.
 De globale kaartselectors voor `strong` en `small` raken ook deze elementen

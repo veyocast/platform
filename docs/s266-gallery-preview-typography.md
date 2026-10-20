@@ -38,6 +38,14 @@ verschillende React-contexten creëren.
   dependencylinks zijn met exacte inode/mtime/readlinkguards gesloten vóór
   commit; de gedeelde Next-boom blijft byte- en modegelijk.
 
+De eerste CI op `e435f64d…` had negen groene checks en één rode Control-check:
+de platformfixture beschermde nog de oude stylesheetsha `3be35118…`, terwijl
+de zes gereviewde selectors de nieuwe sha `83cc3d45…` hebben. Alleen die ene
+bronverwijzing is bijgewerkt; alle overige hashes, mocks en assertions blijven
+bytegelijk. De twee echte platformlayoutgevallen slagen vervolgens op
+390/1440px in4,1s, nul skips/retries. Het oorspronkelijke CI-log blijft bewaard;
+de product-CSS en de elf al groene galerijgevallen wijzigen hierdoor niet.
+
 Bewijsroots:
 `/dev/shm/veyocast-s266-picker-baseline-44c09a01-e79d-4dbb-969d-302ecdd9e6e7`
 en `/dev/shm/veyocast-s266-picker-candidate-b6a11c89-0e73-473c-898e-7bed56051375`.
