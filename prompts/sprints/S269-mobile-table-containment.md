@@ -14,9 +14,14 @@ actieve bevroren S244-runtime/captures tijdens die uitvoering.
 
 Exclusieve ownership:
 
-- `apps/control/app/sync-adapter.css`: uitsluitend de drie bestaande
-  tabelscrollframes als positioneringsbasis voor hun geclipte toegankelijke
-  labels. Geen overflow verbergen of breedtes/kleuren/rijen veranderen.
+- `apps/control/app/sync-adapter.css`: de drie bestaande tabelscrollframes als
+  positioneringsbasis voor geclipte toegankelijke labels (Team). Alleen mobiel
+  mogen bestaande responsiveDataTable-cellen tekst normaal afbreken, lange
+  waarden afbreken en hun directe kinderen krimpen. Bestaande contextlijst-items
+  en hun tekstdiv mogen binnen hun workspace-section krimpen/afbreken.
+  Dit sluit de daadwerkelijk bewezen andere oorzaken in Activiteit, Systeem en
+  tenantdetail. Geen overflow verbergen, kleuren/rijen/teksten verwijderen of
+  de hoofdruimtebreedte forceren.
 - `tests/control/sync-team-workflows.spec.ts`: bestaande lege flow behouden;
   aanvullende bestaande echte Team-pagina met expliciet gevulde gecontroleerde
   leesmodellen op390/1440. Bewijs hoofdruimtebreedte, afzonderlijke tabelscroll,
