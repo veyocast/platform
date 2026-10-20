@@ -139,6 +139,8 @@ test("S221 LG never acknowledges a zero-height Sites frame and uses its verified
  Object.assign(data.manifest,{systemAssets:systemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}))});
  Object.assign(data.manifest.items[0]!,{sitesPresentation:markup});
  const events=await fixture(page,()=>data);await page.goto(`${playerUrl}/lg/legacy`);
+ // Asset verification precedes creation of the candidate canvas; it is a separate readiness boundary.
+ await expect(page.locator(".lg-sites-canvas")).toHaveCount(1,{timeout:60000});
  await expect.poll(()=>page.evaluate(()=>localStorage.getItem("veyocast.player.lgLegacyDiagnostics.v1")??"")).toContain("LEGACY_SITES_FRAME_UNAVAILABLE");
  await expect(page.locator(".lg-sites-canvas.visible")).toHaveCount(0);
  expect(events.heartbeats.some(body=>(body.publicationTrace as {firstFrameAt?:string}|undefined)?.firstFrameAt)).toBe(false);

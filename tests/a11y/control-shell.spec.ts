@@ -349,6 +349,7 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
   const switcher = page.getByRole("button", {
     name: "Actieve context: Museumkwartier"
   });
+  await expect(switcher).toBeEnabled();
   await switcher.focus();
   await expect(switcher).toBeFocused();
   await page.keyboard.press("Enter");
