@@ -6,6 +6,32 @@ html[data-design-system="fieldflow"] .sync-control .vc-badge--success { color:va
 /* Neutral Source status surfaces stay light under the stored dark preference. */
 html[data-design-system="fieldflow"] .sync-control .vc-badge--neutral { color:var(--text); }
 .sync-control .vc-badge--success .vc-badge__dot { background:var(--ff-sites-badge-success-text,var(--vc-semantic-success-solid)); }
+/* The chosen Sync workspace has one fixed light palette, including retained UI.
+   Content renderers keep their own locally defined theme variables. */
+html[data-design-system="fieldflow"][data-theme="dark"] .sync-control.sites-control {
+  --ff-bg:var(--bg);
+  --ff-canvas:var(--surface-2);
+  --ff-surface:var(--surface);
+  --ff-surface-raised:var(--surface);
+  --ff-surface-muted:var(--surface-2);
+  --ff-ink:var(--text);
+  --ff-ink-soft:var(--muted);
+  --ff-ink-muted:var(--muted);
+  --ff-ink-inverse:var(--surface);
+  --ff-heading:var(--text);
+  --ff-border:var(--line);
+  --ff-border-strong:var(--line);
+  --vc-background:var(--bg);
+  --vc-surface:var(--surface);
+  --vc-surface-muted:var(--surface-2);
+  --vc-surface-strong:var(--surface-2);
+  --vc-text:var(--text);
+  --vc-text-muted:var(--muted);
+  --vc-text-subtle:var(--muted);
+  --vc-border:var(--line);
+  --vc-border-strong:var(--line);
+  color-scheme:light;
+}
 .sync-control svg { display:inline; vertical-align:baseline; }
 .sync-control .nav-panel { border-radius: 0; gap:normal; margin: 0; transform: none; box-shadow: none; }
 .sync-control .ov-page svg,.sync-control .topbar svg { stroke-width:1.7; }
