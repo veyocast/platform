@@ -15,7 +15,7 @@ export function SyncBackgroundPicker({ presentation, onChange, disabled = false 
     <div className={styles.presets}>{syncBackgroundPresets.map(([id, label]) => <button
       type="button" key={id} aria-pressed={presentation.style.background === id}
       onClick={() => onChange(chooseSyncBackground(presentation, id))}
-    ><span className={`${styles.swatch} ${styles[id]}`} aria-hidden="true" style={id === "stadium" ? { backgroundImage: "url('/assets/brand-hero-480.webp')" } : id === "clubmuur" ? { backgroundImage: "url('/assets/clubmuur-wall.webp')" } : undefined} /><span>{label}</span></button>)}</div>
+    ><span className={`${styles.swatch} ${styles[id]}`} aria-hidden="true" style={id === "clubmuur" ? { backgroundImage: "url('/assets/clubmuur-wall.webp')" } : undefined} /><span>{label}</span></button>)}</div>
     <span className={styles.label}>OnzeTrots · club en omgeving</span>
     <div className={styles.scenes}>{syncBackgroundScenes.map(scene => {
       const asset = scene[presentation.orientation];
