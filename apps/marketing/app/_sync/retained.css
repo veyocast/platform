@@ -33,6 +33,8 @@
   font-weight: 750;
   line-height: 1.12;
   letter-spacing: -.055em;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .mk-retained-site :is(.page-hero__lead, .legal-hero__description) {
