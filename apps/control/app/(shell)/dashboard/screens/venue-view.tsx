@@ -18,11 +18,11 @@ export function VenueView({ canManage, data }: { canManage: boolean; data: Scree
       <section className={styles.gated} aria-labelledby="venue-gated-title">
         <Building2 aria-hidden="true" />
         <div>
-          <p className={styles.eyebrow}>Gecontroleerde productuitrol</p>
-          <h2 id="venue-gated-title">Venue Twin staat voor deze organisatie uit</h2>
-          <p>De ruimtelijke weergave gebruikt echte opgeslagen locaties en schermposities. Alleen een platformbeheerder kan een tenant na AAL2-controle aan de pilot toevoegen; de vlag verleent nooit schermrechten.</p>
+          <p className={styles.eyebrow}>Schermen</p>
+          <h2 id="venue-gated-title">Plattegrond nog niet beschikbaar</h2>
+          <p>Je schermen blijven bereikbaar via de lijst. Neem contact op met je beheerder voor toegang tot de plattegrond.</p>
         </div>
-        <StatusPill label="Niet vrijgegeven" tone="warning" />
+        <StatusPill label="Niet beschikbaar" tone="warning" />
       </section>
     );
   }

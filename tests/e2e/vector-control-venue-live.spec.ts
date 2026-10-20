@@ -156,10 +156,10 @@ test.describe("live tenant rollouts, Control, Health and Venue Twin", () => {
     await page.screenshot({ path: "docs/screenshots/vector-v2/control/venue-twin-1440x900.png" });
 
     await page.goto("/dashboard/screens?view=health");
-    await expect(page.getByRole("heading", { name: "Echte telemetry, zonder schijnzekerheid" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Verbinding en opslag per scherm" })).toBeVisible();
     await expect(
       page
-        .getByRole("region", { name: "Echte telemetry, zonder schijnzekerheid" })
+        .getByRole("region", { name: "Verbinding en opslag per scherm" })
         .getByText("Niet gekoppeld", { exact: true })
     ).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
