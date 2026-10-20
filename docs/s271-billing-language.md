@@ -20,3 +20,5 @@ ongewijzigde Billing-Sourcebeelden bekeken. De tekstcorrectie verandert die
 opmaak niet; er wordt geen nieuwe native-/pixelacceptatie voor geclaimd.
 Normale exacte-headCI volgt vóór integratie. De originele
 8e03-captures blijven behouden; vijf vergelijkingspassen en uitrol lopen via S244.
+
+De oorspronkelijke Control-CI opdd0f8677 bleef rood (577PASS/1FAIL/629bestaandeSKIP): de bestaande a11ycase zocht nog de oude status Shadowmodus. Alleen die bestaande hasText-selector volgt nu de zichtbare status Nog niet geactiveerd. Alle route-/prijs-/overflow-/platformchecks en timeouts blijven gelijk. De rode log en exacte head blijven apart bewaard; de nieuwe head vereist eigen CI.
