@@ -21,6 +21,30 @@ html[data-design-system="fieldflow"][data-theme="dark"] .sync-control.sites-cont
   --ff-heading:var(--text);
   --ff-border:var(--line);
   --ff-border-strong:var(--line);
+  --ff-line:var(--line);
+  --ff-shadow-1:var(--shadow);
+  --ff-shadow-2:var(--shadow);
+  --ff-shadow-3:var(--shadow);
+  --ff-success:var(--ff-sites-badge-success-text);
+  --ff-success-surface:var(--ff-sites-badge-success-surface);
+  --ff-warning:var(--ff-sites-badge-warning-text);
+  --ff-warning-surface:var(--ff-sites-badge-warning-surface);
+  --ff-info:var(--ff-sites-badge-info-text);
+  --ff-info-surface:var(--ff-sites-badge-info-surface);
+  --ff-danger:var(--ff-sites-button-destructive-text);
+  --ff-danger-surface:var(--ff-sites-button-destructive-surface);
+  --vc-semantic-success-solid:var(--ff-success);
+  --vc-semantic-success-surface:var(--ff-success-surface);
+  --vc-semantic-success-text:var(--vc-vector-success-on-surface);
+  --vc-semantic-warning-solid:var(--ff-warning);
+  --vc-semantic-warning-surface:var(--ff-warning-surface);
+  --vc-semantic-warning-text:var(--ff-warning);
+  --vc-semantic-info-solid:var(--ff-info);
+  --vc-semantic-info-surface:var(--ff-info-surface);
+  --vc-semantic-info-text:var(--ff-info);
+  --vc-semantic-critical-solid:var(--ff-danger);
+  --vc-semantic-critical-surface:var(--ff-danger-surface);
+  --vc-semantic-critical-text:var(--ff-danger);
   --vc-background:var(--bg);
   --vc-surface:var(--surface);
   --vc-surface-muted:var(--surface-2);
@@ -32,6 +56,10 @@ html[data-design-system="fieldflow"][data-theme="dark"] .sync-control.sites-cont
   --vc-border-strong:var(--line);
   color-scheme:light;
 }
+/* Small Source UI status text uses existing readable on-surface roles. */
+.sync-control .ov-today-copy { color:var(--muted); }
+.sync-control .px-tiny-status:not(.good) { color:var(--vc-vector-warning-on-surface); }
+.sync-control nav[aria-label="Instellingencategorieën"] button[aria-current="page"] { color:var(--accent); }
 .sync-control svg { display:inline; vertical-align:baseline; }
 .sync-control .nav-panel { border-radius: 0; gap:normal; margin: 0; transform: none; box-shadow: none; }
 .sync-control .ov-page svg,.sync-control .topbar svg { stroke-width:1.7; }
