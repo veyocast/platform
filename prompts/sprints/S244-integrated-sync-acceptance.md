@@ -193,3 +193,11 @@ prijsread blijft achter echte nativewire/compiledpureexportbinding, andere
 POSTs dicht. Echte24-optie-MP4/QR en drie clientprofielen blijven afzonderlijk
 odig. AlleA/C/B/W/P-captures en vijf volledige vergelijkingen zijn nog open:
 0/5, negen oorspronkelijkeReact418, exacteCI en staging/productie niet afgerond.
+
+## 20 oktober — lokale capaciteit en S264-integratiefouten
+
+Gebruiker heeft lokale opruiming expliciet toegestaan. Ongebruikte Docker-buildcache ouder dan24uur is verwijderd:7.640.293.376bytes vrije ruimte herwonnen;171containerconfiguraties/mounts,65images en168volumes behouden. Drie reeds duizenden keren herstartende andere Fieldgrid-diensten blijven apart als runtime-drift gemeld. Er is geen container, image of volume verwijderd. Bewaarde Turbo/npm/computed-payloads en vier afgesloten oude buildmappen zijn byte-/metadata-getrouw naar hostopslag gebracht; alleen geverifieerde duplicaten uit RAM verwijderd. Beschikbaar geheugen circa4,7GB; geen extra QA/S215-dienst stilgezet.
+
+92cc-CI vond een Source-save-request-typefout en vier oude browsercases. S264a5bff348 is normaal geïntegreerd via be970f94 (PR289): de bestaande strikte requestparser vernauwt het bevestigde save-request; drie fixtures volgen de reeds goedgekeurde focuskleur/bronhash en weigeren onverwachte nieuwe prijsacties. Gerichte lint, volledige Control-typecheck en11bestaande+2Source/prijs-Chromiumcases zijn groen,0skips/retries. Eerste pnpm-autocontrole verwijderde gedeelde dependencylinks; normale frozen/offline-install met uitsluitend optimistic-repeat uit herstelde deze. Bron/lockfile gelijk, geen dependencyversies gewijzigd. De eerste1024MiB-typecheck bleef heap-rood; de toepasselijke2048MiB-foundationheap slaagde. Alle originele rode logs blijven behouden.
+
+De gewone hosted Database/RLS-gate op92cc is groen; de rode PR/ControlMobile-gates blijven voor die SHA rood. Geen resultaat wordt later-head-PASS genoemd. Volgende acties: nieuwe bron/installcontinuïteit en volledige foundation, Control/Marketingbuilds, MP4-keten, exact twee QA-forwards zonder reset, herstelS215analytics en echte finale browsercohorts. De negen eerdere React418 en0/5 complete visuele reviews blijven open; er is nog geen nieuwe staging-/productie-uitrol. Bewijspins staan in de nieuwe post92ccMaintenanceAndS264-epoch; oudere epochs en148scenario’s/36contracten blijven behouden.

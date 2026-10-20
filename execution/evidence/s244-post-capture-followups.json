@@ -341,7 +341,7 @@
     },
     "newRequiredFunctionalGaps": {
       "S261": "V1canon7/menu.price_update: centraldiff impact frozenpriceversion explicitcandidates; preserveactiveimmutableprices and otherlivefacts",
-      "S262": "V1canon10/engage.results:2–24options,readablepagedSyncpresentations+legacybinaryduration/privacy"
+      "S262": "V1canon10/engage.results:2\u201324options,readablepagedSyncpresentations+legacybinaryduration/privacy"
     },
     "schemaOwnership": "S262_FIRST_THEN_S261_NO_CONCURRENT_MIGRATION_WRITERS",
     "currentQaResetOrForward": "NOT_PERFORMED",
@@ -412,5 +412,72 @@
     "all148IdsStatusesAnd36ContractsUnchanged": true,
     "fullVisualReviewRounds": 0,
     "deployment": "NOT_STARTED_CURRENT_FEATURES"
+  },
+  "post92ccMaintenanceAndS264": {
+    "at": "2026-10-20T09:28:13.660696+00:00",
+    "sourceHeadBeforeDocumentation": "be970f94f7fd8077e1d68c1c89e3d650ea6b6799",
+    "featureCommit": "a5bff348cae3ac69d46c0e2fffc18e8b0f3315a5",
+    "pr": 289,
+    "ordinaryMerge": true,
+    "productConflicts": 0,
+    "change": "Existing strict Source save-request parser plus three stale CI browserfixtures only; no SQL/dependency/permission/CSS/product-content change.",
+    "scopedLint": 0,
+    "fullControlTypecheck": 0,
+    "nativeCases": 11,
+    "sourcePriceCases": 2,
+    "nativeSkipsRetries": 0,
+    "proofs": {
+      "cleanup": {
+        "path": "/home/codex/.local/state/veyocast-s244/development-cleanup-20261020T090512Z-ef40e5b0-d216-4197-9e63-1ac682ab5449/adjudicated-closed.json",
+        "sha256": "ef89e82c9f9e2fdc1593fe8a2bac9521befb783c7aa1f5e54e6ec77a7db65324"
+      },
+      "npmComputedRamReturn": {
+        "path": "/home/codex/.local/state/veyocast-s244/ram-return-fd04efcc-39fa-4493-8b3c-9a166786edde/closed.json",
+        "sha256": "ab03d9892c2c0e952e26a7e7d8d4f65b809b1b0dcc3297e1e5c2664eb9cbb3d8"
+      },
+      "retiredBuildsRamReturn": {
+        "path": "/home/codex/.local/state/veyocast-s244/retired-builds-return-3ed5a5e7-8e27-47f6-9b2e-d5acb63269a1/closed.json",
+        "sha256": "b7cb4d17ba76ebc36a6de36a4c3bb7b46ea6c9752f1d959e14749a2cc65667eb"
+      },
+      "normalInstallRepair": {
+        "path": "/home/codex/.local/state/veyocast-s244/canonical-install-repair-v2-bf1a0c5e-1939-43aa-8828-52694bed9a3e/closed.json",
+        "sha256": "f7c2b565a84b135ab3986b83eb004ef9a67c7b39cde5e089a7b41088ed5f0006"
+      },
+      "S264Scoped": {
+        "path": "/home/codex/.local/state/veyocast-s244/s264-scoped-504efa67-bca7-40c2-a7c5-0a2ac49aefea/closed.json",
+        "sha256": "f67da3bfe90ea504838cc8d9328e0c1b42d2aaf1182eb170a64da82982690886"
+      },
+      "S264SourceNative": {
+        "path": "/home/codex/.local/state/veyocast-s244/s264-scoped-22ba6639-ff20-4e95-81d7-99c2bf0f03a7/closed.json",
+        "sha256": "8ae7431b1f29ae94fc1b68a53470618f18b75e7c748c30a76cb683d501d76d2b"
+      }
+    },
+    "userAuthorizedLocalCleanup": "Unused Docker build cache >24h only; no image/container/volume removal. All171 configurations and mounts/65images/168volumes equal;3 already-looping unrelated Fieldgrid runtime restarts separately reported.",
+    "freeBytesReclaimedFromBuildCache": 7640293376,
+    "preservation": "Original cache/proof/build bytes/types/modes/mtime/owners preserved on host; original frontaliases retained. Only verified duplicate RAM payloads removed.",
+    "temporarySixServiceLeaseExecuted": false,
+    "normalInstallRepair": "Pnpm auto status check in S264 removed shared dependency links. Normal frozen/offline repair with optimistic-repeat disabled restored links; source/lock unchanged. Older install proof remains historical; fresh final continuity required.",
+    "original92ccHostedCi": {
+      "DatabaseAndRls": {
+        "run": 39295151987,
+        "status": "SUCCESS"
+      },
+      "ControlMobile": {
+        "run": 39295152101,
+        "status": "FAILURE_SourceType"
+      },
+      "PrGates": {
+        "run": 39295152118,
+        "status": "FAILURE_SourceTypeAndFourBrowserCases"
+      },
+      "others": "AndroidPlayer/LG/Sites SUCCESS; do not promote to later HEAD."
+    },
+    "next": "Fresh final source/normal-install continuity, foundation, Control+Marketing productionbuilds, MP4/QA forward and final readonly captures.",
+    "currentQaForward": "NOT_PERFORMED",
+    "S215AnalyticsRestore": "PENDING_BEFORE_FINAL_CAPTURES",
+    "nineHistoricalReact418": "OPEN_CAUSE_UNPROVEN",
+    "fiveFullVisualRoundsCompleted": 0,
+    "newDeployment": false,
+    "allOlderEpochsPreserved": true
   }
 }
