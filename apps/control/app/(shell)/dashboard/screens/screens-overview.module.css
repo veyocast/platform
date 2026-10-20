@@ -1089,3 +1089,10 @@
 
 .sourceDialog .editorForm :global(.vc-button){font-size:14px;min-height:44px;min-width:44px}
 .sourceDialog:global(.vc-dialog__content) :global(.vc-dialog__close){height:44px;width:44px;min-height:44px;min-width:44px}
+
+/* Keep the functional plus legible above the shared link color cascade. */
+.screensPage .groupAdd {
+  color: var(--vc-brand-paper-white);
+  width: 44px;
+  height: 44px;
+}

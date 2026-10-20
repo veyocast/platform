@@ -139,3 +139,15 @@
 .metadataDialog .inspector :global(.demo-badge){color:var(--text);font-size:14px;line-height:1.5;justify-self:start}
 .metadataDialog .usageBox>span{color:var(--text);font-size:14px;line-height:1.5}
 .metadataDialog .metadataDetails{display:flex;align-items:center;min-height:44px;font-size:14px;color:var(--accent)}
+
+/* Inactive media navigation remains readable beside the active accent. */
+.page .folderTabs a:not(.activeTab),
+.page .viewToggle a:not([aria-current="page"]) {
+  color: var(--muted);
+}
+
+.page .advancedFilters a[aria-label="Media als lijst tonen"],
+.page .advancedFilters a[aria-label="Media als raster tonen"] {
+  background: var(--surface);
+  color: var(--muted);
+}
