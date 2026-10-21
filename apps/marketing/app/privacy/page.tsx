@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "../_components/legal-page";
-import { isPublicIndexEnvironment } from "../_lib/site-config";
+import { isPublicIndexEnvironment, marketingOpenGraphImages } from "../_lib/site-config";
 
 export const metadata: Metadata = {
   alternates: {
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description:
     "Lees welke persoonsgegevens en technische gegevens VeyoCast verwerkt, waarom dat gebeurt en welke keuzes en rechten u heeft.",
   openGraph: {
+    images: marketingOpenGraphImages,
     description:
       "Welke persoonsgegevens en technische gegevens VeyoCast verwerkt en waarom.",
     locale: "nl_NL",

@@ -6,7 +6,7 @@ import {
   publishedBlogPosts
 } from "../../_content/published-details";
 import { SeoPageShell } from "../../_components/seo-page";
-import { canonicalUrl } from "../../_lib/site-config";
+import { canonicalUrl, marketingOpenGraphImages } from "../../_lib/site-config";
 
 type DetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -29,6 +29,7 @@ export async function generateMetadata({
     alternates: { canonical: canonicalUrl(page.pathname) },
     description: page.description,
     openGraph: {
+      images: marketingOpenGraphImages,
       description: page.description,
       locale: "nl_NL",
       title: `${page.title} | VeyoCast`,

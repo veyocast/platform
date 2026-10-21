@@ -30,6 +30,17 @@ const representativeRoutes = [
   "/toegankelijkheid"
 ] as const;
 
+test("public page templates expose the approved Open Graph image", async ({ page }) => {
+  test.slow();
+  for (const pathname of [...representativeRoutes, "/privacy", "/data-verwijderen", "/account-verwijderen"]) {
+    const response = await page.goto(`${marketingURL}${pathname}`);
+    expect(response?.status(), pathname).toBe(200);
+    await expect(page.locator('meta[property="og:image"]'), pathname).toHaveAttribute(
+      "content", "https://veyocast.nl/assets/brand-hero-1254.webp"
+    );
+  }
+});
+
 test("publishes complete metadata and one H1 across every page template", async ({
   page
 }) => {

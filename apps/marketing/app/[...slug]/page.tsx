@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { marketingPages, getMarketingPage } from "../_content/pages";
 import { SeoPageShell } from "../_components/seo-page";
-import { canonicalUrl, isPublicIndexEnvironment } from "../_lib/site-config";
+import { canonicalUrl, isPublicIndexEnvironment, marketingOpenGraphImages } from "../_lib/site-config";
 import {
   verifySetupIntentToken
 } from "../_lib/setup-intent";
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
     title: sync.title,
     description: sync.description,
     alternates: { canonical: canonicalUrl(pathnameFromSlug(slug)) },
-    openGraph: { title: sync.title, description: sync.description, url: canonicalUrl(pathnameFromSlug(slug)), type: "website", images: [{ url: "/assets/brand-hero-1254.webp", width: 1254, height: 1254, alt: "VeyoCast" }] }
+    openGraph: { title: sync.title, description: sync.description, url: canonicalUrl(pathnameFromSlug(slug)), type: "website", images: marketingOpenGraphImages }
   };
   const page = getMarketingPage(pathnameFromSlug(slug));
   if (!page) return {};
@@ -47,6 +47,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
     alternates: { canonical: url },
     description: page.description,
     openGraph: {
+      images: marketingOpenGraphImages,
       description: page.description,
       locale: "nl_NL",
       title: `${page.title} | VeyoCast`,

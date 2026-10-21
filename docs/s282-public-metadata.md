@@ -1,0 +1,15 @@
+# S282 — Publieke robots- en deelmetadata
+
+De S244-release `5bdad4a708e74155fafbd1afeba6c88c790aca2f` is via de normale workflow uitgerold naar staging en productie. Alle14 softwarechecks en beide omgevingssmokes zijn geslaagd. De eerste productiejob stopte vóór checkout op GitHub codeload-time-outs; één gewone herhaling slaagde. De live-readback zag alle vijf juiste versies en negen publieke200-responses, maar een ontbrekende homepage-OG-afbeelding en een robotsregel die productie blokkeert. Het oorspronkelijke FAIL-verslag blijft behouden.
+
+De Docker-build zet uitsluitend bij de Marketing-build `VEYOCAST_ENVIRONMENT=production`. De Marketingimage wordt alleen publiek in de productiestack gebruikt; reguliere ontwikkel-/CI-builds behouden hun noindex-regels. Paginametadata neemt nu expliciet dezelfde ongewijzigde goedgekeurde brand-hero-afbeelding op, omdat een pagina-openGraphobject het ouderobject vervangt. Er zijn geen zichtbare paginabodies, CSS, content, routepaden, merkassets, Control-/Player-/workerbron, database, dependencies, workflows, runnerlabels, keys of featureflags gewijzigd. Zeven zichtbare paginabodies en de exacte Dockerfile-inverse zijn gecontroleerd.
+
+## Lokale controles op deze bron
+
+- Lint, typecheck en unit-tests allemaal exit0; concurrency1, heap3072MB, CPU4/5 en geheugenbodem768MiB.
+- De nieuwe echte Chromium-regressie faalt op de oorspronkelijke Marketingbuild `G3hY_JGNC_17qSM21VwGl`:1 onverwachte fout,0 skips/retries,6,639s. De ontbrekende homepage-afbeelding is de concrete assertie. Runtime is afgesloten.
+- De eerste poging met gedeelde dependencydirectories liet pnpm automatisch de gedeelde installatie herschrijven. De SDK-guard wees dit af; oorspronkelijke stdout en manifestdelta zijn behouden. De volledige7272-bestandenkopie is vóór een normale frozen herstelinstallatie geverifieerd. Alleen een normaal gegenereerde launcher verschilt van het oude8e03-manifest; alle Nextbibliotheekbestanden en de bewaarde77-SDK zijn gelijk. S282 heeft daarna een eigen normale frozen pnpm-installatie gekregen. Twee gegenereerde launchers verschillen alleen door hun werkboomprefix; beide volledige actuele SDK-manifesten worden bewaakt. Er is geen handmatige SDK-/launcherreconstructie uitgevoerd.
+
+De nieuwe productiebuild, geslaagde nieuwe browserregressie, productie-robots-/metadata-readback en normale CI/uitrol volgen nog. De vijf S244-reviewrondes en de individuele148 bewijsniveaus blijven ongewijzigd; deze correctie claimt geen nieuwe pixel-/AA-/provider-/hardwareacceptatie.
+
+Private bewijsroot: `/home/codex/.local/state/veyocast-s282/`. Ownership staat in de eigen sprintprompt.
