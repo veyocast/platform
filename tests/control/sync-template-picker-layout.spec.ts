@@ -15,7 +15,7 @@ const compiler = require.resolve("esbuild", { paths: [require.resolve("tsx")] })
 let bundle: { js: string; css: string };
 
 test.beforeAll(() => {
-  const entry = `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'./packages/ui/src/components/dialog';import{SyncStudioCreateDialog}from'./apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog';function App(){const[portal,setPortal]=useState(null),[scope,setScope]=useState('23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000003');globalThis.setPickerActor=setScope;return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Templatekiezercontrole</h1><SyncStudioCreateDialog tenantId="23400000-0000-4000-8000-000000000001" tenantName="Acceptatieclub" actorScope={scope} canCreate={globalThis.fixtureCanCreate}/></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
+  const entry = `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'@veyocast/ui';import{SyncStudioCreateDialog}from'./apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog';function App(){const[portal,setPortal]=useState(null),[scope,setScope]=useState('23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000003');globalThis.setPickerActor=setScope;return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Templatekiezercontrole</h1><SyncStudioCreateDialog tenantId="23400000-0000-4000-8000-000000000001" tenantName="Acceptatieclub" actorScope={scope} canCreate={globalThis.fixtureCanCreate}/></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
   const script = `const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/control/node_modules'],bundle:true,write:false,outfile:'fixture.js',platform:'browser',format:'iife',jsx:'automatic',loader:{'.module.css':'local-css','.css':'css'},plugins:[{name:'controlled-boundaries',setup(b){b.onResolve({filter:/sync-create-wizard-actions$/},a=>({path:a.path,namespace:'actions'}));b.onLoad({filter:/.*/,namespace:'actions'},()=>({contents:'export async function resolveSyncCreationReceiptAction(input,scope){const r=await fetch("/__picker/receipt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({input,scope})});if(!r.ok)throw Error("Transport unavailable");return r.json()}',loader:'js'}));b.onResolve({filter:/^next\\/navigation$/},a=>({path:a.path,namespace:'navigation'}));b.onLoad({filter:/.*/,namespace:'navigation'},()=>({contents:'export function useRouter(){return{push:path=>{globalThis.visited=(globalThis.visited||[]).concat(path)}}}',loader:'js'}));}}]});const js=result.outputFiles.find(f=>f.path.endsWith('.js'))?.text,css=result.outputFiles.find(f=>f.path.endsWith('.css'))?.text??'';if(!js)throw Error('Missing fixture JavaScript');process.stdout.write(JSON.stringify({js,css}));`;
   bundle = JSON.parse(execFileSync(process.execPath, ["-e", `(async()=>{${script}})().catch(e=>{console.error(e);process.exitCode=1})`], {
     encoding: "utf8", timeout: 30_000, maxBuffer: 16 * 1024 * 1024,
@@ -157,6 +157,48 @@ test("choosing a family opens its real wizard without creating a project", async
   expect(fixture.commands).toEqual([]); expect(fixture.receiptReads).toEqual([]);
   expect(fixture.errors).toEqual([]);
 });
+
+for (const width of [390, 700, 1440]) {
+  test(`gallery metadata preserves the standalone slide typography at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 900 });
+    const fixture = await mount(page);
+    const cards = page.getByRole("dialog", { name: "Wat wil je maken?" }).locator(".vc-template-card");
+    await expect(cards).toHaveCount(36);
+    await page.getByRole("dialog", { name: "Wat wil je maken?" }).evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
+    const comparisons = await cards.evaluateAll(elements => elements.map(element => {
+      const root = element.querySelector<HTMLElement>(".sync-slide-root")!;
+      const original = root.querySelectorAll("strong, small");
+      const standalone = root.cloneNode(true) as HTMLElement;
+      Object.assign(standalone.style, { position: "fixed", left: "-20000px", top: "0", width: getComputedStyle(root).width, visibility: "hidden" });
+      element.closest(".sync-control")!.appendChild(standalone);
+      try {
+        const counterparts = standalone.querySelectorAll("strong, small");
+        const styles = (node: Element) => {
+          const css = getComputedStyle(node);
+          return { fontSize: css.fontSize, lineHeight: css.lineHeight, color: css.color, paddingRight: css.paddingRight };
+        };
+        return {
+          family: element.querySelector(":scope > span > strong")!.textContent,
+          canvasWidth: root.querySelector(".vc-slide-preview")!.getBoundingClientRect().width,
+          standaloneWidth: standalone.querySelector(".vc-slide-preview")!.getBoundingClientRect().width,
+          text: [...original].map((node, index) => ({ text: node.textContent, actual: styles(node), standalone: styles(counterparts[index]!) })),
+        };
+      } finally {
+        standalone.remove();
+      }
+    }));
+    await info.attach("native-gallery-standalone-typography", { body: JSON.stringify(comparisons, null, 2), contentType: "application/json" });
+    await info.attach("native-gallery-preview", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    for (const comparison of comparisons) {
+      expect(comparison.canvasWidth, comparison.family!).toBeCloseTo(comparison.standaloneWidth, 1);
+      expect(comparison.text.length, comparison.family!).toBeGreaterThan(0);
+      for (const row of comparison.text) expect(row.actual, `${comparison.family}: ${row.text}`).toEqual(row.standalone);
+    }
+    expect(fixture.commands).toEqual([]);
+    expect(fixture.receiptReads).toEqual([]);
+    expect(fixture.errors).toEqual([]);
+  });
+}
 
 test("an old unbound command is retained and only its current-actor receipt is inspected", async ({ page }) => {
   const fixture = await mount(page);

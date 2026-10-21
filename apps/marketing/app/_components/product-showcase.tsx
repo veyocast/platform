@@ -8,6 +8,8 @@ import {
 import Image from "next/image";
 
 import { marketingImages, type MarketingImageId } from "../_content/images";
+import { siteConfig } from "../_lib/site-config";
+import { ProductPeek } from "../_sync/Marketing";
 import { FloatStage } from "./motion";
 
 export function HeroProductStage() {
@@ -63,23 +65,14 @@ export function ProductScreenshotFrame({
   imageId: MarketingImageId;
   label?: string;
 }) {
-  const image = marketingImages[imageId];
+  const initialTab = imageId === "product-screen-status" || imageId === "product-screen-mobile"
+    ? "Schermen"
+    : "Studio";
 
   return (
-    <figure className="product-screenshot">
-      <div className="product-screenshot__chrome" aria-hidden>
-        <span />
-        <span />
-        <span />
-        <b>{label ?? "VeyoCast Publisher"}</b>
-      </div>
-      <Image
-        alt={image.alt}
-        className="product-screenshot__image"
-        placeholder="blur"
-        sizes="(max-width: 768px) 92vw, 62vw"
-        src={image.src}
-      />
+    <figure className="mk-retained-preview" aria-label={label ? `Voorbeeld: ${label}` : "Voorbeeld van de VeyoCast-werkplek"}>
+      <h2 className="sr-only">Interactief voorbeeld van de VeyoCast-werkplek</h2>
+      <ProductPeek appHref={siteConfig.controlOrigin} initialTab={initialTab} key={imageId} />
     </figure>
   );
 }

@@ -1,7 +1,8 @@
 import {assertSyncPlayerAssetManifest,assertSyncDynamicConfigurationContinuity} from "./sync-player-assets";
 import { assertMediaFrameManifest, assertMediaFrameContinuity } from "./player-media-frame";
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
-import {publishedScreenCompositionSchema} from "@veyocast/contracts";
+import {publishedScreenCompositionSchema, syncBackgroundAssets} from "@veyocast/contracts";
+import {isSyncPreparedUrl} from "./sync-player-presentation";
 import type { PlayerDynamicTemplateAsset } from "@veyocast/contracts";
 import type { PlayerSponsorCreative, PlayerSponsorPlan } from "@veyocast/contracts";
 
@@ -563,6 +564,10 @@ export async function hydratePreparedRelease(
   if(required.some(asset=>{const stored=provided.get(asset.cacheKey);return !stored||stored.bytes!==asset.bytes||stored.checksumSha256!==asset.checksumSha256;}))throw new Error("cached release contains an incomplete composition");
   const objectUrls: Record<string, string> = {};
   const playbackUrls: Record<string, string> = {};
+  const backgrounds = required.flatMap(asset => {
+    const approved = asset.kind === "system" && syncBackgroundAssets.find(background => background.path === asset.url && background.sha256 === asset.checksumSha256);
+    return approved ? [{ asset, approved }] : [];
+  });
   const cachedAssets = await inspectCachedAssets(preparedRelease.assets, store);
 
   if (
@@ -573,10 +578,23 @@ export async function hydratePreparedRelease(
     throw new Error("cached release contains missing or corrupt assets");
   }
 
-  for (const asset of preparedRelease.assets) {
-    const resolved = await store.resolvePlaybackUrl(asset.cacheKey);
-    playbackUrls[asset.cacheKey] = resolved.url;
-    if (resolved.objectUrl) objectUrls[asset.cacheKey] = resolved.objectUrl;
+  try {
+    for (const { asset, approved } of backgrounds) {
+      const response = await store.get(asset.cacheKey);
+      if (response?.headers.get("Content-Type")?.split(";")[0]?.trim().toLowerCase() !== approved.mimeType)
+        throw new Error("SYNC_BACKGROUND_MIME_INVALID");
+    }
+    for (const asset of preparedRelease.assets) {
+      const resolved = await store.resolvePlaybackUrl(asset.cacheKey);
+      playbackUrls[asset.cacheKey] = resolved.url;
+      if (resolved.objectUrl) objectUrls[asset.cacheKey] = resolved.objectUrl;
+    }
+    await Promise.all(backgrounds.map(({ asset, approved }) => decodeSyncBackground(playbackUrls[asset.cacheKey], approved)));
+  } catch (error) {
+    // Only URLs allocated by this hydration belong to the failed candidate.
+    // Active and previous releases retain their own playback references.
+    for (const url of Object.values(objectUrls)) URL.revokeObjectURL(url);
+    throw error;
   }
 
   return {
@@ -584,6 +602,32 @@ export async function hydratePreparedRelease(
     envelope: withCachedUrls(preparedRelease.envelope, playbackUrls),
     objectUrls
   };
+}
+
+function decodeSyncBackground(url: string | undefined, asset: { width: number; height: number }): Promise<void> {
+  const origin = typeof location === "undefined" ? "" : location.origin;
+  if (typeof Image === "undefined" || !isSyncPreparedUrl(url, origin))
+    return Promise.reject(new Error("SYNC_BACKGROUND_DECODE_FAILED"));
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    let settled = false;
+    const finish = (success: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      image.removeAttribute("src");
+      if (success) resolve();
+      else reject(new Error("SYNC_BACKGROUND_DECODE_FAILED"));
+    };
+    const timer = setTimeout(() => finish(false), 5000);
+    try {
+      image.src = url;
+      void image.decode().then(
+        () => finish(image.naturalWidth === asset.width && image.naturalHeight === asset.height),
+        () => finish(false),
+      );
+    } catch { finish(false); }
+  });
 }
 
 export function revokeHydratedRelease(hydratedRelease: HydratedPlayerRelease) {

@@ -7,6 +7,7 @@ import {
   syncSlideAssetSchema,
   syncSlideAssets,
   syncSlidePresentationSchema,
+  syncSlidePageCount,
   syncSlideRendererVersion,
   syncSlideSourceRevision,
   syncSystemAssets,
@@ -43,7 +44,7 @@ describe("Sync slide input and legacy separation", () => {
     );
     const migration = readFileSync(
       new URL(
-        "../../../supabase/migrations/20261018002000_sync_studio_authoring.sql",
+        "../../../supabase/migrations/20261019135521_sync_engage_full_options.sql",
         import.meta.url,
       ),
       "utf8",
@@ -179,6 +180,34 @@ describe("Sync slide input and legacy separation", () => {
         options: poll.options.map((option) => ({ ...option, votes: 1 })),
       }).success,
     ).toBe(true);
+  });
+  it("preserves legacy poll duration and requires explicit complete paging for thirteen to twenty-four options", () => {
+    const options = (count: number) => Array.from({ length: count }, (_, i) => ({
+      id: `26200000-0000-4000-8000-${String(i).padStart(12, "0")}`, label: `Keuze ${i + 1}`, votes: i,
+    }));
+    const poll = { id: tenantAsset.mediaAssetId, title: "Kies je activiteit", status: "live", visibility: "live" };
+    const parse = (value: unknown) => syncSlidePresentationSchema.safeParse({ ...base(), family: "engage", poll: value });
+    for (const count of [2, 12, 13, 24]) {
+      const paged = parse({ ...poll, optionsPerPage: 4, options: options(count) });
+      expect(paged.success).toBe(true);
+      if (!paged.success) throw Error("paged campaign rejected");
+      expect(paged.data.poll?.options).toEqual(options(count));
+      expect(syncSlidePageCount(paged.data)).toBe(Math.ceil(count / 4));
+      const legacy = parse({ ...poll, options: options(count) });
+      expect(legacy.success).toBe(count <= 12);
+      if (legacy.success) {
+        expect(syncSlidePageCount(legacy.data)).toBe(1);
+        expect(legacy.data.poll).not.toHaveProperty("optionsPerPage");
+      }
+    }
+    for (const count of [1, 25]) expect(parse({ ...poll, optionsPerPage: 4, options: options(count) }).success).toBe(false);
+    expect(parse({ ...poll, optionsPerPage: 12, options: options(24) }).success).toBe(false);
+    expect(parse({ ...poll, optionsPerPage: 4, options: options(24).map(option => ({ ...option, label: "x".repeat(161) })) }).success).toBe(false);
+    expect(parse({ ...poll, optionsPerPage: 4, options: [options(2)[0], options(2)[0]] }).success).toBe(false);
+    for (const visibility of ["after_vote", "after_close"])
+      expect(parse({ ...poll, visibility, optionsPerPage: 4, options: options(24) }).success).toBe(false);
+    const original = readFileSync(new URL("../../../supabase/migrations/20261018002000_sync_studio_authoring.sql", import.meta.url), "utf8");
+    expect(JSON.parse(original.split("$sync_schema$")[1]!).properties.poll.properties.options.maxItems).toBe(12);
   });
   it("bounds rows, prices, own-row markers and video origins", () => {
     for (const change of [

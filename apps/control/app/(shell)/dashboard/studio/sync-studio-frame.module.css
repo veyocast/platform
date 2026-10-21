@@ -17,3 +17,45 @@
   height: 62px;
   margin: 0 auto;
 }
+
+/* A local readability exception to immutable Source's 11px authoring fields.
+   This class lives only on the properties fieldset, outside every slide canvas. */
+.properties:global(.vc-studio-properties) :is(label, :global(.field), :global(.vc-field-label)),
+.properties:global(.vc-studio-properties) :global(.vc-properties-heading) p,
+.properties:global(.vc-studio-properties) :global(.field) > small {
+  font-size: 14px !important;
+  line-height: 1.55;
+}
+
+.properties:global(.vc-studio-properties) input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+.properties:global(.vc-studio-properties) select,
+.properties:global(.vc-studio-properties) textarea {
+  font-size: 14px !important;
+  min-height: 44px !important;
+}
+
+.properties:global(.vc-studio-properties) textarea {
+  min-height: 90px !important;
+}
+
+.properties:global(.vc-studio-properties) :global(.vc-checkbox-field) {
+  min-height: 44px;
+}
+
+/* Saved-design authoring controls keep their native behavior and Source palette.
+   The named FieldGroup is alignment; the data-mode group uses aria-label. */
+:global(.sync-control) .properties:global(.vc-studio-properties) :global(.vc-segmented)[aria-labelledby] > button {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+:global(.sync-control) .properties:global(.vc-studio-properties) details > summary {
+  min-height: 44px;
+  padding-block: 11px;
+}
+
+/* The saved-design output block contains text and actions, not an icon row. */
+.properties:global(.vc-studio-properties) > section:global(.vc-source-binding) {
+  flex-direction: column;
+  align-items: stretch;
+}

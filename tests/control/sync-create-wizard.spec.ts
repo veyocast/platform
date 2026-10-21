@@ -1,3 +1,6 @@
+import { syncBackgroundScenes } from "@veyocast/contracts";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { SyncCreateWizardData } from "../../apps/control/app/(shell)/dashboard/studio/sync-create-wizard-types";
@@ -50,9 +53,11 @@ for (const width of [390, 1440]) {
   test(`Source wizard keeps inputs, full previews, touch targets and accessibility at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 }); const state = await mount(page);
     await next(page); await page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true }).fill("Mijn eigen ontvangstscherm");
+    await expect(page.getByText("Naam van je ontwerp", { exact: true })).toHaveCSS("font-size", "14px");
+    await expect(page.getByText("Eigen toelichting", { exact: true })).toHaveCSS("font-size", "14px");
     await page.getByRole("textbox", { name: "Eigen toelichting", exact: true }).fill("Welkom op ons sportpark.");
     await next(page); await page.getByRole("button", { name: "Staand · 9:16", exact: true }).click();
-    await page.getByRole("combobox", { name: "Achtergrond", exact: true }).selectOption("photo");
+    await page.getByRole("button", { name: "Eigen foto kiezen", exact: true }).click();
     await expect(page.getByRole("combobox", { name: "Achtergrondfoto", exact: true })).toHaveValue(id(20));
     await page.getByRole("button", { name: "Vorige", exact: true }).click();
     await expect(page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true })).toHaveValue("Mijn eigen ontvangstscherm");
@@ -62,8 +67,29 @@ for (const width of [390, 1440]) {
     expect(imageReferences).not.toContain("http:"); expect(imageReferences).toContain("checksumSha256");
     const bounds = await page.getByLabel("Voorbeeld van je ontwerp").locator(".vc-slide-preview").boundingBox();
     expect(bounds!.height / bounds!.width).toBeCloseTo(16 / 9, 2);
+    const galleryScroll = await page.evaluate(() => ({ x: scrollX, y: scrollY }));
+    const decodedGallery = [];
+    for (const scene of syncBackgroundScenes) {
+      const thumbnail = page.getByRole("button", { name: scene.label, exact: true }).locator("img");
+      await expect(thumbnail).toHaveCount(1);
+      await thumbnail.scrollIntoViewIfNeeded();
+      const decoded = await thumbnail.evaluate(async element => {
+        const image = element as HTMLImageElement;
+        await image.decode();
+        return { path: new URL(image.currentSrc).pathname, complete: image.complete, width: image.naturalWidth, height: image.naturalHeight };
+      });
+      expect(decoded.width, scene.label).toBeGreaterThan(0);
+      expect(decoded).toEqual({ path: scene.portrait.path, complete: true, width: scene.portrait.width, height: scene.portrait.height });
+      decodedGallery.push({ scene: scene.id, ...decoded });
+    }
+    await page.evaluate(async position => {
+      scrollTo(position.x, position.y);
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    }, galleryScroll);
+    await info.attach("actual-gallery-decode", { body: Buffer.from(JSON.stringify(decodedGallery)), contentType: "application/json" });
     await info.attach("actual-design-step", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
     await next(page); expect(state.creates).toEqual([]);
+    await expect(page.getByText("Duur", { exact: true }).locator("..").locator("dd")).toHaveText("5 seconden per pagina · 1 pagina");
     const primary = page.getByRole("button", { name: "Ontwerp maken", exact: true });
     expect(await primary.evaluate(button => getComputedStyle(button).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -175,11 +201,15 @@ test("a refusal during receipt recovery preserves the earlier possibly committed
 test("temporarily incomplete source names and duration survive back, reload and repair without crashing or submitting", async ({ page }) => {
   const state = await mount(page, fixture("menu", true));
   await page.getByRole("combobox", { name: "Gekoppelde bron", exact: true }).selectOption(id(3)); await next(page);
+  await expect(page.getByRole("heading", { name: "Inhoud", exact: true })).toBeFocused();
   await page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true }).fill("");
+  await expect(page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true })).toHaveValue("");
   await next(page); await expect(page.getByRole("alert")).toContainText("naam van 2 tot 120 tekens");
   await page.reload(); await expect(page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true })).toHaveValue("");
   await page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true }).fill("Eigen menukaart"); await next(page);
-  await page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true }).fill(""); await next(page);
+  await expect(page.getByRole("heading", { name: "Vormgeving", exact: true })).toBeFocused();
+  await page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true }).fill("");
+  await expect(page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true })).toHaveValue(""); await next(page);
   await expect(page.getByRole("button", { name: "Ontwerp maken", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "Vorige", exact: true }).click();
   await page.reload(); await expect(page.getByRole("spinbutton", { name: "Seconden per pagina", exact: true })).toHaveValue("");
@@ -226,4 +256,29 @@ test("Engage and YouTube use their existing verified pickers and keep online fal
   const second = state.creates[1]!.input; if (second.kind !== "manual") throw Error("manual");
   expect(second.document.syncPresentation?.poll).toMatchObject({ id: id(31), status: "live", visibility: "live", options: [{ votes: 0 }, { votes: 0 }] });
   expect(state.reads).toContain("engage-choices"); expect(state.errors).toEqual([]);
+});
+
+
+for (const mode of ["manual", "connected"] as const) for (const scene of syncBackgroundScenes) test(`${mode} wizard persists ${scene.label} and replays the exact selected orientation`, async ({ page }) => {
+  await page.route(`${origin}/onzetrots/website-brush/*`, route => {
+    const path = new URL(route.request().url()).pathname, asset = syncBackgroundScenes.flatMap(value => [value.landscape, value.portrait]).find(value => value.path === path);
+    return asset ? route.fulfill({ body: readFileSync(join(process.cwd(), "apps/control/public", asset.path)), contentType: asset.mimeType }) : route.abort();
+  });
+  const run = await mount(page, fixture("menu", mode === "connected"), { dropFirst: true });
+  if (mode === "connected") await page.getByRole("combobox", { name: "Gekoppelde bron", exact: true }).selectOption(id(3));
+  await next(page); await next(page);
+  const picker = page.getByRole("group", { name: "Achtergrond", exact: true });
+  await expect(picker.getByRole("button")).toHaveCount(8);
+  await picker.getByRole("button", { name: scene.label, exact: true }).click();
+  await page.getByRole("button", { name: "Staand · 9:16", exact: true }).click();
+  await expect(page.getByLabel("Voorbeeld van je ontwerp").locator(".vc-slide-preview")).toHaveCSS("background-image", new RegExp(scene.portrait.path.replaceAll(".", "\\.")));
+  await page.reload(); await expect(page.getByRole("group", { name: "Achtergrond", exact: true }).getByRole("button", { name: scene.label, exact: true })).toHaveAttribute("aria-pressed", "true");
+  await next(page);
+  if (mode === "connected") await page.getByRole("button", { name: "Bron controleren", exact: true }).click();
+  await page.getByRole("button", { name: "Ontwerp maken", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true })).toBeEnabled();
+  const original = run.creates[0]!.input, presentation = original.kind === "manual" ? original.document.syncPresentation! : (original.command.request as { configuration: { syncConfiguration: { seed: unknown } } }).configuration.syncConfiguration.seed;
+  expect(presentation).toMatchObject({ orientation: "portrait", style: { background: "photo", backgroundAsset: { kind: "system", path: scene.portrait.path, checksumSha256: scene.portrait.sha256 } } });
+  await page.reload(); await page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true }).click();
+  await expect.poll(() => run.creates.length).toBe(2); expect(run.creates[1]).toEqual(run.creates[0]); expect(run.receipts.size).toBe(1); expect(run.errors).toEqual([]);
 });

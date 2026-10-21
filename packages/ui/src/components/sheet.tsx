@@ -10,6 +10,7 @@ import type {
 import { forwardRef } from "react";
 
 import { cn } from "../utils";
+import { useDialogPortalContainer } from "./dialog";
 
 export const Sheet = DialogPrimitive.Root;
 export const SheetTrigger = DialogPrimitive.Trigger;
@@ -37,8 +38,9 @@ export const SheetContent = forwardRef<
   },
   ref
 ) {
+  const container = useDialogPortalContainer();
   return (
-    <DialogPrimitive.Portal>
+    <DialogPrimitive.Portal container={container ?? undefined}>
       <DialogPrimitive.Overlay className="vc-overlay vc-sheet__overlay" />
       <DialogPrimitive.Content
         className={cn("vc-sheet__content", `vc-sheet__content--${side}`, className)}
@@ -51,7 +53,7 @@ export const SheetContent = forwardRef<
             aria-label={closeLabel}
             className="vc-overlay-close vc-sheet__close"
           >
-            <span aria-hidden="true">×</span>
+            <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
           </DialogPrimitive.Close>
         ) : null}
       </DialogPrimitive.Content>

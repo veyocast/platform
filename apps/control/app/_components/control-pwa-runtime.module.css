@@ -1,23 +1,28 @@
 .toast {
+  --sync-pwa-surface: #103f41;
+  --sync-pwa-text: #f2fffa;
+  --sync-pwa-action: #59e4b0;
+  --sync-pwa-on-action: #122e32;
   align-items: center;
-  background: var(--vc-neutral-900);
-  border: 1px solid color-mix(in srgb, var(--vc-brand-paper-white) 18%, transparent);
-  border-radius: var(--vc-radius-lg);
+  background: var(--sync-pwa-surface);
+  border: 1px solid color-mix(in srgb, var(--sync-pwa-text) 18%, transparent);
+  border-radius: 12px;
   bottom: max(var(--vc-space-16), env(safe-area-inset-bottom));
   box-shadow: 0 16px 40px color-mix(in srgb, var(--vc-text) 16%, transparent);
-  color: var(--vc-brand-paper-white);
+  color: var(--sync-pwa-text);
   display: grid;
   gap: var(--vc-space-12);
   grid-template-columns: auto minmax(0, 1fr);
-  left: max(var(--vc-space-16), env(safe-area-inset-left));
+  font: 14px/1.55 Manrope, Inter, sans-serif;
   max-width: min(460px, calc(100vw - 32px));
-  padding: var(--vc-space-12) var(--vc-space-16);
+  padding: 14px 20px;
   position: fixed;
+  right: max(25px, env(safe-area-inset-right));
   z-index: 1000;
 }
 
 .toast > svg {
-  color: var(--vc-brand-electric-orange);
+  color: var(--sync-pwa-action);
   height: 20px;
   width: 20px;
 }
@@ -27,12 +32,12 @@
 }
 
 .toast strong {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .toast small {
-  color: color-mix(in srgb, var(--vc-brand-paper-white) 70%, transparent);
-  font-size: 12px;
+  color: var(--sync-pwa-text);
+  font-size: 14px;
   line-height: 1.45;
   margin-top: 2px;
 }
@@ -44,19 +49,19 @@
 .toast button {
   background: transparent;
   border: 0;
-  border-radius: var(--vc-radius-md);
+  border-radius: 10px;
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 var(--vc-space-8);
 }
 
 .toast button:first-of-type {
-  background: var(--vc-brand-electric-orange);
-  color: var(--vc-brand-ink-black);
+  background: var(--sync-pwa-action);
+  color: var(--sync-pwa-on-action);
   padding-inline: var(--vc-space-12);
 }
 
@@ -65,7 +70,7 @@
   display: flex;
   justify-content: center;
   padding: 0;
-  width: 36px;
+  width: 44px;
 }
 
 .toast button svg {
@@ -74,7 +79,7 @@
 }
 
 .toast button:focus-visible {
-  outline: 3px solid var(--vc-brand-paper-white);
+  outline: 3px solid var(--sync-pwa-text);
   outline-offset: 2px;
 }
 
@@ -83,6 +88,7 @@
     bottom: calc(76px + env(safe-area-inset-bottom));
     max-width: calc(100vw - 24px);
     left: 12px;
+    right: 12px;
   }
 
   .toast[data-kind="update"] {

@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-19T07:49:52.075255+00:00",
+  "snapshotHeadBeforeDocumentation": "0eaab95bc02a654fac188e36395c95b8ebf81cb8",
+  "controlApplicationTree": "d3612333e7c9eef876e122dc9520e7a2e115da84",
+  "featureHeads": {
+    "S237": "19549305b86092bb8e323af0fdd75c04fa19b630",
+    "S238": "ce661822fd6d1203faaa6f4e6e6e3216b0b2e6ba",
+    "S239": "0130b519365cc380a62f00dd399aeaa24013d886",
+    "S240": "bf14de7cf3c03734f2d6bdf7fbe2427c2e0aec06",
+    "S241": "c9b53ee7ecc121d4aae70717bf286ca3296b3181",
+    "S242": "334895783fad16a8a1471721e25b132749334a07",
+    "S243": "e0b302a641d1bdd0e1bf874c6acef94be299adde",
+    "S245": "dbc5e31f73cad6a786b1fe8d0f5a2d2f503b9aac",
+    "S246": "9637ad665b4b7ee2b6de992af85d69a32646d133",
+    "S247": "2ea7341e0d5cf1851a03865e494e8656d4fdfc5f",
+    "S248": "6498cbd2c4af6bf2152ed519b590d0d1b9ea6158",
+    "S249": "14a0dd973fa92ce143831b02886278b7da27bccd",
+    "S250": "4d0d3b2a6cacf7e4e8ee97eb44da34aedc2dfb40",
+    "S251": "c5047480f7d6004481ed08bd4d72d7bc2d9b5974",
+    "S252": "e1c77b67560102b3ef60d9834312fe17e57c367d"
+  },
+  "allFifteenOrdinaryAncestors": true,
+  "previousSnapshot": {
+    "path": "execution/evidence/s244-audit-corrections.json",
+    "sha256": "84cfa2bb6f703e464a4f3fbff50d36b2d2a45a9c7661369a873117a01a887475",
+    "preservedUnmodified": true
+  },
+  "followupProofs": {
+    "S249": {
+      "head": "14a0dd973fa92ce143831b02886278b7da27bccd",
+      "pr": "https://github.com/veyocast/platform/pull/275",
+      "proofPath": "/dev/shm/veyocast-s249-status-integration/final-proof.json",
+      "proofSha256": "b8d671ff1c4f06da16d4973fa0ddf51af533ae7790b466a594c41266527ad098",
+      "focusedFinalBrowserCases": 2,
+      "retry": 0,
+      "skip": 0,
+      "boundary": "Declared controlled component/page/framework fixture; not a full actual Auth/RLS/provider/product or visual-review round"
+    },
+    "S250": {
+      "head": "4d0d3b2a6cacf7e4e8ee97eb44da34aedc2dfb40",
+      "pr": "https://github.com/veyocast/platform/pull/277",
+      "proofPath": "/dev/shm/veyocast-s250-stream-hydration/final-freeze.json",
+      "proofSha256": "528b663d3edb8c33b3c5882076cb5c040cbbdbca976480d30883904832e2295a",
+      "focusedFinalBrowserCases": 4,
+      "retry": 0,
+      "skip": 0,
+      "boundary": "Declared controlled component/page/framework fixture; not a full actual Auth/RLS/provider/product or visual-review round"
+    },
+    "S251": {
+      "head": "c5047480f7d6004481ed08bd4d72d7bc2d9b5974",
+      "pr": "https://github.com/veyocast/platform/pull/276",
+      "proofPath": "/dev/shm/veyocast-s251-platform-mobile/final-proof.json",
+      "proofSha256": "749817327b1015ed1ba861628d02c0796d48f835f6a367a382afdf75d18a192f",
+      "focusedFinalBrowserCases": 2,
+      "retry": 0,
+      "skip": 0,
+      "boundary": "Declared controlled component/page/framework fixture; not a full actual Auth/RLS/provider/product or visual-review round"
+    },
+    "S252": {
+      "head": "e1c77b67560102b3ef60d9834312fe17e57c367d",
+      "pr": "https://github.com/veyocast/platform/pull/278",
+      "proofPath": "/dev/shm/veyocast-s252-sync-preview-fidelity/final-review-proof-v1.json",
+      "proofSha256": "2b4b4a82d3428c006823cd38767199a5a62e967b6c0fda66cf4e9251cfd3874e",
+      "focusedFinalBrowserCases": 14,
+      "retry": 0,
+      "skip": 0,
+      "boundary": "Declared controlled component/page/framework fixture; not a full actual Auth/RLS/provider/product or visual-review round"
+    }
+  },
+  "preservedBf458beeTrees": {
+    "docs/sync-v1-rebuild/handoff/reference/sites-sync": "6343eacbd1899978fe31d6e6041fb356c1e08c42",
+    "assets/brand": "833bd5796e15eb347efb0a1b37f9fde866ff83b4",
+    "packages/tokens": "a1c110b59281084beef3c1186912344b2e1ddd20",
+    "apps/player": "6597726438d6b60607080a2744bef18fe78c4a8f",
+    "apps/marketing": "0a48012298acd8a7dc408b4b3a1904c5efc4fb66",
+    "supabase": "c798289068d6dd3e97afcc0761961a810954fc6f",
+    ".github/workflows": "fdb21dc8ecf404d6caedb0e724ad6700ebaf9a31",
+    "package.json": "9e6783b01ed6e45221e3e31fb45e11e22aedc03b"
+  },
+  "dependencyTask": {
+    "sprint": "S250",
+    "nextVersion": "15.5.20",
+    "patchSha256": "77cfedc4d8b99c4f5431736c3f1428fda52b6f6eac2aa89025834c20f3168420",
+    "lockSha256": "a200fddf363823553772498d711c2e55e36d8665d71b3263f176846697214c18",
+    "workspaceSha256": "06bbdd07eaf91ef88a584353632f0897b938416d96e9752c6552cf11b3a99eb4",
+    "changedVendorFiles": 2,
+    "addedLines": 20,
+    "packageVersionsIntegritiesPeersOtherwiseUnchanged": true,
+    "lockGraphProofSha256": "1d88c96a76177ffd1328aa6b70380c9cbb99a900a15b2311a3e53ce0cb77c827",
+    "normalizedExactLockBytesProofSha256": "de9e918dc0320cf1543c69832e8d262fa47b2c369d0d3c4b46d52e4320a38480",
+    "tradeoff": "Opted-in Control initial scheduler work waits while document parser is loading; an indefinitely open response can delay interaction; actual full Next acceptance remains open"
+  },
+  "retainedBf458beeCapture": {
+    "checkpointSha256": "c72b25890a22f18ca97a747719b7ed29e948d309e0dc38741578a87941d552ab",
+    "status": "INCOMPLETE_OLD_BUILD_PRESERVED",
+    "buildId": "PTC4j-uFf9F6NNY1FpIkX",
+    "actualPngs": 367,
+    "sourcePngs": 30,
+    "wizardDesignReviewCaptures": 0,
+    "errors": {
+      "captureRedirectHarness": 12,
+      "realPageErrors": 6,
+      "afterRuntimeStoppedConnectionErrors": 43
+    },
+    "all162TenantSnapshotsHistoryStorageUnchanged": true,
+    "countsAsFullRound": false
+  },
+  "s252Limits": {
+    "strictProductAndNewSpecDiagnostics": 0,
+    "unchangedBaselineTestDiagnostics": 4,
+    "fullStrictTestTypecheckPassClaim": false,
+    "nativeLongPreviewImagesRootReviewed": 4,
+    "scorerFreeAndOtherMomentGeometryAccepted": false,
+    "oneInfrastructureMetadataOverwritten": "Original old SHA/timestamp not recorded; exact affected path and current SHA in referenced proof. Primary reports/PNGs/logs/closures and original asset baseline retained; no all-old-metadata byte-equality claim"
+  },
+  "fiveVisualRoundsCompletedAtSnapshot": 0,
+  "requiredFinalGates": {
+    "normalLocalPatchedDependencyInstall": "OPEN",
+    "fullWorkspaceFoundation": "OPEN",
+    "actualProductionBuild": "OPEN",
+    "closedActualReadOnlyCaptureComposite": "OPEN",
+    "fiveWholeVisualComparisons": "OPEN",
+    "exactFinalHostedCI": "OPEN",
+    "normalMainStagingProductionSameImmutableRelease": "OPEN"
+  },
+  "liveAcceptanceReadbacks": "https://github.com/veyocast/platform/pull/270",
+  "deferredByUser": [
+    "Physical Android/TV/LG upgrades and 24-hour playback",
+    "SendGrid account credentials/from/to",
+    "YouTube account configuration",
+    "Mollie account configuration"
+  ],
+  "noNewSqlOrReset": true,
+  "scenarioIdsAndStatusesUnchanged": 148,
+  "logicalContractsPreserved": 36
+}

@@ -2,3 +2,20 @@
    every production command, capability, AAL2 gate, detail route and form. */
 .platform{display:grid;gap:25px;color:var(--ff-ink);min-width:0}.platform :global(.workspace-section),.platform :global(.data-surface){background:var(--ff-surface);border:1px solid var(--ff-line);border-radius:17px;padding:30px;box-shadow:none}.platform :global(.vc-page-header__title){font-size:36px;line-height:1.1;letter-spacing:-1.4px;font-weight:650;color:var(--ff-brand-petrol)}.platform :global(.work-panel__title),.platform :global(.workspace-section__title){font-size:19px;letter-spacing:-.4px;color:var(--ff-brand-petrol)}.platform :global(.data-table-frame){border-radius:10px;box-shadow:none}.platform :global(.data-table th){font-size:11px;font-weight:600;background:var(--ff-surface-muted);padding:12px}.platform :global(.data-table td){font-size:13px;padding:18px 12px}.platform :global(.field input),.platform :global(.field select){min-height:45px;border-radius:9px}.platform :global(.vc-page-header){margin:0}
 @media(max-width:760px){.platform :global(.workspace-section),.platform :global(.data-surface){padding:20px}.platform :global(.vc-page-header__title){font-size:31px}.platform :global(.data-table td){padding:16px 9px}.platform :global(.field input),.platform :global(.field select){min-height:48px}}
+
+/* Mobile platform content stays readable without changing shared Source UI. */
+@media (max-width: 760px) {
+  .platform :global(.tenant-create-form .sticky-form-actions) { position: static; }
+  :global(html[data-design-system="fieldflow"]) .platform :global(.vc-summary-strip) {
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  :global(html[data-design-system="fieldflow"]) .platform :global(.vc-summary-strip__item + .vc-summary-strip__item) { border-left: 0; }
+  :global(html[data-design-system="fieldflow"]) .platform :global(.vc-summary-strip__item:nth-child(even)) { border-left: 1px solid var(--ff-border); }
+  :global(html[data-design-system="fieldflow"]) .platform :global(.vc-summary-strip__item:nth-child(n + 3)) { border-top: 1px solid var(--ff-border); }
+  .platform :global(.vc-summary-strip__label) { overflow: visible; text-overflow: clip; white-space: normal; }
+  .platform :global(.vc-summary-strip__value) { overflow-wrap: normal; word-break: normal; }
+  .platform :global(.vc-summary-strip__detail) { display: block; }
+}

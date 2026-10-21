@@ -12,6 +12,8 @@ import "./globals.css";
 import "./fieldflow.css";
 import "./sync-source.css";
 import "./sync-adapter.css";
+import "./(shell)/dashboard/studio/sync-retained-studio.css";
+import "./sync-auth.css";
 import { ControlPwaRuntime } from "./_components/control-pwa-runtime";
 
 export const metadata: Metadata = {
@@ -37,6 +39,7 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html
+      data-veyocast-document-ready="1"
       data-design-system="fieldflow"
       lang="nl"
       suppressHydrationWarning

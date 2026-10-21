@@ -1,5 +1,3 @@
-import routeStyles from "../dashboard/sites-secondary.module.css";
-
 import { hasCapability } from "@veyocast/auth";
 
 import { requireControlSession } from "../../../lib/control-session";
@@ -15,7 +13,7 @@ export default async function ContextPage({ searchParams }: ContextPageProps) {
   const { fout, reden } = await searchParams;
 
   return (
-    <div className={`page-stack page-stack--narrow ${routeStyles.page}`}>
+    <div className="sync-control sync-auth sync-auth--context page-stack page-stack--narrow">
       <header className="page-header">
         <div>
           <p className="eyebrow">Werkcontext</p>

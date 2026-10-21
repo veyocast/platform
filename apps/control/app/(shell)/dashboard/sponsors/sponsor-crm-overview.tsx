@@ -45,7 +45,7 @@ export function SponsorCrmOverview({ data, filter }: { data: SponsorCrmData; fil
         <Pagination count={data.taskCount} filter={filter} kind="task" page={filter.taskPage} />
       </section>
     </div>}
-    <Sheet open={Boolean(opportunity || task)} onOpenChange={open => { if (!open) setSelected(null); }}><SheetContent className={styles.inspector} onCloseAutoFocus={event => { event.preventDefault(); returnFocus.current?.focus(); }}>
+    <Sheet open={Boolean(opportunity || task)} onOpenChange={open => { if (!open) setSelected(null); }}><SheetContent className={`sync-control ${styles.inspector}`} onCloseAutoFocus={event => { event.preventDefault(); returnFocus.current?.focus(); }}>
       <SheetHeader><SheetTitle>{opportunity?.name ?? task?.title ?? "Gegevens"}</SheetTitle><SheetDescription>{opportunity ? "Vastgelegde kans" : "Vastgelegde opvolgtaak"} · Alleen bekijken</SheetDescription></SheetHeader>
       <SheetBody><dl className={styles.details}>{opportunity ? <><dt>Fase</dt><dd>{stageLabels[opportunity.stage] ?? "Onbekend"}</dd><dt>Geschatte waarde</dt><dd>{money(opportunity.estimated_value_cents)}</dd><dt>Volgende actie</dt><dd>{date(opportunity.next_action_at)}</dd></> : task ? <><dt>Status</dt><dd>{taskLabels[task.status] ?? "Onbekend"}</dd><dt>Uiterlijk</dt><dd>{date(task.due_at)}</dd></> : null}</dl><p>Dit overzicht wijzigt geen kansen, taken of campagnes.</p></SheetBody>
     </SheetContent></Sheet>

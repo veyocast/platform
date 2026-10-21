@@ -1,0 +1,483 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-19T10:40:17.785263+00:00",
+  "sourceHeadBeforeDocumentation": "3d9596fe208e59407adc207d937dbfac0822ee26",
+  "previousSourceHead": "49a12c45948210dd367402bdd252fe06966ae59b",
+  "featureHeads": {
+    "S255": "3bfc3dd0fe8e1fe57fcf6d805558e747ddd2ce0b",
+    "S256": "02ba14c9a5c52e80befe5b4f7d4e0963e763c900"
+  },
+  "ordinaryMerges": true,
+  "allOriginalHistoryPreserved": true,
+  "s255": {
+    "pr": "https://github.com/veyocast/platform/pull/280",
+    "finalCases": 1,
+    "actualExit": 0,
+    "proof": {
+      "path": "/dev/shm/veyocast-s255-saved-studio-touch/closure.json",
+      "sha256": "58e4059d21e97e260c22cbcf0aaadd36d1909ba995011ee6bfb7ca556dd11cc2"
+    },
+    "scope": "Saved Studio touch controls/native disclosures; controlled fixture, not whole app"
+  },
+  "s256": {
+    "pr": "https://github.com/veyocast/platform/pull/281",
+    "colorAndCopyCases": 6,
+    "strongerGalleryCases": 2,
+    "actualExits": [
+      0,
+      0
+    ],
+    "firstLoaderAttempt": "NOT_RUN/zero cases, missing canonical contracts alias; preserved",
+    "galleryTestGap": "Original six-case Design PNGs had three broken gallery thumbnails. Real actual B assets were loaded. Fixture now serves exact six immutable catalog images; same two widthcases assert three portrait decodes before native Design images.",
+    "nativeDesignImagesRootViewed": 2,
+    "finalFreeze": {
+      "path": "/dev/shm/veyocast-s256-sync-theme-control-legibility/gallery-fixture-followup-20261019T102744Z-06a440da-484f-4ae7-a1bf-5c4603d2a208/final-freeze.json",
+      "sha256": "ace5254ea719194fa5fc12d40db0c90830f5f315ecfde93a303d08b6bc81d2b7"
+    },
+    "handoff": {
+      "path": "/dev/shm/veyocast-s256-sync-theme-control-legibility/gallery-fixture-followup-20261019T102744Z-06a440da-484f-4ae7-a1bf-5c4603d2a208/commit-push-handoff.json",
+      "sha256": "1b68d04b7963f6b52d24e3f900730ed00f7bcaf98542cb705c7a0fb896be5adb"
+    }
+  },
+  "historical49a": {
+    "install": {
+      "path": "/dev/shm/veyocast-s244-final-root-install-v2/closed.json",
+      "sha256": "6c28636b371601391a2e227fe3959e3c698963f463152cbc8780891e8bdfdcfd"
+    },
+    "foundation": {
+      "path": "/dev/shm/veyocast-s244-final-foundation-after-heap-limit/closed.json",
+      "sha256": "d9badb1fc5df34915ae5dc0d45bc4d1d798d1ca473fbfe059e4ea65a68e1efb0"
+    },
+    "build": {
+      "path": "/dev/shm/veyocast-s244-final-built-after-visual-corrections-v2/built-current-tree.json",
+      "sha256": "227f073410b59493870988c91d243b57c1f4638707a4b5b3c73e852532a3e197"
+    },
+    "hostedExecutedSuccess": 14,
+    "hostedConditionalSkip": 1,
+    "certifiesNewHead": false
+  },
+  "historicalActualCaptures": {
+    "A": {
+      "checkpointSha256": "bed39fa65298014f459e7c3f5674eb6f106269775170b4d08a082178142e2cf2",
+      "nativePngFiles": 558,
+      "actualProcessExit": 1,
+      "nativeReact418HtmlErrors": 9,
+      "deniedStudioPollPosts": 37,
+      "forwardedNonGet": 0,
+      "causeAndClosure": "OPEN"
+    },
+    "Bv2": {
+      "checkpointSha256": "c780e6653305f0060fdbcc840f3dac60684d2c2968d36f11d0c577526b442518",
+      "nativePngFiles": 620,
+      "families": 36,
+      "widths": [
+        390,
+        1440
+      ],
+      "manualDesignAndReviewEntries": 72,
+      "originalPageErrors": 0,
+      "connectedOrBronInhoudVisualAcceptance": false,
+      "actualProcessExit": 0
+    },
+    "V5": {
+      "checkpointSha256": "850d871528b33792f61fec139f9d5c3e7118347f3a00bad3834a3d73bdb374b1",
+      "nativePngFiles": 571,
+      "originalPageErrors": 0,
+      "deniedStudioPollPosts": 36,
+      "actualProcessExit": 1,
+      "originalNineErrorsClosed": false,
+      "boundary": "Declared diagnostic with prefixed JS transport; nonreproduction is not product acceptance"
+    }
+  },
+  "passiveObserverContract": {
+    "proof": {
+      "path": "/dev/shm/veyocast-s254-hydration-diagnostic-preparation/passive-cdp-exact-a-template-v2-20261019T103346Z-e6096tjm/actual-four-case-proof.json",
+      "sha256": "20dafc7979a0bfc8c56afa0c4c02214fb1f60069764183e69190767925a63c36"
+    },
+    "actualProcessExit": 0,
+    "controlledCases": 4,
+    "twoOriginalDomMismatchPositives": true,
+    "twoMatchingControls": true,
+    "noProductCauseOrClosureClaim": true
+  },
+  "resourcePreservation": {
+    "imageCache": {
+      "path": "/dev/shm/veyocast-s244-integration/two-published-image-cache-closure-38191eeb-27a8-4deb-b587-4baaea9bae5b/closure.json",
+      "sha256": "9d08452e635fe9082e5ea315fe9d4fd4aeb65014f68a96416e0668f8e157aa1e"
+    },
+    "closedProofs": {
+      "path": "/home/codex/.local/state/veyocast-s244/preserved-closed-proofs/1c0eb2fc-eeac-4d7a-879f-a1a9e5d38268/closure.json",
+      "sha256": "92e1ae1fd2e204e1d6ad9403fc766f9bdb0c8061835e0d404ecbec27054da8da"
+    },
+    "boundary": "Only two unused public binary download images removed without force or prune; all container/running/volume IDs identical. 1,316,044,250 historical proof bytes/modes/mtimes retained at original paths through private host symlinks. No reset, proof deletion, deduplication or app-image deletion."
+  },
+  "mergeConflict": {
+    "path": "/dev/shm/veyocast-s244-integration/s256-ledger-conflict-resolution.json",
+    "sha256": "6224481d3dcec1c28baf6e50f6ca792c7e0f713c8a7fde6217d95cf6c1498ee1"
+  },
+  "protectedHistoricalTreesUnchanged": {
+    "package.json": "9e6783b01ed6e45221e3e31fb45e11e22aedc03b",
+    "pnpm-lock.yaml": "b900f42f91e76677c86493c14596a7cab2e4132b",
+    "pnpm-workspace.yaml": "e551a0722f258b1453eb6cff811f76a4dc353e1b",
+    "patches": "512db9ee55917d9ba8cb0e7713649d0d70122305",
+    "packages/tokens": "a1c110b59281084beef3c1186912344b2e1ddd20",
+    "apps/player": "6597726438d6b60607080a2744bef18fe78c4a8f",
+    "apps/marketing": "0a48012298acd8a7dc408b4b3a1904c5efc4fb66",
+    "supabase": "c798289068d6dd3e97afcc0761961a810954fc6f",
+    "assets/brand": "833bd5796e15eb347efb0a1b37f9fde866ff83b4",
+    "docs/sync-v1-rebuild/handoff/reference/sites-sync": "6343eacbd1899978fe31d6e6041fb356c1e08c42",
+    ".github/workflows": "3f644c64bdb1bb021f4d7d5ef9d0acc2beec945d"
+  },
+  "fiveWholeReviewRoundsCompleted": 0,
+  "newFinalGates": {
+    "existingInstallContinuity": "PENDING_NEW_HEAD_BINDING",
+    "foundation": "OPEN",
+    "controlAndMarketingProductionBuilds": "OPEN",
+    "readOnlyA_B_C_WizardSupplement_PublicAuth": "OPEN",
+    "originalNineHydrationErrorCauseAndClosure": "OPEN",
+    "fiveWholeComparisons": "OPEN",
+    "exactNewHeadHostedCI": "OPEN",
+    "sameImmutableStagingAndProduction": "OPEN"
+  },
+  "noQaReset": true,
+  "all148ScenarioIdsStatusesAnd36ContractsPreserved": true,
+  "deferredByUser": [
+    "physical Android/TV/LG and24h playback",
+    "SendGrid key/from/to",
+    "YouTube account",
+    "Mollie account"
+  ],
+  "post1e37Integration": {
+    "at": "2026-10-19T12:21:56.025607+00:00",
+    "sourceHeadBeforeDocumentation": "aa270e7059fb60313305d218a079bc8fafceea73",
+    "featureHeads": {
+      "S257": "5ec585b2d57ae2a9ac631cd398c2aa5f34229226",
+      "S258": "a5384e88cddfb7a01818d9c8a3ed3232dc55762c"
+    },
+    "ordinaryMerges": true,
+    "uiFeatureHeads": 18,
+    "separateCiCorrections": 2,
+    "historical1e37": {
+      "head": "1e3706667dfc82692439d42442bd0770a8415bc2",
+      "continuity": {
+        "path": "/dev/shm/veyocast-s244-install-continuation-preparation/bound-v2-54faeb35-9aab-4a5f-8b98-ff03f2731faf/validation-d53a05b2-b604-40d4-95fc-6844ec6d2603/closed.json",
+        "sha256": "50bd6059c0ec89d5155956450f7fa4a411de86027f6f611c7e7a47bc3091754f"
+      },
+      "foundation": {
+        "path": "/dev/shm/veyocast-s244-new-ui-foundation-51458c8b-e08d-4e30-8617-9fb46c8aa2bb/closed.json",
+        "sha256": "a2258aed03d9f0dbc66a016cf437e1002123fabae374287c5c9c4bd8f50133bc"
+      },
+      "hostedSuccess": 13,
+      "hostedPlayerFailure": 1,
+      "conditionalIpkSkip": 1,
+      "certifiesFinalSource": false
+    },
+    "s257": {
+      "finalReport": {
+        "path": "/dev/shm/veyocast-s257-retained-marketing/candidate-v9-d313d28b-006b-4a2d-b416-a8dc661014db/final-root-native-corrections-c702e6e8-6284-4f15-99c7-15f6230f60c3/final-report.json",
+        "sha256": "b74eee6c843dfa0c49dcbbe5ed0a7f1c86c0cb0fc0101c8659d9b8cef054f5be"
+      },
+      "rootNativePngsViewed": 10,
+      "preCopyBrowserCasesPass": 2,
+      "axeMeasurementsZero": 10,
+      "twoFinalLiteralStringsAndUnusedVariableNotRenderedYet": true
+    },
+    "s258": {
+      "proof": {
+        "path": "/dev/shm/veyocast-s258-preparation-20261019T115010Z-78a00dbc/actual-one-case-final-proof.json",
+        "sha256": "f7afc8fd27a3f29cffa1cb9d6b892d69c20ab2f58ebd736519edb8af83f75a17"
+      },
+      "existingCasePass": 1,
+      "otherTwoCasesRunLocally": false,
+      "lintActualExit": 0,
+      "onlyTwoExecuteAtOffsetsAndCommentChanged": true,
+      "noProductFixClaim": true
+    },
+    "protectedCurrentTrees": {
+      "apps/control": "674f04d58a23dc02be79afbc95a24b18b515d1c3",
+      "apps/player": "6597726438d6b60607080a2744bef18fe78c4a8f",
+      "apps/marketing": "d3b5edd4d25837b2d87a9bfbb8946a0e2364b057",
+      "packages/tokens": "a1c110b59281084beef3c1186912344b2e1ddd20",
+      "supabase": "c798289068d6dd3e97afcc0761961a810954fc6f",
+      ".github/workflows": "3f644c64bdb1bb021f4d7d5ef9d0acc2beec945d",
+      "assets/brand": "833bd5796e15eb347efb0a1b37f9fde866ff83b4",
+      "docs/sync-v1-rebuild/handoff/reference/sites-sync": "6343eacbd1899978fe31d6e6041fb356c1e08c42"
+    },
+    "temporaryOldS215Analytics": {
+      "containerId": "76a346d54cdaed968ae7149733922547d580a59821a85b37f8079ced3d7bb8c9",
+      "stopActualExit": 137,
+      "forced": true,
+      "restorationBeforeFinalCaptures": "PENDING_REQUIRED",
+      "independentStopFollowup": {
+        "path": "/dev/shm/veyocast-s244-integration/s215-idle-analytics-temporary-stop-b8c26f82-d823-4ca8-9ce1-b7190163410a/closed-stop-followup.json",
+        "sha256": "aafa90e47aed99e61b13e7f665391fa50faab541201b70014b5726f6bba7b160"
+      }
+    },
+    "allHistoricalCapturesFailuresProofsPreserved": true,
+    "noQaReset": true,
+    "all148IdsStatusesAnd36ContractsPreserved": true,
+    "fullReviewRoundsCompleted": 0,
+    "originalNineControlHydrationErrors": "OPEN",
+    "finalGates": "CONTINUITY_FOUNDATION_BUILDS_ALL_FINITE_CAPTURES_FIVE_REVIEWS_EXACT_CI_STAGING_PRODUCTION_PENDING"
+  },
+  "post09dIntegration": {
+    "at": "2026-10-19T13:19:14.802738+00:00",
+    "sourceHeadBeforeDocumentation": "7a7c4cb2c08f2248f0fe12022a4b7448d2c9c19f",
+    "featureHeadS259": "aba3e76287591e91bbf2c3e79758fc497c7d291e",
+    "ordinaryMerge": true,
+    "uiFeatureHeads": 19,
+    "separateCiCorrections": 2,
+    "historical09d": {
+      "head": "09d8431cf47f7a5e56d00d9d1cb4fdce27e06883",
+      "continuity": {
+        "path": "/dev/shm/veyocast-s244-final-head-pipeline-bound-e53caee1-3bff-4191-b7dc-253f0bfabde0/continuity/validation-1e9b3568-4049-4138-950b-eec33360007e/closed.json",
+        "sha256": "fe1f856d2c23cb67bbb306058d629e65f167b0d0cbcec02ee0c04d50bc8e0d1d"
+      },
+      "foundation": {
+        "path": "/dev/shm/veyocast-s244-final-foundation-375db012-ceda-4520-9486-6dd4bebdf8e5/closed.json",
+        "sha256": "87e479ee8012b3efd36b57843e68c4ae500262401722f4be450d49885c85dd7d"
+      },
+      "hostedSuccess": 13,
+      "hostedMarketingFailure": 1,
+      "conditionalIpkSkip": 1,
+      "marketingCases": {
+        "pass": 21,
+        "fail": 3
+      },
+      "certifiesNewHead": false,
+      "bothBuildsHeldBeforeActors": true
+    },
+    "s259": {
+      "finalReport": {
+        "path": "/dev/shm/veyocast-s259-retained-marketing-print-20066813-84a3-4a2f-b486-35e119df8b58/final-report-v1.json",
+        "sha256": "18b7f1af95b766ada4b03b960a43e45a0b251be7bfb11f58406cddf23f46948d"
+      },
+      "browser": {
+        "path": "/dev/shm/veyocast-s259-browser-e4a4cfaa-2c4b-4502-8f77-8ab3093a245f/closed.json",
+        "sha256": "b0cf831e249cb823a7480131c6c2fcc3e08fb9008091a1e39657d978b62df9f6"
+      },
+      "buildCompletion": {
+        "path": "/dev/shm/veyocast-s259-retained-marketing-print-20066813-84a3-4a2f-b486-35e119df8b58/completed-build-validation-v2/closed.json",
+        "sha256": "5bad92437d1d0ef13798842224b6041966f8e9912e6d26164b99c1151a38aa58"
+      },
+      "actualBuildId": "nbDVvmSw2Tch7yoe1P_RS",
+      "compileActualExit": 0,
+      "originalWrapperActualExit": 1,
+      "sameArtifactCompletionActualExit": 0,
+      "legalPrintPass": 3,
+      "retainedPass": 2,
+      "retries": 0,
+      "skips": 0,
+      "axeZeroChecks": 10,
+      "allPreviousFailuresPreserved": true,
+      "newRootAcceptancePending": true
+    },
+    "protectedTrees": {
+      "apps/control": "674f04d58a23dc02be79afbc95a24b18b515d1c3",
+      "apps/player": "6597726438d6b60607080a2744bef18fe78c4a8f",
+      "packages/tokens": "a1c110b59281084beef3c1186912344b2e1ddd20",
+      "supabase": "c798289068d6dd3e97afcc0761961a810954fc6f",
+      ".github/workflows": "3f644c64bdb1bb021f4d7d5ef9d0acc2beec945d",
+      "assets/brand": "833bd5796e15eb347efb0a1b37f9fde866ff83b4",
+      "docs/sync-v1-rebuild/handoff/reference/sites-sync": "6343eacbd1899978fe31d6e6041fb356c1e08c42"
+    },
+    "oldS215AnalyticsRestoreBeforeCaptures": "PENDING_REQUIRED",
+    "fullWholeReviewRoundsCompleted": 0,
+    "originalNineControlHydrationErrors": "OPEN",
+    "allHistoricalProofsPreserved": true,
+    "noQaReset": true,
+    "all148IdsStatusesAnd36ContractsPreserved": true,
+    "finalGates": "NEW_CONTINUITY_FOUNDATION_BUILDS_ALL_FINITE_CAPTURES_FIVE_REVIEWS_EXACT_CI_STAGING_PRODUCTION_PENDING"
+  },
+  "postFcdS260AndContractAudit": {
+    "at": "2026-10-19T13:55:53.848940+00:00",
+    "sourceHeadBeforeDocumentation": "2221de12eab27196e0a7ab7a5ea964a8fe068fc6",
+    "S260": "e9d2758c4b670a9fb1c1c53045b6a1bf93088a71",
+    "ordinaryMerge": true,
+    "uiFeatureHeads": 20,
+    "separateCiCorrections": 2,
+    "historicalFcd": {
+      "head": "fcd23d72ecbc822a69f7e4c2654b1355dedf8a28",
+      "continuity": {
+        "path": "/dev/shm/veyocast-s244-final-head-pipeline-bound-v3-5740a015-1859-466b-9d1c-55af1a5dfe09/continuity/validation-8c383a98-71c9-46a7-afae-13cd6c033e7a/closed.json",
+        "sha256": "73e6f51d141a4d79e57ab2cc09ee0571ced7045555b6e662a91947c7b0f38b40"
+      },
+      "foundation": {
+        "path": "/dev/shm/veyocast-s244-final-foundation-64e1b95a-435e-48b2-bf0f-b6c009de65d4/closed.json",
+        "sha256": "3ddbffdc2042225484c4ef9512367018f93a64f3e413540d9ba806494dd96d0e"
+      },
+      "bothBuildsHeldBeforeBindingOrActor": true,
+      "certifiesNewSource": false
+    },
+    "s260": {
+      "finalReport": {
+        "path": "/dev/shm/veyocast-s260-sync-sheet-scope/final-glyph-report.json",
+        "sha256": "a3f8cbbe2e2dfcc98872226d71a26211df2a9394a9824e700724a65c017e065c"
+      },
+      "closure": {
+        "path": "/dev/shm/veyocast-s260-sync-sheet-scope/native-22cdd466-4d92-433e-a21b-6344c7fd22ce/closed.json",
+        "sha256": "7e50fcf51eb9c45a4fcadbe3e73863f0b64fe5c8b584d44f7fc7ecabf2ea389f"
+      },
+      "pass": 2,
+      "retry": 0,
+      "skip": 0,
+      "axeZero": 2,
+      "lintExit": 0,
+      "rootLatestNativePngsViewed": 2,
+      "glyphPx": [
+        20,
+        20
+      ],
+      "touchTargetPx": [
+        48,
+        48
+      ],
+      "nativeCloseAndFocus": true,
+      "allPreviousFailuresAndPreGlyphProofsPreserved": true
+    },
+    "sharedUiTrees": {
+      "before": "6f0f385843bafe980127e491a1a29946ba7f64c5",
+      "after": "f3860c06df326fefb1d8df74670d37433075c8c5"
+    },
+    "newRequiredFunctionalGaps": {
+      "S261": "V1canon7/menu.price_update: centraldiff impact frozenpriceversion explicitcandidates; preserveactiveimmutableprices and otherlivefacts",
+      "S262": "V1canon10/engage.results:2\u201324options,readablepagedSyncpresentations+legacybinaryduration/privacy"
+    },
+    "schemaOwnership": "S262_FIRST_THEN_S261_NO_CONCURRENT_MIGRATION_WRITERS",
+    "currentQaResetOrForward": "NOT_PERFORMED",
+    "all148IdsStatusesAnd36ContractsUnchanged": true,
+    "originalNineControlHydrationErrors": "OPEN",
+    "fullVisualReviewRounds": 0,
+    "newBuildCaptureCiDeployment": "PENDING_AFTER_REQUIRED_FUNCTIONAL_CORRECTIONS",
+    "oldS215AnalyticsRestorationBeforeFinalCaptures": "REQUIRED_PENDING"
+  },
+  "postF740FeatureIntegration": {
+    "at": "2026-10-19T17:32:54.517450+00:00",
+    "sourceHeadBeforeDocumentation": "8a14cba9dc7f153e1b877152d67cfe03398b315b",
+    "featureHeads": {
+      "S261": "ae5e4a884aa2f452dd5377ad66a3ede349aa4831",
+      "S262": "651a1e65b23bee3d84295601a01e8b56b9ffb0fc",
+      "S263": "c235aaefacbe342de2f7915c183e17c80dae3215"
+    },
+    "prs": [
+      288,
+      287,
+      286
+    ],
+    "ordinaryMerges": true,
+    "productConflicts": 0,
+    "ledgerConflicts": "Exact additive preservation: S260+S262 sections and S261 row",
+    "uiFunctionalHeads": 23,
+    "ciCorrectionHeads": 2,
+    "scopedNative": {
+      "S261": {
+        "cases": 2,
+        "pngs": 10,
+        "closureSha256": "dc90bf73c5da23891c479f8a50f10ba672bd4849e3167b7868b3ee61ba2d4fab"
+      },
+      "S262": {
+        "cases": 8,
+        "pngs": 104,
+        "geometries": 84,
+        "closureSha256": "44956f3e2e6ec0a1ab60d5f0795b2a3eb2fb1dba59dcac4fadfa47b219b3af30"
+      },
+      "S263": "SOURCE_REVIEW_ONLY_NEW_NATIVE_LIGHT_DARK_PENDING"
+    },
+    "combinedIsolatedDbV18": {
+      "closed": "/dev/shm/veyocast-s262-engage-preparation-75daf4be-a8ae-466b-846f-f4c7f2d64e5b/db-helper-preparation/actor-a7a8db1a-85a4-4fa8-be32-ec7d98980984/closed.json",
+      "sha256": "1bb27a0bcbabc8867bd34467642dc29e4ba105ac0540fe54ace465720413434b",
+      "actualExit": 0,
+      "reset201": 0,
+      "targetedChecks187": "PASS",
+      "full136Files4454Checks": "PASS",
+      "cliErrorLint": 0,
+      "actualFullCliTestDb": false,
+      "localPgProveEquivalentOnly": true,
+      "allCleanupAndSourceDependencyAssetDockerIdentityGuardsPass": true,
+      "historicalRedPreserved": true
+    },
+    "featureDiffs": {
+      "S261FullIndex": "8320ac2577d661439f66cf697c364658f4652bdd86821780829fa1dc5c22ba4a",
+      "S261NormalIndexPipeline": "9ad1d50b78a1d8c4833b80693c6c472fc5af9be10efded83461c91775f0682fa",
+      "S262": "ebe79092202e057c662aaa430e290ccf6d38cb7e3b46282e961e9dc24ab1d59e",
+      "S263": "2e6d5ef0519b3fafd18fe7f8b218bf4ac3496a8f74cab3fe9bf67a3142656f16"
+    },
+    "newFinalSourceContinuityFoundationBuildCi": "PENDING",
+    "mp4SixPagesQrThreeProfiles": "PRIVATE_V2_PREP_ONLY",
+    "separatePriceFocusAux": "PRIVATE_V2_PREP_ROOT_REVIEW_SYNTAX0_FINALREFS_PENDING",
+    "currentQaResetOrForward": "NOT_PERFORMED",
+    "temporaryCapacity": "PREPARATION_ONLY_NO_ADDITIONAL_STOPS",
+    "oldS215Analytics": "STOPPED_RESTORE_REQUIRED_BEFORE_CAPTURE",
+    "originalNineControlHydrationErrors": "OPEN",
+    "all148IdsStatusesAnd36ContractsUnchanged": true,
+    "fullVisualReviewRounds": 0,
+    "deployment": "NOT_STARTED_CURRENT_FEATURES"
+  },
+  "post92ccMaintenanceAndS264": {
+    "at": "2026-10-20T09:28:13.660696+00:00",
+    "sourceHeadBeforeDocumentation": "be970f94f7fd8077e1d68c1c89e3d650ea6b6799",
+    "featureCommit": "a5bff348cae3ac69d46c0e2fffc18e8b0f3315a5",
+    "pr": 289,
+    "ordinaryMerge": true,
+    "productConflicts": 0,
+    "change": "Existing strict Source save-request parser plus three stale CI browserfixtures only; no SQL/dependency/permission/CSS/product-content change.",
+    "scopedLint": 0,
+    "fullControlTypecheck": 0,
+    "nativeCases": 11,
+    "sourcePriceCases": 2,
+    "nativeSkipsRetries": 0,
+    "proofs": {
+      "cleanup": {
+        "path": "/home/codex/.local/state/veyocast-s244/development-cleanup-20261020T090512Z-ef40e5b0-d216-4197-9e63-1ac682ab5449/adjudicated-closed.json",
+        "sha256": "ef89e82c9f9e2fdc1593fe8a2bac9521befb783c7aa1f5e54e6ec77a7db65324"
+      },
+      "npmComputedRamReturn": {
+        "path": "/home/codex/.local/state/veyocast-s244/ram-return-fd04efcc-39fa-4493-8b3c-9a166786edde/closed.json",
+        "sha256": "ab03d9892c2c0e952e26a7e7d8d4f65b809b1b0dcc3297e1e5c2664eb9cbb3d8"
+      },
+      "retiredBuildsRamReturn": {
+        "path": "/home/codex/.local/state/veyocast-s244/retired-builds-return-3ed5a5e7-8e27-47f6-9b2e-d5acb63269a1/closed.json",
+        "sha256": "b7cb4d17ba76ebc36a6de36a4c3bb7b46ea6c9752f1d959e14749a2cc65667eb"
+      },
+      "normalInstallRepair": {
+        "path": "/home/codex/.local/state/veyocast-s244/canonical-install-repair-v2-bf1a0c5e-1939-43aa-8828-52694bed9a3e/closed.json",
+        "sha256": "f7c2b565a84b135ab3986b83eb004ef9a67c7b39cde5e089a7b41088ed5f0006"
+      },
+      "S264Scoped": {
+        "path": "/home/codex/.local/state/veyocast-s244/s264-scoped-504efa67-bca7-40c2-a7c5-0a2ac49aefea/closed.json",
+        "sha256": "f67da3bfe90ea504838cc8d9328e0c1b42d2aaf1182eb170a64da82982690886"
+      },
+      "S264SourceNative": {
+        "path": "/home/codex/.local/state/veyocast-s244/s264-scoped-22ba6639-ff20-4e95-81d7-99c2bf0f03a7/closed.json",
+        "sha256": "8ae7431b1f29ae94fc1b68a53470618f18b75e7c748c30a76cb683d501d76d2b"
+      }
+    },
+    "userAuthorizedLocalCleanup": "Unused Docker build cache >24h only; no image/container/volume removal. All171 configurations and mounts/65images/168volumes equal;3 already-looping unrelated Fieldgrid runtime restarts separately reported.",
+    "freeBytesReclaimedFromBuildCache": 7640293376,
+    "preservation": "Original cache/proof/build bytes/types/modes/mtime/owners preserved on host; original frontaliases retained. Only verified duplicate RAM payloads removed.",
+    "temporarySixServiceLeaseExecuted": false,
+    "normalInstallRepair": "Pnpm auto status check in S264 removed shared dependency links. Normal frozen/offline repair with optimistic-repeat disabled restored links; source/lock unchanged. Older install proof remains historical; fresh final continuity required.",
+    "original92ccHostedCi": {
+      "DatabaseAndRls": {
+        "run": 39295151987,
+        "status": "SUCCESS"
+      },
+      "ControlMobile": {
+        "run": 39295152101,
+        "status": "FAILURE_SourceType"
+      },
+      "PrGates": {
+        "run": 39295152118,
+        "status": "FAILURE_SourceTypeAndFourBrowserCases"
+      },
+      "others": "AndroidPlayer/LG/Sites SUCCESS; do not promote to later HEAD."
+    },
+    "next": "Fresh final source/normal-install continuity, foundation, Control+Marketing productionbuilds, MP4/QA forward and final readonly captures.",
+    "currentQaForward": "NOT_PERFORMED",
+    "S215AnalyticsRestore": "PENDING_BEFORE_FINAL_CAPTURES",
+    "nineHistoricalReact418": "OPEN_CAUSE_UNPROVEN",
+    "fiveFullVisualRoundsCompleted": 0,
+    "newDeployment": false,
+    "allOlderEpochsPreserved": true
+  }
+}

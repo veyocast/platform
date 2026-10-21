@@ -1,3 +1,119 @@
+# Geïntegreerde Sync-acceptatie en uitrol
+
+## Actuele stand · 21 oktober 2026
+
+De gereviewde vervolgcorrecties tot en met S281 zijn normaal samengevoegd op
+productbron `ca097224a7ca017f6bf858beed8915ccd1a5ad92`. Lint, typecheck en tests
+zijn elk30/30 groen. Control en Marketing zijn werkelijk opnieuw gebouwd;
+Control `4kXLrPfsBH4fFNkQYXUGV`, Marketing `G3hY_JGNC_17qSM21VwGl`.
+De bestaande normale Next15.5.20-installatie bleef bytegelijk; geen herinstallatie.
+
+Vijf volledige matrixreviews zijn uitgevoerd door dezelfde Codex-Root, met
+bevindingen en expliciete dekkingsgrenzen:617 cellen/337 groepen en148 criteria.
+De oorspronkelijke3.200 native beelden en Source-contexten zijn behouden.
+De nieuwe gezamenlijke build heeft236 echte route-/viewportobservaties
+(59×390/1440×lichte/donkere voorkeur),390 beoordeelde screenshots,22 publieke
+routeviewports en4 Goal-previewbeelden in beide oriëntaties. De348 gemeten
+kleine tekstrollen halen minimaal4,7036:1. Deze gerichte meting is het bewijsniveau;
+de individuele scenariostatussen blijven leidend.
+
+De templatekiezer toont weer volledige16:9-kaarten; de sponsorwerkplek heeft
+compacte tabs en losse acties. De zes goedgekeurde OnzeTrots-fotobestanden
+blijven checksumgelijk, decodeerbaar en beschikbaar in de bewaarde echte
+fotoselectieproeven in beide formaten. Goal start met leesbare tekstmaten en
+blijft binnen zijn kaart; vertraagde fonts blokkeren het formulier niet.
+Gedeelde renderers, immutable releases, Player/offline, Android-bron en de
+bestaande deploymentworkflows zijn behouden. De107 oorspronkelijke MP4-
+compileinputs en8 renderer/worker/DB-trees zijn opnieuw bytegelijk bevonden.
+Bestaande gesigneerde Player-internalupdates behouden hun echte eerdere runs.
+
+Een lokale QA-eerste-readfout blijft expliciet open: rolreads gavenPGRST303 en
+Control500, terwijl Auth/AAL2 geldig waren. Gewone reads met dezelfde en daarna
+vernieuwde sessie slagen; de oorzaak is niet bewezen. De gedocumenteerde klokbug
+in de lokale PostgREST14.14 is een hypothese. De oorspronkelijke failures en
+alle guards blijven bewaard; er is geen authretry of permissie-omzeiling toegevoegd.
+
+De actuele529 refs en63 worktrees zijn met heads en unieke commits geïnventariseerd.
+Ongebruikte buildercache en1.152 oude pnpm-HTTP-metadatabestanden zijn opgeruimd;
+actieve data, uploads, volumes, images, signing, configuratie en herstelversies
+zijn behouden. Een afwijkende inspectiemetadatahash van één gelijk gebleven
+Debian-image en bestaande externe restarts blijven apart geregistreerd.
+Het aanvullende private bewijsarchief bevat7.129 geverifieerde entries uit185
+roots. Afgesloten bewijsbestanden zijn bovendien byte-/mode-/nanomtimegelijk
+verplaatst om circa450MiB RAM vrij te maken; hun oorspronkelijke paden zijn
+expliciete symlinks. Eerdere archieven en rode runs blijven bestaan.
+
+Het actuele lokale bewijs en geselecteerde oorspronkelijke beelden staan in
+[`s244-final-local-review.json`](evidence/s244-final-local-review.json).
+Alle148 scenario-IDs en bewijsniveaus zijn behouden. Fysieke Android/TV/LG- en24u-
+proeven, SendGrid-accountconfiguratie, YouTube en Mollie zijn door de gebruiker
+uitgesteld; eerste Control-storeinrichting blijft afzonderlijk open.
+
+De exacte gecombineerde PR270-CI, normale main-integratie, automatische staging
+met verplichte pairing/LG-smokes en productiepromotie van dezelfde immutable
+SHA/digests volgen nog. Op dit documentmoment is geen nieuwe uitrol uitgevoerd.
+Run-IDs, vijf healthversies en publieke readbacks worden na uitvoering op
+[PR270](https://github.com/veyocast/platform/pull/270) vastgelegd.
+
+## Historische werkstanden en oorspronkelijke grenzen
+
+# Werkstand S244 — samengestelde Sync-acceptatie
+
+Laatste vervolgbron: S261, S262 en S263 zijn normaal geïntegreerd na afzonderlijke
+rootreviews. Drieëntwintig UI-/functionele featureheads en twee CI-correcties.
+Centrale menuprijsdiff/expliciete kandidaten/bevroren prijzen en leesbare Sync-
+Interactie met 24 opties zijn gericht bewezen. S263 vervangt de resterende oranje
+Mediafocus en gebruikt Source-focustokens met behoud van randgeometrie.
+
+Gecombineerde geïsoleerde DB V18 is werkelijk groen: normale CLI-reset201,
+gericht187 en volledig136 bestanden/4454 checks via equivalente lokale pg_prove,
+CLI-errorlint0. Alle199 historische SQL, oorspronkelijke failures, bestaande
+Dockeridentiteiten/bron/deps/assets blijven behouden; geen huidige QA-writes.
+S261 native2/2 en S262 native8/8 zijn gescopeerde bewijzen, geen volledige ronde.
+De nieuwe samengestelde bron moet nog verse continuïteit, foundation en builds
+krijgen. Exact-head CI, echte MP4/QR, finale A/C/B/W/P plus losse prijs-/focus-
+captures, negen oorspronkelijke React418 en vijf volledige reviews blijven open.
+Nog0/5 volledige ronden en geen nieuwe staging/productie. Oude S215analytics moet
+na builds en vóór captures worden hersteld. De extra capaciteitshulp en twee
+QA-forwards zijn uitsluitend voorbereid; niet uitgevoerd. Exacte featureheads en
+proofs staan in evidence/s244-post-capture-followups.json; oude epochs behouden.
+
+De onderstaande werkstanden zijn historische opnamen.
+
+Opnamemoment: 19 oktober 2026, vóór de finale gebouwde vergelijkingscohort en uitrol. De expliciete opdracht blijft: de gekozen Sync-interface afmaken en via de bestaande workflow naar staging en productie brengen.
+
+PR270 bevat de gewone integratie van S237–S243. Op exact `10a49dc957c03c68f40e7ef92c28239d8e5376c3` zijn de 13 uitgevoerde hosted controles groen; de release-IPK-inspectie is de bestaande conditionele skip. Lokale foundation:68/68, Control1658 PASS/34 bestaande conditionele SKIP en90/90 gerichte P0-browsergevallen. Gecontroleerde component-/transportbewijzen en de echte lokale AAL2-ketens houden hun afzonderlijke grenzen. Deze cijfers certificeren geen latere commit.
+
+De eerste gebouwde read-only routecohort is onvolledig gebleven door capturefouten en een te vroege controle tijdens client-editorladen. De oorspronkelijke717 PNG's,130 fouten en guards blijven bewaard; dit telt als nul volledige vergelijkingsronden. Alle162 tenanttabelsnapshots, historie en Storage bleven gelijk. De volgende cohort wacht werkelijk op de editor en bevat gerichte inner-scrollbeelden, alle36 wizardfamilies en beide formaten voor de OnzeTrots-scènes. Dekking en niet-geobserveerde toestanden worden afzonderlijk afgetekend.
+
+S245–S248 zijn inmiddels na afzonderlijke review normaal geïntegreerd. De gerichte browsercohorten2/2/2/4 zijn groen; Source-statuscontrast, LED-/audit-/themabediening en vier compacte LED-neventaken zijn hersteld. De Control-applicatietree is `04f1f17b62f02db77e62048f2707fe31ed9f6add`. Volledige S248-lint/typecheck/test zijn elk30/30 groen. De finale gecombineerde build, read-only routecohort, vijf volledige vergelijkingsronden en exacte laatste CI blijven op dit bevroren opnamemoment open. Hun actuele gesloten readbacks en staging-/productiepromotie worden op [PR270](https://github.com/veyocast/platform/pull/270) vastgelegd; zie evidence/s244-audit-corrections.json voor de afzonderlijke scopes.
+
+Staging draait op dit opnamemoment `d6c7d325f46b82a56d05bea086aef2175095bf10`; productie op `3d467ba5a345674915ec45a8610ecc6ff9ef3d22`. De mislukte C3-stagingbuild bereikte geen deployment. Twee begrensde onderhoudsruns verwijderden uitsluitend ongebruikte buildcache ouder dan één uur; na de laatste run is15.768.428.544 bytes vrij en zijn alle image-, container- en volumesets gelijk. Alle vijf publieke healthroutes zijn200ok. Dit is geen nieuwe uitrol.
+
+De bestaande standaard- en Google TV-Player zijn al gesigneerd naar `internal` en `tv:internal` gepubliceerd: runs39150034846 en39150306457, versionCodes100000801 en200001501. Hun Android-producttree is gelijk aan de getoetste integratiebasis. Dit bewijst geen fysieke upgrade of Play-productietrack. Fysieke Android/TV/LG- en24u-proeven, SendGrid-accountconfiguratie, YouTube en Mollie zijn expliciet door de gebruiker uitgesteld. Eerste Control-storeinrichting blijft afzonderlijk; er was geen eerder geïnstalleerde Control-app.
+
+Alle148 scenario-IDs, bestaande bewijsstatussen,36 logische contracten en historische refs blijven behouden. De foutieve canonverwijzing is in143 productiecriteria gecorrigeerd; vijf specifieke criteria blijven letterlijk gelijk. Ontbrekende repo-/runverwijzingen zijn toegevoegd zonder scenario-PASS toe te kennen. Zie `evidence/s244-scenario-crosswalk.json`, `../docs/s244-integrated-sync-acceptance.md` en de afzonderlijke S245–S247-docs zodra normaal geïntegreerd.
+
+## Vervolgcorrecties vóór nieuwe eindbuild
+
+S249–S252 worden na afzonderlijke rood-groencontrole en rootreview normaal
+opgenomen. Daarmee omvat de integratie vijftien featureheads. S249 herstelt
+uitsluitend een conflicterende statusverwachting; S250 is de expliciet
+beoordeelde gepinde Next-Schedulerpatch met één Control-SSRmarker en een
+mechanische lockdelta. S251 herstelt drie mobiele indelingsdefecten; S252
+herstelt clubkleur-swatches en lokale goalpreviewgeometrie/compositie.
+De afzonderlijke cohorten tellen2/4/2/14 geslaagde gevallen. De originele
+fouten en onvolledige captureruns blijven bewaard;0/5 volledige ronden.
+Zie `evidence/s244-followup-corrections.json` en de vier eigen sprintdocs.
+Nieuwe install/foundation/build/capture, exacte laatste CI en normale
+staging-/productie-uitrol blijven op deze bronopname open en worden op PR270
+met hun daadwerkelijke readbacks gesloten. De eerdere Controltree hierboven
+is de historische S245–S248-opname en certificeert deze vervolgbron niet.
+
+## Historische werkstanden
+
+De onderstaande S226-mijlpalen zijn bewaard als historische registratie. Oude woorden zoals “nog geen PR/deploy” gelden uitsluitend op hun eigen opnamemoment.
+
 # Werkstand S226
 
 PR252 is normaal gemerged als848ab297d04cf36891881d27a1da7e8456e16b04. Alle6
@@ -896,3 +1012,11 @@ Aanvullende S227-fixes: planning bewaart met één definitieve klik; Engage gebr
 Gebruiker heeft op18oktober tevens automatische YouTube-controle en Mollie-accountinrichting expliciet uitgesteld: “Deze diensten later inrichten”. Bestaande billingflags/collection/restrictie blijven behouden; geen externe werking of nieuwe activering geclaimd. Dit blokkeert de geautoriseerde web- en Player-uitrol niet.
 
 De concrete NOS-RSS-proloogfout is aanvullend hersteld in de bestaande adapter, met behoud van veiligheidsgrenzen en20echte artikelen. Alle194integratiechecks groen; geen nieuwe QA-bron/queue/flag/release aangemaakt. Finale eigen CI bindt deze laatste RSS-correctie.
+
+## 20 oktober — lokale capaciteit en S264-integratiefouten
+
+Gebruiker heeft lokale opruiming expliciet toegestaan. Ongebruikte Docker-buildcache ouder dan24uur is verwijderd:7.640.293.376bytes vrije ruimte herwonnen;171containerconfiguraties/mounts,65images en168volumes behouden. Drie reeds duizenden keren herstartende andere Fieldgrid-diensten blijven apart als runtime-drift gemeld. Er is geen container, image of volume verwijderd. Bewaarde Turbo/npm/computed-payloads en vier afgesloten oude buildmappen zijn byte-/metadata-getrouw naar hostopslag gebracht; alleen geverifieerde duplicaten uit RAM verwijderd. Beschikbaar geheugen circa4,7GB; geen extra QA/S215-dienst stilgezet.
+
+92cc-CI vond een Source-save-request-typefout en vier oude browsercases. S264a5bff348 is normaal geïntegreerd via be970f94 (PR289): de bestaande strikte requestparser vernauwt het bevestigde save-request; drie fixtures volgen de reeds goedgekeurde focuskleur/bronhash en weigeren onverwachte nieuwe prijsacties. Gerichte lint, volledige Control-typecheck en11bestaande+2Source/prijs-Chromiumcases zijn groen,0skips/retries. Eerste pnpm-autocontrole verwijderde gedeelde dependencylinks; normale frozen/offline-install met uitsluitend optimistic-repeat uit herstelde deze. Bron/lockfile gelijk, geen dependencyversies gewijzigd. De eerste1024MiB-typecheck bleef heap-rood; de toepasselijke2048MiB-foundationheap slaagde. Alle originele rode logs blijven behouden.
+
+De gewone hosted Database/RLS-gate op92cc is groen; de rode PR/ControlMobile-gates blijven voor die SHA rood. Geen resultaat wordt later-head-PASS genoemd. Volgende acties: nieuwe bron/installcontinuïteit en volledige foundation, Control/Marketingbuilds, MP4-keten, exact twee QA-forwards zonder reset, herstelS215analytics en echte finale browsercohorts. De negen eerdere React418 en0/5 complete visuele reviews blijven open; er is nog geen nieuwe staging-/productie-uitrol. Bewijspins staan in de nieuwe post92ccMaintenanceAndS264-epoch; oudere epochs en148scenario’s/36contracten blijven behouden.

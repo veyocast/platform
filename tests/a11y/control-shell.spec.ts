@@ -349,6 +349,7 @@ test("tenant context selection is explicit and keyboard reachable", async ({ pag
   const switcher = page.getByRole("button", {
     name: "Actieve context: Museumkwartier"
   });
+  await expect(switcher).toBeEnabled();
   await switcher.focus();
   await expect(switcher).toBeFocused();
   await page.keyboard.press("Enter");
@@ -592,7 +593,7 @@ test("billing surfaces explain shadow mode and remain usable on mobile", async (
   await expect(
     page.getByRole("heading", { exact: true, level: 1, name: "Alles helder geregeld." })
   ).toBeVisible();
-  await expect(page.getByRole("status").filter({ hasText: "Shadowmodus" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Nog niet geactiveerd" })).toBeVisible();
   await expect(page.getByText("€ 5,95 incl. btw", { exact: false })).toBeVisible();
 
   await page.goto("/platform/billing");

@@ -55,9 +55,21 @@ test("renders the Sync shell with role-aware navigation", async ({ page }) => {
   await page.setViewportSize({height: 900, width: 1280});
   await openFromCommand(page, "Sponsor Hub", /\/dashboard\/sponsors$/);
   await expect(page.getByRole("heading", {exact: true, level: 1, name: "Geef je partners een podium."})).toBeVisible();
-  await page.getByText("Sponsorbeheer, goedkeuring en levering", {exact: true}).click();
-  await expect(page.getByRole("navigation", {name: "Sponsor Hub onderdelen"})).toBeVisible();
-  await expect(page.getByRole("region", {name: "Sponsor KPI's"})).toBeVisible();
+  const sponsorTabs = page.getByRole("tablist", {name: "Sponsoronderdelen", exact: true});
+  await expect(sponsorTabs.getByRole("tab")).toHaveText(["Campagnes", "Partners", "Pipeline & taken", "Afspeelregistratie"]);
+  await expect(sponsorTabs.getByRole("tab", {name: "Campagnes", exact: true})).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tabpanel", {name: "Campagnes", exact: true})).toBeVisible();
+  for (const label of ["Clubpartners", "Actieve campagnes", "Gemelde afspeelbeurten"]) {
+    await expect(page.getByText(label, {exact: true})).toBeVisible();
+  }
+  const sponsorSettings = page.getByRole("button", {name: "Publicatie en posities", exact: true});
+  await sponsorSettings.click();
+  const sponsorDialog = page.getByRole("dialog", {name: "Publicatie en posities", exact: true});
+  await expect(sponsorDialog.getByRole("heading", {name: "Publicatie", exact: true})).toBeVisible();
+  await expect(sponsorDialog.getByRole("heading", {name: "Beschikbare posities", exact: true})).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(sponsorDialog).not.toBeVisible();
+  await expect(sponsorSettings).toBeFocused();
   await expect(page.getByRole("heading", {exact: true, name: "Je eerste partnerverhaal begint hier"})).toBeVisible();
 
   await follow(page, () => nav.getByRole("link", {name: "Content", exact: true}), /\/dashboard\/content$/);

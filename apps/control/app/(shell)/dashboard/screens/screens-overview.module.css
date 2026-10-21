@@ -1075,3 +1075,24 @@
 @media(max-width:767px){.toolbarActions :global(.vc-button){font-size:11px!important;line-height:1.3!important}}
 
 .screenIdentity a{font-size:12px;line-height:1.5}.metrics strong{font-family:"Manrope Variable",sans-serif}
+
+/* Source task controls; preview/canvas geometry and shared fleet styles stay intact. */
+.sourceDialog .editorForm .wizardSteps li{font-size:14px;line-height:1.4}
+.sourceDialog .editorForm .layoutControls>p{font-size:14px!important;line-height:1.6}
+.sourceDialog .editorForm .layoutControls :global(.field){font-size:14px}
+.sourceDialog .editorForm .layoutChoices strong,.sourceDialog .editorForm .layoutSummary dt,.sourceDialog .editorForm .layoutLive>div:first-child{font-size:14px}
+.sourceDialog .editorForm .layoutControls select,.sourceDialog .editorForm .layoutControls input[type=range],.sourceDialog .editorForm button{min-height:44px;min-width:44px}
+.sourceDialog .editorForm .layoutControls select{font-size:14px}
+.sourceDialog .editorForm>.error{font-size:14px}
+.sourceDialog .editorForm .layoutChoices>button[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+@media(max-width:767px){.sourceDialog .editorForm .layoutControls select{font-size:16px;min-height:48px}}
+
+.sourceDialog .editorForm :global(.vc-button){font-size:14px;min-height:44px;min-width:44px}
+.sourceDialog:global(.vc-dialog__content) :global(.vc-dialog__close){height:44px;width:44px;min-height:44px;min-width:44px}
+
+/* Keep the functional plus legible above the shared link color cascade. */
+.screensPage .groupAdd {
+  color: var(--vc-brand-paper-white);
+  width: 44px;
+  height: 44px;
+}

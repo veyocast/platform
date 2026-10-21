@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { syncSlidePresentationSchema } from "@veyocast/contracts";
+import { syncSlidePresentationSchema, syncBackgroundAssets } from "@veyocast/contracts";
 const state = vi.hoisted(() => ({
   presentation: null as unknown,
   duration: 3000,
@@ -171,4 +171,17 @@ describe("Source envelope capability negotiation", () => {
       loadPlayerReleaseEnvelope({ ...input, enableSyncStudio: true }),
     ).rejects.toThrow("SYNC_STUDIO_RELEASE_INVALID");
   });
+it.each(syncBackgroundAssets)("negotiates $path without extending old renderer manifests", async asset => {
+  const original = state.presentation as ReturnType<typeof syncSlidePresentationSchema.parse>;
+  state.presentation = { ...original, style: { ...original.style, background: "photo", backgroundAsset: { kind: "system", path: asset.path, checksumSha256: asset.sha256 } } };
+  const old = await loadPlayerReleaseEnvelope({ ...input, enableSyncStudio: true });
+  expect(old.manifest.items[0]!.syncStudioPresentation).toBeUndefined();
+  expect(old.manifest.syncSystemAssets).toBeUndefined();
+  expect(old.manifest.items[0]!.source).toMatchObject({ bytes: 10, checksumSha256: "b".repeat(64), url: "https://media.example/frozen.png" });
+  const fresh = await loadPlayerReleaseEnvelope({ ...input, enableSyncStudio: true, enableSyncBackgrounds: true });
+  expect(fresh.manifest.syncSystemAssets).toHaveLength(12);
+  expect(fresh.manifest.syncSystemAssets!.at(-1)).toEqual({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType });
+  expect(fresh.manifest.items[0]!.syncStudioPresentation).toEqual(state.presentation);
+  expect(fresh.manifest.totalBytes).toBe(10 + fresh.manifest.syncSystemAssets!.reduce((sum, ref) => sum + ref.bytes, 0));
+});
 });

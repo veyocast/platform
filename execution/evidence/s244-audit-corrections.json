@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-19T05:42:11.003496+00:00",
+  "snapshotHeadBeforeDocumentation": "e2bcfbbe3c463399fd06995da73ff630c9e97313",
+  "controlApplicationTree": "04f1f17b62f02db77e62048f2707fe31ed9f6add",
+  "mode": "Preacceptance source freeze; later actual-build/capture/five-round/CI/deployment readbacks live on PR270",
+  "pullRequest": "https://github.com/veyocast/platform/pull/270",
+  "corrections": [
+    {
+      "task": "S245",
+      "head": "dbc5e31f73cad6a786b1fe8d0f5a2d2f503b9aac",
+      "localProofSha256": "c74e85145e4488a52b8d026a95da7290d8c849fc83becc4f8c15ba032df02e70",
+      "sourceProof": "/dev/shm/veyocast-s245-status-contrast/final-proof-v2-dark.json",
+      "scope": "Focused component/presentation proof; no full-route/provider/hardware/pixel claim"
+    },
+    {
+      "task": "S246",
+      "head": "9637ad665b4b7ee2b6de992af85d69a32646d133",
+      "localProofSha256": "0f5418ebdeddfbab16c312c45bcb8716fda2addfca18322aabd2b18cfdf6247c",
+      "sourceProof": "/dev/shm/veyocast-s246-ui-completion/freeze/final-manifest.json",
+      "scope": "Focused component/presentation proof; no full-route/provider/hardware/pixel claim"
+    },
+    {
+      "task": "S247",
+      "head": "2ea7341e0d5cf1851a03865e494e8656d4fdfc5f",
+      "localProofSha256": "d0f43db1bfe5c2abe45a1792d7b00cf43207caec0bc5c83bd32912c6532ee48d",
+      "sourceProof": "/dev/shm/veyocast-s247-retained-control-colors/three-role-extension/final-proof-v2.json",
+      "scope": "Focused component/presentation proof; no full-route/provider/hardware/pixel claim"
+    },
+    {
+      "task": "S248",
+      "head": "6498cbd2c4af6bf2152ed519b590d0d1b9ea6158",
+      "localProofSha256": "e060f32077c5194fef856164d346946bb346254fe9b8f350f2f66f92871aa3f3",
+      "sourceProof": "/dev/shm/veyocast-s248-led-secondary/final-proof.json",
+      "scope": "Focused component/presentation proof; no full-route/provider/hardware/pixel claim"
+    }
+  ],
+  "frozenFinalFileHashes": {
+    "apps/control/app/sync-adapter.css": "fc468fcbe70e3a0949a8a08ca13b0ac542fcd075acd03f225d94dd1514fe1cad",
+    "apps/control/app/(shell)/dashboard/dynamic-content.module.css": "19ecaca39b04f355de369246f3f03d5418882abe345dbdaf1cb091998e892886",
+    "tests/control/sync-retained-control-colors.spec.ts": "1dd3ba92e80dee4cf83afd6c5bac083988e342e7d099f9d66cf9ffe8fea18581",
+    "docs/s247-sync-retained-control-colors.md": "9eb907685bea03308b5de9521cd56400d0f3568e5c337f59cecc9212c45036fa",
+    "prompts/sprints/S247-sync-retained-control-colors.md": "ca49f556e878df44481711abf68396a1dcf9727b4f1f72a54548e6e1dd2ad7cd",
+    "apps/control/app/(shell)/dashboard/studio/led-scores/led-scores-studio.module.css": "4b9eea02c81babe7e8ec062ba52e376b6e1221296a2555c6ef26458c8b1a9d25",
+    "tests/control/sync-led-controls.spec.ts": "2992711d75b7fefdbb9fc85572ab685a5472f8d85d33360d32c05b699a29079e",
+    "docs/s246-sync-led-preview-controls.md": "13840c09cd64505cd4d32a295786a8b1e0f3379af07f6f36318ce6068edc5d37",
+    "prompts/sprints/S246-sync-led-preview-controls.md": "718e9ffcb3a94a2e1da326f309573d7945f75450e85a13c26b6772234294e97b",
+    "apps/control/app/(shell)/dashboard/studio/led-scores/page.tsx": "c3fada3f56e683939a5e7969f8c49a3c603578c94a1265ebe12a22d146cb5786",
+    "apps/control/app/(shell)/dashboard/studio/led-scores/led-secondary-sections.tsx": "d3c2b2d780f1d0a7b60c90bddc226185cf974a4a5831fdbb76c0dd57feedd66e",
+    "apps/control/app/(shell)/dashboard/studio/led-scores/led-secondary-sections.module.css": "d562f6c3116aeb074be8b68e00ff9e697fb0dd5dd4631bab600dee25dcb59fe1",
+    "tests/control/sync-led-secondary-tasks.spec.ts": "544bd75b02ae352b8d06e765b0eea6514d33c745b7bef3f2dd9e3d276435ffc3",
+    "docs/s248-sync-led-secondary-tasks.md": "3ab059ddd38984073b8b14d84758249f21e1572360751ba9220261fed105f5fb",
+    "prompts/sprints/S248-sync-led-secondary-tasks.md": "d2ec1a75a6b5e942c2df08cb9734e30bcf8a10b8f1cc920a94f81ce3de6bbb21",
+    "apps/control/app/(shell)/_components/control-shell.tsx": "0f6ed3165ca070853c4bc9e8aa33b0156d4ad600ced0d862ef55ad5e0ff6c784"
+  },
+  "localWorkspaceFoundation": {
+    "task": "S248",
+    "lintTasksPassed": 30,
+    "typecheckTasksPassed": 30,
+    "testTasksPassed": 30,
+    "controlUnitPass": 1658,
+    "existingConditionalSkip": 34,
+    "boundary": "Exact S248 feature tree; final integrated CI still required"
+  },
+  "focusedFinalBrowserCases": {
+    "S245": 2,
+    "S246": 2,
+    "S247": 2,
+    "S248": 4,
+    "retry": 0,
+    "skip": 0,
+    "boundary": "Separate controlled component/page cohorts, not ten live Auth/RLS journeys or five visual rounds"
+  },
+  "closedLocalCacheMaintenance": {
+    "removedBytes": 1668123723,
+    "compiledOutputByteEqual": true,
+    "manifestSha256": "2715d1c1d545b827e5774a631c75c1eb51f6763b301f85efb3bff057ba378305"
+  },
+  "fiveVisualRoundsCompletedAtSnapshot": 0,
+  "finalIntegratedCI": "OPEN",
+  "stagingAndProduction": "OPEN"
+}

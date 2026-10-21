@@ -111,6 +111,10 @@
   color: var(--vc-action);
 }
 
+:global(.sync-control) .previewPlaceholder svg {
+  color: var(--accent);
+}
+
 .previewTypeBadge {
   position: absolute;
   right: var(--vc-space-8);
@@ -1274,6 +1278,12 @@
   text-transform: uppercase;
 }
 
+:global(.sync-control) .editorialThemeEyebrow,
+:global(.sync-control) .editorialSectionEyebrow,
+:global(.sync-control) .editorialTokenDisclosureIndicator {
+  color: var(--accent);
+}
+
 .editorialThemeScope,
 .editorialContrastSummary {
   align-items: center;
@@ -1287,6 +1297,12 @@
   font-weight: 700;
   min-height: 30px;
   padding: var(--vc-space-4) var(--vc-space-10);
+}
+
+:global(.sync-control) .editorialThemeScope {
+  background: var(--accent-soft);
+  border-color: var(--line);
+  color: var(--accent);
 }
 
 .editorialThemeWorkspace {
@@ -1392,6 +1408,17 @@
 .editorialPalettePresets button[aria-pressed="true"] {
   border-color: var(--vc-action);
   box-shadow: 0 0 0 1px var(--vc-action);
+}
+
+:global(.sync-control) .editorialPalettePresets > div > button {
+  font-size: 0.875rem;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+:global(.sync-control) .editorialPalettePresets > div > button[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .editorialPalettePresets button:focus-visible {
@@ -1863,6 +1890,19 @@
   color: var(--vc-action);
 }
 
+:global(.sync-control) .editorialModeTab {
+  font-size: 0.875rem;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+:global(.sync-control) .editorialModeTab[aria-pressed="true"],
+:global(.sync-control) .editorialModeTab[aria-selected="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 @media (max-width: 720px) {
   .editorialGlobalMode {
     align-items: stretch;
@@ -2096,6 +2136,12 @@
 .editorialTokenField:focus-within {
   border-color: color-mix(in srgb, var(--vc-action) 52%, var(--vc-border));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--vc-action) 12%, transparent);
+}
+
+:global(.sync-control) .editorialTokenField[data-active="true"]:not(:has(:invalid, [aria-invalid="true"])),
+:global(.sync-control) .editorialTokenField:focus-within:not(:has(:invalid, [aria-invalid="true"])) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .editorialColorInput {
@@ -2728,4 +2774,51 @@
   .editorialThemeDualPreview {
     grid-template-columns: 1fr;
   }
+}
+
+/* Retained tenant motion control: Source chrome, native label/checkbox behavior. */
+:global(.sync-control) .settingsCheckCard {
+  align-items: flex-start;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  min-height: 44px;
+  min-width: 0;
+  padding: 10px 0;
+}
+
+:global(.sync-control) .settingsCheckCard > input[type="checkbox"] {
+  accent-color: var(--accent);
+  flex: 0 0 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  width: 20px;
+}
+
+:global(.sync-control) .settingsCheckCard > input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+:global(.sync-control) .settingsCheckCard > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+:global(.sync-control) .settingsCheckCard > span > strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+:global(.sync-control) .settingsCheckCard > span > small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* This label belongs to the Sync form; the inner preview keeps its frozen palette. */
+:global(.sync-control) .editorialThemePreview > header {
+  color: var(--muted);
 }

@@ -60,6 +60,7 @@ import {
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { MotionConfig, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -423,7 +424,7 @@ export function ControlShell({
     const label = ({ Vandaag: "Overzicht", "Sponsor Hub": "Sponsors", Engage: "Interactie", Team: "Team & rechten", "Thema's": "Thema’s" } as Record<string, string>)[item.label] ?? item.label;
     const Icon = navigationIcons[label] ?? LayoutDashboard;
     const active = isActive(pathname, item);
-    return <Link aria-current={active ? "page" : undefined} className={`nav-link${active ? " active" : ""}`} href={item.href} key={item.href} onClick={() => { closeMobileNavigation(false); setManagementOpen(false); }} title={isSidebarCollapsed ? label : undefined}><Icon size={18} strokeWidth={1.7} aria-hidden="true" /><span>{label}</span></Link>;
+    return <Link aria-current={active ? "page" : undefined} className={`nav-link${active ? " active" : ""}`} href={item.href} key={item.href} onClick={() => { closeMobileNavigation(false); setManagementOpen(false); }} title={isSidebarCollapsed ? label : undefined}><Icon size={18} strokeWidth={1.7} aria-hidden="true" /><span>{label}</span>{active ? <MotionConfig reducedMotion="user"><motion.i aria-hidden="true" className="nav-indicator" layoutId="nav-active" /></MotionConfig> : null}</Link>;
   });
 
   return (
@@ -519,7 +520,7 @@ export function ControlShell({
               <span className="vx-health" data-tone={topbarStatusTone}><StatusDot status={topbarStatusTone} />{visualReference ? "Alles werkt" : session.isLive ? session.tenantStatus === "paused" ? "Alleen lezen" : "Vereniging actief" : "Demomodus"}</span>
               <DialogTrigger asChild><button aria-label="Snel naar een onderdeel" aria-keyshortcuts="Control+K Meta+K" className="vx-search search-trigger" disabled={!isInteractive} type="button"><Search size={18} strokeWidth={1.7} aria-hidden="true" /><span>Zoeken of navigeren</span><kbd>⌘ K</kbd></button></DialogTrigger>
               <ControlNotificationsDialog canRead={session.isLive && hasTenantNavigationContext && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.audit.read")} tenantId={hasTenantNavigationContext ? session.tenantId : null} tenantName={displayContextName} timezoneName={session.timezoneName} />
-              <AccountMenu activeScope={activeNavigationScope} displayName={displayUserName} displayRole={visualReference ? "Beheerder" : undefined} session={session} variant="topbar" />
+              <AccountMenu activeScope={activeNavigationScope} displayName={displayUserName} displayRole={visualReference ? "Beheerder" : undefined} interactive={isInteractive} session={session} variant="topbar" />
             </div>
           </header>
           <div className={`vx-content main-content${pathname === "/dashboard" ? " overview" : ""}${isImmersiveEditor ? " vx-content--editor" : ""}`} id="control-content" tabIndex={-1}>{shellOwnsHeading ? <header className="section-header"><div><h1>{pagePresentation.title}</h1><p>{shellDescription}</p></div></header> : null}{children}</div>
@@ -607,12 +608,14 @@ function AccountMenu({
   activeScope,
   displayName,
   displayRole,
+  interactive,
   session,
   variant = "icon"
 }: {
   activeScope: "platform" | "tenant";
   displayName?: string;
   displayRole?: string;
+  interactive: boolean;
   session: ControlSession;
   variant?: "icon" | "topbar";
 }) {
@@ -629,7 +632,7 @@ function AccountMenu({
     <Dialog>
       <DialogTrigger asChild>
         {variant === "topbar" ? (
-          <button aria-label="Accountmenu openen" className="vx-account sync-avatar-trigger" type="button">
+          <button aria-label="Accountmenu openen" className="vx-account sync-avatar-trigger" disabled={!interactive} type="button">
             <span className="vx-avatar avatar-button" aria-hidden="true">
               {initials(triggerName)}
             </span>
@@ -642,6 +645,7 @@ function AccountMenu({
         ) : (
           <IconButton
             aria-label="Accountmenu openen"
+            disabled={!interactive}
             title="Accountmenu openen"
           >
             <ChevronDown aria-hidden="true" />

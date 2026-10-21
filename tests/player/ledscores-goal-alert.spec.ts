@@ -151,12 +151,13 @@ test("verbindt opnieuw wanneer LED Scores bij Player-start nog niet is vrijgegev
     }
     const now = Date.now();
     const expiresAt = new Date(now + 4_000).toISOString();
+    // Normale servervolgorde: FIFO blijft behouden; deze case toetst reconnect en ACK-retry.
     await route.fulfill({
       body: [
         sse("goal", goalEventPayload({
           deliveryId: "55555555-5555-4555-8555-555555555555",
           eventId: "66666666-6666-4666-8666-666666666666",
-          executeAt: new Date(now + 1_500).toISOString(),
+          executeAt: new Date(now + 250).toISOString(),
           expiresAt,
           secondaryText: "Eerste goal in de queue",
           serverTime: new Date(now).toISOString()
@@ -164,7 +165,7 @@ test("verbindt opnieuw wanneer LED Scores bij Player-start nog niet is vrijgegev
         sse("goal", goalEventPayload({
           deliveryId: "77777777-7777-4777-8777-777777777777",
           eventId: "88888888-8888-4888-8888-888888888888",
-          executeAt: new Date(now + 250).toISOString(),
+          executeAt: new Date(now + 500).toISOString(),
           expiresAt,
           secondaryText: "Na tijdelijke 204",
           serverTime: new Date(now).toISOString()

@@ -24,7 +24,15 @@ for (const legalPage of [
       name: legalPage.heading
     })).toBeVisible();
     await expect(page.getByRole("contentinfo")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Naar de inhoud" })).toBeAttached();
+    const skip = page.getByRole("link", { exact: true, name: "Direct naar inhoud" });
+    await expect(skip).toBeAttached();
+    await expect(skip).toHaveAttribute("href", "#main-content");
+    await skip.focus();
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    await skip.press("Enter");
+    await expect(page).toHaveURL(/#main-content$/);
+    await expect(page.locator("main#main-content")).toBeVisible();
 
     const headingLevelJumps = await page
       .locator("h1, h2, h3, h4, h5, h6")

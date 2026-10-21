@@ -15,6 +15,7 @@ import {
 } from "@veyocast/content-templates";
 
 import { EditorialThemeEditor } from "../slides/new/editorial-theme-editor";
+import themeStyles from "../dynamic-content.module.css";
 
 const fontLabels: Record<(typeof curatedThemeFontRefs)[number], string> = {
   "vc-anton-v1": "Anton",
@@ -193,7 +194,7 @@ export function TenantThemeEditor({
             />
           </label>
           {appearance.schemaVersion === 2 ? (
-            <label className="settings-check-card">
+            <label className={`settings-check-card ${themeStyles.settingsCheckCard}`}>
               <input
                 checked={appearance.motionEnabled}
                 data-motion-label={appearance.motionEnabled ? "beweging aan" : "beweging uit"}

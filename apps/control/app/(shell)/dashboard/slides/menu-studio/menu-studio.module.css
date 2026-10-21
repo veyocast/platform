@@ -39,6 +39,10 @@
   color: var(--vc-action);
 }
 
+:global(.sync-control) .routeState > :global(svg.lucide-flag) {
+  color: var(--accent);
+}
+
 .routeState > :where(h2, div) {
   margin: 0;
 }

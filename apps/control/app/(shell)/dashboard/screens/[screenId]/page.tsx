@@ -19,6 +19,7 @@ import { ScreenAutomation } from "./screen-automation";
 import { loadCompositionWorkspace } from "../screen-composition-data";
 import { CompositionPreview, ScreenCompositionEditor } from "../screen-composition-editor";
 import { SyncScreenDetail } from "../sync-screen-detail";
+import { SyncScreenAssignment } from "../sync-screen-assignment";
 import styles from "../screens-overview.module.css";
 
 type ScreenDetailPageProps = {
@@ -57,7 +58,7 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
     player={<PlayerTab canManage={canManage} commands={data.playerCommands} devices={data.devices} screenId={screen.id} screenName={screen.name} />}
     settings={<SettingsTab canManage={canManage} groups={data.groups} screen={screen} />}
     activity={<EventsTab events={data.auditEvents} />}
-    assignment={<><p>Kies een bestaande publicatie en controleer daarna de bestemming en compatibiliteit. Een concept wordt hier niet automatisch gepubliceerd.</p><Link className="btn btn-primary" href="/dashboard/publications">Publicaties openen <ArrowRight size={15} aria-hidden="true" /></Link><p className="muted">De bestaande toewijzingscontrole bewaart planning, toestemming en immutable releasehistorie.</p></>}
+    assignment={<SyncScreenAssignment screen={screen} releases={data.assignableReleases} error={data.error} canAssign={Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.playlist.publish"))} />}
   />;
 }
 

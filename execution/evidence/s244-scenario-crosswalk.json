@@ -1,0 +1,1385 @@
+{
+  "scope": "Reference registration only; no scenario status promotion",
+  "baselineCsvSha256": "9e10b89eee74f17d787ebe30e980c515cf88899d9196b50b1441a8e6567f5cc8",
+  "updatedCsvSha256": "b7c7b7596a84b02e9c67a4354752d0d70c9f98cfbc4efc403722ef28f497b5c2",
+  "scenarioCount": 148,
+  "uniqueIds": 148,
+  "statusChanges": 0,
+  "criterionPathCorrections": 143,
+  "appendedReferences": 518,
+  "allHistoricalReferencesPreserved": true,
+  "logicCsvSha256": "f927c5fe01ef0acf2f30ec9a86190140c7c8f01e57dc1feb0c9e33db1aeae4f4",
+  "basis": "PR270 10a49 has13SUCCESS/1conditionalIPKskip; S245 onward need final-head acceptance",
+  "rows": [
+    {
+      "scenario_id": "experience.parity",
+      "bewijsstatus": "PARTIAL: gekozen Sync-route-/navigatie-/lege-stategeometrie en gecontroleerde shellbediening hebben eigen gates; dit bewijst geen volledige gevulde routejourney",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s237-source-sponsor-workspace.md",
+        "docs/s239-source-auth-actions.md",
+        "docs/s240-source-public-proposal.md",
+        "docs/s241-source-studio-portals.md",
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-auth-surface.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-retained-studio-surfaces.spec.ts",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "tests/e2e/marketing-home.spec.ts",
+        "tests/e2e/marketing-sync-setup-compatibility.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s245-sync-status-contrast.md",
+        "tests/control/sync-status-contrast.spec.ts",
+        "docs/s246-sync-led-preview-controls.md",
+        "tests/control/sync-led-controls.spec.ts",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
+      ]
+    },
+    {
+      "scenario_id": "experience.mock_state",
+      "bewijsstatus": "PARTIAL: echte AAL2-save/herladen en exacte ontvangstbewijshervatting voor ontwerp, product, reeks en plaatsing bewezen; productie gebruikt daarvoor bestaande diensten",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s232-source-media-series-filmstrip.md",
+        "docs/s234-prototype-parity-review.md",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sites-media-frame-playlist.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "tests/control/sync-media-series-filmstrip.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "experience.auth",
+      "bewijsstatus": "PARTIAL: AAL2-geautoriseerde lokale Source-opdrachten en negatieve database-MFA/contextgrenzen bewezen; geen volledige login/logout/refresh-journey afgeleid",
+      "addedReferences": [
+        "docs/s239-source-auth-actions.md",
+        "tests/control/sync-auth-surface.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "experience.tenant",
+      "bewijsstatus": "PARTIAL: exacte serverbekende tenantselectie, geen impliciete eerste membership, paused/read-only en hostile/revoked/archived denial getest; shellcontext gecontroleerd",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s239-source-auth-actions.md",
+        "tests/control/sync-auth-surface.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "experience.permissions",
+      "bewijsstatus": "PARTIAL: capabilities, tenant/RLS/MFA-negatieven en gecontroleerde viewer-readonly editorgrens getest; echte lokale Source-opdrachten vereisen AAL2",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s237-source-sponsor-workspace.md",
+        "docs/s239-source-auth-actions.md",
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-auth-surface.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
+      ]
+    },
+    {
+      "scenario_id": "experience.states",
+      "bewijsstatus": "PARTIAL: actuele echte componenten hebben gecontroleerde empty/error/permission/loading/success- en invoer-/receipt-recoverycases; geen universele serverjourney",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s239-source-auth-actions.md",
+        "docs/s241-source-studio-portals.md",
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-auth-surface.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-retained-studio-surfaces.spec.ts",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s245-sync-status-contrast.md",
+        "tests/control/sync-status-contrast.spec.ts",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
+      ]
+    },
+    {
+      "scenario_id": "overview.attention",
+      "bewijsstatus": "PARTIAL: herstelsignalen worden uit echte resourcevormen afgeleid; geen 0/0-gezondclaim, onbereikbare domeinen behouden geldige data",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "overview.screens",
+      "bewijsstatus": "PARTIAL: oude actieve/gewenste/heartbeat-release buiten laatste20 wordt opgehaald; bevestigde frames worden per playlist gededupliceerd; lokale first-frame-readback bestaat",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "overview.status",
+      "bewijsstatus": "PARTIAL: contact, recente synchronisatie en framebewijs zijn afzonderlijk getest; stale/toekomstig/ongeldig bewijs telt niet als gezond",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "overview.today",
+      "bewijsstatus": "PARTIAL: onboarding-/playbackacties worden uit resources afgeleid; shellbediening en gekozen lege overzichtstoestand gecontroleerd",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "overview.preview",
+      "bewijsstatus": "PARTIAL: actieve release-identiteit en recente framebevestiging hebben geteste readmodellen; lokale eerste-framebevestiging apart bewezen",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "content.library",
+      "bewijsstatus": "deelbewijs: 22 SQL checks inclusief tenantisolatie, >1000, actuele drafthash en reeksidentiteit; echte selectie/CAS/verloren ACK/retry zonder duplicaten, Axe nul, vijf breedtes zonder overflow",
+      "addedReferences": [
+        "docs/s231-media-content-frames.md",
+        "docs/s232-source-media-series-filmstrip.md",
+        "docs/s234-prototype-parity-review.md",
+        "execution/evidence/s231-real-media-player.json",
+        "tests/control/sites-media-frame-playlist.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "tests/control/sync-media-series-filmstrip.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "content.upload",
+      "bewijsstatus": "PARTIAL: afbeelding via echte bewaakte upload ontvangen en via RLS-bibliotheek teruggelezen; upload/finalizegrenzen voor media in unit/SQL getest",
+      "addedReferences": [
+        "docs/s231-media-content-frames.md",
+        "execution/evidence/s231-real-media-player.json",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "content.upload_recovery",
+      "bewijsstatus": "PARTIAL_CURRENT_CI_REAL: actuele DB-CI12141123276 uploadt12.346.112 bytes via TUS en hervat vanaf6.291.456; echte240privateuploads/paginering; geen volledige UXclaim",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "content.processing",
+      "bewijsstatus": "PARTIAL_CURRENT_CI_REAL: dezelfde actuele DB-CI verwerkt echte video met productie-FFmpeg tot poster/playback en immutable Playerfirst-frame; SQL/workerfences aanvullend groen",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "content.inspector",
+      "bewijsstatus": "PARTIAL_CURRENT_CI_REAL: metadata/bytebehoud, echte gemengde batch2success1reject en PG-concurrency actueel bewezen; bestaande CAS/UIherstelchecks behouden",
+      "addedReferences": [
+        "docs/s239-source-auth-actions.md",
+        "tests/control/sync-auth-surface.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "content.archive",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: echte nieuwe ongebruikte PNG upload→archive→Archief/read-only→restore→zelfde asset/preview/private bytes; bestaande assets/varianten/releases/flags behouden. Andere gebruiksimpact/cross-tenantvarianten hebben afzonderlijk RLS-bewijs.",
+      "addedReferences": [
+        "docs/s231-media-content-frames.md",
+        "execution/evidence/s231-real-media-player.json",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "studio.create",
+      "bewijsstatus": "Deels bewezen met echte lokale AAL2-diensten; geen volledige scenarioacceptatie",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s234-prototype-parity-review.md",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "studio.content",
+      "bewijsstatus": "gedeeltelijk bewezen; volledige pariteit open",
+      "addedReferences": [
+        "docs/s231-media-content-frames.md",
+        "docs/s232-source-media-series-filmstrip.md",
+        "docs/s241-source-studio-portals.md",
+        "execution/evidence/s231-real-media-player.json",
+        "tests/control/sites-media-frame-playlist.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "tests/control/sync-media-series-filmstrip.spec.ts",
+        "tests/control/sync-retained-studio-surfaces.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "studio.design",
+      "bewijsstatus": "gedeeltelijk bewezen; volledige pariteit open",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s235-source-theme-creation-defaults.md",
+        "docs/s238-onzetrots-background-gallery.md",
+        "docs/s241-source-studio-portals.md",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-retained-studio-surfaces.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
+      ]
+    },
+    {
+      "scenario_id": "studio.orientation",
+      "bewijsstatus": "gedeeltelijk bewezen; geen volledige scenario-PASS",
+      "addedReferences": [
+        "docs/s231-media-content-frames.md",
+        "docs/s238-onzetrots-background-gallery.md",
+        "execution/evidence/s231-real-media-player.json",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "studio.series",
+      "bewijsstatus": "PASS lokale functionele journey; volledige visuele vergelijking apart",
+      "addedReferences": [
+        "docs/s232-source-media-series-filmstrip.md",
+        "tests/control/sites-media-frame-playlist.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "tests/control/sync-media-series-filmstrip.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "studio.revisions",
+      "bewijsstatus": "Deels bewezen met echte lokale AAL2-diensten; geen volledige scenarioacceptatie",
+      "addedReferences": [
+        "docs/s232-source-media-series-filmstrip.md",
+        "docs/s241-source-studio-portals.md",
+        "tests/control/sites-media-frame-playlist.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "tests/control/sync-media-series-filmstrip.spec.ts",
+        "tests/control/sync-retained-studio-surfaces.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "studio.output",
+      "bewijsstatus": "Deels bewezen met echte lokale AAL2-diensten; geen volledige scenarioacceptatie",
+      "addedReferences": [
+        "docs/s231-media-content-frames.md",
+        "docs/s238-onzetrots-background-gallery.md",
+        "execution/evidence/s231-real-media-player.json",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "studio.version",
+      "bewijsstatus": "PARTIAL: echte Source-versiebediening gebruikt geautoriseerde revisies; gecontroleerde restore/verloren-receipt/conflict en echte AAL2-save/heropenen bewezen",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s231-media-content-frames.md",
+        "docs/s235-source-theme-creation-defaults.md",
+        "execution/evidence/s231-real-media-player.json",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-media-frame-editor.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.crud",
+      "bewijsstatus": "PARTIAL: bestaande duplicatie/concurrencygrenzen en actuele gecontroleerde editor-/lijstates getest",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.add",
+      "bewijsstatus": "deelbewijs: Source-selectie zonder impliciete render, verloren prepare-ACK, echte twee-memberreeks/worker/private bytes/playlist-herladen; 118 playlistbrowsercases",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.order",
+      "bewijsstatus": "PARTIAL: volgorde/secties/gemengde commandplanning en gecontroleerde save-ACK/recovery getest; echte twee-memberreeks blijft na playlistreload behouden",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.duration",
+      "bewijsstatus": "PARTIAL: duurcommando behoudt andere velden; pagina-/theme-duur en expliciete Source-variantduur met private volledige bytes bewezen",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.presentation",
+      "bewijsstatus": "PARTIAL: crop/focus/fit/achtergrond blijven plaatsingsgebonden in command-/previewtests en gecontroleerde editor",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.av",
+      "bewijsstatus": "PARTIAL: rijke plaatsingsvelden en gecontroleerde preview/Playergrens getest; Source-fallback heeft één natuurlijke grens",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.theme",
+      "bewijsstatus": "PARTIAL: expliciete plaatsingsthema-/duurvariant is echt gepind, heropent en behoudt Sourceconfiguratie/live facts zonder hoofdbron of andere publicaties te wijzigen",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "playlist.preview",
+      "bewijsstatus": "PARTIAL: preview-state/bediening gecontroleerd en volledige driepagina-Sourcepublicatie met echte bytes/first-frame/offline lokaal bewezen",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "publish.preflight",
+      "bewijsstatus": "deelbewijs: Werkelijke UI-preflight met gegenereerde Studio-output doorlopen en gepubliceerd; geen volledige profielmatrixclaim",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sites-playlist-workflows.spec.ts",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "publish.target",
+      "bewijsstatus": "deelbewijs: Bestaand tenant-QA-scherm via echte publicatiedialoog gekozen en één release toegewezen",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sites-playlist-workflows.spec.ts",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "publish.progress",
+      "bewijsstatus": "deelbewijs: Werkelijke device-pairing en HTTP 200 first-frame-ACK; DB-readback active=desired=dezelfde immutable Studio-release",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "tests/control/sites-playlist-workflows.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "publish.history",
+      "bewijsstatus": "PARTIAL: immutable publicatiehistorie en restorecontracten in SQL beschermd; echte Source-publicatie/readback heeft onveranderde release-identiteiten",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sites-playlist-workflows.spec.ts",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "publish.restore",
+      "bewijsstatus": "PARTIAL: restore maakt via bestaand contract nieuwe publicatie/doel zonder oude inhoud te muteren; lokale Source-to-Playerpublicatie afzonderlijk bewezen",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sites-playlist-workflows.spec.ts",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "publish.safe_failure",
+      "bewijsstatus": "PARTIAL: preflightgrenzen en corrupte kandidaat/LKG/recovery bewezen; gelijke-lengte-corruptie verdringt actieve inhoud niet",
+      "addedReferences": [
+        "docs/s242-source-playlist-editor.md",
+        "tests/control/sites-playlist-workflows.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "planning.calendar",
+      "bewijsstatus": "PARTIAL_LOCAL_REAL: eenmalig moment met één definitieve klik opgeslagen; heropenen en stale CAS met zichtbare actuele revisie bewezen",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "planning.repeat",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "planning.targets",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "planning.conflict",
+      "bewijsstatus": "PARTIAL_LOCAL_REAL: expliciete overlapbevestiging en echte opgeslagen prioriteiten; evaluator bevestigt override1 boven publisher200 boven publisher150 en exclusieve eindtijd",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "planning.timezone",
+      "bewijsstatus": "PARTIAL_LOCAL_REAL: opgeslagen eigen instellingen en productie-evaluator voor override-expiry, middernacht en DST-week gecontroleerd",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "screens.inventory",
+      "bewijsstatus": "PARTIAL: fleet-RPC is tenantgebonden/gepagineerd voorbij1000; fout/stale/pairing/online-states zijn gecontroleerd",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "screens.pair",
+      "bewijsstatus": "PARTIAL: eenmalige tenantgebonden pairing en readinessgrenzen getest; echte lokale Source-publicatie op gekoppeld QA-device/first-frame bewezen",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "screens.lifecycle",
+      "bewijsstatus": "PARTIAL: bewaakte lifecycle/deactivation/removal en gecontroleerde onboardingacties behouden tenant/revisie/immutable referenties",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "screens.groups",
+      "bewijsstatus": "PARTIAL: groep/planninggrenzen in SQL, gecontroleerde groepworkflow en historisch echte transactionele rename/readback aanwezig",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "screens.remote",
+      "bewijsstatus": "PARTIAL: commands hebben nonce/TTL/serverclock/capabilitygrenzen en gecontroleerde force-sync; geen onbegrensde reset aangenomen",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "screens.diagnostics",
+      "bewijsstatus": "PARTIAL: supportbundelautorisatie en afgeschermde diagnostiek/recoverybediening getest; publiek playback wordt niet tot diagnose gemaakt",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "screens.hardware",
+      "bewijsstatus": "PARTIAL: compatibiliteit/preflight/legacy-video grenzen in software getest; capabilities worden niet als fysieke validatie behandeld",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "automation.week",
+      "bewijsstatus": "PASS_LOCAL_SOFTWARE_SCOPE: weekvensters en eigen scherminstellingen via UI opgeslagen en heropend; productie-evaluator bevestigt 22–02 over middernacht/DST-week",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "automation.exceptions",
+      "bewijsstatus": "PASS_LOCAL_SOFTWARE_SCOPE: werkelijk opgeslagen gesloten datum gaat boven active override; geopend venster gaat boven paused override",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "automation.override",
+      "bewijsstatus": "PARTIAL_LOCAL_REAL: eigen instellingen revision1→2 bewaard/heropend; werkelijke configuratie met expiry en uitzonderingsprecedentie geëvalueerd",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "automation.power",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "composition.layout",
+      "bewijsstatus": "PARTIAL: vier layoutcontracten en gecontroleerde moderne/LG-compositie-/tenant/percentagegrenzen getest",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "composition.binding",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: drie bestaande releases via echte Control-UI aan uitsluitend eigen nieuw scherm/compositie gebonden; oude bindings en publicaties ongewijzigd",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "composition.publish",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: echte publicatie/Playerpairing, drie zichtbare SourceDOMzones en servercompositionACK; nieuw browserproces offline vóór navigatie toont dezelfde zones/pairing/14assets",
+      "addedReferences": [
+        "docs/s243-source-screen-flow.md",
+        "tests/control/sync-screen-assignment.spec.ts",
+        "tests/control/sync-screen-layout-hours.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "venues.map",
+      "bewijsstatus": "GUARDED_NOT_ENABLED: bestaande pilotflag uit, echte UI zonder createformulier en AAL2RPCaanmaakHTTP403/SQL42501; geen flag-/recordwijziging",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "venues.inspect",
+      "bewijsstatus": "GUARDED_NOT_ENABLED: bestaande Venue-pilot uit; dezelfde geauthenticeerde UI/SQLgrens bewaakt het domein",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "sources.catalog",
+      "bewijsstatus": "deels bewezen; volledige scenarioacceptatie open",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sources.health",
+      "bewijsstatus": "deels bewezen; volledige scenarioacceptatie open",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sources.binding",
+      "bewijsstatus": "PARTIAL: echte lokale Sourcekeuze/canonical context/gekoppelde kopie en aparte stijlvariant bewezen; providers leveren expliciet opgeslagen fixtures",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s234-prototype-parity-review.md",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sources.live",
+      "bewijsstatus": "lokale live-data/binary deelketens bewezen; externe acquisitie open",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "sportlink.connection",
+      "bewijsstatus": "PARTIAL: bestaande geautoriseerde connectioncommands/revisies/tenantgrenzen getest; geen live accountkoppeling afgeleid",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sportlink.selection",
+      "bewijsstatus": "PARTIAL: exacte eigen team-/poule-/periodekeuze, geautoriseerde opties en birthdayprivacy getest; echte AAL2-keuze met opgeslagen fixture bevestigd",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sportlink.batch",
+      "bewijsstatus": "PARTIAL: 17-familieskeuze en gecontroleerde wizard/guarded sourcecommando hebben revisie/idempotentie-/rechtengrenzen",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sportlink.availability",
+      "bewijsstatus": "PARTIAL: dataset/familiegrenzen en unavailable versus werkelijk leeg worden zonder clubbrede silent fallback getest",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_program",
+      "bewijsstatus": "PARTIAL: familie Programma zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_results",
+      "bewijsstatus": "PARTIAL: familie Uitslagen zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_standing",
+      "bewijsstatus": "PARTIAL: familie Stand zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_period_standing",
+      "bewijsstatus": "PARTIAL: familie Periodestand zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_match_of_the_day",
+      "bewijsstatus": "PARTIAL: familie Wedstrijd van de dag zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_next_match",
+      "bewijsstatus": "PARTIAL: familie Volgende wedstrijd zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_cancellations",
+      "bewijsstatus": "PARTIAL: familie Afgelastingen zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_dressing_rooms",
+      "bewijsstatus": "PARTIAL: familie Kleedkamers zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_officials",
+      "bewijsstatus": "PARTIAL: familie Officials zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_team",
+      "bewijsstatus": "PARTIAL: familie Teaminformatie zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_sponsor",
+      "bewijsstatus": "PARTIAL: familie Sponsors zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_activities",
+      "bewijsstatus": "PARTIAL: familie Clubactiviteiten zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_trainings",
+      "bewijsstatus": "PARTIAL: familie Trainingen zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_volunteers",
+      "bewijsstatus": "PARTIAL: familie Vrijwilligers zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_birthdays",
+      "bewijsstatus": "PARTIAL: familie Verjaardagen zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_visitor_arrivals",
+      "bewijsstatus": "PARTIAL: familie Bezoekende teams zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sport_referee_arrivals",
+      "bewijsstatus": "PARTIAL: familie Scheidsrechters ontvangen zit in geteste17familiesauthoring/projectie en twee thema-/oriëntatiecontracten; gedeelde lokale AAL2-bindingjourney gebruikt expliciet opgeslagen sportfixtures",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "products.import",
+      "bewijsstatus": "PASS voor begrensde lokale echte CSV/XLSX-journey: upload/mapping/apply/herladen/merge met stabiele IDs; geen externe klant-export/providerclaim",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "products.mapping",
+      "bewijsstatus": "PASS voor begrensde lokale echte CSV/XLSX-journey: upload/mapping/apply/herladen/merge met stabiele IDs; geen externe klant-export/providerclaim",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "products.catalog",
+      "bewijsstatus": "gedeeltelijk bewezen: echte lokale AAL2-journal, 23 DB/RLS-checks, 6 componentcases en 12 actieschecks",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "menu.editor",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "execution/evidence/sync-dynamic-library-real.json",
+        "execution/evidence/sync-dynamic-variant-to-player.json",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "menu.price_update",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "execution/evidence/sync-dynamic-library-real.json",
+        "execution/evidence/sync-dynamic-variant-to-player.json",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "menu.paging",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "execution/evidence/sync-dynamic-library-real.json",
+        "execution/evidence/sync-dynamic-variant-to-player.json",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "rss.feeds",
+      "bewijsstatus": "PARTIAL_REAL_EXTERNAL_ADAPTER: officiële NOS-GET2xx/XML met stylesheetPI levert20artikelen; normalisatie exact gelijk aan alleenPI-verwijderde body. Eigen proloog/metadataregressies en194integratiechecks groen.",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s234-prototype-parity-review.md",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "rss.rotation",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s234-prototype-parity-review.md",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "rss.recovery",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s234-prototype-parity-review.md",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "led.connection",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "apps/media-worker/test/ledscores-connector-runner.test.ts",
+        "docs/s233-ledscores-validation-shape.md",
+        "docs/s236-ledscores-team-references.md",
+        "packages/integrations/test/ledscores.test.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "led.design",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s246-sync-led-preview-controls.md",
+        "tests/control/sync-led-controls.spec.ts",
+        "docs/s248-sync-led-secondary-tasks.md",
+        "tests/control/sync-led-secondary-tasks.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
+      ]
+    },
+    {
+      "scenario_id": "led.event",
+      "bewijsstatus": "gedeeltelijk bewezen; resterende criteria open",
+      "addedReferences": [
+        "apps/media-worker/test/ledscores-connector-runner.test.ts",
+        "docs/s233-ledscores-validation-shape.md",
+        "docs/s236-ledscores-team-references.md",
+        "packages/integrations/test/ledscores.test.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "youtube.sources",
+      "bewijsstatus": "PARTIAL: 20 DB-checks en gecontroleerde componentgrens; geen echte provider/device-acceptatie",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "youtube.playback",
+      "bewijsstatus": "PARTIAL: 20 DB-checks en gecontroleerde componentgrens; geen echte provider/device-acceptatie",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "youtube.fallback",
+      "bewijsstatus": "PARTIAL: 20 DB-checks en gecontroleerde componentgrens; geen echte provider/device-acceptatie",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "themes.catalog",
+      "bewijsstatus": "deels bewezen; volledige scenarioacceptatie open",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "themes.brand",
+      "bewijsstatus": "PARTIAL: tenantbranding/defaults en tokenautoriteit zijn unit/SQL-begrensd; instellingeneditor bewaart bestaande contracten",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s235-source-theme-creation-defaults.md",
+        "docs/s238-onzetrots-background-gallery.md",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
+      ]
+    },
+    {
+      "scenario_id": "themes.precedence",
+      "bewijsstatus": "PARTIAL: thema-/plaatsingsoverrides volgen geteste contracten; echte gepinde OnzeTrots-variant behoudt hoofdbron/andere publicaties",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md",
+        "docs/s247-sync-retained-control-colors.md",
+        "tests/control/sync-retained-control-colors.spec.ts",
+        "execution/evidence/s244-audit-corrections.json"
+      ]
+    },
+    {
+      "scenario_id": "themes.version",
+      "bewijsstatus": "PARTIAL: registry-/versiegrenzen en actuele oude-versus-nieuwe cachedecoders behouden complete binaire fallback",
+      "addedReferences": [
+        "apps/control/app/(shell)/dashboard/themes/sync-theme-defaults-actions.test.ts",
+        "docs/s235-source-theme-creation-defaults.md",
+        "tests/control/sync-create-wizard.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "themes.registry",
+      "bewijsstatus": "PARTIAL: bestaande registry/catalogus/tokenvalidatie beschermd; geen fictief nieuw themapakket of merkasset aangemaakt",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "sponsors.records",
+      "bewijsstatus": "PARTIAL: echte Source-UI sponsor/campagne, privateimageupload201ready, mediaregister/creative/placement en twee-actorapproval bewezen",
+      "addedReferences": [
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sponsors.campaign",
+      "bewijsstatus": "PARTIAL: echte create/media/creative/placement→submit→vierogenapproval; dezelfde actor geweigerd, tweede actor succesvol en feedbackzichtbaar",
+      "addedReferences": [
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sponsors.positions",
+      "bewijsstatus": "PARTIAL: SQL initialiseert zes semantische posities en toetst footer-landscapecreative/plaatsing; unit toetst deterministische selectie/cache",
+      "addedReferences": [
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sponsors.approval",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: submitA→zelfdeactorSQL42501→actorBapprove; privatecreativebytes/SHA onveranderlijk. Aanvankelijke foutfeedbackuitval echt hersteld met nativePOST303; beide banners zichtbaar en originele campagne behouden",
+      "addedReferences": [
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sponsors.proof",
+      "bewijsstatus": "PARTIAL: credential-bound synthetisch afspeelevent telt eenmaal; replay genegeerd; deterministische rotatie en duurzame proofqueue/cache unitgetest",
+      "addedReferences": [
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "sponsors.crm",
+      "bewijsstatus": "PARTIAL: echte productiecomponent toont gevulde testgegevens met filters/openen/toetsenbord/a11y; echte bestaande AAL2-loader leest lokale PostgREST met lege tenantlijsten. Geen gevulde live-CRM-, CRUD- of providerclaim.",
+      "addedReferences": [
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "engage.campaign",
+      "bewijsstatus": "PASS_LOCAL_POLL_SCOPE: twee eigen polls via echte UI gemaakt en gestart; oude campagnes/flags/releases onveranderd",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "engage.lifecycle",
+      "bewijsstatus": "PARTIAL_LOCAL_REAL: concept→live→closed via echte UI, gesloten knoppen en late stem409; archive/authoringgrenzen in volledige SQL-suite",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "engage.vote",
+      "bewijsstatus": "PASS_LOCAL_HTTP_SCOPE: verse anonieme browser stemt echt accepted200; cookie/replay dedup, privacy en late409 met onveranderde eerdere stemmen bewezen",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "engage.results",
+      "bewijsstatus": "PASS_LOCAL_PRIVACY_SCOPE: verse accepted receipt en identity/replay verborgen bij live after_close; na sluiten exact tally1. Alle drie beleidsvormen via33 echte RPC-regressies en volledige RLS",
+      "addedReferences": [
+        "docs/s234-prototype-parity-review.md",
+        "docs/s237-source-sponsor-workspace.md",
+        "tests/control/sites-engage-sponsors-workflows.spec.ts",
+        "tests/control/sync-create-wizard.spec.ts",
+        "tests/control/sync-source-geometry-comparison.spec.ts",
+        "tests/control/sync-sponsor-workspace.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "team.members",
+      "bewijsstatus": "PARTIAL: SQL toetst uitnodiging/rotatie/acceptatie/tenant-email/replay en self-lockout; lokale a11y en gecontroleerde drie-sectiesbediening aanwezig",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "team.roles",
+      "bewijsstatus": "PARTIAL: echte eigen ongebonden rol create→reopen→update/rechtennormalisatie→reopen→archive en actor/object-audit; letterlijke auditfilters rood/groen tegen echte API. Effectieve toegewezen-gebruikerrechten afzonderlijk RLS, geen volledige actorrol-browserclaim.",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "team.audit",
+      "bewijsstatus": "PARTIAL: component stuurt Activiteitfilter naar echte auditlogroute; SQL auditactor en route-a11y afzonderlijk getest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "support.tickets",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: eigen ticket aangemaakt/gesloten/heropend via echte UI en private bijlage; bestaande records behouden",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "support.messages",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: bijlage105bytes→registratie/private SHA→sluiten/heropenen; echt beperkt vreemdtenantaccount krijgt0rijen/private downloadweigering en zichtbare404, maker leest dezelfde bytes",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "support.routing",
+      "bewijsstatus": "PARTIAL: SQL toetst gerouteerde platformsupportread/toewijzing/in_progress; bestaande afdelingsinstellingencode behouden",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "billing.account",
+      "bewijsstatus": "PARTIAL: SQL toetst AAL2-accountsetup/provider-testmode/eigen usage-/invoiceRLS; browser toetst shadow-mode/mobiel oppervlak",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "billing.flags",
+      "bewijsstatus": "PARTIAL: afzonderlijke engine/collection/warning/restriction/enforcementflags, LKG-kill-switch en guarded workergrenzen in SQL/unit getest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "billing.test_payment",
+      "bewijsstatus": "PARTIAL: gecontroleerde provider first-payment-idempotentie/identitydrift en server-returnverificatie plus SQL-betalingscontracten getest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "billing.cycle",
+      "bewijsstatus": "PARTIAL: immutable cyclus/centen/btw/replay, verified-paymentfixtures/chargebackdedup/grace/dunning en gecontroleerde providerread getest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "billing.entitlement",
+      "bewijsstatus": "PARTIAL: grace/restricted/overrideexpiry/kill-switch in SQL en getekende lease-expiry/clockrollback/monotone revisies unitgetest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "platform.tenants",
+      "bewijsstatus": "PARTIAL: AAL2/idempotente provisioning+ownerinvite/schermlimiet/pause/reactivering in SQL; pending/disabled/AAL1-recovery componentgetest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "platform.users",
+      "bewijsstatus": "PARTIAL: AAL2-platformroltoekenning, self-removaldenial en gescheiden tenantidentiteit in SQL/capabilitytests beschermd",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "platform.features",
+      "bewijsstatus": "PARTIAL: bewaakte featurevrijgave/revisie/idempotentie/tenantscope in SQL en canonical featurecatalogus/response-ID unitgetest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "platform.templates",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: echte UI create/edit→publishv1→clone/edit/publishv2→withdraw; eerste versie en eerdere releases/snapshots bytegelijk",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "platform.health",
+      "bewijsstatus": "PARTIAL: veilige readinessconfig/errorredactie, eerlijke stale/offline/syncstates en geïsoleerde diagnostiekgrenzen getest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "mobile.cockpit",
+      "bewijsstatus": "PARTIAL: Source-cockpit/navigatie gebouwd en echte bounded API/statusrechten bewezen; Android/Hermesexport met32exacte productiebronnen. Geen volledige fysieke schermvergelijking.",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "mobile.authoring",
+      "bewijsstatus": "PARTIAL: echte create/save-responseverlies/zelfde-nonce/render/privateSHA,seriesadd/duplicate/remove404receipt/staleconflict en actuele motion-CAS bewezen. Native recovery/race/pollingunits groen; OS-camera/upload/publicatiejourney blijft afzonderlijk.",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "mobile.security",
+      "bewijsstatus": "PARTIAL: echte native controllerpasswordAAL1→write403→TOTPchallenge/verify→AAL2→zelfdewrite200 en nonce-replay bewezen; actor/sessionqueue/cachepurgechecks groen. Geen OSbiometrie-/notificatie-uitvoeringsclaim.",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "marketing.site",
+      "bewijsstatus": "deelbewijs: Negen HTTP 200/Axe nul; 18 referentie/rebuild/diffcaptures met dezelfde publieke toestand; 16 gelijke paginahoogtes; mobiel demo en players wijken door feitelijk correcte dienstcopy af",
+      "addedReferences": [
+        "docs/s240-source-public-proposal.md",
+        "tests/e2e/marketing-home.spec.ts",
+        "tests/e2e/marketing-sync-setup-compatibility.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "marketing.configurator",
+      "bewijsstatus": "PARTIAL: bestaande browsertests toetsen berekening, ondertekende setup-intentoverdracht en mobiele stepper; echte duurzame marketingontvangst afzonderlijk lokaal bewezen",
+      "addedReferences": [
+        "docs/s240-source-public-proposal.md",
+        "tests/e2e/marketing-sync-setup-compatibility.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "marketing.lead",
+      "bewijsstatus": "deelbewijs: Echte browserontvangst na serveropslag; RLS/idempotentie/afhandeling in volledige 112-bestanden/3141 assertions DB-suite groen. SendGrid-livelevering niet geclaimd",
+      "addedReferences": [
+        "docs/s240-source-public-proposal.md",
+        "tests/e2e/marketing-home.spec.ts",
+        "tests/e2e/marketing-sync-setup-compatibility.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "player.boot",
+      "bewijsstatus": "PARTIAL: gecontroleerde browser unpaired startup/landmarks en initialisatiestatemachine getest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "player.unpaired",
+      "bewijsstatus": "PARTIAL: code/QR/expiry/refresh/rate-limit/recovery gecontroleerd; exacte eigen lokale QA-screenpairing met Sourcepublicatie aanvullend bewezen",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "player.waiting",
+      "bewijsstatus": "PARTIAL: gecontroleerde READYheartbeat vóór inhoud en nieuwe releaseactivatie plus toegankelijke wachtstate getest",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "player.download",
+      "bewijsstatus": "Lokale echte binary-download/fout/recovery PASS; volledige scenarioacceptatie blijft breder.",
+      "addedReferences": [
+        "docs/s238-onzetrots-background-gallery.md",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "player.activate",
+      "bewijsstatus": "Lokale echte canonical-fact-binaryactivatie PASS; geen universele platform-/hardwareclaim.",
+      "addedReferences": [
+        "docs/s238-onzetrots-background-gallery.md",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "player.play",
+      "bewijsstatus": "gedeeltelijk bewezen; browserbewijs",
+      "addedReferences": [
+        "docs/s238-onzetrots-background-gallery.md",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "player.offline",
+      "bewijsstatus": "Lokale echte binary-offline/recovery PASS; fysieke upgrade/24u expliciet uitgesteld.",
+      "addedReferences": [
+        "docs/s238-onzetrots-background-gallery.md",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "player.no_cache",
+      "bewijsstatus": "PASS_LOCAL_JOURNEY: bestaand gekoppelde eigen device-identiteit met applicatieshell en nul contentcache start offline zichtbaar herstelbaar; online dezelfde release met nieuw first-frameACK200 en behouden pairing",
+      "addedReferences": []
+    },
+    {
+      "scenario_id": "player.recovery",
+      "bewijsstatus": "Lokale echte Source-binary-corrupt/recovery PASS; volledig herstelscenario nog breder.",
+      "addedReferences": [
+        "docs/s238-onzetrots-background-gallery.md",
+        "tests/control/sync-background-picker.spec.ts",
+        "tests/player/sync-background-gallery.spec.ts",
+        "docs/s244-integrated-sync-acceptance.md"
+      ]
+    },
+    {
+      "scenario_id": "player.identity",
+      "bewijsstatus": "Lokale bestaande installatiecontinuïteit PASS; fysieke Android-overinstallatie uitgesteld.",
+      "addedReferences": [
+        "https://github.com/veyocast/platform/actions/runs/39150034846",
+        "https://github.com/veyocast/platform/actions/runs/39150306457"
+      ]
+    },
+    {
+      "scenario_id": "player.billing_splash",
+      "bewijsstatus": "PARTIAL: neutrale expiry/grace/hardstop met behouden content, clockrollback/monotone signed revisies unitgetest; SQL override/kill-switch beschermd",
+      "addedReferences": []
+    }
+  ],
+  "initialRegistrationCsvSha256": "a1a0c796b199b0bac32b4332c26010c8b84bf755ab06c6b7183ccbddf44debab",
+  "auditCorrectionsReferencePassAt": "2026-10-19T05:42:11.003496+00:00",
+  "auditCorrectionScenarioIds": [
+    "experience.parity",
+    "experience.states",
+    "experience.permissions",
+    "studio.design",
+    "led.design",
+    "themes.brand",
+    "themes.precedence"
+  ]
+}

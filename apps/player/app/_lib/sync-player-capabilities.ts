@@ -1,5 +1,9 @@
 export const syncPlayerRendererHeader = "X-VeyoCast-Sync-Renderer";
 export const syncPlayerRendererVersion = "sync-v1";
+export const syncEngagePagingHeader = "X-VeyoCast-Sync-Engage-Paging";
+export const syncEngagePagingVersion = "sync-engage-pages-v1";
+export const syncBackgroundsHeader = "X-VeyoCast-Sync-Backgrounds";
+export const syncBackgroundsVersion = "sync-backgrounds-v1";
 export const syncDynamicRendererHeader='X-VeyoCast-Sync-Dynamic';
 export const syncDynamicDomVersion='sync-dynamic-v1';
 export const syncDynamicBinaryVersion='sync-dynamic-binary-v1';
@@ -18,4 +22,11 @@ export function supportsSyncSlideDom(): boolean {
     typeof ResizeObserver !== "undefined" &&
     typeof document.fonts?.load === "function"
   );
+}
+
+/** Photographs need a bounded decode before the candidate may become active. */
+export function supportsSyncBackgrounds(): boolean {
+  return supportsSyncSlideDom() && typeof Image !== "undefined" && typeof Image.prototype.decode === "function"
+    && typeof FontFace === "function" && typeof FontFace.prototype.load === "function"
+    && typeof document.fonts.add === "function" && typeof document.fonts.delete === "function";
 }

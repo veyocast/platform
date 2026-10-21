@@ -33,7 +33,7 @@ export default async function MfaPage({ searchParams }: MfaPageProps) {
     verifiedFactors.length === 0 || session.assuranceLevel === "aal2";
 
   return (
-    <main className="auth-shell">
+    <main className="sync-control sync-auth auth-shell">
       <section className="auth-panel auth-panel--wide" aria-labelledby="mfa-title">
         <AuthBrand />
         <div>

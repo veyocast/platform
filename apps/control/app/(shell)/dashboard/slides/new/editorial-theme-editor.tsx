@@ -274,7 +274,7 @@ export function EditorialThemeEditor({
     <div className={styles.editorialThemeEditor}>
       <header className={styles.editorialThemeHeader}>
         <div>
-          <span className={styles.editorialThemeEyebrow}>{selection.ref.catalog === "v2" ? themeCatalog[selection.ref.id].name : "FieldFlow"}</span>
+          <span className={styles.editorialThemeEyebrow}>{selection.ref.catalog === "v2" ? themeCatalog[selection.ref.id].name : "Huisstijl"}</span>
           <h3>Slidehuisstijl</h3>
           <p>
             Primaire clubkleur en Tweede decoratieve accentkleur maken samen

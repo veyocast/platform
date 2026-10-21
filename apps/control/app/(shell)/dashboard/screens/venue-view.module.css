@@ -2,6 +2,7 @@
 .gated, .setup, .hero, .mapPanel, .config, .fallback, .health { background: var(--vc-surface); border: 1px solid var(--vc-border); border-radius: var(--vc-radius-xl); }
 .gated { align-items: flex-start; display: grid; gap: var(--vc-space-20); grid-template-columns: auto minmax(0, 1fr) auto; padding: var(--vc-space-24); }
 .gated > svg { color: var(--vc-brand-electric-orange); height: 28px; width: 28px; }
+:global(.sync-control) .gated > svg { color: var(--accent); }
 .gated h2, .setup h2, .hero h2, .health h2 { font-family: var(--vc-font-display); font-size: 24px; letter-spacing: -0.025em; margin: var(--vc-space-4) 0; }
 .gated p, .setup p, .hero p, .panelHeading p, .stackForm p { color: var(--vc-text-muted); line-height: 1.5; margin: 0; }
 .eyebrow { color: var(--vc-semantic-warning-text); font-size: 12px; font-weight: 760; letter-spacing: .08em; text-transform: uppercase; }

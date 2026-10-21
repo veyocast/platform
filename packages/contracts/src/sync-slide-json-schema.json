@@ -487,79 +487,163 @@
       "format": "uri"
     },
     "poll": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uuid",
-          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "scheduled",
+                "live",
+                "closed",
+                "archived"
+              ]
+            },
+            "visibility": {
+              "type": "string",
+              "enum": [
+                "live",
+                "after_vote",
+                "after_close"
+              ]
+            },
+            "publicUrl": {
+              "type": "string",
+              "maxLength": 2048,
+              "format": "uri"
+            },
+            "options": {
+              "minItems": 2,
+              "maxItems": 12,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "label": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "votes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000000
+                  }
+                },
+                "required": [
+                  "id",
+                  "label",
+                  "votes"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "status",
+            "visibility",
+            "options"
+          ],
+          "additionalProperties": false
         },
-        "title": {
-          "type": "string",
-          "maxLength": 400
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "draft",
-            "scheduled",
-            "live",
-            "closed",
-            "archived"
-          ]
-        },
-        "visibility": {
-          "type": "string",
-          "enum": [
-            "live",
-            "after_vote",
-            "after_close"
-          ]
-        },
-        "publicUrl": {
-          "type": "string",
-          "maxLength": 2048,
-          "format": "uri"
-        },
-        "options": {
-          "minItems": 2,
-          "maxItems": 12,
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid",
-                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-              },
-              "label": {
-                "type": "string",
-                "maxLength": 400
-              },
-              "votes": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 1000000000
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "scheduled",
+                "live",
+                "closed",
+                "archived"
+              ]
+            },
+            "visibility": {
+              "type": "string",
+              "enum": [
+                "live",
+                "after_vote",
+                "after_close"
+              ]
+            },
+            "publicUrl": {
+              "type": "string",
+              "maxLength": 2048,
+              "format": "uri"
+            },
+            "options": {
+              "minItems": 2,
+              "maxItems": 24,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "label": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "votes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000000
+                  }
+                },
+                "required": [
+                  "id",
+                  "label",
+                  "votes"
+                ],
+                "additionalProperties": false
               }
             },
-            "required": [
-              "id",
-              "label",
-              "votes"
-            ],
-            "additionalProperties": false
-          }
+            "optionsPerPage": {
+              "type": "number",
+              "const": 4
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "status",
+            "visibility",
+            "options",
+            "optionsPerPage"
+          ],
+          "additionalProperties": false
         }
-      },
-      "required": [
-        "id",
-        "title",
-        "status",
-        "visibility",
-        "options"
-      ],
-      "additionalProperties": false
+      ]
     },
     "state": {
       "default": "ready",

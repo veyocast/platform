@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { syncContentFamilies } from "./sync-content-families";
 import { syncSystemAssets } from "./sync-system-assets";
+import { syncBackgroundAssetForRef } from "./sync-background-catalog";
 
 /** Additive identity: legacy Sites documents and release decoders stay unchanged. */
 export const syncSlideRendererVersion = "sync-v1" as const;
@@ -15,7 +16,7 @@ const systemImagePaths = new Map(
     .map((asset) => [asset.path as string, asset.sha256 as string]),
 );
 
-export const syncSlideAssetSchema = z
+const syncSlideAssetReferenceSchema = z
   .discriminatedUnion("kind", [
     z
       .object({
@@ -31,8 +32,8 @@ export const syncSlideAssetSchema = z
         checksumSha256: sha256,
       })
       .strict(),
-  ])
-  .superRefine((asset, context) => {
+  ]);
+export const syncSlideAssetSchema = syncSlideAssetReferenceSchema.superRefine((asset, context) => {
     if (
       asset.kind === "system" &&
       systemImagePaths.get(asset.path) !== asset.checksumSha256
@@ -44,6 +45,12 @@ export const syncSlideAssetSchema = z
     }
   });
 export type SyncSlideAsset = z.infer<typeof syncSlideAssetSchema>;
+/** Photographs may be selected as a background; they never become club logos. */
+const syncSlideBackgroundAssetSchema = syncSlideAssetReferenceSchema.superRefine((asset, context) => {
+  if (asset.kind === "system" && systemImagePaths.get(asset.path) !== asset.checksumSha256 && !syncBackgroundAssetForRef(asset)) {
+    context.addIssue({ code: "custom", message: "Kies een geverifieerde achtergrondafbeelding." });
+  }
+});
 
 const publicUrl = z
   .string()
@@ -66,27 +73,30 @@ const club = z
   .strict();
 
 /** Only confirmed, policy-filtered poll data belongs in the renderer. No demo store. */
-const poll = z
-  .object({
+const pollOption = z.object({
+  id: z.string().uuid(),
+  label: text,
+  votes: z.number().int().min(0).max(1_000_000_000),
+}).strict();
+const pollFields = {
     id: z.string().uuid(),
     title: text,
     status: z.enum(["draft", "scheduled", "live", "closed", "archived"]),
     visibility: z.enum(["live", "after_vote", "after_close"]),
     publicUrl: publicUrl.optional(),
-    options: z
-      .array(
-        z
-          .object({
-            id: z.string().uuid(),
-            label: text,
-            votes: z.number().int().min(0).max(1_000_000_000),
-          })
-          .strict(),
-      )
-      .min(2)
-      .max(12),
-  })
-  .strict()
+    options: z.array(pollOption).min(2).max(12),
+};
+/** Unmarked immutable polls keep their original single-page timing. Every new
+ * selected campaign freezes four readable choices per page, without dropping
+ * any of the campaign's twenty-four possible answers. */
+const poll = z.union([
+  z.object(pollFields).strict(),
+  z.object({
+    ...pollFields,
+    optionsPerPage: z.literal(4),
+    options: z.array(pollOption.extend({ label: z.string().max(160) })).min(2).max(24),
+  }).strict(),
+])
   .superRefine((value, context) => {
     const visible =
       (value.visibility === "live" &&
@@ -200,7 +210,7 @@ export const syncSlidePresentationSchema = z
         background: z
           .enum(["stadium", "gradient", "stripes", "clubmuur", "light", "photo"])
           .default("stadium"),
-        backgroundAsset: syncSlideAssetSchema.optional(),
+        backgroundAsset: syncSlideBackgroundAssetSchema.optional(),
         backgroundPosition: z
           .enum(["center", "top", "bottom", "left", "right"])
           .default("center"),
@@ -227,6 +237,12 @@ export const syncSlidePresentationSchema = z
   })
   .strict()
   .superRefine((slide, context) => {
+    if (syncBackgroundAssetForRef(slide.style.backgroundAsset) && slide.style.background !== "photo")
+      context.addIssue({
+        code: "custom",
+        path: ["style", "background"],
+        message: "Gebruik de fotoachtergrond bij deze afbeelding.",
+      });
     if (slide.style.background === "photo" && !slide.style.backgroundAsset)
       context.addIssue({
         code: "custom",
@@ -274,6 +290,8 @@ export const syncSlideDraftInputSchema = z
   .strict();
 
 export function syncSlidePageCount(slide: SyncSlidePresentation): number {
+  if (slide.family === "engage" && slide.poll && "optionsPerPage" in slide.poll)
+    return Math.max(1, Math.ceil(slide.poll.options.length / slide.poll.optionsPerPage));
   return slide.family === "rss"
     ? Math.max(1, slide.news.length)
     : Math.max(1, Math.ceil(slide.rows.length / slide.rowsPerPage));

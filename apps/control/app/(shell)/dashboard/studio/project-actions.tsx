@@ -66,7 +66,7 @@ export function ProjectActions({
       {canMutate ? (
         <FloatingPanel
           className={styles.actionMenu}
-          contentClassName={styles.actionPopover}
+          contentClassName={`sync-control sync-retained-studio ${styles.actionPopover}`}
           contentLabel={`Acties voor ${project.name}`}
           onOpenChange={setOpen}
           open={open}

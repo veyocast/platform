@@ -1,0 +1,21 @@
+.catalog { display:grid; gap:24px; min-width:0; }
+.filters { display:flex; align-items:flex-end; flex-wrap:wrap; gap:16px; }
+.filters label { display:grid; gap:8px; font-size:14px; }
+.filters label:first-child { flex:1; min-width:min(240px,100%); }
+.filters :is(input,select) { font-size:14px; min-height:44px; width:100%; min-width:0; }
+.table td { vertical-align:top; white-space:normal; overflow-wrap:anywhere; }
+.name { display:inline-flex; align-items:center; min-height:44px; color:var(--accent); font-size:14px; font-weight:650; }
+.description { margin:0; max-width:60ch; color:var(--muted); font-size:14px; line-height:1.55; }
+.meta { display:block; margin-top:6px; color:var(--muted); font-size:13px; }
+.pagination { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:20px; }
+.pagination > span { color:var(--muted); font-size:14px; }
+.empty { margin:0; padding:24px 0; color:var(--muted); font-size:14px; line-height:1.6; }
+@media(max-width:767px) {
+  .filters { display:grid; grid-template-columns:minmax(0,1fr); }
+  .filters label:first-child { min-width:0; }
+  :global(.sync-control) .catalog .table tr { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; padding:16px; }
+  :global(.sync-control) .catalog .table td { display:block; min-width:0; padding:0; }
+  :global(.sync-control) .catalog .table td::before { display:none; }
+  :global(.sync-control) .catalog .table td:first-child { grid-column:1 / -1; }
+  :global(.sync-control) .catalog .table td > * { min-width:0; }
+}

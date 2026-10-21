@@ -124,4 +124,21 @@ describe("Centrale authorable clubstijl-editor", () => {
       expect(Object.keys(JSON.parse(serializedPayload!).fieldflow.dark)).toHaveLength(26);
     }
   );
+
+  it("noemt de behouden legacy-editor Huisstijl zonder catalogreferentie of hidden payload te wijzigen", () => {
+    const legacySelection: ThemeSelection = { ...selection, ref: { catalog: "legacy", legacyThemeId: "editorial", version: 1 } };
+    const before = JSON.stringify(legacySelection);
+    const theme = createRoyalCurrentTheme({ primary: "#2459ED" }, "light");
+    const html = renderToStaticMarkup(createElement(EditorialThemeEditor, {
+      appearance: createRoyalCurrentAppearance(), defaults: theme, disabled: false,
+      onAppearanceChange: () => undefined, onChange: () => undefined, onSelectionChange: () => undefined,
+      selection: legacySelection, theme
+    }));
+    expect(html).toMatch(/class="[^"]*editorialThemeEyebrow[^"]*">Huisstijl<\/span>/);
+    expect(html).toContain('name="themeId" value="fieldflow"');
+    expect(html).toContain('name="themeVersion" value="1"');
+    expect(html).toContain('name="themeAccent"');
+    expect(JSON.stringify(legacySelection)).toBe(before);
+  });
+
 });

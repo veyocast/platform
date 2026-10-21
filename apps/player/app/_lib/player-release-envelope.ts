@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 
 import {
-  syncSlidePresentationSchema, syncSlideAssets, syncSlidePageCount, syncSystemAssets, type SyncSlidePresentation,
+  syncSlidePresentationSchema, syncSlideAssets, syncSlidePageCount, syncSystemAssets, syncBackgroundAssetForRef, type SyncSlidePresentation,
   syncDynamicPlaybackSchema,
   syncDynamicConfigurationSchema,
   sitesDynamicConfigurationSchema,
@@ -107,9 +107,13 @@ export async function loadPlayerReleaseEnvelope({
   releaseId,
   tenantId,
   enableSyncStudio = false,
+  enableSyncEngagePaging = false,
+  enableSyncBackgrounds = false,
   syncDynamicMode=false,
 }: {
   enableSyncStudio?:boolean;
+  enableSyncEngagePaging?:boolean;
+  enableSyncBackgrounds?:boolean;
   syncDynamicMode?:SyncDynamicMode;
   device: PlayerReleaseDevice;
   releaseId: string;
@@ -146,11 +150,12 @@ export async function loadPlayerReleaseEnvelope({
     releaseItems,
     tenantId,
     configurationHashes,
-    syncDynamicMode,syncDynamicSnapshots,
+    syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,
   );
   const binaryArtifacts=new Map<string,ReturnType<typeof readSyncPublishedBinaryArtifact>['artifact']>();
-  if(syncDynamicMode==='binary'){
-    const selected=releaseItems.filter(item=>item.live_data_enabled&&item.dynamic_snapshot_id&&syncDynamicSnapshots.has(item.id)),ids=[...new Set(selected.map(item=>item.dynamic_snapshot_id!))];
+  const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => syncDynamicMode === 'dom' && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
+  if(syncDynamicMode){
+    const selected=releaseItems.filter(item=>item.live_data_enabled&&item.dynamic_snapshot_id&&syncDynamicSnapshots.has(item.id)&&!dynamicDomIds.has(item.id)),ids=[...new Set(selected.map(item=>item.dynamic_snapshot_id!))];
     if(ids.length){
       const result=await admin.rpc('get_sync_binary_playback_v1',{p_tenant_id:tenantId,p_snapshot_ids:ids});
       if(result.error||!Array.isArray(result.data)||result.data.length>ids.length)throw Error('SYNC_DYNAMIC_BINARY_UNAVAILABLE');
@@ -161,18 +166,25 @@ export async function loadPlayerReleaseEnvelope({
   }
   const studioPresentations=new Map<string,Extract<SitesPresentation,{kind:"studio"}>>();
   for(const item of releaseItems){if(item.sites_studio_presentation_json==null)continue;const parsed=sitesPresentationSchema.safeParse(item.sites_studio_presentation_json);if(!parsed.success||parsed.data.kind!=="studio")throw new Error("SITES_STUDIO_RELEASE_INVALID");studioPresentations.set(item.id,parsed.data);}
-  const syncPresentations=new Map<string,SyncSlidePresentation>();
-  if(enableSyncStudio) for(const item of releaseItems){
-    if(item.sync_studio_presentation_json==null)continue;
-    const parsed=syncSlidePresentationSchema.safeParse(item.sync_studio_presentation_json),duration=item.sync_studio_duration_ms;
+  const syncPresentations=new Map<string,SyncSlidePresentation>(),validatedSyncPresentations=new Map<string,SyncSlidePresentation>();
+  for(const item of releaseItems){
+    const raw=item.sync_studio_presentation_json;
+    if(raw==null)continue;
+    const pagedEngage=isRecord(raw)&&raw.family==='engage'&&isRecord(raw.poll)&&Object.hasOwn(raw.poll,'optionsPerPage');
+    if(!enableSyncStudio&&!pagedEngage)continue;
+    const parsed=syncSlidePresentationSchema.safeParse(raw),duration=item.sync_studio_duration_ms;
     if(!parsed.success||item.sites_studio_presentation_json!=null||!Number.isInteger(duration)||Number(duration)<3000*syncSlidePageCount(parsed.data)||Number(duration)>120000||item.duration_seconds*1000<Number(duration))throw Error("SYNC_STUDIO_RELEASE_INVALID");
-    syncPresentations.set(item.id,parsed.data);
+    validatedSyncPresentations.set(item.id,parsed.data);
+    // Older supported profiles receive the complete, unchanged binary, without
+    // an unknown strict DOM field or an online projection they cannot paginate.
+    if (enableSyncStudio&&(!pagedEngage||enableSyncEngagePaging)&&(enableSyncBackgrounds || !syncBackgroundAssetForRef(parsed.data.style.backgroundAsset))) syncPresentations.set(item.id,parsed.data);
   }
-  const studioAssetRefs=[...[...studioPresentations.values()].flatMap(sitesPresentationAssets),...[...syncPresentations.values()].flatMap(syncSlideAssets),...(syncDynamicMode==='dom'?[...syncDynamicSnapshots.values()].flatMap(value=>syncSlideAssets(value.presentation)):[])].filter(ref=>ref.kind==="tenant");
-  const studioAssets=studioAssetRefs.length?await loadDynamicTemplateAssets(admin,tenantId,[...new Set(studioAssetRefs.map(ref=>ref.mediaAssetId))]):new Map<string,PlayerDynamicTemplateAsset>();
-  if(studioAssetRefs.some(ref=>{const asset=studioAssets.get(ref.mediaAssetId);return !asset||asset.checksumSha256!==ref.checksumSha256||!asset.mimeType.startsWith("image/");}))throw new Error("SITES_STUDIO_ASSETS_UNAVAILABLE");
+  const studioAssetRefs=[...[...studioPresentations.values()].flatMap(sitesPresentationAssets),...[...syncPresentations.values()].flatMap(syncSlideAssets),...[...syncDynamicSnapshots].flatMap(([id,value])=>dynamicDomIds.has(id)?syncSlideAssets(value.presentation):[])].filter(ref=>ref.kind==="tenant");
+  const validationRefs=[...studioAssetRefs,...[...validatedSyncPresentations.values()].flatMap(syncSlideAssets).filter(ref=>ref.kind==='tenant')];
+  const studioAssets=validationRefs.length?await loadDynamicTemplateAssets(admin,tenantId,[...new Set(validationRefs.map(ref=>ref.mediaAssetId))]):new Map<string,PlayerDynamicTemplateAsset>();
+  if(validationRefs.some(ref=>{const asset=studioAssets.get(ref.mediaAssetId);return !asset||asset.checksumSha256!==ref.checksumSha256||!asset.mimeType.startsWith("image/");}))throw new Error("SITES_STUDIO_ASSETS_UNAVAILABLE");
   const dynamicAssetBytes = uniqueDynamicAssetBytes(dynamicTemplates);
-  const studioAssetBytes=[...studioAssets.values()].reduce((sum,asset)=>sum+asset.bytes,0);
+  const studioAssetBytes=[...new Set(studioAssetRefs.map(ref=>ref.mediaAssetId))].reduce((sum,id)=>sum+studioAssets.get(id)!.bytes,0);
   const sponsorPlan = await loadSponsorPlan(admin, tenantId, device.screenId);
 
   const items = await Promise.all(
@@ -204,11 +216,11 @@ export async function loadPlayerReleaseEnvelope({
         durationSeconds: item.duration_seconds,
         ...(studioPresentations.has(item.id)?{sitesStudioPresentation:studioPresentations.get(item.id),sitesStudioAssets:Object.fromEntries(sitesPresentationAssets(studioPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
         ...(syncPresentations.has(item.id)?{syncStudioPresentation:syncPresentations.get(item.id),syncStudioDurationMs:Number(item.sync_studio_duration_ms),syncStudioAssets:Object.fromEntries(syncSlideAssets(syncPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
-        ...(syncDynamicSnapshots.has(item.id)?(syncDynamicMode==='dom'?{syncDynamic:syncDynamicPlaybackSchema.parse({...syncDynamicSnapshots.get(item.id)!.metadata,presentation:syncDynamicSnapshots.get(item.id)!.presentation,liveMatch:syncDynamicSnapshots.get(item.id)!.liveMatch,assets:Object.fromEntries(syncSlideAssets(syncDynamicSnapshots.get(item.id)!.presentation).flatMap(ref=>ref.kind==='tenant'?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))})}:{syncDynamicBinary:syncDynamicSnapshots.get(item.id)!.metadata}):{}),
+        ...(syncDynamicSnapshots.has(item.id)?(dynamicDomIds.has(item.id)?{syncDynamic:syncDynamicPlaybackSchema.parse({...syncDynamicSnapshots.get(item.id)!.metadata,presentation:syncDynamicSnapshots.get(item.id)!.presentation,liveMatch:syncDynamicSnapshots.get(item.id)!.liveMatch,assets:Object.fromEntries(syncSlideAssets(syncDynamicSnapshots.get(item.id)!.presentation).flatMap(ref=>ref.kind==='tenant'?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))})}:{syncDynamicBinary:syncDynamicSnapshots.get(item.id)!.metadata}):{}),
         ...(dynamicTemplates.get(item.id)
           ? { dynamicTemplate: dynamicTemplates.get(item.id) }
           : {}),
-        ...(item.engage_public_id && item.engage_title && item.engage_question&&(!item.sync_studio_presentation_json||enableSyncStudio)
+        ...(item.engage_public_id && item.engage_title && item.engage_question&&(!item.sync_studio_presentation_json||syncPresentations.has(item.id))
           ? {
               onlinePlayback: {
                 kind: "engage" as const,
@@ -285,7 +297,9 @@ export async function loadPlayerReleaseEnvelope({
   const frameAssetBytes = [...new Map(items.flatMap(item => Object.values(item.mediaFrameBackgroundAssets ?? {})).filter(asset => !mainChecksums.has(asset.checksumSha256)).map(asset => [asset.checksumSha256, asset])).values()].reduce((sum, asset) => sum + asset.bytes, 0);
   const needsSites=items.some(item=>item.sitesStudioPresentation||item.dynamicTemplate?.data.sitesConfiguration||((item.dynamicTemplate?.data.themePresentation as {selection?:{ref?:{id?:string}}}|undefined)?.selection?.ref?.id==="onzetrots-tv"));
   const systemAssets=needsSites?sitesSystemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
-  const syncAssets=syncPresentations.size||syncDynamicMode==='dom'&&syncDynamicSnapshots.size?syncSystemAssets.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
+  const domPresentations = [...syncPresentations.values(), ...[...syncDynamicSnapshots].flatMap(([id,value]) => dynamicDomIds.has(id) ? [value.presentation] : [])];
+  const extraBackgrounds = [...new Map(domPresentations.flatMap(value => { const asset = syncBackgroundAssetForRef(value.style.backgroundAsset); return asset ? [[asset.path, asset] as const] : []; })).values()];
+  const syncAssets=domPresentations.length?[...syncSystemAssets,...extraBackgrounds].map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
   const fetchedAt = new Date().toISOString();
   return {
     device,
@@ -395,6 +409,7 @@ async function loadDynamicTemplatePayloads(
   configurationHashes: Map<string, string>,
   syncDynamicMode:SyncDynamicMode,
   syncDynamicSnapshots:Map<string,ReturnType<typeof readSyncDynamicReleaseSnapshot>>,
+  enableSyncBackgrounds:boolean,
 ) {
   const snapshotIds = [
     ...new Set(
@@ -427,7 +442,7 @@ async function loadDynamicTemplatePayloads(
   }
   const legacySnapshots=originalSnapshots.filter(snapshot=>!Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'));
   const legacyIds=new Set(legacySnapshots.map(snapshot=>snapshot.id));
-  const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled&&item.dynamic_snapshot_id&&(legacyIds.has(item.dynamic_snapshot_id)||syncDynamicMode==='dom'&&syncDynamicSnapshots.has(item.id)))
+  const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled&&item.dynamic_snapshot_id&&(legacyIds.has(item.dynamic_snapshot_id)||syncDynamicMode==='dom'&&syncDynamicSnapshots.has(item.id)&&(enableSyncBackgrounds||!syncBackgroundAssetForRef(syncDynamicSnapshots.get(item.id)!.presentation.style.backgroundAsset))))
     .flatMap((item) => item.dynamic_snapshot_id ? [item.dynamic_snapshot_id] : []))];
   const liveResult = liveIds.length ? await admin.from("published_dynamic_data")
     .select("snapshot_id,content_hash,data_json,data_revision,changed_at,last_error_code")
@@ -437,7 +452,7 @@ async function loadDynamicTemplatePayloads(
   const sourceWork=releaseItems.flatMap(item=>{
     if(syncDynamicMode!=='dom'||!item.live_data_enabled||!item.dynamic_snapshot_id)return [];
     const live=liveById.get(item.dynamic_snapshot_id),snapshot=originalSnapshots.find(value=>value.id===item.dynamic_snapshot_id),base=syncDynamicSnapshots.get(item.id);
-    if(!live||!snapshot||!base)return [];
+    if(!live||!snapshot||!base||(!enableSyncBackgrounds&&syncBackgroundAssetForRef(base.presentation.style.backgroundAsset)))return [];
     if(Number(live.data_revision)===1){base.metadata={...base.metadata,dataRevision:1};return [];}
     return [{itemId:item.id,snapshot,base,live}];
   });

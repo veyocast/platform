@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GoalOverlay, royalCurrentDefaultStyle, royalCurrentEditorialTokens } from "@veyocast/content-templates";
+import { royalCurrentDefaultStyle, royalCurrentEditorialTokens } from "@veyocast/content-templates";
 import { goalTemplateVariables, validGoalTemplate, type GoalOverlayConfiguration, type GoalOverlayEvent } from "@veyocast/contracts";
 import { Badge, Button, MultiSelectDropdown } from "@veyocast/ui";
 import { CanvasMediaUploadDialog } from "../canvas-media-upload-dialog";
+import { GoalOverlayPreview } from "./goal-overlay-preview";
 import { publishGoalOverlay, saveGoalOverlay, testGoalOverlay, toggleGoalOverlay, savePlayerPhoto } from "./actions";
 import styles from "./goal-overlay.module.css";
 import { GoalColorField, isGoalColor } from "./color-field";
@@ -140,7 +141,7 @@ export function GoalOverlayEditor(props: Props) {
           <label>Weergave<select value={appearance} onChange={(e) => setAppearance(e.target.value as typeof appearance)}><option value="light">Light</option><option value="dark">Dark</option></select></label>
           <label>Doelpunt<select value={side} onChange={(e) => setSide(e.target.value as typeof side)}><option value="home">Thuisgoal</option><option value="away">Uitgoal</option></select></label>
         </div>
-        <div className={styles.stage} data-orientation={orientation}><GoalOverlay event={event} configuration={config} orientation={orientation} appearance={appearance} /></div>
+        <div className={styles.stage} data-orientation={orientation}><GoalOverlayPreview event={event} configuration={config} orientation={orientation} appearance={appearance} /></div>
         <label className={styles.check}><input type="checkbox" checked={previewScorer} onChange={(e) => setPreviewScorer(e.target.checked)} />Voorbeeld met doelpuntenmaker</label>
         <label>Voorbeeldfoto<select value={previewPhoto} onChange={(e) => setPreviewPhoto(e.target.value)}><option value="">Zonder spelersfoto</option>{props.photos.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</select></label>
         <p>Introvideo → Goal Overlay → playlist hervatten. De preview gebruikt dezelfde renderer als de player.</p>

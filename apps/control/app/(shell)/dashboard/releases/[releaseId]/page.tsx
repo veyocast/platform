@@ -11,10 +11,12 @@ import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
 import { reassignRelease, restoreReleaseToDraft } from "../actions";
 import { loadReleaseDetail } from "../data";
+import { parseScreenAssignmentContext, resolveScreenAssignmentContext } from "../../screens/sync-screen-assignment-context";
+import assignmentStyles from "../../screens/sync-screen-assignment.module.css";
 
 type ReleaseDetailPageProps = {
   params: Promise<{ releaseId: string }>;
-  searchParams: Promise<{ compare?: string; fout?: string; succes?: string }>;
+  searchParams: Promise<{ compare?: string; fout?: string; succes?: string; screens?: string | string[] }>;
 };
 
 export default async function ReleaseDetailPage({ params, searchParams }: ReleaseDetailPageProps) {
@@ -32,9 +34,11 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
   const canReassign = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.playlist.publish"));
   const canRestore = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.playlist.publish"));
   const currentScreens = data?.screenStates.filter((state) => state.screen.assignedReleaseId === releaseId) ?? [];
+  const screenContext = resolveScreenAssignmentContext(parseScreenAssignmentContext(query.screens), data?.screenStates ?? []);
+  const returnScreen = screenContext.ids.length === 1 ? data?.screenStates.find(state => state.screen.id === screenContext.ids[0])?.screen : null;
 
-  return <>
-    <Link className="breadcrumb-link" href="/dashboard/publications">← Terug naar Publicaties</Link>
+  return <div className={assignmentStyles.review}>
+    <Link className="breadcrumb-link" href={returnScreen ? `/dashboard/screens/${returnScreen.id}` : "/dashboard/publications"}>← Terug naar {returnScreen?.name ?? "Publicaties"}</Link>
     <PageHeader
       actions={release ? <div className="page-action-group"><Link className="button-link button-link--secondary" href={`/dashboard/playlists/${release.playlistId}`}>Open playlist</Link><a className="button-link button-link--primary" href="#opnieuw-toewijzen">Opnieuw toewijzen</a></div> : null}
       description={release ? `${release.itemCount} items · ${formatBytes(release.totalBytes)} · gepubliceerd door ${release.publishedBy} op ${formatDate(release.publishedAt)}.` : "De release kon niet worden geladen."}
@@ -44,6 +48,7 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
     />
     {query.fout ? <p className="notice notice--critical" role="alert"><strong>Actie niet uitgevoerd.</strong> {query.fout}</p> : null}
     {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
+    {screenContext.rejected ? <p className="notice notice--critical" role="alert"><strong>Het gekozen scherm is niet beschikbaar voor deze publicatie.</strong> Er is geen ander scherm geselecteerd. Controleer het scherm en de compatibiliteit, of kies hieronder bewust een beschikbaar doel.</p> : null}
     {data?.error ? <p className="notice notice--critical" role="alert"><strong>Releasedetails onvolledig.</strong> {data.error}</p> : null}
 
     {release && data ? <>
@@ -75,13 +80,13 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
 
       <section className="workspace-section" aria-labelledby="compare-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="compare-title">Versies vergelijken</h2><p className="work-panel__meta">Toegevoegd, verwijderd, verplaatst en inhoudelijk gewijzigd worden afzonderlijk berekend op stabiele item-ID’s en hashes.</p></div></div>
-        <form className="resource-toolbar" method="get"><label className="toolbar-field"><span>Vergelijk met</span><select defaultValue={comparisonId ?? ""} name="compare"><option value="">Kies een versie</option>{data.comparisonReleases.filter((candidate) => candidate.id !== releaseId).map((candidate) => <option key={candidate.id} value={candidate.id}>Versie {candidate.version}</option>)}</select></label><button className="button-link button-link--secondary" type="submit">Vergelijken</button></form>
+        <form className="resource-toolbar" method="get">{screenContext.requested ? <input name="screens" type="hidden" value={screenContext.ids.join(",")} /> : null}<label className="toolbar-field"><span>Vergelijk met</span><select defaultValue={comparisonId ?? ""} name="compare"><option value="">Kies een versie</option>{data.comparisonReleases.filter((candidate) => candidate.id !== releaseId).map((candidate) => <option key={candidate.id} value={candidate.id}>Versie {candidate.version}</option>)}</select></label><button className="button-link button-link--secondary" type="submit">Vergelijken</button></form>
         {comparison ? <div className="release-diff-grid"><DiffCard label="Toegevoegd" items={comparison.added.map((item) => item.assetTitle)} /><DiffCard label="Verwijderd" items={comparison.removed.map((item) => item.assetTitle)} /><DiffCard label="Verplaatst" items={comparison.moved.map((item) => `${item.after.assetTitle}: ${item.from + 1} → ${item.to + 1}`)} /><DiffCard label="Gewijzigd" items={comparison.changed.map((item) => `${item.after.assetTitle}: ${item.fields.map(changeLabel).join(", ")}`)} /><article className="work-panel"><h3>Netto impact</h3><p>{signedDuration(comparison.durationDeltaSeconds)} · {signedBytes(comparison.bytesDelta)}</p></article></div> : <p className="notice" role="status">Kies een andere versie van deze playlist om het exacte verschil te zien.</p>}
       </section>
 
       <section className="publish-workspace" id="opnieuw-toewijzen" aria-labelledby="reassign-title">
         <div className="workspace-section__header"><div><h2 className="workspace-section__title" id="reassign-title">Bestaande release opnieuw toewijzen</h2><p className="work-panel__meta">Dit is een veilige rollbackassignment: de release, items, hash en historie blijven volledig ongewijzigd.</p></div><StatusPill label="Append-only" tone="success" /></div>
-        <form action={reassignRelease} className="playlist-form"><input name="releaseId" type="hidden" value={releaseId} /><input name="idempotencyKey" type="hidden" value={randomUUID()} /><fieldset className="checkbox-fieldset"><legend>Beschikbare doelschermen</legend>{data.screenStates.filter((state) => state.screen.status !== "disabled").map((state) => <label className="check-row" key={state.screen.id}><input disabled={!canReassign || state.preflight.status === "blocked"} name="screenIds" type="checkbox" value={state.screen.id} /><span><strong>{state.screen.name}</strong><span className="work-panel__meta">{preflightStatus(state.preflight.status).label} · {state.preflight.missingBytes === null ? "ontbrekende bytes onbekend" : `${formatBytes(state.preflight.missingBytes)} ontbreekt`}</span></span></label>)}</fieldset><label className="check-row"><input disabled={!canReassign} name="confirmRisk" type="checkbox" /><span><strong>Waarschuwingen en onbekende telemetry zijn bewust beoordeeld</strong><span className="work-panel__meta">Verplicht zodra een gekozen scherm niet volledig als gereed kan worden bewezen.</span></span></label><label className="check-row"><input disabled={!canReassign} name="confirmImmutable" required type="checkbox" /><span><strong>Ik wijs versie {release.version} opnieuw toe</strong><span className="work-panel__meta">Er wordt geen nieuwe release gemaakt en geen historie overschreven.</span></span></label><button className="button-link button-link--primary" disabled={!canReassign} type="submit">Bestaande release toewijzen</button></form>
+        <form action={reassignRelease} className="playlist-form"><input name="releaseId" type="hidden" value={releaseId} /><input name="idempotencyKey" type="hidden" value={randomUUID()} />{screenContext.requested ? <input name="screenContext" type="hidden" value={screenContext.ids.join(",")} /> : null}<fieldset className="checkbox-fieldset"><legend>Beschikbare doelschermen</legend>{data.screenStates.filter((state) => state.screen.status !== "disabled").map((state) => <label className="check-row" key={state.screen.id}><input defaultChecked={screenContext.ids.includes(state.screen.id)} disabled={!canReassign || state.preflight.status === "blocked"} name="screenIds" type="checkbox" value={state.screen.id} /><span><strong>{state.screen.name}</strong><span className="work-panel__meta">{preflightStatus(state.preflight.status).label} · {state.preflight.missingBytes === null ? "ontbrekende bytes onbekend" : `${formatBytes(state.preflight.missingBytes)} ontbreekt`}</span></span></label>)}</fieldset><label className="check-row"><input disabled={!canReassign} name="confirmRisk" type="checkbox" /><span><strong>Waarschuwingen en onbekende telemetry zijn bewust beoordeeld</strong><span className="work-panel__meta">Verplicht zodra een gekozen scherm niet volledig als gereed kan worden bewezen.</span></span></label><label className="check-row"><input disabled={!canReassign} name="confirmImmutable" required type="checkbox" /><span><strong>Ik wijs versie {release.version} opnieuw toe</strong><span className="work-panel__meta">Er wordt geen nieuwe release gemaakt en geen historie overschreven.</span></span></label><button className="button-link button-link--primary" disabled={!canReassign} type="submit">Bestaande release toewijzen</button></form>
       </section>
 
       <section className="workspace-section" aria-labelledby="restore-title">
@@ -108,7 +113,7 @@ export default async function ReleaseDetailPage({ params, searchParams }: Releas
         </form>
       </section>
     </> : null}
-  </>;
+  </div>;
 }
 
 function DiffCard({ items, label }: { items: string[]; label: string }) { return <article className="work-panel"><h3>{label}</h3>{items.length ? <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Geen</p>}</article>; }

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-10-19T08:02:15.851008+00:00",
+  "snapshotHeadBeforeDocumentation": "f8a32b4df6019b381b91be7d18e4049f4e677afe",
+  "s253Head": "7915bf66856de2954199a084083e85f31bc99acd",
+  "pr": "https://github.com/veyocast/platform/pull/279",
+  "freezeSha256": "88a5b82e510905f3c147527f52790d921063d7e5041720ad36a6471469f7d990",
+  "handoffSha256": "aff40b57ec4322203b9ea4f9e355196706ad853260180073252d824ec3cde2ae",
+  "ordinaryAncestor": true,
+  "controlApplicationTreeUnchanged": "d3612333e7c9eef876e122dc9520e7a2e115da84",
+  "originalHostedFailure": {
+    "head": "4d0d3b2a6cacf7e4e8ee97eb44da34aedc2dfb40",
+    "run": 39217710530,
+    "job": 117945380431,
+    "cause": "Global patchregistry ban fired before actualLG tests; no CLIpatch observed"
+  },
+  "nativeCases": 7,
+  "nativeActualExit": 0,
+  "actualRegistryGuardExit": 0,
+  "unchangedActualVersionHeaderAresWrapperHostedAndArtifactChecks": true,
+  "finalCombinedCI": "OPEN",
+  "fullVisualRounds": 0,
+  "stagingProduction": "OPEN"
+}

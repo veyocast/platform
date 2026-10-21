@@ -1,0 +1,48 @@
+diff --git a/dist/compiled/scheduler/cjs/scheduler.development.js b/dist/compiled/scheduler/cjs/scheduler.development.js
+--- a/dist/compiled/scheduler/cjs/scheduler.development.js
++++ b/dist/compiled/scheduler/cjs/scheduler.development.js
+@@ -12,6 +12,20 @@
+ "production" !== process.env.NODE_ENV &&
+   (function () {
+     function performWorkUntilDeadline() {
++      if (
++        isMessageLoopRunning &&
++        "undefined" !== typeof document &&
++        document.documentElement &&
++        "1" === document.documentElement.getAttribute("data-veyocast-document-ready") &&
++        ("complete" !== document.readyState ||
++          ("undefined" !== typeof window &&
++            null !== window &&
++            Array.isArray(window.$RB) &&
++            window.$RB.length > 0))
++      ) {
++        localSetTimeout(performWorkUntilDeadline, 8);
++        return;
++      }
+       needsPaint = !1;
+       if (isMessageLoopRunning) {
+         var currentTime = exports.unstable_now();
+diff --git a/dist/compiled/scheduler/cjs/scheduler.production.js b/dist/compiled/scheduler/cjs/scheduler.production.js
+--- a/dist/compiled/scheduler/cjs/scheduler.production.js
++++ b/dist/compiled/scheduler/cjs/scheduler.production.js
+@@ -119,6 +119,20 @@
+       : !0;
+ }
+ function performWorkUntilDeadline() {
++  if (
++    isMessageLoopRunning &&
++    "undefined" !== typeof document &&
++    document.documentElement &&
++    "1" === document.documentElement.getAttribute("data-veyocast-document-ready") &&
++    ("complete" !== document.readyState ||
++      ("undefined" !== typeof window &&
++        null !== window &&
++        Array.isArray(window.$RB) &&
++        window.$RB.length > 0))
++  ) {
++    localSetTimeout(performWorkUntilDeadline, 8);
++    return;
++  }
+   needsPaint = !1;
+   if (isMessageLoopRunning) {
+     var currentTime = exports.unstable_now();

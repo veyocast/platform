@@ -187,6 +187,7 @@ export type ScreenAutomationSummary = {
 };
 
 export type ScreenDetailData = {
+  assignableReleases: FleetRelease[];
   automation: ScreenAutomationSummary;
   auditEvents: ScreenAuditEvent[];
   devices: FleetDevice[];
@@ -402,6 +403,7 @@ export async function loadScreenDetail(
   const fleet = await loadScreenFleet(tenantId);
   const screen = fleet.screens.find((candidate) => candidate.id === screenId) ?? null;
   const empty: ScreenDetailData = {
+    assignableReleases: fleet.assignableReleases,
     automation: fleet.automation[screenId] ?? { enabled: false, label: "Handmatig" },
     auditEvents: [],
     devices: [],
@@ -460,6 +462,7 @@ export async function loadScreenDetail(
 
   return {
     automation: empty.automation,
+    assignableReleases: fleet.assignableReleases,
     auditEvents: (auditEvents.data ?? [])
       .filter((event) => event.target_id === screenId || (event.target_id && deviceIds.has(event.target_id)))
       .map((event) => ({

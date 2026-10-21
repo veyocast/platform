@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  next@15.5.20: 4aa457ae66bd40d5bcf23ace1d2bdcdd26eb6bf05dc68adb3d9388bce352ee88
+
 importers:
 
   .:
@@ -124,7 +127,7 @@ importers:
         version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next:
         specifier: ^15.4.1
-        version: 15.5.20(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 15.5.20(patch_hash=4aa457ae66bd40d5bcf23ace1d2bdcdd26eb6bf05dc68adb3d9388bce352ee88)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -335,7 +338,7 @@ importers:
         version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       next:
         specifier: ^15.4.1
-        version: 15.5.20(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 15.5.20(patch_hash=4aa457ae66bd40d5bcf23ace1d2bdcdd26eb6bf05dc68adb3d9388bce352ee88)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react:
         specifier: ^19.1.0
         version: 19.2.7
@@ -436,7 +439,7 @@ importers:
         version: link:../../packages/contracts
       next:
         specifier: ^15.4.1
-        version: 15.5.20(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 15.5.20(patch_hash=4aa457ae66bd40d5bcf23ace1d2bdcdd26eb6bf05dc68adb3d9388bce352ee88)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -12661,7 +12664,7 @@ snapshots:
 
   negotiator@1.0.0: {}
 
-  next@15.5.20(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  next@15.5.20(patch_hash=4aa457ae66bd40d5bcf23ace1d2bdcdd26eb6bf05dc68adb3d9388bce352ee88)(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
       '@next/env': 15.5.20
       '@swc/helpers': 0.5.15

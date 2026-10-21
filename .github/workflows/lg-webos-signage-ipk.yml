@@ -57,10 +57,7 @@ jobs:
       - name: Verify pinned Signage CLI
         run: |
           test "$(node -p "require('./node_modules/@webos-tools/cli/package.json').version")" = "3.2.5"
-          if grep -R "patchedDependencies" pnpm-workspace.yaml pnpm-lock.yaml; then
-            echo "De officiële Signage-packager mag niet lokaal gepatcht zijn." >&2
-            exit 1
-          fi
+          node apps/lg-webos-signage/scripts/assert-official-packager.mjs
           grep -F 'webOS-Packager-Version: x.y.x' node_modules/@webos-tools/cli/lib/package.js
           pnpm exec ares-config --profile signage
           pnpm exec ares-package --version

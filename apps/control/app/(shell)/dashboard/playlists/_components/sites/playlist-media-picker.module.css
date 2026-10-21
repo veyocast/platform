@@ -2,7 +2,7 @@
 .picker *{box-sizing:border-box}
 .picker button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .picker button:disabled{cursor:default}
-.picker button:focus-visible,.picker select:focus-visible,.picker input:focus-visible{outline:3px solid #ef8738;outline-offset:3px}
+.picker button:focus-visible,.picker select:focus-visible,.picker input:focus-visible{outline:3px solid var(--accent,var(--vc-vector-brand-petrol));outline-offset:3px}
 .scrollBody{flex:1;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 .tools{flex-shrink:0;background:#fff;border-bottom:1px solid #e2e9e4;padding:0 24px 12px}
 .tabs{display:flex;gap:25px;border-bottom:1px solid #e9eeeb;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
@@ -60,7 +60,7 @@
 .selectionTray strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:650}
 .selectionTray small{margin-left:auto;white-space:nowrap;font-size:10px;color:#708a77}
 .selectionTray button{display:grid;place-items:center;margin-left:auto;flex-shrink:0;width:44px;min-height:44px;border:0;background:transparent;color:#658773}
-.addButton{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:49px;border:0;border-radius:11px;padding:12px;background:#ff8428;color:#203e32;font-size:15px!important;font-weight:800!important;box-shadow:0 3px 8px #ef832320}
+.addButton{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:49px;border:0;border-radius:11px;padding:12px;background:var(--accent,var(--vc-vector-brand-petrol));color:var(--vc-neutral-0);font-size:15px!important;font-weight:800!important;box-shadow:none}
 .addButton:disabled{background:#e8ede7;color:#8f9e90;box-shadow:none}
 .uploadStatus,.success{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border:1px solid #d5e7db;border-radius:9px;background:#edf7f0;color:#356b4c;font-size:12px;line-height:1.5;margin-top:15px}
 .uploadStatus>svg,.success>svg{flex-shrink:0;margin-top:1px}
@@ -86,3 +86,23 @@
 @media(prefers-reduced-motion:reduce){.card{transition:none}.spin{animation:none}}
 
 @media(max-height:500px){.footer{position:relative;padding-top:5px;padding-bottom:max(6px,env(safe-area-inset-bottom))}.selectionSummary{margin:-3px 0 0}.addButton{min-height:44px;padding:10px}.selectionTray{position:absolute;z-index:5;left:16px;right:16px;bottom:calc(100% + 1px);max-height:min(144px,35dvh);padding:8px;border:1px solid #d5e2d8;border-radius:12px;background:#fff;box-shadow:0 -6px 25px #244c3226}.tools{padding-bottom:8px}.tabs{margin-bottom:8px}.tabs button{min-height:44px}}
+
+
+/* Source roles for picker chrome; asset thumbnails and preview art stay intact. */
+.picker { color:var(--text,var(--vc-text)); background:var(--bg,var(--vc-background)); }
+.picker .addButton { background:var(--accent,var(--vc-vector-brand-petrol)); color:var(--vc-neutral-0); box-shadow:none; }
+.picker .addButton:hover:not(:disabled) { background:color-mix(in oklch,var(--accent,var(--vc-vector-brand-petrol)),black 12%); }
+.picker .addButton:disabled { background:var(--surface-2,var(--vc-surface-muted)); color:var(--muted,var(--vc-text-muted)); }
+.picker :is(.tools,.footer,.card,.outlineButton,.folder) { background:var(--surface,var(--vc-surface)); border-color:var(--line,var(--vc-border)); color:var(--text,var(--vc-text)); }
+.picker :is(.uploadButton,.favorite,.filterChip) { background:var(--surface-2,var(--vc-surface-muted)); border-color:var(--line,var(--vc-border)); color:var(--text,var(--vc-text)); }
+.picker :is(.favorite,.filterChip)[aria-pressed=true],.picker .card[aria-pressed=true] { border-color:var(--accent,var(--vc-vector-brand-petrol)); color:var(--accent,var(--vc-vector-brand-petrol)); background:var(--accent-soft,var(--vc-surface-muted)); }
+.picker .card[aria-pressed=true] { box-shadow:0 0 0 1px var(--accent,var(--vc-vector-brand-petrol)); }
+.picker .tabs button[aria-pressed=true] { color:var(--accent,var(--vc-vector-brand-petrol)); border-bottom-color:var(--accent,var(--vc-vector-brand-petrol)); }
+.picker :is(.tabs button,.uploadButton,.outlineButton,.favorite,.filterChip,.resultRow p,.resultRow button,.cardCopy small,.hint,.empty p,.selectionToggle,.clear,.selectionTray strong,.selectionTray small,.uploadStatus,.uploadStatus strong,.success,.errors,.errors strong) { font-size:14px; line-height:1.5; }
+/* These six existing declarations are important in the retained module. */
+.picker :is(.uploadButton,.outlineButton,.favorite,.filterChip,.selectionToggle,.clear) { font-size:14px!important; }
+.picker :is(.cardCopy small,.hint,.empty p,.clear,.selectionTray small) { color:var(--muted,var(--vc-text-muted)); }
+.picker :is(.selectionToggle,.resultRow button) { color:var(--accent,var(--vc-vector-brand-petrol)); }
+.picker .selectionTray li { background:var(--surface-2,var(--vc-surface-muted)); color:var(--text,var(--vc-text)); }
+.picker .folder select { min-height:44px; color:var(--text,var(--vc-text)); }
+.picker .processingStatus a { display:inline-flex; align-items:center; min-height:44px; }

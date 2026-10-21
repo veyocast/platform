@@ -40,7 +40,7 @@ describe("authorized current-target API", () => {
     expect(next.status).toBe(304);
     expect(adminRpc).toHaveBeenCalledOnce();
     expect(loadEnvelope).not.toHaveBeenCalled();
-    expect(next.headers.get("vary")).toBe("Authorization, X-VeyoCast-Sync-Renderer, X-VeyoCast-Sync-Dynamic");
+    expect(next.headers.get("vary")).toBe("Authorization, X-VeyoCast-Sync-Renderer, X-VeyoCast-Sync-Dynamic, X-VeyoCast-Sync-Backgrounds, X-VeyoCast-Sync-Engage-Paging");
     expect(await next.text()).toBe("");
   });
   it("negotiates Source before conditional caching without sharing the binary profile ETag",async()=>{
@@ -90,4 +90,58 @@ describe("authorized current-target API", () => {
     expect(access.status).toBe(200);
     expect(await access.json()).toHaveProperty("target.revision", "12");
   });
+});
+
+
+it("varies authorized ETags by the exact backgrounds capability and forwards it to every composed release", async () => {
+  const uuid = (n: number) => `23800000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  const candidate = { id: uuid(10), revision: 1, configuration: { schemaVersion: 1, layout: "three", orientation: "landscape", mainWidthPercent: 70, bottomHeightPercent: 20, zones: ["main", "side", "bottom"].map((id, index) => ({ id, playlistId: uuid(20 + index) })) }, bindings: ["main", "side", "bottom"].map((zoneId, index) => ({ zoneId, playlistId: uuid(20 + index), releaseId: uuid(30 + index), publicationId: uuid(40 + index), configRevision: 1 })) };
+  adminRpc.mockReset().mockResolvedValue({ data: { ...target, desired_release_id: uuid(30), composition: candidate }, error: null });
+  anonRpc.mockReset().mockResolvedValue({ data: [], error: null });
+  loadEnvelope.mockReset().mockImplementation(async ({ releaseId, device }) => {
+    const result = getPlayerManifestForToken("demo-online"); if (!result.ok) throw Error("fixture unavailable");
+    const body = structuredClone(result.body), index = [30, 31, 32].findIndex(n => uuid(n) === releaseId);
+    body.device = device; body.manifest.releaseId = releaseId; body.manifest.playlistId = uuid(20 + index); body.manifest.tenantId = target.tenant_id; return body;
+  });
+  const capabilityRequest = (value: string | null, etag?: string) => {
+    const base = request(etag, "sync-v1", "sync-dynamic-v1");
+    if (value !== null) base.headers.set("X-VeyoCast-Sync-Backgrounds", value); return base;
+  };
+  const old = await GET(capabilityRequest(null)); expect(old.status).toBe(200);
+  expect(loadEnvelope).toHaveBeenCalledTimes(3);
+  for (const [options] of loadEnvelope.mock.calls) expect(options).toMatchObject({ enableSyncStudio: true, syncDynamicMode: "dom", enableSyncBackgrounds: false });
+  loadEnvelope.mockClear();
+  const fresh = await GET(capabilityRequest("sync-backgrounds-v1", old.headers.get("etag")!)); expect(fresh.status).toBe(200);
+  expect(fresh.headers.get("etag")).not.toBe(old.headers.get("etag")); expect(loadEnvelope).toHaveBeenCalledTimes(3);
+  for (const [options] of loadEnvelope.mock.calls) expect(options).toMatchObject({ enableSyncStudio: true, syncDynamicMode: "dom", enableSyncBackgrounds: true });
+  const composed = await fresh.json(); expect(Object.keys(composed.composition.zones).sort()).toEqual(["bottom", "side"]);
+  loadEnvelope.mockClear(); adminRpc.mockClear();
+  const same = await GET(capabilityRequest("sync-backgrounds-v1", fresh.headers.get("etag")!));
+  expect(same.status).toBe(304); expect(adminRpc).toHaveBeenCalledOnce(); expect(loadEnvelope).not.toHaveBeenCalled(); expect(same.headers.get("vary")).toContain("X-VeyoCast-Sync-Backgrounds");
+  expect((await GET(capabilityRequest("unknown-backgrounds", old.headers.get("etag")!))).status).toBe(304);
+  adminRpc.mockResolvedValue({ data: null, error: null }); anonRpc.mockResolvedValue({ data: "DEVICE_REVOKED", error: null });
+  expect((await GET(capabilityRequest("sync-backgrounds-v1", fresh.headers.get("etag")!))).status).toBe(403);
+});
+
+it("negotiates paged Engage independently for every composed release and every authorized conditional response",async()=>{
+ const uuid=(n:number)=>`26200000-0000-4000-8000-${String(n).padStart(12,"0")}`;
+ const composition={id:uuid(10),revision:1,configuration:{schemaVersion:1,layout:"three",orientation:"landscape",mainWidthPercent:70,bottomHeightPercent:20,zones:["main","side","bottom"].map((id,index)=>({id,playlistId:uuid(20+index)}))},bindings:["main","side","bottom"].map((zoneId,index)=>({zoneId,playlistId:uuid(20+index),releaseId:uuid(30+index),publicationId:uuid(40+index),configRevision:1}))};
+ adminRpc.mockReset().mockResolvedValue({data:{...target,desired_release_id:uuid(30),composition},error:null});anonRpc.mockReset().mockResolvedValue({data:[],error:null});
+ loadEnvelope.mockReset().mockImplementation(async({releaseId,device})=>{
+  const result=getPlayerManifestForToken("demo-online");if(!result.ok)throw Error("fixture unavailable");
+  const body=structuredClone(result.body),index=[30,31,32].findIndex(n=>uuid(n)===releaseId);body.device=device;body.manifest.releaseId=releaseId;body.manifest.playlistId=uuid(20+index);body.manifest.tenantId=target.tenant_id;return body;
+ });
+ const capabilityRequest=(value:string|null,etag?:string,renderer="sync-v1")=>{
+  const base=request(etag,renderer);if(value!==null)base.headers.set("X-VeyoCast-Sync-Engage-Paging",value);return base;
+ };
+ const old=await GET(capabilityRequest(null));expect(old.status).toBe(200);expect(loadEnvelope).toHaveBeenCalledTimes(3);
+ for(const[options]of loadEnvelope.mock.calls)expect(options.enableSyncEngagePaging).toBe(false);
+ loadEnvelope.mockClear();const fresh=await GET(capabilityRequest("sync-engage-pages-v1",old.headers.get("etag")!));expect(fresh.status).toBe(200);expect(fresh.headers.get("etag")).not.toBe(old.headers.get("etag"));expect(loadEnvelope).toHaveBeenCalledTimes(3);
+ for(const[options]of loadEnvelope.mock.calls)expect(options).toMatchObject({enableSyncStudio:true,enableSyncEngagePaging:true});
+ loadEnvelope.mockClear();adminRpc.mockClear();const same=await GET(capabilityRequest("sync-engage-pages-v1",fresh.headers.get("etag")!));
+ expect(same.status).toBe(304);expect(adminRpc).toHaveBeenCalledOnce();expect(loadEnvelope).not.toHaveBeenCalled();expect(same.headers.get("vary")).toContain("X-VeyoCast-Sync-Engage-Paging");
+ expect((await GET(capabilityRequest("unknown-pages",old.headers.get("etag")!))).status).toBe(304);
+ const noRenderer=await GET(capabilityRequest("sync-engage-pages-v1",undefined,"unknown"));expect(noRenderer.status).toBe(200);
+ for(const[options]of loadEnvelope.mock.calls)expect(options.enableSyncEngagePaging).toBe(false);
+ adminRpc.mockResolvedValue({data:null,error:null});anonRpc.mockResolvedValue({data:"DEVICE_REVOKED",error:null});expect((await GET(capabilityRequest("sync-engage-pages-v1",fresh.headers.get("etag")!))).status).toBe(403);
 });

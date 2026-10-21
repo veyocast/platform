@@ -22,7 +22,7 @@ export default async function ResetPasswordPage({
   const { fout } = await searchParams;
 
   return (
-    <main className="auth-shell">
+    <main className="sync-control sync-auth auth-shell">
       <section className="auth-panel" aria-labelledby="reset-password-title">
         <AuthBrand />
         <div>

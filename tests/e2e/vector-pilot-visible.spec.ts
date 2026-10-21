@@ -44,7 +44,7 @@ test.describe("Fieldflow shell and screen views", () => {
     await expect(views.getByRole("link", { name: "Gezondheid" })).toBeVisible();
     await openControl(page, "/dashboard/screens?view=venue");
     await expect(
-      page.getByRole("heading", { name: "Venue Twin staat voor deze organisatie uit" })
+      page.getByRole("heading", { name: "Plattegrond nog niet beschikbaar" })
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Venue toevoegen" })).toHaveCount(0);
     const bounds = await page.evaluate(() => ({ inner: innerWidth, scroll: document.documentElement.scrollWidth }));
@@ -68,7 +68,7 @@ test.describe("Fieldflow shell and screen views", () => {
     await expect(views.getByRole("link", { name: "Gezondheid" })).toBeVisible();
     await openControl(page, "/dashboard/screens?view=venue");
     await expect(
-      page.getByRole("heading", { name: "Venue Twin staat voor deze organisatie uit" })
+      page.getByRole("heading", { name: "Plattegrond nog niet beschikbaar" })
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Venue toevoegen" })).toHaveCount(0);
     const bounds = await page.evaluate(() => ({ inner: innerWidth, scroll: document.documentElement.scrollWidth }));

@@ -6,7 +6,7 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import { syncSlidePageCount, syncSystemAssets, syncSlideTransition,type SyncSlidePresentation } from "@veyocast/contracts";
+import { syncSlidePageCount, syncSystemAssets, syncBackgroundAssetForRef, syncSlideTransition,type SyncSlidePresentation } from "@veyocast/contracts";
 import { SyncSlideStaticView } from "@veyocast/content-templates/sync-slide-static-view";
 import type { PlayerManifestItem } from "../_lib/player-manifest";
 import { supportsSyncSlideDom } from "../_lib/sync-player-capabilities";
@@ -17,6 +17,7 @@ import {
   syncPreparedPresentation,
   syncPlaybackFrame,
   syncPlayerContent,
+  prepareSyncBackgroundFonts,
 } from "../_lib/sync-player-presentation";
 
 /** A complete verified binary remains available on unsupported or failed DOM playback. */
@@ -101,11 +102,14 @@ export function SyncStudioMedia({
         stopped = true;
         cancelAnimationFrame(first);
         cancelAnimationFrame(second);
+        fonts?.dispose();
         setFailed(true);
       }
     }, 5000);
+    const background = syncBackgroundAssetForRef(presentation?.style.backgroundAsset);
+    const fonts = background ? prepareSyncBackgroundFonts(item.syncSystemAssetUrls!, origin) : null;
     const images = [
-      ...syncSystemAssets
+      ...[...syncSystemAssets, ...(background ? [background] : [])]
         .filter((asset) => asset.mimeType.startsWith("image/"))
         .map((asset) => item.syncSystemAssetUrls![asset.path]!),
       ...Object.values(content?.assets ?? {}).map((asset) => asset.url),
@@ -116,7 +120,7 @@ export function SyncStudioMedia({
         image.src = url;
         return image.decode();
       }),
-      ...[
+      ...(fonts ? [fonts.ready] : [
         "700 16px Inter",
         "700 16px Manrope",
         '700 16px "OnzeTrots Brush"',
@@ -125,9 +129,9 @@ export function SyncStudioMedia({
           if (!faces.length || faces.some((face) => face.status !== "loaded"))
             throw Error("SYNC_FONT_NOT_LOADED");
         }),
-      ),
+      )),
     ])
-      .then(() => document.fonts.ready)
+      .then(() => fonts ? undefined : document.fonts.ready)
       .then(() => {
         if (stopped) return;
         setReady(true);
@@ -158,11 +162,13 @@ export function SyncStudioMedia({
         if (!stopped) {
           window.clearTimeout(timer);
           stopped = true;
+          fonts?.dispose();
           setFailed(true);
         }
       });
     return () => {
       stopped = true;
+      fonts?.dispose();
       window.clearTimeout(timer);
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);

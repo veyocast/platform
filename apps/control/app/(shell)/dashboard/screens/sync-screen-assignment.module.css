@@ -1,0 +1,22 @@
+.picker{display:grid;gap:18px;min-width:0;color:var(--text);font-size:14px;line-height:1.6}
+.picker p,.message{margin:0;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.field{display:grid;gap:8px;min-width:0;font-size:14px;font-weight:650}
+.picker .field select{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-weight:450}
+.selection{color:var(--muted)}
+.safety{display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;color:var(--muted)}
+.safety>svg{flex:none;margin-top:2px;color:var(--accent)}
+.picker .primary,.picker .secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:44px;padding:11px 16px;border:1px solid transparent;border-radius:10px;font:inherit;font-size:14px;font-weight:650;line-height:1.4;text-decoration:none;cursor:pointer}
+.picker .primary{background:var(--accent);color:var(--surface)}
+.picker .secondary{background:var(--surface);color:var(--accent);border-color:var(--line)}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.primary:focus-visible,.secondary:focus-visible,.field select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.message{color:var(--muted)}
+.message strong{display:block;margin-bottom:5px;color:var(--text)}
+@media(max-width:767px){.picker .field select{font-size:16px;min-height:48px}.picker{gap:16px}}
+
+:global(.sync-control) :global(.vc-dialog__content):has(.picker,.message) :global(.vc-dialog__close){width:44px;height:44px;min-width:44px;min-height:44px}
+
+/* Readable canonical-review statuses retain their semantic success tone. */
+.review{display:contents}
+:global(.sync-control) .review :global(.vc-badge){font-size:14px}
+:global(.sync-control) .review :global(.vc-badge--success){color:var(--vc-semantic-success-text)}
