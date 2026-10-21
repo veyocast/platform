@@ -69,7 +69,7 @@ async function measure(page:Page){
   const visible=(element:Element)=>{const rect=element.getBoundingClientRect();return rect.width>1&&rect.height>1&&element.checkVisibility({checkVisibilityCSS:true});};
   const read=(element:Element)=>{const r=element.getBoundingClientRect(),s=getComputedStyle(element);return{x:r.x,y:r.y,width:r.width,height:r.height,padding:s.padding,font:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,letterSpacing:s.letterSpacing,fontVariation:s.fontVariationSettings,fontFeatures:s.fontFeatureSettings,lineHeight:s.lineHeight,gap:s.gap,minHeight:s.minHeight,display:s.display,boxSizing:s.boxSizing};};
   const selectors=['.nav-panel','.nav-panel .brand','.nav-panel .brand-button','.nav-panel .workspace-button','.nav-panel .main-nav .nav-link','.topbar','.topbar .avatar-button','.main-content','.mobile-bottom','.section-header','.section-header :is(.btn,.vc-button)','.vc-library-toolbar','.vc-filter-tabs','.vc-library-search','.vc-library-search button','.vc-library-search input','.ov-screen-rows .empty','.ov-screen-rows .empty .btn','.px-calendar-toolbar','.ad-tabs','.mk-header','.mk-nav','.mk-hero'];
-  return{overflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),parts:Object.fromEntries(selectors.map(selector=>[selector,[...document.querySelectorAll(selector)].filter(visible).map(read)])),headings:[...document.querySelectorAll('.main-content h1,.main-content h2,.main-content h3')].filter(visible).map(element=>({text:element.textContent?.trim(),...read(element)})),active:[...document.querySelectorAll('.nav-link.active,.mobile-bottom .active')].filter(visible).map(element=>(element.querySelector('span')??element).textContent?.trim()),images:[...document.images].filter(visible).map(element=>({path:new URL(element.currentSrc||element.src,location.href).pathname,loaded:element.complete&&element.naturalWidth>0})),mobileTargets:[...document.querySelectorAll('.mobile-bottom :is(a,button)')].filter(visible).map(read)};
+  return{overflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),parts:Object.fromEntries(selectors.map(selector=>[selector,[...document.querySelectorAll(selector==='.ad-tabs'?'.ad-tabs,[aria-label="Bronsoort"]':selector)].filter(visible).map(read)])),headings:[...document.querySelectorAll('.main-content h1,.main-content h2,.main-content h3')].filter(visible).map(element=>({text:element.textContent?.trim(),...read(element)})),active:[...document.querySelectorAll('.nav-link.active,.mobile-bottom .active')].filter(visible).map(element=>(element.querySelector('span')??element).textContent?.trim()),images:[...document.images].filter(visible).map(element=>({path:new URL(element.currentSrc||element.src,location.href).pathname,loaded:element.complete&&element.naturalWidth>0})),mobileTargets:[...document.querySelectorAll('.mobile-bottom :is(a,button)')].filter(visible).map(read)};
  });
 }
 for(const row of originalRows())test(`original ${row.case_id} chosen Sync ${row.viewport} ${row.reference_route}`,async({browser})=>{
@@ -106,9 +106,9 @@ for(const row of originalRows())test(`original ${row.case_id} chosen Sync ${row.
    await current.locator(selector).evaluate((element,text)=>{element.textContent=text;},reference);
   }
   const sourceFilterTouchCss=route.source==='sources'&&!route.scope
-   ? '.sync-control .admin-page .ad-tabs > button{min-height:0!important}' : '';
+   ? '.sync-control .admin-page [aria-label="Bronsoort"] > button{min-height:0!important}' : '';
   if(sourceFilterTouchCss){
-   const targets=await current.locator('.ad-tabs > button').evaluateAll(elements=>elements.map(element=>element.getBoundingClientRect().height));
+   const targets=await current.locator('[aria-label="Bronsoort"] > button').evaluateAll(elements=>elements.map(element=>element.getBoundingClientRect().height));
    expect(targets).toHaveLength(6);
    expect(targets.every(height=>height>=44),'Actual Source filters retain canonical 44px hit areas').toBe(true);
   }
@@ -117,7 +117,7 @@ for(const row of originalRows())test(`original ${row.case_id} chosen Sync ${row.
   if(sourceFilterTouchCss){
    // The mocked page clock does not establish host rendering readiness at tablet
    // widths either. Observe the existing counterfactual rule before measuring.
-   await expect.poll(()=>current.locator('.admin-page .ad-tabs > button').evaluateAll(elements=>elements.map(element=>getComputedStyle(element).minHeight)),{timeout:2000,intervals:[25,50,100,250],message:`${row.case_id}: existing Source filter counterfactual CSS must apply before measurement`}).toEqual(Array(6).fill('0px'));
+   await expect.poll(()=>current.locator('.admin-page [aria-label="Bronsoort"] > button').evaluateAll(elements=>elements.map(element=>getComputedStyle(element).minHeight)),{timeout:2000,intervals:[25,50,100,250],message:`${row.case_id}: existing Source filter counterfactual CSS must apply before measurement`}).toEqual(Array(6).fill('0px'));
   }
   if(normalization&&width<=760){
    // Probes observed stale computed media styles after two mocked rAF

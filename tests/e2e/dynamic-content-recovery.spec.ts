@@ -6,7 +6,7 @@ test("onderscheidt opgeslagen bronnen van een nog niet verbonden provider", asyn
   await expect(page.getByRole("heading", {name: "Nog geen bronnen verbonden"})).toBeVisible();
   await expect(page.getByRole("button", {name: "Bron toevoegen", exact: true})).toHaveCount(0);
   await expect(page.getByRole("link", {name: "Bron toevoegen", exact: true})).toHaveCount(0);
-  await expect(page.locator(".ad-source-grid .ad-source")).toHaveCount(0);
+  await expect(page.locator(".ad-source-grid > a")).toHaveCount(0);
   await page.goto("/dashboard/sources/sportlink");
   await expect(page.getByRole("heading", {name: "Sportlink Club.Dataservice", exact: true})).toBeVisible();
 });
