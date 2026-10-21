@@ -58,11 +58,65 @@ async function calls(page: Page) {
   return page.evaluate(() => ({ validations: (globalThis as typeof globalThis & { validations?: unknown[] }).validations ?? [], commands: (globalThis as typeof globalThis & { commands?: unknown[] }).commands ?? [] }));
 }
 
+// Published generic EasyList cosmetic rules. These match ordinary management
+// controls in the old overview, not advertising. Keep the rules active after
+// the fix; changing browser preferences must not be required to read sources.
+// https://github.com/easylist/easylist/blob/master/easylist/easylist_general_hide.txt
+async function applyCosmeticSourceFilters(page: Page) {
+  await page.addStyleTag({ content: ".ad-source, .ad-tabs, .ad-notice { display: none !important; }" });
+  await page.evaluate(() => {
+    const checks = document.createElement("div");
+    checks.setAttribute("aria-hidden", "true");
+    checks.dataset.cosmeticFilterChecks = "true";
+    for (const className of ["ad-source", "ad-tabs", "ad-notice"]) {
+      const check = document.createElement("span");
+      check.className = className;
+      check.textContent = "Filtercontrole";
+      checks.append(check);
+    }
+    document.body.append(checks);
+  });
+  for (const check of await page.locator("[data-cosmetic-filter-checks] > span").all()) await expect(check).toBeHidden();
+}
+
+for (const viewport of [{ width: 1440, height: 960 }, { width: 390, height: 844 }]) {
+  test(`source status and keyboard remain visible with cosmetic ad filters at ${viewport.width}`, async ({ page }, info) => {
+    await page.setViewportSize(viewport);
+    const fixture = await mount(page);
+    await page.evaluate(() => document.fonts.ready);
+    const source = page.getByRole("link", { name: /Eigen vereniging/ });
+    const filters = page.locator('[aria-label="Bronsoort"]');
+    const notice = page.getByText("Gegevens verversen binnen je gepubliceerde selectie.", { exact: false });
+    await expect(source).toBeVisible(); await expect(filters).toBeVisible(); await expect(notice).toBeVisible();
+    const before = { source: await source.boundingBox(), filters: await filters.boundingBox(), notice: await notice.boundingBox() };
+    await info.attach("source-geometry-without-filters", { body: JSON.stringify(before), contentType: "application/json" });
+    await info.attach("sources-before-filters", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    await applyCosmeticSourceFilters(page);
+    await info.attach("sources-with-filters", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    await expect(source).toBeVisible();
+    await expect(source.getByText("Opgeslagen bronstatus", { exact: true })).toBeVisible();
+    await expect(filters).toBeVisible(); await expect(notice).toBeVisible();
+    expect({ source: await source.boundingBox(), filters: await filters.boundingBox(), notice: await notice.boundingBox() }).toEqual(before);
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+    const sportlink = page.getByRole("button", { name: "Sportlink", exact: true });
+    await sportlink.focus(); await page.keyboard.press("Space");
+    await expect(page.locator(".ad-source-grid > a")).toHaveCount(1);
+    await source.focus(); await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name: "Eigen vereniging", exact: true });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("tab", { name: "Overzicht", exact: true }).focus(); await page.keyboard.press("ArrowRight");
+    await expect(dialog.getByRole("tab", { name: "Gegevens", exact: true })).toBeFocused();
+    await expect(dialog.getByText("Eerder opgeslagen eigen gegevens", { exact: true })).toBeVisible();
+    expect(fixture.errors).toEqual([]); expect(fixture.unexpected).toEqual([]); expect(await calls(page)).toEqual({ validations: [], commands: [] });
+  });
+}
+
 for (const viewport of [{ width: 1440, height: 960 }, { width: 390, height: 844 }]) {
   test(`Source create540/detail960, real cards, tabs and a11y at ${viewport.width}`, async ({ page }, info) => {
     await page.setViewportSize(viewport); const fixture = await mount(page);
     await expect(page.locator(".ad-source-grid > a")).toHaveCount(5);
-    for (const filter of await page.locator(".ad-tabs > button").all()) expect((await filter.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await expect(page.locator('[aria-label="Bronsoort"] > button')).toHaveCount(6);
+    for (const filter of await page.locator('[aria-label="Bronsoort"] > button').all()) expect((await filter.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await page.getByRole("link", { name: "Bron toevoegen", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Een bron verbinden" });
     await expect(dialog.getByLabel("Naam vereniging", { exact: true })).toBeVisible();
@@ -135,6 +189,7 @@ for (const provider of ["sportlink", "led", "youtube"] as const) {
 
 test("read-only role has genuine source cards without create/provider or fabricated recovery controls", async ({ page }) => {
   const fixture = await mount(page, true);
+  await applyCosmeticSourceFilters(page);
   await expect(page.getByRole("link", { name: "Bron toevoegen", exact: true })).toHaveCount(0);
   await expect(page.locator(".ad-source-grid > a")).toHaveCount(4);
   await page.locator(".ad-source-grid > a").filter({ hasText: "Eigen vereniging" }).click();
@@ -150,6 +205,7 @@ test("failed RSS overview warns and retains saved data without starting a provid
   const fixture = await mount(page);
   const failedUrl = new URL(page.url()); failedUrl.searchParams.set("failed", "1");
   await page.goto(failedUrl.href);
+  await applyCosmeticSourceFilters(page);
   await page.locator(".ad-source-grid > a").filter({ hasText: "Eigen clubnieuws" }).click();
   const detail = page.getByRole("dialog", { name: "Eigen clubnieuws", exact: true });
   await expect(detail.getByRole("alert")).toContainText("De laatste synchronisatie is mislukt");

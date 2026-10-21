@@ -1,6 +1,6 @@
 .dialog.dialog.dialog{max-height:90dvh;padding:0;gap:0;overflow:hidden;border:1px solid var(--line);border-radius:22px;background:var(--surface);color:var(--text);box-shadow:0 30px 100px #0004}
 .dialog.create.create{width:min(540px,calc(100vw - 50px))}.dialog.detail.detail{width:min(960px,calc(100vw - 50px))}
-.overview.overview :global(.ad-tabs)>button,.overview.overview :global(.btn){min-height:44px}.overview>details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.overview.overview .sourceFilters>button,.overview.overview :global(.btn){min-height:44px}.overview>details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
 :global(.vc-dialog__overlay):has(+ .dialog.dialog){background:#071e2b88;backdrop-filter:blur(8px)}
 .dialog .header{display:flex;align-items:center;justify-content:space-between;padding:22px 26px;border-bottom:1px solid var(--line);flex-shrink:0;gap:16px}
 .dialog .title.title{margin:0;color:var(--text);font-family:inherit;font-size:26px;font-weight:750;font-variation-settings:normal;letter-spacing:-.7px;line-height:1.18;overflow-wrap:anywhere}
@@ -26,3 +26,19 @@
 @media(prefers-reduced-motion:reduce){.dialog{animation:none!important;transition:none!important}}
 
 @media(max-width:600px){.dialog .title.title{font-size:24px}}
+
+/* The source controls are not adverts. Keep their existing Sync presentation
+   local so generic .ad-source/.ad-tabs/.ad-notice cosmetic filters cannot hide
+   operational status, navigation or help text. */
+.overview .sourceFilters{display:flex;gap:6px;padding:5px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;align-self:flex-start;max-width:100%;overflow-x:auto}
+.overview .sourceFilters button{border:0;background:none;color:var(--muted);padding:9px 15px;border-radius:8px;font-size:12px;font-weight:650;white-space:nowrap;cursor:pointer;transition:.18s}
+.overview .sourceFilters button[aria-pressed=true]{color:var(--text);background:var(--surface);box-shadow:0 2px 7px #00000009}
+.overview .sourceFilters button:hover{color:var(--text)}
+.overview .sourceCard{position:relative;padding:23px;display:flex;flex-direction:column;gap:18px;min-height:234px;transition:transform .2s,border-color .2s;cursor:pointer;text-align:left;color:var(--text);font:inherit}
+.overview .sourceCard:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+.overview .sourceCard h3,.overview .sourceCard :global(.sync-source-name){font-size:17px;margin-bottom:6px}
+.overview .sourceCard p{color:var(--muted);font-size:12px;max-width:240px}
+.overview .sourceNotice{display:flex;align-items:flex-start;gap:12px;border:1px solid color-mix(in srgb,var(--accent) 19%,var(--line));background:color-mix(in srgb,var(--accent) 5%,var(--surface));color:var(--text);padding:15px 17px;border-radius:12px;font-size:12px;line-height:1.6}
+.overview .sourceNotice>svg{flex-shrink:0;margin-top:1px;color:var(--accent)}
+@media(max-width:600px){.overview .sourceCard{min-height:210px}.overview .sourceFilters{align-self:stretch}.overview .sourceFilters button{font-size:11px;padding:9px 12px}}
+@media(prefers-reduced-motion:reduce){.overview .sourceCard{transition:none}}

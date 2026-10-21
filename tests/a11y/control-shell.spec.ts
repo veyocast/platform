@@ -251,7 +251,7 @@ test("Sync Bronnen and Producten distinguish an empty library from a connected p
     await page.goto("/dashboard/sources");
     await expect(page.getByRole("heading", { exact: true, level: 1, name: "Alles begint bij goede gegevens." })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Nog geen bronnen verbonden", exact: true })).toBeVisible();
-    await expect(page.locator(".ad-source")).toHaveCount(0);
+    await expect(page.locator(".ad-source-grid > a")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Bron toevoegen", exact: true })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Bron toevoegen", exact: true })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
