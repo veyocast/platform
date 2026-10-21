@@ -40,3 +40,10 @@ export function canonicalUrl(pathname: string) {
 export function isPublicIndexEnvironment() {
   return siteConfig.environment === "production";
 }
+
+export const marketingOpenGraphImages = [{
+  alt: "VeyoCast",
+  height: 1254,
+  url: "/assets/brand-hero-1254.webp",
+  width: 1254
+}];

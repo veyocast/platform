@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "../_components/legal-page";
-import { isPublicIndexEnvironment } from "../_lib/site-config";
+import { isPublicIndexEnvironment, marketingOpenGraphImages } from "../_lib/site-config";
 
 export const metadata: Metadata = {
   alternates: {
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description:
     "Zo vraagt u verwijdering van een VeyoCast-account, organisatiegegevens of lokale Android Player-data aan.",
   openGraph: {
+    images: marketingOpenGraphImages,
     description:
       "Stappen voor het verwijderen van een VeyoCast-account, organisatiegegevens en Player-data.",
     locale: "nl_NL",

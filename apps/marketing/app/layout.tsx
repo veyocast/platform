@@ -9,6 +9,7 @@ import { MarketingChrome } from "./_sync/chrome";
 import {
   canonicalUrl,
   isPublicIndexEnvironment,
+  marketingOpenGraphImages,
   siteConfig
 } from "./_lib/site-config";
 
@@ -30,14 +31,7 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(siteConfig.productionOrigin),
   openGraph: {
-    images: [
-      {
-        alt: "VeyoCast",
-        height: 1254,
-        url: "/assets/brand-hero-1254.webp",
-        width: 1254
-      }
-    ],
+    images: marketingOpenGraphImages,
     locale: "nl_NL",
     siteName: "VeyoCast",
     type: "website"
