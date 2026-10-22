@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import process from "node:process";
 
 const [path, environment, revision] = process.argv.slice(2);
 if (!path || !["staging", "production"].includes(environment) || !/^[0-9a-f]{40}$/.test(revision ?? "")) {
@@ -48,10 +49,18 @@ const expectedEnvironmentNames = [
   "SPORTLINK_CONFIG_ENCRYPTION_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "SUPABASE_URL",
-  "VEYOCAST_ENVIRONMENT"
+  "VEYOCAST_ENVIRONMENT",
+  "XDG_CONFIG_HOME",
+  "XDG_CACHE_HOME"
 ].sort();
 if (JSON.stringify(environmentNames) !== JSON.stringify(expectedEnvironmentNames)) {
   throw new Error("De mediaworker krijgt onverwachte runtimevariabelen.");
+}
+if (
+  service.environment.XDG_CONFIG_HOME !== "/tmp/veyocast-chromium/config" ||
+  service.environment.XDG_CACHE_HOME !== "/tmp/veyocast-chromium/cache"
+) {
+  throw new Error("De mediaworker mist schrijfbare Chromiumconfiguratie in de tijdelijke opslag.");
 }
 if (
   service.environment.DEPLOYMENT_SHA !== revision ||

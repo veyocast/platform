@@ -25,6 +25,10 @@ services:
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?SUPABASE_SERVICE_ROLE_KEY ontbreekt}
       SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL ontbreekt}
       VEYOCAST_ENVIRONMENT: ${VEYOCAST_ENVIRONMENT:?VEYOCAST_ENVIRONMENT ontbreekt}
+      # Chromium/Crashpad also needs a writable config directory outside its
+      # per-launch profile. Keep the root filesystem and /home/node read-only.
+      XDG_CONFIG_HOME: /tmp/veyocast-chromium/config
+      XDG_CACHE_HOME: /tmp/veyocast-chromium/cache
     healthcheck:
       test: ["CMD", "node", "-e", "try{const b=JSON.parse(require('node:fs').readFileSync('/tmp/veyocast-media-worker-ready.json','utf8'));const age=Date.now()-b.lastPollAt;const valid=b.service==='VeyoCast Media Worker'&&b.environment===process.env.VEYOCAST_ENVIRONMENT&&b.revision===process.env.DEPLOYMENT_SHA&&Number.isFinite(b.lastPollAt)&&age>=-5000&&age<=75000;if(!valid)process.exit(1)}catch{process.exit(1)}"]
       interval: 5s

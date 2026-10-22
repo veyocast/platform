@@ -87,6 +87,27 @@ docker compose -p veyocast-production-worker --file infra/vps/worker.compose.yam
 docker compose -p veyocast-production-worker --file infra/vps/worker.compose.yaml config --format json > "${production_worker_config}"
 node scripts/validate-worker-compose-config.mjs "${production_worker_config}" production "${DEPLOYMENT_SHA}"
 
+# A queue heartbeat alone does not prove Chromium can start with a read-only
+# home directory. Reject missing or misplaced browser config/cache before deploy.
+node --input-type=module - "${production_worker_config}" "${DEPLOYMENT_SHA}" <<'NODE'
+import { readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+const [source, revision] = process.argv.slice(2);
+for (const name of ['XDG_CONFIG_HOME', 'XDG_CACHE_HOME']) {
+  for (const value of [undefined, '/home/node/.config', '/app/cache', '/tmp']) {
+    const config = JSON.parse(readFileSync(source, 'utf8'));
+    if (value === undefined) delete config.services['media-worker'].environment[name];
+    else config.services['media-worker'].environment[name] = value;
+    const path = `${source}.invalid-chromium`;
+    try {
+      writeFileSync(path, JSON.stringify(config));
+      const result = spawnSync(process.execPath, ['scripts/validate-worker-compose-config.mjs', path, 'production', revision], { encoding: 'utf8' });
+      if (result.status === 0) throw new Error(`Invalid ${name} was accepted.`);
+    } finally { rmSync(path, { force: true }); }
+  }
+}
+NODE
+
 production_ref=bcdefghijklmnopqrstu
 NEXT_PUBLIC_SUPABASE_URL="https://${production_ref}.supabase.co" \
 NEXT_PUBLIC_SUPABASE_ANON_KEY="$(make_test_jwt anon "${production_ref}")" \
