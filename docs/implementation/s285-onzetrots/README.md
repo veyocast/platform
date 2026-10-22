@@ -26,6 +26,7 @@ FFmpeg/ffprobe. Kies nieuwe, eigen uitvoermappen:
 ```bash
 pnpm exec tsx tests/helpers/sync-onzetrots-reference.mts /tmp/s285-reference
 pnpm exec tsx tests/helpers/sync-onzetrots-matrix.mts /tmp/s285-worker /tmp/s285-reference
+pnpm exec tsx tests/helpers/sync-onzetrots-special-cases.mts /tmp/s285-special-cases
 ```
 
 De referentiehelper verifieert alle 259 SHA-256 bronbestanden, serveert alleen
@@ -35,6 +36,25 @@ ook relatieve demonstratiewedstrijden later reproduceerbaar blijven.
 Beide paden gebruiken hetzelfde volledige Chromium-executable;
 de standaard Headless Shell geeft andere font-hinting. Geen vervangen fonts,
 CSS, geïnjecteerde prototypescripts of tweede productrenderer.
+
+## Specifieke acceptatiebeelden
+
+Deze extra native beelden komen eveneens rechtstreeks uit de actieve Worker,
+met dezelfde gecontroleerde displayfixtures als de matrix. De
+[manifestgegevens](special/special-cases.json) bewaren formaat, elapsedMs en SHA-256.
+Overzichten: [liggend](special-landscape.jpg) en [staand](special-portrait.jpg).
+
+| Geval | Werkelijke uitvoer |
+| --- | --- |
+| Blauwe eigen rij boven vast | [Eerste positie](special/standings-own-first-1200ms.png), [middenpositie na doorscrollen](special/standings-own-middle-20000ms.png) |
+| Blauwe eigen rij onder vast | [Laatste positie tijdens de beginpauze](special/standings-own-last-1200ms.png) |
+| Eigen rij op normale positie | [Middenpositie tijdens de beginpauze](special/standings-own-middle-1200ms.png) |
+| Welkom, nul tot vier kaarten | [0](special/welcome-0.png), [1](special/welcome-1.png), [2](special/welcome-2.png), [3](special/welcome-3.png), [4](special/welcome-4.png) |
+| Verjaardagen, vast raster | [2 gevuld](special/birthdays-2-portrait.png), [6 gevuld](special/birthdays-6-portrait.png) |
+| Activiteiten, vast raster | [4 gevuld](special/activities-4-portrait.png), [6 gevuld](special/activities-6-portrait.png) |
+| Agenda, vast raster | [0 gevuld](special/agenda-0-portrait.png), [6 gevuld](special/agenda-6-portrait.png) |
+| Klok geheel boven score | [Native scorebord](native/worker-scoreboard-portrait-light.png) |
+| Lange publieksvraag, 24 keuzes en QR | [Liggend](special/engage-long-landscape.png), [staand](special/engage-long-portrait.png); maximale testtekst, eerste van zes pagina's |
 
 ```bash
 SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')

@@ -49,6 +49,11 @@ Root is de enige writer. Eén taakbranch/worktree/PR:
 - De bestaande Player-fixturevoorbereiding in `.github/workflows/pr-gates.yml`:
   produceer de complete canonieke OnzeTrots-video vóór de browsercohort, met
   dezelfde echte Chromium-/FFmpeg-/checksumgates als de bestaande galerijproef.
+  Na de gemeten CI-afbreking omvat dit ook uitsluitend de Player-toolinstallatie
+  via de canonieke HTTPS Ubuntu-mirror, geen aanbevolen optionele FFmpeg-pakketten
+  en een passend begrensd jobbudget voor de volledige geïsoleerde cohort.
+  Individuele testcase-/encoderlimieten en de volledige case-inventaris blijven
+  ongewijzigd; geen tests overslaan of toleranties verruimen.
 - Dit prompt, `docs/s285-onzetrots-approved-slides.md`, de aangeleverde
   referentiemap, `PLANS.md` en de eigen rij in `TASK_LEDGER.md`.
 

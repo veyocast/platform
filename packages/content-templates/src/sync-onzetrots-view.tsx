@@ -36,13 +36,14 @@ function Empty({title='Er zijn nog geen gegevens beschikbaar.'}:{title?:string})
 
 function Ranking({slide,resolveAsset,standing=slide.rich?.standings,dashboard=false}:{slide:SyncOnzeTrotsPresentation;resolveAsset:SyncSlideAssetResolver;standing?:SyncOnzeTrotsRich['standings'];dashboard?:boolean}){
  const rows=standing?.rows??slide.rows.map((row,index)=>({id:`manual-${index}`,teamId:null,clubId:null,teamName:row[1],position:row[0],played:row[2],won:null,drawn:null,lost:null,goalDifference:null,points:row[3],form:[],logo:undefined}));
+ const isOwn=(row:(typeof rows)[number],index:number)=>standing?row.teamId!==null&&row.teamId===standing.ownTeamId:slide.ownRowIndexes.includes(index),hasOwn=rows.some(isOwn);
  return <section className={`panel rank-panel ${dashboard?'dashboard-rank':'stand-alone'}`}>
   <Header slide={slide} resolveAsset={resolveAsset} eyebrow={standing?.label??slide.topLabel} title={dashboard?'Dit is onze plek.':slide.title||'De ranglijst.'}/>
   <Context left={slide.family==='period-standings'?'De periodestand':'De ranglijst'} right={slide.subline||`De hele poule · ${slide.club.name} in beeld`}/>
   <div className="rank-head"><span>#</span><span>Team</span><span>G</span><span>W</span><span>GL</span><span>V</span><span>+/−</span><span>P</span><span>Vorm</span></div>
-  <div className="rank-list" tabIndex={0} role="region" aria-label="Volledige ranglijst; het eigen team blijft zichtbaar" data-ot-rank-list>
+  <div className="rank-list" tabIndex={0} role="region" aria-label={hasOwn?'Volledige ranglijst; het eigen team blijft zichtbaar':'Volledige ranglijst; geen eigen rij beschikbaar'} data-ot-rank-list>
    {rows.length?rows.map((row,index)=>{
-    const own=standing?row.teamId!==null&&row.teamId===standing.ownTeamId:slide.ownRowIndexes.includes(index);
+    const own=isOwn(row,index);
     return <div className={`rank-row${own?' own':''}`} key={row.id} data-position={row.position??''} data-team-id={row.teamId??undefined} data-own={own}>
      <span>{row.position??'–'}</span><span className="team"><Crest name={row.teamName} asset={row.logo} resolveAsset={resolveAsset}/><span>{row.teamName}</span></span>
      <span>{row.played??'–'}</span><span>{row.won??'–'}</span><span>{row.drawn??'–'}</span><span>{row.lost??'–'}</span>
@@ -51,7 +52,7 @@ function Ranking({slide,resolveAsset,standing=slide.rich?.standings,dashboard=fa
     </div>;
    }):<Empty title="De stand is nog niet beschikbaar."/>}
   </div>
-  <Foot left={<><i className="form-dot"/>Winst &nbsp; <i className="form-dot draw"/>Gelijk &nbsp; <i className="form-dot loss"/>Verlies</>} right={<><span className="rank-status">{slide.footerRight||`${slide.club.name} blijft in beeld`}</span> &nbsp; <span className="rank-progress"><i/></span></>}/>
+  <Foot left={<><i className="form-dot"/>Winst &nbsp; <i className="form-dot draw"/>Gelijk &nbsp; <i className="form-dot loss"/>Verlies</>} right={<><span className="rank-status">{hasOwn?slide.footerRight||`${slide.club.name} blijft in beeld`:'Geen eigen rij beschikbaar'}</span> &nbsp; <span className="rank-progress"><i/></span></>}/>
  </section>;
 }
 
@@ -160,7 +161,8 @@ function Engage({slide,resolveAsset,page}:Props){
  const poll=slide.poll,options=poll?.options??[],count=poll&&'optionsPerPage' in poll?poll.optionsPerPage:options.length;
  const visible=Boolean(poll&&(poll.visibility==='live'&&['live','closed','archived'].includes(poll.status)||poll.visibility==='after_close'&&['closed','archived'].includes(poll.status)));
  const total=options.reduce((sum,option)=>sum+option.votes,0);
- return <div className="engage-layout"><section className="panel poll-panel"><InlineHeader slide={slide} resolveAsset={resolveAsset}><span className="news-label">{slide.topLabel}</span></InlineHeader><h3>{poll?.title??slide.title}</h3>{options.slice(page*count,(page+1)*count).map(option=>{const percent=visible&&total?Math.round(option.votes*100/total):0;return <div className="poll-option" key={option.id} style={{'--percent':`${percent}%`} as CSSProperties}><span>{option.label}</span>{visible&&<b>{percent}%</b>}</div>;})}<p>{visible?slide.body:'De resultaten zijn nog niet openbaar.'}</p></section><aside className="panel engage-aside"><CornerHeader slide={slide} resolveAsset={resolveAsset}/><h3>{lines(slide.headline)}</h3><p>{lines(slide.subtitle)}</p>{poll?.publicUrl&&<><QRCode url={poll.publicUrl}/><small>{poll.publicUrl}</small></>}</aside></div>;
+ const longQuestion=(poll?.title??slide.title).length>80,longOptions=options.some(option=>option.label.length>80);
+ return <div className={`engage-layout${longQuestion?' has-long-poll-question':''}${longOptions?' has-long-poll-options':''}`}><section className="panel poll-panel"><InlineHeader slide={slide} resolveAsset={resolveAsset}><span className="news-label">{slide.topLabel}</span></InlineHeader><h3>{poll?.title??slide.title}</h3>{options.slice(page*count,(page+1)*count).map(option=>{const percent=visible&&total?Math.round(option.votes*100/total):0;return <div className="poll-option" key={option.id} style={{'--percent':`${percent}%`} as CSSProperties}><span>{option.label}</span>{visible&&<b>{percent}%</b>}</div>;})}<p>{visible?slide.body:'De resultaten zijn nog niet openbaar.'}</p></section><aside className="panel engage-aside"><CornerHeader slide={slide} resolveAsset={resolveAsset}/><h3>{lines(slide.headline)}</h3><p>{lines(slide.subtitle)}</p>{poll?.publicUrl&&<div className="engage-qr"><QRCode url={poll.publicUrl}/><small>{poll.publicUrl}</small></div>}</aside></div>;
 }
 function Video({slide,resolveAsset}:Props){
  const src=slide.rich?.featureImage&&resolveAsset(slide.rich.featureImage);

@@ -97,8 +97,8 @@ test("Studio overview and creation journey use real responsive controls", async 
   const previewBox = await preview.boundingBox();
   expect(previewBox).not.toBeNull();
   expect(previewBox!.height / previewBox!.width).toBeCloseTo(16 / 9, 2);
-  await page.getByRole("combobox", { name: "Beweging", exact: true }).selectOption("dynamisch");
-  await expect(page.getByRole("combobox", { name: "Beweging", exact: true })).toHaveValue("dynamisch");
+  await page.getByRole("combobox", { name: "Binnenkomst", exact: true }).selectOption("dynamisch");
+  await expect(page.getByRole("combobox", { name: "Binnenkomst", exact: true })).toHaveValue("dynamisch");
   await expectTouchTargets();
   expect(state.creates).toEqual([]);
   await next(page);

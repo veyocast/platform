@@ -403,9 +403,9 @@
       "elapsedMs": 1200,
       "rendererVersion": "sync-onzetrots-v1",
       "sourceRevision": "ae83f2b4312408eacae9f29177d3c743e104185b",
-      "meanAbsoluteChannelDifference": 0.11910124099794239,
+      "meanAbsoluteChannelDifference": 0.11697337962962963,
       "pixelsOver25": 0.004069251543209877,
-      "workerSha256": "5c42d4abd1bb5ef42b611aecd894303a3652fb740a79587b0bb38a15c50500f7",
+      "workerSha256": "21e345a0b89083bd276ce8fd2e75554a1d521dc41c407294b2515811db359250",
       "referenceSha256": "78f716b967659476c77b9327ad504fbdfe808e443458e60b2da6cdf21ecd3d18"
     },
     {
@@ -1507,9 +1507,9 @@
       "elapsedMs": 1200,
       "rendererVersion": "sync-onzetrots-v1",
       "sourceRevision": "ae83f2b4312408eacae9f29177d3c743e104185b",
-      "meanAbsoluteChannelDifference": 0.0017201967592592592,
-      "pixelsOver25": 0.0000014467592592592592,
-      "workerSha256": "c504f633e9d74e563b1082114e265eb422abd512604f79b01c7f224d9e3dfb65",
+      "meanAbsoluteChannelDifference": 0.008275462962962964,
+      "pixelsOver25": 0.000012056327160493826,
+      "workerSha256": "4a11c03314b0afa9dc66d2d49c92861d69ab39129025733bea70a33c5b47d011",
       "referenceSha256": "f51050957350a5001287598196fa14bc28b30402dc2360bc444e64c729647ab4"
     },
     {
@@ -1683,9 +1683,9 @@
       "elapsedMs": 1200,
       "rendererVersion": "sync-onzetrots-v1",
       "sourceRevision": "ae83f2b4312408eacae9f29177d3c743e104185b",
-      "meanAbsoluteChannelDifference": 0.07154449588477366,
-      "pixelsOver25": 0.0024189814814814816,
-      "workerSha256": "a072c32e1724bbfd74376e846af084b6c3e9a265d64e1c214c77ed28fe6c3e99",
+      "meanAbsoluteChannelDifference": 0.08144065072016461,
+      "pixelsOver25": 0.002458526234567901,
+      "workerSha256": "27ca345a5be1c98bd37c2274cbbe07b9d5501ae2cfc6ae488c9bf321bc14c785",
       "referenceSha256": "02b68face61ad79e7f0ef047486959618969d2b8c1f5a300aaec8666644112f8"
     },
     {

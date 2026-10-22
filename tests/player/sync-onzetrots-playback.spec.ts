@@ -7,6 +7,7 @@ import{syncSlideRendererAssets,syncSlidePresentationSchema,type SyncSlidePresent
 import{selectSyncOnzeTrotsVisitors}from'@veyocast/content-templates/sync-slide-static-view';
 import{createSyncStudioDocument}from'@veyocast/studio';
 import{createSyncTemplatePreview}from'../../apps/control/app/(shell)/dashboard/studio/sync-template-preview';
+import{syncSlideCss}from'../../packages/content-templates/src/sync-slide-styles';
 const origin='http://127.0.0.1:3385',require=createRequire(join(process.cwd(),'package.json'));
 let bundle:string;
 test.beforeAll(()=>{
@@ -48,6 +49,11 @@ async function mount(page:Page,options:{own?:'first'|'middle'|'last';passive?:bo
 }
 async function ready(page:Page){await expect.poll(()=>page.evaluate(()=>(globalThis as typeof globalThis&{ready:unknown[]}).ready?.length??0)).toBe(1);await expect(page.locator('[data-ot-rank-list]')).toBeVisible();}
 async function position(page:Page){return page.locator('[data-ot-rank-list]').evaluate(list=>{const root=list as HTMLElement,own=root.querySelector<HTMLElement>('.own')!,bounds=root.getBoundingClientRect(),row=own.getBoundingClientRect();return{scroll:root.scrollTop,range:root.scrollHeight-root.clientHeight,ownCount:root.querySelectorAll('.own').length,ownY:(row.top-bounds.top)/(bounds.height/root.clientHeight),rowHeight:own.offsetHeight,viewport:root.clientHeight};});}
+test('an approved canvas remains pixel-identical when a legacy Sync stylesheet loads on the same page',async({page})=>{
+ const state=await mount(page,{passive:true});await expect(page.locator('[data-ot-rank-list]')).toBeVisible();await page.evaluate(()=>document.fonts.ready);
+ const canvas=page.locator('.ot-approved-frame'),before=await canvas.screenshot();await page.addStyleTag({content:syncSlideCss});await page.evaluate(()=>document.fonts.ready);
+ expect(await canvas.screenshot()).toEqual(before);expect(state.errors).toEqual([]);
+});
 for(const own of ['first','middle','last']as const)test(`one real controlled own row remains pinned at both boundaries (${own})`,async({page})=>{
  const result=await mount(page,{own,passive:true});await expect(page.locator('[data-ot-rank-list]')).toBeVisible();await page.evaluate(()=>document.fonts.ready);
  for(const elapsed of [0,20000,38000]){
@@ -111,11 +117,12 @@ for(const orientation of ['landscape','portrait']as const)test(`the actual phase
   await expect(chip).toContainText({scheduled:'63:24',live:'LIVE',paused:'GEPAUZEERD',halftime:'RUST',finished:'EINDSTAND'}[phase]);expect(state.errors).toEqual([]);
  }
 });
-test('short and absent-own standings stay still without fabricated or duplicate rows',async({page})=>{
- for(const count of [0,1,3]){
+test('short standings stay still and an absent own row is reported without fabricated or duplicate rows',async({page})=>{
+ for(const count of [0,1,3,14]){
   const state=await mount(page,{count,noOwn:true,passive:true});await expect(page.locator('[data-ot-rank-list]')).toBeVisible();await expect(page.locator('.rank-row')).toHaveCount(count);await expect(page.locator('.rank-row.own')).toHaveCount(0);
+  await expect(page.locator('.rank-status')).toHaveText('Geen eigen rij beschikbaar');await expect(page.locator('[data-ot-rank-list]')).toHaveAttribute('aria-label','Volledige ranglijst; geen eigen rij beschikbaar');
   await page.evaluate(()=>(globalThis as typeof globalThis&{seek:(time:number)=>void}).seek(20000));
-  expect(await page.locator('[data-ot-rank-list]').evaluate(element=>element.scrollTop)).toBe(0);expect(state.errors).toEqual([]);
+  const scroll=await page.locator('[data-ot-rank-list]').evaluate(element=>element.scrollTop);if(count<7)expect(scroll).toBe(0);else expect(scroll).toBeGreaterThan(0);expect(state.errors).toEqual([]);
  }
 });
 for(const family of ['birthdays','activities','agenda']as const)test(`${family}: the seventh real record reaches a second page with five empty slots`,async({page})=>{

@@ -26,10 +26,17 @@ Ownership staat in het [sprintprompt](../prompts/sprints/S285-onzetrots-approved
   inclusief pauze, verborgen tabblad en reduced motion. Veertien rijen vragen
   standaard liggend 38 seconden. Picker, publicatie en fallback bewaken deze
   werkelijke minimumduur. Binnenkomst uitzetten knipt de interne cyclus niet af.
+  Ontbreekt de gecontroleerde eigen rij, dan meldt de slide dat expliciet;
+  de overige bronrijen blijven volledig beschikbaar.
 - Verjaardagen, activiteiten en agenda behouden zes vaste plekken in beide
   formaten en vervolgpaginering. Handmatige kaartvelden bewaren expliciete
   leeftijden en optionele verified afbeeldingen. Nieuwe documenten krijgen geen
   voorbeeldpersonen, wedstrijden of prijzen. De 36 displayfixtures staan apart.
+- De templatekiezer laadt de nieuwe stylesheet één keer, bewaakt de volledige
+  16:9-voorbeelden en houdt links binnen voorbeelden buiten de toetsenbordroute.
+  Nieuwe en oude Sync-stijlen kunnen tegelijk laden zonder de nieuwe compositie
+  te wijzigen. Lange publieksvragen/keuzes blijven leesbaar met vervolgpaginering
+  en een QR-code; voorbeeldinhoud wordt niet in een nieuw ontwerp opgeslagen.
 - De Worker behoudt CSP, checksum-/decodegrenzen en native uitvoer. Bewegende
   scènes gebruiken lossless snelle Chromium-PNG-compressie per frame; de
   decodevergelijking met normale PNG is pixel-identiek. De sessie blijft binnen
@@ -47,7 +54,8 @@ Ownership staat in het [sprintprompt](../prompts/sprints/S285-onzetrots-approved
 
 De [bewijsmap](implementation/s285-onzetrots/README.md) bevat acht contactbladen
 voor 144 echte Worker-renders naast 144 bronbeelden, zes native vergelijkingsparen,
-SHA-256 per beeld en exportmetadata. Native maten zijn 1920×1080 of 1080×1920;
+afzonderlijke acceptatiebeelden, SHA-256 per beeld en exportmetadata.
+Native maten zijn 1920×1080 of 1080×1920;
 logische schaal 1,2, elapsed 1200 ms. Beide gebruiken dezelfde volledige Chromium
 met alle zes oorspronkelijke fontfaces. Headless Shell gaf andere teksthinting
 én regelafbreking en is daarom geen gemengde vergelijkingsbasis. Geen maskers of
@@ -66,18 +74,37 @@ volledige lokale video met EOF-herstart voor het oudere capabilityprofiel.
 
 - Volledige lint/typecheck/unitcohort: groen, 30/30 taken. Player: 521 unittests;
   Control: 1.839. Bestaande opt-in-browserfixtures blijven aparte browsergates.
-- Nieuwe Player-acceptatie: 27/27 groen, waaronder vaste slots 0–6, zevende record,
-  eigen rij eerste/midden/laatste, welkom 0–4 en fasen boven score.
+- Nieuwe Player-acceptatie: 28/28 groen in de bestaande strikte runner met
+  één browserproces per testcase en complete case-inventaris. Onder meer vaste
+  slots 0–6, zevende record, eigen rij eerste/midden/laatste, welkom 0–4,
+  fasen boven score, ontbrekende eigen rij en pixelgelijke gemengde stylesheets.
 - Wizard en bestaande editor: 19 plus 27 cases groen. Extra echte kaartinvoer-,
   pagina- en pauzetests: 5/5 groen. Gekoppelde export/offline/fallback: 1/1 groen.
+- Laatste correctiecohort: 11 templatekiezerchecks (inclusief toetsenbord/a11y),
+  acht behouden legacy-Engagecases, vier nieuwe Engagecases en de echte
+  Next.js Studio-aanmaakroute groen. Bestaande geometriegrenzen, rechten en
+  zichtbare inhoud zijn behouden; de nieuwe gevallen toetsen ook 160 tekens,
+  24 keuzes, resultaatprivacy, pagina's en QR-plaatsing.
+- Alle 169 echte Worker-browsertests groen, inclusief 140 bestaande Sites-
+  starttemplates. Control, Player, Marketing, Worker en de mobiele Android-
+  bundel zijn gebouwd. De toepasselijke bestaande Sync-/offlinecohort heeft
+  alle 65 oorspronkelijke cases in de strikte runner voltooid.
 - Geïsoleerde database: de laatste volledige rerun is groen, 137 bestanden en
   4.485 assertions, inclusief 31 nieuwe versie-/selectie-/scopecontroles.
   Database-lint meldt alleen bestaande waarschuwingen in oudere functies,
   geen nieuwe functieproblemen. Alleen de eigen teststack is gestart/gestopt;
   bestaande staging-/productie-/andere lokale databases zijn niet gereset.
-- Player-build groen; laatste Control-build, complete browser-/a11y-/offlinecohort
-  en herbevestiging na de laatste voetregelcorrectie lopen nog. Ledger blijft
-  `in_progress` totdat deze gates en de concrete PR zijn afgehandeld.
+- Alle workflows zijn met dezelfde gepinde Actionlint en ShellCheck gevalideerd.
+  Voor Player-tools gebruikt CI de canonieke HTTPS Ubuntu-mirror en laat
+  optionele aanbevolen FFmpeg-pakketten achterwege. De eerste pakketdownload
+  verbruikte bijna 25 minuten; de echte export was binnen vier minuten klaar.
+  Het buitenste Player-jobbudget is daarom 75 minuten. De individuele testcase-
+  en encodergrenzen, assertions en volledige inventaris blijven behouden.
+
+De concrete [PR #310](https://github.com/veyocast/platform/pull/310) bevat de
+normale Foundation-, browser-/a11y-, database-/RLS-, Android-, LG-, mobiele en
+legacy-renderchecks. De checks bij de exacte PR-commit zijn de actuele bron
+voor de integratieacceptatie; lokale testresultaten vervangen die niet.
 
 Staging volgt de bestaande immutable main-pipeline. Deze taak dispatcht geen
 zelfstandige productiepromotie. Fysieke apparaat-/24-uursproeven en eerder

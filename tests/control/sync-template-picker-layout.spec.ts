@@ -5,6 +5,7 @@ import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { syncContentFamilies } from "../../packages/contracts/src/sync-content-families";
+import { syncOnzeTrotsSystemAssets } from "../../packages/contracts/src/sync-onzetrots-assets";
 import type { StudioDocument } from "../../packages/studio/src/schema";
 
 // Actual chooser, renderer, Radix portal and product CSS. Only the server action
@@ -33,6 +34,11 @@ async function mount(page: Page, options: { dropFirst?: boolean; viewer?: boolea
     const name = new URL(route.request().url()).pathname.split("/").at(-1)!;
     if (!/^[a-zA-Z0-9_.-]+$/.test(name)) return route.abort();
     return route.fulfill({ body: readFileSync(join(process.cwd(), "apps/control/public/assets", name)), contentType: name.endsWith("woff2") ? "font/woff2" : name.endsWith("ttf") ? "font/ttf" : "image/webp" });
+  });
+  await page.route(`${origin}/onzetrots-approved-v1/**`, route => {
+    const path = new URL(route.request().url()).pathname, asset = syncOnzeTrotsSystemAssets.find(asset => asset.path === path);
+    if (!asset) return route.abort();
+    return route.fulfill({body:readFileSync(join(process.cwd(),"apps/control/public",path)),contentType:asset.mimeType});
   });
   await page.route(`${origin}/__picker/create`, route => {
     const command = route.request().postDataJSON() as Command;
