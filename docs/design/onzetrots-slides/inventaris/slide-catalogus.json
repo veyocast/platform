@@ -1,0 +1,800 @@
+{
+  "schema_version": 1,
+  "title": "VeyoCast OnzeTrots — complete 36-familiecatalogus",
+  "repository": "veyocast/platform",
+  "inspected_commit": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+  "canonical_family_source": "packages/contracts/src/sync-content-families.ts",
+  "source_inspection_date": "2026-10-22",
+  "prototype_source_location": "broncode/",
+  "family_count": 36,
+  "orientations": [
+    "landscape",
+    "portrait"
+  ],
+  "visual_modes": [
+    "light",
+    "dark"
+  ],
+  "visual_matrix_cases": 144,
+  "source_mapping_note": "Huidige mappings zijn op pinned main gelezen. Gewenste rijke/composite/arrival-layouts vereisen de expliciete uitbreidingen uit03-REPO-INTEGRATIE.md. Referentiedata worden niet naar productie gekopieerd.",
+  "mapping_sources": [
+    {
+      "path": "packages/contracts/src/sync-content-families.ts",
+      "git_blob_sha": "6f88fc909e72454b106672e38f138ccd80764573",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-content-families.ts"
+    },
+    {
+      "path": "packages/contracts/src/sync-dynamic-configuration.ts",
+      "git_blob_sha": "ef2270c175a5220f390872e3a2cae2d064cf02bb",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "path": "packages/content-templates/src/sync-dynamic-projector.ts",
+      "git_blob_sha": "6129c6f775471f2b886b6a1954c6d1b3c3ffc432",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sync-dynamic-projector.ts"
+    },
+    {
+      "path": "packages/content-templates/src/sync-engage-projector.ts",
+      "git_blob_sha": "39e78af8e8ce659b4aa41ea1b43d1e02d8c99572",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sync-engage-projector.ts"
+    }
+  ],
+  "dynamic_source_type_to_families": {
+    "menu": [
+      "menu"
+    ],
+    "price_list": [
+      "menu"
+    ],
+    "news": [
+      "rss"
+    ],
+    "sport_program": [
+      "fixtures",
+      "club-program",
+      "team-program",
+      "pool-program"
+    ],
+    "sport_results": [
+      "results",
+      "club-results",
+      "team-results",
+      "pool-results"
+    ],
+    "sport_standing": [
+      "standings"
+    ],
+    "sport_period_standing": [
+      "period-standings"
+    ],
+    "sport_match_of_the_day": [
+      "matchday"
+    ],
+    "sport_next_match": [
+      "next-match"
+    ],
+    "sport_cancellations": [
+      "cancellations"
+    ],
+    "sport_dressing_rooms": [
+      "dressing-rooms",
+      "changing-rooms"
+    ],
+    "sport_officials": [
+      "officials"
+    ],
+    "sport_team": [
+      "team-info"
+    ],
+    "sport_sponsor": [
+      "sponsors"
+    ],
+    "sport_activities": [
+      "activities",
+      "agenda"
+    ],
+    "sport_trainings": [
+      "training"
+    ],
+    "sport_volunteers": [
+      "volunteers"
+    ],
+    "sport_birthdays": [
+      "birthdays"
+    ],
+    "sport_visitor_arrivals": [
+      "visitors",
+      "team-arrivals"
+    ],
+    "sport_referee_arrivals": [
+      "referees"
+    ],
+    "ledscores_live_match": [
+      "scoreboard",
+      "goal"
+    ]
+  },
+  "entries": [
+    {
+      "id": "fixtures",
+      "name": "Programma",
+      "group": "Sport",
+      "label": "HET CLUBPROGRAMMA",
+      "description": "Alle wedstrijden, tijden en velden op een rij.",
+      "nummer": 1,
+      "prototype_scene": "matchPanel('club')",
+      "scene_soort": "Clubprogramma met wedstrijdkaarten",
+      "huidige_dynamische_brontypen": [
+        "sport_program"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Geselecteerde eigen teams, echte tegenstanders, aftrap, datum, thuis/uit, veld en twee logo’s.",
+      "geaccepteerd_gedrag": "Eén container met gepagineerde kaarten; thuiswedstrijden herkenbaar en uitwedstrijden licht gemarkeerd.",
+      "demo_en_integratiegrens": "Voorbeeldwedstrijden komen uit matchRows; in productie de bestaande gecontroleerde selectie gebruiken.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "results",
+      "name": "Uitslagen",
+      "group": "Sport",
+      "label": "ZO SPEELDEN WE",
+      "description": "De uitslagen van jouw club op één helder scherm.",
+      "nummer": 2,
+      "prototype_scene": "matchPanel('club', true)",
+      "scene_soort": "Clubuitslagen met scorekaarten",
+      "huidige_dynamische_brontypen": [
+        "sport_results"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Eigen-teamsselectie, gespeelde wedstrijden, officiële uitslagen, datum, thuis/uit en beide clublogo’s.",
+      "geaccepteerd_gedrag": "Zelfde kaartfamilie als programma, met echte score per team en consistente paginering.",
+      "demo_en_integratiegrens": "Demoresultaten zijn voorbeelddata; geen afgeleide of willekeurige scores publiceren.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "period-standings",
+      "name": "Periodestand",
+      "group": "Sport",
+      "label": "DE PERIODERACE",
+      "description": "De actuele periodestand van jouw competitie.",
+      "nummer": 3,
+      "prototype_scene": "ranking(true)",
+      "scene_soort": "Doorlopende periodestand",
+      "huidige_dynamische_brontypen": [
+        "sport_period_standing"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Gekozen periode, eigen team-ID, complete poule, positie, gespeeld, W/GL/V, saldo, punten, vorm en rijlogo.",
+      "geaccepteerd_gedrag": "Eigen rij beweegt mee en blijft begrensd aan boven-/onderrand; overige clubs scrollen door; eigen periodegegevens gebruiken.",
+      "demo_en_integratiegrens": "Prototype simuleert standen en een testpositie; echte statistieken mogen niet uit punten worden teruggerekend.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "cancellations",
+      "name": "Afgelastingen",
+      "group": "Sport",
+      "label": "LET OP · AFGELAST",
+      "description": "Laat zien welke wedstrijden niet doorgaan.",
+      "nummer": 4,
+      "prototype_scene": "cancellationScene()",
+      "scene_soort": "Afgelastingen in tabelcontainer",
+      "huidige_dynamische_brontypen": [
+        "sport_cancellations"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Echte status, aftrap, betrokken teams, veld en eigen sportpark; alleen relevante afgelastingen.",
+      "geaccepteerd_gedrag": "Waarschuwingscontext boven duidelijke rijen; eerlijke lege toestand als alles doorgaat.",
+      "demo_en_integratiegrens": "De melding over veldomstandigheden is voorbeeldinhoud.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "dressing-rooms",
+      "name": "Kleedkamers",
+      "group": "Sport",
+      "label": "VIND JE KLEEDKAMER",
+      "description": "Een duidelijke kamer- en veldindeling voor alle teams.",
+      "nummer": 5,
+      "prototype_scene": "roomScene(false, true)",
+      "scene_soort": "Kleedkamers en veldindeling",
+      "huidige_dynamische_brontypen": [
+        "sport_dressing_rooms"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Wedstrijd-ID, aftrap, teams, eigen veld en afzonderlijke thuis-/uitkleedkamers.",
+      "geaccepteerd_gedrag": "Eén tabelcontainer met eigen header en clublogo rechts; verwijst uitsluitend naar het eigen sportpark.",
+      "demo_en_integratiegrens": "De rijplanning en kamernummers zijn demonstratiegegevens.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "officials",
+      "name": "Officials",
+      "group": "Sport",
+      "label": "DE MENSEN ACHTER DE WEDSTRIJD",
+      "description": "Wedstrijdcoördinatoren, grensrechters en officials.",
+      "nummer": 6,
+      "prototype_scene": "peopleScene()",
+      "scene_soort": "Wedstrijdofficials in tabel",
+      "huidige_dynamische_brontypen": [
+        "sport_officials"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Toegestane officialnamen, rol, toewijzing, tijd, wedstrijd en veld.",
+      "geaccepteerd_gedrag": "Operational overzicht van coördinatie en wedstrijdleiding, met bestaande privacykeuzes.",
+      "demo_en_integratiegrens": "Fictieve namen illustreren de vormgeving; geen voorbeeldpersonen als echte officials opslaan.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "team-info",
+      "name": "Teaminformatie",
+      "group": "Sport",
+      "label": "DIT IS ONS TEAM",
+      "description": "Team, begeleiding en praktische teaminformatie.",
+      "nummer": 7,
+      "prototype_scene": "teamScene() / feature()",
+      "scene_soort": "Teamfoto met informatiecontainer",
+      "huidige_dynamische_brontypen": [
+        "sport_team"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Geselecteerd team, geverifieerde teamfoto, seizoen, competitie en toegestane teaminformatie.",
+      "geaccepteerd_gedrag": "Fotopaneel naast eigen tekstcontainer; één containerheader, geen tweede canvasheader.",
+      "demo_en_integratiegrens": "Teambeeld en beschrijving zijn visuele voorbeelden; echte tenantmedia en gegevens binden.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "activities",
+      "name": "Clubactiviteiten",
+      "group": "Club",
+      "label": "SAMEN OP DE CLUB",
+      "description": "De clubagenda met activiteiten en evenementen.",
+      "nummer": 8,
+      "prototype_scene": "eventScene(false) / fixedSixSlots()",
+      "scene_soort": "Zes vaste activiteitkaarten",
+      "huidige_dynamische_brontypen": [
+        "sport_activities"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Activiteit-ID, datum/tijd, titel, korte omschrijving, locatie en optionele gecontroleerde foto.",
+      "geaccepteerd_gedrag": "Altijd 3 kolommen × 2 rijen, ook portrait; lege slots blijven leeg; >6 records vervolgen op volgende pagina.",
+      "demo_en_integratiegrens": "0–6-selector en zes events zijn displayfixtures, geen productielimiet op bronselectie.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "training",
+      "name": "Trainingen",
+      "group": "Sport",
+      "label": "TIJD OM TE TRAINEN",
+      "description": "Trainingstijden, teams en veldindeling.",
+      "nummer": 9,
+      "prototype_scene": "trainingScene()",
+      "scene_soort": "Trainingstabel",
+      "huidige_dynamische_brontypen": [
+        "sport_trainings"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Eigen team-ID, trainingsdag/tijd, veld, trainer en eindtijd.",
+      "geaccepteerd_gedrag": "Rustige tabel met dezelfde containerheader; eigen sportpark en actuele planning.",
+      "demo_en_integratiegrens": "De dinsdagplanning is een voorbeeld.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "volunteers",
+      "name": "Vrijwilligers",
+      "group": "Club",
+      "label": "JULLIE MAKEN HET VERSCHIL",
+      "description": "Zet de vrijwilligers van vandaag in het zonnetje.",
+      "nummer": 10,
+      "prototype_scene": "peopleScene(true)",
+      "scene_soort": "Vrijwilligers en diensten",
+      "huidige_dynamische_brontypen": [
+        "sport_volunteers"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Toegestane namen, taak, diensttijd, locatie en eventuele open taakmelding.",
+      "geaccepteerd_gedrag": "Praktische dienstenlijst; eigen clublogo in header; privacy en toegestane publicatie blijven gelden.",
+      "demo_en_integratiegrens": "Voorbeeldnamen en diensten niet als echte vrijwilligers registreren.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "visitors",
+      "name": "Bezoekende teams",
+      "group": "Sport",
+      "label": "WELKOM BIJ DUINDORP SV",
+      "description": "Ontvang bezoekers met hun teamnaam en kleedkamer.",
+      "nummer": 11,
+      "prototype_scene": "welcomeScene()",
+      "scene_soort": "Bezoekerkaarten voor komende thuiswedstrijden",
+      "huidige_dynamische_brontypen": [
+        "sport_visitor_arrivals"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Stabiele match-/club-/team-ID’s, kickoffAt, status, beide namen, bezoekerslogo, veld en twee kleedkamers.",
+      "geaccepteerd_gedrag": "Maximaal vier eerstvolgende eigen thuiswedstrijden; groot alleen bezoekerslogo; volledige wedstrijd apart; 1/2/3/4-composities.",
+      "demo_en_integratiegrens": "De voorbeeldteller toont alleen lay-outvarianten; echte records via bronfilter, niet via een productie-demoaantal.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "matchday",
+      "name": "Onze wedstrijddag",
+      "group": "Sport",
+      "label": "WEDSTRIJDDAG",
+      "description": "Een groot podium voor de eerstvolgende wedstrijd.",
+      "nummer": 12,
+      "prototype_scene": "matchPanel('pool', true, true) + ranking(false, true) + matchPanel('pool', false, true)",
+      "scene_soort": "Drie containers: uitslagen, stand en programma",
+      "huidige_dynamische_brontypen": [
+        "sport_match_of_the_day"
+      ],
+      "huidige_bronmodus": "huidig-single-match/nieuwe-composite-nodig",
+      "vereiste_productiegegevens": "Samengestelde gecontroleerde set met vorige pouleuitslagen, volledige poulestand en volgende pouleprogramma bij hetzelfde eigen team/seizoen.",
+      "geaccepteerd_gedrag": "Landscape drie containers; portrait herschikt volgens referentie; middenstand houdt eigen team zichtbaar.",
+      "demo_en_integratiegrens": "Huidig sport_match_of_the_day levert slechts één wedstrijd; nieuwe composite snapshotprojectie is noodzakelijk.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "club-program",
+      "name": "Clubprogramma",
+      "group": "Sport",
+      "label": "VANDAAG OP HET VELD",
+      "description": "Alle wedstrijden van jouw vereniging.",
+      "nummer": 13,
+      "prototype_scene": "matchPanel('club')",
+      "scene_soort": "Programma van de eigen club",
+      "huidige_dynamische_brontypen": [
+        "sport_program"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Alle geselecteerde eigen teams, echte thuis-/uitwedstrijden, datums, tijden, velden en clublogo’s.",
+      "geaccepteerd_gedrag": "Scope blijft clubbreed; gepagineerde kaarten delen de Programma-compositie.",
+      "demo_en_integratiegrens": "De gedeelde helper maakt deze variant visueel verwant aan fixtures; bronselectie blijft expliciet clubbreed.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "team-program",
+      "name": "Teamprogramma",
+      "group": "Sport",
+      "label": "HET PROGRAMMA",
+      "description": "De komende wedstrijden van één team.",
+      "nummer": 14,
+      "prototype_scene": "matchPanel('team')",
+      "scene_soort": "Programma van één team",
+      "huidige_dynamische_brontypen": [
+        "sport_program"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Eén gekozen eigen team en komende wedstrijden uit diens juiste competitie-/seizoencontext.",
+      "geaccepteerd_gedrag": "Chronologische teamkaarten met thuis/uit en beide logo’s; geen andere eigen teams invoegen.",
+      "demo_en_integratiegrens": "Voorbeeldkalender is geen echte wedstrijdagenda.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "pool-program",
+      "name": "Pouleprogramma",
+      "group": "Sport",
+      "label": "IN ONZE POULE",
+      "description": "Het volledige programma van een competitie.",
+      "nummer": 15,
+      "prototype_scene": "matchPanel('pool')",
+      "scene_soort": "Programma van een poule",
+      "huidige_dynamische_brontypen": [
+        "sport_program"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Gekozen teamcontext, competitie/poule, seizoen en alle wedstrijden van die poule.",
+      "geaccepteerd_gedrag": "Poulebrede kaarten; eigen wedstrijden herkenbaar, overige poulewedstrijden blijven zichtbaar.",
+      "demo_en_integratiegrens": "Niet beperken tot alleen eigen wedstrijden: juist deze familie is poulebreed.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "club-results",
+      "name": "Clubuitslagen",
+      "group": "Sport",
+      "label": "ZO SPEELDEN WE",
+      "description": "De laatste uitslagen van de hele club.",
+      "nummer": 16,
+      "prototype_scene": "matchPanel('club', true)",
+      "scene_soort": "Uitslagen van de eigen club",
+      "huidige_dynamische_brontypen": [
+        "sport_results"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Alle geselecteerde eigen teams en hun gepubliceerde uitslagen.",
+      "geaccepteerd_gedrag": "Clubbrede scorekaarten; dezelfde componentfamilie als results, eigen bron-/periodekeuze bewaren.",
+      "demo_en_integratiegrens": "Demo-uitslagen niet als officiële data gebruiken.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "team-results",
+      "name": "Teamuitslagen",
+      "group": "Sport",
+      "label": "ONZE RESULTATEN",
+      "description": "Terugkijken met jouw team.",
+      "nummer": 17,
+      "prototype_scene": "matchPanel('team', true)",
+      "scene_soort": "Uitslagen van één team",
+      "huidige_dynamische_brontypen": [
+        "sport_results"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Eén eigen team, gespeelde wedstrijden en officiële score per tegenstander.",
+      "geaccepteerd_gedrag": "Teamgebonden terugblik met datums, beide logo’s en paginering.",
+      "demo_en_integratiegrens": "Geen toekomstige demoafspraken of verzonnen uitslagen bewaren.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "pool-results",
+      "name": "Pouleuitslagen",
+      "group": "Sport",
+      "label": "DEZE SPEELRONDE",
+      "description": "Alle uitslagen uit de gekozen poule.",
+      "nummer": 18,
+      "prototype_scene": "matchPanel('pool', true)",
+      "scene_soort": "Uitslagen van een poule",
+      "huidige_dynamische_brontypen": [
+        "sport_results"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Volledige gekozen poule, eigen teamcontext, seizoen, datum en gepubliceerde scores.",
+      "geaccepteerd_gedrag": "Alle pouleuitslagen tonen; eigen wedstrijd uitlichten.",
+      "demo_en_integratiegrens": "Geen automatische clubbrede selectie in plaats van poule.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "standings",
+      "name": "Competitiestand",
+      "group": "Sport",
+      "label": "DE STAND VAN ZAKEN",
+      "description": "Een heldere ranglijst met je eigen team uitgelicht.",
+      "nummer": 19,
+      "prototype_scene": "ranking()",
+      "scene_soort": "Volledige bewegende competitiestand",
+      "huidige_dynamische_brontypen": [
+        "sport_standing"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Eigen team-ID en alle getypeerde officiële statistieken, vorm en clublogo’s uit de juiste poule.",
+      "geaccepteerd_gedrag": "Volledige lijst scrollt; eigen teamrij plakt aan boven-/onderrand; gedeeld uitgelijnde kolommen en om-en-om rijen.",
+      "demo_en_integratiegrens": "Bronprojector moet verder gaan dan huidige vierstringstand; nulstatistieken niet verzinnen.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "team-arrivals",
+      "name": "Teamontvangst",
+      "group": "Sport",
+      "label": "WELKOM OP HOUTRUST",
+      "description": "Bezoekende teams op het juiste moment ontvangen.",
+      "nummer": 20,
+      "prototype_scene": "roomScene(true)",
+      "scene_soort": "Ontvangsttabel voor teams",
+      "huidige_dynamische_brontypen": [
+        "sport_visitor_arrivals"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Bestaande geautoriseerde arrival-windowselectie, aankomst/aftrap, team, veld en kleedkamer.",
+      "geaccepteerd_gedrag": "Praktische ontvangsttabel; dit blijft een eigen familie naast de grote visitor-kaarten.",
+      "demo_en_integratiegrens": "Gebruik de juiste aankomstvelden; niet automatisch dezelfde 1–4 visitor-compositie forceren.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "welcome",
+      "name": "Welkomstscherm",
+      "group": "Sport",
+      "label": "WELKOM BIJ DE CLUB",
+      "description": "Laat iedereen zich thuis voelen.",
+      "nummer": 21,
+      "prototype_scene": "welcomeScene()",
+      "scene_soort": "Welkomstkaarten met bezoeker centraal",
+      "huidige_dynamische_brontypen": [],
+      "huidige_bronmodus": "handmatige-Studio-inhoud",
+      "vereiste_productiegegevens": "Voor nieuwe OnzeTrots-versie dezelfde gecontroleerde upcoming-home fixturefacts als visitors.",
+      "geaccepteerd_gedrag": "Dezelfde bezoekerkaarten en filter als visitors; geen reusachtig eigen clublogo als hoofdbeeld.",
+      "demo_en_integratiegrens": "Bestaande algemene welcome is handmatig; nieuwe live arrival-binding expliciet versiegebonden toevoegen.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "referees",
+      "name": "Scheidsrechters",
+      "group": "Sport",
+      "label": "BEDANKT VOOR JE INZET",
+      "description": "Ontvang arbiters met wedstrijd- en veldinformatie.",
+      "nummer": 22,
+      "prototype_scene": "peopleScene(false, true)",
+      "scene_soort": "Scheidsrechterontvangst",
+      "huidige_dynamische_brontypen": [
+        "sport_referee_arrivals"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Geautoriseerde arbiters, rol, toewijzing, wedstrijd, aftrap en veld.",
+      "geaccepteerd_gedrag": "Heldere ontvangstrijen en één clubheader; bestaande selectie-/privacyfilters volgen.",
+      "demo_en_integratiegrens": "Geen fictieve arbiter als echte naam vastleggen.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "changing-rooms",
+      "name": "Kleedkamerindeling",
+      "group": "Sport",
+      "label": "VIND JE KLEEDKAMER",
+      "description": "Praktische informatie bij de entree.",
+      "nummer": 23,
+      "prototype_scene": "roomScene()",
+      "scene_soort": "Kleedkamerindeling",
+      "huidige_dynamische_brontypen": [
+        "sport_dressing_rooms"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Wedstrijd, team, thuis/uit, eigen veld en aparte kleedkamers.",
+      "geaccepteerd_gedrag": "Praktische locatiecontainer; variant van dressing-rooms met eigen kop/context.",
+      "demo_en_integratiegrens": "Kamernummers uit de referentie blijven voorbeelden.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "next-match",
+      "name": "Volgende wedstrijd",
+      "group": "Sport",
+      "label": "DE VOLGENDE",
+      "description": "Tel af naar de volgende aftrap.",
+      "nummer": 24,
+      "prototype_scene": "matchHero('next-match')",
+      "scene_soort": "Grote volgende wedstrijd",
+      "huidige_dynamische_brontypen": [
+        "sport_next_match"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Geselecteerd eigen team, eerstvolgende echte tegenstander, beide logo’s, datum, tijd en locatie.",
+      "geaccepteerd_gedrag": "Ruime wedstrijdcontainer met beide crests en aparte aftrap; headerlogo rechts.",
+      "demo_en_integratiegrens": "Voorbeeld Quick Steps/14:30 niet hardcoderen in productie.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "birthdays",
+      "name": "Verjaardagen",
+      "group": "Sport",
+      "label": "VANDAAG VIEREN WE",
+      "description": "Zet de jarigen in het zonnetje.",
+      "nummer": 25,
+      "prototype_scene": "birthdays() / fixedSixSlots()",
+      "scene_soort": "Zes vaste verjaardagskaarten",
+      "huidige_dynamische_brontypen": [
+        "sport_birthdays"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Alleen privacytoegestane displaynaam, leeftijd indien toegestaan/bekend, team/meta en datumlabel.",
+      "geaccepteerd_gedrag": "Vast 3×2 in beide oriëntaties; één datum-/clublogoheader, grote leeftijd, naam en team; lege slots blijven staan.",
+      "demo_en_integratiegrens": "Zes unieke voorbeeldnamen en 0–6-selector uitsluitend voor demo; geen geboortegegevens toevoegen zonder bestaande toestemming.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "lineup",
+      "name": "Teamopstelling",
+      "group": "Sport",
+      "label": "ONZE ELF",
+      "description": "Een overzichtelijke opstelling op het veld.",
+      "nummer": 26,
+      "prototype_scene": "lineupScene()",
+      "scene_soort": "Voetbalveld met opstelling en informatie",
+      "huidige_dynamische_brontypen": [],
+      "huidige_bronmodus": "handmatige-Studio-inhoud",
+      "vereiste_productiegegevens": "Opgeslagen teamopstelling, rugnummers, toegestane spelersnamen, wissels, aanvoerder, keeper en matchcontext.",
+      "geaccepteerd_gedrag": "Veldvisual met naast/onder informatiecontainer; echte opstelling niet uit demo invullen.",
+      "demo_en_integratiegrens": "Sync heeft geen directe sport-lineup dynamische mapping; bestaand handmatig Studio-document is leidend.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "scoreboard",
+      "name": "Live scorebord",
+      "group": "Sport",
+      "label": "LIVE VANAF HET VELD",
+      "description": "Tussenstand en wedstrijdklok via LED Scores.",
+      "nummer": 27,
+      "prototype_scene": "matchHero('scoreboard')",
+      "scene_soort": "Live scorebord met chip boven score",
+      "huidige_dynamische_brontypen": [
+        "ledscores_live_match"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Geautoriseerde LED Scores-matchState, teams, frozen logo’s, score, klok, fase, staleAfter en showClock.",
+      "geaccepteerd_gedrag": "Blauwe LIVE/tijdchip boven score; bestaande aftrap/live/rust/eindstand en pauze volgen.",
+      "demo_en_integratiegrens": "Demoscoreknoppen, 63:24 en vaste teamnamen zijn referentiebediening, geen live integratie.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "goal",
+      "name": "Doelpunt",
+      "group": "Sport",
+      "label": "DAAR IS ’IE!",
+      "description": "Vier ieder doelpunt met een opvallende overlay.",
+      "nummer": 28,
+      "prototype_scene": "goalScene()",
+      "scene_soort": "Doelpuntmoment met show-effecten",
+      "huidige_dynamische_brontypen": [
+        "ledscores_live_match"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Bestaand geautoriseerd goal-event, scorende zijde, actuele score, team en eventuele toegestane scorerinformatie.",
+      "geaccepteerd_gedrag": "Grote goal-uiting, score en vloeiende effecten; interne motion ook in MP4/fallback deterministisch samplen.",
+      "demo_en_integratiegrens": "Prototype verhoogt alleen voorbeeldscore; productie moet echte eventbinding behouden.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "menu",
+      "name": "Kantinemenu",
+      "group": "Kantine",
+      "label": "EVEN NAAR DE KANTINE",
+      "description": "Producten, prijzen en categorieën in jouw clubstijl.",
+      "nummer": 29,
+      "prototype_scene": "menuScene()",
+      "scene_soort": "Kantinemenu en promotiecontainer",
+      "huidige_dynamische_brontypen": [
+        "menu",
+        "price_list"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Gecontroleerde producten/categorieën, echte prijzen, omschrijvingen en optionele eigen promotie.",
+      "geaccepteerd_gedrag": "Twee menukolommen plus losse promotiecontainer in goedgekeurde stijl; prijsbron en valuta bewaren.",
+      "demo_en_integratiegrens": "Voorbeeldprijzen of €3,50-promo nooit overschrijven op bestaande Twelve-/handmatige producten.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "engage",
+      "name": "Publieksactie",
+      "group": "Club",
+      "label": "LAAT DE CLUB MEEDOEN",
+      "description": "Een poll, de speler van de wedstrijd en live resultaten.",
+      "nummer": 30,
+      "prototype_scene": "pollScene()",
+      "scene_soort": "Publieksactie met resultaten",
+      "huidige_dynamische_brontypen": [],
+      "huidige_bronmodus": "publieke-campagneprojectie",
+      "vereiste_productiegegevens": "Gecontroleerde openbare campagne, antwoord-ID’s, getoonde stemtotalen en campagnevisibility.",
+      "geaccepteerd_gedrag": "Pollcontainer met duidelijke resultaten en clubaside; productie gebruikt bestaande echte campagneflow.",
+      "demo_en_integratiegrens": "Prototypeknoppen wijzigen voorbeeldpercentages; die logica nooit als echte stemmen of openbaarmaking kopiëren.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/content-templates/src/sync-engage-projector.ts"
+    },
+    {
+      "id": "rss",
+      "name": "Nieuws & RSS",
+      "group": "Club",
+      "label": "DIT LEEFT OP DE CLUB",
+      "description": "Automatisch nieuws uit je gekoppelde feed.",
+      "nummer": 31,
+      "prototype_scene": "newsScene(false) / feature()",
+      "scene_soort": "Nieuws met foto en tekstcontainer",
+      "huidige_dynamische_brontypen": [
+        "news"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Echte canonical feedartikelen, titel, intro, source, URL en verified hero-image waar aanwezig.",
+      "geaccepteerd_gedrag": "Fotopaneel en nieuwscontainer, artikelwisseling/paginering en bestaande QR/leesroute behouden.",
+      "demo_en_integratiegrens": "Walking Football- en weekendcopy zijn referentieartikelen, geen ingestfallback.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "sponsors",
+      "name": "Onze partners",
+      "group": "Club",
+      "label": "SAMEN MAKEN WE DE CLUB",
+      "description": "Een herkenbaar podium voor je sponsors.",
+      "nummer": 32,
+      "prototype_scene": "sponsorScene()",
+      "scene_soort": "Sponsorlogo’s in partnercontainer",
+      "huidige_dynamische_brontypen": [
+        "sport_sponsor"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Actieve tenantgebonden sponsor-/campagneselectie, goedgekeurde logo’s en zichtbare sponsoridentiteit.",
+      "geaccepteerd_gedrag": "Logo’s duidelijk in raster, eigen clublogo rechts in containerheader; bron-/campagnebeleid blijft gelden.",
+      "demo_en_integratiegrens": "De zes referentielogo’s zijn assets voor Duindorpvoorbeeld, geen verzonnen platformklanten.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "agenda",
+      "name": "Clubagenda",
+      "group": "Club",
+      "label": "DIT KOMT ERAAN",
+      "description": "Activiteiten om naar uit te kijken.",
+      "nummer": 33,
+      "prototype_scene": "eventScene(true) / fixedSixSlots()",
+      "scene_soort": "Zes vaste agendakaarten",
+      "huidige_dynamische_brontypen": [
+        "sport_activities"
+      ],
+      "huidige_bronmodus": "bestaande-canonical-dynamische-projectie",
+      "vereiste_productiegegevens": "Echte activiteit-ID’s, kalenderdatum/tijd, titel, intro, locatie en optionele verified foto.",
+      "geaccepteerd_gedrag": "Zelfde vaste 3×2 als activities met agenda-context; 0–6 items laten identieke slots, >6 gaat verder op volgende pagina.",
+      "demo_en_integratiegrens": "Agenda en activities delen rendererhelper, maar behouden eigen familiekeuze en eigen demoteller.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "club-story",
+      "name": "Clubverhaal",
+      "group": "Club",
+      "label": "DIT IS ONZE TROTS",
+      "description": "Een sterk verhaal met eigen tekst en fotografie.",
+      "nummer": 34,
+      "prototype_scene": "newsScene(true) / feature()",
+      "scene_soort": "Clubverhaal met fotografie",
+      "huidige_dynamische_brontypen": [],
+      "huidige_bronmodus": "handmatige-Studio-inhoud",
+      "vereiste_productiegegevens": "Eigen opgeslagen verhaal, tekst, bron-/beeldcaption en goedgekeurde eigen foto of museumbeeld.",
+      "geaccepteerd_gedrag": "Groot beeld naast verhaalcontainer; duidelijke club-/historiecontext zonder buitenheader.",
+      "demo_en_integratiegrens": "De museumverhalen/foto’s zijn Duindorpvoorbeelden; geen automatische RSS-binding bestaat voor deze familie.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "group": "Media",
+      "label": "KIJK MET ONS MEE",
+      "description": "Video met een lokale kaart voor offline momenten.",
+      "nummer": 35,
+      "prototype_scene": "videoScene()",
+      "scene_soort": "Video- of offline mediakaart",
+      "huidige_dynamische_brontypen": [],
+      "huidige_bronmodus": "handmatige-Studio-inhoud",
+      "vereiste_productiegegevens": "Bestaande opgeslagen YouTube-link en gevalideerde videoconfiguratie, eigen fallbackbeeld/tekst.",
+      "geaccepteerd_gedrag": "Werkelijke video volgens bestaande online/offline flow; duidelijke fallback als video niet beschikbaar is.",
+      "demo_en_integratiegrens": "Prototype opent een YouTube-zoekpagina en speelt geen video: vervang bestaande integratie niet door die zoeklink.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "id": "free",
+      "name": "Vrij ontwerp",
+      "group": "Vrij",
+      "label": "JOUW VERHAAL",
+      "description": "Begin met eigen tekst, kleur en compositie.",
+      "nummer": 36,
+      "prototype_scene": "freeScene()",
+      "scene_soort": "Vrije clubcompositie",
+      "huidige_dynamische_brontypen": [],
+      "huidige_bronmodus": "handmatige-Studio-inhoud",
+      "vereiste_productiegegevens": "Eigen bewaarde tekst, goedgekeurde media/logo en toegestane Studio-opmaak.",
+      "geaccepteerd_gedrag": "Vrije compositie in goedgekeurde OnzeTrots-stijl met één containerlogoheader en kleine footer.",
+      "demo_en_integratiegrens": "De vaste sloganplaat is één voorbeeld; behoud bestaande eigen-inhoudauthoring.",
+      "prototype_location": "broncode/",
+      "mapping_source": "packages/contracts/src/sync-dynamic-configuration.ts"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ export function projectSyncLiveMatch(presentation:SyncSlidePresentation,state:Le
  if(!state||!['scoreboard','goal'].includes(presentation.family))return presentation;
  const clock=showClock&&state.clock?formatLedScoresClock(resolveLedScoresClockSeconds(state.clock,ledScoresMatchServerNow(state,now),state.staleAfter)):'';
  return {...presentation,state:'ready',
+  ...(presentation.rendererVersion==='sync-onzetrots-v1'?{rich:{...presentation.rich,phase:({pre_match:'scheduled',live:'live',paused:'paused',half_time:'halftime',finished:'finished',unknown:'unknown'} as const)[state.status]}}:{}),
   home:{name:state.home.name,team:'',logo:presentation.home?.name===state.home.name?presentation.home.logo:undefined},
   away:{name:state.away.name,team:'',logo:presentation.away?.name===state.away.name?presentation.away.logo:undefined},
   match:{homeScore:String(state.home.score),awayScore:String(state.away.score),clock,date:'',time:''},

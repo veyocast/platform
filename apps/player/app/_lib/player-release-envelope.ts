@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 
 import {
-  syncSlidePresentationSchema, syncSlideAssets, syncSlidePageCount, syncSystemAssets, syncBackgroundAssetForRef, type SyncSlidePresentation,
+  syncSlidePresentationSchema, syncSlideAssets, syncSlideRendererAssets, syncSlideMinimumDurationMs, syncBackgroundAssetForRef, type SyncSlidePresentation,
   syncDynamicPlaybackSchema,
   syncDynamicConfigurationSchema,
   sitesDynamicConfigurationSchema,
@@ -109,11 +109,13 @@ export async function loadPlayerReleaseEnvelope({
   enableSyncStudio = false,
   enableSyncEngagePaging = false,
   enableSyncBackgrounds = false,
+  enableSyncOnzeTrots = false,
   syncDynamicMode=false,
 }: {
   enableSyncStudio?:boolean;
   enableSyncEngagePaging?:boolean;
   enableSyncBackgrounds?:boolean;
+  enableSyncOnzeTrots?:boolean;
   syncDynamicMode?:SyncDynamicMode;
   device: PlayerReleaseDevice;
   releaseId: string;
@@ -153,7 +155,7 @@ export async function loadPlayerReleaseEnvelope({
     syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,
   );
   const binaryArtifacts=new Map<string,ReturnType<typeof readSyncPublishedBinaryArtifact>['artifact']>();
-  const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => syncDynamicMode === 'dom' && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
+  const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => syncDynamicMode === 'dom' && (enableSyncOnzeTrots||value.presentation.rendererVersion!=='sync-onzetrots-v1') && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
   if(syncDynamicMode){
     const selected=releaseItems.filter(item=>item.live_data_enabled&&item.dynamic_snapshot_id&&syncDynamicSnapshots.has(item.id)&&!dynamicDomIds.has(item.id)),ids=[...new Set(selected.map(item=>item.dynamic_snapshot_id!))];
     if(ids.length){
@@ -173,11 +175,11 @@ export async function loadPlayerReleaseEnvelope({
     const pagedEngage=isRecord(raw)&&raw.family==='engage'&&isRecord(raw.poll)&&Object.hasOwn(raw.poll,'optionsPerPage');
     if(!enableSyncStudio&&!pagedEngage)continue;
     const parsed=syncSlidePresentationSchema.safeParse(raw),duration=item.sync_studio_duration_ms;
-    if(!parsed.success||item.sites_studio_presentation_json!=null||!Number.isInteger(duration)||Number(duration)<3000*syncSlidePageCount(parsed.data)||Number(duration)>120000||item.duration_seconds*1000<Number(duration))throw Error("SYNC_STUDIO_RELEASE_INVALID");
+    if(!parsed.success||item.sites_studio_presentation_json!=null||!Number.isInteger(duration)||Number(duration)<syncSlideMinimumDurationMs(parsed.data)||Number(duration)>120000||item.duration_seconds*1000<Number(duration))throw Error("SYNC_STUDIO_RELEASE_INVALID");
     validatedSyncPresentations.set(item.id,parsed.data);
     // Older supported profiles receive the complete, unchanged binary, without
     // an unknown strict DOM field or an online projection they cannot paginate.
-    if (enableSyncStudio&&(!pagedEngage||enableSyncEngagePaging)&&(enableSyncBackgrounds || !syncBackgroundAssetForRef(parsed.data.style.backgroundAsset))) syncPresentations.set(item.id,parsed.data);
+    if (enableSyncStudio&&(enableSyncOnzeTrots||parsed.data.rendererVersion!=='sync-onzetrots-v1')&&(!pagedEngage||enableSyncEngagePaging)&&(enableSyncBackgrounds || !syncBackgroundAssetForRef(parsed.data.style.backgroundAsset))) syncPresentations.set(item.id,parsed.data);
   }
   const studioAssetRefs=[...[...studioPresentations.values()].flatMap(sitesPresentationAssets),...[...syncPresentations.values()].flatMap(syncSlideAssets),...[...syncDynamicSnapshots].flatMap(([id,value])=>dynamicDomIds.has(id)?syncSlideAssets(value.presentation):[])].filter(ref=>ref.kind==="tenant");
   const validationRefs=[...studioAssetRefs,...[...validatedSyncPresentations.values()].flatMap(syncSlideAssets).filter(ref=>ref.kind==='tenant')];
@@ -299,7 +301,7 @@ export async function loadPlayerReleaseEnvelope({
   const systemAssets=needsSites?sitesSystemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
   const domPresentations = [...syncPresentations.values(), ...[...syncDynamicSnapshots].flatMap(([id,value]) => dynamicDomIds.has(id) ? [value.presentation] : [])];
   const extraBackgrounds = [...new Map(domPresentations.flatMap(value => { const asset = syncBackgroundAssetForRef(value.style.backgroundAsset); return asset ? [[asset.path, asset] as const] : []; })).values()];
-  const syncAssets=domPresentations.length?[...syncSystemAssets,...extraBackgrounds].map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
+  const syncAssets=domPresentations.length?[...new Map([...domPresentations.flatMap(syncSlideRendererAssets),...extraBackgrounds].map(asset=>[asset.path,asset])).values()].map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
   const fetchedAt = new Date().toISOString();
   return {
     device,

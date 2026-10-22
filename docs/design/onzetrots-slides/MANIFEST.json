@@ -1,0 +1,69 @@
+{
+  "packageVersion": "1.0.0",
+  "createdOn": "2026-10-22",
+  "language": "nl",
+  "purpose": "Repository-ready handoff; no production repo changes performed",
+  "repositoryPlacement": "docs/design/onzetrots-slides",
+  "prototype": {
+    "url": "https://veyocast-onzetrots-slides.dgwebserv.chatgpt.site",
+    "commit": "ae83f2b4312408eacae9f29177d3c743e104185b",
+    "sourceDirectory": "broncode",
+    "fileCount": 259,
+    "sourceBytes": 9057776,
+    "logicalCanvases": {
+      "landscape": [
+        1600,
+        900
+      ],
+      "portrait": [
+        900,
+        1600
+      ]
+    },
+    "targetOutputs": {
+      "landscape": [
+        1920,
+        1080
+      ],
+      "portrait": [
+        1080,
+        1920
+      ]
+    }
+  },
+  "repoInspection": {
+    "repository": "veyocast/platform",
+    "ref": "main",
+    "observedCommit": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+    "inventory": "inventaris/repo-integration-inventory.json",
+    "implementationApplied": false
+  },
+  "coverage": {
+    "families": 36,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "orientations": [
+      "landscape",
+      "portrait"
+    ],
+    "baseScreenshots": 144,
+    "detailScreenshots": 75,
+    "contactSheets": 4,
+    "captureInventory": "inventaris/captures.json"
+  },
+  "assets": {
+    "audit": "inventaris/asset-audit.json",
+    "fontFiles": 10,
+    "downloadedOpponentCrests": 217,
+    "logoAliases": 732,
+    "backgroundArtworks": 6
+  },
+  "checks": {
+    "checksums": "SHA256SUMS.txt",
+    "packageVerification": "python3 tools/verify-package.py",
+    "behaviorExamples": "node --test codevoorbeelden/reference-behavior.test.mjs"
+  },
+  "dataBoundary": "All match, standing, birthday, agenda, lineup, price and poll demo facts are illustrative; only assets and design are reference."
+}

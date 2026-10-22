@@ -3,7 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Button} from '@veyocast/ui';
-import {syncDynamicConfigurationSchema,syncDynamicRequestSchema,syncDynamicFamilies,syncSlidePresentationSchema,type SyncDynamicConfiguration,type SyncSlidePresentation,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
+import {syncDynamicConfigurationSchema,syncDynamicRequestSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,syncSlidePresentationSchema,type SyncDynamicConfiguration,type SyncSlidePresentation,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
 import {SyncStudioFrame} from '../studio/sync-studio-frame';
 import {SyncStudioField as Field} from '../studio/sync-studio-field';
 import {mutateSyncDynamicAuthoringAction,previewSyncDynamicAuthoringAction,loadSyncDynamicBindingOptionsAction} from './sync-dynamic-actions';
@@ -122,10 +122,10 @@ export function SyncDynamicEditor(props:Props){
   finally{setBusy(false);}
  }
  const facts=preview?.ok?preview.presentation:null;
- const display:SyncSlidePresentation=facts?{...cfg.seed,rows:facts.rows,news:facts.news,ownRowIndexes:facts.ownRowIndexes,home:facts.home,away:facts.away,match:facts.match,state:facts.state,club:facts.club}: {...cfg.seed,state:'empty'};
+ const display:SyncSlidePresentation=facts?{...cfg.seed,rows:facts.rows,news:facts.news,ownRowIndexes:facts.ownRowIndexes,home:facts.home,away:facts.away,match:facts.match,state:facts.state,club:facts.club,...(cfg.seed.rendererVersion==='sync-onzetrots-v1'&&facts.rendererVersion==='sync-onzetrots-v1'?{rich:facts.rich}:{})}: {...cfg.seed,state:'empty'};
  const previewAssets:Record<string,PlayerDynamicTemplateAsset>=preview?.ok?preview.assets:{};
  const source=props.sources.find(source=>source.id===draft.request.dataSourceId);
- return <SyncStudioFrame presentation={cfg.seed} previewPresentation={display} initialTab={props.slideId?'content':'data'} primarySaveLabel={props.slideId?'Opslaan':'Maken en voorbereiden'} connectedData allowedFamilies={syncDynamicFamilies[cfg.slideType]}
+ return <SyncStudioFrame presentation={cfg.seed} previewPresentation={display} initialTab={props.slideId?'content':'data'} primarySaveLabel={props.slideId?'Opslaan':'Maken en voorbereiden'} connectedData allowedFamilies={(cfg.rendererVersion==='sync-onzetrots-v1'?syncOnzeTrotsDynamicFamilies:syncDynamicFamilies)[cfg.slideType]}
   assets={props.assets} resolveAsset={asset=>asset.kind==='system'?asset.path:previewAssets[asset.mediaAssetId]?.url??props.assets.find(value=>value.id===asset.mediaAssetId)?.sourceUrl??undefined}
   secondsPerPage={draft.seconds} onSecondsChange={seconds=>edit({...draft,seconds})} onChange={patch}
   scratch={{rowsText:'',lineupText:''}} onScratchChange={()=>undefined}

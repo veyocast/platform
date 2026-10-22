@@ -40,7 +40,7 @@ describe("authorized current-target API", () => {
     expect(next.status).toBe(304);
     expect(adminRpc).toHaveBeenCalledOnce();
     expect(loadEnvelope).not.toHaveBeenCalled();
-    expect(next.headers.get("vary")).toBe("Authorization, X-VeyoCast-Sync-Renderer, X-VeyoCast-Sync-Dynamic, X-VeyoCast-Sync-Backgrounds, X-VeyoCast-Sync-Engage-Paging");
+    expect(next.headers.get("vary")).toBe("Authorization, X-VeyoCast-Sync-Renderer, X-VeyoCast-Sync-Dynamic, X-VeyoCast-Sync-Backgrounds, X-VeyoCast-Sync-Engage-Paging, X-VeyoCast-Sync-OnzeTrots");
     expect(await next.text()).toBe("");
   });
   it("negotiates Source before conditional caching without sharing the binary profile ETag",async()=>{
@@ -51,6 +51,15 @@ describe("authorized current-target API", () => {
   });
   it("an advertised Source renderer cannot bypass credential revocation",async()=>{
     const first=await GET(request(undefined,"sync-v1"));adminRpc.mockResolvedValue({data:null,error:null});anonRpc.mockResolvedValue({data:"DEVICE_REVOKED",error:null});expect((await GET(request(first.headers.get("etag")!,"sync-v1"))).status).toBe(403);
+  });
+  it('negotiates the approved OnzeTrots identity before conditional caching and retains per-request authorization',async()=>{
+    const old=await GET(request(undefined,'sync-v1','sync-dynamic-v1'));
+    const newer=request(old.headers.get('etag')!,'sync-v1','sync-dynamic-v1');newer.headers.set('X-VeyoCast-Sync-OnzeTrots','sync-onzetrots-v1');
+    const result=await GET(newer);expect(result.status).toBe(200);expect(result.headers.get('etag')).not.toBe(old.headers.get('etag'));
+    expect(loadEnvelope).toHaveBeenLastCalledWith(expect.objectContaining({enableSyncStudio:true,enableSyncOnzeTrots:true}));
+    loadEnvelope.mockClear();const unchanged=request(result.headers.get('etag')!,'sync-v1','sync-dynamic-v1');unchanged.headers.set('X-VeyoCast-Sync-OnzeTrots','sync-onzetrots-v1');
+    expect((await GET(unchanged)).status).toBe(304);expect(loadEnvelope).not.toHaveBeenCalled();
+    adminRpc.mockResolvedValue({data:null,error:null});anonRpc.mockResolvedValue({data:'DEVICE_REVOKED',error:null});expect((await GET(unchanged)).status).toBe(403);
   });
   it('keeps Source dynamic DOM, new binary and old binary profiles independently authorized and cached',async()=>{
     const old=await GET(request());const dom=await GET(request(old.headers.get('etag')!,undefined,'sync-dynamic-v1'));

@@ -25,3 +25,8 @@ docs/sites-v11-overname/reference/** -text -eol whitespace=cr-at-eol,-blank-at-e
 docs/sites-v11-overname/handoff/** -text -eol whitespace=cr-at-eol
 docs/sync-v1-rebuild/handoff/** -text -eol whitespace=cr-at-eol,-blank-at-eof,-trailing-space
 apps/*/public/assets/*.svg binary
+
+# Preserve the approved OnzeTrots archive and checksum-bound renderer bytes.
+docs/design/onzetrots-slides/** -text -eol whitespace=cr-at-eol,-blank-at-eof,-trailing-space
+apps/control/public/onzetrots-approved-v1/** -text -eol
+apps/player/public/onzetrots-approved-v1/** -text -eol

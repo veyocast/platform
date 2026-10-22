@@ -1,4 +1,5 @@
 "use client";
+import {syncSlidePlacementTheme} from '@veyocast/contracts';
 import {sitesPresentationSchema,syncSlidePageCount,type SitesPresentation}from"@veyocast/contracts";
 import {studioSitesSystemTemplates}from"@veyocast/studio";
 import {SitesPresentationView}from"@veyocast/content-templates/sites-presentation";
@@ -21,8 +22,8 @@ export function photoPlacementPresentation(slide:Slide,tenantName:string):Extrac
  return parsed.success&&parsed.data.kind==='studio'?parsed.data:null;
 }
 export function PlaylistPlacementPreview({slide,active,tenantName}:{slide:Slide;active:boolean;tenantName:string}){
- if(slide.syncDynamic)return <SyncSlidePreview presentation={{...slide.syncDynamic.presentation,theme:slide.themeId??slide.syncDynamic.presentation.theme}}assetUrls={slide.syncDynamic.assetUrls}durationSeconds={slide.seconds*syncSlidePageCount(slide.syncDynamic.presentation)}id={slide.syncDynamic.snapshotId}active={active}intrinsic/>;
- if(slide.syncStudio)return <SyncStudioLibraryPreview member={{...slide.syncStudio,presentation:{...slide.syncStudio.presentation,theme:slide.themeId??slide.syncStudio.presentation.theme},durationSeconds:slide.seconds*syncSlidePageCount(slide.syncStudio.presentation)}} active={active}intrinsic/>;
+ if(slide.syncDynamic)return <SyncSlidePreview presentation={syncSlidePlacementTheme(slide.syncDynamic.presentation,slide.themeId)}assetUrls={slide.syncDynamic.assetUrls}durationSeconds={slide.seconds*syncSlidePageCount(slide.syncDynamic.presentation)}id={slide.syncDynamic.snapshotId}active={active}intrinsic/>;
+ if(slide.syncStudio)return <SyncStudioLibraryPreview member={{...slide.syncStudio,presentation:syncSlidePlacementTheme(slide.syncStudio.presentation,slide.themeId),durationSeconds:slide.seconds*syncSlidePageCount(slide.syncStudio.presentation)}} active={active}intrinsic/>;
  if(slide.design)return <ExperiencePreview design={slide.design}/>;
  const photo=photoPlacementPresentation(slide,tenantName);
  if(photo)return <SitesPresentationView presentation={photo}active={active}resolveAsset={asset=>asset.kind==='system'?asset.path:slide.studioSlide?.assetUrls[asset.mediaAssetId]??slide.image}/>;

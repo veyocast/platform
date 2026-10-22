@@ -14,7 +14,7 @@ import {
 } from "@veyocast/contracts";
 import { SyncSlideStaticView } from "@veyocast/content-templates/sync-slide-static-view";
 import { createSyncStudioStarter } from "@veyocast/studio";
-import { createSyncTemplatePreview } from "./sync-template-preview";
+import { createSyncTemplatePreview as createCurrentSyncTemplatePreview } from "./sync-template-preview";
 
 const referenceRoot = new URL("../../../../../../docs/sync-v1-rebuild/handoff/", import.meta.url);
 const sourceBytes = readFileSync(new URL("reference/sites-sync/src/modules/Content.tsx", referenceRoot));
@@ -159,3 +159,7 @@ describe("Chosen Source template layout examples", () => {
     expect(createSyncTemplatePreview("fixtures").style.font).toBe("Inter");
   });
 });
+
+// Frozen legacy Source fixture parity remains explicit after the additive new
+// default catalogue. The approved catalogue has its own 144-combination tests.
+function createSyncTemplatePreview(family:SyncContentFamily){return createCurrentSyncTemplatePreview(family,'sync-v1');}

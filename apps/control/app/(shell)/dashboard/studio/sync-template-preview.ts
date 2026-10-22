@@ -1,3 +1,4 @@
+import approved from './sync-onzetrots-preview-fixtures.json';
 import {
   syncContentFamilies,
   syncSlidePresentationSchema,
@@ -112,7 +113,7 @@ function previewTitle(family: SyncContentFamily, label: string, name: string): s
 }
 
 /** Chosen Source layout example only. Never use this as a document or command seed. */
-export function createSyncTemplatePreview(family: SyncContentFamily): SyncSlidePresentation {
+function createLegacySyncTemplatePreview(family: SyncContentFamily): SyncSlidePresentation {
   const definition = syncContentFamilies.find(entry => entry.id === family);
   if (!definition) throw new Error("Deze slidefamilie is niet beschikbaar.");
   return syncSlidePresentationSchema.parse({
@@ -143,4 +144,10 @@ export function createSyncTemplatePreview(family: SyncContentFamily): SyncSlideP
     imageCaption: "EEN CLUB. EEN VERHAAL.",
     style: { background: "stadium", font: "Inter", motion: "rustig" },
   });
+}
+
+/** Display-only approved examples. Never pass this factory to a writer, source
+ * seed or new-document constructor; those deliberately begin without facts. */
+export function createSyncTemplatePreview(family:SyncContentFamily,rendererVersion:SyncSlidePresentation['rendererVersion']='sync-onzetrots-v1'):SyncSlidePresentation{
+ return rendererVersion==='sync-v1'?createLegacySyncTemplatePreview(family):syncSlidePresentationSchema.parse(approved.fixtures[family]);
 }

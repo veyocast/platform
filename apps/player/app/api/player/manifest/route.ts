@@ -1,4 +1,4 @@
-import {syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncBackgroundsHeader,syncBackgroundsVersion,syncDynamicRendererHeader,readSyncDynamicMode} from "../../../_lib/sync-player-capabilities";
+import {syncOnzeTrotsHeader,syncOnzeTrotsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncBackgroundsHeader,syncBackgroundsVersion,syncDynamicRendererHeader,readSyncDynamicMode} from "../../../_lib/sync-player-capabilities";
 import { createHash } from "node:crypto";
 
 import { NextResponse } from "next/server";
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   }
 
   response.headers.set(playerVersionHeader, currentPlayerApplicationVersion());
-  response.headers.set("Vary",[response.headers.get("Vary"),syncPlayerRendererHeader,syncDynamicRendererHeader,syncBackgroundsHeader,syncEngagePagingHeader].filter(Boolean).join(", "));
+  response.headers.set("Vary",[response.headers.get("Vary"),syncPlayerRendererHeader,syncDynamicRendererHeader,syncBackgroundsHeader,syncEngagePagingHeader,syncOnzeTrotsHeader].filter(Boolean).join(", "));
   return response;
 }
 
@@ -199,6 +199,7 @@ async function getLiveManifest(request: Request, token: string | null) {
 
   // Authorization precedes every conditional response. Signed access rotates
   // independently of publication/data identity, at most every 30 minutes.
+  const enableSyncOnzeTrots=request.headers.get(syncOnzeTrotsHeader)===syncOnzeTrotsVersion;
   const enableSyncStudio=request.headers.get(syncPlayerRendererHeader)===syncPlayerRendererVersion;
   const enableSyncEngagePaging=enableSyncStudio&&request.headers.get(syncEngagePagingHeader)===syncEngagePagingVersion;
   const enableSyncBackgrounds=request.headers.get(syncBackgroundsHeader)===syncBackgroundsVersion;
@@ -207,7 +208,7 @@ async function getLiveManifest(request: Request, token: string | null) {
     bootstrap.tenant_id, bootstrap.device_id, bootstrap.screen_id, bootstrap.target_revision, bootstrap.desired_release_id,
     entitlementRow?.revision, entitlementRow?.billing_state, entitlementRow?.playback_mode, entitlementRow?.hard_stop_at,
     bootstrap.data_key, bootstrap.sponsor_key, Math.floor(Date.now() / 1_800_000),
-    currentPlayerApplicationVersion(),...(enableSyncBackgrounds?[syncBackgroundsVersion]:[]),...(enableSyncStudio?[syncPlayerRendererVersion]:[]),...(enableSyncEngagePaging?[syncEngagePagingVersion]:[]),...(syncDynamicMode?[`sync-dynamic:${syncDynamicMode}`]:[])
+    currentPlayerApplicationVersion(),...(enableSyncOnzeTrots?[syncOnzeTrotsVersion]:[]),...(enableSyncBackgrounds?[syncBackgroundsVersion]:[]),...(enableSyncStudio?[syncPlayerRendererVersion]:[]),...(enableSyncEngagePaging?[syncEngagePagingVersion]:[]),...(syncDynamicMode?[`sync-dynamic:${syncDynamicMode}`]:[])
   ])).digest("hex")}"`;
   if (request.headers.get("if-none-match") === targetEtag) {
     return new NextResponse(null, { status: 304, headers: { ETag: targetEtag, "Cache-Control": "private, no-cache", Vary: "Authorization" } });
@@ -224,10 +225,10 @@ async function getLiveManifest(request: Request, token: string | null) {
       },
       releaseId: bootstrap.desired_release_id,
       tenantId: bootstrap.tenant_id,
-      enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncEngagePaging,
+      enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncOnzeTrots,enableSyncEngagePaging,
     });
     releaseStage = "composition";
-    body.composition=await loadAuthorizedScreenComposition({candidate:bootstrap.composition,main:body,load:releaseId=>loadPlayerReleaseEnvelope({device:body.device,releaseId,tenantId:bootstrap.tenant_id,enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncEngagePaging})});
+    body.composition=await loadAuthorizedScreenComposition({candidate:bootstrap.composition,main:body,load:releaseId=>loadPlayerReleaseEnvelope({device:body.device,releaseId,tenantId:bootstrap.tenant_id,enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncOnzeTrots,enableSyncEngagePaging})});
     body.target = { revision: bootstrap.target_revision, publicationId: bootstrap.publication_id,
       configRevision: bootstrap.config_revision, assignmentSource: bootstrap.assignment_source,
       committedAt: bootstrap.target_changed_at };

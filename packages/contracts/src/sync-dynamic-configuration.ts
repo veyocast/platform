@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {dynamicTemplateSlideTypeSchema,type PlayerDynamicTemplatePayload} from './dynamic-content';
 import {type SyncContentFamily} from './sync-content-families';
-import {syncSlidePresentationSchema,syncSlideRendererVersion,syncSlideSourceRevision} from './sync-slide-presentation';
+import {syncLegacySlidePresentationSchema,syncOnzeTrotsSlidePresentationSchema,syncOnzeTrotsRendererVersion,syncOnzeTrotsSourceRevision,syncSlideRendererVersion,syncSlideSourceRevision,type SyncSlidePresentation} from './sync-slide-presentation';
 
 /** New Sync presentation only. Historical Sites configuration/decoders stay independent. */
 export const syncDynamicFamilies = {
@@ -32,18 +32,23 @@ export const syncDynamicFamilies = {
 >;
 
 
-export function syncDynamicFamilyMatches(slideType:PlayerDynamicTemplatePayload['slideType'],family:SyncContentFamily){
- return (syncDynamicFamilies[slideType] as readonly SyncContentFamily[]).includes(family);
+export const syncOnzeTrotsDynamicFamilies={...syncDynamicFamilies,sport_visitor_arrivals:['visitors','team-arrivals','welcome']} as const;
+export function syncDynamicFamilyMatches(slideType:PlayerDynamicTemplatePayload['slideType'],family:SyncContentFamily,rendererVersion:SyncSlidePresentation['rendererVersion']=syncSlideRendererVersion){
+ const families=rendererVersion===syncOnzeTrotsRendererVersion?syncOnzeTrotsDynamicFamilies:syncDynamicFamilies;
+ return (families[slideType] as readonly SyncContentFamily[]).includes(family);
 }
 
 /** Only static authoring choices belong in the seed. The existing canonical
  * snapshot supplies every result, article, participant and score at render time. */
-export const syncDynamicConfigurationSchema=z.object({
+const legacyConfiguration=z.object({
  schemaVersion:z.literal(1),kind:z.literal('dynamic'),rendererVersion:z.literal(syncSlideRendererVersion),sourceRevision:z.literal(syncSlideSourceRevision),
- slideType:dynamicTemplateSlideTypeSchema,seed:syncSlidePresentationSchema,secondsPerPage:z.number().int().min(3).max(120),
-}).strict().superRefine((value,context)=>{
- if(!syncDynamicFamilyMatches(value.slideType,value.seed.family))context.addIssue({code:'custom',path:['seed','family'],message:'Deze slidefamilie hoort niet bij het gekozen brontype.'});
+ slideType:dynamicTemplateSlideTypeSchema,seed:syncLegacySlidePresentationSchema,secondsPerPage:z.number().int().min(3).max(120),
+}).strict();
+const onzeTrotsConfiguration=legacyConfiguration.extend({rendererVersion:z.literal(syncOnzeTrotsRendererVersion),sourceRevision:z.literal(syncOnzeTrotsSourceRevision),seed:syncOnzeTrotsSlidePresentationSchema});
+export const syncDynamicConfigurationSchema=z.discriminatedUnion('rendererVersion',[legacyConfiguration,onzeTrotsConfiguration]).superRefine((value,context)=>{
+ if(!syncDynamicFamilyMatches(value.slideType,value.seed.family,value.rendererVersion))context.addIssue({code:'custom',path:['seed','family'],message:'Deze slidefamilie hoort niet bij het gekozen brontype.'});
  if(value.seed.name.trim().length<2||value.seed.name.trim().length>120)context.addIssue({code:'custom',path:['seed','name'],message:'Gebruik een ontwerpnaam van 2 tot 120 tekens.'});
  if(value.seed.rows.length||value.seed.news.length||value.seed.ownRowIndexes.length||value.seed.home||value.seed.away||value.seed.match||value.seed.poll||value.seed.youtubeUrl||value.seed.state!=='ready')context.addIssue({code:'custom',path:['seed'],message:'Gekoppelde feiten komen uitsluitend uit de gecontroleerde bron. Bewaar handmatige invoer in het oorspronkelijke ontwerp.'});
+ if(value.seed.rendererVersion===syncOnzeTrotsRendererVersion&&value.seed.rich&&Object.keys(value.seed.rich).length)context.addIssue({code:'custom',path:['seed','rich'],message:'Rijke bronfeiten horen uitsluitend in de gecontroleerde snapshot.'});
 });
 export type SyncDynamicConfiguration=z.infer<typeof syncDynamicConfigurationSchema>;

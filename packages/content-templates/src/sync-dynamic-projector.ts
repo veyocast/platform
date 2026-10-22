@@ -1,6 +1,6 @@
 import {
   playerDynamicTemplatePayloadSchema,
-  syncDynamicFamilies,
+  syncDynamicFamilyMatches,
   syncSlidePresentationSchema,
   type PlayerDynamicTemplatePayload,
   type SyncSlideAsset,
@@ -19,6 +19,7 @@ import {
   resolveMenuProductPrice,
   resolveMenuGroupPrice,
 } from "./menu-scene-model";
+import {enrichSyncOnzeTrotsProjection} from './sync-onzetrots-projector';
 
 export {syncDynamicFamilies} from '@veyocast/contracts';
 
@@ -63,9 +64,7 @@ export function projectSyncDynamicSnapshot(
     slide = base.data;
   if (
     payload.orientation !== slide.orientation ||
-    !(syncDynamicFamilies[payload.slideType] as readonly string[]).includes(
-      slide.family,
-    )
+    !syncDynamicFamilyMatches(payload.slideType,slide.family,slide.rendererVersion)
   )
     return { ok: false, code: "SYNC_FAMILY_SCOPE_MISMATCH" };
   const image = (
@@ -85,7 +84,7 @@ export function projectSyncDynamicSnapshot(
   };
   try {
     if (payload.slideType === "ledscores_live_match") {
-      const live=payload.data.liveMatch as {state?:{status?:unknown;matchKey?:unknown;stateRevision?:unknown}}|undefined;
+      const live=payload.data.liveMatch as {configuration?:{showClock?:unknown};state?:{status?:unknown;matchKey?:unknown;stateRevision?:unknown}}|undefined;
       if(!liveState&&(live?.state?.status==='unknown'&&live.state.stateRevision===0||(typeof live?.state?.matchKey==='string'&&live.state.matchKey.startsWith('waiting:')))){
         return {ok:true,presentation:syncSlidePresentationSchema.parse({...slide,state:'empty',rows:[],news:[],ownRowIndexes:[],home:undefined,away:undefined,match:undefined,poll:undefined})};
       }
@@ -97,6 +96,7 @@ export function projectSyncDynamicSnapshot(
         presentation: syncSlidePresentationSchema.parse({
           ...slide,
           state: "ready",
+          ...(slide.rendererVersion==='sync-onzetrots-v1'?{rich:{phase:({pre_match:'scheduled',live:'live',paused:'paused',half_time:'halftime',finished:'finished'} as Record<string,string>)[String((payload.data.liveMatch as {state?:{status?:unknown}}|undefined)?.state?.status)]??'unknown'}}:{}),
           rows: [],
           news: [],
           ownRowIndexes: [],
@@ -114,7 +114,7 @@ export function projectSyncDynamicSnapshot(
           match: {
             homeScore: String(state.home.score),
             awayScore: String(state.away.score),
-            clock: state.clockLabel ?? "",
+            clock: slide.rendererVersion==='sync-onzetrots-v1'&&live?.configuration?.showClock===false?'':state.clockLabel ?? "",
             date: "",
             time: "",
           },
@@ -375,9 +375,7 @@ export function projectSyncDynamicSnapshot(
         : ["matchday", "next-match"].includes(slide.family)
           ? !home
           : rows.length === 0;
-    return {
-      ok: true,
-      presentation: syncSlidePresentationSchema.parse({
+    const presentation=syncSlidePresentationSchema.parse({
         ...slide,
         state: empty ? "empty" : "ready",
         rows,
@@ -392,8 +390,8 @@ export function projectSyncDynamicSnapshot(
           name: view.clubName || slide.club.name,
           logo: image(view.clubLogoUrl) || slide.club.logo,
         },
-      }),
-    };
+      });
+    return {ok:true,presentation:presentation.rendererVersion==='sync-onzetrots-v1'?enrichSyncOnzeTrotsProjection(payload,presentation,view,now,image):presentation};
   } catch {
     return { ok: false, code: "SYNC_PRESENTATION_BOUNDS_EXCEEDED" };
   }

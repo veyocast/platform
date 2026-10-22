@@ -1,12 +1,12 @@
 import {describe,it,expect} from 'vitest';
-import {sportDynamicSlideTypes,syncDynamicFamilies,type SyncDynamicConfiguration,type SyncContentFamily} from '@veyocast/contracts';
+import {sportDynamicSlideTypes,syncDynamicFamilies,syncDynamicConfigurationSchema,type SyncDynamicConfiguration,type SyncContentFamily} from '@veyocast/contracts';
 import {createSyncStudioStarter} from '@veyocast/studio';
 import {compileSyncSportlinkBinding,readSyncSportlinkSelection,syncSportlinkAutoContext,syncSportlinkSelectionPolicy,type SyncSportlinkTeam} from './sync-sportlink-binding';
 
 const teams:SyncSportlinkTeam[]=[{externalId:'own-team-1',name:'Eigen team',contexts:[{label:'Eigen poule · periode 2',competitionId:'competition-1',phaseId:'2',poolId:'pool-1',seasonId:'2026-2027'}]}];
 function configuration(type:(typeof sportDynamicSlideTypes)[number],family:SyncContentFamily=syncDynamicFamilies[type][0]):SyncDynamicConfiguration{
  const seed=createSyncStudioStarter({family,tenantName:'Eigen club'}).syncPresentation!;
- return{schemaVersion:1,kind:'dynamic',rendererVersion:'sync-v1',sourceRevision:seed.sourceRevision,slideType:type,seed,secondsPerPage:5};
+ return syncDynamicConfigurationSchema.parse({schemaVersion:1,kind:'dynamic',rendererVersion:seed.rendererVersion,sourceRevision:seed.sourceRevision,slideType:type,seed,secondsPerPage:5});
 }
 describe('Source selections compile into the existing canonical Sportlink contracts',()=>{
  for(const type of sportDynamicSlideTypes)it(`retains actual Source identity for ${type}`,()=>{

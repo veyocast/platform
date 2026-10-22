@@ -4,6 +4,7 @@ import {
   syncSlidePresentationSchema,
   syncSystemAssets,
   syncBackgroundAssets,
+  syncSlideRendererAssets,
 } from "@veyocast/contracts";
 import {
   getPlayerManifestForToken,
@@ -128,6 +129,27 @@ describe("gallery-owned cached font readiness", () => {
 });
 
 describe("independent Sync Player cache protocol", () => {
+  it('prepares a mixed historical/approved release with all six approved font faces and checksum-bound nested images',()=>{
+    const value=fixture(),legacy=value.manifest.items[0]!,modern=structuredClone(legacy),imageId='28500000-0000-4000-8000-000000000901';
+    modern.id='28500000-0000-4000-8000-000000000902';
+    modern.syncStudioPresentation=syncSlidePresentationSchema.parse({...modern.syncStudioPresentation,rendererVersion:'sync-onzetrots-v1',sourceRevision:'ae83f2b4312408eacae9f29177d3c743e104185b',theme:'onzetrots-tv',visual:{schemaVersion:1,mode:'dark'},rich:{featureImage:{kind:'tenant',mediaAssetId:imageId,checksumSha256:'d'.repeat(64)}}});
+    modern.syncStudioAssets={[imageId]:{url:'https://media.example/verified-photo.png',bytes:100,mimeType:'image/png',checksumSha256:'d'.repeat(64)}};
+    value.manifest.items.push(modern);
+    const approved=syncSlideRendererAssets(modern.syncStudioPresentation),union=[...syncSystemAssets,...approved];
+    value.manifest.syncSystemAssets=[...new Map(union.map(asset=>[asset.path,asset])).values()].map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}));
+    expect(approved.filter(asset=>asset.mimeType.startsWith('font/'))).toHaveLength(6);
+    const cached=getCacheableAssets(value.manifest);
+    for(const asset of union)expect(cached.some(ref=>ref.checksumSha256===asset.sha256)).toBe(true);
+    expect(cached.some(ref=>ref.checksumSha256==='d'.repeat(64))).toBe(true);
+    expect(syncSlideRendererAssets(legacy.syncStudioPresentation!)).toEqual(syncSystemAssets);
+    modern.syncSystemAssetUrls=Object.fromEntries(approved.map(asset=>[asset.path,prepared(asset.sha256)]));
+    expect(syncPreparedPresentation(modern,origin)).toBe(false);
+    modern.syncStudioAssets[imageId]!.url=prepared('d'.repeat(64));expect(syncPreparedPresentation(modern,origin)).toBe(true);
+    const css=syncPreparedCss(modern.syncSystemAssetUrls,origin,modern.syncStudioPresentation);expect(css).toContain('OTMarker');expect(css).not.toMatch(/url\(['"]?\/onzetrots-approved-v1/);
+    const font=approved.find(asset=>asset.mimeType.startsWith('font/'))!;
+    value.manifest.syncSystemAssets=value.manifest.syncSystemAssets.filter(asset=>asset.path!==font.path);
+    expect(()=>getCacheableAssets(value.manifest)).toThrow('SYNC_ASSET_MANIFEST_INVALID');
+  });
   it('matches cover/contain crop focus and background with the same binary placement',()=>{
     const item=fixture().manifest.items[0]!;item.syncStudioPresentation!.orientation='portrait';item.cropFocus={x:0,y:1};item.backgroundColor='#123456';item.fitMode='cover';
     expect(syncPlaybackFrame(item,{width:960,height:540})).toEqual({width:960,height:960*16/9,left:0,top:540-960*16/9,backgroundColor:'#123456'});

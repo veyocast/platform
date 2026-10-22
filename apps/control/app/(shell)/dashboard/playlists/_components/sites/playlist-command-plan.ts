@@ -1,7 +1,7 @@
 import { mediaFrameFocusCoordinates, playlistBatchCommandSchema, type PlaylistBatchCommand, type PlaylistBatchOperation } from "@veyocast/contracts";
 import {sitesPresentationPages}from"@veyocast/content-templates/sites-presentation-model";
 import type { Playlist, Slide } from "./model";
-import {syncSlidePageCount} from '@veyocast/contracts';
+import {syncSlidePageCount,syncSlideMinimumDurationMs} from '@veyocast/contracts';
 
 export function playlistPlacementPages(slide:Slide):number {
   return slide.syncDynamic?syncSlidePageCount(slide.syncDynamic.presentation):slide.syncStudio?syncSlidePageCount(slide.syncStudio.presentation):slide.studioSlide?sitesPresentationPages({...slide.studioSlide.presentation,slide:{...slide.studioSlide.presentation.slide,themeId:slide.studioSlide.themeId}}):slide.design?Math.max(1,Math.ceil(slide.design.rows.length/Math.max(1,Number(slide.design.sitesConfiguration.rowsPerPage)))):1;
@@ -9,6 +9,7 @@ export function playlistPlacementPages(slide:Slide):number {
 const totalSeconds=(slide:Slide)=>Math.ceil(slide.seconds*playlistPlacementPages(slide));
 
 export const maximumPlaylistPlacementSeconds = (slide: Slide) => slide.mediaFrame ? 3600 : slide.syncStudio || slide.syncDynamic ? Math.floor(120 / playlistPlacementPages(slide)) : 180;
+export const minimumPlaylistPlacementSeconds = (slide: Slide) => slide.syncDynamic || slide.syncStudio ? syncSlideMinimumDurationMs((slide.syncDynamic ?? slide.syncStudio)!.presentation) / 1000 / playlistPlacementPages(slide) : slide.design ? 5 : 3;
 
 /** Choosing a new immutable frame changes defaults, not existing placement intent. */
 export function refreshMediaFramePlacement(slide: Slide): Slide {

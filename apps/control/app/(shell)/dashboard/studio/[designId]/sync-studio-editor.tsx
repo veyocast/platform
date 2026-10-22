@@ -1,4 +1,5 @@
 "use client";
+import {patchSyncSlideDraft} from '@veyocast/contracts';
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -242,7 +243,7 @@ export function SyncStudioEditor({
   ) {
     change({
       ...draftRef.current,
-      presentation: { ...draftRef.current.presentation, ...presentation },
+      presentation: patchSyncSlideDraft(draftRef.current.presentation,presentation),
       scratch: { ...draftRef.current.scratch, ...scratch },
     });
   }
@@ -1023,7 +1024,7 @@ export function SyncStudioEditor({
   return (
     <SyncStudioFrame
       sourceControls={draft.presentation.family==='engage'?<SyncEngageControls poll={draft.presentation.poll}disabled={!canEdit||busy||uploading||uncertain||!hydrated||Boolean(restoreAttempt.current)||seriesTools.blocked}onSelect={poll=>patch({poll})}/>:draft.presentation.family==='youtube'?<SyncYouTubeControls url={draft.presentation.youtubeUrl}disabled={!canEdit||busy||uploading||uncertain||!hydrated||Boolean(restoreAttempt.current)||seriesTools.blocked}onSelect={youtubeUrl=>patch({youtubeUrl})}/>:undefined}
-      connectedCreateHref={canEdit&&syncConnectedAuthoringType(draft.presentation.family)?`/dashboard/slides/new/sync?project=${project.id}`:undefined}
+      connectedCreateHref={canEdit&&syncConnectedAuthoringType(draft.presentation.family,draft.presentation.rendererVersion)?`/dashboard/slides/new/sync?project=${project.id}`:undefined}
       presentation={draft.presentation}
       scratch={draft.scratch}
       onScratchChange={(scratch) =>

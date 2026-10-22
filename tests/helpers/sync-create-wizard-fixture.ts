@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { expect, type Page } from "@playwright/test";
 import { createSyncStudioStarter } from "../../packages/studio/src/sync";
 import { syncBackgroundAssets } from "../../packages/contracts/src/sync-background-catalog";
+import {syncOnzeTrotsSystemAssets} from '../../packages/contracts/src/sync-onzetrots-assets';
 import type { SyncCreateWizardCommand, SyncCreateWizardData } from "../../apps/control/app/(shell)/dashboard/studio/sync-create-wizard-types";
 import { syncConnectedAuthoringType } from "../../apps/control/app/(shell)/dashboard/slides/sync-sportlink-binding";
 
@@ -43,6 +44,13 @@ export async function mount(page: Page, data = fixture(), opts: { dropFirst?: bo
   // Resolve through the existing approved assets directory: ordinary local public
   // in a full checkout, canonical public behind the guarded assets link in sparse QA.
   const publicRoot = dirname(realpathSync(join(process.cwd(), "apps/control/public/assets")));
+  await page.route(`${origin}/onzetrots-approved-v1/**`, route=>{
+    const path=new URL(route.request().url()).pathname,asset=syncOnzeTrotsSystemAssets.find(asset=>asset.path===path);
+    if(!asset)return route.abort();
+    const bytes=readFileSync(join(publicRoot,path.slice(1)));
+    expect(bytes.length).toBe(asset.bytes);expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.sha256);
+    return route.fulfill({body:bytes,contentType:asset.mimeType});
+  });
   const backgrounds = new Map<string, Buffer>(syncBackgroundAssets.map(asset => {
     const source = join(publicRoot, asset.path.slice(1));
     if (realpathSync(source) !== source) throw Error(`Background is outside the canonical public directory: ${asset.path}`);

@@ -17,7 +17,7 @@ export async function loadSyncCreateWizardData(family: SyncContentFamily, reques
   if (!syncContentFamilies.some(value => value.id === family)) return null;
   const session = await requireTenantControlSession();
   if (!session.isLive || !session.tenantId || !session.userId) return null;
-  const slideType = syncConnectedAuthoringType(family) ?? null;
+  const slideType = (syncConnectedAuthoringType(family)??syncConnectedAuthoringType(family,'sync-onzetrots-v1')) ?? null;
   const active = session.tenantStatus === "active";
   const canCreateManual = active && hasCapability(session.capabilities, "tenant.studio.create");
   const canCreateConnected = active && Boolean(slideType) && hasCapability(session.capabilities, "tenant.dynamic_slide.write");
@@ -57,7 +57,12 @@ export async function loadSyncCreateWizardData(family: SyncContentFamily, reques
     data.templates = templateRows.map(template => ({ versionId: template.current_published_version_id!, orientation: template.orientation, slug: template.slug }));
     data.images = (media?.assets ?? []).flatMap(asset => asset.kind === "image" && uuid.test(asset.id) && asset.sourceUrl && /^[a-f0-9]{64}$/.test(asset.checksumSha256 ?? "") ? [{ id: asset.id, title: asset.title, checksumSha256: asset.checksumSha256!, url: asset.sourceUrl }] : []);
     if (media?.error) data.loadError = "Je foto's konden niet worden geladen. De vaste achtergronden blijven beschikbaar; laad opnieuw voor je eigen foto's.";
+    if(family==='welcome'&&requestedMode==='connected'&&data.initialPresentation.rendererVersion!=='sync-onzetrots-v1'){
+      const profile=themeDefaults.ok?themeDefaults.value.profiles.find(value=>value.themeId==='onzetrots-tv'):null;
+      data.initialPresentation=applySyncThemeCreationDefaults(data.initialPresentation,'onzetrots-tv',profile?.defaults??syncThemeCreationStarterDefaults('onzetrots-tv'));
+    }
     data.initialMode = requestedMode === "manual" && canCreateManual ? "manual" : requestedMode === "connected" && canCreateConnected || canCreateConnected && (!canCreateManual || data.sources.length > 0) ? "connected" : "manual";
+    if(family==='welcome'&&data.initialPresentation.rendererVersion!=='sync-onzetrots-v1')data.initialMode='manual';
     return data;
   } catch {
     data.loadError = "De beschikbare bronnen, templates of foto's konden niet volledig worden bevestigd. Er is niets aangemaakt; laad opnieuw of kies waar toegestaan handmatige invoer.";
