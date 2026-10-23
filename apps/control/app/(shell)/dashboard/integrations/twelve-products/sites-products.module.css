@@ -50,8 +50,8 @@
 .priceImpact dd { margin: 0; font-size: 22px; line-height: 1.2; font-weight: 750; }
 .priceBody .priceTable { min-width: 0; max-width: 100%; flex-shrink: 0; }
 .priceTable caption { padding-bottom: 12px; text-align: left; font-size: 14px; color: var(--muted); }
-.priceTable :global(.ad-table) { font-size: 14px; }
-.priceTable :global(.ad-table) tbody th {
+.priceTable :global(.sync-data-table) { font-size: 14px; }
+.priceTable :global(.sync-data-table) tbody th {
   border-top: 1px solid var(--line);
   background: transparent;
   color: var(--text);
@@ -62,9 +62,9 @@
   white-space: normal;
   vertical-align: top;
 }
-.priceTable :global(.ad-table) td { vertical-align: top; }
-.priceTable :global(.ad-table) small { display: block; margin-top: 6px; font-size: 13px; line-height: 1.5; }
-.priceTable :global(.ad-table) td p { margin-top: 8px; font-size: 13px; }
+.priceTable :global(.sync-data-table) td { vertical-align: top; }
+.priceTable :global(.sync-data-table) small { display: block; margin-top: 6px; font-size: 13px; line-height: 1.5; }
+.priceTable :global(.sync-data-table) td p { margin-top: 8px; font-size: 13px; }
 .priceList { display: none; }
 .priceChoices { min-width: 0; margin: 0; padding: 0; border: 0; }
 .priceChoices legend { margin-bottom: 10px; font-size: 16px; font-weight: 700; }
@@ -99,7 +99,7 @@
   .priceDialog .priceHeader { padding: 18px 64px 18px 18px; }
   .priceDialog .priceBody, .priceDialog .priceFooter { padding: 18px; }
   .priceHeader :global(.vc-overlay-title) { font-size: 17px; }
-  .priceTable :global(.ad-table) { display: none; }
+  .priceTable :global(.sync-data-table) { display: none; }
   .priceList { display: grid; margin: 0; }
   .priceDifference {
     display: grid;
