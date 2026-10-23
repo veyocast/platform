@@ -1,10 +1,5 @@
 # VeyoCast MVP Plan
 
-S289 herstelt verborgen product-, prijs-, team- en sponsortabellen door de
-botsende gedeelde `ad-table`-klasse te vervangen. De bestaande filterregel blijft
-actief in de regressieproef. Zie `prompts/sprints/S289-visible-product-catalog.md`
-en `docs/s289-visible-product-catalog.md`.
-
 S286 brengt de goedgekeurde OnzeTrots-v9-eindlayout, behouden v7-entree en contextregel +30% in dezelfde
 actieve Sync-preview/export/Player-keten als S285. Nieuwe documenten krijgen
 een expliciete nieuwe rendereridentiteit, bewerkbare subtitel/titel met Rubik Distressed en
@@ -115,6 +110,11 @@ VeyoCast wordt lokaal gebouwd met Codex in geïsoleerde Git-worktrees. GitHub bl
 - lokale gates;
 - review;
 - PR.
+
+S289 herstelt verborgen product-, prijs-, team- en sponsortabellen door de
+botsende gedeelde `ad-table`-klasse te vervangen. De bestaande filterregel blijft
+actief in de regressieproef. Zie `prompts/sprints/S289-visible-product-catalog.md`
+en `docs/s289-visible-product-catalog.md`.
 
 ## MVP-doel
 
