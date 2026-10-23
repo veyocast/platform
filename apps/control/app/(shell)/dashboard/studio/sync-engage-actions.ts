@@ -1,6 +1,6 @@
 "use server";
 import {hasCapability} from '@veyocast/auth';
-import {engagePublicCampaignSchema,syncSlidePresentationSchema} from '@veyocast/contracts';
+import {engagePublicCampaignSchema,syncSlidePollSchema} from '@veyocast/contracts';
 import {requireTenantControlSession} from '../../../../lib/control-session';
 import {createControlSupabaseClient} from '../../../../lib/supabase/server';
 
@@ -44,7 +44,7 @@ export async function readSyncEngageSelectionAction(input:{publicId:string}){
  const poll={optionsPerPage:4,id:row.public_id,title:row.question,status:row.status,visibility:publicCampaign?.resultsVisible?'live':publicCampaign&&!(publicCampaign.resultVisibility==='after_close'&&publicCampaign.status==='live')?'after_vote':row.result_visibility,publicUrl,options:options.data.map(option=>({id:option.id,label:option.label,votes:publicCampaign?.resultsVisible?publicCampaign.options.find(actual=>actual.id===option.id)?.voteCount??0:0}))};
  // Parse the same Source sub-contract used by save/render; no arbitrary public
  // API body or management count reaches the draft.
- const parsed=syncSlidePresentationSchema.shape.poll.safeParse(poll);
+ const parsed=syncSlidePollSchema.safeParse(poll);
  if(!parsed.success)return{ok:false,error:'De campagne past niet volledig in dit Source-ontwerp. Je vorige keuze blijft behouden; controleer de campagne.'}as const;
  return{ok:true,poll:parsed.data!,secureQrAvailable:Boolean(publicUrl)}as const;
 }

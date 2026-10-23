@@ -1,5 +1,13 @@
 # VeyoCast MVP Plan
 
+S285 integreert de goedgekeurde OnzeTrots-collectie met 36 families en een
+expliciete nieuwe rendereridentiteit in de actieve Sync-preview/export/Player.
+Bron, ownership, rijke contracten, deterministische motion en bewijsstatus staan
+in `docs/s285-onzetrots-approved-slides.md` en het eigen sprintprompt.
+PR #310 bevat de implementatie, native referentiebeelden en echte motionframes.
+De normale checks bij de exacte PR-commit bepalen de integratieacceptatie;
+staging volgt vervolgens de bestaande immutable main-pipeline.
+
 S231 maakt rawmedia via de gekozen Source-editor bewerkbaar als eigen
 immutable media-ontwerp, met logische kopieën, expliciet vastgezette
 playlistversies en geverifieerde offline achtergrondmedia. Zie

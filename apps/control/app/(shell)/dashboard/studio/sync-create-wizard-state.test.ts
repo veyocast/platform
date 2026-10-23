@@ -27,9 +27,11 @@ describe("new-design defaults never rewrite original authoring recovery", () => 
     ] };
     draft.presentation.name = "Eigen nieuwe titel"; draft.presentation.rows = [["Tijd", "Echt team", "Eigen informatie", "Veld"]]; draft.rowsText = "Eigen ruwe invoer"; draft.seconds = "23";
     const before = JSON.stringify(draft), selected = chooseSyncWizardTheme(props, draft, "onzetrots-tv");
-    expect(selected.presentation.style).toMatchObject({ accent: "#aBc123", font: "Serif", fontChanged: true, background: "stadium", scale: 116, motion: "geen", showLogo: false });
+    expect(selected.presentation.style).toMatchObject({ accent: "#aBc123", font: "Serif", fontChanged: true, background: "clubmuur", scale: 116, motion: "geen", showLogo: false });
     expect({ ...selected, presentation: draft.presentation }).toEqual(draft);
-    expect({ ...selected.presentation, style: draft.presentation.style }).toEqual(draft.presentation); expect(JSON.stringify(draft)).toBe(before);
+    expect(selected.presentation.rendererVersion).toBe('sync-onzetrots-v1');
+    expect(selected.presentation.rendererVersion==='sync-onzetrots-v1'&&selected.presentation.visual.mode).toBe('dark');
+    expect({...selected.presentation,style:draft.presentation.style,visual:('visual'in draft.presentation?draft.presentation.visual:undefined)}).toEqual(draft.presentation); expect(JSON.stringify(draft)).toBe(before);
     expect(chooseSyncWizardTheme(props, draft, "fieldflow").presentation.style).toMatchObject({ accent: "#006D83", font: "Manrope", background: "light" });
   });
   it.each(["manual", "connected"] as const)("keeps the exact old v1 %s journal/body after new defaults or read failure", mode => {
@@ -160,8 +162,8 @@ describe("durable exact original command and strict scope", () => {
   });
   it("bounds the total manual duration without clipping content", () => {
     const props = data("menu"), draft = initialSyncCreateWizardDraft(props);
-    draft.presentation.rows = Array.from({ length: 9 }, () => ["A", "B", "C", "D"]); draft.presentation.rowsPerPage = 1; draft.seconds = "14";
-    expect(syncCreateWizardDraftError(draft)).toContain("120 seconden"); expect(draft.presentation.rows).toHaveLength(9);
+    draft.presentation.rows = Array.from({ length: 81 }, () => ["A", "B", "C", "D"]); draft.presentation.rowsPerPage = 1; draft.seconds = "14";
+    expect(syncCreateWizardDraftError(draft)).toContain("120 seconden"); expect(draft.presentation.rows).toHaveLength(81);
   });
   it("rejects oversized unicode journals in bytes and preserves null as no saved draft", () => {
     expect(readSyncWizardJournal(null, data())).toBeNull();

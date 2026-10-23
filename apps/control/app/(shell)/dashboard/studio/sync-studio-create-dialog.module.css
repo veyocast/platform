@@ -77,6 +77,22 @@
   overflow: visible;
 }
 
+/* The artboard owns its ratio. Its SVG cannot contribute an intrinsic height
+   to the button's metadata row, and embedded slide links stay inert. */
+.preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.preview > :global(.sync-slide-root) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .body :global(.vc-modal-family-tabs) > button {
   min-width: 44px;
   min-height: 44px;

@@ -75,7 +75,9 @@ jobs:
   browsers:
     name: Browser gates (${{ matrix.group }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Includes actual binary preparation and every isolated original case.
+    # Individual test and encoder deadlines remain unchanged.
+    timeout-minutes: ${{ matrix.group == 'player' && 75 || 45 }}
     strategy:
       fail-fast: false
       matrix:
@@ -101,6 +103,22 @@ jobs:
       - name: Build Marketing artifact
         if: matrix.group == 'marketing'
         run: pnpm --filter @veyocast/marketing build
+      - name: Use canonical HTTPS Ubuntu mirror for Player tools
+        if: matrix.group == 'player'
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          player_apt_sources=()
+          for player_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
+            if [[ -f ${player_apt_source} ]]; then
+              player_apt_sources+=("${player_apt_source}")
+            fi
+          done
+          if (( ${#player_apt_sources[@]} == 0 )); then
+            echo 'Ubuntu package sources are required for the real Player tools.' >&2
+            exit 1
+          fi
+          sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${player_apt_sources[@]}"
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Prepare complete gallery video fixtures
@@ -112,7 +130,7 @@ jobs:
           set -Eeuo pipefail
           if ! command -v ffmpeg > /dev/null || ! command -v ffprobe > /dev/null; then
             sudo apt-get update
-            sudo apt-get install --yes ffmpeg
+            sudo apt-get install --yes --no-install-recommends ffmpeg
           fi
           ffmpeg -version
           ffprobe -version
@@ -122,6 +140,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/browser-gates"
           pnpm exec tsx tests/helpers/sync-background-binary.ts
           printf 'S238_BACKGROUND_BINARIES=%s\n' "$S238_BACKGROUND_BINARIES" >> "$GITHUB_ENV"
+          export S285_ONZETROTS_BINARIES="$RUNNER_TEMP/browser-gates/s285-onzetrots-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          pnpm exec tsx tests/helpers/sync-onzetrots-export.ts "$S285_ONZETROTS_BINARIES" "$SITES_CAPTURE_TEST_CHROMIUM"
+          printf 'S285_ONZETROTS_BINARIES=%s\n' "$S285_ONZETROTS_BINARIES" >> "$GITHUB_ENV"
       - name: Verify every discovered spec in the application group
         env:
           PLAYWRIGHT_GATE_GROUP: ${{ matrix.group }}

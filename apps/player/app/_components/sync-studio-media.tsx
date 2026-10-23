@@ -6,10 +6,10 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import { syncSlidePageCount, syncSystemAssets, syncBackgroundAssetForRef, syncSlideTransition,type SyncSlidePresentation } from "@veyocast/contracts";
-import { SyncSlideStaticView } from "@veyocast/content-templates/sync-slide-static-view";
+import { syncSlidePageCount, syncSlideRendererAssets, syncBackgroundAssetForRef, syncSlideTransition,type SyncSlidePresentation } from "@veyocast/contracts";
+import { SyncSlideStaticView,measureSyncOnzeTrotsLayout,projectSyncOnzeTrotsMotion,applySyncOnzeTrotsMotion,advanceSyncOnzeTrotsTime } from "@veyocast/content-templates/sync-slide-static-view";
 import type { PlayerManifestItem } from "../_lib/player-manifest";
-import { supportsSyncSlideDom } from "../_lib/sync-player-capabilities";
+import { supportsSyncSlideDom,supportsSyncOnzeTrots } from "../_lib/sync-player-capabilities";
 import type {LedScoresMatchState} from '../_lib/ledscores-match-experience';
 import {projectSyncLiveMatch,selectSyncLiveMatchState} from '../_lib/sync-live-match';
 import {
@@ -18,6 +18,7 @@ import {
   syncPlaybackFrame,
   syncPlayerContent,
   prepareSyncBackgroundFonts,
+  prepareSyncOnzeTrotsFonts,
 } from "../_lib/sync-player-presentation";
 
 /** A complete verified binary remains available on unsupported or failed DOM playback. */
@@ -53,7 +54,7 @@ export function SyncStudioMedia({
   const liveState=useRef<LedScoresMatchState|null>(null),[matchNow,setMatchNow]=useState(0);
   readyCallback.current=onReady;
   endedCallback.current=onEnded;
-  const content=syncPlayerContent(item),presentation = content?.presentation,
+  const content=useMemo(()=>syncPlayerContent(item),[item]),presentation = content?.presentation,
     origin = typeof location === "undefined" ? "" : location.origin;
   const binding=item.syncDynamic?.liveMatch;
   liveState.current=selectSyncLiveMatchState(binding,liveState.current,binding?liveMatchStates?.get(binding.connectionId):undefined);
@@ -65,7 +66,7 @@ export function SyncStudioMedia({
     return()=>window.clearInterval(timer);
   },[binding?.connectionId,passive,paused]);
   const supported =
-    supportsSyncSlideDom() && syncPreparedPresentation(item, origin);
+    supportsSyncSlideDom() && (presentation?.rendererVersion!=='sync-onzetrots-v1'||supportsSyncOnzeTrots()) && syncPreparedPresentation(item, origin);
   const hasNaturalBoundary=(item.kind==='video'||Boolean(item.syncDynamic))&&onEnded!==undefined;
   const pages = presentation ? syncSlidePageCount(presentation) : 1,
     transition=presentation?syncSlideTransition(presentation):null,
@@ -75,12 +76,12 @@ export function SyncStudioMedia({
   const css = useMemo(() => {
     try {
       return supported
-        ? syncPreparedCss(item.syncSystemAssetUrls!, origin)
+        ? syncPreparedCss(item.syncSystemAssetUrls!, origin,presentation)
         : "";
     } catch {
       return "";
     }
-  }, [supported, item.syncSystemAssetUrls, origin]);
+  }, [supported, item.syncSystemAssetUrls, origin,presentation]);
   useEffect(() => {
     if (!supported || !css || !root.current) return;
     const element = root.current;
@@ -107,9 +108,9 @@ export function SyncStudioMedia({
       }
     }, 5000);
     const background = syncBackgroundAssetForRef(presentation?.style.backgroundAsset);
-    const fonts = background ? prepareSyncBackgroundFonts(item.syncSystemAssetUrls!, origin) : null;
+    const fonts = presentation?.rendererVersion==='sync-onzetrots-v1'?prepareSyncOnzeTrotsFonts(item.syncSystemAssetUrls!,origin):background ? prepareSyncBackgroundFonts(item.syncSystemAssetUrls!, origin) : null;
     const images = [
-      ...[...syncSystemAssets, ...(background ? [background] : [])]
+      ...(presentation?syncSlideRendererAssets(presentation):[])
         .filter((asset) => asset.mimeType.startsWith("image/"))
         .map((asset) => item.syncSystemAssetUrls![asset.path]!),
       ...Object.values(content?.assets ?? {}).map((asset) => asset.url),
@@ -183,7 +184,7 @@ export function SyncStudioMedia({
     passive,
   ]);
   useEffect(() => {
-    if (!frameReported || failed || paused || passive || endReported.current || (pages < 2 && !hasNaturalBoundary)) return;
+    if (presentation?.rendererVersion==='sync-onzetrots-v1'||!frameReported || failed || paused || passive || endReported.current || (pages < 2 && !hasNaturalBoundary)) return;
     let last = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
@@ -198,7 +199,24 @@ export function SyncStudioMedia({
       setPage(Math.floor((elapsed.current % loopMs) / perPageMs));
     }, 100);
     return () => window.clearInterval(timer);
-  }, [frameReported, failed, paused, passive, pages, loopMs, perPageMs,item.kind,item.id,hasNaturalBoundary]);
+  }, [frameReported, failed, paused, passive, pages, loopMs, perPageMs,item.kind,item.id,hasNaturalBoundary,presentation]);
+  useEffect(()=>{
+    const element=root.current;if(presentation?.rendererVersion!=='sync-onzetrots-v1'||!element||!ready||failed)return;
+    const layouts=measureSyncOnzeTrotsLayout(element),reduced=matchMedia('(prefers-reduced-motion: reduce)');
+    let previous:number|null=null,animation=0;
+    const frame=(now:number)=>{
+      const running=frameReported&&!paused&&!passive&&!document.hidden&&!endReported.current;
+      elapsed.current=advanceSyncOnzeTrotsTime(elapsed.current,previous,now,running);
+      previous=running?now:null;
+      if(hasNaturalBoundary&&running&&elapsed.current>=loopMs){endReported.current=true;endedCallback.current?.(item.id);return;}
+      const local=elapsed.current%loopMs,currentPage=Math.floor(local/perPageMs);
+      setPage(before=>before===currentPage?before:currentPage);
+      const internal=Math.max(0,local-currentPage*perPageMs);
+      applySyncOnzeTrotsMotion(projectSyncOnzeTrotsMotion(internal,layouts,presentation.visual.scrollSpeed,reduced.matches),element);
+      if(!passive)animation=requestAnimationFrame(frame);
+    };
+    frame(performance.now());return()=>cancelAnimationFrame(animation);
+  },[presentation,ready,frameReported,failed,paused,passive,page,loopMs,perPageMs,hasNaturalBoundary,item.id,transition?.durationMs]);
   if (!supported || !css || failed || !presentation) return fallback;
   return (
     <div

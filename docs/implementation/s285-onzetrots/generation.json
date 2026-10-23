@@ -1,0 +1,35 @@
+{
+  "identical": true,
+  "sha256": {
+    "packages/contracts/src/sync-onzetrots-assets.ts": "94cee9045482e2a0a6e4ed94c79295979fb20dfd52f9cb8f11be9d9acdda7e75",
+    "packages/content-templates/src/sync-onzetrots-styles.ts": "cf4635bc937d6c6588bfb1e3b5e72cf26f4117f1e4997bcb46c55b8dca0a27d7",
+    "packages/contracts/src/sync-slide-json-schema.json": "26c88c3a3b0896c9fc546eb3543ca9ec19b12ba1689f265099f8fc081f9d74d1",
+    "packages/contracts/src/sync-dynamic-json-schema.json": "11d94cc19a2ef62b6ef39ae73403458bfabde8a3088ef6e06b3480833a3585d5",
+    "supabase/migrations/20261022183152_sync_onzetrots_approved_renderer.sql": "bb6dd3f4d8ffe1d1bafba608d429f120c183bef9fe192a9cb36ca3d2dcf8690a"
+  },
+  "commands": [
+    [
+      "node",
+      "scripts/build-sync-onzetrots-assets.mjs"
+    ],
+    [
+      "pnpm",
+      "exec",
+      "tsx",
+      "scripts/build-sync-slide-schema.mts"
+    ],
+    [
+      "pnpm",
+      "exec",
+      "tsx",
+      "scripts/build-sync-dynamic-schema.mts"
+    ],
+    [
+      "pnpm",
+      "exec",
+      "tsx",
+      "scripts/build-sync-onzetrots-schema.mts",
+      "supabase/migrations/20261022183152_sync_onzetrots_approved_renderer.sql"
+    ]
+  ]
+}

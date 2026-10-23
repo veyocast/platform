@@ -24,13 +24,13 @@ test("persisted new-design profiles drive the real preview and an explicit theme
   await expect(page.getByText("Dit thema is nog niet ingesteld", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "OnzeTrots TV", exact: true }).click();
   const preview = page.getByLabel("Voorbeeld van je ontwerp").locator(".vc-slide-preview");
-  await expect(preview).toHaveClass(/is-trots/); await expect(preview).toHaveClass(/bg-stadium/);
-  await expect(preview).toHaveCSS("font-family", "Georgia, serif");
-  await expect.poll(() => preview.evaluate(element => getComputedStyle(element).getPropertyValue("--slide-accent").trim())).toBe("#cAb123");
-  await expect(preview.locator(".vc-slide-brand")).toHaveCSS("visibility", "hidden");
+  await expect(preview.locator('.screen')).toHaveAttribute('data-theme','dark');
+  await expect(preview.locator('.screen')).toHaveCSS('font-family','OTManrope, Arial, sans-serif');
+  await expect(preview.locator('.container-club-logo')).toHaveCount(0);
+  await expect(preview.locator('.signature')).toContainText('ONZE CLUB. ONZE TROTS.');
   await next(page); await page.getByRole("button", { name: "Ontwerp maken", exact: true }).click(); await expect.poll(() => state.creates.length).toBe(1);
   const original = state.creates[0]!.input; if (original.kind !== "manual") throw Error("manual");
-  expect(original.document.syncPresentation).toMatchObject({ theme: "onzetrots-tv", name: "Mijn eigen verhaal", body: "Onze echte toelichting blijft behouden.", style: { accent: "#cAb123", font: "Serif", fontChanged: true, background: "stadium", scale: 116, motion: "geen", showLogo: false } });
+  expect(original.document.syncPresentation).toMatchObject({ rendererVersion:'sync-onzetrots-v1',theme: "onzetrots-tv", visual:{mode:'dark'},name: "Mijn eigen verhaal", body: "Onze echte toelichting blijft behouden.", style: { accent: "#cAb123", font: "Serif", fontChanged: true, background: "clubmuur", scale: 116, motion: "geen", showLogo: false } });
   expect(JSON.stringify(original)).not.toContain(origin); expect(state.errors).toEqual([]);
 });
 
@@ -268,10 +268,11 @@ for (const mode of ["manual", "connected"] as const) for (const scene of syncBac
   if (mode === "connected") await page.getByRole("combobox", { name: "Gekoppelde bron", exact: true }).selectOption(id(3));
   await next(page); await next(page);
   const picker = page.getByRole("group", { name: "Achtergrond", exact: true });
-  await expect(picker.getByRole("button")).toHaveCount(8);
+  await expect(picker.getByRole("button")).toHaveCount(4);
+  await expect(picker.getByRole('button',{name:'Standaardachtergrond',exact:true})).toBeVisible();
   await picker.getByRole("button", { name: scene.label, exact: true }).click();
   await page.getByRole("button", { name: "Staand · 9:16", exact: true }).click();
-  await expect(page.getByLabel("Voorbeeld van je ontwerp").locator(".vc-slide-preview")).toHaveCSS("background-image", new RegExp(scene.portrait.path.replaceAll(".", "\\.")));
+  await expect.poll(()=>page.getByLabel('Voorbeeld van je ontwerp').locator('.screen').evaluate(element=>getComputedStyle(element,':before').backgroundImage)).toContain(scene.portrait.path);
   await page.reload(); await expect(page.getByRole("group", { name: "Achtergrond", exact: true }).getByRole("button", { name: scene.label, exact: true })).toHaveAttribute("aria-pressed", "true");
   await next(page);
   if (mode === "connected") await page.getByRole("button", { name: "Bron controleren", exact: true }).click();

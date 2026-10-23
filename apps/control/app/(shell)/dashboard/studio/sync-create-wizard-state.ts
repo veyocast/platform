@@ -3,6 +3,7 @@ import {
   syncDynamicCommandSchema,
   syncDynamicConfigurationSchema,
   syncSlidePageCount,
+  syncSlideMinimumDurationMs,
   syncSlidePresentationSchema,
   type SyncDynamicRequest,
   type SyncSlidePresentation,
@@ -52,11 +53,12 @@ export function syncCreateWizardKey(scope: SyncCreateWizardScope) {
 }
 
 export function initialSyncCreateWizardDraft(data: SyncCreateWizardData): SyncCreateWizardDraft {
-  const cfg = data.slideType ? syncDynamicConfigurationSchema.parse({
-    schemaVersion: 1, kind: "dynamic", rendererVersion: "sync-v1",
+  const checkedCfg = data.slideType ? syncDynamicConfigurationSchema.safeParse({
+    schemaVersion: 1, kind: "dynamic", rendererVersion: data.initialPresentation.rendererVersion,
     sourceRevision: data.initialPresentation.sourceRevision, slideType: data.slideType,
     secondsPerPage: 5, seed: connectedSyncWizardSeed(data.initialPresentation),
   }) : null;
+  const cfg=checkedCfg?.success?checkedCfg.data:null;
   return {
     mode: data.initialMode,
     presentation: data.initialPresentation,
@@ -77,7 +79,7 @@ export function chooseSyncWizardTheme(data: SyncCreateWizardData, draft: SyncCre
 
 export function connectedSyncWizardSeed(presentation: SyncSlidePresentation): SyncSlidePresentation {
   return syncSlidePresentationSchema.parse({ ...presentation, rows: [], news: [], ownRowIndexes: [],
-    home: undefined, away: undefined, match: undefined, poll: undefined, youtubeUrl: undefined, state: "ready" });
+    home: undefined, away: undefined, match: undefined, poll: undefined, youtubeUrl: undefined, ...(presentation.rendererVersion==='sync-onzetrots-v1'?{rich:undefined}:{}), state: "ready" });
 }
 
 export function syncCreateWizardDraftError(draft: SyncCreateWizardDraft): string | null {
@@ -90,7 +92,7 @@ export function syncCreateWizardDraftError(draft: SyncCreateWizardDraft): string
       return "Controleer je regels. Gebruik maximaal vier kolommen met | ertussen; je invoer blijft behouden.";
     if (draft.presentation.family === "lineup" && syncLineupFromText(draft.lineupText) === null)
       return "Controleer de opstelling. Gebruik rugnummers van 1 tot 99, met komma’s tussen de nummers.";
-    if (syncSlidePageCount(draft.presentation) * Number(draft.seconds) > 120)
+    if (Math.max(syncSlidePageCount(draft.presentation) * Number(draft.seconds)*1000,syncSlideMinimumDurationMs(draft.presentation)) > 120000)
       return "Je ontwerp duurt samen langer dan 120 seconden. Verdeel de inhoud of verkort de duur per pagina.";
   }
   return null;
@@ -103,7 +105,7 @@ export function buildSyncWizardRequest(data: SyncCreateWizardData, draft: SyncCr
   if (!data.sources.some(source => source.id === draft.sourceId)) throw Error("Kies een beschikbare bron van je vereniging.");
   const template = data.templates.find(template => template.orientation === draft.presentation.orientation);
   if (!template) throw Error("Dit schermformaat is nog niet beschikbaar voor deze bron. Kies een ander formaat.");
-  const cfg = syncDynamicConfigurationSchema.parse({ schemaVersion: 1, kind: "dynamic", rendererVersion: "sync-v1",
+  const cfg = syncDynamicConfigurationSchema.parse({ schemaVersion: 1, kind: "dynamic", rendererVersion: draft.presentation.rendererVersion,
     sourceRevision: draft.presentation.sourceRevision, slideType: data.slideType,
     secondsPerPage: Number(draft.seconds), seed: connectedSyncWizardSeed(draft.presentation) });
   let configuration: Record<string, unknown> = { maxItems: 200, syncConfiguration: cfg };

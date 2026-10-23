@@ -5,7 +5,9 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { createSyncStudioStarter } from "../../packages/studio/src/sync";
+import { createSyncStudioStarter,createSyncStudioDocument } from "../../packages/studio/src/sync";
+import {syncOnzeTrotsSystemAssets} from '@veyocast/contracts';
+import {createSyncTemplatePreview} from '../../apps/control/app/(shell)/dashboard/studio/sync-template-preview';
 import type { StudioDocument } from "../../packages/studio/src/schema";
 import type {StudioSeriesDetail} from '../../apps/control/app/(shell)/dashboard/studio/types';
 import type {SyncStudioSeriesCommand} from '../../apps/control/app/(shell)/dashboard/studio/sync-studio-series-command';
@@ -37,6 +39,9 @@ type Save = {
   document: StudioDocument;
 };
 type Hooks = {
+  approved?:boolean;
+  approvedPages?:boolean;
+  approvedManualFamily?:'birthdays'|'activities'|'agenda';
   dropFirstSave?: boolean;
   rejectFirstSave?: boolean;
   rejectRecoverySave?: boolean;
@@ -53,7 +58,9 @@ type Hooks = {
   rejectSeriesRecovery?:boolean;
 };
 async function mount(page: Page, hooks: Hooks = {}) {
-  const document = createSyncStudioStarter({
+  const approved=hooks.approvedManualFamily?createSyncStudioStarter({family:hooks.approvedManualFamily,tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation:hooks.approved?createSyncTemplatePreview(hooks.approvedPages?'birthdays':'standings'):undefined;
+  if(approved?.rendererVersion==='sync-onzetrots-v1'&&hooks.approvedPages)approved.rich!.birthdays!.push({...approved.rich!.birthdays![0]!,id:'approved-seventh-birthday'});
+  const document = approved?createSyncStudioDocument(approved,hooks.approvedPages?3:12):createSyncStudioStarter({
     family: hooks.family ?? "fixtures",
     tenantName: "Club A",
   });
@@ -96,6 +103,11 @@ async function mount(page: Page, hooks: Hooks = {}) {
       ),
       contentType,
     });
+  });
+  await page.route(`${origin}/onzetrots-approved-v1/**`,route=>{
+    const path=new URL(route.request().url()).pathname,asset=syncOnzeTrotsSystemAssets.find(asset=>asset.path===path);
+    if(!asset)return route.abort();const bytes=readFileSync(join(process.cwd(),'apps/control/public',path));
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.sha256);return route.fulfill({body:bytes,contentType:asset.mimeType});
   });
   await page.route(`${origin}/__sync-studio/save`, async (route) => {
     const input = route.request().postDataJSON() as Save;
@@ -907,4 +919,53 @@ test("an existing OnzeTrots design can choose Clubmuur again and retain it after
   expect(fixture.renderWrites).toEqual([]);
   expect(fixture.writes).toHaveLength(1);
   expect(fixture.errors).toEqual([]);
+});
+
+test('approved OnzeTrots editor uses full-cycle duration and pauses its one moving own row without a jump',async({page})=>{
+ const fixture=await mount(page,{approved:true});
+ const stage=page.locator('.vc-stage-canvas'),list=stage.locator('[data-ot-rank-list]');
+ await expect(list).toBeVisible();await expect(stage.locator('.rank-row')).toHaveCount(14);
+ await expect(page.locator('.vc-stage-caption')).toContainText('38s per pagina');
+ await page.getByRole('button',{name:'Afspelen',exact:true}).click();
+ await expect.poll(()=>list.evaluate(element=>element.scrollTop),{timeout:7000}).toBeGreaterThan(20);
+ await page.getByRole('button',{name:'Pauzeren',exact:true}).click();const paused=await list.evaluate(element=>element.scrollTop);
+ await page.waitForTimeout(300);expect(await list.evaluate(element=>element.scrollTop)).toBe(paused);expect(paused).toBeGreaterThan(20);
+ await page.getByRole('button',{name:'Afspelen',exact:true}).click();await expect.poll(()=>list.evaluate(element=>element.scrollTop)).toBeGreaterThan(paused);
+ await expect(stage.locator('.rank-row.own')).toHaveCount(1);expect(fixture.errors).toEqual([]);
+});
+
+test('approved editor keeps a manually selected continuation page across playback, pause and a hidden tab',async({page})=>{
+ const fixture=await mount(page,{approved:true,approvedPages:true}),grid=page.locator('.vc-stage-canvas .fixed-six-grid');
+ await expect(grid).toHaveAttribute('data-filled-count','6');
+ await page.getByRole('button',{name:'Volgende pagina',exact:true}).click();await expect(grid).toHaveAttribute('data-filled-count','1');
+ await page.getByRole('button',{name:'Afspelen',exact:true}).click();await page.waitForTimeout(150);await expect(grid).toHaveAttribute('data-filled-count','1');
+ await page.getByRole('button',{name:'Pauzeren',exact:true}).click();await page.waitForTimeout(250);await expect(grid).toHaveAttribute('data-filled-count','1');
+ await page.getByRole('button',{name:'Afspelen',exact:true}).click();
+ await page.evaluate(()=>Object.defineProperty(document,'hidden',{configurable:true,value:true}));await page.waitForTimeout(3200);
+ await expect(grid).toHaveAttribute('data-filled-count','1');await expect(page.locator('.vc-page-controls > span')).toHaveText('2 / 2');
+ await page.evaluate(()=>Object.defineProperty(document,'hidden',{configurable:true,value:false}));await expect(grid).toHaveAttribute('data-filled-count','6',{timeout:5000});
+ expect(fixture.writes).toEqual([]);expect(fixture.errors).toEqual([]);
+});
+
+for(const family of ['birthdays','activities','agenda']as const)test(`manual ${family} cards start empty and save only the entered facts through the real editor`,async({page})=>{
+ const fixture=await mount(page,{approvedManualFamily:family}),stage=page.locator('.vc-stage-canvas');
+ await expect(stage.locator('.fixed-six-grid')).toHaveAttribute('data-filled-count','0');
+ await page.getByRole('button',{name:'Gegevensbron',exact:true}).click();
+ await page.getByRole('button',{name:family==='birthdays'?'Jarige toevoegen':'Activiteit toevoegen',exact:true}).click();
+ if(family==='birthdays'){
+  await page.getByLabel('Naam · kaart 1',{exact:true}).fill('Eigen jarige');await page.getByLabel('Leeftijd · kaart 1',{exact:true}).fill('0');
+  await page.getByLabel('Datum · kaart 1',{exact:true}).fill('24 oktober');await page.getByLabel('Team of toelichting · kaart 1',{exact:true}).fill('Eigen team');
+  await expect(stage.locator('.birthday-name')).toContainText('Eigen jarige');await expect(stage.locator('.birthday-age')).toHaveText('0');
+ }else{
+  await page.getByLabel('Activiteit · kaart 1',{exact:true}).fill('Eigen clubactiviteit');await page.getByLabel('Toelichting · kaart 1',{exact:true}).fill('Eigen beschrijving');
+  await page.getByLabel('Datum · kaart 1',{exact:true}).fill('27 oktober');await page.getByLabel('Tijd · kaart 1',{exact:true}).fill('19:00');await page.getByLabel('Locatie · kaart 1',{exact:true}).fill('Eigen clubhuis');
+  await expect(page.getByLabel('Afbeelding · kaart 1',{exact:true})).toHaveValue('');await expect(stage.locator('.event-card')).toContainText('Eigen clubactiviteit');
+ }
+ await expect(stage.locator('.fixed-six-grid')).toHaveAttribute('data-filled-count','1');await expect(stage.locator('.empty-grid-slot')).toHaveCount(5);
+ await page.getByRole('button',{name:'Opslaan',exact:true}).click();await expect.poll(()=>fixture.writes.length).toBe(1);
+ const saved=fixture.writes[0]!.document.syncPresentation!;expect(saved.rendererVersion).toBe('sync-onzetrots-v1');
+ if(saved.rendererVersion!=='sync-onzetrots-v1')throw Error('Wrong manual renderer');
+ if(family==='birthdays')expect(saved.rich?.birthdays).toEqual([expect.objectContaining({displayName:'Eigen jarige',age:0,dateLabel:'24 oktober',meta:'Eigen team'})]);
+ else expect(saved.rich?.activities).toEqual([expect.objectContaining({title:'Eigen clubactiviteit',body:'Eigen beschrijving',dateLabel:'27 oktober',timeLabel:'19:00',location:'Eigen clubhuis'})]);
+ await page.reload();await expect(stage.locator('.fixed-six-grid')).toHaveAttribute('data-filled-count','1');expect(fixture.errors).toEqual([]);
 });

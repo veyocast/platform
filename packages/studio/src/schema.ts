@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sitesPresentationSchema, syncSlidePresentationSchema, syncSlidePageCount } from "@veyocast/contracts";
+import { sitesPresentationSchema, syncSlidePresentationSchema, syncSlidePageCount,syncSlideMinimumDurationMs,syncSlideInternalMotion } from "@veyocast/contracts";
 
 import {
   studioAnimationPresets,
@@ -250,6 +250,8 @@ export const studioDocumentSchema = z.object({
     if(name.length<1||name.length>120)context.addIssue({code:"custom",path:["syncPresentation","name"],message:"Geef je ontwerp een naam van één tot 120 tekens."});
     if(document.sitesPresentation||document.elements.length!==0||document.syncPresentation.orientation!==document.artboard.orientation)context.addIssue({code:"custom",path:["syncPresentation"],message:"Een Sync-document gebruikt één renderer, een bijpassend canvas en geen vrije lagen."});
     if(document.motion.durationMs/syncSlidePageCount(document.syncPresentation)<3000)context.addIssue({code:"custom",path:["motion","durationMs"],message:"Elke gegevenspagina heeft minimaal drie seconden nodig."});
+    else if(document.motion.durationMs<syncSlideMinimumDurationMs(document.syncPresentation))context.addIssue({code:"custom",path:["motion","durationMs"],message:"De duur moet alle pagina’s en de volledige ranglijstbeweging bevatten."});
+    if(syncSlideInternalMotion(document.syncPresentation).enabled&&!document.motion.enabled)context.addIssue({code:'custom',path:['motion','enabled'],message:'Interne beweging vereist een volledige video-export.'});
     if(syncSlidePageCount(document.syncPresentation)>1&&!document.motion.enabled)context.addIssue({code:"custom",path:["motion","enabled"],message:"Meerdere gegevenspagina’s vereisen een volledige video-export."});
     if(document.syncPresentation.style.motion&&document.syncPresentation.style.motion!=="geen"&&!document.motion.enabled)context.addIssue({code:"custom",path:["motion","enabled"],message:"Een bewegend ontwerp vereist een volledige video-export."});
   }

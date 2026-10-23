@@ -2,11 +2,15 @@ import {
   syncSystemAssets,
   syncBackgroundAssetForRef,
   syncSlideAssets,
-  syncSlidePageCount,
   syncSlidePresentationSchema,
   syncDynamicPlaybackSchema,
+  syncSlideRendererAssets,
+  syncSlideMinimumDurationMs,
+  syncOnzeTrotsRendererVersion,
+  type SyncSlidePresentation,
 } from "@veyocast/contracts";
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
+import {syncOnzeTrotsCss} from '@veyocast/content-templates/sync-slide-static-view';
 import {resolvePlayerItemPresentation,type PlayerManifestItem} from "./player-manifest";
 
 /** Select a render input without rewriting immutable Studio fields during a
@@ -50,7 +54,7 @@ export function syncPreparedPresentation(
   if (
     !parsed.success ||
     !Number.isInteger(duration) ||
-    Number(duration) < 3000 * syncSlidePageCount(parsed.data) ||
+    Number(duration) < syncSlideMinimumDurationMs(parsed.data) ||
     Number(duration) > 120000
   )
     return false;
@@ -58,7 +62,7 @@ export function syncPreparedPresentation(
   if(playback.trimStartSeconds>0||playback.trimEndSeconds!==null&&playback.trimEndSeconds*1000<Number(duration))return false;
   const background = syncBackgroundAssetForRef(parsed.data.style.backgroundAsset);
   if (
-    [...syncSystemAssets, ...(background ? [background] : [])].some(
+    [...syncSlideRendererAssets(parsed.data), ...(background ? [background] : [])].some(
       (asset) =>
         !isSyncPreparedUrl(item.syncSystemAssetUrls?.[asset.path], origin),
     )
@@ -88,14 +92,15 @@ export function syncPlaybackFrame(item:PlayerManifestItem,viewport:{width:number
 export function syncPreparedCss(
   urls: Record<string, string>,
   origin: string,
+  presentation?:SyncSlidePresentation,
 ): string {
-  const expected = new Set(syncSystemAssets.map((asset) => asset.path));
-  return syncSlideCss.replace(
-    /url\(\s*(['"]?)(\/assets\/[^)'"\s]+)\1\s*\)/g,
+  const expected = new Set<string>((presentation?syncSlideRendererAssets(presentation):syncSystemAssets).map((asset) => asset.path));
+  return (presentation?.rendererVersion===syncOnzeTrotsRendererVersion?syncOnzeTrotsCss:syncSlideCss).replace(
+    /url\(\s*(['"]?)(\/(?:onzetrots-approved-v1\/)?assets\/[^)'"\s]+)\1\s*\)/g,
     (_match, _quote, path: string) => {
       const url = urls[path];
       if (
-        !expected.has(path as (typeof syncSystemAssets)[number]["path"]) ||
+        !expected.has(path) ||
         !isSyncPreparedUrl(url, origin)
       )
         throw Error("SYNC_PREPARED_ASSET_UNAVAILABLE");
@@ -107,12 +112,26 @@ export function syncPreparedCss(
 /** A gallery frame owns only its verified cached faces. Global shell families
  * can have overlapping declarations whose network sources are unavailable offline. */
 export function prepareSyncBackgroundFonts(urls: Record<string, string>, origin: string) {
-  const definitions = [
+  return prepareSyncFontFaces(urls,origin,[
     { family: "Inter", path: "/assets/inter.woff2", weight: "100 900", format: "woff2" },
     { family: "Manrope", path: "/assets/manrope.woff2", weight: "200 800", format: "woff2" },
     { family: "OnzeTrots", path: "/assets/onzetrots-brush.ttf", weight: "normal", format: "truetype" },
     { family: "OnzeTrots Brush", path: "/assets/onzetrots-brush.ttf", weight: "normal", format: "truetype" },
-  ];
+  ]);
+}
+
+export function prepareSyncOnzeTrotsFonts(urls:Record<string,string>,origin:string){
+ return prepareSyncFontFaces(urls,origin,[
+  {family:'OTManrope',path:'/onzetrots-approved-v1/assets/fonts/club-font-4.ttf',weight:'400',format:'truetype'},
+  {family:'OTManrope',path:'/onzetrots-approved-v1/assets/fonts/club-font-6.ttf',weight:'600',format:'truetype'},
+  {family:'OTManrope',path:'/onzetrots-approved-v1/assets/fonts/club-font-8.ttf',weight:'800',format:'truetype'},
+  {family:'OTBarlow',path:'/onzetrots-approved-v1/assets/fonts/club-font-2.ttf',weight:'800',format:'truetype'},
+  {family:'OTBarlow',path:'/onzetrots-approved-v1/assets/fonts/club-font-3.ttf',weight:'900',format:'truetype'},
+  {family:'OTMarker',path:'/onzetrots-approved-v1/assets/fonts/club-font-9.ttf',weight:'400',format:'truetype'},
+ ]);
+}
+
+function prepareSyncFontFaces(urls:Record<string,string>,origin:string,definitions:Array<{family:string;path:string;weight:string;format:string}>){
   const faces: FontFace[] = [];
   let stopped = false;
   const dispose = () => {

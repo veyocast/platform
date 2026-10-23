@@ -7,7 +7,7 @@ export const syncBackgroundPresets = [
 export type SyncBackgroundChoice = (typeof syncBackgroundPresets)[number][0] | SyncBackgroundSceneId;
 
 /** Explicit authoring only. Never run this adapter over stored drafts or receipts. */
-export function chooseSyncBackground(presentation: SyncSlidePresentation, choice: SyncBackgroundChoice): Partial<SyncSlidePresentation> {
+export function chooseSyncBackground(presentation: SyncSlidePresentation, choice: SyncBackgroundChoice): Partial<Pick<SyncSlidePresentation,"style"|"orientation">> {
   const scene = syncBackgroundScenes.find(value => value.id === choice);
   if (!scene) return { style: { ...presentation.style, background: choice as (typeof syncBackgroundPresets)[number][0], backgroundAsset: undefined } };
   const asset = scene[presentation.orientation];
@@ -16,7 +16,7 @@ export function chooseSyncBackground(presentation: SyncSlidePresentation, choice
 
 /** Only a user's orientation change selects the paired photograph. Existing
  * private photographs, presets and immutable/recovered commands are untouched. */
-export function orientSyncBackground(presentation: SyncSlidePresentation, orientation: SyncSlidePresentation["orientation"]): Partial<SyncSlidePresentation> {
+export function orientSyncBackground(presentation: SyncSlidePresentation, orientation: SyncSlidePresentation["orientation"]): Partial<Pick<SyncSlidePresentation,"style"|"orientation">> {
   const current = syncBackgroundAssetForRef(presentation.style.backgroundAsset);
   const scene = current && syncBackgroundScenes.find(value => value.landscape.path === current.path || value.portrait.path === current.path);
   if (!scene || presentation.style.background !== "photo" || orientation === presentation.orientation) return { orientation };

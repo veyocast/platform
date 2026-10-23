@@ -1,19 +1,19 @@
-import {sportDynamicSlideTypes,sportlinkBirthdayConfigurationSchema,sportlinkSlideTeamSelectionSchema,syncDynamicFamilies,type SportlinkSlideContext,type SyncDynamicConfiguration} from '@veyocast/contracts';
+import {sportDynamicSlideTypes,sportlinkBirthdayConfigurationSchema,sportlinkSlideTeamSelectionSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,type SyncSlidePresentation,type SportlinkSlideContext,type SyncDynamicConfiguration} from '@veyocast/contracts';
 
 export type SyncSportlinkTeam={externalId:string;name:string;contexts:Array<{label:string;competitionId:string;phaseId:string|null;poolId:string|null;seasonId:string|null}>};
 export type SyncSportlinkOptions={sourceId:string;teams:SyncSportlinkTeam[];capabilities:Array<{article:string;capability:string;available:boolean;enabled:boolean}>;privacyPeople:boolean;privacyBirthdays:boolean};
 export type SyncSportlinkSelection={mode:'all'|'selected';contexts:SportlinkSlideContext[];birthdayDays:7|14|21};
-export function syncConnectedAuthoringType(family:string):'menu'|'news'|'ledscores_live_match'|(typeof sportDynamicSlideTypes)[number]|undefined{
+export function syncConnectedAuthoringType(family:string,rendererVersion:SyncSlidePresentation['rendererVersion']='sync-v1'):'menu'|'news'|'ledscores_live_match'|(typeof sportDynamicSlideTypes)[number]|undefined{
  if(family==='menu')return'menu';if(family==='rss')return'news';
  if(family==='scoreboard'||family==='goal')return'ledscores_live_match';
- return Object.entries(syncDynamicFamilies).find(([type,families])=>type.startsWith('sport_')&&(families as readonly string[]).includes(family))?.[0]as(typeof sportDynamicSlideTypes)[number]|undefined;
+ return Object.entries(rendererVersion==='sync-onzetrots-v1'?syncOnzeTrotsDynamicFamilies:syncDynamicFamilies).find(([type,families])=>type.startsWith('sport_')&&(families as readonly string[]).includes(family))?.[0]as(typeof sportDynamicSlideTypes)[number]|undefined;
 }
 export function isSyncSportlinkType(value:string):value is (typeof sportDynamicSlideTypes)[number]{return(sportDynamicSlideTypes as readonly string[]).includes(value);}
 export function syncSportlinkSelectionPolicy(cfg:SyncDynamicConfiguration){
  const clubOnly=['sport_activities','sport_volunteers'].includes(cfg.slideType);
  const single=['sport_standing','sport_period_standing','sport_match_of_the_day','sport_next_match','sport_cancellations','sport_dressing_rooms','sport_officials','sport_team'].includes(cfg.slideType)||['team-program','pool-program','team-results','pool-results'].includes(cfg.seed.family);
  const required=single||['sport_visitor_arrivals','sport_referee_arrivals'].includes(cfg.slideType);
- return{clubOnly,single,required,maximum:cfg.slideType==='sport_birthdays'?50:500};
+ return{clubOnly,single,required,maximum:cfg.rendererVersion==='sync-onzetrots-v1'?200:cfg.slideType==='sport_birthdays'?50:500};
 }
 export function syncSportlinkAutoContext(providerTeamId:string):SportlinkSlideContext{return{providerTeamId,competitionSelectionMode:'auto_current',competitionId:null,phaseId:null,poolId:null,seasonId:null};}
 export function clearSyncSportlinkBinding(configuration:Record<string,unknown>){

@@ -22,11 +22,11 @@ export default async function NewSyncSourcePage({searchParams}:{searchParams:Pro
   if(query.family&&!syncConnectedAuthoringType(query.family))notFound();
   redirect(`/dashboard/studio/new?family=${encodeURIComponent(query.family??'menu')}&mode=connected`);
  }
- const slideType=syncConnectedAuthoringType(presentation.family);
+ const slideType=syncConnectedAuthoringType(presentation.family,presentation.rendererVersion);
  if(!slideType)return <><p role="status" className="notice">Open voor dit brontype de bestaande bronselectie. Het handmatige ontwerp blijft behouden.</p><Button asChild variant="secondary"><Link href="/dashboard/sources">Bronnen beheren</Link></Button></>;
- const seed={...presentation,name:query.project?presentation.name.slice(0,112)+' · bron':presentation.name,rows:[],news:[],ownRowIndexes:[],home:undefined,away:undefined,match:undefined,poll:undefined,youtubeUrl:undefined,state:'ready' as const};
+ const seed={...presentation,name:query.project?presentation.name.slice(0,112)+' · bron':presentation.name,rows:[],news:[],ownRowIndexes:[],home:undefined,away:undefined,match:undefined,poll:undefined,youtubeUrl:undefined,...(presentation.rendererVersion==='sync-onzetrots-v1'?{rich:undefined}:{}),state:'ready' as const};
  const secondsPerPage=5;
- const configuration=syncDynamicConfigurationSchema.parse({schemaVersion:1,kind:'dynamic',rendererVersion:'sync-v1',sourceRevision:seed.sourceRevision,slideType,secondsPerPage,seed});
+ const configuration=syncDynamicConfigurationSchema.parse({schemaVersion:1,kind:'dynamic',rendererVersion:seed.rendererVersion,sourceRevision:seed.sourceRevision,slideType,secondsPerPage,seed});
  const [sources,templates,media]=await Promise.all([
   client.from('dynamic_data_sources').select('id,name,kind,provider_status,last_successful_sync_at,last_error_code').eq('tenant_id',session.tenantId).in('kind',slideType==='menu'?['manual_products','twelve_excel']:slideType==='news'?['rss']:slideType==='ledscores_live_match'?['ledscores']:['sportlink']).eq('status','active').order('name').limit(200),
   client.from('dynamic_templates').select('current_published_version_id,orientation,slug').eq('slide_type',slideType).eq('status','published').order('slug').limit(100),

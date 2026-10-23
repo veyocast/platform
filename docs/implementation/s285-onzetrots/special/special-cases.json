@@ -1,0 +1,160 @@
+{
+  "rendererVersion": "sync-onzetrots-v1",
+  "sourceRevision": "ae83f2b4312408eacae9f29177d3c743e104185b",
+  "fixtures": "Verified approved display-only fixtures; no production tenant data",
+  "cases": [
+    {
+      "filename": "standings-own-first-1200ms.png",
+      "family": "standings",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3279eb8b596d7115215919e10835748d8966f7a8b00247b81f5158158ebebfb2"
+    },
+    {
+      "filename": "standings-own-middle-1200ms.png",
+      "family": "standings",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "0fdd23e7b570b783210666a4a4dc0c5bc7b35ef0261096ac55ba50da53298e23"
+    },
+    {
+      "filename": "standings-own-middle-20000ms.png",
+      "family": "standings",
+      "orientation": "landscape",
+      "elapsedMs": 20000,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "9667b1df84cc6bacd591cefd1a5d2dd1cda123ba90d761d83c369849b71b630b"
+    },
+    {
+      "filename": "standings-own-last-1200ms.png",
+      "family": "standings",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "593dbcb764b1a293ff5da51db531aaf493f564180c29be33bc6b43f22ac768da"
+    },
+    {
+      "filename": "welcome-0.png",
+      "family": "welcome",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "b1a9758730a04d7eee469b952d15dffec73836a21dcff2bb7ece25b29f12d7f2"
+    },
+    {
+      "filename": "welcome-1.png",
+      "family": "welcome",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "839aaf8ee5375ac7f94ca52f41e1dd65ad62c32d08f81341e2f861ff5a2821ec"
+    },
+    {
+      "filename": "welcome-2.png",
+      "family": "welcome",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "22a5985935b22a0047cb9c942a318ddb577c514fed030223cbd110d9509d87bd"
+    },
+    {
+      "filename": "welcome-3.png",
+      "family": "welcome",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "8eee524998bb2bb56b22b89c3a95bf8fea1455aa8b0247d65de9d3ac1c7f0497"
+    },
+    {
+      "filename": "welcome-4.png",
+      "family": "welcome",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3695bf1dd97aa86b841ec490cbe6d0139b15706db6d8d29c3005496fe261984b"
+    },
+    {
+      "filename": "birthdays-2-portrait.png",
+      "family": "birthdays",
+      "orientation": "portrait",
+      "elapsedMs": 1200,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "71ed2a45601aaf7e51183bbaa69ffca149b49ed971192b7a8749cc8e7f0b4fa8"
+    },
+    {
+      "filename": "birthdays-6-portrait.png",
+      "family": "birthdays",
+      "orientation": "portrait",
+      "elapsedMs": 1200,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "1c1a4fc9b21fc63a5c33d0397266b96c6632301ea10b3fb907987812b69b2ad1"
+    },
+    {
+      "filename": "activities-4-portrait.png",
+      "family": "activities",
+      "orientation": "portrait",
+      "elapsedMs": 1200,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "9133f54caa583610ff4849e08bc13e244bd1f4f33329339567dbdd7f33a38730"
+    },
+    {
+      "filename": "activities-6-portrait.png",
+      "family": "activities",
+      "orientation": "portrait",
+      "elapsedMs": 1200,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "959c639ab2a1ed0fee306374648953e00a39517a68b195351a07e8f2d043be60"
+    },
+    {
+      "filename": "agenda-0-portrait.png",
+      "family": "agenda",
+      "orientation": "portrait",
+      "elapsedMs": 1200,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "93fa9f71083e9b07d43d7e518ecdc7902bdc2950eaaf453161762c8fe63394e2"
+    },
+    {
+      "filename": "agenda-6-portrait.png",
+      "family": "agenda",
+      "orientation": "portrait",
+      "elapsedMs": 1200,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "da4ab65216ff68ee1c276340f28672f6b346f5e02e739872feb88306193a56c7"
+    },
+    {
+      "filename": "engage-long-landscape.png",
+      "family": "engage",
+      "orientation": "landscape",
+      "elapsedMs": 1200,
+      "width": 1920,
+      "height": 1080,
+      "sha256": "5004868dc559e675a548535cb36e88b11d9e4177ace7a9f3f7d9c084d74e75a8"
+    },
+    {
+      "filename": "engage-long-portrait.png",
+      "family": "engage",
+      "orientation": "portrait",
+      "elapsedMs": 1200,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "772d2c42f8e590233594b34b5787fe538a1e0755fd24ae58f5102955c0392054"
+    }
+  ]
+}

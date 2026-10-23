@@ -1,0 +1,265 @@
+{
+  "repository": "veyocast/platform",
+  "ref": "main",
+  "observedCommit": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+  "source": "packages/contracts/src/sync-content-families.ts",
+  "orientations": [
+    "landscape",
+    "portrait"
+  ],
+  "familyCount": 36,
+  "families": [
+    {
+      "id": "fixtures",
+      "name": "Programma",
+      "group": "Sport",
+      "label": "HET CLUBPROGRAMMA",
+      "description": "Alle wedstrijden, tijden en velden op een rij."
+    },
+    {
+      "id": "results",
+      "name": "Uitslagen",
+      "group": "Sport",
+      "label": "ZO SPEELDEN WE",
+      "description": "De uitslagen van jouw club op één helder scherm."
+    },
+    {
+      "id": "period-standings",
+      "name": "Periodestand",
+      "group": "Sport",
+      "label": "DE PERIODERACE",
+      "description": "De actuele periodestand van jouw competitie."
+    },
+    {
+      "id": "cancellations",
+      "name": "Afgelastingen",
+      "group": "Sport",
+      "label": "LET OP · AFGELAST",
+      "description": "Laat zien welke wedstrijden niet doorgaan."
+    },
+    {
+      "id": "dressing-rooms",
+      "name": "Kleedkamers",
+      "group": "Sport",
+      "label": "VIND JE KLEEDKAMER",
+      "description": "Een duidelijke kamer- en veldindeling voor alle teams."
+    },
+    {
+      "id": "officials",
+      "name": "Officials",
+      "group": "Sport",
+      "label": "DE MENSEN ACHTER DE WEDSTRIJD",
+      "description": "Wedstrijdcoördinatoren, grensrechters en officials."
+    },
+    {
+      "id": "team-info",
+      "name": "Teaminformatie",
+      "group": "Sport",
+      "label": "DIT IS ONS TEAM",
+      "description": "Team, begeleiding en praktische teaminformatie."
+    },
+    {
+      "id": "activities",
+      "name": "Clubactiviteiten",
+      "group": "Club",
+      "label": "SAMEN OP DE CLUB",
+      "description": "De clubagenda met activiteiten en evenementen."
+    },
+    {
+      "id": "training",
+      "name": "Trainingen",
+      "group": "Sport",
+      "label": "TIJD OM TE TRAINEN",
+      "description": "Trainingstijden, teams en veldindeling."
+    },
+    {
+      "id": "volunteers",
+      "name": "Vrijwilligers",
+      "group": "Club",
+      "label": "JULLIE MAKEN HET VERSCHIL",
+      "description": "Zet de vrijwilligers van vandaag in het zonnetje."
+    },
+    {
+      "id": "visitors",
+      "name": "Bezoekende teams",
+      "group": "Sport",
+      "label": "WELKOM BIJ DUINDORP SV",
+      "description": "Ontvang bezoekers met hun teamnaam en kleedkamer."
+    },
+    {
+      "id": "matchday",
+      "name": "Onze wedstrijddag",
+      "group": "Sport",
+      "label": "WEDSTRIJDDAG",
+      "description": "Een groot podium voor de eerstvolgende wedstrijd."
+    },
+    {
+      "id": "club-program",
+      "name": "Clubprogramma",
+      "group": "Sport",
+      "label": "VANDAAG OP HET VELD",
+      "description": "Alle wedstrijden van jouw vereniging."
+    },
+    {
+      "id": "team-program",
+      "name": "Teamprogramma",
+      "group": "Sport",
+      "label": "HET PROGRAMMA",
+      "description": "De komende wedstrijden van één team."
+    },
+    {
+      "id": "pool-program",
+      "name": "Pouleprogramma",
+      "group": "Sport",
+      "label": "IN ONZE POULE",
+      "description": "Het volledige programma van een competitie."
+    },
+    {
+      "id": "club-results",
+      "name": "Clubuitslagen",
+      "group": "Sport",
+      "label": "ZO SPEELDEN WE",
+      "description": "De laatste uitslagen van de hele club."
+    },
+    {
+      "id": "team-results",
+      "name": "Teamuitslagen",
+      "group": "Sport",
+      "label": "ONZE RESULTATEN",
+      "description": "Terugkijken met jouw team."
+    },
+    {
+      "id": "pool-results",
+      "name": "Pouleuitslagen",
+      "group": "Sport",
+      "label": "DEZE SPEELRONDE",
+      "description": "Alle uitslagen uit de gekozen poule."
+    },
+    {
+      "id": "standings",
+      "name": "Competitiestand",
+      "group": "Sport",
+      "label": "DE STAND VAN ZAKEN",
+      "description": "Een heldere ranglijst met je eigen team uitgelicht."
+    },
+    {
+      "id": "team-arrivals",
+      "name": "Teamontvangst",
+      "group": "Sport",
+      "label": "WELKOM OP HOUTRUST",
+      "description": "Bezoekende teams op het juiste moment ontvangen."
+    },
+    {
+      "id": "welcome",
+      "name": "Welkomstscherm",
+      "group": "Sport",
+      "label": "WELKOM BIJ DE CLUB",
+      "description": "Laat iedereen zich thuis voelen."
+    },
+    {
+      "id": "referees",
+      "name": "Scheidsrechters",
+      "group": "Sport",
+      "label": "BEDANKT VOOR JE INZET",
+      "description": "Ontvang arbiters met wedstrijd- en veldinformatie."
+    },
+    {
+      "id": "changing-rooms",
+      "name": "Kleedkamerindeling",
+      "group": "Sport",
+      "label": "VIND JE KLEEDKAMER",
+      "description": "Praktische informatie bij de entree."
+    },
+    {
+      "id": "next-match",
+      "name": "Volgende wedstrijd",
+      "group": "Sport",
+      "label": "DE VOLGENDE",
+      "description": "Tel af naar de volgende aftrap."
+    },
+    {
+      "id": "birthdays",
+      "name": "Verjaardagen",
+      "group": "Sport",
+      "label": "VANDAAG VIEREN WE",
+      "description": "Zet de jarigen in het zonnetje."
+    },
+    {
+      "id": "lineup",
+      "name": "Teamopstelling",
+      "group": "Sport",
+      "label": "ONZE ELF",
+      "description": "Een overzichtelijke opstelling op het veld."
+    },
+    {
+      "id": "scoreboard",
+      "name": "Live scorebord",
+      "group": "Sport",
+      "label": "LIVE VANAF HET VELD",
+      "description": "Tussenstand en wedstrijdklok via LED Scores."
+    },
+    {
+      "id": "goal",
+      "name": "Doelpunt",
+      "group": "Sport",
+      "label": "DAAR IS ’IE!",
+      "description": "Vier ieder doelpunt met een opvallende overlay."
+    },
+    {
+      "id": "menu",
+      "name": "Kantinemenu",
+      "group": "Kantine",
+      "label": "EVEN NAAR DE KANTINE",
+      "description": "Producten, prijzen en categorieën in jouw clubstijl."
+    },
+    {
+      "id": "engage",
+      "name": "Publieksactie",
+      "group": "Club",
+      "label": "LAAT DE CLUB MEEDOEN",
+      "description": "Een poll, de speler van de wedstrijd en live resultaten."
+    },
+    {
+      "id": "rss",
+      "name": "Nieuws & RSS",
+      "group": "Club",
+      "label": "DIT LEEFT OP DE CLUB",
+      "description": "Automatisch nieuws uit je gekoppelde feed."
+    },
+    {
+      "id": "sponsors",
+      "name": "Onze partners",
+      "group": "Club",
+      "label": "SAMEN MAKEN WE DE CLUB",
+      "description": "Een herkenbaar podium voor je sponsors."
+    },
+    {
+      "id": "agenda",
+      "name": "Clubagenda",
+      "group": "Club",
+      "label": "DIT KOMT ERAAN",
+      "description": "Activiteiten om naar uit te kijken."
+    },
+    {
+      "id": "club-story",
+      "name": "Clubverhaal",
+      "group": "Club",
+      "label": "DIT IS ONZE TROTS",
+      "description": "Een sterk verhaal met eigen tekst en fotografie."
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "group": "Media",
+      "label": "KIJK MET ONS MEE",
+      "description": "Video met een lokale kaart voor offline momenten."
+    },
+    {
+      "id": "free",
+      "name": "Vrij ontwerp",
+      "group": "Vrij",
+      "label": "JOUW VERHAAL",
+      "description": "Begin met eigen tekst, kleur en compositie."
+    }
+  ]
+}

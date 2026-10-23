@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Plus, X } from "lucide-react";
 import { Button, Dialog, DialogBody, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@veyocast/ui";
 import { syncContentFamilies, type SyncContentFamily } from "@veyocast/contracts";
-import { SyncSlideStaticView } from "@veyocast/content-templates/sync-slide-static-view";
-import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
+import { SyncSlideStaticView, syncOnzeTrotsCss } from "@veyocast/content-templates/sync-slide-static-view";
 import { createSyncTemplatePreview } from "./sync-template-preview";
 import { resolveSyncCreationReceiptAction } from "./sync-create-wizard-actions";
 import styles from "./sync-studio-create-dialog.module.css";
@@ -61,13 +60,13 @@ export function SyncStudioCreateDialog({ tenantId, actorScope, canCreate, initia
       <DialogBody className={styles.body}>
         <DialogDescription className={styles.description}>Van wedstrijddag tot kantinemenu. Elke template werkt in liggend én staand formaat.</DialogDescription>
         <p className={styles.exampleHint}>Opmaakvoorbeelden. In de volgende stap kies je je eigen gegevens.</p>
-        <style>{syncSlideCss}</style>
+        <style>{syncOnzeTrotsCss}</style>
         {error && <p role="alert">{error}</p>}
         {legacyNonce && <Button variant="secondary" disabled={busy || !hydrated} onClick={() => void readReceipt()}>{busy ? "Ontvangstbewijs controleren…" : "Eerder ontvangstbewijs controleren"}</Button>}
         <div className="vc-modal-family-tabs">{groups.map(value => <button type="button" key={value} className={group === value ? "active" : ""} aria-pressed={group === value} onClick={() => setGroup(value)}>{value}</button>)}</div>
         <div className={`vc-template-grid ${styles.grid}`}>
           {syncContentFamilies.filter(family => group === "Alles" || family.group === group).map(family => <button type="button" className="vc-template-card" key={family.id} disabled={!canCreate || busy || !hydrated} onClick={() => choose(family.id)}>
-            <SyncSlideStaticView presentation={createSyncTemplatePreview(family.id)} compact includeStyles={false} />
+            <div className={styles.preview} aria-hidden="true" inert><SyncSlideStaticView presentation={createSyncTemplatePreview(family.id)} compact includeStyles={false} /></div>
             <span><strong>{family.name}</strong><small>{family.description}</small><ArrowRight size={16} /></span>
           </button>)}
         </div>

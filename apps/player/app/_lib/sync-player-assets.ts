@@ -1,11 +1,11 @@
 import {
-  syncSystemAssets,
   syncBackgroundAssetForRef,
   syncSlideAssets,
-  syncSlidePageCount,
   syncSlidePresentationSchema,
   syncDynamicPlaybackSchema,
   syncDynamicBinaryPlaybackSchema,
+  syncSlideRendererAssets,
+  syncSlideMinimumDurationMs,
 } from "@veyocast/contracts";
 import type { PlayerReleaseManifest } from "./player-manifest";
 
@@ -36,7 +36,7 @@ export function assertSyncPlayerAssetManifest(
       return asset ? [asset] : [];
     });
     const expected = new Map(
-      [...syncSystemAssets,...extraBackgrounds].map((asset) => [asset.path as string, asset]),
+      [...items.flatMap(item=>{const parsed=syncSlidePresentationSchema.safeParse(item.syncDynamic?.presentation??item.syncStudioPresentation);return parsed.success?syncSlideRendererAssets(parsed.data):[];}),...extraBackgrounds].map((asset) => [asset.path as string, asset]),
     );
     if (
       declared.length !== expected.size ||
@@ -67,7 +67,7 @@ export function assertSyncPlayerAssetManifest(
       !parsed.success ||
       item.sitesStudioPresentation ||
       !Number.isInteger(duration) ||
-      Number(duration) < 3000 * syncSlidePageCount(parsed.data) ||
+      Number(duration) < syncSlideMinimumDurationMs(parsed.data) ||
       Number(duration) > 120000 ||
       (!content&&item.durationSeconds * 1000 < Number(duration))
     )

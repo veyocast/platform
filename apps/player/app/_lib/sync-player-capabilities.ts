@@ -4,6 +4,9 @@ export const syncEngagePagingHeader = "X-VeyoCast-Sync-Engage-Paging";
 export const syncEngagePagingVersion = "sync-engage-pages-v1";
 export const syncBackgroundsHeader = "X-VeyoCast-Sync-Backgrounds";
 export const syncBackgroundsVersion = "sync-backgrounds-v1";
+export const syncOnzeTrotsHeader='X-VeyoCast-Sync-OnzeTrots';
+export const syncOnzeTrotsVersion='sync-onzetrots-v1';
+export function supportsSyncOnzeTrots(){return supportsSyncBackgrounds()&&CSS.supports('position','sticky')&&typeof SVGForeignObjectElement!=='undefined'&&typeof Element.prototype.getAnimations==='function';}
 export const syncDynamicRendererHeader='X-VeyoCast-Sync-Dynamic';
 export const syncDynamicDomVersion='sync-dynamic-v1';
 export const syncDynamicBinaryVersion='sync-dynamic-binary-v1';

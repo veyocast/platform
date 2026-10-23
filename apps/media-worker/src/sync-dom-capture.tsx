@@ -10,14 +10,22 @@ import {
   syncSlideAssets,
   syncSlidePresentationSchema,
   syncSystemAssets,
+  syncOnzeTrotsSystemAssets,
+  syncSlideRendererAssets,
   syncBackgroundAssets,
   syncBackgroundAssetForRef,
   syncSlideTransition,
+  syncSlideInternalMotion,
+  syncSlideMinimumDurationMs,
   type SyncSlidePresentation,
 } from "@veyocast/contracts";
 import {
   SyncSlideStaticView,
   syncSlidePages,
+  measureSyncOnzeTrotsLayout,
+  projectSyncOnzeTrotsMotion,
+  applySyncOnzeTrotsMotion,
+  type SyncOnzeTrotsRankLayout,
 } from "@veyocast/content-templates/sync-slide-static-view";
 import type { StudioSvgAssetSources } from "./studio-render-svg";
 import {
@@ -31,7 +39,7 @@ import {
 
 const origin = "http://sync-render.invalid";
 const files = new Map(
-  [...syncSystemAssets, ...syncBackgroundAssets].map((asset) => [asset.path as string, asset]),
+  [...syncSystemAssets, ...syncBackgroundAssets,...syncOnzeTrotsSystemAssets].map((asset) => [asset.path as string, asset]),
 );
 const publicDirectoryDefault = fileURLToPath(
   new URL("../../player/public/", import.meta.url),
@@ -94,12 +102,14 @@ export async function createSyncSlideCapture({
   const input = syncSlidePresentationSchema.parse(presentation),
     pages = syncSlidePages(input),
     transition=syncSlideTransition(input),
-    pageMs = durationMs / pages;
+    pageMs = durationMs / pages,
+    internalMotion=syncSlideInternalMotion(input);
   if (
     !Number.isInteger(durationMs) ||
     durationMs < 3000 ||
     durationMs > 120000 ||
     pageMs < 3000 ||
+    durationMs < syncSlideMinimumDurationMs(input) ||
     signal?.aborted
   )
     throw new SitesDomCaptureError("document_load");
@@ -124,7 +134,10 @@ export async function createSyncSlideCapture({
     () => {
       void close();
     },
-    Math.min(300000, 60000 + durationMs * 2),
+    // A continuous DOM scene captures every encoded frame. Its session must
+    // cover the same bounded five-minute budget as the complete MP4 encoder;
+    // the legacy allowance assumes that settled frames can be reused.
+    internalMotion.enabled ? 300000 : Math.min(300000, 60000 + durationMs * 2),
   );
   try {
     const page: Page = await browser.newPage({
@@ -134,12 +147,30 @@ export async function createSyncSlideCapture({
           : { width: 1920, height: 1080 },
       deviceScaleFactor: 1,
     });
+    const fastCapture = internalMotion.enabled ? await page.context().newCDPSession(page) : null;
+    const captureMovingPng = async () => {
+      if (!fastCapture) return page.screenshot({type:'png',timeout:15000});
+      // Chromium's lossless fast PNG mode avoids spending the complete-frame
+      // budget compressing each intermediate frame before FFmpeg receives RGBA.
+      // This changes compression only; native dimensions and pixels are exact.
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        const result = await Promise.race([
+          fastCapture.send('Page.captureScreenshot',{format:'png',optimizeForSpeed:true,fromSurface:true,captureBeyondViewport:false}),
+          new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new SitesDomCaptureError('raster_capture')),15000);}),
+        ]);
+        return Buffer.from(result.data,'base64');
+      } finally {if(timer)clearTimeout(timer);}
+    };
     const cache = new Map<string, Buffer>();
     let requests = 0,
       totalBytes = 0,
       assetFailed = false,
       currentPage = -1,
       currentTransitionTime=-1,
+      currentInternalTime=-1,
+      currentFrameIdentity='',
+      rankLayouts:SyncOnzeTrotsRankLayout[]=[],
       settledPng:Buffer|undefined,
       png: Buffer | undefined,
       rgba: Buffer | undefined;
@@ -193,7 +224,9 @@ export async function createSyncSlideCapture({
         Math.max(0, Math.floor(timeMs / pageMs)),
       );
       const transitionTime=transition?Math.min(transition.durationMs,Math.max(0,timeMs-target*pageMs)):0;
-      if (currentPage === target && currentTransitionTime===transitionTime && png) return png;
+      const internalTime=internalMotion.enabled?Math.max(0,timeMs-target*pageMs):0;
+      const identity=()=>JSON.stringify([input.rendererVersion,input.orientation,target,transitionTime,internalTime,rankLayouts]);
+      if (currentPage === target && currentTransitionTime===transitionTime && currentInternalTime===internalTime && currentFrameIdentity===identity() && png) return png;
       if(currentPage!==target){
       failureStage = "document_load";
       await page.setContent(buildSyncCaptureHtml(input, assetSources, target), {
@@ -201,7 +234,15 @@ export async function createSyncSlideCapture({
         timeout: 15000,
       });
       failureStage = "font_load";
-      await loadSitesCaptureFonts(page);
+      if(input.rendererVersion==='sync-onzetrots-v1'){
+        await page.evaluate(async()=>{
+          for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope','400 16px OTMarker']){
+            const faces=await document.fonts.load(font);
+            if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('Approved OnzeTrots font unavailable');
+          }
+          await document.fonts.ready;
+        });
+      }else await loadSitesCaptureFonts(page);
       failureStage = "dependency_decode";
       await page.evaluate(async (background) => {
         await Promise.all([...document.images].map((image) => image.decode()));
@@ -217,13 +258,32 @@ export async function createSyncSlideCapture({
           animation.currentTime = 0;
         });
       }, syncBackgroundAssetForRef(input.style.backgroundAsset) ?? null);
+      if(input.rendererVersion==='sync-onzetrots-v1'){
+        const dependencies=syncSlideRendererAssets(input).filter(asset=>asset.mimeType.startsWith('image/')).map(asset=>asset.path);
+        for(const ref of syncSlideAssets(input))if(ref.kind==='tenant'){
+          const source=assetSources[ref.mediaAssetId];const href=typeof source==='string'?source:source?.href;
+          if(href)dependencies.push(href);
+        }
+        await page.evaluate(async(urls)=>{await Promise.all([...new Set(urls)].map(async url=>{const image=new Image();image.src=url;await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw Error('Approved image unavailable');}));},dependencies);
+      }
       if (assetFailed) throw new SitesDomCaptureError("asset_integrity");
       failureStage = "raster_capture";
-      settledPng = await captureSettledSitesRaster(page);
+      rankLayouts=input.rendererVersion==='sync-onzetrots-v1'?await page.evaluate(measureSyncOnzeTrotsLayout,undefined):[];
+      if(input.rendererVersion==='sync-onzetrots-v1'&&internalMotion.enabled){
+        const speed={slow:19,normal:30,fast:48}[input.visual.scrollSpeed];
+        if(rankLayouts.some(layout=>layout.range>0&&5000+2000*layout.range/speed>pageMs))throw new SitesDomCaptureError('document_load');
+      }
+      // Only a genuinely static scene can reuse its settled raster. Internal
+      // motion is projected for every requested PNG/RGBA frame below.
+      settledPng = internalMotion.enabled?undefined:await captureSettledSitesRaster(page);
       if (assetFailed) throw new SitesDomCaptureError("asset_integrity");
       currentPage = target;
       }
-      if(transition&&transitionTime<transition.durationMs){
+      if(input.rendererVersion==='sync-onzetrots-v1'){
+        const frame=projectSyncOnzeTrotsMotion(internalTime,rankLayouts,input.visual.scrollSpeed);
+        await page.evaluate(applySyncOnzeTrotsMotion,frame);
+      }
+      if(transition){
         await page.evaluate(({transition,time})=>{
           const element=document.querySelector<HTMLElement>('.sync-slide-motion');
           if(!element)throw Error('Sync motion surface missing');
@@ -231,8 +291,10 @@ export async function createSyncSlideCapture({
           if(!animation)animation=element.animate([{opacity:0,transform:`translateY(${transition.offsetPx}px)`},{opacity:1,transform:'translateY(0px)'}],{duration:transition.durationMs,easing:transition.easing,fill:'both'});
           animation.pause();animation.currentTime=time;
         },{transition,time:transitionTime});
+      }
+      if(internalMotion.enabled||transition&&transitionTime<transition.durationMs){
         await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
-        png=await page.screenshot({type:'png',timeout:15000});
+        png=await captureMovingPng();
       }else{
         // Reusing the settled raster also avoids one compositor capture for
         // every unchanged frame of the remaining page duration.
@@ -240,13 +302,17 @@ export async function createSyncSlideCapture({
       }
       if(!png)throw new SitesDomCaptureError('raster_capture');
       currentTransitionTime=transitionTime;
+      currentInternalTime=internalTime;
+      currentFrameIdentity=identity();
       rgba = undefined;
       return png;
     };
-    const safeFailure = (error: unknown) =>
-      error instanceof SitesDomCaptureError
-        ? error
-        : new SitesDomCaptureError(failureStage);
+    const safeFailure = (error: unknown) => {
+      if(error instanceof SitesDomCaptureError)return error;
+      const failure=new SitesDomCaptureError(failureStage);
+      Object.defineProperty(failure,'cause',{value:error,configurable:true});
+      return failure;
+    };
     return {
       renderPng: async (time) => {
         try {

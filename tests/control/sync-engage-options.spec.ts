@@ -1,16 +1,20 @@
 import AxeBuilder from '@axe-core/playwright';
 import {expect,test,type Locator} from '@playwright/test';
-import {syncSlidePresentationSchema} from '../../packages/contracts/src/sync-slide-presentation';
+import {syncSlidePollSchema,syncSlidePresentationSchema} from '../../packages/contracts/src/sync-slide-presentation';
+import {createSyncStudioStarter} from '../../packages/studio/src/sync';
 import {fixture,id,mount,next,origin,prepareWizardFixture} from '../helpers/sync-create-wizard-fixture';
 
 test.beforeAll(()=>prepareWizardFixture());
+// Keep this original Sync-v1 layout cohort on its frozen renderer. The new
+// approved composition has its own cases; a new default must not erase these.
+function legacyEngageFixture(){const data=fixture('engage'),base=createSyncStudioStarter({family:'engage',tenantName:data.tenantName,theme:'fieldflow'}).syncPresentation!;data.initialPresentation=syncSlidePresentationSchema.parse({...base,theme:'onzetrots-tv',style:{...base.style,background:'clubmuur'}});return data;}
 for(const width of[390,1440])for(const orientation of['landscape','portrait']as const){
  test(`Engage toont alle 2–24 keuzes leesbaar in de wizard (${width}/${orientation})`,async({page},info)=>{
   await page.setViewportSize({width,height:1000});
   for(const count of[2,12,13,24]){
-   const data=fixture('engage');
+   const data=legacyEngageFixture();
    const options=Array.from({length:count},(_,i)=>({id:id(100+i),label:i%2===0?'Z'.repeat(160):`Speler ${String(i+1).padStart(2,'0')} · Eigen club · inzet, samenspel en sportiviteit. `.repeat(4).slice(0,160),votes:count===2||count===13?i+1:0}));
-   const poll=syncSlidePresentationSchema.shape.poll.parse({id:id(31),title:'W'.repeat(160),status:'live',visibility:count===12?'after_vote':count===24?'after_close':'live',optionsPerPage:4,options,publicUrl:'https://example.org/engage/own-campaign'})!;
+   const poll=syncSlidePollSchema.parse({id:id(31),title:'W'.repeat(160),status:'live',visibility:count===12?'after_vote':count===24?'after_close':'live',optionsPerPage:4,options,publicUrl:'https://example.org/engage/own-campaign'})!;
    // The production action is separately unit/DB-tested. This fixture controls
    // only that transport; the actual four-step UI, renderer and CSS stay real.
    await page.addInitScript(()=>sessionStorage.clear());
@@ -85,8 +89,8 @@ for(const width of[390,1440])for(const orientation of['landscape','portrait']as 
    try{
    await page.setViewportSize({width,height:1000});
    const options=Array.from({length:sample.count},(_,i)=>({id:id(100+i),label:sample.long?(i%2===0?'Z'.repeat(160):`Speler ${String(i+1).padStart(2,'0')} · Eigen club · inzet, samenspel en sportiviteit. `.repeat(4).slice(0,160)):`Speler ${String(i+1).padStart(2,'0')} · Eigen club`,votes:i+1}));
-   const poll=syncSlidePresentationSchema.shape.poll.parse({id:id(31),title:sample.title,status:'live',visibility:'live',optionsPerPage:4,options,publicUrl:'https://example.org/engage/own-campaign'})!;
-   await page.addInitScript(()=>sessionStorage.clear());await mount(page,fixture('engage'));
+   const poll=syncSlidePollSchema.parse({id:id(31),title:sample.title,status:'live',visibility:'live',optionsPerPage:4,options,publicUrl:'https://example.org/engage/own-campaign'})!;
+   await page.addInitScript(()=>sessionStorage.clear());await mount(page,legacyEngageFixture());
    await page.route(`${origin}/__wizard/engage-selection`,route=>route.fulfill({json:{ok:true,poll,secureQrAvailable:true}}));
    await next(page);await page.getByRole('combobox',{name:'Gekoppelde publieksvraag',exact:true}).selectOption(id(31));await expect(page.locator('.vc-engage-result')).toHaveCount(4);await next(page);
    if(orientation==='portrait')await page.getByRole('button',{name:'Staand · 9:16',exact:true}).click();

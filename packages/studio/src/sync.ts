@@ -1,6 +1,10 @@
 import {
   syncContentFamilies,
   syncSlidePageCount,
+  syncSlideInternalMotion,
+  syncSlideDurationMs,
+  syncOnzeTrotsRendererVersion,
+  syncOnzeTrotsSourceRevision,
   syncSlidePresentationSchema,
   syncSlideRendererVersion,
   syncSlideSourceRevision,
@@ -26,14 +30,16 @@ export function createSyncStudioDocument(
     throw new Error(
       "Kies minimaal drie seconden per pagina en maximaal 120 seconden totaal. Verdeel meer gegevens over een reeks.",
     );
+  const durationMs=syncSlideDurationMs(slide,secondsPerPage);
+  if(durationMs>120000)throw new Error('De volledige ranglijst past niet binnen 120 seconden. Kies een hogere scrollsnelheid of beperk de bronselectie.');
   return parseStudioDocument({
     ...createEmptyStudioDocument(
       slide.orientation === "portrait" ? "portrait-hd" : "landscape-hd",
     ),
     syncPresentation: slide,
     motion: {
-      enabled: motionEnabled || pages > 1 || (slide.style.motion!==undefined&&slide.style.motion!=="geen"),
-      durationMs: secondsPerPage * pages * 1000,
+      enabled: motionEnabled || pages > 1 || syncSlideInternalMotion(slide).enabled || (slide.style.motion!==undefined&&slide.style.motion!=="geen"),
+      durationMs,
       fps: 30,
     },
   });
@@ -81,8 +87,9 @@ export function createSyncStudioStarter({
   return createSyncStudioDocument(
     syncSlidePresentationSchema.parse({
       schemaVersion: 1,
-      rendererVersion: syncSlideRendererVersion,
-      sourceRevision: syncSlideSourceRevision,
+      rendererVersion: theme==='onzetrots-tv'?syncOnzeTrotsRendererVersion:syncSlideRendererVersion,
+      sourceRevision: theme==='onzetrots-tv'?syncOnzeTrotsSourceRevision:syncSlideSourceRevision,
+      ...(theme==='onzetrots-tv'?{visual:{schemaVersion:1,mode:'light',scrollSpeed:'normal',panelOpacity:94}}:{}),
       family,
       orientation,
       theme,

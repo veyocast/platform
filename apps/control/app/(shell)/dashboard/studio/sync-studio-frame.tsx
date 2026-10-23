@@ -38,6 +38,8 @@ import {
 import {
   syncContentFamilies,
   syncSlidePageCount,
+  syncSlideDurationMs,
+  syncSlideAssets,
   syncSlidePresentationSchema,
   syncSlideTransition,
   type SyncContentFamily,
@@ -51,6 +53,8 @@ import {
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
 import styles from "./sync-studio-frame.module.css";
 import { SyncBackgroundPicker } from "./sync-background-picker";
+import {SyncSlidePreview} from '../playlists/_components/sites/sync-studio-preview';
+import {SyncOnzeTrotsManualCards} from './sync-onzetrots-manual-cards';
 import { orientSyncBackground } from "../../../../lib/sync-background-choice";
 import type { StudioMediaAsset } from "./types";
 import {
@@ -169,7 +173,7 @@ export function SyncStudioFrame(props: FrameProps) {
       : null;
   const fullTrigger=useRef<HTMLElement|null>(null),templateTrigger=useRef<HTMLButtonElement|null>(null),imageInput=useRef<HTMLInputElement|null>(null);
   const openFullPreview=(event:{currentTarget:HTMLElement})=>{fullTrigger.current=event.currentTarget;setFullPreview(true);};
-  const validation = syncSlidePresentationSchema.safeParse(props.previewPresentation??presentation),
+  const validation = useMemo(()=>syncSlidePresentationSchema.safeParse(props.previewPresentation??presentation),[props.previewPresentation,presentation]),
     lastValid = useRef(props.previewPresentation??presentation);
   if (validation.success) lastValid.current = validation.data;
   const preview = lastValid.current,
@@ -177,20 +181,23 @@ export function SyncStudioFrame(props: FrameProps) {
       (family) => family.id === presentation.family,
     )!;
   const pages = syncSlidePageCount(preview),
-    transition=syncSlideTransition(preview),
+    transition=preview.rendererVersion==='sync-onzetrots-v1'?null:syncSlideTransition(preview),
     portrait = preview.orientation === "portrait",
-    seconds = Number(props.secondsPerPage);
+    seconds = Number(props.secondsPerPage),
+    requestedSeconds = Number.isFinite(seconds) && seconds >= 3 && seconds <= 120 ? seconds : 12,
+    effectiveSeconds = syncSlideDurationMs(preview, requestedSeconds) / 1000,
+    pageSeconds = effectiveSeconds / pages;
   useEffect(() => {
     setPage(0);
   }, [pages, presentation.family]);
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || preview.rendererVersion==='sync-onzetrots-v1') return;
     const timer = window.setInterval(
       () => setPage((current) => (current + 1) % pages),
-      Math.max(3, Number.isFinite(seconds) ? seconds : 12) * 1000,
+      pageSeconds * 1000,
     );
     return () => window.clearInterval(timer);
-  }, [playing, pages, seconds]);
+  }, [playing, pages, pageSeconds, preview.rendererVersion]);
   const imageChoices = useMemo(
     () =>
       assets.flatMap((asset) =>
@@ -260,14 +267,14 @@ export function SyncStudioFrame(props: FrameProps) {
   const matchFamily = ["matchday", "next-match", "scoreboard", "goal"].includes(
     presentation.family,
   );
-  const previewNode = props.previewContent ?? (
+  const previewNode = props.previewContent ?? (preview.rendererVersion==='sync-onzetrots-v1' ? <SyncSlidePreview presentation={preview} assetUrls={Object.fromEntries(syncSlideAssets(preview).flatMap(asset=>{const url=asset.kind==='tenant'?resolveAsset(asset):undefined;return asset.kind==='tenant'&&url?[[asset.mediaAssetId,url]]:[];}))} durationSeconds={effectiveSeconds} id={preview.family} active={playing} onPageChange={setPage} pageOverride={playing?undefined:Math.min(page,pages-1)}/> : (
     <SyncSlideStaticView
       presentation={preview}
       includeStyles={false}
       resolveAsset={resolveAsset}
       page={Math.min(page, pages - 1)}
     />
-  );
+  ));
   return (
     <div className="vc-studio-page sync-studio-frame">
       <style>{syncSlideCss}</style>
@@ -499,6 +506,7 @@ export function SyncStudioFrame(props: FrameProps) {
                       key={theme}
                       className={presentation.theme === theme ? "active" : ""}
                       aria-pressed={presentation.theme === theme}
+                      disabled={presentation.rendererVersion==='sync-onzetrots-v1'&&theme!=='onzetrots-tv'}
                       onClick={() => onChange({ theme })}
                     >
                       <div
@@ -516,6 +524,12 @@ export function SyncStudioFrame(props: FrameProps) {
                     </button>
                   ))}
                 </FieldGroup>
+                {presentation.rendererVersion==='sync-onzetrots-v1'&&<>
+                  <Field label="Variant"><select value={presentation.visual.mode} onChange={event=>onChange({visual:{...presentation.visual,mode:event.target.value as 'light'|'dark'}})}><option value="light">Licht</option><option value="dark">Donker</option></select></Field>
+                  {['standings','period-standings','matchday'].includes(presentation.family)&&<Field label="Scrollsnelheid"><select value={presentation.visual.scrollSpeed} onChange={event=>onChange({visual:{...presentation.visual,scrollSpeed:event.target.value as 'slow'|'normal'|'fast'}})}><option value="slow">Rustig</option><option value="normal">Normaal</option><option value="fast">Sneller</option></select></Field>}
+                  <Field label={`Containerdekking · ${presentation.visual.panelOpacity}%`}><input type="range" min={80} max={100} step={1} value={presentation.visual.panelOpacity} onChange={event=>onChange({visual:{...presentation.visual,panelOpacity:Number(event.target.value)}})}/></Field>
+                </>}
+                {presentation.rendererVersion!=='sync-onzetrots-v1'&&<>
                 <div className="vc-form-grid">
                 <Field label="Accentkleur" controlWrapperClassName="vc-color-input" adornment={<span>{presentation.style.accent}</span>}>
                   <input
@@ -564,9 +578,10 @@ export function SyncStudioFrame(props: FrameProps) {
                 <FieldGroup label="Uitlijning" className="vc-segmented">
                   {([['left','Links'],['center','Midden'],['right','Rechts']] as const).map(([alignment,label])=><button type="button" key={alignment} className={presentation.style.alignment===alignment?'active':''} aria-pressed={presentation.style.alignment===alignment} onClick={()=>setStyle({alignment})}>{label}</button>)}
                 </FieldGroup>
+                </>}
                 <SyncBackgroundPicker presentation={presentation} onChange={onChange} disabled={props.inputsDisabled} />
                 {props.onBackgroundUpload&&<><Button variant="secondary" onClick={()=>imageInput.current?.click()}><ImagePlus size={16}/>{props.uploading?'Achtergrond controleren…':'Eigen achtergrond uploaden'}</Button><input ref={imageInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden aria-label="Achtergrond uploaden" onChange={event=>{const file=event.target.files?.[0];event.target.value='';if(file)void props.onBackgroundUpload?.(file);}}/></>}
-                <Field label={`Veilige marge · ${presentation.style.safeMargin}%`}>
+                {presentation.rendererVersion!=='sync-onzetrots-v1'&&                <Field label={`Veilige marge · ${presentation.style.safeMargin}%`}>
                   <input
                     type="range"
                     min={2}
@@ -576,7 +591,7 @@ export function SyncStudioFrame(props: FrameProps) {
                       setStyle({ safeMargin: Number(event.target.value) })
                     }
                   />
-                </Field>
+                </Field>}
                 <Check
                   label="Clublogo tonen"
                   checked={presentation.style.showLogo}
@@ -612,6 +627,7 @@ export function SyncStudioFrame(props: FrameProps) {
                     ))}
                   </select>
                 </Field>
+                {!props.connectedData&&presentation.rendererVersion==='sync-onzetrots-v1'&&['team-info','rss','club-story','activities','agenda','youtube'].includes(presentation.family)&&imageSelect(presentation.rich?.featureImage,featureImage=>onChange({rich:{...presentation.rich,featureImage}}),'Afbeelding bij de inhoud')}
                 {imageSelect(
                   presentation.club.logo,
                   (logo) => onChange({ club: { ...presentation.club, logo } }),
@@ -663,7 +679,8 @@ export function SyncStudioFrame(props: FrameProps) {
                   </>}
                 </>}
                 {!props.connectedData&&['scoreboard','goal'].includes(presentation.family)&&<Field label="Wedstrijdklok"><input maxLength={40} value={presentation.match?.clock??''} onChange={event=>onChange({match:{homeScore:'',awayScore:'',date:'',time:'',...presentation.match,clock:event.target.value}})}/></Field>}
-                {!props.connectedData&&rowFamilies.has(presentation.family) && (
+                {!props.connectedData&&presentation.rendererVersion==='sync-onzetrots-v1'&&['birthdays','activities','agenda'].includes(presentation.family)&&<SyncOnzeTrotsManualCards presentation={presentation} onChange={rich=>onChange({rich})} imagePicker={imageSelect}/>}
+                {!props.connectedData&&rowFamilies.has(presentation.family)&&!(presentation.rendererVersion==='sync-onzetrots-v1'&&['birthdays','activities','agenda'].includes(presentation.family)) && (
                   <>
                     <Field label="Rijen · één rij per regel">
                       <textarea
@@ -682,6 +699,7 @@ export function SyncStudioFrame(props: FrameProps) {
                     <div className="vc-form-grid">
                     <Field label="Rijen per pagina">
                       <input type="number" min={1} max={8}
+                        disabled={presentation.rendererVersion==='sync-onzetrots-v1'&&['standings','period-standings','matchday','birthdays','activities','agenda'].includes(presentation.family)}
                         value={presentation.rowsPerPage}
                         onChange={(event) =>
                           onChange({ rowsPerPage: Math.min(8,Math.max(1,Number(event.target.value)||1)) })
@@ -815,7 +833,7 @@ export function SyncStudioFrame(props: FrameProps) {
             </div>
           </div>
           <div className={`vc-stage-canvas ${portrait ? "portrait" : ""}`}>
-            <motion.div key={`${presentation.family}-${page}-${presentation.orientation}-${presentation.style.motion??'geen'}`} initial={transition?{opacity:0,y:transition.offsetPx}:false} animate={{opacity:1,y:0}} transition={{duration:transition?transition.durationMs/1000:0,ease:'easeOut'}}>{previewNode}</motion.div>
+            <motion.div key={presentation.rendererVersion==='sync-onzetrots-v1'?`${presentation.family}-${presentation.orientation}-approved`:`${presentation.family}-${page}-${presentation.orientation}-${presentation.style.motion??'geen'}`} initial={transition?{opacity:0,y:transition.offsetPx}:false} animate={{opacity:1,y:0}} transition={{duration:transition?transition.durationMs/1000:0,ease:'easeOut'}}>{previewNode}</motion.div>
           </div>
           {(!validation.success || rowsError || lineupError) && (
             <p role="status" className="vc-property-hint">
@@ -831,7 +849,7 @@ export function SyncStudioFrame(props: FrameProps) {
               </span>
               <span>
                 {pages} {pages === 1 ? "pagina" : "pagina’s"} ·{" "}
-                {props.secondsPerPage || "–"}s per pagina
+                {pageSeconds}s per pagina{effectiveSeconds > requestedSeconds * pages ? ' · inclusief volledige beweging' : ''}
               </span>
             </div>
             <button type="button" onClick={openFullPreview}>

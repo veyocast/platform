@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {playerDynamicTemplateAssetSchema} from './dynamic-content';
-import {syncSlideAssets,syncSlidePageCount,syncSlidePresentationSchema} from './sync-slide-presentation';
+import {syncSlideAssets,syncSlidePageCount,syncSlideMinimumDurationMs,syncSlidePresentationSchema} from './sync-slide-presentation';
 
 /** Complete verified data presentation; its configuration and content have
  * separate identities. Older dynamic decoders never receive this object. */
@@ -18,7 +18,7 @@ export const syncDynamicPlaybackSchema=z.object({...metadata,presentation:syncSl
 }).strict().superRefine((value,context)=>{
  if(value.liveMatch&&!['scoreboard','goal'].includes(value.presentation.family))context.addIssue({code:'custom',path:['liveMatch'],message:'Een live wedstrijdbinding hoort uitsluitend bij een Source-wedstrijdontwerp.'});
  const pages=syncSlidePageCount(value.presentation),refs=syncSlideAssets(value.presentation).filter(ref=>ref.kind==='tenant');
- if(value.durationMs<pages*3000||value.durationMs%(pages*1000)!==0)context.addIssue({code:'custom',path:['durationMs'],message:'Alle gegevenspagina’s vereisen dezelfde volledige afspeelduur.'});
+ if(value.durationMs<syncSlideMinimumDurationMs(value.presentation)||value.durationMs%(pages*1000)!==0)context.addIssue({code:'custom',path:['durationMs'],message:'Alle gegevenspagina’s en de volledige ranglijstbeweging vereisen dezelfde volledige afspeelduur.'});
  if(Object.keys(value.assets).length!==new Set(refs.map(ref=>ref.mediaAssetId)).size||refs.some(ref=>{const actual=value.assets[ref.mediaAssetId];return !actual||actual.checksumSha256!==ref.checksumSha256||!actual.mimeType.startsWith('image/');}))context.addIssue({code:'custom',path:['assets'],message:'De bronpresentatie mist een gecontroleerde afbeelding.'});
 });
 export type SyncDynamicPlayback=z.infer<typeof syncDynamicPlaybackSchema>;

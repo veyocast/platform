@@ -2,6 +2,11 @@ import { z } from "zod";
 import { syncContentFamilies } from "./sync-content-families";
 import { syncSystemAssets } from "./sync-system-assets";
 import { syncBackgroundAssetForRef } from "./sync-background-catalog";
+import {syncOnzeTrotsSystemAssets,syncOnzeTrotsCssAssetPaths} from './sync-onzetrots-assets';
+import {createSyncOnzeTrotsRichSchema,syncOnzeTrotsRendererVersion,syncOnzeTrotsSourceRevision,syncOnzeTrotsVisualSchema} from "./sync-onzetrots-presentation";
+export {syncOnzeTrotsRendererVersion,syncOnzeTrotsSourceRevision} from "./sync-onzetrots-presentation";
+export {syncOnzeTrotsMatchdayContextSchema,syncOnzeTrotsSourceScopeSchema} from './sync-onzetrots-presentation';
+export {syncOnzeTrotsSystemAssets,syncOnzeTrotsCssAssetPaths} from './sync-onzetrots-assets';
 
 /** Additive identity: legacy Sites documents and release decoders stay unchanged. */
 export const syncSlideRendererVersion = "sync-v1" as const;
@@ -10,11 +15,12 @@ export const syncSlideSourceRevision =
 const text = z.string().max(400);
 const color = z.string().regex(/^#[a-f0-9]{6}$/i);
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
-const systemImagePaths = new Map(
+const legacySystemImagePaths = new Map(
   syncSystemAssets
     .filter((asset) => asset.mimeType.startsWith("image/"))
     .map((asset) => [asset.path as string, asset.sha256 as string]),
 );
+const systemImagePaths=new Map([...legacySystemImagePaths,...syncOnzeTrotsSystemAssets.filter(asset=>asset.mimeType.startsWith('image/')).map(asset=>[asset.path as string,asset.sha256 as string] as const)]);
 
 const syncSlideAssetReferenceSchema = z
   .discriminatedUnion("kind", [
@@ -118,9 +124,10 @@ const poll = z.union([
         message: "Antwoord-ID’s moeten uniek zijn.",
       });
   });
+export const syncSlidePollSchema=poll;
 
 /** The Source's visual model, independent of authoring and provider transport. */
-export const syncSlidePresentationSchema = z
+const syncSlideBaseSchema = z
   .object({
     schemaVersion: z.literal(1),
     rendererVersion: z.literal(syncSlideRendererVersion),
@@ -235,8 +242,9 @@ export const syncSlidePresentationSchema = z
       })
       .strict(),
   })
-  .strict()
-  .superRefine((slide, context) => {
+  .strict();
+
+function refineSyncSlide(slide:Pick<z.infer<typeof syncSlideBaseSchema>,"style"|"ownRowIndexes"|"rows"|"family"|"poll">,context:z.RefinementCtx){
     if (syncBackgroundAssetForRef(slide.style.backgroundAsset) && slide.style.background !== "photo")
       context.addIssue({
         code: "custom",
@@ -261,25 +269,85 @@ export const syncSlidePresentationSchema = z
         path: ["poll"],
         message: "Publieksacties horen bij hun eigen slidefamilie.",
       });
-  });
+}
+export const syncLegacySlidePresentationSchema=syncSlideBaseSchema.superRefine((slide,context)=>{
+ refineSyncSlide(slide,context);
+ for(const asset of [slide.club.logo,slide.home?.logo,slide.away?.logo,slide.style.backgroundAsset]){
+  if(asset?.kind==='system'&&!legacySystemImagePaths.has(asset.path)&&!syncBackgroundAssetForRef(asset))
+   context.addIssue({code:'custom',message:'Gebruik de geverifieerde assets van de oorspronkelijke renderer.'});
+ }
+});
+export const syncOnzeTrotsSlidePresentationSchema=syncSlideBaseSchema.extend({
+ rendererVersion:z.literal(syncOnzeTrotsRendererVersion),sourceRevision:z.literal(syncOnzeTrotsSourceRevision),
+ theme:z.literal("onzetrots-tv"),visual:syncOnzeTrotsVisualSchema,
+ rowsPerPage:z.number().int().min(1).max(8).default(6),
+ rich:createSyncOnzeTrotsRichSchema(syncSlideAssetSchema).optional(),
+}).superRefine((slide,context)=>{
+ refineSyncSlide(slide,context);
+ const arrays=[slide.rich?.standings?.rows,slide.rich?.fixtures,slide.rich?.birthdays,slide.rich?.activities,slide.rich?.news,slide.rich?.sponsors,slide.rich?.infoRows,slide.rich?.matchday?.results,slide.rich?.matchday?.standings.rows,slide.rich?.matchday?.fixtures];
+ for(const rows of arrays){if(rows&&new Set(rows.map(row=>row.id)).size!==rows.length)context.addIssue({code:"custom",path:["rich"],message:"Bronrecords moeten unieke stabiele identiteiten hebben."});}
+ for(const standing of [slide.rich?.standings,slide.rich?.matchday?.standings]){
+  const teams=standing?.rows.flatMap(row=>row.teamId?[row.teamId]:[])??[];
+  if(new Set(teams).size!==teams.length)context.addIssue({code:'custom',path:['rich'],message:'Een gecontroleerd team mag maar één ranglijstrij hebben.'});
+ }
+ const assets=new Map<string,string>();
+ const inspect=(node:unknown)=>{
+  if(!node||typeof node!=='object')return;
+  if('kind' in node&&(node.kind==='system'||node.kind==='tenant')&&'checksumSha256' in node){
+   const ref=node as SyncSlideAsset,key=ref.kind==='system'?`system:${ref.path}`:`tenant:${ref.mediaAssetId}`,before=assets.get(key);
+   if(before&&before!==ref.checksumSha256)context.addIssue({code:'custom',path:['rich'],message:'Dezelfde afbeelding heeft conflicterende controlesommen.'});
+   assets.set(key,ref.checksumSha256);return;
+  }
+  for(const value of Object.values(node))inspect(value);
+ };inspect(slide);
+});
+export const syncSlidePresentationSchema=z.discriminatedUnion("rendererVersion",[syncLegacySlidePresentationSchema,syncOnzeTrotsSlidePresentationSchema]);
 export type SyncSlidePresentation = z.infer<typeof syncSlidePresentationSchema>;
+export type SyncOnzeTrotsPresentation=z.infer<typeof syncOnzeTrotsSlidePresentationSchema>;
+export type SyncOnzeTrotsRich=NonNullable<SyncOnzeTrotsPresentation['rich']>;
 
 /** Source Studio's 400 ms page entrance, shared by editor, export and Player. */
 export function syncSlideTransition(slide:SyncSlidePresentation){
   return !slide.style.motion||slide.style.motion==='geen'?null:{durationMs:400,offsetPx:slide.style.motion==='dynamisch'?14:5,easing:'ease-out' as const};
 }
 
+/** Logical geometry from the approved cascade. This is a duration bound, not a
+ * substitute for measuring the actual browser viewport for frame projection. */
+export function syncSlideInternalMotion(slide:SyncSlidePresentation){
+ if(slide.rendererVersion!==syncOnzeTrotsRendererVersion)return {enabled:false,minimumMs:3000};
+ if(slide.family==='goal')return {enabled:true,minimumMs:3000};
+ const dashboard=slide.family==='matchday',rank=dashboard||['standings','period-standings'].includes(slide.family);
+ if(!rank)return {enabled:false,minimumMs:3000};
+ const portrait=slide.orientation==='portrait';
+ const count=dashboard?slide.rich?.matchday?.standings.rows.length??0:slide.rich?.standings?.rows.length??slide.rows.length;
+ const rowHeight=dashboard?(portrait?78:67):(portrait?100:72);
+ const viewport=dashboard?(portrait?646:527):(portrait?1193:524);
+ const range=Math.max(0,count*rowHeight-viewport);
+ if(!range)return {enabled:false,minimumMs:3000};
+ const speed={slow:19,normal:30,fast:48}[slide.visual.scrollSpeed];
+ return {enabled:true,minimumMs:Math.ceil(5000+2000*range/speed)};
+}
+
+export function syncSlideMinimumDurationMs(slide:SyncSlidePresentation){
+ const pages=syncSlidePageCount(slide);
+ return pages*Math.ceil(Math.max(3000,syncSlideInternalMotion(slide).minimumMs)/1000)*1000;
+}
+
+export function syncSlideDurationMs(slide:SyncSlidePresentation,secondsPerPage:number){
+ return Math.max(syncSlidePageCount(slide)*secondsPerPage*1000,syncSlideMinimumDurationMs(slide));
+}
+
 /** Local form recovery only. Incomplete URLs and photo selections remain editable.
  * Never use this schema at a writer, renderer, publication or provider boundary. */
-export const syncSlideDraftInputSchema = z
+const syncLegacySlideDraftInputSchema = z
   .object({
-    ...syncSlidePresentationSchema.shape,
+    ...syncLegacySlidePresentationSchema.shape,
     youtubeUrl: z.string().max(2048).optional(),
     news: z
       .array(
         z
           .object({
-            ...syncSlidePresentationSchema.shape.news.unwrap().element.shape,
+            ...syncLegacySlidePresentationSchema.shape.news.unwrap().element.shape,
             url: z.string().max(2048).optional(),
           })
           .strict(),
@@ -289,7 +357,35 @@ export const syncSlideDraftInputSchema = z
   })
   .strict();
 
+export const syncSlideDraftInputSchema=z.discriminatedUnion("rendererVersion",[
+ syncLegacySlideDraftInputSchema,
+ z.object({...syncOnzeTrotsSlidePresentationSchema.shape,youtubeUrl:z.string().max(2048).optional(),news:syncLegacySlideDraftInputSchema.shape.news}).strict(),
+]);
+
+/** Editors may hold incomplete URL text, but can never mix renderer/source
+ * identities through a spread of union-shaped patches. */
+export function patchSyncSlideDraft(slide:SyncSlidePresentation,patch:Partial<SyncSlidePresentation>):SyncSlidePresentation{
+ return syncSlideDraftInputSchema.parse({...slide,...patch,rendererVersion:slide.rendererVersion,sourceRevision:slide.sourceRevision});
+}
+
+/** A playlist override cannot reinterpret a version-bound rich document.
+ * Its verified binary/original presentation remains the visible authority. */
+export function syncSlidePlacementTheme(slide:SyncSlidePresentation,theme:SyncSlidePresentation['theme']|undefined):SyncSlidePresentation{
+ return slide.rendererVersion===syncOnzeTrotsRendererVersion?slide:{...slide,theme:theme??slide.theme};
+}
+
 export function syncSlidePageCount(slide: SyncSlidePresentation): number {
+  if(slide.rendererVersion===syncOnzeTrotsRendererVersion){
+    if(["standings","period-standings","matchday","visitors","welcome"].includes(slide.family))return 1;
+    if(slide.family==="birthdays")return Math.max(1,Math.ceil((slide.rich?.birthdays?.length??slide.rows.length)/6));
+    if(["activities","agenda"].includes(slide.family))return Math.max(1,Math.ceil((slide.rich?.activities?.length??slide.rows.length)/6));
+    if(["rss","club-story"].includes(slide.family)&&slide.rich?.news)return Math.max(1,slide.rich.news.length);
+    if(slide.family==="menu")return Math.max(1,Math.ceil(slide.rows.length/10));
+    if(slide.family==="sponsors")return Math.max(1,Math.ceil((slide.rich?.sponsors?.length??slide.rows.length)/6));
+    if(['fixtures','club-program','team-program','pool-program','results','club-results','team-results','pool-results'].includes(slide.family))return Math.max(1,Math.ceil((slide.rich?.fixtures?.length??slide.rows.length)/(slide.orientation==='portrait'?5:6)));
+    if(slide.rich?.infoRows)return Math.max(1,Math.ceil(slide.rich.infoRows.length/slide.rowsPerPage));
+    if(slide.rich?.fixtures)return Math.max(1,Math.ceil(slide.rich.fixtures.length/(slide.orientation==="portrait"?5:6)));
+  }
   if (slide.family === "engage" && slide.poll && "optionsPerPage" in slide.poll)
     return Math.max(1, Math.ceil(slide.poll.options.length / slide.poll.optionsPerPage));
   return slide.family === "rss"
@@ -306,6 +402,14 @@ export function syncSlideAssets(
     slide.away?.logo,
     slide.style.backgroundAsset,
   ].filter((asset): asset is SyncSlideAsset => Boolean(asset));
+  if(slide.rendererVersion===syncOnzeTrotsRendererVersion&&slide.rich){
+    const visit=(value:unknown)=>{
+      if(!value||typeof value!=="object")return;
+      if("kind" in value&&(value.kind==="tenant"||value.kind==="system")){assets.push(syncSlideAssetSchema.parse(value));return;}
+      for(const child of Object.values(value))visit(child);
+    };
+    visit(slide.rich);
+  }
   return [
     ...new Map(
       assets.map((asset) => [
@@ -314,4 +418,17 @@ export function syncSlideAssets(
       ]),
     ).values(),
   ];
+}
+
+/** Renderer bytes and content references form one version-bound dependency set.
+ * Historical documents retain the exact original eleven renderer assets. */
+export function syncSlideRendererAssets(slide:SyncSlidePresentation):ReadonlyArray<{path:string;sha256:string;bytes:number;mimeType:string}>{
+ if(slide.rendererVersion!==syncOnzeTrotsRendererVersion)return syncSystemAssets;
+ const selected=new Set<string>(syncOnzeTrotsCssAssetPaths);
+ for(const asset of syncSlideAssets(slide))if(asset.kind==='system')selected.add(asset.path);
+ // The approved backdrop is also required when a hand-authored document has
+ // not selected an explicit gallery image yet.
+ if(!slide.style.backgroundAsset)selected.add(`/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-${slide.orientation==='portrait'?'portrait-941':'wide-1672'}.webp`);
+ const background=syncBackgroundAssetForRef(slide.style.backgroundAsset);
+ return [...syncOnzeTrotsSystemAssets.filter(asset=>selected.has(asset.path)),...syncSystemAssets.filter(asset=>selected.has(asset.path)),...(background?[background]:[])];
 }

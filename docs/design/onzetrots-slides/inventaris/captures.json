@@ -1,0 +1,2493 @@
+{
+  "prototypeCommit": "ae83f2b4312408eacae9f29177d3c743e104185b",
+  "capturedOn": "2026-10-22",
+  "motion": "paused",
+  "native1080Output": false,
+  "count": 219,
+  "captures": [
+    {
+      "file": "landscape-light/01-fixtures.jpg",
+      "id": "fixtures",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/01-fixtures.jpg"
+    },
+    {
+      "file": "landscape-light/02-results.jpg",
+      "id": "results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/02-results.jpg"
+    },
+    {
+      "file": "landscape-light/03-period-standings.jpg",
+      "id": "period-standings",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/03-period-standings.jpg"
+    },
+    {
+      "file": "landscape-light/04-cancellations.jpg",
+      "id": "cancellations",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/04-cancellations.jpg"
+    },
+    {
+      "file": "landscape-light/05-dressing-rooms.jpg",
+      "id": "dressing-rooms",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/05-dressing-rooms.jpg"
+    },
+    {
+      "file": "landscape-light/06-officials.jpg",
+      "id": "officials",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/06-officials.jpg"
+    },
+    {
+      "file": "landscape-light/07-team-info.jpg",
+      "id": "team-info",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/07-team-info.jpg"
+    },
+    {
+      "file": "landscape-light/08-activities.jpg",
+      "id": "activities",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/08-activities.jpg"
+    },
+    {
+      "file": "landscape-light/09-training.jpg",
+      "id": "training",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/09-training.jpg"
+    },
+    {
+      "file": "landscape-light/10-volunteers.jpg",
+      "id": "volunteers",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/10-volunteers.jpg"
+    },
+    {
+      "file": "landscape-light/11-visitors.jpg",
+      "id": "visitors",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/11-visitors.jpg"
+    },
+    {
+      "file": "landscape-light/12-matchday.jpg",
+      "id": "matchday",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/12-matchday.jpg"
+    },
+    {
+      "file": "landscape-light/13-club-program.jpg",
+      "id": "club-program",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/13-club-program.jpg"
+    },
+    {
+      "file": "landscape-light/14-team-program.jpg",
+      "id": "team-program",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/14-team-program.jpg"
+    },
+    {
+      "file": "landscape-light/15-pool-program.jpg",
+      "id": "pool-program",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/15-pool-program.jpg"
+    },
+    {
+      "file": "landscape-light/16-club-results.jpg",
+      "id": "club-results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/16-club-results.jpg"
+    },
+    {
+      "file": "landscape-light/17-team-results.jpg",
+      "id": "team-results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/17-team-results.jpg"
+    },
+    {
+      "file": "landscape-light/18-pool-results.jpg",
+      "id": "pool-results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/18-pool-results.jpg"
+    },
+    {
+      "file": "landscape-light/19-standings.jpg",
+      "id": "standings",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/19-standings.jpg"
+    },
+    {
+      "file": "landscape-light/20-team-arrivals.jpg",
+      "id": "team-arrivals",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/20-team-arrivals.jpg"
+    },
+    {
+      "file": "landscape-light/21-welcome.jpg",
+      "id": "welcome",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/21-welcome.jpg"
+    },
+    {
+      "file": "landscape-light/22-referees.jpg",
+      "id": "referees",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/22-referees.jpg"
+    },
+    {
+      "file": "landscape-light/23-changing-rooms.jpg",
+      "id": "changing-rooms",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/23-changing-rooms.jpg"
+    },
+    {
+      "file": "landscape-light/24-next-match.jpg",
+      "id": "next-match",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/24-next-match.jpg"
+    },
+    {
+      "file": "landscape-light/25-birthdays.jpg",
+      "id": "birthdays",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/25-birthdays.jpg"
+    },
+    {
+      "file": "landscape-light/26-lineup.jpg",
+      "id": "lineup",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/26-lineup.jpg"
+    },
+    {
+      "file": "landscape-light/27-scoreboard.jpg",
+      "id": "scoreboard",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/27-scoreboard.jpg"
+    },
+    {
+      "file": "landscape-light/28-goal.jpg",
+      "id": "goal",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/28-goal.jpg"
+    },
+    {
+      "file": "landscape-light/29-menu.jpg",
+      "id": "menu",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/29-menu.jpg"
+    },
+    {
+      "file": "landscape-light/30-engage.jpg",
+      "id": "engage",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/30-engage.jpg"
+    },
+    {
+      "file": "landscape-light/31-rss.jpg",
+      "id": "rss",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/31-rss.jpg"
+    },
+    {
+      "file": "landscape-light/32-sponsors.jpg",
+      "id": "sponsors",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/32-sponsors.jpg"
+    },
+    {
+      "file": "landscape-light/33-agenda.jpg",
+      "id": "agenda",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/33-agenda.jpg"
+    },
+    {
+      "file": "landscape-light/34-club-story.jpg",
+      "id": "club-story",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/34-club-story.jpg"
+    },
+    {
+      "file": "landscape-light/35-youtube.jpg",
+      "id": "youtube",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/35-youtube.jpg"
+    },
+    {
+      "file": "landscape-light/36-free.jpg",
+      "id": "free",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-light/36-free.jpg"
+    },
+    {
+      "file": "landscape-dark/01-fixtures.jpg",
+      "id": "fixtures",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/01-fixtures.jpg"
+    },
+    {
+      "file": "landscape-dark/02-results.jpg",
+      "id": "results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/02-results.jpg"
+    },
+    {
+      "file": "landscape-dark/03-period-standings.jpg",
+      "id": "period-standings",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/03-period-standings.jpg"
+    },
+    {
+      "file": "landscape-dark/04-cancellations.jpg",
+      "id": "cancellations",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/04-cancellations.jpg"
+    },
+    {
+      "file": "landscape-dark/05-dressing-rooms.jpg",
+      "id": "dressing-rooms",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/05-dressing-rooms.jpg"
+    },
+    {
+      "file": "landscape-dark/06-officials.jpg",
+      "id": "officials",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/06-officials.jpg"
+    },
+    {
+      "file": "landscape-dark/07-team-info.jpg",
+      "id": "team-info",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/07-team-info.jpg"
+    },
+    {
+      "file": "landscape-dark/08-activities.jpg",
+      "id": "activities",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/08-activities.jpg"
+    },
+    {
+      "file": "landscape-dark/09-training.jpg",
+      "id": "training",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/09-training.jpg"
+    },
+    {
+      "file": "landscape-dark/10-volunteers.jpg",
+      "id": "volunteers",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/10-volunteers.jpg"
+    },
+    {
+      "file": "landscape-dark/11-visitors.jpg",
+      "id": "visitors",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/11-visitors.jpg"
+    },
+    {
+      "file": "landscape-dark/12-matchday.jpg",
+      "id": "matchday",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/12-matchday.jpg"
+    },
+    {
+      "file": "landscape-dark/13-club-program.jpg",
+      "id": "club-program",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/13-club-program.jpg"
+    },
+    {
+      "file": "landscape-dark/14-team-program.jpg",
+      "id": "team-program",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/14-team-program.jpg"
+    },
+    {
+      "file": "landscape-dark/15-pool-program.jpg",
+      "id": "pool-program",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/15-pool-program.jpg"
+    },
+    {
+      "file": "landscape-dark/16-club-results.jpg",
+      "id": "club-results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/16-club-results.jpg"
+    },
+    {
+      "file": "landscape-dark/17-team-results.jpg",
+      "id": "team-results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/17-team-results.jpg"
+    },
+    {
+      "file": "landscape-dark/18-pool-results.jpg",
+      "id": "pool-results",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/18-pool-results.jpg"
+    },
+    {
+      "file": "landscape-dark/19-standings.jpg",
+      "id": "standings",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/19-standings.jpg"
+    },
+    {
+      "file": "landscape-dark/20-team-arrivals.jpg",
+      "id": "team-arrivals",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/20-team-arrivals.jpg"
+    },
+    {
+      "file": "landscape-dark/21-welcome.jpg",
+      "id": "welcome",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/21-welcome.jpg"
+    },
+    {
+      "file": "landscape-dark/22-referees.jpg",
+      "id": "referees",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/22-referees.jpg"
+    },
+    {
+      "file": "landscape-dark/23-changing-rooms.jpg",
+      "id": "changing-rooms",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/23-changing-rooms.jpg"
+    },
+    {
+      "file": "landscape-dark/24-next-match.jpg",
+      "id": "next-match",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/24-next-match.jpg"
+    },
+    {
+      "file": "landscape-dark/25-birthdays.jpg",
+      "id": "birthdays",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/25-birthdays.jpg"
+    },
+    {
+      "file": "landscape-dark/26-lineup.jpg",
+      "id": "lineup",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/26-lineup.jpg"
+    },
+    {
+      "file": "landscape-dark/27-scoreboard.jpg",
+      "id": "scoreboard",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/27-scoreboard.jpg"
+    },
+    {
+      "file": "landscape-dark/28-goal.jpg",
+      "id": "goal",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/28-goal.jpg"
+    },
+    {
+      "file": "landscape-dark/29-menu.jpg",
+      "id": "menu",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/29-menu.jpg"
+    },
+    {
+      "file": "landscape-dark/30-engage.jpg",
+      "id": "engage",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/30-engage.jpg"
+    },
+    {
+      "file": "landscape-dark/31-rss.jpg",
+      "id": "rss",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/31-rss.jpg"
+    },
+    {
+      "file": "landscape-dark/32-sponsors.jpg",
+      "id": "sponsors",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/32-sponsors.jpg"
+    },
+    {
+      "file": "landscape-dark/33-agenda.jpg",
+      "id": "agenda",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/33-agenda.jpg"
+    },
+    {
+      "file": "landscape-dark/34-club-story.jpg",
+      "id": "club-story",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/34-club-story.jpg"
+    },
+    {
+      "file": "landscape-dark/35-youtube.jpg",
+      "id": "youtube",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/35-youtube.jpg"
+    },
+    {
+      "file": "landscape-dark/36-free.jpg",
+      "id": "free",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/alle-slides/landscape-dark/36-free.jpg"
+    },
+    {
+      "file": "portrait-light/01-fixtures.jpg",
+      "id": "fixtures",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/01-fixtures.jpg"
+    },
+    {
+      "file": "portrait-light/02-results.jpg",
+      "id": "results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/02-results.jpg"
+    },
+    {
+      "file": "portrait-light/03-period-standings.jpg",
+      "id": "period-standings",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/03-period-standings.jpg"
+    },
+    {
+      "file": "portrait-light/04-cancellations.jpg",
+      "id": "cancellations",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/04-cancellations.jpg"
+    },
+    {
+      "file": "portrait-light/05-dressing-rooms.jpg",
+      "id": "dressing-rooms",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/05-dressing-rooms.jpg"
+    },
+    {
+      "file": "portrait-light/06-officials.jpg",
+      "id": "officials",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/06-officials.jpg"
+    },
+    {
+      "file": "portrait-light/07-team-info.jpg",
+      "id": "team-info",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/07-team-info.jpg"
+    },
+    {
+      "file": "portrait-light/08-activities.jpg",
+      "id": "activities",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/08-activities.jpg"
+    },
+    {
+      "file": "portrait-light/09-training.jpg",
+      "id": "training",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/09-training.jpg"
+    },
+    {
+      "file": "portrait-light/10-volunteers.jpg",
+      "id": "volunteers",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/10-volunteers.jpg"
+    },
+    {
+      "file": "portrait-light/11-visitors.jpg",
+      "id": "visitors",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/11-visitors.jpg"
+    },
+    {
+      "file": "portrait-light/12-matchday.jpg",
+      "id": "matchday",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/12-matchday.jpg"
+    },
+    {
+      "file": "portrait-light/13-club-program.jpg",
+      "id": "club-program",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/13-club-program.jpg"
+    },
+    {
+      "file": "portrait-light/14-team-program.jpg",
+      "id": "team-program",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/14-team-program.jpg"
+    },
+    {
+      "file": "portrait-light/15-pool-program.jpg",
+      "id": "pool-program",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/15-pool-program.jpg"
+    },
+    {
+      "file": "portrait-light/16-club-results.jpg",
+      "id": "club-results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/16-club-results.jpg"
+    },
+    {
+      "file": "portrait-light/17-team-results.jpg",
+      "id": "team-results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/17-team-results.jpg"
+    },
+    {
+      "file": "portrait-light/18-pool-results.jpg",
+      "id": "pool-results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/18-pool-results.jpg"
+    },
+    {
+      "file": "portrait-light/19-standings.jpg",
+      "id": "standings",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/19-standings.jpg"
+    },
+    {
+      "file": "portrait-light/20-team-arrivals.jpg",
+      "id": "team-arrivals",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/20-team-arrivals.jpg"
+    },
+    {
+      "file": "portrait-light/21-welcome.jpg",
+      "id": "welcome",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/21-welcome.jpg"
+    },
+    {
+      "file": "portrait-light/22-referees.jpg",
+      "id": "referees",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/22-referees.jpg"
+    },
+    {
+      "file": "portrait-light/23-changing-rooms.jpg",
+      "id": "changing-rooms",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/23-changing-rooms.jpg"
+    },
+    {
+      "file": "portrait-light/24-next-match.jpg",
+      "id": "next-match",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/24-next-match.jpg"
+    },
+    {
+      "file": "portrait-light/25-birthdays.jpg",
+      "id": "birthdays",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/25-birthdays.jpg"
+    },
+    {
+      "file": "portrait-light/26-lineup.jpg",
+      "id": "lineup",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/26-lineup.jpg"
+    },
+    {
+      "file": "portrait-light/27-scoreboard.jpg",
+      "id": "scoreboard",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/27-scoreboard.jpg"
+    },
+    {
+      "file": "portrait-light/28-goal.jpg",
+      "id": "goal",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/28-goal.jpg"
+    },
+    {
+      "file": "portrait-light/29-menu.jpg",
+      "id": "menu",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/29-menu.jpg"
+    },
+    {
+      "file": "portrait-light/30-engage.jpg",
+      "id": "engage",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/30-engage.jpg"
+    },
+    {
+      "file": "portrait-light/31-rss.jpg",
+      "id": "rss",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/31-rss.jpg"
+    },
+    {
+      "file": "portrait-light/32-sponsors.jpg",
+      "id": "sponsors",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/32-sponsors.jpg"
+    },
+    {
+      "file": "portrait-light/33-agenda.jpg",
+      "id": "agenda",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/33-agenda.jpg"
+    },
+    {
+      "file": "portrait-light/34-club-story.jpg",
+      "id": "club-story",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/34-club-story.jpg"
+    },
+    {
+      "file": "portrait-light/35-youtube.jpg",
+      "id": "youtube",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/35-youtube.jpg"
+    },
+    {
+      "file": "portrait-light/36-free.jpg",
+      "id": "free",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-light/36-free.jpg"
+    },
+    {
+      "file": "portrait-dark/01-fixtures.jpg",
+      "id": "fixtures",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/01-fixtures.jpg"
+    },
+    {
+      "file": "portrait-dark/02-results.jpg",
+      "id": "results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/02-results.jpg"
+    },
+    {
+      "file": "portrait-dark/03-period-standings.jpg",
+      "id": "period-standings",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/03-period-standings.jpg"
+    },
+    {
+      "file": "portrait-dark/04-cancellations.jpg",
+      "id": "cancellations",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/04-cancellations.jpg"
+    },
+    {
+      "file": "portrait-dark/05-dressing-rooms.jpg",
+      "id": "dressing-rooms",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/05-dressing-rooms.jpg"
+    },
+    {
+      "file": "portrait-dark/06-officials.jpg",
+      "id": "officials",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/06-officials.jpg"
+    },
+    {
+      "file": "portrait-dark/07-team-info.jpg",
+      "id": "team-info",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/07-team-info.jpg"
+    },
+    {
+      "file": "portrait-dark/08-activities.jpg",
+      "id": "activities",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/08-activities.jpg"
+    },
+    {
+      "file": "portrait-dark/09-training.jpg",
+      "id": "training",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/09-training.jpg"
+    },
+    {
+      "file": "portrait-dark/10-volunteers.jpg",
+      "id": "volunteers",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/10-volunteers.jpg"
+    },
+    {
+      "file": "portrait-dark/11-visitors.jpg",
+      "id": "visitors",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/11-visitors.jpg"
+    },
+    {
+      "file": "portrait-dark/12-matchday.jpg",
+      "id": "matchday",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/12-matchday.jpg"
+    },
+    {
+      "file": "portrait-dark/13-club-program.jpg",
+      "id": "club-program",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/13-club-program.jpg"
+    },
+    {
+      "file": "portrait-dark/14-team-program.jpg",
+      "id": "team-program",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/14-team-program.jpg"
+    },
+    {
+      "file": "portrait-dark/15-pool-program.jpg",
+      "id": "pool-program",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/15-pool-program.jpg"
+    },
+    {
+      "file": "portrait-dark/16-club-results.jpg",
+      "id": "club-results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/16-club-results.jpg"
+    },
+    {
+      "file": "portrait-dark/17-team-results.jpg",
+      "id": "team-results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/17-team-results.jpg"
+    },
+    {
+      "file": "portrait-dark/18-pool-results.jpg",
+      "id": "pool-results",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/18-pool-results.jpg"
+    },
+    {
+      "file": "portrait-dark/19-standings.jpg",
+      "id": "standings",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/19-standings.jpg"
+    },
+    {
+      "file": "portrait-dark/20-team-arrivals.jpg",
+      "id": "team-arrivals",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/20-team-arrivals.jpg"
+    },
+    {
+      "file": "portrait-dark/21-welcome.jpg",
+      "id": "welcome",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/21-welcome.jpg"
+    },
+    {
+      "file": "portrait-dark/22-referees.jpg",
+      "id": "referees",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/22-referees.jpg"
+    },
+    {
+      "file": "portrait-dark/23-changing-rooms.jpg",
+      "id": "changing-rooms",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/23-changing-rooms.jpg"
+    },
+    {
+      "file": "portrait-dark/24-next-match.jpg",
+      "id": "next-match",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/24-next-match.jpg"
+    },
+    {
+      "file": "portrait-dark/25-birthdays.jpg",
+      "id": "birthdays",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/25-birthdays.jpg"
+    },
+    {
+      "file": "portrait-dark/26-lineup.jpg",
+      "id": "lineup",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/26-lineup.jpg"
+    },
+    {
+      "file": "portrait-dark/27-scoreboard.jpg",
+      "id": "scoreboard",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/27-scoreboard.jpg"
+    },
+    {
+      "file": "portrait-dark/28-goal.jpg",
+      "id": "goal",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/28-goal.jpg"
+    },
+    {
+      "file": "portrait-dark/29-menu.jpg",
+      "id": "menu",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/29-menu.jpg"
+    },
+    {
+      "file": "portrait-dark/30-engage.jpg",
+      "id": "engage",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/30-engage.jpg"
+    },
+    {
+      "file": "portrait-dark/31-rss.jpg",
+      "id": "rss",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/31-rss.jpg"
+    },
+    {
+      "file": "portrait-dark/32-sponsors.jpg",
+      "id": "sponsors",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/32-sponsors.jpg"
+    },
+    {
+      "file": "portrait-dark/33-agenda.jpg",
+      "id": "agenda",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/33-agenda.jpg"
+    },
+    {
+      "file": "portrait-dark/34-club-story.jpg",
+      "id": "club-story",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/34-club-story.jpg"
+    },
+    {
+      "file": "portrait-dark/35-youtube.jpg",
+      "id": "youtube",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/35-youtube.jpg"
+    },
+    {
+      "file": "portrait-dark/36-free.jpg",
+      "id": "free",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/alle-slides/portrait-dark/36-free.jpg"
+    },
+    {
+      "file": "details/visitors-1-landscape-light.jpg",
+      "id": "visitors",
+      "count": 1,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-1-landscape-light.jpg"
+    },
+    {
+      "file": "details/visitors-2-landscape-light.jpg",
+      "id": "visitors",
+      "count": 2,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-2-landscape-light.jpg"
+    },
+    {
+      "file": "details/visitors-3-landscape-light.jpg",
+      "id": "visitors",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-3-landscape-light.jpg"
+    },
+    {
+      "file": "details/visitors-4-landscape-light.jpg",
+      "id": "visitors",
+      "count": 4,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-4-landscape-light.jpg"
+    },
+    {
+      "file": "details/visitors-1-landscape-dark.jpg",
+      "id": "visitors",
+      "count": 1,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-1-landscape-dark.jpg"
+    },
+    {
+      "file": "details/visitors-2-landscape-dark.jpg",
+      "id": "visitors",
+      "count": 2,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-2-landscape-dark.jpg"
+    },
+    {
+      "file": "details/visitors-3-landscape-dark.jpg",
+      "id": "visitors",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-3-landscape-dark.jpg"
+    },
+    {
+      "file": "details/visitors-4-landscape-dark.jpg",
+      "id": "visitors",
+      "count": 4,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/visitors-4-landscape-dark.jpg"
+    },
+    {
+      "file": "details/visitors-1-portrait-light.jpg",
+      "id": "visitors",
+      "count": 1,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-1-portrait-light.jpg"
+    },
+    {
+      "file": "details/visitors-2-portrait-light.jpg",
+      "id": "visitors",
+      "count": 2,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-2-portrait-light.jpg"
+    },
+    {
+      "file": "details/visitors-3-portrait-light.jpg",
+      "id": "visitors",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-3-portrait-light.jpg"
+    },
+    {
+      "file": "details/visitors-4-portrait-light.jpg",
+      "id": "visitors",
+      "count": 4,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-4-portrait-light.jpg"
+    },
+    {
+      "file": "details/visitors-1-portrait-dark.jpg",
+      "id": "visitors",
+      "count": 1,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-1-portrait-dark.jpg"
+    },
+    {
+      "file": "details/visitors-2-portrait-dark.jpg",
+      "id": "visitors",
+      "count": 2,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-2-portrait-dark.jpg"
+    },
+    {
+      "file": "details/visitors-3-portrait-dark.jpg",
+      "id": "visitors",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-3-portrait-dark.jpg"
+    },
+    {
+      "file": "details/visitors-4-portrait-dark.jpg",
+      "id": "visitors",
+      "count": 4,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/visitors-4-portrait-dark.jpg"
+    },
+    {
+      "file": "details/birthdays-0-landscape-light.jpg",
+      "id": "birthdays",
+      "count": 0,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/birthdays-0-landscape-light.jpg"
+    },
+    {
+      "file": "details/birthdays-1-landscape-light.jpg",
+      "id": "birthdays",
+      "count": 1,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/birthdays-1-landscape-light.jpg"
+    },
+    {
+      "file": "details/birthdays-2-landscape-light.jpg",
+      "id": "birthdays",
+      "count": 2,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/birthdays-2-landscape-light.jpg"
+    },
+    {
+      "file": "details/birthdays-3-landscape-light.jpg",
+      "id": "birthdays",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/birthdays-3-landscape-light.jpg"
+    },
+    {
+      "file": "details/birthdays-4-landscape-light.jpg",
+      "id": "birthdays",
+      "count": 4,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/birthdays-4-landscape-light.jpg"
+    },
+    {
+      "file": "details/birthdays-5-landscape-light.jpg",
+      "id": "birthdays",
+      "count": 5,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/birthdays-5-landscape-light.jpg"
+    },
+    {
+      "file": "details/activities-0-landscape-light.jpg",
+      "id": "activities",
+      "count": 0,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/activities-0-landscape-light.jpg"
+    },
+    {
+      "file": "details/activities-1-landscape-light.jpg",
+      "id": "activities",
+      "count": 1,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/activities-1-landscape-light.jpg"
+    },
+    {
+      "file": "details/activities-2-landscape-light.jpg",
+      "id": "activities",
+      "count": 2,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/activities-2-landscape-light.jpg"
+    },
+    {
+      "file": "details/activities-3-landscape-light.jpg",
+      "id": "activities",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/activities-3-landscape-light.jpg"
+    },
+    {
+      "file": "details/activities-4-landscape-light.jpg",
+      "id": "activities",
+      "count": 4,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/activities-4-landscape-light.jpg"
+    },
+    {
+      "file": "details/activities-5-landscape-light.jpg",
+      "id": "activities",
+      "count": 5,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/activities-5-landscape-light.jpg"
+    },
+    {
+      "file": "details/agenda-0-landscape-light.jpg",
+      "id": "agenda",
+      "count": 0,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/agenda-0-landscape-light.jpg"
+    },
+    {
+      "file": "details/agenda-1-landscape-light.jpg",
+      "id": "agenda",
+      "count": 1,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/agenda-1-landscape-light.jpg"
+    },
+    {
+      "file": "details/agenda-2-landscape-light.jpg",
+      "id": "agenda",
+      "count": 2,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/agenda-2-landscape-light.jpg"
+    },
+    {
+      "file": "details/agenda-3-landscape-light.jpg",
+      "id": "agenda",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/agenda-3-landscape-light.jpg"
+    },
+    {
+      "file": "details/agenda-4-landscape-light.jpg",
+      "id": "agenda",
+      "count": 4,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/agenda-4-landscape-light.jpg"
+    },
+    {
+      "file": "details/agenda-5-landscape-light.jpg",
+      "id": "agenda",
+      "count": 5,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/agenda-5-landscape-light.jpg"
+    },
+    {
+      "file": "details/birthdays-0-portrait-light.jpg",
+      "id": "birthdays",
+      "count": 0,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/birthdays-0-portrait-light.jpg"
+    },
+    {
+      "file": "details/birthdays-1-portrait-light.jpg",
+      "id": "birthdays",
+      "count": 1,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/birthdays-1-portrait-light.jpg"
+    },
+    {
+      "file": "details/birthdays-2-portrait-light.jpg",
+      "id": "birthdays",
+      "count": 2,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/birthdays-2-portrait-light.jpg"
+    },
+    {
+      "file": "details/birthdays-3-portrait-light.jpg",
+      "id": "birthdays",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/birthdays-3-portrait-light.jpg"
+    },
+    {
+      "file": "details/birthdays-4-portrait-light.jpg",
+      "id": "birthdays",
+      "count": 4,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/birthdays-4-portrait-light.jpg"
+    },
+    {
+      "file": "details/birthdays-5-portrait-light.jpg",
+      "id": "birthdays",
+      "count": 5,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/birthdays-5-portrait-light.jpg"
+    },
+    {
+      "file": "details/activities-0-portrait-light.jpg",
+      "id": "activities",
+      "count": 0,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/activities-0-portrait-light.jpg"
+    },
+    {
+      "file": "details/activities-1-portrait-light.jpg",
+      "id": "activities",
+      "count": 1,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/activities-1-portrait-light.jpg"
+    },
+    {
+      "file": "details/activities-2-portrait-light.jpg",
+      "id": "activities",
+      "count": 2,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/activities-2-portrait-light.jpg"
+    },
+    {
+      "file": "details/activities-3-portrait-light.jpg",
+      "id": "activities",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/activities-3-portrait-light.jpg"
+    },
+    {
+      "file": "details/activities-4-portrait-light.jpg",
+      "id": "activities",
+      "count": 4,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/activities-4-portrait-light.jpg"
+    },
+    {
+      "file": "details/activities-5-portrait-light.jpg",
+      "id": "activities",
+      "count": 5,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/activities-5-portrait-light.jpg"
+    },
+    {
+      "file": "details/agenda-0-portrait-light.jpg",
+      "id": "agenda",
+      "count": 0,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/agenda-0-portrait-light.jpg"
+    },
+    {
+      "file": "details/agenda-1-portrait-light.jpg",
+      "id": "agenda",
+      "count": 1,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/agenda-1-portrait-light.jpg"
+    },
+    {
+      "file": "details/agenda-2-portrait-light.jpg",
+      "id": "agenda",
+      "count": 2,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/agenda-2-portrait-light.jpg"
+    },
+    {
+      "file": "details/agenda-3-portrait-light.jpg",
+      "id": "agenda",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/agenda-3-portrait-light.jpg"
+    },
+    {
+      "file": "details/agenda-4-portrait-light.jpg",
+      "id": "agenda",
+      "count": 4,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/agenda-4-portrait-light.jpg"
+    },
+    {
+      "file": "details/agenda-5-portrait-light.jpg",
+      "id": "agenda",
+      "count": 5,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/agenda-5-portrait-light.jpg"
+    },
+    {
+      "file": "details/birthdays-3-landscape-dark.jpg",
+      "id": "birthdays",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/birthdays-3-landscape-dark.jpg"
+    },
+    {
+      "file": "details/activities-3-landscape-dark.jpg",
+      "id": "activities",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/activities-3-landscape-dark.jpg"
+    },
+    {
+      "file": "details/agenda-3-landscape-dark.jpg",
+      "id": "agenda",
+      "count": 3,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/agenda-3-landscape-dark.jpg"
+    },
+    {
+      "file": "details/birthdays-3-portrait-dark.jpg",
+      "id": "birthdays",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/birthdays-3-portrait-dark.jpg"
+    },
+    {
+      "file": "details/activities-3-portrait-dark.jpg",
+      "id": "activities",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/activities-3-portrait-dark.jpg"
+    },
+    {
+      "file": "details/agenda-3-portrait-dark.jpg",
+      "id": "agenda",
+      "count": 3,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/agenda-3-portrait-dark.jpg"
+    },
+    {
+      "file": "details/scoreboard-start-landscape-light.jpg",
+      "id": "scoreboard",
+      "moment": "start",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/scoreboard-start-landscape-light.jpg"
+    },
+    {
+      "file": "details/scoreboard-half-landscape-light.jpg",
+      "id": "scoreboard",
+      "moment": "half",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/scoreboard-half-landscape-light.jpg"
+    },
+    {
+      "file": "details/scoreboard-end-landscape-light.jpg",
+      "id": "scoreboard",
+      "moment": "end",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/scoreboard-end-landscape-light.jpg"
+    },
+    {
+      "file": "details/scoreboard-start-portrait-light.jpg",
+      "id": "scoreboard",
+      "moment": "start",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/scoreboard-start-portrait-light.jpg"
+    },
+    {
+      "file": "details/scoreboard-half-portrait-light.jpg",
+      "id": "scoreboard",
+      "moment": "half",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/scoreboard-half-portrait-light.jpg"
+    },
+    {
+      "file": "details/scoreboard-end-portrait-light.jpg",
+      "id": "scoreboard",
+      "moment": "end",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/scoreboard-end-portrait-light.jpg"
+    },
+    {
+      "file": "details/standings-own-1-landscape-light.jpg",
+      "id": "standings",
+      "ownPosition": 1,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/standings-own-1-landscape-light.jpg"
+    },
+    {
+      "file": "details/standings-own-5-landscape-light.jpg",
+      "id": "standings",
+      "ownPosition": 5,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/standings-own-5-landscape-light.jpg"
+    },
+    {
+      "file": "details/standings-own-14-landscape-light.jpg",
+      "id": "standings",
+      "ownPosition": 14,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/standings-own-14-landscape-light.jpg"
+    },
+    {
+      "file": "details/standings-own-1-portrait-light.jpg",
+      "id": "standings",
+      "ownPosition": 1,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/standings-own-1-portrait-light.jpg"
+    },
+    {
+      "file": "details/standings-own-5-portrait-light.jpg",
+      "id": "standings",
+      "ownPosition": 5,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/standings-own-5-portrait-light.jpg"
+    },
+    {
+      "file": "details/standings-own-14-portrait-light.jpg",
+      "id": "standings",
+      "ownPosition": 14,
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/standings-own-14-portrait-light.jpg"
+    },
+    {
+      "file": "details/background-de-wijk-landscape-light.jpg",
+      "id": "free",
+      "background": "de-wijk",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/background-de-wijk-landscape-light.jpg"
+    },
+    {
+      "file": "details/background-aan-zee-landscape-light.jpg",
+      "id": "free",
+      "background": "aan-zee",
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/background-aan-zee-landscape-light.jpg"
+    },
+    {
+      "file": "details/background-de-wijk-portrait-light.jpg",
+      "id": "free",
+      "background": "de-wijk",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/background-de-wijk-portrait-light.jpg"
+    },
+    {
+      "file": "details/background-aan-zee-portrait-light.jpg",
+      "id": "free",
+      "background": "aan-zee",
+      "clip": {
+        "height": 936,
+        "width": 526,
+        "x": 418,
+        "y": 0
+      },
+      "packagePath": "voorbeelden/details/background-aan-zee-portrait-light.jpg"
+    },
+    {
+      "file": "details/standings-own-5-clamped-top-landscape-light.jpg",
+      "id": "standings",
+      "ownPosition": 5,
+      "clip": {
+        "height": 766,
+        "width": 1363,
+        "x": 0,
+        "y": 84
+      },
+      "packagePath": "voorbeelden/details/standings-own-5-clamped-top-landscape-light.jpg"
+    }
+  ]
+}

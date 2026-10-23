@@ -1,0 +1,852 @@
+{
+  "schema_version": 1,
+  "repository": "veyocast/platform",
+  "repository_url": "https://github.com/veyocast/platform",
+  "default_branch": "main",
+  "inspected_commit": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+  "inspection_date": "2026-10-22",
+  "tree_truncated": false,
+  "source_repository_modified": false,
+  "active_stack": {
+    "package_manager": "pnpm@11.5.2",
+    "node_engine": ">=24.0.0",
+    "framework": "Next.js App Router / TypeScript",
+    "renderer_version": "sync-v1",
+    "renderer_source_revision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a"
+  },
+  "families_count": 36,
+  "families": [
+    {
+      "id": "fixtures",
+      "name": "Programma",
+      "group": "Sport",
+      "label": "HET CLUBPROGRAMMA",
+      "description": "Alle wedstrijden, tijden en velden op een rij."
+    },
+    {
+      "id": "results",
+      "name": "Uitslagen",
+      "group": "Sport",
+      "label": "ZO SPEELDEN WE",
+      "description": "De uitslagen van jouw club op één helder scherm."
+    },
+    {
+      "id": "period-standings",
+      "name": "Periodestand",
+      "group": "Sport",
+      "label": "DE PERIODERACE",
+      "description": "De actuele periodestand van jouw competitie."
+    },
+    {
+      "id": "cancellations",
+      "name": "Afgelastingen",
+      "group": "Sport",
+      "label": "LET OP · AFGELAST",
+      "description": "Laat zien welke wedstrijden niet doorgaan."
+    },
+    {
+      "id": "dressing-rooms",
+      "name": "Kleedkamers",
+      "group": "Sport",
+      "label": "VIND JE KLEEDKAMER",
+      "description": "Een duidelijke kamer- en veldindeling voor alle teams."
+    },
+    {
+      "id": "officials",
+      "name": "Officials",
+      "group": "Sport",
+      "label": "DE MENSEN ACHTER DE WEDSTRIJD",
+      "description": "Wedstrijdcoördinatoren, grensrechters en officials."
+    },
+    {
+      "id": "team-info",
+      "name": "Teaminformatie",
+      "group": "Sport",
+      "label": "DIT IS ONS TEAM",
+      "description": "Team, begeleiding en praktische teaminformatie."
+    },
+    {
+      "id": "activities",
+      "name": "Clubactiviteiten",
+      "group": "Club",
+      "label": "SAMEN OP DE CLUB",
+      "description": "De clubagenda met activiteiten en evenementen."
+    },
+    {
+      "id": "training",
+      "name": "Trainingen",
+      "group": "Sport",
+      "label": "TIJD OM TE TRAINEN",
+      "description": "Trainingstijden, teams en veldindeling."
+    },
+    {
+      "id": "volunteers",
+      "name": "Vrijwilligers",
+      "group": "Club",
+      "label": "JULLIE MAKEN HET VERSCHIL",
+      "description": "Zet de vrijwilligers van vandaag in het zonnetje."
+    },
+    {
+      "id": "visitors",
+      "name": "Bezoekende teams",
+      "group": "Sport",
+      "label": "WELKOM BIJ DUINDORP SV",
+      "description": "Ontvang bezoekers met hun teamnaam en kleedkamer."
+    },
+    {
+      "id": "matchday",
+      "name": "Onze wedstrijddag",
+      "group": "Sport",
+      "label": "WEDSTRIJDDAG",
+      "description": "Een groot podium voor de eerstvolgende wedstrijd."
+    },
+    {
+      "id": "club-program",
+      "name": "Clubprogramma",
+      "group": "Sport",
+      "label": "VANDAAG OP HET VELD",
+      "description": "Alle wedstrijden van jouw vereniging."
+    },
+    {
+      "id": "team-program",
+      "name": "Teamprogramma",
+      "group": "Sport",
+      "label": "HET PROGRAMMA",
+      "description": "De komende wedstrijden van één team."
+    },
+    {
+      "id": "pool-program",
+      "name": "Pouleprogramma",
+      "group": "Sport",
+      "label": "IN ONZE POULE",
+      "description": "Het volledige programma van een competitie."
+    },
+    {
+      "id": "club-results",
+      "name": "Clubuitslagen",
+      "group": "Sport",
+      "label": "ZO SPEELDEN WE",
+      "description": "De laatste uitslagen van de hele club."
+    },
+    {
+      "id": "team-results",
+      "name": "Teamuitslagen",
+      "group": "Sport",
+      "label": "ONZE RESULTATEN",
+      "description": "Terugkijken met jouw team."
+    },
+    {
+      "id": "pool-results",
+      "name": "Pouleuitslagen",
+      "group": "Sport",
+      "label": "DEZE SPEELRONDE",
+      "description": "Alle uitslagen uit de gekozen poule."
+    },
+    {
+      "id": "standings",
+      "name": "Competitiestand",
+      "group": "Sport",
+      "label": "DE STAND VAN ZAKEN",
+      "description": "Een heldere ranglijst met je eigen team uitgelicht."
+    },
+    {
+      "id": "team-arrivals",
+      "name": "Teamontvangst",
+      "group": "Sport",
+      "label": "WELKOM OP HOUTRUST",
+      "description": "Bezoekende teams op het juiste moment ontvangen."
+    },
+    {
+      "id": "welcome",
+      "name": "Welkomstscherm",
+      "group": "Sport",
+      "label": "WELKOM BIJ DE CLUB",
+      "description": "Laat iedereen zich thuis voelen."
+    },
+    {
+      "id": "referees",
+      "name": "Scheidsrechters",
+      "group": "Sport",
+      "label": "BEDANKT VOOR JE INZET",
+      "description": "Ontvang arbiters met wedstrijd- en veldinformatie."
+    },
+    {
+      "id": "changing-rooms",
+      "name": "Kleedkamerindeling",
+      "group": "Sport",
+      "label": "VIND JE KLEEDKAMER",
+      "description": "Praktische informatie bij de entree."
+    },
+    {
+      "id": "next-match",
+      "name": "Volgende wedstrijd",
+      "group": "Sport",
+      "label": "DE VOLGENDE",
+      "description": "Tel af naar de volgende aftrap."
+    },
+    {
+      "id": "birthdays",
+      "name": "Verjaardagen",
+      "group": "Sport",
+      "label": "VANDAAG VIEREN WE",
+      "description": "Zet de jarigen in het zonnetje."
+    },
+    {
+      "id": "lineup",
+      "name": "Teamopstelling",
+      "group": "Sport",
+      "label": "ONZE ELF",
+      "description": "Een overzichtelijke opstelling op het veld."
+    },
+    {
+      "id": "scoreboard",
+      "name": "Live scorebord",
+      "group": "Sport",
+      "label": "LIVE VANAF HET VELD",
+      "description": "Tussenstand en wedstrijdklok via LED Scores."
+    },
+    {
+      "id": "goal",
+      "name": "Doelpunt",
+      "group": "Sport",
+      "label": "DAAR IS ’IE!",
+      "description": "Vier ieder doelpunt met een opvallende overlay."
+    },
+    {
+      "id": "menu",
+      "name": "Kantinemenu",
+      "group": "Kantine",
+      "label": "EVEN NAAR DE KANTINE",
+      "description": "Producten, prijzen en categorieën in jouw clubstijl."
+    },
+    {
+      "id": "engage",
+      "name": "Publieksactie",
+      "group": "Club",
+      "label": "LAAT DE CLUB MEEDOEN",
+      "description": "Een poll, de speler van de wedstrijd en live resultaten."
+    },
+    {
+      "id": "rss",
+      "name": "Nieuws & RSS",
+      "group": "Club",
+      "label": "DIT LEEFT OP DE CLUB",
+      "description": "Automatisch nieuws uit je gekoppelde feed."
+    },
+    {
+      "id": "sponsors",
+      "name": "Onze partners",
+      "group": "Club",
+      "label": "SAMEN MAKEN WE DE CLUB",
+      "description": "Een herkenbaar podium voor je sponsors."
+    },
+    {
+      "id": "agenda",
+      "name": "Clubagenda",
+      "group": "Club",
+      "label": "DIT KOMT ERAAN",
+      "description": "Activiteiten om naar uit te kijken."
+    },
+    {
+      "id": "club-story",
+      "name": "Clubverhaal",
+      "group": "Club",
+      "label": "DIT IS ONZE TROTS",
+      "description": "Een sterk verhaal met eigen tekst en fotografie."
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "group": "Media",
+      "label": "KIJK MET ONS MEE",
+      "description": "Video met een lokale kaart voor offline momenten."
+    },
+    {
+      "id": "free",
+      "name": "Vrij ontwerp",
+      "group": "Vrij",
+      "label": "JOUW VERHAAL",
+      "description": "Begin met eigen tekst, kleur en compositie."
+    }
+  ],
+  "inspected_files": [
+    {
+      "path": "AGENTS.md",
+      "git_blob_sha": "6f5b191cbc83260e9cded8a65bb9cf660e4e0f2f",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 5372,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/AGENTS.md"
+    },
+    {
+      "path": "README.md",
+      "git_blob_sha": "d6a80adc43f3f16bef7508273d8f981ea3c2645e",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 16162,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/README.md"
+    },
+    {
+      "path": "docs/design-implementation-canon.md",
+      "git_blob_sha": "c0363c5d478face99e2efce7acde9d51adacddba",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 12894,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/docs/design-implementation-canon.md"
+    },
+    {
+      "path": "docs/player-offline-canon.md",
+      "git_blob_sha": "246afb147ac41907ef3b40974176bb703b8074d2",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 4939,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/docs/player-offline-canon.md"
+    },
+    {
+      "path": "package.json",
+      "git_blob_sha": "9e6783b01ed6e45221e3e31fb45e11e22aedc03b",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 1279,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/package.json"
+    },
+    {
+      "path": "packages/content-templates/package.json",
+      "git_blob_sha": "27ff39ed5457781d23d88da271873b0bbebcf4ca",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 2888,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/package.json"
+    },
+    {
+      "path": "packages/contracts/src/sync-content-families.ts",
+      "git_blob_sha": "6f88fc909e72454b106672e38f138ccd80764573",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 6434,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-content-families.ts"
+    },
+    {
+      "path": "packages/contracts/src/sync-slide-presentation.ts",
+      "git_blob_sha": "d31a272a0a7b805de902ebe5bd63973b2eb1c44b",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 10520,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-slide-presentation.ts"
+    },
+    {
+      "path": "packages/contracts/src/sync-dynamic-configuration.ts",
+      "git_blob_sha": "ef2270c175a5220f390872e3a2cae2d064cf02bb",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 3011,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-dynamic-configuration.ts"
+    },
+    {
+      "path": "packages/contracts/src/sync-dynamic-playback.ts",
+      "git_blob_sha": "c028caaf137ea2fb43c4fd81acafa30d606f05f3",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 2247,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-dynamic-playback.ts"
+    },
+    {
+      "path": "packages/contracts/src/sync-background-catalog.ts",
+      "git_blob_sha": "eaad53ffdf32a18c37a5cd46fadd1c5fdcb52116",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 2261,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-background-catalog.ts"
+    },
+    {
+      "path": "packages/contracts/src/sync-system-assets.ts",
+      "git_blob_sha": "98f62efe36d5da25b8e209dfa5b02aaa9a98b6cb",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 2042,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-system-assets.ts"
+    },
+    {
+      "path": "packages/contracts/src/dynamic-content.ts",
+      "git_blob_sha": "f0bf2bef4e5f406bfc0995dd92988fb906a7438b",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 14016,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/dynamic-content.ts"
+    },
+    {
+      "path": "packages/content-templates/src/sync-slide-static-view.tsx",
+      "git_blob_sha": "0d1ac741c8e6e425ed8c71625cf6dc566b7b07d0",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 28350,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sync-slide-static-view.tsx"
+    },
+    {
+      "path": "packages/content-templates/src/sync-slide-styles.ts",
+      "git_blob_sha": "5e6cba82812d42ccc23cfd0e1f75ca1f46911e52",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 67968,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sync-slide-styles.ts"
+    },
+    {
+      "path": "packages/content-templates/src/sync-dynamic-projector.ts",
+      "git_blob_sha": "6129c6f775471f2b886b6a1954c6d1b3c3ffc432",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 13772,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sync-dynamic-projector.ts"
+    },
+    {
+      "path": "packages/content-templates/src/fieldflow-coverage.ts",
+      "git_blob_sha": "b79394d93521094126025512aabd347471b6052a",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 1750,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/fieldflow-coverage.ts"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-template-preview.ts",
+      "git_blob_sha": "98fd31b360f8ed6028fc65d26cbf3ad59e35f953",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 7929,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/studio/sync-template-preview.ts"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-studio-field.tsx",
+      "git_blob_sha": "0a698efbd1780985b1d040814f286aa9f0bc6305",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 2040,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/studio/sync-studio-field.tsx"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard.tsx",
+      "git_blob_sha": "27c2aa79c662b23411b303e81627beacfe42ce80",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 34073,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/studio/sync-create-wizard.tsx"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard-state.ts",
+      "git_blob_sha": "dd6b6a76fa12c0d0bb2d87b4dc1761641c248a49",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 13347,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/studio/sync-create-wizard-state.ts"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/[designId]/sync-studio-editor.tsx",
+      "git_blob_sha": "4270408a8fe35df20de7b2b0c103db280e846296",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 39541,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/studio/[designId]/sync-studio-editor.tsx"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/playlists/_components/sites/sync-studio-preview.tsx",
+      "git_blob_sha": "38d9aafefddd8cfb97ce55462e1c47bb2bc446b2",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 3025,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/playlists/_components/sites/sync-studio-preview.tsx"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/slides/sync-dynamic-editor.tsx",
+      "git_blob_sha": "f89d6233a7c2aa7d2618ae94d2f126e6de85e759",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 19182,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/slides/sync-dynamic-editor.tsx"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/slides/sync-sportlink-binding.ts",
+      "git_blob_sha": "17b7cb8689ff308bff5589634c57580446cf084b",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 6968,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/slides/sync-sportlink-binding.ts"
+    },
+    {
+      "path": "packages/studio/src/sync.ts",
+      "git_blob_sha": "cd405f6b89a98ad40b0a78359d9b1cbd018f092a",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 3062,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/studio/src/sync.ts"
+    },
+    {
+      "path": "apps/media-worker/src/sync-dom-capture.tsx",
+      "git_blob_sha": "250d091809614edc0cc8ade32eae6b3c55af5b2d",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 10529,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/media-worker/src/sync-dom-capture.tsx"
+    },
+    {
+      "path": "apps/media-worker/src/sync-dynamic-render.ts",
+      "git_blob_sha": "1a714093fe31b786eafe842b34f9f1113a9bb1da",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 5733,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/media-worker/src/sync-dynamic-render.ts"
+    },
+    {
+      "path": "apps/player/app/_components/sync-studio-media.tsx",
+      "git_blob_sha": "ad7c92dab9244c675dd7031976dce5b31392f011",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 9254,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/player/app/_components/sync-studio-media.tsx"
+    },
+    {
+      "path": "apps/player/app/_lib/sync-player-presentation.ts",
+      "git_blob_sha": "d83116d2c062138eb2f9c1dda689a48f2cc53604",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 5688,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/player/app/_lib/sync-player-presentation.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/sync-player-capabilities.ts",
+      "git_blob_sha": "5957f7d2f2b39da14a788899bae1029c5a3b135c",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 1684,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/player/app/_lib/sync-player-capabilities.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/sync-live-match.ts",
+      "git_blob_sha": "427e06419776ea12d4398a1b8c85319e2111f8b5",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 2008,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/player/app/_lib/sync-live-match.ts"
+    },
+    {
+      "path": "scripts/build-sync-slide-css.mjs",
+      "git_blob_sha": "86f1c57d6aa2e975144ff21c489487cda2d0723c",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 2644,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/scripts/build-sync-slide-css.mjs"
+    },
+    {
+      "path": "scripts/build-sync-renderer-assets.mjs",
+      "git_blob_sha": "e1e3d13990279a7ade9e7107372cc863232c3c0a",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 1750,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/scripts/build-sync-renderer-assets.mjs"
+    },
+    {
+      "path": "scripts/build-sync-slide-schema.mts",
+      "git_blob_sha": "ba1feb23d1d45ab070e2547ed6bb02781688d92d",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 1881,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/scripts/build-sync-slide-schema.mts"
+    },
+    {
+      "path": "scripts/build-sync-dynamic-schema.mts",
+      "git_blob_sha": "50feb1cc01dc4da539f4096dee18da02293cd7d9",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 1426,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/scripts/build-sync-dynamic-schema.mts"
+    },
+    {
+      "path": "packages/content-templates/test/sync-slide-presentation.test.tsx",
+      "git_blob_sha": "8b461d80da4b81daa03d83e61c5fdb3647b90eba",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 10619,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/test/sync-slide-presentation.test.tsx"
+    },
+    {
+      "path": "packages/content-templates/test/sync-dynamic-projector.test.ts",
+      "git_blob_sha": "8c89a0f4626c053f100f7dd1d2d2ec3fc0d86358",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 18300,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/test/sync-dynamic-projector.test.ts"
+    },
+    {
+      "path": "packages/contracts/test/sync-slide-presentation.test.ts",
+      "git_blob_sha": "b5cf7f060922b96e2168579cc7a0034faa850d0b",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 8277,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/test/sync-slide-presentation.test.ts"
+    },
+    {
+      "path": "docs/s252-sync-preview-fidelity.md",
+      "git_blob_sha": "457e158c3ca818639be9a9adbebd9a04bce10b2f",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 5988,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/docs/s252-sync-preview-fidelity.md"
+    },
+    {
+      "path": "docs/s223-player-sync-and-led-preview.md",
+      "git_blob_sha": "6f89814ef5213ee683e98517ac328921a4137133",
+      "repository_ref": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+      "retrieval": "full-file-read",
+      "utf8_characters": 3328,
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/docs/s223-player-sync-and-led-preview.md"
+    }
+  ],
+  "discovered_files": [
+    {
+      "path": "packages/contracts/src/sync-slide-json-schema.json",
+      "git_blob_sha": "d86b89c69325a54c34bb782af4aff86ee9633fd3",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-slide-json-schema.json"
+    },
+    {
+      "path": "packages/contracts/src/sync-dynamic-json-schema.json",
+      "git_blob_sha": "524827c6e751a164f7fc0755682557c4ac6780c0",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/src/sync-dynamic-json-schema.json"
+    },
+    {
+      "path": "packages/contracts/test/sync-dynamic-configuration.test.ts",
+      "git_blob_sha": "6514ac988b64efbfb6dd8c145eb8c7483c206769",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/test/sync-dynamic-configuration.test.ts"
+    },
+    {
+      "path": "packages/contracts/test/sync-dynamic-playback.test.ts",
+      "git_blob_sha": "8bd1ada4acf6e2e5946a11b74f471146a7e72d24",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/contracts/test/sync-dynamic-playback.test.ts"
+    },
+    {
+      "path": "apps/media-worker/test/sync-dom-capture.test.tsx",
+      "git_blob_sha": "e44bde368fc3115e4d09a82d75154b00692bb887",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/media-worker/test/sync-dom-capture.test.tsx"
+    },
+    {
+      "path": "apps/media-worker/test/sync-dynamic-render.test.ts",
+      "git_blob_sha": "dcd7fc0df2e15cc4b747ecdb48ed16b9371d2ffb",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/media-worker/test/sync-dynamic-render.test.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/sync-live-match.test.ts",
+      "git_blob_sha": "636f38fc72be9a55eb375f173992e425fb7d5494",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/player/app/_lib/sync-live-match.test.ts"
+    },
+    {
+      "path": "apps/player/app/_lib/sync-player-assets.test.ts",
+      "git_blob_sha": "aff36d373c110cd14ced75cf2c426ab147fbcd51",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/player/app/_lib/sync-player-assets.test.ts"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-template-preview.test.ts",
+      "git_blob_sha": "491315ee86a3723c2be82a24cce2b23c7d830651",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/apps/control/app/(shell)/dashboard/studio/sync-template-preview.test.ts"
+    },
+    {
+      "path": "tests/control/sync-create-wizard.spec.ts",
+      "git_blob_sha": "b0c12131c7b803629e421714ebcf70583b32b168",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/tests/control/sync-create-wizard.spec.ts"
+    },
+    {
+      "path": "tests/control/sync-dynamic-workflows.spec.ts",
+      "git_blob_sha": "254f09ba25752347cbef1af11c90641f80f453e7",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/tests/control/sync-dynamic-workflows.spec.ts"
+    },
+    {
+      "path": "tests/control/sync-studio-workflows.spec.ts",
+      "git_blob_sha": "f45cf6900486993e1ce2622142af18b4768daf57",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/tests/control/sync-studio-workflows.spec.ts"
+    },
+    {
+      "path": "tests/control/sync-background-picker.spec.ts",
+      "git_blob_sha": "d16551e5ec7643f518280f8d2567967ea1aae533",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/tests/control/sync-background-picker.spec.ts"
+    },
+    {
+      "path": "tests/control/sync-template-picker-layout.spec.ts",
+      "git_blob_sha": "2b9e19110aef3bab4f15ed132fd240ae0ecd042a",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/tests/control/sync-template-picker-layout.spec.ts"
+    },
+    {
+      "path": "tests/player/sync-studio-playback.spec.ts",
+      "git_blob_sha": "e2d35f2d1599869e7df37052c9116dadfb90a1ca",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/tests/player/sync-studio-playback.spec.ts"
+    },
+    {
+      "path": "tests/player/sync-background-gallery.spec.ts",
+      "git_blob_sha": "65b96a29d04a3db69320ccbb097fb22d5243683b",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/tests/player/sync-background-gallery.spec.ts"
+    },
+    {
+      "path": "supabase/migrations/20261018002000_sync_studio_authoring.sql",
+      "git_blob_sha": "187288020f83c5e7e6116ccc23c6bff8e722371c",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/supabase/migrations/20261018002000_sync_studio_authoring.sql"
+    },
+    {
+      "path": "supabase/migrations/20261018007000_sync_dynamic_configuration.sql",
+      "git_blob_sha": "8dca4d058506c25bc8da8834a8d39d3f29deee58",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/supabase/migrations/20261018007000_sync_dynamic_configuration.sql"
+    },
+    {
+      "path": "supabase/migrations/20261019135521_sync_engage_full_options.sql",
+      "git_blob_sha": "b7460cc66ab9ca04c9016c1d08076169b5285a48",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/supabase/migrations/20261019135521_sync_engage_full_options.sql"
+    },
+    {
+      "path": "packages/content-templates/src/sites-onzetrots-tv-markup.tsx",
+      "git_blob_sha": "c7a3466e988aa58364425fa10f25ca2b9350809a",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sites-onzetrots-tv-markup.tsx"
+    },
+    {
+      "path": "packages/content-templates/src/sites-onzetrots-tv.css",
+      "git_blob_sha": "c2154bb6778bdd205cae64946f2fe492c1d04662",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sites-onzetrots-tv.css"
+    },
+    {
+      "path": "packages/content-templates/src/sites-unified-v17-markup.tsx",
+      "git_blob_sha": "c768e9437b29babe5bf0e1e9c3869eb5c58a397e",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sites-unified-v17-markup.tsx"
+    },
+    {
+      "path": "packages/content-templates/src/sites-v17-styles.ts",
+      "git_blob_sha": "6a6e6a3849491bae6e8640d5cd72c57ef8ac35db",
+      "retrieval": "tree-presence-only",
+      "type": "blob",
+      "url": "https://github.com/veyocast/platform/blob/3bbb51ac006bbaf8381a11d5dcfd7024d13d3876/packages/content-templates/src/sites-v17-styles.ts"
+    }
+  ],
+  "critical_gaps": [
+    {
+      "code": "RICH_FIELDS_DROPPED",
+      "paths": [
+        "packages/contracts/src/sync-slide-presentation.ts",
+        "packages/content-templates/src/sync-dynamic-projector.ts"
+      ],
+      "finding": "Four-string rows lose standings stats/form/logos, precise fixture identity/kickoff/status/rooms and item images required by the approved design."
+    },
+    {
+      "code": "CAPTURE_INTERNAL_MOTION_FROZEN",
+      "paths": [
+        "apps/media-worker/src/sync-dom-capture.tsx"
+      ],
+      "finding": "Document animations are paused at zero; after outer entrance transition settledPng is reused. Internal scrolling/goal motion needs deterministic sampling."
+    },
+    {
+      "code": "CSS_GENERATED_FROM_FROZEN_SOURCE",
+      "paths": [
+        "scripts/build-sync-slide-css.mjs",
+        "packages/content-templates/src/sync-slide-styles.ts"
+      ],
+      "finding": "Direct output edits are overwritten; create a versioned reproducible source/style layer without silently mutating frozen references."
+    },
+    {
+      "code": "SCHEMA_GENERATORS_REWRITE_OLD_MIGRATIONS",
+      "paths": [
+        "scripts/build-sync-slide-schema.mts",
+        "scripts/build-sync-dynamic-schema.mts"
+      ],
+      "finding": "Existing scripts rewrite 20261018002000 and 20261018007000 migrations. Adapt flow to current schemas and a new forward migration, preserve old SQL bytes."
+    },
+    {
+      "code": "WELCOME_NOT_DYNAMICALLY_MAPPED",
+      "paths": [
+        "packages/contracts/src/sync-dynamic-configuration.ts",
+        "apps/control/app/(shell)/dashboard/slides/sync-sportlink-binding.ts"
+      ],
+      "finding": "sport_visitor_arrivals currently maps visitors/team-arrivals, not welcome. Add explicit version-scoped binding if the approved welcome uses live arrival facts."
+    },
+    {
+      "code": "EXPLICIT_LIGHT_DARK_MODE_MISSING",
+      "paths": [
+        "packages/contracts/src/sync-slide-presentation.ts"
+      ],
+      "finding": "Sync style has theme/background/accent but no explicit light/dark mode; new appearance must be formally represented."
+    }
+  ],
+  "recommended_test_matrix": {
+    "families": 36,
+    "visual_modes": [
+      "light",
+      "dark"
+    ],
+    "orientations": [
+      "landscape",
+      "portrait"
+    ],
+    "baseline_visual_cases": 144,
+    "fixed_grids": [
+      "birthdays",
+      "activities",
+      "agenda"
+    ],
+    "fixed_grid_item_counts": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "welcome_example_counts": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "scoreboard_moments": [
+      "start",
+      "live",
+      "half",
+      "end"
+    ]
+  },
+  "notes_file": "repo-integration-notes.md"
+}

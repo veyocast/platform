@@ -1,4 +1,5 @@
 "use client";
+import {syncSlidePlacementTheme} from '@veyocast/contracts';
 
 import { useEffect, useRef, useState, type ReactNode, type SetStateAction } from 'react';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, CheckCheck, ChevronDown, Clock3, Copy, ImagePlus, ListChecks, ListOrdered, Monitor, Pause, Play, Plus, RotateCcw, Save, Search, Settings2, ShieldCheck, Trash2, Undo2, X } from 'lucide-react';
@@ -6,7 +7,7 @@ import type { Media, Playlist, Slide,SyncDynamicLibraryDesign } from './model';
 import { AssetImage, type DynamicDesign } from './presentation-adapter';
 import type { Group, Screen } from './model';
 import { type StudioProject } from './presentation-adapter';
-import { maximumPlaylistPlacementSeconds, playlistPlacementPages, refreshMediaFramePlacement } from './playlist-command-plan';
+import { maximumPlaylistPlacementSeconds, minimumPlaylistPlacementSeconds, playlistPlacementPages, refreshMediaFramePlacement } from './playlist-command-plan';
 import { PHOTOS } from './model';
 import { PlaylistMediaPicker } from './playlist-media-picker';
 import { ScreenThemePicker } from './screen-theme-picker';
@@ -54,24 +55,24 @@ const themedSlide = (slide: Slide, themeId: ScreenThemeId): Slide => slide.desig
   ? { ...slide, design: { ...slide.design, themeId } }
   : slide.studioSlide ? { ...slide, studioSlide: { ...slide.studioSlide, themeId } } : { ...slide, themeId };
 
-function DurationInput({ value, dynamic, maximum=180, onCommit }: { value: number; dynamic: boolean; maximum?:number; onCommit: (value: number) => void }) {
+function DurationInput({ value, dynamic, minimum=dynamic?5:3, maximum=180, onCommit }: { value: number; dynamic: boolean; minimum?:number; maximum?:number; onCommit: (value: number) => void }) {
   const [draft, setDraft] = useState(String(value));
   const touched = useRef(false);
   useEffect(() => setDraft(String(value)), [value]);
   function commit() {
-    const next = draft.trim() ? boundedSeconds(Number(draft), dynamic,maximum) : value;
+    const next = draft.trim() ? Math.max(minimum,boundedSeconds(Number(draft), dynamic,maximum)) : value;
     setDraft(String(next));
     if (next !== value || touched.current) onCommit(next);
     touched.current = false;
   }
-  return <input type="number" inputMode="numeric" min={dynamic ? 5 : 3} max={maximum} value={draft} onChange={event => {
+  return <input type="number" inputMode="numeric" min={minimum} max={maximum} value={draft} onChange={event => {
     const text = event.target.value;
     touched.current = true;
     setDraft(text);
     const next = Number(text);
     // Keep incomplete input editable, while valid values immediately become
     // part of the draft protected by Escape and the browser Back button.
-    if (text.trim() && Number.isInteger(next) && next >= (dynamic ? 5 : 3) && next <= maximum && next !== value) onCommit(next);
+    if (text.trim() && Number.isInteger(next) && next >= minimum && next <= maximum && next !== value) onCommit(next);
   }} onBlur={commit} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }} />;
 }
 
@@ -168,7 +169,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
       if (slide.id !== id) return slide;
       const updated = { ...slide, ...patch };
       if (patch.seconds !== undefined) {
-        updated.seconds = boundedSeconds(patch.seconds, !!updated.design,maximumSeconds(updated));
+        updated.seconds = Math.max(minimumPlaylistPlacementSeconds(updated),boundedSeconds(patch.seconds, !!updated.design,maximumSeconds(updated)));
         if (updated.design) updated.design = { ...updated.design, seconds: updated.seconds };
         if (updated.studioSlide) updated.studioSlide = { ...updated.studioSlide, duration: updated.seconds };
       }
@@ -253,10 +254,10 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
     if (!canEdit) return;
     updateSlides(playlist.slides.map(slide => {
       if (!validSelection.includes(slide.id)) return slide;
-      const value = boundedSeconds(Number(bulkSeconds), !!slide.design,maximumSeconds(slide));
+      const value = Math.max(minimumPlaylistPlacementSeconds(slide),boundedSeconds(Number(bulkSeconds), !!slide.design,maximumSeconds(slide)));
       return { ...slide, seconds: value, ...(slide.mediaFrame ? { mediaFrame: { ...slide.mediaFrame, edits: { ...slide.mediaFrame.edits, durationSeconds: value } } } : {}), ...(slide.design ? { design: { ...slide.design, seconds: value } } : {}), ...(slide.studioSlide ? { studioSlide: { ...slide.studioSlide, duration: value } } : {}) };
     }));
-    setNotice(`Duur aangepast voor ${validSelection.length} ${validSelection.length === 1 ? 'item' : 'items'}. Dynamische pagina’s duren minimaal 5 seconden.`);
+    setNotice(`Duur aangepast voor ${validSelection.length} ${validSelection.length === 1 ? 'item' : 'items'}. De minimale paginaduur en volledige beweging blijven behouden.`);
   }
   function applyTheme(ids: string[], themeId: ScreenThemeId) {
     if (!ids.length||!canEdit) return;
@@ -267,7 +268,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
   function refresh(slide: Slide) {
     if (slide.mediaFrame) { try { const next = refreshMediaFramePlacement(slide); updateSlides(playlist.slides.map(item => item.id === slide.id ? next : item)); setNotice('De gekozen media-ontwerpversie staat in je concept. Bestaande plaatsingsvoorkeuren blijven behouden; sla op om de versie te bevestigen.'); } catch (failure) { setNotice(failure instanceof Error ? failure.message : 'De media-ontwerpversie kon niet worden gekozen.'); } return; }
     const latestSource=syncDesigns.find(design=>design.id===slide.designId);
-    if(slide.syncDynamic&&latestSource){patchSlide(slide.id,{syncDynamic:copy(latestSource),seconds:latestSource.configuration.secondsPerPage,kind:latestSource.kind,mediaId:latestSource.mediaAssetId,mediaChecksumSha256:latestSource.checksumSha256,image:'',orientation:latestSource.presentation.orientation});setNotice('De nieuwste volledige Source-versie staat in je concept. Sla op om deze keuze te bevestigen.');return;}
+    if(slide.syncDynamic&&latestSource){patchSlide(slide.id,{syncDynamic:copy(latestSource),seconds:latestSource.durationSeconds/playlistPlacementPages({...slide,syncDynamic:latestSource}),kind:latestSource.kind,mediaId:latestSource.mediaAssetId,mediaChecksumSha256:latestSource.checksumSha256,image:'',orientation:latestSource.presentation.orientation});setNotice('De nieuwste volledige Source-versie staat in je concept. Sla op om deze keuze te bevestigen.');return;}
     const latestDesign = designs.find(design => design.id === slide.designId);
     const latestSlide = projects.find(project => project.id === slide.studioProjectId)?.slides.find(item => item.id === slide.studioSlideId);
     if (slide.design && latestDesign) patchSlide(slide.id, { design: { ...copy(latestDesign), seconds: slide.seconds }, image: latestDesign.background || PHOTOS.club });
@@ -287,8 +288,8 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
       <label className={s.field}>Naam in playlist<input value={slide.name} onChange={event => patchSlide(slide.id, { name: event.target.value })} /></label>
       {slide.mediaFrame && <p className={s.hint}>Vastgezet op media-ontwerpversie {slide.mediaFrame.pinnedVersionNumber}.{slide.mediaFrame.selected.id !== slide.mediaFrame.pinnedVersionId ? ` Versie ${slide.mediaFrame.selected.number} is gekozen voor de volgende opslag.` : slide.mediaFrame.current && slide.mediaFrame.current.number > slide.mediaFrame.pinnedVersionNumber ? ` Versie ${slide.mediaFrame.current.number} is beschikbaar; vernieuwen gebeurt alleen op jouw verzoek.` : !slide.mediaFrame.current ? ' De actuele bron is niet beschikbaar voor vernieuwen.' : ''}</p>}
       <div className={s.durationSettings}>
-        <label className={s.field}>{pages(slide) > 1 ? 'Seconden per pagina' : 'Seconden in beeld'}<DurationInput key={slide.id} value={slide.seconds} dynamic={!!slide.design} maximum={maximumSeconds(slide)} onCommit={value => patchSlide(slide.id, { seconds: value })} /></label>
-        <div className={s.presets} aria-label="Snelle afspeelduur">{[10, 15, 20].filter(value=>value<=maximumSeconds(slide)).map(value => <button key={value} type="button" aria-pressed={slide.seconds === value} onClick={() => patchSlide(slide.id, { seconds: value })}>{value}s</button>)}</div>
+        <label className={s.field}>{pages(slide) > 1 ? 'Seconden per pagina' : 'Seconden in beeld'}<DurationInput key={slide.id} value={slide.seconds} dynamic={!!slide.design} minimum={minimumPlaylistPlacementSeconds(slide)} maximum={maximumSeconds(slide)} onCommit={value => patchSlide(slide.id, { seconds: value })} /></label>
+        <div className={s.presets} aria-label="Snelle afspeelduur">{[10, 15, 20].filter(value=>value>=minimumPlaylistPlacementSeconds(slide)&&value<=maximumSeconds(slide)).map(value => <button key={value} type="button" aria-pressed={slide.seconds === value} onClick={() => patchSlide(slide.id, { seconds: value })}>{value}s</button>)}</div>
       </div>
       {pages(slide) > 1 && <p className={s.hint}>{pages(slide)} pagina’s × {slide.seconds}s = {seconds(slide)} seconden in je playlist.</p>}
       <div className={s.themeSettings}>
@@ -308,7 +309,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
 
   function thumbnail(slide:Slide){
     const source=slide.syncDynamic??slide.syncStudio;
-    return source?<span aria-hidden="true"className={s.thumbnail}><SyncSlidePreview presentation={{...source.presentation,theme:themeOf(slide)??source.presentation.theme}}assetUrls={source.assetUrls}durationSeconds={source.durationSeconds}id={source.id}compact/></span>:<span className={s.thumbnail}><AssetImage src={slide.image}alt=""/></span>;
+    return source?<span aria-hidden="true"className={s.thumbnail}><SyncSlidePreview presentation={syncSlidePlacementTheme(source.presentation,themeOf(slide)??undefined)}assetUrls={source.assetUrls}durationSeconds={source.durationSeconds}id={source.id}compact/></span>:<span className={s.thumbnail}><AssetImage src={slide.image}alt=""/></span>;
   }
 
   function preview() {
