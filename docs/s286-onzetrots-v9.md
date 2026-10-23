@@ -122,3 +122,22 @@ helpers en workflowvalidatie zijn eveneens groen. De normale
 PR-/staging-/productieflow wordt bij de exacte eindcommit geregistreerd.
 Fysieke apparaten en de eerder uitgestelde 24-uursproef zijn niet als uitgevoerd
 gemeld.
+
+De eerste CI-run op `7c5ebd91` bevestigde foundation, responsive UI, alle vier
+historische renderercohorten, Marketing/cross, Android Player en native Control.
+De database-/RLS- en concurrencytests waren groen; de 30-minutenjobgrens werd
+bereikt tijdens een FFmpeg-download via de trage HTTP Azure Ubuntu-mirror.
+De bestaande Player-mirrorfix miste de `mirror+file`-bestanden. De beperkte
+correctie neemt die bronbestanden mee en past dezelfde HTTPS-bron vóór de
+database-publicatietools toe. Pakketten, signatures, suites, tests en grenzen
+blijven gelijk. De afgebroken run wordt niet als volledige PASS gerapporteerd.
+
+Dezelfde Control-run vond twee liggende Engage-grensgevallen. Ze zijn lokaal
+gereproduceerd: lange antwoordteksten werden door flex-shrink te klein gemeten
+en liepen onder hun rij door. Alleen de liggende variant met lange antwoordtekst
+krijgt compactere paneel-/rijafstand, een passende vraagkop en niet-krimpende
+rijen. Gewone referentievoorbeelden en staand houden hun layout. De oorspronkelijke
+vier 390/1440 × liggend/staand-cases zijn daarna alle vier groen, inclusief
+2/13/24 keuzes, de 160-tekensvraag, volledige antwoordtekst, QR en vervolgpagina's.
+De assertions en toleranties zijn ongewijzigd; de definitieve CI volgt op de
+correctiecommit.

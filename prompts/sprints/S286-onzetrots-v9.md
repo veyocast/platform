@@ -45,8 +45,16 @@ Root is de enige writer. Branch/worktree/PR:
 - `.github/workflows/pr-gates.yml` uitsluitend indien nodig om dezelfde echte
   v9-exportfixture vóór de bestaande Playercohort te produceren; geen tests
   overslaan, toleranties verruimen of veiligheidsgrenzen versoepelen.
+  CI-run `39981481136` toont daarnaast dat de bestaande mirrorfix de nieuwe
+  `mirror+file`-bron mist: voeg uitsluitend `/etc/apt/apt-mirrors*.txt` toe
+  aan dezelfde bronnenlus; geen pakket-/deadline-/testwijziging.
 - `.gitattributes` uitsluitend indien bytebehoud van de nieuwe overdracht of
   checksumgebonden assets daar nog een gerichte uitbreiding vereist.
+- Na CI-run `39981481150`: `.github/workflows/database-rls-gates.yml`
+  uitsluitend de Ubuntu-mirror vóór de echte Chromium-/FFmpeg-installatie.
+  RLS en concurrencytests waren groen; de bestaande 30-minutenjobgrens brak af
+  op de trage HTTP Azure-mirror. Dezelfde canonieke HTTPS Ubuntu-bron als de
+  bestaande Player-job, zonder pakket-/test-/deadlinewijziging.
 - Gerichte contract/projector/Worker/wizard/authoring/Player/offline- en
   visuele tests/helpers; bewijs onder `docs/implementation/s286-onzetrots-v9/`.
 - Dit prompt, `docs/s286-onzetrots-v9.md`, nieuw referentiepakket,

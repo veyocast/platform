@@ -72,6 +72,9 @@ const source=css.toString()+`
 .ot-v9-scope .has-long-poll-question .poll-panel h3{font-size:24px;line-height:1.25;margin-bottom:16px}
 .ot-v9-scope .portrait .has-long-poll-question .poll-panel h3{font-size:28px;margin-bottom:20px}
 .ot-v9-scope .has-long-poll-options .poll-option{font-size:18px;line-height:1.3;padding:12px;margin:8px 0}
+.ot-v9-scope .screen:not(.portrait) .has-long-poll-options .poll-panel{padding:24px}
+.ot-v9-scope .screen:not(.portrait) .has-long-poll-options:not(.has-long-poll-question) .poll-panel h3{font-size:28px;line-height:1.25;margin-bottom:16px}
+.ot-v9-scope .screen:not(.portrait) .has-long-poll-options .poll-option{flex-shrink:0;padding:8px;margin:4px 0}
 .ot-v9-scope .portrait .has-long-poll-options .poll-option{font-size:18px;padding:18px;margin:8px 0}
 .ot-v9-scope .engage-qr{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;max-width:180px;flex-shrink:0}
 .ot-v9-scope .engage-qr .ot-qr{display:block;width:180px;height:auto;max-width:100%;aspect-ratio:1}

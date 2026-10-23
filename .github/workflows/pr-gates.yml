@@ -109,7 +109,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           player_apt_sources=()
-          for player_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources; do
+          for player_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/apt-mirrors*.txt; do
             if [[ -f ${player_apt_source} ]]; then
               player_apt_sources+=("${player_apt_source}")
             fi
