@@ -40,7 +40,8 @@ const tabs: {id: Tab; label: string}[] = [
 ];
 const createId = () => crypto.randomUUID();
 const itemCount = (choice: Choice) => choice.source==='sync'?choice.item.members.length:choice.source === 'studio' ? choice.item.slides.length : 1;
-const providerLabel = (design: DynamicDesign|SyncDynamicLibraryDesign) => design.provider === 'led-scores' ? 'LED Scores' : design.provider === 'sportlink' ? 'Sportlink' : design.provider==='news'?'Nieuws & RSS':'Kantine';
+const libraryProvider = (design: DynamicDesign|SyncDynamicLibraryDesign) => 'payload' in design && design.payload?.slideType === 'news' ? 'news' : design.provider;
+const providerLabel = (design: DynamicDesign|SyncDynamicLibraryDesign) => libraryProvider(design) === 'led-scores' ? 'LED Scores' : libraryProvider(design) === 'sportlink' ? 'Sportlink' : libraryProvider(design)==='news'?'Nieuws & RSS':'Kantine';
 
 function toSlides(choice: Choice): Slide[] {
   if(choice.source==='sync-dynamic'){const design=choice.item;return[{id:createId(),name:design.name,image:'',seconds:design.durationSeconds/syncSlidePageCount(design.presentation),designId:design.id,syncDynamic:JSON.parse(JSON.stringify(design)),mediaId:design.mediaAssetId,mediaChecksumSha256:design.checksumSha256,kind:design.kind,orientation:design.configuration.seed.orientation}];}
@@ -124,10 +125,10 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syn
   const choices: Choice[] = tab === 'media'
     ? activeMedia.filter(item => (folder === 'all' || item.folder === folder) && (!favorites || item.favorite) && (serverMediaMatches.has(item.id)||matches(`${item.name} ${(item.tags || []).join(' ')} ${(item.collections || []).join(' ')}`))).map(item => ({key: `media:${item.id}`, source: 'media' as const, item}))
     : [
-      ...(library?.syncDesigns??syncDesigns).filter(item=>(provider==='all'||item.provider===provider)&&matches(`${item.name} ${item.configuration.seed.title} ${providerLabel(item)}`)).map(item=>({key:`sync-dynamic:${item.id}`,source:'sync-dynamic' as const,item})),
+      ...(library?.syncDesigns??syncDesigns).filter(item=>(provider==='all'||libraryProvider(item)===provider)&&matches(`${item.name} ${item.configuration.seed.title} ${providerLabel(item)}`)).map(item=>({key:`sync-dynamic:${item.id}`,source:'sync-dynamic' as const,item})),
       ...(library?.syncProjects??[]).filter(()=>provider==='all'||provider==='studio').filter(item=>matches(`${item.name} ${item.members.map(member=>member.name).join(' ')}`)).map(item=>({key:`sync:${item.id}`,source:'sync' as const,item})),
       ...(library?.projects??projects).filter(() => provider==='all'||provider==='studio').filter(item => matches(`${item.name} ${item.slides.map(slide => `${slide.name} ${slide.title}`).join(' ')}`)).map(item => ({key: `studio:${item.id}`, source: 'studio' as const, item})),
-      ...(library?.designs??designs).filter(item => (provider === 'all' || item.provider === provider) && matches(`${item.name} ${item.title} ${item.subtitle} ${providerLabel(item)}`)).map(item => ({key: `dynamic:${item.id}`, source: 'dynamic' as const, item}))
+      ...(library?.designs??designs).filter(item => (provider === 'all' || libraryProvider(item) === provider) && matches(`${item.name} ${item.title} ${item.subtitle} ${providerLabel(item)}`)).map(item => ({key: `dynamic:${item.id}`, source: 'dynamic' as const, item}))
     ];
   const selectable = choices.filter(choice => itemCount(choice) > 0);
   const selectedKeys = new Set(selection.map(choice => choice.key));
@@ -256,7 +257,7 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syn
         <button type="button" className={styles.favorite} aria-pressed={favorites} onClick={() => setFavorites(value => !value)}><Star size={16} fill={favorites ? 'currentColor' : 'none'}/>Favorieten</button>
       </div>}
       {tab === 'slides' && <div className={styles.filters}>
-        {([{value: 'all', label: 'Alle slides'}, {value: 'studio', label: 'Studio'}, {value: 'sportlink', label: 'Sportlink'}, {value: 'led-scores', label: 'LED Scores'}, {value: 'menu', label: 'Kantine'}]).map(item => <button type="button" className={styles.filterChip} key={item.value} aria-pressed={provider === item.value} onClick={() => setProvider(item.value)}>{item.label}</button>)}
+        {([{value: 'all', label: 'Alle slides'}, {value: 'studio', label: 'Studio'}, {value: 'news', label: 'Nieuws & RSS'}, {value: 'sportlink', label: 'Sportlink'}, {value: 'led-scores', label: 'LED Scores'}, {value: 'menu', label: 'Kantine'}]).map(item => <button type="button" className={styles.filterChip} key={item.value} aria-pressed={provider === item.value} onClick={() => setProvider(item.value)}>{item.label}</button>)}
       </div>}
     </div>
 
@@ -274,7 +275,7 @@ export function PlaylistMediaPicker({media, onMediaChange, projects, designs,syn
           const order = selection.findIndex(item => item.key === choice.key);
           const disabled = itemCount(choice) === 0;
           return <button type="button" key={choice.key} className={styles.card} aria-pressed={order >= 0} disabled={disabled} onClick={() => toggle(choice)} aria-label={`${choice.item.name}${choice.source === 'studio'||choice.source==='sync' ? `, ${itemCount(choice)} items` : ''}${disabled ? ', niet beschikbaar' : order >= 0 ? `, selectie ${order + 1}, deselecteren` : ', selecteren'}`}>
-            <div className={styles.thumbnail} aria-hidden="true" data-orientation={choice.source==='sync'?choice.item.members[0]?.presentation.orientation:choice.source === 'studio' ? choice.item.slides[0]?.orientation : choice.source==='sync-dynamic'?choice.item.configuration.seed.orientation:choice.source === 'dynamic' ? choice.item.orientation : 'landscape'}>
+            <div inert className={styles.thumbnail} aria-hidden="true" data-orientation={choice.source==='sync'?choice.item.members[0]?.presentation.orientation:choice.source === 'studio' ? choice.item.slides[0]?.orientation : choice.source==='sync-dynamic'?choice.item.configuration.seed.orientation:choice.source === 'dynamic' ? choice.item.orientation : 'landscape'}>
               {choice.source === 'media' ? choice.item.kind==='video'?<video src={choice.item.image} muted playsInline preload="metadata"><track kind="captions"/></video>:<AssetImage src={choice.item.image} alt="" loading="lazy"/>
                 : choice.source==='sync-dynamic'?<SyncSlidePreview presentation={choice.item.presentation}assetUrls={choice.item.assetUrls}durationSeconds={choice.item.durationSeconds}id={choice.item.snapshotId}compact/>: choice.source==='sync'?<SyncStudioLibraryPreview member={choice.item.members[0]!} compact/>: choice.source === 'studio' ? choice.item.slides[0] ? <SlideCanvas slide={choice.item.slides[0]}/> : <Sparkles size={30}/>
                 : <ExperiencePreview design={choice.item} compact/>}

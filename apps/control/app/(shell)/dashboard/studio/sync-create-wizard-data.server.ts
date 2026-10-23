@@ -13,7 +13,7 @@ import type { SyncCreateWizardData, SyncCreateWizardMode } from "./sync-create-w
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 
 /** A new wizard only reads. The original canonical writers create its final draft. */
-export async function loadSyncCreateWizardData(family: SyncContentFamily, requestedMode?: SyncCreateWizardMode): Promise<SyncCreateWizardData | null> {
+export async function loadSyncCreateWizardData(family: SyncContentFamily, requestedMode?: SyncCreateWizardMode, requestedSourceId?: string): Promise<SyncCreateWizardData | null> {
   if (!syncContentFamilies.some(value => value.id === family)) return null;
   const session = await requireTenantControlSession();
   if (!session.isLive || !session.tenantId || !session.userId) return null;
@@ -62,6 +62,13 @@ export async function loadSyncCreateWizardData(family: SyncContentFamily, reques
       data.initialPresentation=applySyncThemeCreationDefaults(data.initialPresentation,'onzetrots-tv',profile?.defaults??syncThemeCreationStarterDefaults('onzetrots-tv'));
     }
     data.initialMode = requestedMode === "manual" && canCreateManual ? "manual" : requestedMode === "connected" && canCreateConnected || canCreateConnected && (!canCreateManual || data.sources.length > 0) ? "connected" : "manual";
+    if (requestedSourceId && canCreateConnected && data.initialMode === "connected") {
+      const source = data.sources.find(source => source.id === requestedSourceId);
+      if (source) {
+        data.initialSourceId = source.id;
+        if (family === "rss") data.initialPresentation = { ...data.initialPresentation, name: source.name.slice(0, 120) };
+      } else data.loadError = "Deze bron is niet beschikbaar binnen je vereniging. Kies een actieve bron uit de lijst; er is niets aangemaakt.";
+    }
     if(family==='welcome'&&data.initialPresentation.rendererVersion==='sync-v1')data.initialMode='manual';
     return data;
   } catch {

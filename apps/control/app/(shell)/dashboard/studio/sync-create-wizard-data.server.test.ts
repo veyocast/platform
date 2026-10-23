@@ -33,6 +33,21 @@ function database(overrides: Partial<Record<string, QueryResult>> = {}) {
 beforeEach(() => { vi.clearAllMocks(); mocks.session.mockResolvedValue(session()); mocks.media.mockResolvedValue({ assets: [], error: null }); });
 
 describe("new wizard read boundary", () => {
+  it("preselects an authorized RSS feed and keeps its recognizable name", async () => {
+    database({ dynamic_data_sources: { data: [sourceRow("rss")], error: null } });
+    const result = await loadSyncCreateWizardData("rss", "connected", source);
+    expect(result).toMatchObject({ initialSourceId: source, initialMode: "connected", initialPresentation: { name: "Eigen bron" } });
+  });
+  it("never uses a foreign or missing source supplied through the URL", async () => {
+    database({ dynamic_data_sources: { data: [sourceRow("rss")], error: null } });
+    const result = await loadSyncCreateWizardData("rss", "connected", id(99));
+    expect(result?.initialSourceId).toBeUndefined(); expect(result?.loadError).toContain("niet beschikbaar");
+  });
+  it("keeps an explicit manual choice when a source URL is supplied", async () => {
+    database({ dynamic_data_sources: { data: [sourceRow("rss")], error: null } });
+    const result = await loadSyncCreateWizardData("rss", "manual", source);
+    expect(result?.initialSourceId).toBeUndefined(); expect(result?.initialMode).toBe("manual");
+  });
   it("rejects an unknown family before session or database access", async () => {
     expect(await loadSyncCreateWizardData("unknown" as SyncContentFamily)).toBeNull(); expect(mocks.session).not.toHaveBeenCalled(); expect(mocks.client).not.toHaveBeenCalled();
   });

@@ -37,7 +37,7 @@ export function SyncSlidePreview({presentation,assetUrls,durationSeconds,id,acti
    const local=elapsed.current%loopMs,currentPage=Math.floor(local/perPage);
    if(scenePage.current!==currentPage){scenePage.current=currentPage;introFinished.current=false;}
    setPage(before=>before===currentPage?before:currentPage);
-   const internal=active||elapsed.current>0?Math.max(0,local-currentPage*perPage):presentation.family==='goal'?1200:0;
+   const internal=active||elapsed.current>0?Math.max(0,local-currentPage*perPage):presentation.family==='goal'?1200:presentation.rendererVersion==='sync-onzetrots-v9'&&presentation.family==='rss'?1000:0;
    const scene=presentation.rendererVersion==='sync-onzetrots-v9'?{panelCount,mode:presentation.visual.mode,paused:!active,introFinished:introFinished.current,entranceAllowed:presentation.style.motion!=='geen'}:undefined;
    const projected=projectSyncOnzeTrotsMotion(internal,layouts,presentation.visual.scrollSpeed,reduced.matches,scene);
    if(projected.entrance)introFinished.current=projected.entrance.finished;

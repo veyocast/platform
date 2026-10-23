@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { chromium, type CDPSession } from "playwright-core";
+import { createHash } from "node:crypto";
 import { syncSlidePresentationSchema, syncBackgroundScenes } from "@veyocast/contracts";
 import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -95,6 +97,49 @@ describe("Sync capture policy", () => {
 describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))(
   "actual Sync Chromium capture",
   () => {
+    for (const moving of [false, true]) it(`v9 RSS ${moving ? "nested animation keeps every frame" : "settled pages reuse the verified raster without losing earlier frames"}`, async () => {
+      const sessions: CDPSession[] = [], launch = chromium.launch.bind(chromium);
+      const spy = vi.spyOn(chromium, "launch").mockImplementation(async options => {
+        const browser = await launch(options), open = browser.newPage.bind(browser);
+        vi.spyOn(browser, "newPage").mockImplementation(async options => {
+          const page = await open(options), context = page.context(), connect = context.newCDPSession.bind(context);
+          vi.spyOn(context, "newCDPSession").mockImplementation(async target => {
+            const session = await connect(target); vi.spyOn(session, "send"); sessions.push(session); return session;
+          });
+          if (moving) {
+            const setContent = page.setContent.bind(page);
+            vi.spyOn(page, "setContent").mockImplementation(async (...args) => {
+              await setContent(...args);
+              await page.evaluate(() => document.querySelector('.blue-cta')?.animate([{ opacity: .2 }, { opacity: 1 }], { duration: 1000, iterations: Infinity }));
+            });
+          }
+          return page;
+        });
+        return browser;
+      });
+      const news = ["Eerste artikel", "Tweede artikel"].map((title, i) => ({ id: `article-${i}`, title, intro: "Gecontroleerd eigen nieuws", source: "Eigen feed", url: `https://example.org/${i}` }));
+      const presentation = syncSlidePresentationSchema.parse({ ...input(), rendererVersion: "sync-onzetrots-v9", sourceRevision: "5ba52a657d6d16ad103ba2fb43b8db18aa83715a", family: "rss", theme: "onzetrots-tv", rows: [], news: news.map(item => ({ title: item.title, intro: item.intro, source: item.source, url: item.url })), rich: { news }, visual: { schemaVersion: 1, mode: "light", scrollSpeed: "normal", panelOpacity: 94 }, authoring: { schemaVersion: 1, headerSubtitles: {}, headerTexts: {}, welcomeScalePercent: 150 } });
+      const capture = await createSyncSlideCapture({ presentation, durationMs: 20000, executablePath: process.env.SITES_CAPTURE_TEST_CHROMIUM! });
+      const screenshots = () => sessions.reduce((count, session) => count + vi.mocked(session.send).mock.calls.filter(([method]) => method === "Page.captureScreenshot").length, 0);
+      const raster = async (time: number) => createHash("sha256").update(await capture.renderRgba(time)).digest("hex");
+      try {
+        const first = await raster(4000), initial = screenshots();
+        if (moving) {
+          expect(await raster(4500)).not.toEqual(first);
+          expect(screenshots()).toBe(initial + 1);
+        } else {
+          expect(await raster(0)).not.toEqual(first);
+          const beforeReuse = screenshots();
+          expect(await raster(5000)).toEqual(first);
+          expect(await raster(9000)).toEqual(first);
+          expect(screenshots()).toBe(beforeReuse);
+          const second = await raster(14000), afterPage = screenshots();
+          expect(second).not.toEqual(first); expect(await raster(19000)).toEqual(second);
+          expect(screenshots()).toBe(afterPage);
+          expect(await raster(4000)).toEqual(first);
+        }
+      } finally { await capture.close(); spy.mockRestore(); }
+    }, 60000);
     for (const orientation of ["landscape", "portrait"] as const) for (const scene of syncBackgroundScenes) {
       it(`${scene.label} ${orientation}: captures the real approved photograph on every full binary page`, async () => {
         const asset = scene[orientation], base = input();

@@ -8,13 +8,13 @@ import { SyncStudioCreateDialog } from "../sync-studio-create-dialog";
 import { loadSyncCreateWizardData } from "../sync-create-wizard-data.server";
 import { SyncCreateWizard } from "../sync-create-wizard";
 
-export default async function NewStudioPage({ searchParams }: { searchParams: Promise<{ family?: string; mode?: string; group?: string }> }) {
+export default async function NewStudioPage({ searchParams }: { searchParams: Promise<{ family?: string; mode?: string; group?: string; source?: string }> }) {
   const session = await requireTenantControlSession();
   const query = await searchParams;
   if (query.family) {
     const family = syncContentFamilies.find(value => value.id === query.family);
     if (!family) notFound();
-    const data = await loadSyncCreateWizardData(family.id, query.mode === "connected" || query.mode === "manual" ? query.mode : undefined);
+    const data = await loadSyncCreateWizardData(family.id, query.mode === "connected" || query.mode === "manual" ? query.mode : undefined, query.source);
     if (!data) return <p role="alert" className="notice notice--critical">De beveiligde wizard kan niet worden geopend. Er is niets aangemaakt; meld je opnieuw aan en probeer nogmaals.</p>;
     return <SyncCreateWizard key={`${data.actorScope}:${data.family}`} data={data} />;
   }

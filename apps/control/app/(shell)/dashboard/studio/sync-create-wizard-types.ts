@@ -19,6 +19,7 @@ export type SyncCreateWizardData = {
   canCreateManual: boolean;
   canCreateConnected: boolean;
   initialMode: SyncCreateWizardMode;
+  initialSourceId?: string;
   slideType: SyncDynamicConfiguration["slideType"] | null;
   sources: SyncCreateWizardSource[];
   templates: Array<{ versionId: string; orientation: "landscape" | "portrait"; slug: string }>;

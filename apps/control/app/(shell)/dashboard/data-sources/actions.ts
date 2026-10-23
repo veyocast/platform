@@ -41,7 +41,7 @@ export async function createRssSource(formData: FormData) {
     );
   }
   revalidatePath("/dashboard/data-sources");
-  redirect(`/dashboard/data-sources?succes=RSS-databron+is+gekoppeld+en+gecontroleerd.`);
+  redirect(`/dashboard/data-sources?source=rss:${data}&succes=Je+feed+is+verbonden.+Kies+Nieuwsslide+maken+om+de+artikelen+in+een+playlist+te+gebruiken.`);
 }
 
 export async function createProductSource(formData: FormData) {

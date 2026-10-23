@@ -71,6 +71,7 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
   }, [data, draft, options]);
   const requestKey = compiled.request ? JSON.stringify(compiled.request) : "";
   const previewCurrent = Boolean(preview?.ok && previewKey && previewKey === requestKey);
+  const previewTooLong = Boolean(previewCurrent && preview?.ok && syncSlideDurationMs(preview.presentation, Number(draft.seconds)) > 120000);
   const selectedSource = data.sources.find(source => source.id === draft.sourceId);
   const checkedSource = preview?.ok ? preview.source : null;
   const reviewSource = previewCurrent ? checkedSource : selectedSource;
@@ -87,7 +88,9 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
       if (saved) {
         setDraft(saved.draft); setStep(saved.pending ? 3 : saved.step);
         pendingRef.current = saved.pending; setPending(saved.pending);
-        setNotice(saved.pending ? "Je oorspronkelijke opdracht is teruggevonden. Bevestig dezelfde opdracht om het ontvangstbewijs te controleren." : "Je bewaarde invoer is hersteld. Je kunt verder waar je was gebleven.");
+        setNotice(data.initialSourceId && saved.draft.sourceId !== data.initialSourceId
+          ? "Je eerdere invoer en bronkeuze zijn behouden. Controleer de bron voordat je verdergaat; een oorspronkelijke opdracht wordt met hetzelfde ontvangstbewijs bevestigd."
+          : saved.pending ? "Je oorspronkelijke opdracht is teruggevonden. Bevestig dezelfde opdracht om het ontvangstbewijs te controleren." : "Je bewaarde invoer is hersteld. Je kunt verder waar je was gebleven.");
       }
     } catch { setCorrupt(true); setError("Je bewaarde invoer kan niet veilig worden gelezen. Er is niets verstuurd. Houd deze pagina open en vraag ondersteuning; de oorspronkelijke browsergegevens blijven behouden."); }
     setHydrated(true);
@@ -146,7 +149,7 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
   }
   async function create() {
     if (!hydrated || corrupt || busyRef.current || confirmedHref || !available) return;
-    if (!pendingRef.current && (data.themeDefaultsError || step !== 3 || invalid || draft.mode === "connected" && !previewCurrent)) return;
+    if (!pendingRef.current && (data.themeDefaultsError || step !== 3 || invalid || draft.mode === "connected" && (!previewCurrent || previewTooLong))) return;
     const replaying = Boolean(pendingRef.current);
     let original: SyncCreateWizardCommand;
     try { original = pendingRef.current ?? prepareSyncWizardCommand(data, draft, options, crypto.randomUUID()); }
@@ -191,6 +194,7 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
     {data.themeDefaultsError && <p role="alert" className={styles.error}>{data.themeDefaultsError} Een teruggevonden oorspronkelijke opdracht kun je wel opnieuw controleren.</p>}
     {data.themeDefaults?.defaultThemeId === null && <p role="status" className={styles.notice}>Je bestaande standaardthema is niet beschikbaar voor nieuwe ontwerpen. Dit nieuwe ontwerp begint met FieldFlow; je bestaande themakeuze is niet gewijzigd.</p>}
     {error && <p role="alert" className={styles.error}>{error}</p>}
+    {previewTooLong && <p role="alert" className={styles.error}>Deze ronde duurt langer dan 120 seconden en kan nog niet worden opgeslagen. Kies minder artikelen of verkort de duur per pagina en controleer het voorbeeld opnieuw.</p>}
     {storageError && <div role="alert" className={styles.error}><p>Je browser kan de invoer niet veilig bewaren. Er wordt geen opdracht verstuurd. Houd deze pagina open, maak browseropslag vrij en probeer opnieuw.</p><Button variant="secondary" onClick={() => store(draft, step, pendingRef.current)}>Browseropslag opnieuw controleren</Button></div>}
     {!available && <p role="alert" className={styles.error}>Je hebt geen rechten om dit ontwerp te maken. Vraag een beheerder om toegang; er wordt niets aangemaakt.</p>}
     <div className={styles.layout}>
@@ -213,6 +217,7 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
           </>}
           {step === 1 && <>
             <Field label="Naam van je ontwerp" hint="Deze naam gebruik je straks in je bibliotheek."><input value={p.name} minLength={2} maxLength={120} onChange={event => patch({ name: event.target.value })} /></Field>
+            {draft.mode === "connected" && data.family === "rss" && <Field label="Nieuwste artikelen" hint="Toon 1 tot 20 nieuwste artikelen uit deze feed. Nieuwe berichten vervangen oudere artikelen binnen deze selectie."><input type="number" inputMode="numeric" min={1} max={20} step={1} value={draft.newsLimit ?? ""} placeholder="Alle artikelen uit je eerdere keuze" onChange={event => edit({ ...draft, newsLimit: event.target.value })} /></Field>}
             {draft.mode === "connected" && sport && cfg && <>
               <SyncSportlinkControls cfg={cfg} configuration={bindingConfiguration} options={options?.sourceId === draft.sourceId ? options : null} loading={optionsLoading} error={optionsError} onChange={selection => edit({ ...draft, selection })} />
               {optionsError && <Button variant="secondary" onClick={() => setOptionsAttempt(value => value + 1)}><RefreshCw size={16} aria-hidden="true" /> Bron opnieuw laden</Button>}
@@ -259,12 +264,12 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
         {pending && <p role="status" className={styles.notice}>Je invoer staat vast tot dezelfde oorspronkelijke opdracht is bevestigd. Hierdoor ontstaat geen tweede ontwerp als het vorige antwoord verloren ging.</p>}
         <footer className={styles.actions}>
           {step > 0 && <Button variant="secondary" disabled={locked} onClick={() => move(step - 1)}><ArrowLeft size={16} aria-hidden="true" /> Vorige</Button>}
-          {confirmedHref ? <Button asChild variant="primary"><Link href={confirmedHref}>Ontwerp openen</Link></Button> : step < 3 ? <Button variant="primary" disabled={locked || !available} onClick={() => move(step + 1)}>Verder <ArrowRight size={16} aria-hidden="true" /></Button> : <Button variant="primary" disabled={!hydrated || corrupt || busy || !available || storageError || !pending && Boolean(data.themeDefaultsError || invalid || draft.mode === "connected" && !previewCurrent)} onClick={() => void create()}>{busy ? "Ontwerp bevestigen…" : pending ? "Dezelfde opdracht bevestigen" : "Ontwerp maken"}</Button>}
+          {confirmedHref ? <Button asChild variant="primary"><Link href={confirmedHref}>Ontwerp openen</Link></Button> : step < 3 ? <Button variant="primary" disabled={locked || !available} onClick={() => move(step + 1)}>Verder <ArrowRight size={16} aria-hidden="true" /></Button> : <Button variant="primary" disabled={!hydrated || corrupt || busy || !available || storageError || !pending && Boolean(data.themeDefaultsError || invalid || draft.mode === "connected" && (!previewCurrent || previewTooLong))} onClick={() => void create()}>{busy ? "Ontwerp bevestigen…" : pending ? "Dezelfde opdracht bevestigen" : "Ontwerp maken"}</Button>}
         </footer>
       </section>
       <aside className={styles.preview} aria-label="Voorbeeld van je ontwerp">
         <div className={styles.previewHeading}><span className={styles.eyebrow}>Zo ziet het eruit</span><strong>{draft.mode === "connected" ? previewCurrent ? sourceNeedsAttention(checkedSource) ? "Opgeslagen bronpreview" : "Gecontroleerde bronpreview" : preview?.ok ? "Laatste volledige bronpreview" : "Vormgeving zonder brongegevens" : "Jouw ontwerp"}</strong></div>
-        <div className={`${styles.stage} ${display.orientation === "portrait" ? styles.portrait : ""}`}><SyncSlideStaticView presentation={display} page={visibleEngagePage} compact resolveAsset={asset => asset.kind === "system" ? resolveSyncSystemAsset(asset) : (preview?.ok ? preview.assets[asset.mediaAssetId]?.url : undefined) ?? data.images?.find(value => value.id === asset.mediaAssetId && value.checksumSha256 === asset.checksumSha256)?.url} /></div>
+        <div inert className={`${styles.stage} ${display.orientation === "portrait" ? styles.portrait : ""}`}><SyncSlideStaticView presentation={display} page={visibleEngagePage} compact resolveAsset={asset => asset.kind === "system" ? resolveSyncSystemAsset(asset) : (preview?.ok ? preview.assets[asset.mediaAssetId]?.url : undefined) ?? data.images?.find(value => value.id === asset.mediaAssetId && value.checksumSha256 === asset.checksumSha256)?.url} /></div>
         {engagePages > 1 && <nav aria-label="Voorbeeldpagina’s" className={styles.fields}>
           <p role="status" className={styles.hint}>Pagina {visibleEngagePage + 1} van {engagePages} · alle {display.poll?.options.length} keuzes blijven in je ontwerp.</p>
           <div className={styles.twoFields}>

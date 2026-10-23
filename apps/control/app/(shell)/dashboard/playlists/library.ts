@@ -10,7 +10,7 @@ import {safeParseStudioDocument} from '@veyocast/studio';
 import {readPublisherSyncDynamic,type PublisherSyncMedia} from "./sync-dynamic-library";
 import type {SyncStudioLibraryProject} from './_components/sites/model';
 
-export type PublisherLibraryFilter={tab:"media"|"slides"|"studio"|"dynamic";source?:"all"|"studio"|"sportlink"|"led-scores"|"menu";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string};
+export type PublisherLibraryFilter={tab:"media"|"slides"|"studio"|"dynamic";source?:"all"|"studio"|"sportlink"|"led-scores"|"menu"|"news";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string};
 export type PublisherLibraryPage={media:Media[];projects:StudioProject[];syncProjects?:SyncStudioLibraryProject[];syncDesigns?:SyncDynamicLibraryDesign[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableDesigns?:Array<{id:string;name:string;status:string;processing:boolean;href:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
 const empty:PublisherLibraryPage={media:[],projects:[],designs:[],total:0,hasMore:false,folders:[],collections:[]};
 const pageSize=48;
@@ -56,11 +56,12 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
   const dynamicPageSize=8;
   let query=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,orientation,current_snapshot_id",{count:"exact"}).eq("tenant_id",tenantId).eq("status","ready").order("updated_at",{ascending:false}).range(offset,offset+dynamicPageSize-1);
   if(filter.source==="menu")query=query.in("slide_type",["menu","price_list"]);
+  else if(filter.source==="news")query=query.eq("slide_type","news");
   else if(filter.source==="led-scores")query=query.eq("slide_type","ledscores_live_match");
-  else if(filter.source==="sportlink")query=query.not("slide_type","in","(menu,price_list,ledscores_live_match)");
+  else if(filter.source==="sportlink")query=query.not("slide_type","in","(menu,price_list,ledscores_live_match,news)");
   if(filter.query)query=query.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
   let unavailableQuery=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,status,configuration_json").eq("tenant_id",tenantId).not("status","in","(ready,archived)").is("archived_at",null).order("updated_at",{ascending:false}).limit(12);
-  if(filter.source==="menu")unavailableQuery=unavailableQuery.in("slide_type",["menu","price_list"]);else if(filter.source==="led-scores")unavailableQuery=unavailableQuery.eq("slide_type","ledscores_live_match");else if(filter.source==="sportlink")unavailableQuery=unavailableQuery.not("slide_type","in","(menu,price_list,ledscores_live_match)");
+  if(filter.source==="menu")unavailableQuery=unavailableQuery.in("slide_type",["menu","price_list"]);else if(filter.source==="news")unavailableQuery=unavailableQuery.eq("slide_type","news");else if(filter.source==="led-scores")unavailableQuery=unavailableQuery.eq("slide_type","ledscores_live_match");else if(filter.source==="sportlink")unavailableQuery=unavailableQuery.not("slide_type","in","(menu,price_list,ledscores_live_match,news)");
   if(filter.query)unavailableQuery=unavailableQuery.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
   const unavailable=await unavailableQuery;if(unavailable.error)throw new Error("De ontwerpstatus kon niet worden gecontroleerd. Probeer opnieuw.");
 
