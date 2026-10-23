@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S287 herstelt de opslagcontrole achter geslaagde Sportlink-previews: alle
+clubteams vereisen in getypeerde Sync geen kunstmatig hoofdteam, en bestaande
+contextgebonden Sync-families kunnen hun gecontroleerde selectie bewaren.
+Zie `docs/s287-connected-create-recovery.md`; normale staging/productie is
+geautoriseerd, bestaande data en publicaties blijven behouden.
+
 S286 brengt de goedgekeurde OnzeTrots-v9-eindlayout, behouden v7-entree en contextregel +30% in dezelfde
 actieve Sync-preview/export/Player-keten als S285. Nieuwe documenten krijgen
 een expliciete nieuwe rendereridentiteit, bewerkbare subtitel/titel met Rubik Distressed en
