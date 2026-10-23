@@ -141,3 +141,18 @@ vier 390/1440 × liggend/staand-cases zijn daarna alle vier groen, inclusief
 2/13/24 keuzes, de 160-tekensvraag, volledige antwoordtekst, QR en vervolgpagina's.
 De assertions en toleranties zijn ongewijzigd; de definitieve CI volgt op de
 correctiecommit.
+
+De tweede run op `c11d02f4` bevestigde de volledige Control-browsersuite,
+foundation, database/publicatie, native en alle renderercohorten behalve LED.
+De LED-job downloadde nog via de aparte workflowbron: 25,9 MB in 7 min 24 s,
+waarna de 45-minutenjobgrens de rendervergelijking afbrak. Dezelfde HTTPS-fix
+geldt daarom vóór beide Sites-Chromium-installaties en vóór alle browsergroepen.
+Dit wijzigt uitsluitend de runnerpakketbron, inclusief `mirror+file`; de
+behouden renderer, referentiebeelden, pixelasserties, case-inventaris, packages
+en alle deadlines blijven gelijk. De afgebroken runs blijven historische
+infrastructuurresultaten en worden niet als volledige PASS gerapporteerd.
+
+De volledige Player-browsersuite van dezelfde tweede run is eveneens groen,
+inclusief de echte v9-export-/DOM-pariteit, introframes en offline/fallbacktests.
+De daaropvolgende commit wijzigt alleen de hierboven beschreven CI-bronkeuze
+en de bijbehorende documentatie; de product- en testbytes blijven gelijk.

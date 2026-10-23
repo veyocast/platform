@@ -48,6 +48,9 @@ Root is de enige writer. Branch/worktree/PR:
   CI-run `39981481136` toont daarnaast dat de bestaande mirrorfix de nieuwe
   `mirror+file`-bron mist: voeg uitsluitend `/etc/apt/apt-mirrors*.txt` toe
   aan dezelfde bronnenlus; geen pakket-/deadline-/testwijziging.
+  Na de identieke Sites-downloadvertraging in `39986961226` geldt deze
+  broncorrectie vóór Chromium voor alle vier browsergroepen, zodat dezelfde
+  pakketbron niet per willekeurige runner opnieuw de globale jobgrens opsoupeert.
 - `.gitattributes` uitsluitend indien bytebehoud van de nieuwe overdracht of
   checksumgebonden assets daar nog een gerichte uitbreiding vereist.
 - Na CI-run `39981481150`: `.github/workflows/database-rls-gates.yml`
@@ -55,6 +58,11 @@ Root is de enige writer. Branch/worktree/PR:
   RLS en concurrencytests waren groen; de bestaande 30-minutenjobgrens brak af
   op de trage HTTP Azure-mirror. Dezelfde canonieke HTTPS Ubuntu-bron als de
   bestaande Player-job, zonder pakket-/test-/deadlinewijziging.
+- Na CI-run `39986961226`: `.github/workflows/sites-reference-gates.yml`
+  uitsluitend dezelfde Ubuntu-broncorrectie vóór beide Chromium-installaties.
+  De LED-job verloor bijna acht minuten aan de HTTP Azure-mirror en bereikte
+  vervolgens de bestaande 45-minutenjobgrens. Geen renderer-, referentie-,
+  pixelassertie-, case-inventaris- of deadlinewijziging.
 - Gerichte contract/projector/Worker/wizard/authoring/Player/offline- en
   visuele tests/helpers; bewijs onder `docs/implementation/s286-onzetrots-v9/`.
 - Dit prompt, `docs/s286-onzetrots-v9.md`, nieuw referentiepakket,
