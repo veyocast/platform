@@ -1,3 +1,4 @@
+import {isSyncOnzeTrotsPresentation} from '@veyocast/contracts';
 import {
   sportlinkSlideContextSchema,
   syncDynamicCommandSchema,
@@ -79,7 +80,7 @@ export function chooseSyncWizardTheme(data: SyncCreateWizardData, draft: SyncCre
 
 export function connectedSyncWizardSeed(presentation: SyncSlidePresentation): SyncSlidePresentation {
   return syncSlidePresentationSchema.parse({ ...presentation, rows: [], news: [], ownRowIndexes: [],
-    home: undefined, away: undefined, match: undefined, poll: undefined, youtubeUrl: undefined, ...(presentation.rendererVersion==='sync-onzetrots-v1'?{rich:undefined}:{}), state: "ready" });
+    home: undefined, away: undefined, match: undefined, poll: undefined, youtubeUrl: undefined, ...(isSyncOnzeTrotsPresentation(presentation)?{rich:undefined}:{}), state: "ready" });
 }
 
 export function syncCreateWizardDraftError(draft: SyncCreateWizardDraft): string | null {

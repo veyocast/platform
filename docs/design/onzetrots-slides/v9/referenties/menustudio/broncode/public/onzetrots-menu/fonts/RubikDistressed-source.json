@@ -1,0 +1,60 @@
+{
+  "font": {
+    "family": "Rubik Distressed",
+    "subfamily": "Regular",
+    "fullName": "Rubik Distressed Regular",
+    "postScriptName": "RubikDistressed-Regular",
+    "version": "Version 2.200",
+    "license": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL",
+    "licenseURL": "https://scripts.sil.org/OFL",
+    "weightClass": 400,
+    "glyphCount": 774,
+    "unicodeCharacterCount": 689,
+    "dutchAccentCoverage": {
+      "é": true,
+      "è": true,
+      "ë": true,
+      "ï": true,
+      "ö": true,
+      "ü": true,
+      "á": true,
+      "à": true,
+      "â": true,
+      "ê": true,
+      "î": true,
+      "ô": true,
+      "û": true,
+      "ç": true,
+      "É": true,
+      "Ë": true,
+      "Ï": true,
+      "Ö": true,
+      "Ü": true
+    },
+    "isTrueType": true,
+    "variableAxes": []
+  },
+  "assets": [
+    {
+      "path": "/workspace/scratch/13a248e26451/rubik-distressed-assets/RubikDistressed-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikdistressed/RubikDistressed-Regular.ttf",
+      "bytes": 892544,
+      "sha256": "64a9962c862451507b5d8dbc1c4bf023ddbcad701bc73d277eae46723718327a"
+    },
+    {
+      "path": "/workspace/scratch/13a248e26451/rubik-distressed-assets/OFL.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikdistressed/OFL.txt",
+      "bytes": 4406,
+      "sha256": "f9e2d4498ea80d38bac7b8841d68af68c132fa67e1552e7c05717e6987de1d74"
+    },
+    {
+      "path": "/workspace/scratch/13a248e26451/rubik-distressed-assets/METADATA.pb",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikdistressed/METADATA.pb",
+      "bytes": 1034,
+      "sha256": "16404dc1975954ac0eba2bd409345cb7ca0707d5d0baac3d6739c639b5cefdb6"
+    }
+  ],
+  "officialDirectory": "https://github.com/google/fonts/tree/main/ofl/rubikdistressed",
+  "googleFontsSpecimen": "https://fonts.google.com/specimen/Rubik+Distressed",
+  "notes": "Official Google Fonts repository download. Regular static font, use font-weight400; preserve the bundled OFL license. CSS font-family name: Rubik Distressed."
+}

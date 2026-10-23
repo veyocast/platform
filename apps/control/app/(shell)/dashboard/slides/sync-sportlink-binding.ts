@@ -6,14 +6,14 @@ export type SyncSportlinkSelection={mode:'all'|'selected';contexts:SportlinkSlid
 export function syncConnectedAuthoringType(family:string,rendererVersion:SyncSlidePresentation['rendererVersion']='sync-v1'):'menu'|'news'|'ledscores_live_match'|(typeof sportDynamicSlideTypes)[number]|undefined{
  if(family==='menu')return'menu';if(family==='rss')return'news';
  if(family==='scoreboard'||family==='goal')return'ledscores_live_match';
- return Object.entries(rendererVersion==='sync-onzetrots-v1'?syncOnzeTrotsDynamicFamilies:syncDynamicFamilies).find(([type,families])=>type.startsWith('sport_')&&(families as readonly string[]).includes(family))?.[0]as(typeof sportDynamicSlideTypes)[number]|undefined;
+ return Object.entries(rendererVersion!=='sync-v1'?syncOnzeTrotsDynamicFamilies:syncDynamicFamilies).find(([type,families])=>type.startsWith('sport_')&&(families as readonly string[]).includes(family))?.[0]as(typeof sportDynamicSlideTypes)[number]|undefined;
 }
 export function isSyncSportlinkType(value:string):value is (typeof sportDynamicSlideTypes)[number]{return(sportDynamicSlideTypes as readonly string[]).includes(value);}
 export function syncSportlinkSelectionPolicy(cfg:SyncDynamicConfiguration){
  const clubOnly=['sport_activities','sport_volunteers'].includes(cfg.slideType);
  const single=['sport_standing','sport_period_standing','sport_match_of_the_day','sport_next_match','sport_cancellations','sport_dressing_rooms','sport_officials','sport_team'].includes(cfg.slideType)||['team-program','pool-program','team-results','pool-results'].includes(cfg.seed.family);
  const required=single||['sport_visitor_arrivals','sport_referee_arrivals'].includes(cfg.slideType);
- return{clubOnly,single,required,maximum:cfg.rendererVersion==='sync-onzetrots-v1'?200:cfg.slideType==='sport_birthdays'?50:500};
+ return{clubOnly,single,required,maximum:cfg.rendererVersion!=='sync-v1'?200:cfg.slideType==='sport_birthdays'?50:500};
 }
 export function syncSportlinkAutoContext(providerTeamId:string):SportlinkSlideContext{return{providerTeamId,competitionSelectionMode:'auto_current',competitionId:null,phaseId:null,poolId:null,seasonId:null};}
 export function clearSyncSportlinkBinding(configuration:Record<string,unknown>){

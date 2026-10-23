@@ -1,0 +1,35 @@
+import {test,expect} from '@playwright/test';
+import {fixture,mount,next,prepareWizardFixture} from '../helpers/sync-create-wizard-fixture';
+import {syncOnzeTrotsHeaderSubtitle,syncOnzeTrotsHeaderText} from '@veyocast/contracts';
+
+test.beforeAll(prepareWizardFixture);
+for(const width of [390,1440])test(`v9 header, safe text and requested welcome scale survive reload and the exact create receipt at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:950});
+ const data=fixture('welcome');
+ if(data.initialPresentation.rendererVersion!=='sync-onzetrots-v9')throw Error('Current starter required');
+ data.initialPresentation.authoring.headerTexts.visitors='Andere familie blijft bewaard';
+ data.initialPresentation.authoring.headerSubtitles.visitors='Andere subtitel';
+ const state=await mount(page,data,{dropFirst:true}),subtitle=page.getByRole('textbox',{name:'Subtitel van deze slide',exact:true}),title=page.getByRole('textbox',{name:'Headertekst van deze slide',exact:true});
+ const text='<img src=x onerror=alert(1)> & "Eigen club"';
+ await subtitle.fill(text);await title.fill('');
+ await page.getByRole('slider',{name:'Grootte bezoekerslogo en welkomstekst'}).fill('200');
+ await next(page);await page.reload();
+ await expect(subtitle).toHaveValue(text);await expect(title).toHaveValue('');
+ await expect(page.getByRole('slider')).toHaveValue('200');
+ const canvas=page.locator('.screen');
+ await expect(canvas.locator('[data-ot-header-subtitle]')).toHaveText(text);
+ await expect(canvas.locator('[data-ot-header-text]')).toHaveAttribute('hidden','');
+ await expect(canvas.locator('img[src="x"]')).toHaveCount(0);
+ await page.getByRole('button',{name:'Standaard herstellen',exact:true}).click();
+ await expect(subtitle).toHaveValue(syncOnzeTrotsHeaderSubtitle(data.initialPresentation));
+ await expect(title).toHaveValue(syncOnzeTrotsHeaderText(data.initialPresentation));
+ await subtitle.fill(text);await title.fill('Onze gasten & vrienden');
+ await next(page);await next(page);await expect(page.getByRole('heading',{name:'Controleren',exact:true})).toBeVisible();await page.getByRole('button',{name:'Ontwerp maken',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Dezelfde opdracht bevestigen',exact:true})).toBeEnabled();
+ await page.reload();await page.getByRole('button',{name:'Dezelfde opdracht bevestigen',exact:true}).click();
+ await expect.poll(()=>state.creates.length).toBe(2);
+ expect(state.creates[1]).toEqual(state.creates[0]);
+ const command=state.creates[0]!.input;if(command.kind!=='manual')throw Error('manual');
+ expect(command.document.syncPresentation).toMatchObject({rendererVersion:'sync-onzetrots-v9',authoring:{headerTexts:{visitors:'Andere familie blijft bewaard',welcome:'Onze gasten & vrienden'},headerSubtitles:{visitors:'Andere subtitel',welcome:text},welcomeScalePercent:200}});
+ expect(state.errors).toEqual([]);
+});

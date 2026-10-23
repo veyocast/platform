@@ -1,0 +1,54 @@
+{
+  "assertion": "Decoded native RGBA buffers exactly equal at every recorded time; no masks or difference threshold",
+  "rendererVersion": "sync-onzetrots-v9",
+  "frames": [
+    {
+      "timeMs": 425,
+      "path": "worker-425ms.png",
+      "bytes": 4561436,
+      "sha256": "5e36f8d6dcbd6fd93e966b020a340db9f54c35cd0ac2f6c408ce1d2243d563ff"
+    },
+    {
+      "timeMs": 425,
+      "path": "player-425ms.png",
+      "bytes": 3816640,
+      "sha256": "5419856eab4bba653a7e6959a355114e056863afcf964b0d58be079a6304e344"
+    },
+    {
+      "timeMs": 1575,
+      "path": "worker-1575ms.png",
+      "bytes": 4341199,
+      "sha256": "f08e1f43eff7764063341d2f80e515ddfd589a5e4ecd43f20bbb31f660992fef"
+    },
+    {
+      "timeMs": 1575,
+      "path": "player-1575ms.png",
+      "bytes": 3631894,
+      "sha256": "a7e4113da9ea81e4ebfc4d54d2da88d485d38b15de65ee31d31bf9245e505596"
+    },
+    {
+      "timeMs": 2425,
+      "path": "worker-2425ms.png",
+      "bytes": 2416845,
+      "sha256": "c604956b3ed90723ac438f87fde946d5bc6c46d546ba8ee06650831ecd000aa0"
+    },
+    {
+      "timeMs": 2425,
+      "path": "player-2425ms.png",
+      "bytes": 2283297,
+      "sha256": "97c24a1f3b3f14393defb76af760eea60bcc342c165cac6ace42933b5f6d9ba4"
+    },
+    {
+      "timeMs": 3500,
+      "path": "worker-3500ms.png",
+      "bytes": 2091552,
+      "sha256": "589be6f72f883220fa3dbdc7e9e9f005853d2ed7c323feb2533c54198ebe1b04"
+    },
+    {
+      "timeMs": 3500,
+      "path": "player-3500ms.png",
+      "bytes": 2029853,
+      "sha256": "7e457f04144fece2043590e3729ae6fbbe115e2bade3472800798172665a08ce"
+    }
+  ]
+}

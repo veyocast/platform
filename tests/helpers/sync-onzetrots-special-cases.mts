@@ -13,7 +13,7 @@ if(!directory)throw Error('Provide a new owned evidence directory');
 const output=resolve(directory);await mkdir(output,{recursive:false});
 const cases:Array<{name:string;presentation:SyncOnzeTrotsPresentation;elapsedMs:number}>=[];
 function sample(family:SyncContentFamily){
- const presentation=structuredClone(createSyncTemplatePreview(family));
+ const presentation=structuredClone(createSyncTemplatePreview(family,'sync-onzetrots-v1'));
  if(presentation.rendererVersion!=='sync-onzetrots-v1')throw Error('Approved fixture identity required');
  return presentation;
 }

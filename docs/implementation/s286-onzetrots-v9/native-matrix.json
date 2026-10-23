@@ -1,0 +1,2887 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+  "userApprovedDelta": "Context row 11→14.3 logical pixels (+30%), reference archive unchanged",
+  "matrix": [
+    {
+      "family": "fixtures",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "fixtures-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "dd0d1c3dbe32e877ac90a65c3eb2f5656547ff7fd5acce67dac6aa13cbd83895",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.026977719907407407,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "fixtures",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "fixtures-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "5f1c0196a1b1bbd847868944e11d44c96c24fb0877d1ea75af4b604e49ec95ed",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00913162294238683,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "fixtures",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "fixtures-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "32e892eb3fe33feeabe1be6a4a4b00a1e370ff404a8f49bd9f7bf092e1932642",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.017969393004115226,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "fixtures",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "fixtures-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "5411628954e3439cf090e93827ab15d6d5fdb0072ecb52569f6470ad505acd26",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00803931970164609,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6c9e0bd8bc35a6495d3aa293d144d0a7afae1401d763550b17e6336104fc5154",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.026736914866255145,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "b7e6adde88bf2e50259737de2ad7e9ba07d7a67661e6f3007ee712bd00e98728",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008318222736625514,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "4d8c91174ec7b6eb1fc596c721f2de205080e9608348908992abfa8075db713c",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.017787422839506174,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "1c2b1cda13e6603fcb82e46171bd0761bf5eee79570925751c9c997b01a7c1b3",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.007140882201646091,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "period-standings",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "period-standings-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 40000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "72d48f7ca304c7d872b32aad15ded3fb78092180b50de25dcc26e6984074e312",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.2461205954218107,
+        "pixelsOver25": 0.005445601851851852
+      }
+    },
+    {
+      "family": "period-standings",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "period-standings-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 40000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a5b96fba141d09cea239421b3b11679a6610a9bd3aa79628c8d97b6f90f7abda",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.24496640303497944,
+        "pixelsOver25": 0.0023992091049382714
+      }
+    },
+    {
+      "family": "period-standings",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "period-standings-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 23000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "460a5d5e4fbb0ecd0ec0070208937171b55b44898db5b78eec2fc2e02b26310b",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.46029963991769546,
+        "pixelsOver25": 0.010787519290123457
+      }
+    },
+    {
+      "family": "period-standings",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "period-standings-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 23000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "d33926e282e496c96a71e6095f634e0c179d7640cc434aba519a98bcffc47113",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.36686905221193417,
+        "pixelsOver25": 0.003914930555555555
+      }
+    },
+    {
+      "family": "cancellations",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "cancellations-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "9c7e4245b44833d7145292b0af0f6cdcd049287a86f97052be9d4d2eb45fc934",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.015241448045267489,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "cancellations",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "cancellations-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "7b2f0523e973d0a7e5b6f0877e37b1a175d7c05b0cba73ae846ad7655a3c1233",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.023849504886831276,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "cancellations",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "cancellations-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "5ac7a2ceb7fbfa1df5d7b609a296526cc555c143c515d2b423ffce5f7da1adb2",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008856899434156379,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "cancellations",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "cancellations-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "b6c8f845f02f61806bb853f128ed1e22a3e7fb6c58b3cc89b7ed39b67f9c141f",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.01698559670781893,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "dressing-rooms-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "b3f0e4f8ba13d1c5d9ce9008d43399c63f979e2145cb4bf08fc86c119999262a",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.01938159079218107,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "dressing-rooms-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f7c65b0058392b752c138476c91d5dab08cb3afbde8096051d8d481e7b400995",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00956886574074074,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "dressing-rooms-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ca9772ef4d6fd48d7cc6cf37d1f78e461f7aa2be6e7b9720cefa8831817e6f60",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.010919013631687242,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "dressing-rooms-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "5148f5ca82df23604c5286f7dc6169b9fb44408d26c643947bb8ed182a7fce1a",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.006312853652263375,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "officials",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "officials-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "65c16ccf794ea6157375f5d656145d242f7ad2aa40df73f240b7395702c998dd",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.026259002057613168,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "officials",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "officials-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "95b2c92f1b0a62831ccda3074e74181b0d32c2d79f57672c72f33051faf7997a",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.011430844907407407,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "officials",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "officials-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6f6c87795cb606149d2b8aa3363b88077972c960c987b85cd44bf36ef01a4e6c",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.013505336934156379,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "officials",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "officials-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "650d2a729d7e954fdfb6e59248ce9ce34b34c024fa3d74d2b5731c9822d78808",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.007203896604938272,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-info",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-info-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "93ca00419555850a7a56c47942dca608eb70a7dbdf8ab06ff96d757ab27c1323",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.25604552469135805,
+        "pixelsOver25": 0.0019193672839506173
+      }
+    },
+    {
+      "family": "team-info",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-info-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "98bd690b5ca36c6c0ca339d1f7a83b7c52003e4b52f26a943bc386f14dcfc08e",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.25628456147119344,
+        "pixelsOver25": 0.0017351466049382717
+      }
+    },
+    {
+      "family": "team-info",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-info-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "9e3cb59244978b431ea2d387cee9eba802e52a1e8d84a8453fa332200ab5adff",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.41568270961934156,
+        "pixelsOver25": 0.006146797839506173
+      }
+    },
+    {
+      "family": "team-info",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-info-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "cd3b9dac3aab8331426940f5cc7811f00026836eb55b6cb2243fc641e64768bd",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.40186181841563784,
+        "pixelsOver25": 0.005820794753086419
+      }
+    },
+    {
+      "family": "activities",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "activities-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "8d9fe4716cbd71430c53ee0e038a25bbfaa2b82da54e0bacebeca65852ea9089",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.030728202160493826,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "activities",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "activities-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "02805acd6b0b87f17feb8b5a04efe981e0eeca185e3b59a7db583719794b7a65",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03126012731481481,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "activities",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "activities-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "88d0dcc6556b6bbe597d646aacadc1b7a9233a465fa319abf708197b7a45282d",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03688400205761317,
+        "pixelsOver25": 0.0000024112654320987654
+      }
+    },
+    {
+      "family": "activities",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "activities-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "e71df4eb221d6f18c79783ee50e8d92881536e81b6d84df215b0fb3162a4aa26",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03360323431069959,
+        "pixelsOver25": 0.0000019290123456790124
+      }
+    },
+    {
+      "family": "training",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "training-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "0bd56103380447518d262a4c9d2260d0c0cfc4756531d9d02533d6972fbcd08f",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.026293242026748972,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "training",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "training-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f71d307d1c46a86d3292d96bba10855de9542a1d3371b13ea1aa3da5c8c9613c",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.010614229681069958,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "training",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "training-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "cc8cfe139c12c910e6ae5af6f71777652bd2b9f368f9056ff5577c383a7e14cd",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.014697145061728395,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "training",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "training-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "c9149240047dec2713912ad3942b2b839defc26b94d44ed6510a8b0ac2591ded",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.006883841306584362,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "volunteers",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "volunteers-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "097d0ccca1360ef314c266e63c4f5de5b067094d5bb3afdf3262382bdf273734",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.025843139146090537,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "volunteers",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "volunteers-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "1bc77ea317b0497260db947a4a7570078803c5839913560fc41b28029a395ac3",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.010724183384773663,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "volunteers",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "volunteers-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "98667b5de1154847ef703410e31e6fa0b8fa51318415d63e4f0530ea4a3d283c",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.01265528549382716,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "volunteers",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "volunteers-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6483fa6b34e83e062b683818cbbcbc765f0b2e120adad8ded4da6de3d57346e1",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.006682259516460906,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "visitors",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "visitors-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "01aea24059bf9551694b38e3516a4448561b18adec0a7cd5d0c1072f6bcb5e7a",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.6084587191358025,
+        "pixelsOver25": 0.010211226851851852
+      }
+    },
+    {
+      "family": "visitors",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "visitors-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "9b2443563bffdc9922e342863ee308d1cec0790e51a378e8eab204911d80a166",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.7442589377572016,
+        "pixelsOver25": 0.010873842592592593
+      }
+    },
+    {
+      "family": "visitors",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "visitors-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "9fa5167a4c4bc7f9f946aa6b508afa4d2aeba78930394b8d2d50689a82c7a376",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.08918033050411522,
+        "pixelsOver25": 0.00030140817901234566
+      }
+    },
+    {
+      "family": "visitors",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "visitors-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "abeb09e3f329d28e677b42b5b4ffda2a2183c72ac664d984d3e4b245cd258638",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.17602735982510287,
+        "pixelsOver25": 0.0002652391975308642
+      }
+    },
+    {
+      "family": "matchday",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "matchday-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 42000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "10f070c5266c88786b49f33dc293ec3ecd75d03d1cc804330eeac6f1c5c909bf",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.4831962127057613,
+        "pixelsOver25": 0.014328221450617283
+      }
+    },
+    {
+      "family": "matchday",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "matchday-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 42000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ed6583e2390dcb221f6bc709b610c82096c8c8f398a0afd81b50038537ca9803",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.08240403163580247,
+        "pixelsOver25": 0.0009153163580246914
+      }
+    },
+    {
+      "family": "matchday",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "matchday-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 45000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "bd16168303dbabb92ed383fb72e03d6570a0fcd22c1815e09c80bcb84b7b75a0",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.4522604809670782,
+        "pixelsOver25": 0.011515721450617284
+      }
+    },
+    {
+      "family": "matchday",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "matchday-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 45000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "d3808fb2233523bde94eceff90da1d78d0e372d2ecf2ee94f32bbfe69025bf9d",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.20952289094650206,
+        "pixelsOver25": 0.001869212962962963
+      }
+    },
+    {
+      "family": "club-program",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "club-program-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "adbadfd458bbc9b029267c4e59a185c98dc0b387bf2c17a512a3fe5a36c832b3",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0269555362654321,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "club-program",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "club-program-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "5a52a20f1c3a54284a3b77fbbeabada9ceff774b4c75fdbc5a669396c09774a9",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.009098186728395062,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "club-program",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "club-program-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "85c4bac52d29fb761c4690f3cd5d34d413e977ced73d5d873b752a3f4c32c4f9",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.017984985853909466,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "club-program",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "club-program-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "39955132d9c2ec57539787b92ed899dfc7969227ad826973ecc1e08765db46df",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008004597479423869,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-program",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-program-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "104cf08bce6e99bddf4c0a798f91e50226bc60e313e3803702bc9835c3b89116",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.033038515946502055,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-program",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-program-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "e0e1d5b1fa16e00e45a5309b722e37d35fbf014f091f4665c1efbd023658b21a",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00900929140946502,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-program",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-program-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "200e2d7e56f56c6fce1259d09bd3c5838c6456fdfd24f9ab3c33e1363d8b2266",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.02868457433127572,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-program",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-program-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6113bbcd60f257d5d5df60ce474d793f867a71ccaf5231304a72dba85167b586",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.007655446244855967,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-program",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "pool-program-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a280bb9b192da5b95026ac5bcb8a7d80372e4ff9f949dbb601b438169ba08b8a",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.031048257458847737,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-program",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "pool-program-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a1b3bc28047af46822b4feba9c9c5a7cc5c22d7d8e02eb75f64e8952a17488e2",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008296039094650206,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-program",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "pool-program-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "2d347012518d02b470a7437bc03f3618c07ca43bc37b355ec987ec80cab1587c",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.02064895190329218,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-program",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "pool-program-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "90b40ee119495194b63b28d932a577da1e8828383644dc1870f80ef05de8a177",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0066919045781893005,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "club-results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "club-results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6c9e0bd8bc35a6495d3aa293d144d0a7afae1401d763550b17e6336104fc5154",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.026736914866255145,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "club-results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "club-results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "b7e6adde88bf2e50259737de2ad7e9ba07d7a67661e6f3007ee712bd00e98728",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008318222736625514,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "club-results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "club-results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "4d8c91174ec7b6eb1fc596c721f2de205080e9608348908992abfa8075db713c",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.017787422839506174,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "club-results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "club-results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "1c2b1cda13e6603fcb82e46171bd0761bf5eee79570925751c9c997b01a7c1b3",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.007140882201646091,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "c91e1da5dca4b1995d391c802e138e371d0bee3049f6d79ce54b6cc7aa4602fa",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.032902842078189304,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ada82447ae168a520ad427271960db3f20dedfd368384e20f1d3565f22b4dc86",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008636188271604938,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f5d6021f0385bf9df7590e6159e47894a825ebb66e049cfdbd1a9ab0b310bc2f",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.028567708333333334,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a564967f275d1b1f64ab29fe038cbf3d3de69dc9e8d569a406e5cc6d6cc8bee8",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.007154385288065844,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "pool-results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "37a53e4ead78abe58ec61279161db20f456de10263c62990bb34368af54aa9d1",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03097704475308642,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "pool-results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "580a391c99f30823ec29173d8b46bd3e6e9ffec5f15017b18b39c318b3a209a4",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008068737139917695,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "pool-results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "1b90973c1e64892455e84878d1e861cdc0a86dc819d363e7dcdb1fc1d013a1b9",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.020422453703703703,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "pool-results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "pool-results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 36000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "bd83135241b9e7ce63affdabd649b33830f018041f11e8934d3463ad7c8df3bc",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.006385191615226337,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "standings",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "standings-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 40000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "183bccf825bb822035c99daf9066a634899d58884eb7b60adeab4b0cfdb354c1",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.2566179591049383,
+        "pixelsOver25": 0.005709876543209876
+      }
+    },
+    {
+      "family": "standings",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "standings-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 40000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "75833991d46fce996d7314e497b73fd79463e09c0abf96b1b7e0ade0cfd6f553",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.25720871913580245,
+        "pixelsOver25": 0.0026572145061728395
+      }
+    },
+    {
+      "family": "standings",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "standings-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 23000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "756b0fec80de5849b1d9f273317ef858feb50463dd1c63ed578e7aae100ec050",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.4776808449074074,
+        "pixelsOver25": 0.011416377314814815
+      }
+    },
+    {
+      "family": "standings",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "standings-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 23000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f432d407558cd5ff5bd25435611d334871f551b0222b1f52e77a8c9b6db7a474",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.37843846450617286,
+        "pixelsOver25": 0.00421826774691358
+      }
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-arrivals-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ecc6f4bd5524f72c72a1fbb03c523a65a7b6aaa6a7efd1bc25566f90778d36b6",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.01957883230452675,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-arrivals-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f9a208344c4d880f60751a5a88c74cc3fd2310438a2e83d741e5472a85745019",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0100634966563786,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-arrivals-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6290ce2f876cba558ae1dbcf6a31f47c9118a4917e05f6cb9e84b188a7b7d19b",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0113671875,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-arrivals-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "01b0976a7132065b8381ff62c99cf6129453eebde9ce32fdaf5d35dca6d7b394",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00617943029835391,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "welcome",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "welcome-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "68ad712b73af10fd8e79450c103e225e5dfadbe915e0d922b25f7310a4f53bb4",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.6083846129115227,
+        "pixelsOver25": 0.010211226851851852
+      }
+    },
+    {
+      "family": "welcome",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "welcome-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "93469754073c4781427ccfef13b528ac6fb5861e467f9b16fce38760241d7493",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.7439155735596708,
+        "pixelsOver25": 0.010873842592592593
+      }
+    },
+    {
+      "family": "welcome",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "welcome-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "cf07d275995d741c76f63cb330b755e0aba7685a1f71ddafaa279aee56b8a852",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.08918081275720165,
+        "pixelsOver25": 0.00030140817901234566
+      }
+    },
+    {
+      "family": "welcome",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "welcome-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "ea4b0dc5082a88129d708ae40cb1bf017abd46815266e5045f1ba65a4ca9659c",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.17569428369341564,
+        "pixelsOver25": 0.0002652391975308642
+      }
+    },
+    {
+      "family": "referees",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "referees-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6f13516fd6be0f3f8ebbf6c416cb90bf601ffee07879aa349ca3b1705a651f77",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.02609278549382716,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "referees",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "referees-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "fe92be3e0c795b43de4172d88552afe600188b2e99adcbdbcc2cafccc2c0f0f5",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.010583043981481481,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "referees",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "referees-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "c56d192d26333b83ff8c7eaa87b46c85015666743cf3d195d5bd2dcd40313fd7",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.01292406121399177,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "referees",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "referees-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "17645b913baeffd8137c61913e03a0b02e9b5c174c6b2132e0bcd347fe4f7ad4",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00660204475308642,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "changing-rooms-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "b3f0e4f8ba13d1c5d9ce9008d43399c63f979e2145cb4bf08fc86c119999262a",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.01938159079218107,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "changing-rooms-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f7c65b0058392b752c138476c91d5dab08cb3afbde8096051d8d481e7b400995",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00956886574074074,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "changing-rooms-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ca9772ef4d6fd48d7cc6cf37d1f78e461f7aa2be6e7b9720cefa8831817e6f60",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.010919013631687242,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "changing-rooms-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "5148f5ca82df23604c5286f7dc6169b9fb44408d26c643947bb8ed182a7fce1a",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.006312853652263375,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "next-match",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "next-match-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "b452370fb46d240deaa08686d8b471c076045395b31a11e6899f82ee8555d470",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.02490869341563786,
+        "pixelsOver25": 0.00001591435185185185
+      }
+    },
+    {
+      "family": "next-match",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "next-match-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f80b7605e3aa1ab1b443e80524560a9bae4b82532142e260d7b937e02f9c4bd9",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.09050829475308642,
+        "pixelsOver25": 0.000005304783950617284
+      }
+    },
+    {
+      "family": "next-match",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "next-match-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f64814c21c4110f8fb9592487c83b53528ab526a4ca7b9c7f39b94fec01cc8aa",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03965952932098765,
+        "pixelsOver25": 4.822530864197531e-7
+      }
+    },
+    {
+      "family": "next-match",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "next-match-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f0075e03d9e27e1ce665ff7140f6091c1213551c387468929903db258c81b85e",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.05366383744855967,
+        "pixelsOver25": 4.822530864197531e-7
+      }
+    },
+    {
+      "family": "birthdays",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "birthdays-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "3bbe3efe1357a640ff14ee3ef56f7bc476249bff03bbea6e160bf72b64590d35",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03107687114197531,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "birthdays",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "birthdays-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "66e567ff664807d5261954db8aa350764f69db9603fc972f06aeac55fc51dba1",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03314396862139918,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "birthdays",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "birthdays-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "1e725c1a5efde4d636be7731465af83be47cfafc776972657d163ddd27f1ab81",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03603555812757202,
+        "pixelsOver25": 0.000018325617283950617
+      }
+    },
+    {
+      "family": "birthdays",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "birthdays-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "6b5aced330d23a546761004831f80231be5de29c0d67497dcc3bff8d82bb3244",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03576597865226337,
+        "pixelsOver25": 0.000017843364197530866
+      }
+    },
+    {
+      "family": "lineup",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "lineup-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "b4194cbc76c8631b7bbee1a23734c92a478007ee583b736210eae4885d6f2137",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.15496383101851852,
+        "pixelsOver25": 0.002840470679012346
+      }
+    },
+    {
+      "family": "lineup",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "lineup-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "651e1d483d2e0f090621a7bc29d035543f646a429a7fc1921c6a027232d49689",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.12019338348765432,
+        "pixelsOver25": 0.001605420524691358
+      }
+    },
+    {
+      "family": "lineup",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "lineup-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "1da97a0ec17073d328bcf5ce6ee75adf119cbe230d389af4ce3ef00f88201c88",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.44088895318930044,
+        "pixelsOver25": 0.007061149691358025
+      }
+    },
+    {
+      "family": "lineup",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "lineup-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "372b20550a34d354b99ca51bf7b3abc96afe0511acd2bbb7534bd335aed5b274",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.41797196502057615,
+        "pixelsOver25": 0.006463638117283951
+      }
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "scoreboard-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "f3d2ce3cad9724305e0369ccfc566ab6598feacebdef5fc4d7dae976a9cb8129",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.025076517489711934,
+        "pixelsOver25": 0.00001591435185185185
+      }
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "scoreboard-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "7dbfa5df027f5ffacaff963884e4acfb777056c4544d6fd9441a1671d9a860dd",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.08539014274691357,
+        "pixelsOver25": 0.000005304783950617284
+      }
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "scoreboard-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "57f2d3912faf9615f40e867c739aeebe47512c7243a601cfb42170c0cc66e722",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03928835519547325,
+        "pixelsOver25": 0.0000028935185185185184
+      }
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "scoreboard-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a55b97d5698ad900d9dcb0771f6720758f604567aeaa8fba92e4fbf551b6d93d",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.059481095679012344,
+        "pixelsOver25": 0.0000028935185185185184
+      }
+    },
+    {
+      "family": "goal",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "goal-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "40367a862f85dd30a930762ae08d5cfbc87464d18c0dee30928b73c705c3fd0c",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.2072969714506173,
+        "pixelsOver25": 0.0010011574074074074
+      }
+    },
+    {
+      "family": "goal",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "goal-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "27397585ea70131ce2851ac834a7d41e26cf64ff51b821d79f5ce6a6616583ab",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.09261799125514403,
+        "pixelsOver25": 0.0009553433641975308
+      }
+    },
+    {
+      "family": "goal",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "goal-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "623f4fe223ad7fa68c1f4c5a7954b890c1e88e502b4a1017a02308be0e9708a3",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.14121736754115227,
+        "pixelsOver25": 0.002037037037037037
+      }
+    },
+    {
+      "family": "goal",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "goal-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "contextScalePercent": 130,
+      "sha256": "3ced304c29752e744c1023b64d38561928a10f31b2d9a05f388d5efc56219640",
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.054643936471193415,
+        "pixelsOver25": 0.0008559992283950617
+      }
+    },
+    {
+      "family": "menu",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "menu-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "67a587d8270758f35b7bedc1a5ba4ab0caf8488c66c2b5f412d74894044ffa9b",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.015133101851851852,
+        "pixelsOver25": 0.000005304783950617284
+      }
+    },
+    {
+      "family": "menu",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "menu-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "d3609801c9cffb033c2c8d2b9feed4c4106969bb3f65c12b1e36b378c3230433",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.017564139660493826,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "menu",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "menu-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "45aa963c84058e1ba737ad87eb33669176df5cf222ab066005701f26a6745b66",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.011066904578189301,
+        "pixelsOver25": 0.000012056327160493826
+      }
+    },
+    {
+      "family": "menu",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "menu-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "d13550522b3c43fa6ad5a77b56c455175427cb01a9f20a45e64936fc73a81369",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.014964474022633744,
+        "pixelsOver25": 0.0000028935185185185184
+      }
+    },
+    {
+      "family": "engage",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "engage-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "9d7a28a7f3e6e1fdabbf6dc36362721e913611bfc759357daa50b7c8145541ed",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03152006172839506,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "engage",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "engage-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "85f889a58294fa595f2103677a4aa3e05a3edc237f3fa370b52ee8f10d522e4f",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.02608249742798354,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "engage",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "engage-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "fc9cacb34864bc8ab983831b8d0412f9fe4f8b46f13c1555f1e45872b05f5343",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03455648791152263,
+        "pixelsOver25": 4.822530864197531e-7
+      }
+    },
+    {
+      "family": "engage",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "engage-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a6d511bc6ce0df03d3845f786328a098905ddeada1ab05f2f930da56e92e98f7",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.026331983024691356,
+        "pixelsOver25": 0.0000014467592592592592
+      }
+    },
+    {
+      "family": "rss",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "rss-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6f23cec3789ecafbe9449ef14133780d0ebf8de4645372f2e515888e206864d5",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.28853796939300413,
+        "pixelsOver25": 0.002583912037037037
+      }
+    },
+    {
+      "family": "rss",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "rss-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a2f08f72155f0381f7fd901719c29063f5bfbc9f97af1822643bb086164c47b8",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.28628327546296295,
+        "pixelsOver25": 0.0022743055555555555
+      }
+    },
+    {
+      "family": "rss",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "rss-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ab3c5b23499318b9d42cde4305f3dddee55b59b5b2791be03daaaabb8236dcc3",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.5979917373971193,
+        "pixelsOver25": 0.008585069444444444
+      }
+    },
+    {
+      "family": "rss",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "rss-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "8c3041445b47af2cc7b63455ddae7b6991aa0a02c0bd9beb0151318e0c8d6c42",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.5928814621913581,
+        "pixelsOver25": 0.00814380787037037
+      }
+    },
+    {
+      "family": "sponsors",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "sponsors-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "04cfee6651cb2d2d0ead36e9d3229f422311fd56ad43f3b72d694baa1f526f61",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0035971257716049384,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "sponsors",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "sponsors-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "36077a9e093470d8153df1f824f7b221d2982d8474c58f491b39d333f9bffeff",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.006381494341563786,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "sponsors",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "sponsors-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ac09c7fdf267ae59d99f23d18c549fcdfbff6e5c7ffc07438938034f4ada82b4",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0027936921296296295,
+        "pixelsOver25": 4.822530864197531e-7
+      }
+    },
+    {
+      "family": "sponsors",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "sponsors-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "98b270c5f687eb2f8958dd24b11fe8b6a65b5b2fc53950ac277fe5a8bee6edb5",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.005027166923868313,
+        "pixelsOver25": 4.822530864197531e-7
+      }
+    },
+    {
+      "family": "agenda",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "agenda-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "33c63572fea7dfd9388cabd1074a34a96d858af2e71909bd53769727d97359b6",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.030702481995884774,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "agenda",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "agenda-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "87c2cc0093a5bb63a517ddbf97b7902687e9ff643fe68866f9e12c8bec2b8119",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03116480195473251,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "agenda",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "agenda-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "96622604630f8d56ac9297c87734f98dcb5ff9166e91b9ca04e9df7eed96919c",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03688014403292181,
+        "pixelsOver25": 0.0000024112654320987654
+      }
+    },
+    {
+      "family": "agenda",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "agenda-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "0fd7a765d97c78c1ccdac542e3e45699f4c39d4eea2f2161f66d7ddbe1f90cb3",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.03350196116255144,
+        "pixelsOver25": 0.0000019290123456790124
+      }
+    },
+    {
+      "family": "club-story",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "club-story-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "4e5681dc31a6ede651cd7697130e55211881a41eb87296a27dc30baaecfd938d",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.28523759002057614,
+        "pixelsOver25": 0.0026475694444444446
+      }
+    },
+    {
+      "family": "club-story",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "club-story-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "ee3e10a3132477fccdff467549ab1d5fc57917095cba52b8667fc2a401a65cfe",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.2833000578703704,
+        "pixelsOver25": 0.0023365162037037035
+      }
+    },
+    {
+      "family": "club-story",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "club-story-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "bcc3591dc763a798df547b04ac7ca9555b4e89011a01b60bf1bf5f994e156480",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.5834776877572017,
+        "pixelsOver25": 0.008360821759259259
+      }
+    },
+    {
+      "family": "club-story",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "club-story-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 24000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "06b699e31234ed76d2ae9e9c066e2160b5f6cece13d1f2bf0236b4489f5c1ac8",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.5763218557098766,
+        "pixelsOver25": 0.00794994212962963
+      }
+    },
+    {
+      "family": "youtube",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "youtube-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "8d4e439ddd7e3c0db24750fc7e5943ee7b6d4f2c4aea3fdd905d4a8bf1cff6d0",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0026929012345679013,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "youtube",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "youtube-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "547e55912c95d44594439da606e6979533d8ce1148bfca25d3ef70f9c48200f2",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0032143775720164607,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "youtube",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "youtube-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "a5c406b5a3f2fdc510ed885bf9d6494e5c53bdd9cd0fd006bdd4affc28cae4c0",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0016268004115226338,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "youtube",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "youtube-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "6dd828d6134b4dde7da2931e84dc31659bf4a7a7acad5d5d03b19f08e6827ee1",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.002109053497942387,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "free",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "free-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "589be6f72f883220fa3dbdc7e9e9f005853d2ed7c323feb2533c54198ebe1b04",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.00451855066872428,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "free",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "free-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "c34d3e09169b98096ee4a6cd7b8c2a0960845b1b6ee7532a25a538be7e2b2d86",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.008375450102880658,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "free",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "free-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "20d2fb27f310e279477c076fd02fd7a3a9770bbfc6c66b25222e2e593cc3ba13",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.0033611432613168723,
+        "pixelsOver25": 0
+      }
+    },
+    {
+      "family": "free",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "free-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "paused": true,
+      "introFinished": true,
+      "durationMs": 12000,
+      "rendererVersion": "sync-onzetrots-v9",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "sha256": "e7aa4422931090c0960928fa4c48ea4f09e76c6f3dada7f47090e04169a318c0",
+      "contextScalePercent": 130,
+      "comparison": {
+        "meanAbsoluteChannelDifference": 0.007360628858024691,
+        "pixelsOver25": 0
+      }
+    }
+  ]
+}

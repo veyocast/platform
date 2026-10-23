@@ -1,5 +1,6 @@
 import approved from './sync-onzetrots-preview-fixtures.json';
 import {
+  isSyncOnzeTrotsPresentation,
   syncContentFamilies,
   syncSlidePresentationSchema,
   syncSlideRendererVersion,
@@ -148,6 +149,13 @@ function createLegacySyncTemplatePreview(family: SyncContentFamily): SyncSlidePr
 
 /** Display-only approved examples. Never pass this factory to a writer, source
  * seed or new-document constructor; those deliberately begin without facts. */
-export function createSyncTemplatePreview(family:SyncContentFamily,rendererVersion:SyncSlidePresentation['rendererVersion']='sync-onzetrots-v1'):SyncSlidePresentation{
- return rendererVersion==='sync-v1'?createLegacySyncTemplatePreview(family):syncSlidePresentationSchema.parse(approved.fixtures[family]);
+export function createSyncTemplatePreview(family:SyncContentFamily,rendererVersion:SyncSlidePresentation['rendererVersion']='sync-onzetrots-v9'):SyncSlidePresentation{
+ if(rendererVersion==='sync-v1')return createLegacySyncTemplatePreview(family);
+ const original=syncSlidePresentationSchema.parse(approved.fixtures[family]);
+ if(!isSyncOnzeTrotsPresentation(original))throw Error('Approved display fixture unavailable');
+ if(rendererVersion==='sync-onzetrots-v9'&&original.rich?.birthdays){
+  const names=['Sam K.','Nora D.','Milan J.','Sanne V.','Finn M.','Peter S.'];
+  original.rich.birthdays.forEach((person,index)=>{person.displayName=names[index]??person.displayName;});
+ }
+ return syncSlidePresentationSchema.parse(rendererVersion==='sync-onzetrots-v1'?original:{...original,rendererVersion,sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',authoring:{schemaVersion:1,headerSubtitles:{},headerTexts:family==='team-arrivals'?{'team-arrivals':'WELKOM OP HOUTRUST'}:{},welcomeScalePercent:150}});
 }

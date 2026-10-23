@@ -55,6 +55,22 @@ jobs:
       - name: Prove concurrent metadata edit and tag deletion
         run: node scripts/verify-media-metadata-concurrency.mjs
 
+      - name: Use canonical HTTPS Ubuntu mirror for publication tools
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          publication_apt_sources=()
+          for publication_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/apt-mirrors*.txt; do
+            if [[ -f ${publication_apt_source} ]]; then
+              publication_apt_sources+=("${publication_apt_source}")
+            fi
+          done
+          if (( ${#publication_apt_sources[@]} == 0 )); then
+            echo 'Ubuntu package sources are required for the real publication tools.' >&2
+            exit 1
+          fi
+          sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${publication_apt_sources[@]}"
+
       - name: Install Chromium for real publication gate
         run: pnpm exec playwright install --with-deps chromium
 

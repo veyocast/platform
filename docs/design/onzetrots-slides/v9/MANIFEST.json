@@ -1,0 +1,197 @@
+{
+  "packageVersion": "1.4.0",
+  "createdOn": "2026-10-23",
+  "language": "nl",
+  "purpose": "Repository-ready handoff; no production repo changes performed",
+  "repositoryPlacement": "docs/design/onzetrots-slides",
+  "prototype": {
+    "url": "https://veyocast-onzetrots-slides.dgwebserv.chatgpt.site",
+    "commit": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+    "sourceDirectory": "broncode",
+    "fileCount": 261,
+    "sourceBytes": 9969905,
+    "logicalCanvases": {
+      "landscape": [
+        1600,
+        900
+      ],
+      "portrait": [
+        900,
+        1600
+      ]
+    },
+    "targetOutputs": {
+      "landscape": [
+        1920,
+        1080
+      ],
+      "portrait": [
+        1080,
+        1920
+      ]
+    },
+    "revision": "v9"
+  },
+  "repoInspection": {
+    "repository": "veyocast/platform",
+    "ref": "main",
+    "observedCommit": "3bbb51ac006bbaf8381a11d5dcfd7024d13d3876",
+    "inventory": "inventaris/repo-integration-inventory.json",
+    "implementationApplied": false
+  },
+  "coverage": {
+    "families": 36,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "orientations": [
+      "landscape",
+      "portrait"
+    ],
+    "baseScreenshots": 144,
+    "detailScreenshots": 16,
+    "contactSheets": 4,
+    "captureInventory": "inventaris/captures.json",
+    "captureDefaults": {
+      "header": "family.label",
+      "subtitle": "Duindorp SV · family.group",
+      "visitorScalePercent": 150
+    },
+    "staticLayoutSourceCommit": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+    "browserEvidence": {
+      "packagePath": "inventaris/browser-evidence-v9.json",
+      "sourceCommit": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "bytes": 137371,
+      "sha256": "961ee050bb9b92846559ad394b657db3ae060803c5cb0bc38b46bb3684a9e030",
+      "checkCount": 72,
+      "frameCount": 160,
+      "checkOrdering": [
+        "portrait",
+        "landscape"
+      ],
+      "checksPerOrientation": 36,
+      "scope": "Actual72 pre-capture checks plus recorded per-frame DOM metadata when present. No assertions imported from earlier captures."
+    }
+  },
+  "assets": {
+    "audit": "inventaris/asset-audit.json",
+    "fontFiles": 11,
+    "downloadedOpponentCrests": 217,
+    "logoAliases": 732,
+    "backgroundArtworks": 6
+  },
+  "checks": {
+    "checksums": "SHA256SUMS.txt",
+    "packageVerification": "python3 tools/verify-package.py",
+    "behaviorExamples": "node --test codevoorbeelden/reference-behavior.test.mjs"
+  },
+  "dataBoundary": "All match, standing, birthday, agenda, lineup, price and poll demo facts are illustrative; only assets and design are reference.",
+  "motionProof": {
+    "sourceCommit": "d5005d8cc7cdb794edb3b1a40cda70a3491b2b0c",
+    "directory": "voorbeelden/motion-v7",
+    "frameCount": 3,
+    "observations": {
+      "packagePath": "voorbeelden/motion-v7/motion-observations.json",
+      "sha256": "22dfe60493a3eed3aa8750488429ffb42fd127c9b32e6882270af9f6488a2354",
+      "bytes": 6264
+    },
+    "frames": [
+      {
+        "packagePath": "voorbeelden/motion-v7/01-achtergrond.jpg",
+        "sourceCommit": "d5005d8cc7cdb794edb3b1a40cda70a3491b2b0c",
+        "bytes": 333220,
+        "sha256": "16bb549b48e1a7dfe0527e8504b46fa4267c828f0b7d563faf335c23a8572702",
+        "dimensions": {
+          "width": 1363,
+          "height": 766
+        }
+      },
+      {
+        "packagePath": "voorbeelden/motion-v7/02-header.jpg",
+        "sourceCommit": "d5005d8cc7cdb794edb3b1a40cda70a3491b2b0c",
+        "bytes": 319736,
+        "sha256": "24ff068252f912dbc449d24a2b464c8774f0d32e7cbed64185e0b5daf3bd8dba",
+        "dimensions": {
+          "width": 1363,
+          "height": 766
+        }
+      },
+      {
+        "packagePath": "voorbeelden/motion-v7/03-containers.jpg",
+        "sourceCommit": "d5005d8cc7cdb794edb3b1a40cda70a3491b2b0c",
+        "bytes": 202848,
+        "sha256": "718cb7da946c3ba0fd2b6b2c3f0e6f7d6b3a94bacef7add2d93a184dffeab3d2",
+        "dimensions": {
+          "width": 1363,
+          "height": 766
+        }
+      }
+    ],
+    "note": "Representative browser frames + observed computed style; not an exact-frame video/export assertion.",
+    "historical": true,
+    "historicalReason": "v7 entrance-order evidence only; earlier typography and inner headings. Current layout and typography references are the160 newly captured frames."
+  },
+  "menuStudioReference": {
+    "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+    "directory": "referenties/menustudio/broncode",
+    "fileCount": 32,
+    "bytes": 4933285,
+    "purpose": "Targeted MenuStudio reference snapshot with local import dependencies and Menu assets; not a standalone complete application. Unrelated renderer-branch assets and runtime shell intentionally excluded; no site identity, Git metadata, runtime or credentials.",
+    "standaloneApplication": false,
+    "inventory": "inventaris/menustudio-source.json",
+    "browserProof": {
+      "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+      "directory": "referenties/menustudio/voorbeelden",
+      "frameCount": 4,
+      "files": [
+        {
+          "packagePath": "referenties/menustudio/voorbeelden/menu-studio/portrait-dark.jpg",
+          "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+          "bytes": 32539,
+          "sha256": "f15b9fce6e55866628262b570b3b7161651cf561ce23862b582461ba14dfd705",
+          "dimensions": {
+            "width": 420,
+            "height": 746
+          }
+        },
+        {
+          "packagePath": "referenties/menustudio/voorbeelden/menu-studio/portrait-light.jpg",
+          "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+          "bytes": 49063,
+          "sha256": "778badc89f50b9ee8207e3c524a2838ce2b355b773bc3d6a53de8dfb98978a86",
+          "dimensions": {
+            "width": 420,
+            "height": 746
+          }
+        },
+        {
+          "packagePath": "referenties/menustudio/voorbeelden/menu-studio/landscape-light.jpg",
+          "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+          "bytes": 18349,
+          "sha256": "107b4edbc73ca3a97757fa22b20d74eb2f1a0265487ab2f8bf6bfd7b59c28d4b",
+          "dimensions": {
+            "width": 436,
+            "height": 245
+          }
+        },
+        {
+          "packagePath": "referenties/menustudio/voorbeelden/menu-studio/landscape-dark.jpg",
+          "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+          "bytes": 10961,
+          "sha256": "0025765c5f0256f1eed8a1fe21a38a387f476eba12bb4d72df1ca4cd4645a32a",
+          "dimensions": {
+            "width": 436,
+            "height": 245
+          }
+        },
+        {
+          "packagePath": "referenties/menustudio/voorbeelden/menu-studio/browser-evidence.json",
+          "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+          "bytes": 3510,
+          "sha256": "e9432268de6374d78ab0bf8f8d2bd57b163f0debb0d97530851043c5d0a31849"
+        }
+      ]
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import {projectSyncOnzeTrotsV9Entrance,type SyncOnzeTrotsV9Scene,type SyncOnzeTrotsV9Entrance} from './sync-onzetrots-v9-motion';
 import type {SyncOnzeTrotsRich} from '@veyocast/contracts';
 
 export const syncOnzeTrotsScrollSpeeds={slow:19,normal:30,fast:48} as const;
@@ -36,7 +37,7 @@ export function syncOnzeTrotsSixSlots<T>(items:readonly T[],page=0):Array<T|null
 }
 
 export type SyncOnzeTrotsRankLayout={range:number;viewportHeight:number;rowHeight:number;ownIndex:number|null};
-export type SyncOnzeTrotsMotionFrame={elapsedMs:number;reducedMotion:boolean;ranks:Array<{scrollTop:number;progress:number}>};
+export type SyncOnzeTrotsMotionFrame={elapsedMs:number;reducedMotion:boolean;ranks:Array<{scrollTop:number;progress:number}>;entrance?:SyncOnzeTrotsV9Entrance};
 
 /** Serialization-safe DOM adapter; used as-is by the capture browser too. All
  * measurements are logical CSS pixels, independent of output/preview scale. */
@@ -47,9 +48,9 @@ export function measureSyncOnzeTrotsLayout(root:ParentNode=document):SyncOnzeTro
  });
 }
 
-export function projectSyncOnzeTrotsMotion(elapsedMs:number,layouts:readonly SyncOnzeTrotsRankLayout[],speed:keyof typeof syncOnzeTrotsScrollSpeeds='normal',reducedMotion=false):SyncOnzeTrotsMotionFrame{
+export function projectSyncOnzeTrotsMotion(elapsedMs:number,layouts:readonly SyncOnzeTrotsRankLayout[],speed:keyof typeof syncOnzeTrotsScrollSpeeds='normal',reducedMotion=false,scene?:SyncOnzeTrotsV9Scene):SyncOnzeTrotsMotionFrame{
  const time=reducedMotion?0:Math.max(0,finite(elapsedMs));
- return {elapsedMs:time,reducedMotion,ranks:layouts.map(layout=>{
+ return {elapsedMs:time,reducedMotion,...(scene?{entrance:projectSyncOnzeTrotsV9Entrance(elapsedMs,scene,reducedMotion)}:{}),ranks:layouts.map(layout=>{
   const scrollTop=syncOnzeTrotsRankScrollAt(time,layout.range,speed);
   return {scrollTop,progress:layout.range>0?scrollTop/layout.range:0};
  })};
@@ -72,6 +73,21 @@ export function applySyncOnzeTrotsMotion(frame:SyncOnzeTrotsMotionFrame,root:Par
   screen.dataset.otElapsed=String(frame.elapsedMs);
   for(const animation of screen.getAnimations({subtree:true})){
    animation.pause();animation.currentTime=frame.elapsedMs;
+  }
+  if(frame.entrance&&screen.closest('.ot-v9-scope')){
+   const intro=frame.entrance;
+   screen.classList.toggle('intro-finished',intro.finished);
+   screen.style.setProperty('--ot-scene-background-opacity',String(intro.background.opacity));
+   screen.style.setProperty('--ot-scene-background-scale',String(intro.background.scale));
+   const selector='.panel,.photo-panel,.pitch,.goal-scene,.video-layout';
+   const panels=[...screen.querySelectorAll<HTMLElement>('.slide-content .panel,.slide-content .photo-panel,.slide-content .pitch,.slide-content .goal-scene,.slide-content .video-layout')].filter(panel=>!panel.parentElement?.closest(selector));
+   const targets=[{element:screen.querySelector<HTMLElement>('.slide-header-container'),value:intro.header},...panels.map((element,index)=>({element,value:intro.panels[index]})),{element:screen.querySelector<HTMLElement>('.slide-footer'),value:intro.footer}];
+   for(const target of targets){
+    if(!target.element||!target.value)continue;
+    target.element.style.opacity=String(target.value.opacity);
+    target.element.style.transform=`translateY(${target.value.translateY}px) scale(${target.value.scale})`;
+    target.element.style.filter=`blur(${target.value.blur}px)`;
+   }
   }
  }
 }

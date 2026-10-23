@@ -3695,6 +3695,2995 @@
         "visual"
       ],
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "number",
+          "const": 1
+        },
+        "rendererVersion": {
+          "type": "string",
+          "const": "sync-onzetrots-v9"
+        },
+        "sourceRevision": {
+          "type": "string",
+          "const": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+        },
+        "family": {
+          "type": "string",
+          "enum": [
+            "fixtures",
+            "results",
+            "period-standings",
+            "cancellations",
+            "dressing-rooms",
+            "officials",
+            "team-info",
+            "activities",
+            "training",
+            "volunteers",
+            "visitors",
+            "matchday",
+            "club-program",
+            "team-program",
+            "pool-program",
+            "club-results",
+            "team-results",
+            "pool-results",
+            "standings",
+            "team-arrivals",
+            "welcome",
+            "referees",
+            "changing-rooms",
+            "next-match",
+            "birthdays",
+            "lineup",
+            "scoreboard",
+            "goal",
+            "menu",
+            "engage",
+            "rss",
+            "sponsors",
+            "agenda",
+            "club-story",
+            "youtube",
+            "free"
+          ]
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "landscape",
+            "portrait"
+          ]
+        },
+        "theme": {
+          "type": "string",
+          "const": "onzetrots-tv"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "club": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "tagline": {
+              "default": "",
+              "type": "string",
+              "maxLength": 400
+            },
+            "logo": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "system"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "path",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "tenant"
+                    },
+                    "mediaAssetId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "mediaAssetId",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "tagline"
+          ],
+          "additionalProperties": false
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "headline": {
+          "default": "",
+          "type": "string",
+          "maxLength": 400
+        },
+        "body": {
+          "default": "",
+          "type": "string",
+          "maxLength": 4000
+        },
+        "subtitle": {
+          "default": "",
+          "type": "string",
+          "maxLength": 400
+        },
+        "topLabel": {
+          "default": "CLUB TV",
+          "type": "string",
+          "maxLength": 400
+        },
+        "footer": {
+          "default": "",
+          "type": "string",
+          "maxLength": 400
+        },
+        "footerRight": {
+          "default": "",
+          "type": "string",
+          "maxLength": 400
+        },
+        "home": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "team": {
+              "default": "",
+              "type": "string",
+              "maxLength": 400
+            },
+            "logo": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "system"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "path",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "tenant"
+                    },
+                    "mediaAssetId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "mediaAssetId",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "team"
+          ],
+          "additionalProperties": false
+        },
+        "away": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "team": {
+              "default": "",
+              "type": "string",
+              "maxLength": 400
+            },
+            "logo": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "system"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "path",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "tenant"
+                    },
+                    "mediaAssetId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "mediaAssetId",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "team"
+          ],
+          "additionalProperties": false
+        },
+        "match": {
+          "type": "object",
+          "properties": {
+            "homeScore": {
+              "default": "",
+              "type": "string",
+              "maxLength": 10
+            },
+            "awayScore": {
+              "default": "",
+              "type": "string",
+              "maxLength": 10
+            },
+            "clock": {
+              "default": "",
+              "type": "string",
+              "maxLength": 40
+            },
+            "date": {
+              "default": "",
+              "type": "string",
+              "maxLength": 400
+            },
+            "time": {
+              "default": "",
+              "type": "string",
+              "maxLength": 40
+            }
+          },
+          "required": [
+            "homeScore",
+            "awayScore",
+            "clock",
+            "date",
+            "time"
+          ],
+          "additionalProperties": false
+        },
+        "rows": {
+          "default": [],
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "string",
+                "maxLength": 400
+              }
+            ]
+          }
+        },
+        "rowsPerPage": {
+          "default": 6,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "ownRowIndexes": {
+          "default": [],
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 199
+          }
+        },
+        "category": {
+          "default": "",
+          "type": "string",
+          "maxLength": 400
+        },
+        "subline": {
+          "default": "",
+          "type": "string",
+          "maxLength": 400
+        },
+        "special": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "priceCents": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000
+            }
+          },
+          "required": [
+            "label",
+            "title",
+            "priceCents"
+          ],
+          "additionalProperties": false
+        },
+        "lineup": {
+          "default": [],
+          "maxItems": 11,
+          "type": "array",
+          "items": {
+            "minItems": 1,
+            "maxItems": 11,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 99
+            }
+          }
+        },
+        "news": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "maxLength": 400
+              },
+              "intro": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "source": {
+                "type": "string",
+                "maxLength": 400
+              },
+              "url": {
+                "type": "string",
+                "maxLength": 2048,
+                "format": "uri"
+              }
+            },
+            "required": [
+              "title",
+              "intro",
+              "source"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "imageCaption": {
+          "default": "",
+          "type": "string",
+          "maxLength": 400
+        },
+        "youtubeUrl": {
+          "type": "string",
+          "maxLength": 2048,
+          "format": "uri"
+        },
+        "poll": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 400
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "draft",
+                    "scheduled",
+                    "live",
+                    "closed",
+                    "archived"
+                  ]
+                },
+                "visibility": {
+                  "type": "string",
+                  "enum": [
+                    "live",
+                    "after_vote",
+                    "after_close"
+                  ]
+                },
+                "publicUrl": {
+                  "type": "string",
+                  "maxLength": 2048,
+                  "format": "uri"
+                },
+                "options": {
+                  "minItems": 2,
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "votes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label",
+                      "votes"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "status",
+                "visibility",
+                "options"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 400
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "draft",
+                    "scheduled",
+                    "live",
+                    "closed",
+                    "archived"
+                  ]
+                },
+                "visibility": {
+                  "type": "string",
+                  "enum": [
+                    "live",
+                    "after_vote",
+                    "after_close"
+                  ]
+                },
+                "publicUrl": {
+                  "type": "string",
+                  "maxLength": 2048,
+                  "format": "uri"
+                },
+                "options": {
+                  "minItems": 2,
+                  "maxItems": 24,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 160
+                      },
+                      "votes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label",
+                      "votes"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "optionsPerPage": {
+                  "type": "number",
+                  "const": 4
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "status",
+                "visibility",
+                "options",
+                "optionsPerPage"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "state": {
+          "default": "ready",
+          "type": "string",
+          "enum": [
+            "ready",
+            "empty",
+            "error"
+          ]
+        },
+        "style": {
+          "type": "object",
+          "properties": {
+            "motion": {
+              "type": "string",
+              "enum": [
+                "rustig",
+                "dynamisch",
+                "geen"
+              ]
+            },
+            "background": {
+              "default": "stadium",
+              "type": "string",
+              "enum": [
+                "stadium",
+                "gradient",
+                "stripes",
+                "clubmuur",
+                "light",
+                "photo"
+              ]
+            },
+            "backgroundAsset": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "system"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "path",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "tenant"
+                    },
+                    "mediaAssetId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "mediaAssetId",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "backgroundPosition": {
+              "default": "center",
+              "type": "string",
+              "enum": [
+                "center",
+                "top",
+                "bottom",
+                "left",
+                "right"
+              ]
+            },
+            "font": {
+              "default": "Inter, sans-serif",
+              "type": "string",
+              "enum": [
+                "Inter, sans-serif",
+                "Inter",
+                "Manrope",
+                "Arial",
+                "Brush",
+                "Condensed",
+                "Serif"
+              ]
+            },
+            "fontChanged": {
+              "default": false,
+              "type": "boolean"
+            },
+            "accent": {
+              "default": "#1763ed",
+              "type": "string",
+              "pattern": "^#[a-f0-9]{6}$"
+            },
+            "alignment": {
+              "default": "left",
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            },
+            "scale": {
+              "default": 100,
+              "type": "number",
+              "minimum": 50,
+              "maximum": 150
+            },
+            "safeMargin": {
+              "default": 5,
+              "type": "number",
+              "minimum": 2,
+              "maximum": 15
+            },
+            "showLogo": {
+              "default": true,
+              "type": "boolean"
+            },
+            "showFooter": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "background",
+            "backgroundPosition",
+            "font",
+            "fontChanged",
+            "accent",
+            "alignment",
+            "scale",
+            "safeMargin",
+            "showLogo",
+            "showFooter"
+          ],
+          "additionalProperties": false
+        },
+        "visual": {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "type": "number",
+              "const": 1
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "light",
+                "dark"
+              ]
+            },
+            "scrollSpeed": {
+              "default": "normal",
+              "type": "string",
+              "enum": [
+                "slow",
+                "normal",
+                "fast"
+              ]
+            },
+            "panelOpacity": {
+              "default": 94,
+              "type": "integer",
+              "minimum": 80,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "mode",
+            "scrollSpeed",
+            "panelOpacity"
+          ],
+          "additionalProperties": false
+        },
+        "rich": {
+          "type": "object",
+          "properties": {
+            "teamSelection": {
+              "type": "object",
+              "properties": {
+                "ownClubId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "ownTeamIds": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "primaryTeamId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "ownClubId",
+                "ownTeamIds",
+                "primaryTeamId"
+              ],
+              "additionalProperties": false
+            },
+            "standings": {
+              "type": "object",
+              "properties": {
+                "ownTeamId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "rows": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "teamId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "clubId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "teamName": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "logo": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "system"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "checksumSha256": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "path",
+                              "checksumSha256"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "tenant"
+                              },
+                              "mediaAssetId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "checksumSha256": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "mediaAssetId",
+                              "checksumSha256"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "position": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "played": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "won": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "drawn": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "lost": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "goalDifference": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -1000000,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "points": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -1000000,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "form": {
+                        "maxItems": 10,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "W",
+                            "GL",
+                            "V"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "teamId",
+                      "clubId",
+                      "teamName",
+                      "position",
+                      "played",
+                      "won",
+                      "drawn",
+                      "lost",
+                      "goalDifference",
+                      "points",
+                      "form"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 400
+                }
+              },
+              "required": [
+                "ownTeamId",
+                "rows"
+              ],
+              "additionalProperties": false
+            },
+            "fixtures": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "home": {
+                    "type": "object",
+                    "properties": {
+                      "teamId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "clubId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "logo": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "system"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "checksumSha256": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "path",
+                              "checksumSha256"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "tenant"
+                              },
+                              "mediaAssetId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "checksumSha256": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "mediaAssetId",
+                              "checksumSha256"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "teamId",
+                      "clubId",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "away": {
+                    "type": "object",
+                    "properties": {
+                      "teamId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "clubId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "logo": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "system"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "checksumSha256": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "path",
+                              "checksumSha256"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "tenant"
+                              },
+                              "mediaAssetId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "checksumSha256": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "mediaAssetId",
+                              "checksumSha256"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "teamId",
+                      "clubId",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "kickoffAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "scheduled",
+                      "live",
+                      "finished",
+                      "cancelled",
+                      "postponed",
+                      "unknown"
+                    ]
+                  },
+                  "field": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "homeRoom": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "awayRoom": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "venue": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "homeScore": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "awayScore": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "home",
+                  "away",
+                  "kickoffAt",
+                  "status",
+                  "field",
+                  "homeRoom",
+                  "awayRoom",
+                  "homeScore",
+                  "awayScore"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "visitorsSelection": {
+              "type": "object",
+              "properties": {
+                "ownClubId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "ownTeamIds": {
+                  "minItems": 1,
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "referenceAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "ownClubId",
+                "ownTeamIds",
+                "referenceAt"
+              ],
+              "additionalProperties": false
+            },
+            "birthdays": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "age": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 130
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "dateLabel": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "meta": {
+                    "type": "string",
+                    "maxLength": 400
+                  }
+                },
+                "required": [
+                  "id",
+                  "displayName",
+                  "age",
+                  "dateLabel",
+                  "meta"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "activities": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "dateLabel": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "timeLabel": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "location": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "image": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "system"
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "path",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "tenant"
+                          },
+                          "mediaAssetId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "mediaAssetId",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "body",
+                  "dateLabel",
+                  "timeLabel",
+                  "location"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "news": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "intro": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "source": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2048,
+                    "format": "uri"
+                  },
+                  "heroImage": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "system"
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "path",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "tenant"
+                          },
+                          "mediaAssetId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "mediaAssetId",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "intro",
+                  "source"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "sponsors": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 400
+                  },
+                  "logo": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "system"
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "path",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "tenant"
+                          },
+                          "mediaAssetId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "mediaAssetId",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "infoRows": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "cells": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 400
+                      }
+                    ]
+                  },
+                  "logo": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "system"
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "path",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "tenant"
+                          },
+                          "mediaAssetId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "checksumSha256": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "mediaAssetId",
+                          "checksumSha256"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "selected": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "cells",
+                  "selected"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "lineupPlayers": {
+              "maxItems": 36,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "number": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 99
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 400
+                  }
+                },
+                "required": [
+                  "number",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "featureImage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "system"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "path",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "tenant"
+                    },
+                    "mediaAssetId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "checksumSha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "mediaAssetId",
+                    "checksumSha256"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "matchday": {
+              "type": "object",
+              "properties": {
+                "context": {
+                  "type": "object",
+                  "properties": {
+                    "tenantId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "teamId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "competitionId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "poolId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "seasonId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "revisions": {
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "dataset": {
+                            "type": "string",
+                            "enum": [
+                              "results",
+                              "standings",
+                              "fixtures"
+                            ]
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "dataset",
+                          "revision"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "tenantId",
+                    "teamId",
+                    "competitionId",
+                    "poolId",
+                    "seasonId",
+                    "revisions"
+                  ],
+                  "additionalProperties": false
+                },
+                "results": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "home": {
+                        "type": "object",
+                        "properties": {
+                          "teamId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clubId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          "logo": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "system"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "path",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "tenant"
+                                  },
+                                  "mediaAssetId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "mediaAssetId",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "teamId",
+                          "clubId",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "away": {
+                        "type": "object",
+                        "properties": {
+                          "teamId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clubId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          "logo": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "system"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "path",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "tenant"
+                                  },
+                                  "mediaAssetId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "mediaAssetId",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "teamId",
+                          "clubId",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "kickoffAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "scheduled",
+                          "live",
+                          "finished",
+                          "cancelled",
+                          "postponed",
+                          "unknown"
+                        ]
+                      },
+                      "field": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "homeRoom": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "awayRoom": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "venue": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "homeScore": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "awayScore": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "home",
+                      "away",
+                      "kickoffAt",
+                      "status",
+                      "field",
+                      "homeRoom",
+                      "awayRoom",
+                      "homeScore",
+                      "awayScore"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "standings": {
+                  "type": "object",
+                  "properties": {
+                    "ownTeamId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "rows": {
+                      "maxItems": 200,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "teamId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clubId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "teamName": {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          "logo": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "system"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "path",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "tenant"
+                                  },
+                                  "mediaAssetId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "mediaAssetId",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "position": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 1000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "played": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "won": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "drawn": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lost": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "goalDifference": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": -1000000,
+                                "maximum": 1000000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "points": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": -1000000,
+                                "maximum": 1000000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "form": {
+                            "maxItems": 10,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "W",
+                                "GL",
+                                "V"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "teamId",
+                          "clubId",
+                          "teamName",
+                          "position",
+                          "played",
+                          "won",
+                          "drawn",
+                          "lost",
+                          "goalDifference",
+                          "points",
+                          "form"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "label": {
+                      "type": "string",
+                      "maxLength": 400
+                    }
+                  },
+                  "required": [
+                    "ownTeamId",
+                    "rows"
+                  ],
+                  "additionalProperties": false
+                },
+                "fixtures": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "home": {
+                        "type": "object",
+                        "properties": {
+                          "teamId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clubId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          "logo": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "system"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "path",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "tenant"
+                                  },
+                                  "mediaAssetId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "mediaAssetId",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "teamId",
+                          "clubId",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "away": {
+                        "type": "object",
+                        "properties": {
+                          "teamId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "clubId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          "logo": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "system"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "path",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "tenant"
+                                  },
+                                  "mediaAssetId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "checksumSha256": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "mediaAssetId",
+                                  "checksumSha256"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "teamId",
+                          "clubId",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "kickoffAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "scheduled",
+                          "live",
+                          "finished",
+                          "cancelled",
+                          "postponed",
+                          "unknown"
+                        ]
+                      },
+                      "field": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "homeRoom": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "awayRoom": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 400
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "venue": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "homeScore": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "awayScore": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "home",
+                      "away",
+                      "kickoffAt",
+                      "status",
+                      "field",
+                      "homeRoom",
+                      "awayRoom",
+                      "homeScore",
+                      "awayScore"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "context",
+                "results",
+                "standings",
+                "fixtures"
+              ],
+              "additionalProperties": false
+            },
+            "phase": {
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "live",
+                "paused",
+                "halftime",
+                "finished",
+                "unknown"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "authoring": {
+          "default": {
+            "schemaVersion": 1,
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          },
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "default": 1,
+              "type": "number",
+              "const": 1
+            },
+            "headerSubtitles": {
+              "default": {},
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "enum": [
+                  "fixtures",
+                  "results",
+                  "period-standings",
+                  "cancellations",
+                  "dressing-rooms",
+                  "officials",
+                  "team-info",
+                  "activities",
+                  "training",
+                  "volunteers",
+                  "visitors",
+                  "matchday",
+                  "club-program",
+                  "team-program",
+                  "pool-program",
+                  "club-results",
+                  "team-results",
+                  "pool-results",
+                  "standings",
+                  "team-arrivals",
+                  "welcome",
+                  "referees",
+                  "changing-rooms",
+                  "next-match",
+                  "birthdays",
+                  "lineup",
+                  "scoreboard",
+                  "goal",
+                  "menu",
+                  "engage",
+                  "rss",
+                  "sponsors",
+                  "agenda",
+                  "club-story",
+                  "youtube",
+                  "free"
+                ]
+              },
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 120
+              }
+            },
+            "headerTexts": {
+              "default": {},
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "enum": [
+                  "fixtures",
+                  "results",
+                  "period-standings",
+                  "cancellations",
+                  "dressing-rooms",
+                  "officials",
+                  "team-info",
+                  "activities",
+                  "training",
+                  "volunteers",
+                  "visitors",
+                  "matchday",
+                  "club-program",
+                  "team-program",
+                  "pool-program",
+                  "club-results",
+                  "team-results",
+                  "pool-results",
+                  "standings",
+                  "team-arrivals",
+                  "welcome",
+                  "referees",
+                  "changing-rooms",
+                  "next-match",
+                  "birthdays",
+                  "lineup",
+                  "scoreboard",
+                  "goal",
+                  "menu",
+                  "engage",
+                  "rss",
+                  "sponsors",
+                  "agenda",
+                  "club-story",
+                  "youtube",
+                  "free"
+                ]
+              },
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 120
+              }
+            },
+            "welcomeScalePercent": {
+              "default": 150,
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 200,
+              "multipleOf": 5
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "headerSubtitles",
+            "headerTexts",
+            "welcomeScalePercent"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "rendererVersion",
+        "sourceRevision",
+        "family",
+        "orientation",
+        "theme",
+        "name",
+        "club",
+        "title",
+        "headline",
+        "body",
+        "subtitle",
+        "topLabel",
+        "footer",
+        "footerRight",
+        "rows",
+        "rowsPerPage",
+        "ownRowIndexes",
+        "category",
+        "subline",
+        "lineup",
+        "news",
+        "imageCaption",
+        "state",
+        "style",
+        "visual",
+        "authoring"
+      ],
+      "additionalProperties": false
     }
   ]
 }

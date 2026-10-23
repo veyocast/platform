@@ -57,12 +57,12 @@ export async function loadSyncCreateWizardData(family: SyncContentFamily, reques
     data.templates = templateRows.map(template => ({ versionId: template.current_published_version_id!, orientation: template.orientation, slug: template.slug }));
     data.images = (media?.assets ?? []).flatMap(asset => asset.kind === "image" && uuid.test(asset.id) && asset.sourceUrl && /^[a-f0-9]{64}$/.test(asset.checksumSha256 ?? "") ? [{ id: asset.id, title: asset.title, checksumSha256: asset.checksumSha256!, url: asset.sourceUrl }] : []);
     if (media?.error) data.loadError = "Je foto's konden niet worden geladen. De vaste achtergronden blijven beschikbaar; laad opnieuw voor je eigen foto's.";
-    if(family==='welcome'&&requestedMode==='connected'&&data.initialPresentation.rendererVersion!=='sync-onzetrots-v1'){
+    if(family==='welcome'&&requestedMode==='connected'&&data.initialPresentation.rendererVersion==='sync-v1'){
       const profile=themeDefaults.ok?themeDefaults.value.profiles.find(value=>value.themeId==='onzetrots-tv'):null;
       data.initialPresentation=applySyncThemeCreationDefaults(data.initialPresentation,'onzetrots-tv',profile?.defaults??syncThemeCreationStarterDefaults('onzetrots-tv'));
     }
     data.initialMode = requestedMode === "manual" && canCreateManual ? "manual" : requestedMode === "connected" && canCreateConnected || canCreateConnected && (!canCreateManual || data.sources.length > 0) ? "connected" : "manual";
-    if(family==='welcome'&&data.initialPresentation.rendererVersion!=='sync-onzetrots-v1')data.initialMode='manual';
+    if(family==='welcome'&&data.initialPresentation.rendererVersion==='sync-v1')data.initialMode='manual';
     return data;
   } catch {
     data.loadError = "De beschikbare bronnen, templates of foto's konden niet volledig worden bevestigd. Er is niets aangemaakt; laad opnieuw of kies waar toegestaan handmatige invoer.";

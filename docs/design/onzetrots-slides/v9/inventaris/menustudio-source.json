@@ -1,0 +1,170 @@
+{
+  "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+  "directory": "referenties/menustudio/broncode",
+  "fileCount": 32,
+  "bytes": 4933285,
+  "files": [
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/commerce.module.css",
+      "bytes": 16850,
+      "sha256": "ea4005bf84b72beae01568912a1799b66b79ec85df3c18c6a4c260329f0128eb"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/commerce.tsx",
+      "bytes": 39878,
+      "sha256": "9cd4a9bf736caf24d4e684a077524b6a2b54897bd08e7133e44ae78a41e38ff4"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/experience.module.css",
+      "bytes": 8860,
+      "sha256": "178e2a79cc445345245939c0c19ff5f56fb7e4d40cdfe320b97fa9f03ae848ae"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/experience.tsx",
+      "bytes": 13817,
+      "sha256": "534ed0c61e076e7b2d8ba77b08fd13b87080dd9fdfaebb5895e5de8642e79550"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/led-slide.module.css",
+      "bytes": 12377,
+      "sha256": "fa0b552821dbde631e541a0f870396728b8a40966685ae8c3d815107de9724b2"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/led-slide.tsx",
+      "bytes": 7583,
+      "sha256": "60ae058367b4fd5c5858d1e14934cd051edb8e9250e2f02fe26e774987e1498a"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/media-assets.tsx",
+      "bytes": 3463,
+      "sha256": "f044137dfc6778e1a1daf3a67da54571319e10d284373c71b128ae10dafcf351"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/menu-onzetrots.module.css",
+      "bytes": 6565,
+      "sha256": "0e2b66b5afd59ab1b86d3aa77fbeb992387a90d6c4f42aa793591ea93e398f88"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/menu-onzetrots.tsx",
+      "bytes": 7504,
+      "sha256": "71d543f074ebfe5b254cd4fa062f65b8f82cbdc7c7e8af345f2bb3c1c76b3536"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/onzetrots-backgrounds.ts",
+      "bytes": 1910,
+      "sha256": "50867a51be319ce466baea84e8425d45f4b16b620adc7db946e55eb9f612cc5b"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/onzetrots-tv-adapter.ts",
+      "bytes": 4787,
+      "sha256": "3376c5bd78e548568175857e2564563cd8e60ef1bec6b934e16dc90bd0d40ce3"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/onzetrots-tv.css",
+      "bytes": 63334,
+      "sha256": "7afd33fdcc9f2a58242d4afb125011d31b5db4b866a1b906a25ead53bcad5c95"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/onzetrots-tv.tsx",
+      "bytes": 22570,
+      "sha256": "be133191116a7ad3fc2ca3b855971f6d06223dfee8e6b470d08ce3d84a02bffb"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/screen-data.ts",
+      "bytes": 1279,
+      "sha256": "840e384b62b8da5c94d75a132040907d3d03d8da3668e8f6bbfe932ac335d543"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/screen-theme-picker.module.css",
+      "bytes": 2402,
+      "sha256": "fbe0abf2b4f40e60d4aa77d20cf5e26a2aa28a93a22f2ecb62e17411df591d9d"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/screen-theme-picker.tsx",
+      "bytes": 1253,
+      "sha256": "01df7d804953589ec097332f083ccc688246d4e72a33085448f591c7ae0d63a8"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/screen-themes.ts",
+      "bytes": 2199,
+      "sha256": "ef2f3f07efb7f617be6125ff7e5b6b05267329260512b569e9a3826bf1463599"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/shared.tsx",
+      "bytes": 3371,
+      "sha256": "0116c619ecbdbbc070266e7bf295ad4c9053a1f15f994cd8f78e4bde1b8ae7ae"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/unified/ui.css",
+      "bytes": 5601,
+      "sha256": "8675a12c59d2c1a1d32f6e1b5c49c99523f6f9b5543a66c0c740deb282eb6f2d"
+    },
+    {
+      "path": "referenties/menustudio/broncode/app/prototype/unified/ui.tsx",
+      "bytes": 3008,
+      "sha256": "13c790e261a4f36dc3c8d88e5fe79428ea7aa139c15dd563fa771b1961838d8c"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/fonts/manrope.woff2",
+      "bytes": 24836,
+      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots/website-brush/aan-zee-portrait-941.webp",
+      "bytes": 517752,
+      "sha256": "446eeeaa84b0e032d34fa6aac10615716d4927917bf9258d245ddad0ebc347d6"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots/website-brush/aan-zee-wide-1672.webp",
+      "bytes": 535874,
+      "sha256": "ab1df0dd01e1f5ed768e099897377e12b92b85c2856eb80c48c7a06416ece3ae"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots/website-brush/de-wijk-portrait-941.webp",
+      "bytes": 538010,
+      "sha256": "a9aab1cb20cbd4abcf92ed90463d8e50a2a67c4cf1637bd2cdeb55dbd265ae70"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots/website-brush/de-wijk-wide-1672.webp",
+      "bytes": 570048,
+      "sha256": "d7198cf38780978b142c15c6cbc33f196afe1d77016582495438daf903c4234e"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots/website-brush/houtrust-portrait-941.webp",
+      "bytes": 524608,
+      "sha256": "e96a079d1a96f3ca75305329431065d2c61b7f3548735f48811bb57d34be4a14"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots/website-brush/houtrust-wide-1672.webp",
+      "bytes": 596258,
+      "sha256": "4e654df31f432c922a44b1670f6bf8d64af3361d40645f410de0a4d696d46171"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots-menu/fonts/RubikDistressed-OFL.txt",
+      "bytes": 4406,
+      "sha256": "f9e2d4498ea80d38bac7b8841d68af68c132fa67e1552e7c05717e6987de1d74"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots-menu/fonts/RubikDistressed-Regular.ttf",
+      "bytes": 892544,
+      "sha256": "64a9962c862451507b5d8dbc1c4bf023ddbcad701bc73d277eae46723718327a"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots-menu/fonts/RubikDistressed-source.json",
+      "bytes": 2223,
+      "sha256": "0bf7cba64bfc55f699fe3f372af997836ad694f8d3facdc789c9b14e357ed6fe"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots-tv/assets/clubmuur-lettering.webp",
+      "bytes": 428940,
+      "sha256": "c4bf31d7c6331f76f6e4db9bbac59052a01ad9c6f6ae3abe497925f90e15bf32"
+    },
+    {
+      "path": "referenties/menustudio/broncode/public/onzetrots-tv/assets/logo.png",
+      "bytes": 69175,
+      "sha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930"
+    }
+  ],
+  "purpose": "Targeted MenuStudio reference snapshot with local import dependencies and Menu assets; not a standalone complete application. Unrelated renderer-branch assets and runtime shell intentionally excluded; no site identity, Git metadata, runtime or credentials.",
+  "standaloneApplication": false
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { syncContentFamilies, syncSlidePresentationSchema, type SyncThemeCreationDefaults,syncOnzeTrotsRendererVersion,syncOnzeTrotsSourceRevision } from "@veyocast/contracts";
+import { syncContentFamilies, syncSlidePresentationSchema, type SyncThemeCreationDefaults,syncOnzeTrotsV9RendererVersion,syncOnzeTrotsV9SourceRevision } from "@veyocast/contracts";
 import { createSyncStudioStarter } from "@veyocast/studio";
 import { applySyncThemeCreationDefaults, syncThemeCreationStarterDefaults } from "./sync-theme-creation-defaults";
 
@@ -14,11 +14,11 @@ describe("Source defaults project into the real frozen presentation", () => {
     seed.title = "Eigen titel"; seed.body = "Werkelijke eigen toelichting"; seed.footer = "Eigen clubtekst";
     const before = JSON.stringify(seed), defaults = syncThemeCreationStarterDefaults(theme), result = applySyncThemeCreationDefaults(seed, theme, defaults);
     expect(syncSlidePresentationSchema.safeParse(result).success).toBe(true);
-    const {rendererVersion,sourceRevision,visual,rowsPerPage,...facts}=result as typeof result&{visual?:unknown};
+    const {rendererVersion,sourceRevision,visual,rowsPerPage,authoring,...facts}=result as typeof result&{visual?:unknown;authoring?:unknown};
     const {rendererVersion:oldRenderer,sourceRevision:oldSource,rowsPerPage:oldCapacity,...beforeFacts}=seed;
     expect({...facts,theme:seed.theme,style:seed.style}).toEqual(beforeFacts);
     if(theme==='onzetrots-tv'){
-      expect(rendererVersion).toBe(syncOnzeTrotsRendererVersion);expect(sourceRevision).toBe(syncOnzeTrotsSourceRevision);
+      expect(authoring).toEqual({schemaVersion:1,headerSubtitles:{},headerTexts:{},welcomeScalePercent:150});expect(rendererVersion).toBe(syncOnzeTrotsV9RendererVersion);expect(sourceRevision).toBe(syncOnzeTrotsV9SourceRevision);
       expect(visual).toEqual({schemaVersion:1,mode:'light',scrollSpeed:'normal',panelOpacity:94});expect(rowsPerPage).toBe(6);
     }else{expect(rendererVersion).toBe(oldRenderer);expect(sourceRevision).toBe(oldSource);expect(visual).toBeUndefined();expect(rowsPerPage).toBe(oldCapacity);}
     expect(result.style).toMatchObject({ accent: defaults.accent, font: "Manrope", fontChanged: true, background: theme==='onzetrots-tv'?"clubmuur":"light", motion: "rustig", showLogo: true, scale: 100 });
@@ -32,7 +32,7 @@ describe("Source defaults project into the real frozen presentation", () => {
     const defaults: SyncThemeCreationDefaults = { ...syncThemeCreationStarterDefaults("onzetrots-tv"), mode, font: "Georgia", scale: 119, background: "stadium", motion: "dynamisch", showLogo: false };
     const result = applySyncThemeCreationDefaults(seed, "onzetrots-tv", defaults);
     expect(result.style).toMatchObject({ font: "Serif", fontChanged: true, scale: 119, background: "clubmuur", alignment: "right", safeMargin: 9, showFooter: false, showLogo: false, motion: "dynamisch" });
-    expect(result.rendererVersion==='sync-onzetrots-v1'&&result.visual.mode).toBe(mode==='dark'?'dark':'light');
+    expect(result.rendererVersion==='sync-onzetrots-v9'&&result.visual.mode).toBe(mode==='dark'?'dark':'light');
     expect(result.style).not.toHaveProperty("backgroundAsset"); expect(result.club.logo).toEqual(seed.club.logo); expect(seed.style.backgroundAsset).toBeDefined();
   });
   it.each(["clubkleur", "gradient", "stadium"] as const)("resolves dark/auto %s once, without runtime policies or URLs", background => {

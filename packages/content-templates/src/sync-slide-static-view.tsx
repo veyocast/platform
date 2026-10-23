@@ -2,6 +2,7 @@ import React, { type CSSProperties } from "react";
 import QR from "qrcode";
 import {
   syncContentFamilies,
+  isSyncOnzeTrotsPresentation,
   syncSlidePresentationSchema,
   syncSlidePageCount,
   type SyncSlideAsset,
@@ -10,6 +11,9 @@ import {
 import { syncSlideCss } from "./sync-slide-styles";
 import {SyncOnzeTrotsView} from './sync-onzetrots-view';
 import {syncOnzeTrotsCss} from './sync-onzetrots-styles';
+import {syncOnzeTrotsV9Css} from './sync-onzetrots-v9-styles';
+export {syncOnzeTrotsV9Css} from './sync-onzetrots-v9-styles';
+export * from './sync-onzetrots-v9-motion';
 export {syncOnzeTrotsCss} from './sync-onzetrots-styles';
 export * from './sync-onzetrots-motion';
 
@@ -730,9 +734,9 @@ export function SyncSlideStaticView({
   includeStyles?: boolean;
 }) {
   const slide = syncSlidePresentationSchema.parse(presentation);
-  if(slide.rendererVersion==='sync-onzetrots-v1')return <>
-    {includeStyles&&<style>{syncOnzeTrotsCss}</style>}
-    <div className="sync-slide-root ot-approved-scope" data-renderer={slide.rendererVersion} aria-hidden={compact||undefined} style={{width:'100%',height:'100%'}}>
+  if(isSyncOnzeTrotsPresentation(slide))return <>
+    {includeStyles&&<style>{slide.rendererVersion==='sync-onzetrots-v9'?syncOnzeTrotsV9Css:syncOnzeTrotsCss}</style>}
+    <div className={`sync-slide-root ${slide.rendererVersion==='sync-onzetrots-v9'?'ot-v9-scope':'ot-approved-scope'}`} data-renderer={slide.rendererVersion} aria-hidden={compact||undefined} style={{width:'100%',height:'100%'}}>
       <SyncOnzeTrotsView slide={slide} resolveAsset={resolveAsset} page={Math.min(syncSlidePageCount(slide)-1,Math.max(0,Number.isFinite(page)?Math.trunc(page):0))}/>
     </div>
   </>;

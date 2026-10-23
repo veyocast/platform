@@ -79,7 +79,7 @@ describe("new wizard read boundary", () => {
     const saved = { accent: "#bAc123", font: "Georgia", mode: "dark", scale: 119, background: "stadium", motion: "geen", showLogo: false };
     client.rpc.mockResolvedValue({ data: { ...themeModel, defaultThemeId: "onzetrots-tv", profiles: [themeModel.profiles[0], { themeId: "onzetrots-tv", themeVersion: "11.0.0", revision: 12, configured: true, defaults: saved }] }, error: null });
     const result = await loadSyncCreateWizardData("fixtures");
-    expect(result?.themeDefaultsError).toBeNull(); expect(result?.initialPresentation).toMatchObject({ theme: "onzetrots-tv", rendererVersion:"sync-onzetrots-v1",sourceRevision:"ae83f2b4312408eacae9f29177d3c743e104185b",visual:{schemaVersion:1,mode:"dark",scrollSpeed:"normal",panelOpacity:94},style: { accent: "#bAc123", font: "Serif", fontChanged: true, background: "clubmuur", scale: 119, motion: "geen", showLogo: false } });
+    expect(result?.themeDefaultsError).toBeNull(); expect(result?.initialPresentation).toMatchObject({ theme: "onzetrots-tv", rendererVersion:"sync-onzetrots-v9",sourceRevision:"5ba52a657d6d16ad103ba2fb43b8db18aa83715a",visual:{schemaVersion:1,mode:"dark",scrollSpeed:"normal",panelOpacity:94},style: { accent: "#bAc123", font: "Serif", fontChanged: true, background: "clubmuur", scale: 119, motion: "geen", showLogo: false } });
     expect(client.rpc).toHaveBeenCalledExactlyOnceWith("read_sync_theme_creation_defaults_v1", { p_tenant_id: tenant });
     expect(result?.initialPresentation.rows).toEqual([]); expect(result?.initialPresentation.home).toBeUndefined();
   });

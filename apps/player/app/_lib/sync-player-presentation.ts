@@ -10,7 +10,7 @@ import {
   type SyncSlidePresentation,
 } from "@veyocast/contracts";
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
-import {syncOnzeTrotsCss} from '@veyocast/content-templates/sync-slide-static-view';
+import {syncOnzeTrotsV9Css,syncOnzeTrotsCss} from '@veyocast/content-templates/sync-slide-static-view';
 import {resolvePlayerItemPresentation,type PlayerManifestItem} from "./player-manifest";
 
 /** Select a render input without rewriting immutable Studio fields during a
@@ -95,8 +95,8 @@ export function syncPreparedCss(
   presentation?:SyncSlidePresentation,
 ): string {
   const expected = new Set<string>((presentation?syncSlideRendererAssets(presentation):syncSystemAssets).map((asset) => asset.path));
-  return (presentation?.rendererVersion===syncOnzeTrotsRendererVersion?syncOnzeTrotsCss:syncSlideCss).replace(
-    /url\(\s*(['"]?)(\/(?:onzetrots-approved-v1\/)?assets\/[^)'"\s]+)\1\s*\)/g,
+  return (presentation?.rendererVersion==='sync-onzetrots-v9'?syncOnzeTrotsV9Css:presentation?.rendererVersion===syncOnzeTrotsRendererVersion?syncOnzeTrotsCss:syncSlideCss).replace(
+    /url\(\s*(['"]?)(\/(?:onzetrots-approved-v(?:1|9)\/)?assets\/[^)'"\s]+)\1\s*\)/g,
     (_match, _quote, path: string) => {
       const url = urls[path];
       if (
@@ -120,14 +120,14 @@ export function prepareSyncBackgroundFonts(urls: Record<string, string>, origin:
   ]);
 }
 
-export function prepareSyncOnzeTrotsFonts(urls:Record<string,string>,origin:string){
+export function prepareSyncOnzeTrotsFonts(urls:Record<string,string>,origin:string,presentation?:SyncSlidePresentation){
  return prepareSyncFontFaces(urls,origin,[
   {family:'OTManrope',path:'/onzetrots-approved-v1/assets/fonts/club-font-4.ttf',weight:'400',format:'truetype'},
   {family:'OTManrope',path:'/onzetrots-approved-v1/assets/fonts/club-font-6.ttf',weight:'600',format:'truetype'},
   {family:'OTManrope',path:'/onzetrots-approved-v1/assets/fonts/club-font-8.ttf',weight:'800',format:'truetype'},
   {family:'OTBarlow',path:'/onzetrots-approved-v1/assets/fonts/club-font-2.ttf',weight:'800',format:'truetype'},
   {family:'OTBarlow',path:'/onzetrots-approved-v1/assets/fonts/club-font-3.ttf',weight:'900',format:'truetype'},
-  {family:'OTMarker',path:'/onzetrots-approved-v1/assets/fonts/club-font-9.ttf',weight:'400',format:'truetype'},
+  presentation?.rendererVersion==='sync-onzetrots-v9'?{family:'OTRubikDistressed',path:'/onzetrots-approved-v9/assets/fonts/RubikDistressed-Regular.ttf',weight:'400',format:'truetype'}:{family:'OTMarker',path:'/onzetrots-approved-v1/assets/fonts/club-font-9.ttf',weight:'400',format:'truetype'},
  ]);
 }
 

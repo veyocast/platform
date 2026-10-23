@@ -11,6 +11,7 @@ test("shows only a compact offline status while cached playback continues", asyn
   await expect(page.getByLabel("Release playback")).toBeVisible();
   await expect(page.getByLabel("Player diagnostics")).not.toBeVisible();
   await expect(page.getByText("Geen internetverbinding", { exact: true })).toHaveCount(0);
+  await expect(page.locator('[data-player-handoff="first-frame-ready"]')).toBeAttached();
 
   await context.setOffline(true);
   try {

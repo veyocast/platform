@@ -1,0 +1,109 @@
+{
+  "sourceCommit": "77eec81092ab829302dd835fb430161fe93be220",
+  "observations": [
+    {
+      "name": "portrait-dark",
+      "background": "/onzetrots/website-brush/houtrust-portrait-941.webp",
+      "contentOpacity": "1",
+      "font": "\"Rubik Distressed\", cursive",
+      "footerBackground": "rgba(0, 0, 0, 0)",
+      "headerCount": 1,
+      "headerOpacity": "1",
+      "headerOverflow": false,
+      "logoRight": true,
+      "rect": {
+        "bottom": 843.65625,
+        "height": 746.65625,
+        "left": 862.9375,
+        "right": 1282.9375,
+        "top": 97,
+        "width": 420,
+        "x": 862.9375,
+        "y": 97
+      },
+      "subtitle": "Duindorp SV · Onze club. Onze trots.",
+      "title": "Welkom in onze kantine",
+      "weight": "400",
+      "wordmarkColor": "rgb(255, 255, 255)",
+      "wordmarkShadow": "drop-shadow(rgba(0, 0, 0, 0.867) 0px 2px 2px) drop-shadow(rgba(0, 0, 0, 0.933) 0px 0px 1px)"
+    },
+    {
+      "name": "portrait-light",
+      "background": "/onzetrots/website-brush/houtrust-portrait-941.webp",
+      "contentOpacity": "1",
+      "font": "\"Rubik Distressed\", cursive",
+      "footerBackground": "rgba(0, 0, 0, 0)",
+      "headerCount": 1,
+      "headerOpacity": "1",
+      "headerOverflow": false,
+      "logoRight": true,
+      "rect": {
+        "bottom": 843.65625,
+        "height": 746.65625,
+        "left": 862.9375,
+        "right": 1282.9375,
+        "top": 97,
+        "width": 420,
+        "x": 862.9375,
+        "y": 97
+      },
+      "subtitle": "Duindorp SV · Onze club. Onze trots.",
+      "title": "Welkom in onze kantine",
+      "weight": "400",
+      "wordmarkColor": "rgb(255, 255, 255)",
+      "wordmarkShadow": "drop-shadow(rgba(0, 0, 0, 0.867) 0px 2px 2px) drop-shadow(rgba(0, 0, 0, 0.933) 0px 0px 1px)"
+    },
+    {
+      "name": "landscape-light",
+      "background": "/onzetrots/website-brush/houtrust-wide-1672.webp",
+      "contentOpacity": "1",
+      "font": "\"Rubik Distressed\", cursive",
+      "footerBackground": "rgba(0, 0, 0, 0)",
+      "headerCount": 1,
+      "headerOpacity": "1",
+      "headerOverflow": false,
+      "logoRight": true,
+      "rect": {
+        "bottom": 342.296875,
+        "height": 245.296875,
+        "left": 854.890625,
+        "right": 1291,
+        "top": 97,
+        "width": 436.109375,
+        "x": 854.890625,
+        "y": 97
+      },
+      "subtitle": "Duindorp SV · Onze club. Onze trots.",
+      "title": "Welkom in onze kantine",
+      "weight": "400",
+      "wordmarkColor": "rgb(255, 255, 255)",
+      "wordmarkShadow": "drop-shadow(rgba(0, 0, 0, 0.867) 0px 2px 2px) drop-shadow(rgba(0, 0, 0, 0.933) 0px 0px 1px)"
+    },
+    {
+      "name": "landscape-dark",
+      "background": "/onzetrots/website-brush/houtrust-wide-1672.webp",
+      "contentOpacity": "1",
+      "font": "\"Rubik Distressed\", cursive",
+      "footerBackground": "rgba(0, 0, 0, 0)",
+      "headerCount": 1,
+      "headerOpacity": "1",
+      "headerOverflow": false,
+      "logoRight": true,
+      "rect": {
+        "bottom": 342.296875,
+        "height": 245.296875,
+        "left": 854.890625,
+        "right": 1291,
+        "top": 97,
+        "width": 436.109375,
+        "x": 854.890625,
+        "y": 97
+      },
+      "subtitle": "Duindorp SV · Onze club. Onze trots.",
+      "title": "Welkom in onze kantine",
+      "weight": "400",
+      "wordmarkColor": "rgb(255, 255, 255)",
+      "wordmarkShadow": "drop-shadow(rgba(0, 0, 0, 0.867) 0px 2px 2px) drop-shadow(rgba(0, 0, 0, 0.933) 0px 0px 1px)"
+    }
+  ]
+}

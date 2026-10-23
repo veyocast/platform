@@ -8,9 +8,11 @@ import { chromium, type Browser, type Page } from "playwright-core";
 import sharp from "sharp";
 import {
   syncSlideAssets,
+  isSyncOnzeTrotsPresentation,
   syncSlidePresentationSchema,
   syncSystemAssets,
   syncOnzeTrotsSystemAssets,
+  syncOnzeTrotsV9SystemAssets,
   syncSlideRendererAssets,
   syncBackgroundAssets,
   syncBackgroundAssetForRef,
@@ -23,6 +25,7 @@ import {
   SyncSlideStaticView,
   syncSlidePages,
   measureSyncOnzeTrotsLayout,
+  measureSyncOnzeTrotsV9Layout,
   projectSyncOnzeTrotsMotion,
   applySyncOnzeTrotsMotion,
   type SyncOnzeTrotsRankLayout,
@@ -39,7 +42,7 @@ import {
 
 const origin = "http://sync-render.invalid";
 const files = new Map(
-  [...syncSystemAssets, ...syncBackgroundAssets,...syncOnzeTrotsSystemAssets].map((asset) => [asset.path as string, asset]),
+  [...syncSystemAssets, ...syncBackgroundAssets,...syncOnzeTrotsSystemAssets,...syncOnzeTrotsV9SystemAssets].map((asset) => [asset.path as string, asset]),
 );
 const publicDirectoryDefault = fileURLToPath(
   new URL("../../player/public/", import.meta.url),
@@ -90,6 +93,7 @@ export async function createSyncSlideCapture({
   assetSources = {},
   signal,
   publicDirectory = publicDirectoryDefault,
+  sceneState = {},
   executablePath = process.env.CHROMIUM_EXECUTABLE_PATH ?? "/usr/bin/chromium",
 }: {
   presentation: SyncSlidePresentation;
@@ -97,6 +101,7 @@ export async function createSyncSlideCapture({
   assetSources?: StudioSvgAssetSources;
   signal?: AbortSignal;
   publicDirectory?: string;
+  sceneState?: {paused?:boolean;pausedAtMs?:number;introFinished?:boolean;reducedMotion?:boolean};
   executablePath?: string;
 }): Promise<SitesStudioCapture> {
   const input = syncSlidePresentationSchema.parse(presentation),
@@ -171,6 +176,7 @@ export async function createSyncSlideCapture({
       currentInternalTime=-1,
       currentFrameIdentity='',
       rankLayouts:SyncOnzeTrotsRankLayout[]=[],
+      v9PanelCount=0,
       settledPng:Buffer|undefined,
       png: Buffer | undefined,
       rgba: Buffer | undefined;
@@ -224,8 +230,8 @@ export async function createSyncSlideCapture({
         Math.max(0, Math.floor(timeMs / pageMs)),
       );
       const transitionTime=transition?Math.min(transition.durationMs,Math.max(0,timeMs-target*pageMs)):0;
-      const internalTime=internalMotion.enabled?Math.max(0,timeMs-target*pageMs):0;
-      const identity=()=>JSON.stringify([input.rendererVersion,input.orientation,target,transitionTime,internalTime,rankLayouts]);
+      const internalTime=internalMotion.enabled?Math.max(0,input.rendererVersion==='sync-onzetrots-v9'&&sceneState.paused?(sceneState.pausedAtMs??0):timeMs-target*pageMs):0;
+      const identity=()=>JSON.stringify([input.rendererVersion,input.orientation,target,transitionTime,internalTime,rankLayouts,v9PanelCount,sceneState]);
       if (currentPage === target && currentTransitionTime===transitionTime && currentInternalTime===internalTime && currentFrameIdentity===identity() && png) return png;
       if(currentPage!==target){
       failureStage = "document_load";
@@ -234,14 +240,14 @@ export async function createSyncSlideCapture({
         timeout: 15000,
       });
       failureStage = "font_load";
-      if(input.rendererVersion==='sync-onzetrots-v1'){
-        await page.evaluate(async()=>{
-          for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope','400 16px OTMarker']){
+      if(isSyncOnzeTrotsPresentation(input)){
+        await page.evaluate(async(version)=>{
+          for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope',version==='sync-onzetrots-v9'?'400 16px OTRubikDistressed':'400 16px OTMarker']){
             const faces=await document.fonts.load(font);
             if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('Approved OnzeTrots font unavailable');
           }
           await document.fonts.ready;
-        });
+        },input.rendererVersion);
       }else await loadSitesCaptureFonts(page);
       failureStage = "dependency_decode";
       await page.evaluate(async (background) => {
@@ -258,7 +264,7 @@ export async function createSyncSlideCapture({
           animation.currentTime = 0;
         });
       }, syncBackgroundAssetForRef(input.style.backgroundAsset) ?? null);
-      if(input.rendererVersion==='sync-onzetrots-v1'){
+      if(isSyncOnzeTrotsPresentation(input)){
         const dependencies=syncSlideRendererAssets(input).filter(asset=>asset.mimeType.startsWith('image/')).map(asset=>asset.path);
         for(const ref of syncSlideAssets(input))if(ref.kind==='tenant'){
           const source=assetSources[ref.mediaAssetId];const href=typeof source==='string'?source:source?.href;
@@ -268,8 +274,9 @@ export async function createSyncSlideCapture({
       }
       if (assetFailed) throw new SitesDomCaptureError("asset_integrity");
       failureStage = "raster_capture";
-      rankLayouts=input.rendererVersion==='sync-onzetrots-v1'?await page.evaluate(measureSyncOnzeTrotsLayout,undefined):[];
-      if(input.rendererVersion==='sync-onzetrots-v1'&&internalMotion.enabled){
+      if(input.rendererVersion==='sync-onzetrots-v9')v9PanelCount=await page.evaluate(measureSyncOnzeTrotsV9Layout,undefined);
+      rankLayouts=isSyncOnzeTrotsPresentation(input)?await page.evaluate(measureSyncOnzeTrotsLayout,undefined):[];
+      if(isSyncOnzeTrotsPresentation(input)&&internalMotion.enabled){
         const speed={slow:19,normal:30,fast:48}[input.visual.scrollSpeed];
         if(rankLayouts.some(layout=>layout.range>0&&5000+2000*layout.range/speed>pageMs))throw new SitesDomCaptureError('document_load');
       }
@@ -279,8 +286,9 @@ export async function createSyncSlideCapture({
       if (assetFailed) throw new SitesDomCaptureError("asset_integrity");
       currentPage = target;
       }
-      if(input.rendererVersion==='sync-onzetrots-v1'){
-        const frame=projectSyncOnzeTrotsMotion(internalTime,rankLayouts,input.visual.scrollSpeed);
+      if(isSyncOnzeTrotsPresentation(input)){
+        const scene=input.rendererVersion==='sync-onzetrots-v9'?{panelCount:v9PanelCount,mode:input.visual.mode,paused:sceneState.paused??false,introFinished:sceneState.introFinished??false,entranceAllowed:input.style.motion!=='geen'}:undefined;
+        const frame=projectSyncOnzeTrotsMotion(internalTime,rankLayouts,input.visual.scrollSpeed,sceneState.reducedMotion??false,scene);
         await page.evaluate(applySyncOnzeTrotsMotion,frame);
       }
       if(transition){
