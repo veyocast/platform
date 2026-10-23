@@ -65,6 +65,11 @@ Root is de enige writer. Branch/worktree/PR:
   pixelassertie-, case-inventaris- of deadlinewijziging.
 - Gerichte contract/projector/Worker/wizard/authoring/Player/offline- en
   visuele tests/helpers; bewijs onder `docs/implementation/s286-onzetrots-v9/`.
+  Na de echte CI-fout in `40005005557` omvat dit in
+  `tests/player/connectivity.spec.ts` uitsluitend de ontbrekende echte
+  eerste-framevoorwaarde vóór netwerkverlies. De oude test schakelde offline
+  terwijl de publicatie nog op zichtbare bevestiging wachtte. Alle bestaande
+  offline-/continuïteitsasserties en tijdslimieten blijven behouden.
 - Dit prompt, `docs/s286-onzetrots-v9.md`, nieuw referentiepakket,
   eigen aanvulling in `PLANS.md` en eigen rij in `TASK_LEDGER.md`.
 

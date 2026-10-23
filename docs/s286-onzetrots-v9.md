@@ -176,3 +176,13 @@ Na deze gerichte correctie: alle 36 v9-Playercases, 295 oude/nieuwe SSR-cases,
 goalbeelden zijn opnieuw genomen; de onafhankelijke prototypecapture behoudt
 daarbij de echte pauzestand. De volledige 144×-matrix en acht contactbladen
 zijn daarmee opnieuw samengesteld, met behoud van de overige native beelden.
+
+De volgende CI-poging stopte bij de bestaande connectiviteitstest vóór de
+v9-cases: de test schakelde offline nadat alleen het afspeelgebied zichtbaar
+was. De diagnostiek stond nog op ‘Publicatie voorbereid; wacht op zichtbare
+bevestiging’. De test wacht nu aanvullend op de bestaande echte
+`first-frame-ready`-bevestiging vóór netwerkverlies. Alle oorspronkelijke
+offline-/continuïteitsasserties en tijdslimieten zijn behouden; er is hiervoor
+geen playbackcode gewijzigd. De oorspronkelijke CI-trace en foutuitvoer zijn
+bewaard. De vier connectiviteitstests en de volledige echte v9-export-/offline-
+fallbacktest zijn op de actuele productiebuild geslaagd.
