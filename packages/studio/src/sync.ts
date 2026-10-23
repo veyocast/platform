@@ -3,8 +3,8 @@ import {
   syncSlidePageCount,
   syncSlideInternalMotion,
   syncSlideDurationMs,
-  syncOnzeTrotsRendererVersion,
-  syncOnzeTrotsSourceRevision,
+  syncOnzeTrotsV9RendererVersion,
+  syncOnzeTrotsV9SourceRevision,
   syncSlidePresentationSchema,
   syncSlideRendererVersion,
   syncSlideSourceRevision,
@@ -87,8 +87,8 @@ export function createSyncStudioStarter({
   return createSyncStudioDocument(
     syncSlidePresentationSchema.parse({
       schemaVersion: 1,
-      rendererVersion: theme==='onzetrots-tv'?syncOnzeTrotsRendererVersion:syncSlideRendererVersion,
-      sourceRevision: theme==='onzetrots-tv'?syncOnzeTrotsSourceRevision:syncSlideSourceRevision,
+      rendererVersion: theme==='onzetrots-tv'?syncOnzeTrotsV9RendererVersion:syncSlideRendererVersion,
+      sourceRevision: theme==='onzetrots-tv'?syncOnzeTrotsV9SourceRevision:syncSlideSourceRevision,
       ...(theme==='onzetrots-tv'?{visual:{schemaVersion:1,mode:'light',scrollSpeed:'normal',panelOpacity:94}}:{}),
       family,
       orientation,

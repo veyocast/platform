@@ -13,6 +13,7 @@ import { extname, join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import sharp from "sharp";
 import { createSyncSlideCapture } from "./sync-dom-capture";
+import {syncSlidePosterTimeMs} from "@veyocast/contracts";
 
 import {
   studioFps,
@@ -126,7 +127,7 @@ export async function runStudioRenderOnce({
       const { assetSources, backgroundVideo } = preparedAssets;
       if(job.document.syncPresentation)sitesCapture=await syncCaptureFactory({presentation:job.document.syncPresentation,durationMs:job.document.motion.durationMs,assetSources,signal});
       else if(job.document.sitesPresentation)sitesCapture=await sitesCaptureFactory({document:job.document,assetSources,signal});
-      const renderPng=(input:Parameters<typeof renderStudioPng>[0])=>sitesCapture?sitesCapture.renderPng(input.timeMs??1200):renderStudioPng(input);
+      const renderPng=(input:Parameters<typeof renderStudioPng>[0])=>sitesCapture?sitesCapture.renderPng(input.timeMs??(job.document.syncPresentation?syncSlidePosterTimeMs(job.document.syncPresentation,job.document.motion.durationMs):1200)):renderStudioPng(input);
       const paths = studioRenderArtifactPaths(job);
       const outputPath = join(
         workingDirectory,

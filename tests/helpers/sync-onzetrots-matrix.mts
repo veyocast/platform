@@ -13,7 +13,7 @@ if(!directory)throw Error('Provide a new owned evidence directory; an optional s
 const output=resolve(directory);await mkdir(output,{recursive:false});
 const matrix=[];
 for(const family of syncContentFamilies)for(const orientation of ['landscape','portrait']as const)for(const mode of ['light','dark']as const){
- const example=createSyncTemplatePreview(family.id);
+ const example=createSyncTemplatePreview(family.id,'sync-onzetrots-v1');
  if(example.rendererVersion!=='sync-onzetrots-v1')throw Error('The actual catalogue must use the approved renderer');
  const presentation=syncSlidePresentationSchema.parse({...example,orientation,visual:{...example.visual,mode}}),document=createSyncStudioDocument(presentation),filename=`${family.id}-${orientation}-${mode}.png`;
  const capture=await createSyncSlideCapture({presentation,durationMs:document.motion.durationMs,executablePath:chromium.executablePath()});

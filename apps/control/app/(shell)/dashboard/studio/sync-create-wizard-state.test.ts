@@ -29,8 +29,8 @@ describe("new-design defaults never rewrite original authoring recovery", () => 
     const before = JSON.stringify(draft), selected = chooseSyncWizardTheme(props, draft, "onzetrots-tv");
     expect(selected.presentation.style).toMatchObject({ accent: "#aBc123", font: "Serif", fontChanged: true, background: "clubmuur", scale: 116, motion: "geen", showLogo: false });
     expect({ ...selected, presentation: draft.presentation }).toEqual(draft);
-    expect(selected.presentation.rendererVersion).toBe('sync-onzetrots-v1');
-    expect(selected.presentation.rendererVersion==='sync-onzetrots-v1'&&selected.presentation.visual.mode).toBe('dark');
+    expect(selected.presentation.rendererVersion).toBe('sync-onzetrots-v9');
+    expect(selected.presentation.rendererVersion==='sync-onzetrots-v9'&&selected.presentation.visual.mode).toBe('dark');
     expect({...selected.presentation,style:draft.presentation.style,visual:('visual'in draft.presentation?draft.presentation.visual:undefined)}).toEqual(draft.presentation); expect(JSON.stringify(draft)).toBe(before);
     expect(chooseSyncWizardTheme(props, draft, "fieldflow").presentation.style).toMatchObject({ accent: "#006D83", font: "Manrope", background: "light" });
   });

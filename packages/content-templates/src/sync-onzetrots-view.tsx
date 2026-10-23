@@ -1,6 +1,6 @@
 import React,{type CSSProperties,type ReactNode} from 'react';
 import QR from 'qrcode';
-import {syncOnzeTrotsSystemAssets,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
+import {syncOnzeTrotsHeaderSubtitle,syncOnzeTrotsHeaderText,syncOnzeTrotsSystemAssets,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
 import type {SyncSlideAssetResolver} from './sync-slide-static-view';
 import {syncOnzeTrotsSixSlots,selectSyncOnzeTrotsVisitors} from './sync-onzetrots-motion';
 
@@ -19,17 +19,19 @@ function Crest({name,asset,resolveAsset,className=''}:{name:string;asset?:SyncSl
  const src=asset&&resolveAsset(asset);
  return src?<img className={`club-logo ${className}`} src={src} alt={`${name} logo`}/>:<span className={`club-initials ${className}`} aria-label={`${name}; clublogo niet beschikbaar`}>{initial(name)}</span>;
 }
-function ClubMark({slide,resolveAsset}:{slide:SyncOnzeTrotsPresentation;resolveAsset:SyncSlideAssetResolver}){
+function ClubMark({slide,resolveAsset,outer=false}:{slide:SyncOnzeTrotsPresentation;resolveAsset:SyncSlideAssetResolver;outer?:boolean}){
+ if(slide.rendererVersion==='sync-onzetrots-v9'&&!outer)return null;
  const src=slide.style.showLogo&&slide.club.logo&&resolveAsset(slide.club.logo);
  return src?<img className="container-club-logo" src={src} alt={`${slide.club.name} clublogo`}/>:null;
 }
 function Header({slide,resolveAsset,eyebrow,title}:{slide:SyncOnzeTrotsPresentation;resolveAsset:SyncSlideAssetResolver;eyebrow?:string;title:string}){
+ if(slide.rendererVersion==='sync-onzetrots-v9'&&slide.family!=='matchday')return null;
  return <div className="panel-head"><div>{eyebrow&&<div className="eyebrow">{eyebrow}</div>}<h3>{lines(title)}</h3></div><ClubMark slide={slide} resolveAsset={resolveAsset}/></div>;
 }
 function InlineHeader({slide,resolveAsset,children}:{slide:SyncOnzeTrotsPresentation;resolveAsset:SyncSlideAssetResolver;children:ReactNode}){
  return <header className="container-inline-header">{children}<ClubMark slide={slide} resolveAsset={resolveAsset}/></header>;
 }
-function CornerHeader(props:Pick<Props,'slide'|'resolveAsset'>){return <header className="container-corner-header"><ClubMark {...props}/></header>;}
+function CornerHeader(props:Pick<Props,'slide'|'resolveAsset'>){if(props.slide.rendererVersion==='sync-onzetrots-v9')return null;return <header className="container-corner-header"><ClubMark {...props}/></header>;}
 function Context({left,right}:{left:ReactNode;right?:ReactNode}){return <div className="panel-context"><strong>{left}</strong><span>{right}</span></div>;}
 function Foot({left,right}:{left?:ReactNode;right?:ReactNode}){return <div className="panel-foot"><span>{left}</span><span>{right}</span></div>;}
 function Empty({title='Er zijn nog geen gegevens beschikbaar.'}:{title?:string}){return <div className="ot-empty" role="status">{title}</div>;}
@@ -83,14 +85,21 @@ function Welcome({slide,resolveAsset}:Props){
  if(!matches.length)return <section className="panel welcome-empty"><CornerHeader slide={slide} resolveAsset={resolveAsset}/><span className="brand-brush" role="img" aria-label="OnzeTrots"/><h3>Even geen aankomende thuiswedstrijden.</h3><p>De eerstvolgende eigen thuiswedstrijden verschijnen hier zodra ze bekend zijn.</p></section>;
  return <div className="welcome-grid visitor-layout" data-match-count={matches.length}>{matches.map(fixture=>{
   const away=fixture.away.logo&&resolveAsset(fixture.away.logo);
+  const identity=<div className="visitor-spotlight"><div className="visitor-crest"><Crest name={fixture.away.name} asset={fixture.away.logo} resolveAsset={resolveAsset}/></div><div className="visitor-copy"><span>Van harte welkom!</span><h3>{fixture.away.name}</h3></div></div>;
   return <article className="panel welcome-card" key={fixture.id} data-match-id={fixture.id} data-home-team={fixture.home.teamId??undefined} data-kickoff={fixture.kickoffAt??undefined}>
    {away&&<img className="visitor-watermark" src={away} alt=""/>}
    <div className="welcome-card-top"><div><span className="welcome-date">{date(fixture.kickoffAt,{weekday:'long',day:'numeric',month:'long'})} · THUIS</span><span className="welcome-host">TE GAST{fixture.venue?` OP ${fixture.venue.toUpperCase()}`:''}</span></div><strong>{date(fixture.kickoffAt,{hour:'2-digit',minute:'2-digit'})}<small>AFTRAP</small></strong><ClubMark slide={slide} resolveAsset={resolveAsset}/></div>
-   <div className="visitor-spotlight"><div className="visitor-crest"><Crest name={fixture.away.name} asset={fixture.away.logo} resolveAsset={resolveAsset}/></div><div className="visitor-copy"><span>Van harte welkom!</span><h3>{fixture.away.name}</h3></div></div>
+   {slide.rendererVersion==='sync-onzetrots-v9'?<div className="visitor-stage">{identity}</div>:identity}
    <div className="fixture-caption"><span>DE WEDSTRIJD</span><strong>{fixture.home.name} <i>—</i> {fixture.away.name}</strong></div>
    <div className="welcome-logistics"><span><Icon name="flag"/> Veld <b>{fixture.field??'–'}</b></span><span><Icon/> Thuis <b>{fixture.homeRoom??'–'}</b></span><span><Icon/> Bezoekers <b>{fixture.awayRoom??'–'}</b></span></div>
   </article>;
  })}</div>;
+}
+
+export function birthdayDisplayName(displayName:string):string{
+ const parts=displayName.trim().split(/\s+/);
+ if(parts.length<2)return parts[0]??'';
+ return `${parts[0]} ${parts[parts.length-1]!.replace(/\.$/,'').slice(0,1).toLocaleUpperCase('nl-NL')}.`;
 }
 
 function SixGrid({slide,resolveAsset,page}:Props){
@@ -100,7 +109,7 @@ function SixGrid({slide,resolveAsset,page}:Props){
  return <div className={`${birthday?'birthday-grid':'event-grid'} fixed-six-grid`} data-grid-kind={slide.family} data-slot-count="6" data-filled-count={Math.min(6,Math.max(0,items.length-page*6))}>
   {syncOnzeTrotsSixSlots<(typeof items)[number]>(items,page).map((item,index)=>{
    if(!item)return <div className="empty-grid-slot" aria-hidden="true" data-empty-slot={index+1} key={`empty-${index}`}/>;
-   if('displayName' in item)return <article className="panel birthday-card" key={item.id}><header className="birthday-card-header"><span>{item.dateLabel}</span><ClubMark slide={slide} resolveAsset={resolveAsset}/></header><div className="birthday-age-block"><b className="birthday-age">{item.age??'–'}</b>{item.age!==null&&<span>JAAR</span>}</div><h3 className="birthday-name">Gefeliciteerd, {item.displayName}!</h3><p>{item.meta}</p></article>;
+   if('displayName' in item)return <article className="panel birthday-card" key={item.id}><header className="birthday-card-header"><span>{item.dateLabel}</span><ClubMark slide={slide} resolveAsset={resolveAsset}/></header>{slide.rendererVersion==='sync-onzetrots-v9'&&<h3 className="birthday-name">Gefeliciteerd, {birthdayDisplayName(item.displayName)}!</h3>}<div className="birthday-age-block"><b className="birthday-age">{item.age??'–'}</b>{item.age!==null&&<span>JAAR</span>}</div>{slide.rendererVersion!=='sync-onzetrots-v9'&&<h3 className="birthday-name">Gefeliciteerd, {item.displayName}!</h3>}<p>{item.meta}</p></article>;
    const photoAsset=item.image??slide.rich?.featureImage,photo=photoAsset&&resolveAsset(photoAsset);
    return <article className="panel event-card" key={item.id}>{photo&&<img className="event-photo" src={photo} alt=""/>}<div className="event-copy"><InlineHeader slide={slide} resolveAsset={resolveAsset}><span className="event-date">{item.dateLabel} · {slide.family==='agenda'?'CLUBAGENDA':'CLUBACTIVITEIT'}</span></InlineHeader><h3>{item.title}</h3><p>{item.body}</p><small>{[item.timeLabel,item.location].filter(Boolean).join(' · ')}</small></div></article>;
   })}
@@ -196,7 +205,7 @@ function Content(props:Props){
 /** Real HTML containers inside one logical canvas. SVG only provides uniform
  * coordinate scaling; all data, text, images and scrolling remain native DOM. */
 export function SyncOnzeTrotsView({slide,resolveAsset,page}:Props){
- const portrait=slide.orientation==='portrait',width=portrait?900:1600,height=portrait?1600:900;
+ const portrait=slide.orientation==='portrait',width=portrait?900:1600,height=portrait?1600:900,v9=slide.rendererVersion==='sync-onzetrots-v9';
  const background=slide.style.backgroundAsset&&resolveAsset(slide.style.backgroundAsset);
  const defaultPath=`/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-${portrait?'portrait-941':'wide-1672'}.webp`;
  const defaultAsset=syncOnzeTrotsSystemAssets.find(asset=>asset.path===defaultPath);
@@ -204,8 +213,8 @@ export function SyncOnzeTrotsView({slide,resolveAsset,page}:Props){
  return <div className="vc-slide-preview ot-approved-frame" style={{width:'100%',height:'100%',overflow:'hidden'}}>
   <svg className="ot-approved-canvas" viewBox={`0 0 ${width} ${height}`} style={{display:'block',width:'100%',height:'100%'}}>
    <foreignObject width={width} height={height}>
-    <div className={`screen${portrait?' portrait':''} ot-controlled`} data-theme={slide.visual.mode} style={{'--ot-background-position':slide.style.backgroundPosition,'--bg':`url(${JSON.stringify(background??defaultBackground)})`,'--panel':slide.visual.mode==='light'?`rgba(255,255,255,${slide.visual.panelOpacity/100})`:`rgba(12,31,58,${slide.visual.panelOpacity/100})`,fontFamily:'OTManrope, Arial, sans-serif',lineHeight:'normal',letterSpacing:'normal',wordSpacing:'normal',fontStyle:'normal',fontVariant:'normal',textAlign:'left',textTransform:'none'} as CSSProperties}>
-     <div className="slide-layout no-outer-heading"><div className="slide-content"><Content slide={slide} resolveAsset={resolveAsset} page={page}/></div>{slide.style.showFooter&&<footer className="slide-footer"><span className="source">{slide.footer}</span><span className="signature"><span className="brand-brush" role="img" aria-label="OnzeTrots"/><small>ONZE CLUB. ONZE TROTS.</small></span></footer>}</div>
+    <div className={`screen${portrait?' portrait':''} ot-controlled`} data-theme={slide.visual.mode} data-ot-welcome-scale={v9?slide.authoring.welcomeScalePercent:undefined} style={{'--welcome-scale':v9?slide.authoring.welcomeScalePercent/100:undefined,'--ot-background-position':slide.style.backgroundPosition,'--bg':`url(${JSON.stringify(background??defaultBackground)})`,'--panel':slide.visual.mode==='light'?`rgba(255,255,255,${slide.visual.panelOpacity/100})`:`rgba(12,31,58,${slide.visual.panelOpacity/100})`,fontFamily:'OTManrope, Arial, sans-serif',lineHeight:'normal',letterSpacing:'normal',wordSpacing:'normal',fontStyle:'normal',fontVariant:'normal',textAlign:'left',textTransform:'none'} as CSSProperties}>
+     <div className={`slide-layout ${v9?'with-slide-header':'no-outer-heading'}`}>{v9&&<header className="panel slide-header-container"><div className="slide-header-copy"><p className="slide-subtitle" data-ot-header-subtitle hidden={!syncOnzeTrotsHeaderSubtitle(slide)}>{syncOnzeTrotsHeaderSubtitle(slide)}</p><h2 data-ot-header-text hidden={!syncOnzeTrotsHeaderText(slide)}>{syncOnzeTrotsHeaderText(slide)}</h2></div><ClubMark slide={slide} resolveAsset={resolveAsset} outer/></header>}<div className="slide-content"><Content slide={slide} resolveAsset={resolveAsset} page={page}/></div>{slide.style.showFooter&&<footer className="slide-footer"><span className="source">{slide.footer}</span><span className="signature"><span className="brand-brush" role="img" aria-label="OnzeTrots"/><small>ONZE CLUB. ONZE TROTS.</small></span></footer>}</div>
     </div>
    </foreignObject>
   </svg>

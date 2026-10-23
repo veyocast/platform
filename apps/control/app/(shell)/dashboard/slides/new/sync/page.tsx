@@ -24,7 +24,7 @@ export default async function NewSyncSourcePage({searchParams}:{searchParams:Pro
  }
  const slideType=syncConnectedAuthoringType(presentation.family,presentation.rendererVersion);
  if(!slideType)return <><p role="status" className="notice">Open voor dit brontype de bestaande bronselectie. Het handmatige ontwerp blijft behouden.</p><Button asChild variant="secondary"><Link href="/dashboard/sources">Bronnen beheren</Link></Button></>;
- const seed={...presentation,name:query.project?presentation.name.slice(0,112)+' · bron':presentation.name,rows:[],news:[],ownRowIndexes:[],home:undefined,away:undefined,match:undefined,poll:undefined,youtubeUrl:undefined,...(presentation.rendererVersion==='sync-onzetrots-v1'?{rich:undefined}:{}),state:'ready' as const};
+ const seed={...presentation,name:query.project?presentation.name.slice(0,112)+' · bron':presentation.name,rows:[],news:[],ownRowIndexes:[],home:undefined,away:undefined,match:undefined,poll:undefined,youtubeUrl:undefined,...(presentation.rendererVersion!=='sync-v1'?{rich:undefined}:{}),state:'ready' as const};
  const secondsPerPage=5;
  const configuration=syncDynamicConfigurationSchema.parse({schemaVersion:1,kind:'dynamic',rendererVersion:seed.rendererVersion,sourceRevision:seed.sourceRevision,slideType,secondsPerPage,seed});
  const [sources,templates,media]=await Promise.all([

@@ -1,0 +1,1451 @@
+{
+  "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+  "userApprovedDelta": "Context 11→14.3 logical pixels (+30%); reference files unchanged",
+  "sourceFiles": 261,
+  "referenceAt": "2026-10-22T12:00:00Z",
+  "chromium": "149.0.7827.55",
+  "executablePath": "/home/codex/.cache/ms-playwright/chromium-1228/chrome-linux64/chrome",
+  "matrix": [
+    {
+      "family": "fixtures",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "fixtures-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "04bcb5fedfdc9ab3454642f73da2f3d73a0fccb200fe5a1beb3107f8a1c233ba"
+    },
+    {
+      "family": "fixtures",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "fixtures-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "fbf94e1778adafb567cc7fd7e0a33aca052bfc29b5702c309e7024ced3bbdec8"
+    },
+    {
+      "family": "fixtures",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "fixtures-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "ea3e9726d87b2b7b11ff98e33b2dc57e5e509f9f2e767b4afd2711586d8f2246"
+    },
+    {
+      "family": "fixtures",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "fixtures-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "48034a67f6845367a4380fdcc1b92716c762f38994bcf56a864406c3637b7d7e"
+    },
+    {
+      "family": "results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "7c8e8bd57324623cf5de1edc3fcd350b2d4be9b20a758df8fe5384ca5f25d99c"
+    },
+    {
+      "family": "results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "f5e0bf937feeecf59190d2dafe03daee9fb34fd5257893c75f94495d29b7b19b"
+    },
+    {
+      "family": "results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "27256e81fbbe267033f4217c6063f1d6253c0e31beca94e1f830bc6ea74ad5fc"
+    },
+    {
+      "family": "results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "c48fe154129cd6bc37192811e4bca613ae59754e849209c369167f1f9ed52661"
+    },
+    {
+      "family": "period-standings",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "period-standings-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "ec3948968f74f9f83e5b99aa1560bd5a8dbe5bc154ad6b9159e4679f8713a65c"
+    },
+    {
+      "family": "period-standings",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "period-standings-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "e8f2855f5af751745ecebdaa842638222a8b17b2b165180b120c8f259c0e9702"
+    },
+    {
+      "family": "period-standings",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "period-standings-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "53f2ba05784ded8e6526a3770a7e4ac15e715eff7c2ad2d440387eb2d8a05273"
+    },
+    {
+      "family": "period-standings",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "period-standings-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "3ee228f2184d68ea55153c6197097a09f3621aed9aa8b05a34edccd870c543a5"
+    },
+    {
+      "family": "cancellations",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "cancellations-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "ad62a12ce7b89f164c13dcf6fde7f1ed2a9a31fbc3f84a12e52f72de18173ee6"
+    },
+    {
+      "family": "cancellations",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "cancellations-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "ae616faeeff2935fbb61779250e69b218d0d3684e507efdd0cadc55a155e85b4"
+    },
+    {
+      "family": "cancellations",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "cancellations-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "6e492699bb3dacde4df1679e7dd8fb6e4d2ba8310c1ad588b801d196d51926fc"
+    },
+    {
+      "family": "cancellations",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "cancellations-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "f4f4fd942bc1eaa5301711230f0337a94ba0f1e8585df393c7025355b00bc550"
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "dressing-rooms-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d4058779a1917ef611eb4c52ac70f0068cf517f15b54f1e72ecc0ed51f385268"
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "dressing-rooms-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "257fcbd7ad7d899031f39dd517a940a285f5897139753dd52b4bfad6f0e18d10"
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "dressing-rooms-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "99f69b4f52f9c64fb4c56c20f8ba3279dfcff06aaa1cd41bb2ffeb3e9cbd94fb"
+    },
+    {
+      "family": "dressing-rooms",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "dressing-rooms-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "8813186418080d838a8dabe033c3ed325123984757451eb1d275e34329198ad3"
+    },
+    {
+      "family": "officials",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "officials-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "08f8d3d36de344b0ee0be04562ad0f595004913c621d854b716192aab9d3e58a"
+    },
+    {
+      "family": "officials",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "officials-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "10ce01c8ed476231f95882ed2053e58ac1f1627bf6f6ac0ab2fa8f282b0bc88b"
+    },
+    {
+      "family": "officials",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "officials-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "eb91807fe2b16993312ec3b47683cce64369b67700ffda454c8f3cfbc47f05d1"
+    },
+    {
+      "family": "officials",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "officials-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "cb68cc586c98734dff628d7de4122e5e8fbd7be99371765b5f68e4135df69e82"
+    },
+    {
+      "family": "team-info",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-info-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "801e7a0c3f62ffc35631138ade20f638ec1c250567940ea0978edaa9116fd22a"
+    },
+    {
+      "family": "team-info",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-info-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "e13eafcb4602414e3377ab891dfd12d0b24541b53f244f9e5d7c078407200f9e"
+    },
+    {
+      "family": "team-info",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-info-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "f5b286c17463e721ffd4f5517fc37c5e38ffe317d06fe8c6542dac4d6d6d3ba4"
+    },
+    {
+      "family": "team-info",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-info-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "fd669eff493eb8b5491ffb0aca4ac57c7ebc4da10dbe7f48a8856d59b35001b2"
+    },
+    {
+      "family": "activities",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "activities-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "59d38945df434c783e9a97916d2a48af62574b6c19385ca2bc5f059b00193056"
+    },
+    {
+      "family": "activities",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "activities-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "17e36afe9f32da436b4c63e86186d70833f57aafec5b8db822b3d92eb1286cbb"
+    },
+    {
+      "family": "activities",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "activities-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "617cc6d34392656ff72a2f7655bf6277939ae93cd459d50d5f461b69b5a7e154"
+    },
+    {
+      "family": "activities",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "activities-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "945e772e2e3ae367bf8b9de1695f83a68f7ec095346e93aa617a30a02dc7628c"
+    },
+    {
+      "family": "training",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "training-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "2f18b7d6076b7ebce215e79f6d958c541825b3c017de855e7f495e70a6822d35"
+    },
+    {
+      "family": "training",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "training-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "00c4526e186b958986b0920f715590bb29e50d943e1c9147c017158ea9380b1f"
+    },
+    {
+      "family": "training",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "training-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "cde0e588c3a6e75c49b08a72bfe50178c7e6388df24d05e8eadac6736373f8ec"
+    },
+    {
+      "family": "training",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "training-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "65cae3ea31b4ee2efb88e2869feb088560ec1818d9567f1b5eb656fd8ce16d1b"
+    },
+    {
+      "family": "volunteers",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "volunteers-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "0b569123952734960a083f0384dc574f143b9c50b42b4589375558c79fe424ce"
+    },
+    {
+      "family": "volunteers",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "volunteers-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "bbb726cb33c1418f9d93558be37572d23087917d5f455f1652e023e1c6014d2a"
+    },
+    {
+      "family": "volunteers",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "volunteers-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "3f1679047fe1b56226914cb6fbd34e5b0d9a8f63f603c797e4928ca1d5160bb2"
+    },
+    {
+      "family": "volunteers",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "volunteers-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "adf57201850d085a426975b30a98b6812ead9ae6afe21e21282fc9a9382136b1"
+    },
+    {
+      "family": "visitors",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "visitors-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d389b95cf8a2f87699007704efed4671dae6b61277ecd8b387b33c1c8096bdd2"
+    },
+    {
+      "family": "visitors",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "visitors-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "41ab8111c761915d322ffd69a85183130faac9857e28b75332ea462f5d5d691f"
+    },
+    {
+      "family": "visitors",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "visitors-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "dcbd451a988341b488c8cbe607e523f140a255f7714ed022b42473c3e37b3bb4"
+    },
+    {
+      "family": "visitors",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "visitors-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "ea999eb69414fd8f37362f2779ebeabc2649651bf830e1bc11689eb1f723e0f2"
+    },
+    {
+      "family": "matchday",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "matchday-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "98ca5ee981bdd19d5387eca611343e8079da2e04b6ec835be2d608cb63a110e9"
+    },
+    {
+      "family": "matchday",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "matchday-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "aaea31943d96e142a1f7ba1a22c7ea593125229c13c81c7e770186d230e1e7fd"
+    },
+    {
+      "family": "matchday",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "matchday-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "013295970c690988af484000bafedcf7e125b2238bee775bc3bb289491d2e92d"
+    },
+    {
+      "family": "matchday",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "matchday-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "4db16f6d769fff4299a8c3604a25058b0f4f422d9d061e713ae4eb40fe87f352"
+    },
+    {
+      "family": "club-program",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "club-program-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "922c3078134c6a9356b5faf00e4a60451f0750afcde17a3919cb5d516d006701"
+    },
+    {
+      "family": "club-program",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "club-program-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "6c09595dfd4548cad00d67cdbd910889a02f6e1766e86708704397b5245c5215"
+    },
+    {
+      "family": "club-program",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "club-program-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "07b390ffb5ca1a31bca78c23692877f7c00522e0e2fee1c3067873673663b5cb"
+    },
+    {
+      "family": "club-program",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "club-program-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "91e665bebca78630334bd27e3574b07d2f6aa7b7bdd78093436e53d250316dcb"
+    },
+    {
+      "family": "team-program",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-program-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "33e773aed98de18193976d318c109eb742352709fdfa8f93f9d4d5bf14484723"
+    },
+    {
+      "family": "team-program",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-program-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d041a931d5f3a10de150bae6d61b5f385f35ecd9d46221e400c20e6c6dd1c2d6"
+    },
+    {
+      "family": "team-program",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-program-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "94f21f44802797c16c16f17467ea744f31bcc1f6c957330f580553cc461d711a"
+    },
+    {
+      "family": "team-program",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-program-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "4a9826277c6e59482d35c488531b8143f35496eeaad934163e55ab9afeba73f0"
+    },
+    {
+      "family": "pool-program",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "pool-program-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d6d1b1e3026a4ff352dbfeb98f406a854b3f19ddab4408ea86805952056e3708"
+    },
+    {
+      "family": "pool-program",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "pool-program-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "172be025e9c7f580e1e59dacbb6409a33c585e3f3a17542aa1dd6ed889785bef"
+    },
+    {
+      "family": "pool-program",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "pool-program-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "bb762a0fad55ce955ca81a513f08f17bf8ae2cf8dbc077d9ce7f5651d1f02ab5"
+    },
+    {
+      "family": "pool-program",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "pool-program-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "210c8e68eef8002eac9afe2a635c86ffb9d0fff834a723ab35176b844fb81993"
+    },
+    {
+      "family": "club-results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "club-results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "7c8e8bd57324623cf5de1edc3fcd350b2d4be9b20a758df8fe5384ca5f25d99c"
+    },
+    {
+      "family": "club-results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "club-results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "f5e0bf937feeecf59190d2dafe03daee9fb34fd5257893c75f94495d29b7b19b"
+    },
+    {
+      "family": "club-results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "club-results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "27256e81fbbe267033f4217c6063f1d6253c0e31beca94e1f830bc6ea74ad5fc"
+    },
+    {
+      "family": "club-results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "club-results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "c48fe154129cd6bc37192811e4bca613ae59754e849209c369167f1f9ed52661"
+    },
+    {
+      "family": "team-results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "a46d2f433fc0922161c73a9081bd707b85fe318be92a74eeb18621637494522b"
+    },
+    {
+      "family": "team-results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "7ad38e9743f2cd6e4f01dbdb6c4993a5572cb6ffe8ebaf0adce0b3167f2d220f"
+    },
+    {
+      "family": "team-results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "9ca5d047b95bdd09d17da88f83b179fc13405c8f56d118b5fbbf9f5bef421ac8"
+    },
+    {
+      "family": "team-results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "0aeeb5cff76b58b11fe3b9ab7d3e98de76974954349455600fb254f227c9e3a9"
+    },
+    {
+      "family": "pool-results",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "pool-results-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "79451b5efed1a2993a92c3611803df3de69275ba858442a9453e99527fa642c6"
+    },
+    {
+      "family": "pool-results",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "pool-results-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "8672dd6fbcc368ddf367ac7638e5f12f93dd5190d7c121379f24d0cc1f9f0b34"
+    },
+    {
+      "family": "pool-results",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "pool-results-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "d47e15ed25bf8c09b57b4a18756e58ab88a0f2067c102b52800e319ade5283a1"
+    },
+    {
+      "family": "pool-results",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "pool-results-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "4290db34a197d655d5d21474dae0afd0f90d79147c61c2a219ab72f10bd8a2f4"
+    },
+    {
+      "family": "standings",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "standings-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "196a55819c07e02d47d1b749dd8d83852f4529e02ef00f08b35ed02a4951b5d4"
+    },
+    {
+      "family": "standings",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "standings-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "c72441da4e5e83c76fd6ca4cdd721e04fe5abf395f43eaa3d60d024f6c156645"
+    },
+    {
+      "family": "standings",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "standings-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "a079cba53ee1fe7c3268eba905bfe7c0cb06a8b1b345ba03b413b03c7703a3e0"
+    },
+    {
+      "family": "standings",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "standings-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "e72efd886cc8cc9c8edbf3dd5ba5ee0958d71cbb8ed7929b2cf64beeafc95382"
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "team-arrivals-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "772a126438b711086e194737b7e6b3547b8eae1c8c181670c407c3cae73b87d6"
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "team-arrivals-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "a5f1799a7eb67cd675d4082cf289e271ba5dc6deaf17d96f535f578022160fc3"
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "team-arrivals-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "ac5214ede8894886855838cc079b1e2cf0e9d52979172d2084c30fc7d8975c5c"
+    },
+    {
+      "family": "team-arrivals",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "team-arrivals-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "d8d1db8ea52823e240cbe335924362c2bd7470b30581675a8c3c58abafa20f9d"
+    },
+    {
+      "family": "welcome",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "welcome-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "709eae760939f81242ddf155c5bd7f0cc03d5754197deb9695122a54c99a9e22"
+    },
+    {
+      "family": "welcome",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "welcome-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "b68799fdd980b643c7d558c7c65598f18b6aed38e8985816d3a473bc8b301cad"
+    },
+    {
+      "family": "welcome",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "welcome-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "6950fd0b849f22ae2c19a6fb6d06811b22ae855c40c5e6254621f23e5dd2689d"
+    },
+    {
+      "family": "welcome",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "welcome-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "9203f7c20f7d140d9dd109e0818facda5a1b985e5cf984232be29e494b0eadcb"
+    },
+    {
+      "family": "referees",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "referees-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "60ca48102e46dd279d43f23a132c2e538f6e1335b47b703eb02234f4f71f38b8"
+    },
+    {
+      "family": "referees",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "referees-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "e92d9ecc3e26a7bbe8eb1edb020fa4d62586c5b7ae3d9da67a0a4f072fcfefd7"
+    },
+    {
+      "family": "referees",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "referees-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "9a56df3ad802152b7f88c605dd9c2e8ef5c3186d21cae5e57f11f4b7ea0c9c47"
+    },
+    {
+      "family": "referees",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "referees-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "80d849de52c6ef15d11ad246199ede93527e529f89a8bbf0e463e8b1661908d7"
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "changing-rooms-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d4058779a1917ef611eb4c52ac70f0068cf517f15b54f1e72ecc0ed51f385268"
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "changing-rooms-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "257fcbd7ad7d899031f39dd517a940a285f5897139753dd52b4bfad6f0e18d10"
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "changing-rooms-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "99f69b4f52f9c64fb4c56c20f8ba3279dfcff06aaa1cd41bb2ffeb3e9cbd94fb"
+    },
+    {
+      "family": "changing-rooms",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "changing-rooms-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "8813186418080d838a8dabe033c3ed325123984757451eb1d275e34329198ad3"
+    },
+    {
+      "family": "next-match",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "next-match-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "1208a1a82bde3439fe6c2119c6c7766a8372782a7651e97ae981faf5d25cb954"
+    },
+    {
+      "family": "next-match",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "next-match-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "9ead4685930ef3de2750284babc7e886b14c1fa78fdbd1c9a7aa6a9f775f6af0"
+    },
+    {
+      "family": "next-match",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "next-match-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "87d032d7837bfe87138067975f08cf3c0b2ba3c19202a09aa69eca31ff2d6818"
+    },
+    {
+      "family": "next-match",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "next-match-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "509a6aa15cbdbd6da5f4096b603b026772ea8135e8bbe53faf77e2a206b73a76"
+    },
+    {
+      "family": "birthdays",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "birthdays-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "35f362b393be412b400aa424daea16ed61f13bfa990533ce615a9ab818b71c21"
+    },
+    {
+      "family": "birthdays",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "birthdays-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "468051db03991a14ace9994f9f2ddc7beb8af88912a85059644c3f61d1ea12cf"
+    },
+    {
+      "family": "birthdays",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "birthdays-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "c9a62b991a69c56bfa507b9674bac6f7ab2fd9106f0393a3c63424289da6496f"
+    },
+    {
+      "family": "birthdays",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "birthdays-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "2cd3b7b51d204efc8886eca7ce19ea02c570f5ff780cb404bb1addcc6f1089ae"
+    },
+    {
+      "family": "lineup",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "lineup-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "b3c02d196cd1f4cabbd236987b5c40a15b894684300ef8cc22cba4d3164034bb"
+    },
+    {
+      "family": "lineup",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "lineup-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "824f521161da29c11eeb02d52cdba5e4192e26b3bef503707b5846790b104337"
+    },
+    {
+      "family": "lineup",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "lineup-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "f7c952591d323c05ea55ff85d657af9f0bdbcf14a2d20a5fc511f8287d69373a"
+    },
+    {
+      "family": "lineup",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "lineup-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "aaa26d6e6e75a6aa07b36e69eed083fe280e6a22d1206fc935eef4211366bb6f"
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "scoreboard-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "28656e1636014124fd577b691f6f52e28ffeee555fa513a0e7cea55dc18d31c1"
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "scoreboard-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "9d99bd407413b1cb9c865970337883d163bdeb1f1cd0665a1c8d5c9e144d9d48"
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "scoreboard-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "4c69a347ac39f7285bd0fd38a95bbce02a782c11f01594da1b5dc28062fa77b9"
+    },
+    {
+      "family": "scoreboard",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "scoreboard-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "a9e45a3947aa62398da6e7cef0504ba4bebc59373a3768e8a2301106831804cf"
+    },
+    {
+      "family": "goal",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "goal-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "6e801ba1b535bb3b50805897081bb4b1e9e00fa127bba0ea6542379090e13922"
+    },
+    {
+      "family": "goal",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "goal-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "03e2e4652430baf80c38e68c96f0ca5a456ad8aa5e7161e1101eea4df36330e0"
+    },
+    {
+      "family": "goal",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "goal-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "7523c49dcd2ca410f8cc7592563e1802bd39d4f9d1a08ee70f8ff0e81dde60b8"
+    },
+    {
+      "family": "goal",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "goal-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "b4b33d209c67f917dea36ae0dca9462081f7d193a256dd0825656b41f76af78c"
+    },
+    {
+      "family": "menu",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "menu-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d531c3f9f4d5af202c4e0643ab97a93f3c8cb50f6315b3a27e140cde5a855def"
+    },
+    {
+      "family": "menu",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "menu-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d9c7c33497cf87b516ea7a2ce1b28566a678bb1a1906870ff369520b8d10ed9d"
+    },
+    {
+      "family": "menu",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "menu-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "ab16956561351d0041922aa232e16ae2fa8df64e51570f799c4dfd04b1de1c4e"
+    },
+    {
+      "family": "menu",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "menu-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "afcccd6355582115c15c2482272c0b1b40c4989f93bf82100fe381677d2fce07"
+    },
+    {
+      "family": "engage",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "engage-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "905c131a552ba242ea9ee1cf4bce487bc67a6f40f9c3be5f08e774b8ecc7dfad"
+    },
+    {
+      "family": "engage",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "engage-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "7308d01b9eb469981de085141e75299915ff6f24393c4ea4b0cd6934c5c2c35a"
+    },
+    {
+      "family": "engage",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "engage-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "60a456e12ff8ead4b872a84dc61628b438463f3c59e241e28c2b13cdeca607a3"
+    },
+    {
+      "family": "engage",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "engage-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "2e9990826f1a95d537ee718b421789d7586e58a3a2f6bc5d49e0ef1aa637d9e5"
+    },
+    {
+      "family": "rss",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "rss-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "a31e266080a49176dc0aa64064b6087dc8bf1da6721363a5a077af3a7575692d"
+    },
+    {
+      "family": "rss",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "rss-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "20e1b6f14c5eba09518edf00a49b09307ce2b548c4d2aa18255f3bfef748b34f"
+    },
+    {
+      "family": "rss",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "rss-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "d68300b5c036688b40dabed92d9e9ab1fd03051c9d1b8cd6466c10837252c969"
+    },
+    {
+      "family": "rss",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "rss-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "9fe3f34c444228fca722c641b2ed84869578b50d8f1e57e8002926a4478d9a6e"
+    },
+    {
+      "family": "sponsors",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "sponsors-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "746aac5ebfe0415eaaf3eabe9143cb5f2b074150418b10001f50be462da89ff8"
+    },
+    {
+      "family": "sponsors",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "sponsors-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "d867e1ae5c7ce423ecc2b749c2a994e82cafa7c86631fcab84c3afcb1a4fd8d8"
+    },
+    {
+      "family": "sponsors",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "sponsors-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "ac4cbe68100b4e7a06b115698d09227451cbe39e25bacd28056cca0657bdd6f6"
+    },
+    {
+      "family": "sponsors",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "sponsors-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "48012ca90d30549ba30bb26f5e3ed254c04d8d217b98102a0499e4892a45a71d"
+    },
+    {
+      "family": "agenda",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "agenda-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "1857c0fe88db7879cdfb7b9e9ff6033277fb285257442457a568a0d0074a862c"
+    },
+    {
+      "family": "agenda",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "agenda-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "e174a6cc520c1aee1156aadc8bddc9b06b45927ee96754477fc6cd503ac94eb7"
+    },
+    {
+      "family": "agenda",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "agenda-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "91a5c338951adcb46f28e1033b3f904a568071e9240b1243123aa10d02fc0895"
+    },
+    {
+      "family": "agenda",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "agenda-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "b76ab657248581600b2326d80f3449903aa2585a56a3c5d680a6bab3c75737aa"
+    },
+    {
+      "family": "club-story",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "club-story-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "885561272598c47ffac17343c1303a77bf1ad967f32064f3ac4088b675b26557"
+    },
+    {
+      "family": "club-story",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "club-story-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "a5799a42ee76f380e071fb80cf2e9b3733e7d3b21147e971bcd4cb5e47845684"
+    },
+    {
+      "family": "club-story",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "club-story-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "926dfd253d2159d2635170b8197497f6dc2fb332b3c7f37dee9881d453a9a7e8"
+    },
+    {
+      "family": "club-story",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "club-story-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "f2d5c855cf159c9d5bccc133c6137df2fecee8cbdb4572bc2f729808295ddfd4"
+    },
+    {
+      "family": "youtube",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "youtube-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "89cc7493ddf8d7e12ef122270f0f4edba3345f7ff7d0bfc9b55056af254a624f"
+    },
+    {
+      "family": "youtube",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "youtube-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "6e292fc0f29c221292c63d2289d38e66dd37a27401e7b8f9b0a68f3146f03811"
+    },
+    {
+      "family": "youtube",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "youtube-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "408d62aeeed8424961c2185bbc4b855e245833a9b0ae3a8608a2903b2a3a4abf"
+    },
+    {
+      "family": "youtube",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "youtube-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "8e2caf6aafb996c88e92f49ba5d7b79009297700fdbec32c639894ab39a3f788"
+    },
+    {
+      "family": "free",
+      "orientation": "landscape",
+      "mode": "light",
+      "filename": "free-landscape-light.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "eca36b0602a7db4cf847153379cfe4df8f6a2f4bd2ddcc83db87bb373035ed8b"
+    },
+    {
+      "family": "free",
+      "orientation": "landscape",
+      "mode": "dark",
+      "filename": "free-landscape-dark.png",
+      "width": 1920,
+      "height": 1080,
+      "elapsedMs": 1200,
+      "sha256": "2670877afc9aea22616ebb59e408ca3836ebde223f9d7faa30afebb11b1fbc99"
+    },
+    {
+      "family": "free",
+      "orientation": "portrait",
+      "mode": "light",
+      "filename": "free-portrait-light.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "dfe4fb565fc3f4e5ce9398cc5594c47d6bdc873d9ec78bcfd020f652b9b42056"
+    },
+    {
+      "family": "free",
+      "orientation": "portrait",
+      "mode": "dark",
+      "filename": "free-portrait-dark.png",
+      "width": 1080,
+      "height": 1920,
+      "elapsedMs": 1200,
+      "sha256": "b6d63d9f73725c2328ad6d87e33647ec376d7a10e135df008b35ef4fd022d91a"
+    }
+  ],
+  "captureNotes": "Goal reference completes the v9 intro while retaining the original data-animation time at 1200 ms; original archive and preceding diagnostic captures unchanged."
+}

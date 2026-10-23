@@ -1,0 +1,500 @@
+{
+  "schemaVersion": 1,
+  "rendererVersion": "sync-onzetrots-v9",
+  "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+  "family": "standings",
+  "orientation": "landscape",
+  "theme": "onzetrots-tv",
+  "name": "Dit is onze plek.",
+  "club": {
+    "name": "Duindorp SV",
+    "tagline": "SINDS 1950",
+    "logo": {
+      "kind": "system",
+      "path": "/onzetrots-approved-v1/assets/logo.png",
+      "checksumSha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930"
+    }
+  },
+  "title": "De ranglijst.",
+  "headline": "",
+  "body": "",
+  "subtitle": "De ranglijst",
+  "topLabel": "4E KLASSE C",
+  "footer": "Sportlink · Voorbeeldgegevens",
+  "footerRight": "Duindorp blijft in beeld",
+  "rows": [
+    [
+      "1",
+      "DUNO 1",
+      "4",
+      "12"
+    ],
+    [
+      "2",
+      "Quick 1",
+      "4",
+      "12"
+    ],
+    [
+      "3",
+      "Loosduinen 1",
+      "4",
+      "10"
+    ],
+    [
+      "4",
+      "GSC ESDO 1",
+      "4",
+      "9"
+    ],
+    [
+      "5",
+      "Duindorp SV 1",
+      "4",
+      "9"
+    ],
+    [
+      "6",
+      "Quintus 1",
+      "4",
+      "7"
+    ],
+    [
+      "7",
+      "Laakkwartier 1",
+      "4",
+      "6"
+    ],
+    [
+      "8",
+      "Quick Steps 1",
+      "4",
+      "4"
+    ],
+    [
+      "9",
+      "RVC Celeritas 1",
+      "4",
+      "4"
+    ],
+    [
+      "10",
+      "TAC’90 1",
+      "4",
+      "3"
+    ],
+    [
+      "11",
+      "Erasmus 1",
+      "4",
+      "3"
+    ],
+    [
+      "12",
+      "Semper Altius 1",
+      "4",
+      "2"
+    ],
+    [
+      "13",
+      "Die Haghe 1",
+      "4",
+      "1"
+    ],
+    [
+      "14",
+      "PGS/VOGEL 1",
+      "4",
+      "0"
+    ]
+  ],
+  "rowsPerPage": 6,
+  "ownRowIndexes": [],
+  "category": "",
+  "subline": "De hele poule · Duindorp in beeld",
+  "lineup": [],
+  "news": [],
+  "imageCaption": "",
+  "state": "ready",
+  "style": {
+    "motion": "rustig",
+    "background": "clubmuur",
+    "backgroundPosition": "center",
+    "font": "Inter, sans-serif",
+    "fontChanged": false,
+    "accent": "#1763ed",
+    "alignment": "left",
+    "scale": 100,
+    "safeMargin": 5,
+    "showLogo": true,
+    "showFooter": true
+  },
+  "visual": {
+    "schemaVersion": 1,
+    "mode": "light",
+    "scrollSpeed": "normal",
+    "panelOpacity": 94
+  },
+  "rich": {
+    "teamSelection": {
+      "ownClubId": "example-club:duindorp",
+      "ownTeamIds": [
+        "example-team:Duindorp SV 1",
+        "example-team:Duindorp SV JO11-1",
+        "example-team:Duindorp SV JO13-1",
+        "example-team:Duindorp SV JO15-1",
+        "example-team:Duindorp SV JO17-1",
+        "example-team:Duindorp SV 2"
+      ],
+      "primaryTeamId": "example-team:Duindorp SV 1"
+    },
+    "standings": {
+      "ownTeamId": "example-team:Duindorp SV 1",
+      "rows": [
+        {
+          "id": "example-standing-0",
+          "teamId": "example-team:DUNO 1",
+          "clubId": null,
+          "teamName": "DUNO 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000001",
+            "checksumSha256": "406e13f8c3dd6de60bd9a54c2e7e340d3850f2a56ecceee32cbf4ccb36d6dc70"
+          },
+          "position": 1,
+          "played": 4,
+          "won": 4,
+          "drawn": 0,
+          "lost": 0,
+          "goalDifference": 12,
+          "points": 12,
+          "form": [
+            "W",
+            "W",
+            "W",
+            "W"
+          ]
+        },
+        {
+          "id": "example-standing-1",
+          "teamId": "example-team:Quick 1",
+          "clubId": null,
+          "teamName": "Quick 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000002",
+            "checksumSha256": "cddc9a0ec8942572af78602e050de79f80e66eca39ff087d3092342709ee4d98"
+          },
+          "position": 2,
+          "played": 4,
+          "won": 4,
+          "drawn": 0,
+          "lost": 0,
+          "goalDifference": 10,
+          "points": 12,
+          "form": [
+            "W",
+            "W",
+            "W",
+            "W"
+          ]
+        },
+        {
+          "id": "example-standing-2",
+          "teamId": "example-team:Loosduinen 1",
+          "clubId": null,
+          "teamName": "Loosduinen 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000003",
+            "checksumSha256": "e8b5aac7bd13305d2ac361d62fe199f227d1d153a8fe3e6eb4f4b616e4a3f54f"
+          },
+          "position": 3,
+          "played": 4,
+          "won": 3,
+          "drawn": 1,
+          "lost": 0,
+          "goalDifference": 8,
+          "points": 10,
+          "form": [
+            "W",
+            "GL",
+            "W",
+            "W"
+          ]
+        },
+        {
+          "id": "example-standing-3",
+          "teamId": "example-team:GSC ESDO 1",
+          "clubId": null,
+          "teamName": "GSC ESDO 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000004",
+            "checksumSha256": "932aea88c8326b1381a0d5c7e58f9617d83666dc064eeb4ac273479cfe0aa7d0"
+          },
+          "position": 4,
+          "played": 4,
+          "won": 3,
+          "drawn": 0,
+          "lost": 1,
+          "goalDifference": 6,
+          "points": 9,
+          "form": [
+            "V",
+            "W",
+            "W",
+            "W"
+          ]
+        },
+        {
+          "id": "example-standing-4",
+          "teamId": "example-team:Duindorp SV 1",
+          "clubId": "example-club:duindorp",
+          "teamName": "Duindorp SV 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000005",
+            "checksumSha256": "832c642ea9735b87452a6508ae5525f4f87fe528408efc58ad0f86f1a456a930"
+          },
+          "position": 5,
+          "played": 4,
+          "won": 3,
+          "drawn": 0,
+          "lost": 1,
+          "goalDifference": 4,
+          "points": 9,
+          "form": [
+            "W",
+            "W",
+            "W",
+            "V"
+          ]
+        },
+        {
+          "id": "example-standing-5",
+          "teamId": "example-team:Quintus 1",
+          "clubId": null,
+          "teamName": "Quintus 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000006",
+            "checksumSha256": "51c263b787fa7170df21665b5c1dac78742e031e282925b0ce7fe94d466b61b2"
+          },
+          "position": 6,
+          "played": 4,
+          "won": 2,
+          "drawn": 1,
+          "lost": 1,
+          "goalDifference": 2,
+          "points": 7,
+          "form": [
+            "W",
+            "GL",
+            "V",
+            "W"
+          ]
+        },
+        {
+          "id": "example-standing-6",
+          "teamId": "example-team:Laakkwartier 1",
+          "clubId": null,
+          "teamName": "Laakkwartier 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000007",
+            "checksumSha256": "801a9f3dff9f132bd615980dba7fcdc9013b865e241ee091c444b73c11427dfa"
+          },
+          "position": 7,
+          "played": 4,
+          "won": 2,
+          "drawn": 0,
+          "lost": 2,
+          "goalDifference": 0,
+          "points": 6,
+          "form": [
+            "V",
+            "V",
+            "W",
+            "W"
+          ]
+        },
+        {
+          "id": "example-standing-7",
+          "teamId": "example-team:Quick Steps 1",
+          "clubId": null,
+          "teamName": "Quick Steps 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000008",
+            "checksumSha256": "c6f7e4bb59ba7c0583a31df5ad6a98cc94fbb30bdaf7e79f98fede49919ef506"
+          },
+          "position": 8,
+          "played": 4,
+          "won": 1,
+          "drawn": 1,
+          "lost": 2,
+          "goalDifference": -2,
+          "points": 4,
+          "form": [
+            "V",
+            "W",
+            "GL",
+            "V"
+          ]
+        },
+        {
+          "id": "example-standing-8",
+          "teamId": "example-team:RVC Celeritas 1",
+          "clubId": null,
+          "teamName": "RVC Celeritas 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000009",
+            "checksumSha256": "7fc0248f4ae352f194861f6626251ad9cc42ae90c7127e2ea3d0f6cdec2d3511"
+          },
+          "position": 9,
+          "played": 4,
+          "won": 1,
+          "drawn": 1,
+          "lost": 2,
+          "goalDifference": -4,
+          "points": 4,
+          "form": [
+            "W",
+            "GL",
+            "V",
+            "V"
+          ]
+        },
+        {
+          "id": "example-standing-9",
+          "teamId": "example-team:TAC’90 1",
+          "clubId": null,
+          "teamName": "TAC’90 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000010",
+            "checksumSha256": "7854835a64da766e515759149809e9bbd88cf441eb2d7ebb5f330717326464ce"
+          },
+          "position": 10,
+          "played": 4,
+          "won": 1,
+          "drawn": 0,
+          "lost": 3,
+          "goalDifference": -6,
+          "points": 3,
+          "form": [
+            "V",
+            "V",
+            "V",
+            "W"
+          ]
+        },
+        {
+          "id": "example-standing-10",
+          "teamId": "example-team:Erasmus 1",
+          "clubId": null,
+          "teamName": "Erasmus 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000011",
+            "checksumSha256": "7f88562f51026db456330f5282d6105db2232bda925ebabfc076f1de42a03b92"
+          },
+          "position": 11,
+          "played": 4,
+          "won": 1,
+          "drawn": 0,
+          "lost": 3,
+          "goalDifference": -8,
+          "points": 3,
+          "form": [
+            "V",
+            "V",
+            "W",
+            "V"
+          ]
+        },
+        {
+          "id": "example-standing-11",
+          "teamId": "example-team:Semper Altius 1",
+          "clubId": null,
+          "teamName": "Semper Altius 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000012",
+            "checksumSha256": "e413c840de751a8599715c812404e85254110397d992bd4b90d4ac652b032f6d"
+          },
+          "position": 12,
+          "played": 4,
+          "won": 0,
+          "drawn": 2,
+          "lost": 2,
+          "goalDifference": -10,
+          "points": 2,
+          "form": [
+            "V",
+            "GL",
+            "GL",
+            "V"
+          ]
+        },
+        {
+          "id": "example-standing-12",
+          "teamId": "example-team:Die Haghe 1",
+          "clubId": null,
+          "teamName": "Die Haghe 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000013",
+            "checksumSha256": "b3c32c69df66a1fdcaccb77d0b10ad60eb51b2b7b1ecf9a5c214c754f56d3df1"
+          },
+          "position": 13,
+          "played": 4,
+          "won": 0,
+          "drawn": 1,
+          "lost": 3,
+          "goalDifference": -12,
+          "points": 1,
+          "form": [
+            "GL",
+            "V",
+            "V",
+            "V"
+          ]
+        },
+        {
+          "id": "example-standing-13",
+          "teamId": "example-team:PGS/VOGEL 1",
+          "clubId": null,
+          "teamName": "PGS/VOGEL 1",
+          "logo": {
+            "kind": "tenant",
+            "mediaAssetId": "28500000-0000-4000-8000-000000000014",
+            "checksumSha256": "d8d0f5fc69f1a89967066bd7844988451cef3c5dcc54279808700b0c01af151b"
+          },
+          "position": 14,
+          "played": 4,
+          "won": 0,
+          "drawn": 0,
+          "lost": 4,
+          "goalDifference": -14,
+          "points": 0,
+          "form": [
+            "V",
+            "V",
+            "V",
+            "V"
+          ]
+        }
+      ],
+      "label": "4E KLASSE C"
+    }
+  },
+  "authoring": {
+    "schemaVersion": 1,
+    "headerSubtitles": {},
+    "headerTexts": {},
+    "welcomeScalePercent": 150
+  }
+}

@@ -1,0 +1,328 @@
+{
+  "note": "Observed host times and computed style immediately before screenshots; no exact-frame export assertion. Representative frames visually checked.",
+  "scene": "visitors",
+  "orientation": "landscape",
+  "theme": "light",
+  "sourceRevision": "d5005d8cc7cdb794edb3b1a40cda70a3491b2b0c",
+  "representativeIndices": [
+    4,
+    7,
+    11
+  ],
+  "observations": [
+    {
+      "file": "motion-00.jpg",
+      "elapsedObservedMs": 21,
+      "state": {
+        "background": "0.55126",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0"
+      }
+    },
+    {
+      "file": "motion-01.jpg",
+      "elapsedObservedMs": 226,
+      "state": {
+        "background": "0.828558",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0"
+      }
+    },
+    {
+      "file": "motion-02.jpg",
+      "elapsedObservedMs": 396,
+      "state": {
+        "background": "0.910504",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0"
+      }
+    },
+    {
+      "file": "motion-03.jpg",
+      "elapsedObservedMs": 596,
+      "state": {
+        "background": "0.945814",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0"
+      }
+    },
+    {
+      "file": "motion-04.jpg",
+      "elapsedObservedMs": 782,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0"
+      }
+    },
+    {
+      "file": "motion-05.jpg",
+      "elapsedObservedMs": 939,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0"
+      }
+    },
+    {
+      "file": "motion-06.jpg",
+      "elapsedObservedMs": 1090,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0"
+      }
+    },
+    {
+      "file": "motion-07.jpg",
+      "elapsedObservedMs": 1274,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0.832804"
+      }
+    },
+    {
+      "file": "motion-08.jpg",
+      "elapsedObservedMs": 1433,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "header": "0.968645"
+      }
+    },
+    {
+      "file": "motion-09.jpg",
+      "elapsedObservedMs": 2589,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "0.999998",
+          "0.998675",
+          "0.988424",
+          "0.947818"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-10.jpg",
+      "elapsedObservedMs": 3718,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-11.jpg",
+      "elapsedObservedMs": 3886,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-12.jpg",
+      "elapsedObservedMs": 4033,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-13.jpg",
+      "elapsedObservedMs": 4196,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-14.jpg",
+      "elapsedObservedMs": 4356,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-15.jpg",
+      "elapsedObservedMs": 4535,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-16.jpg",
+      "elapsedObservedMs": 4714,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    },
+    {
+      "file": "motion-17.jpg",
+      "elapsedObservedMs": 4919,
+      "state": {
+        "background": "0.95",
+        "containers": [
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "header": "1"
+      }
+    }
+  ],
+  "semanticContainerSmoke": [
+    {
+      "containers": [
+        {
+          "class": "photo-panel scene-container",
+          "delay": "2.1s",
+          "name": "scene-content-in",
+          "opacity": "0"
+        },
+        {
+          "class": "panel feature-copy scene-container",
+          "delay": "2.22s",
+          "name": "scene-content-in",
+          "opacity": "0"
+        }
+      ],
+      "headerDelay": "1.25s",
+      "id": "team-info"
+    },
+    {
+      "containers": [
+        {
+          "class": "pitch scene-container",
+          "delay": "2.1s",
+          "name": "scene-content-in",
+          "opacity": "0"
+        },
+        {
+          "class": "panel scene-container",
+          "delay": "2.22s",
+          "name": "scene-content-in",
+          "opacity": "0"
+        }
+      ],
+      "headerDelay": "1.25s",
+      "id": "lineup"
+    },
+    {
+      "containers": [
+        {
+          "class": "goal-scene scene-container",
+          "delay": "2.1s",
+          "name": "scene-content-in",
+          "opacity": "0"
+        }
+      ],
+      "headerDelay": "1.25s",
+      "id": "goal"
+    },
+    {
+      "containers": [
+        {
+          "class": "video-layout scene-container",
+          "delay": "2.1s",
+          "name": "scene-content-in",
+          "opacity": "0"
+        }
+      ],
+      "headerDelay": "1.25s",
+      "id": "youtube"
+    }
+  ]
+}

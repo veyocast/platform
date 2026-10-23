@@ -1,0 +1,9 @@
+.fields{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.header{display:grid;gap:6px;flex:1;min-width:220px}
+.caption{flex-basis:100%;font-size:13px;font-weight:600;color:var(--text)}
+.fields label>span{display:flex;justify-content:space-between;gap:16px;font-size:13px;font-weight:600;line-height:1.5;color:var(--text)}
+.header input{width:100%;min-height:44px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--bg);color:var(--text);font:inherit;font-size:14px}
+.fields input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.scale{display:grid;gap:6px;flex:0 1 230px;min-width:190px}
+.scale input{width:100%;min-height:44px;accent-color:var(--accent)}
+@media(max-width:700px){.fields{padding:12px;gap:10px}.header{flex-basis:100%}.scale{flex:1;min-width:150px}}

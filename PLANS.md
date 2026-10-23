@@ -1,5 +1,12 @@
 # VeyoCast MVP Plan
 
+S286 brengt de goedgekeurde OnzeTrots-v9-eindlayout, behouden v7-entree en contextregel +30% in dezelfde
+actieve Sync-preview/export/Player-keten als S285. Nieuwe documenten krijgen
+een expliciete nieuwe rendereridentiteit, bewerkbare subtitel/titel met Rubik Distressed en
+opgeslagen bezoekersschaal. Historische presentaties blijven renderbaar.
+Zie `prompts/sprints/S286-onzetrots-v9.md` voor ownership, gates en de door
+de gebruiker geautoriseerde normale staging-/productiepromotie.
+
 S285 integreert de goedgekeurde OnzeTrots-collectie met 36 families en een
 expliciete nieuwe rendereridentiteit in de actieve Sync-preview/export/Player.
 Bron, ownership, rijke contracten, deterministische motion en bewijsstatus staan

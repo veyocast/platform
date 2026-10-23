@@ -143,6 +143,9 @@ jobs:
           export S285_ONZETROTS_BINARIES="$RUNNER_TEMP/browser-gates/s285-onzetrots-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           pnpm exec tsx tests/helpers/sync-onzetrots-export.ts "$S285_ONZETROTS_BINARIES" "$SITES_CAPTURE_TEST_CHROMIUM"
           printf 'S285_ONZETROTS_BINARIES=%s\n' "$S285_ONZETROTS_BINARIES" >> "$GITHUB_ENV"
+          export S286_ONZETROTS_BINARIES="$RUNNER_TEMP/browser-gates/s286-onzetrots-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          pnpm exec tsx tests/helpers/sync-onzetrots-export.ts "$S286_ONZETROTS_BINARIES" "$SITES_CAPTURE_TEST_CHROMIUM" sync-onzetrots-v9
+          printf 'S286_ONZETROTS_BINARIES=%s\n' "$S286_ONZETROTS_BINARIES" >> "$GITHUB_ENV"
       - name: Verify every discovered spec in the application group
         env:
           PLAYWRIGHT_GATE_GROUP: ${{ matrix.group }}

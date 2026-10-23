@@ -40,7 +40,7 @@ describe("authorized current-target API", () => {
     expect(next.status).toBe(304);
     expect(adminRpc).toHaveBeenCalledOnce();
     expect(loadEnvelope).not.toHaveBeenCalled();
-    expect(next.headers.get("vary")).toBe("Authorization, X-VeyoCast-Sync-Renderer, X-VeyoCast-Sync-Dynamic, X-VeyoCast-Sync-Backgrounds, X-VeyoCast-Sync-Engage-Paging, X-VeyoCast-Sync-OnzeTrots");
+    expect(next.headers.get("vary")).toBe("Authorization, X-VeyoCast-Sync-Renderer, X-VeyoCast-Sync-Dynamic, X-VeyoCast-Sync-Backgrounds, X-VeyoCast-Sync-Engage-Paging, X-VeyoCast-Sync-OnzeTrots, X-VeyoCast-Sync-OnzeTrots-V9");
     expect(await next.text()).toBe("");
   });
   it("negotiates Source before conditional caching without sharing the binary profile ETag",async()=>{

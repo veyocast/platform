@@ -19,7 +19,7 @@ test.beforeAll(()=>{
  bundle=execFileSync(process.execPath,['-e',`(async()=>{${code}})().catch(error=>{console.error(error.message);process.exitCode=1})`],{encoding:'utf8',maxBuffer:16*1024*1024,timeout:30000});
 });
 async function mount(page:Page,options:{own?:'first'|'middle'|'last';passive?:boolean;brokenFont?:boolean;unsupported?:boolean;family?:SyncContentFamily;orientation?:'landscape'|'portrait';mode?:'light'|'dark';count?:number;phase?:'scheduled'|'live'|'paused'|'halftime'|'finished';noOwn?:boolean;seconds?:number}={}){
- const sample=createSyncTemplatePreview(options.family??'standings');if(sample.rendererVersion!=='sync-onzetrots-v1')throw Error('New renderer unavailable');
+ const sample=createSyncTemplatePreview(options.family??'standings','sync-onzetrots-v1');if(sample.rendererVersion!=='sync-onzetrots-v1')throw Error('New renderer unavailable');
  const presentation:SyncSlidePresentation=structuredClone(sample),standing=presentation.rich?.standings;
  presentation.orientation=options.orientation??presentation.orientation;
  presentation.visual.mode=options.mode??presentation.visual.mode;

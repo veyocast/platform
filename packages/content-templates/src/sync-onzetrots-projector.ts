@@ -1,4 +1,4 @@
-import {syncOnzeTrotsSourceScopeSchema,syncOnzeTrotsMatchdayContextSchema,syncOnzeTrotsSlidePresentationSchema,type PlayerDynamicTemplatePayload,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
+import {syncOnzeTrotsSourceScopeSchema,syncOnzeTrotsMatchdayContextSchema,syncSlidePresentationSchema,type PlayerDynamicTemplatePayload,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
 import {type DynamicTemplateView} from './dynamic-template-view';
 import {selectSyncOnzeTrotsVisitors} from './sync-onzetrots-motion';
 
@@ -84,5 +84,7 @@ export function enrichSyncOnzeTrotsProjection(payload:PlayerDynamicTemplatePaylo
  else if(rich.birthdays)empty=!rich.birthdays.length;
  else if(rich.activities)empty=!rich.activities.length;
  else if(rich.news)empty=!rich.news.length;
- return syncOnzeTrotsSlidePresentationSchema.parse({...presentation,rich,state:empty?'empty':'ready'});
+ const output=syncSlidePresentationSchema.parse({...presentation,rich,state:empty?'empty':'ready'});
+ if(output.rendererVersion==='sync-v1')throw Error('OnzeTrots output identity missing');
+ return output;
 }

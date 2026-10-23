@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createSyncStudioStarter,createSyncStudioDocument } from "../../packages/studio/src/sync";
-import {syncOnzeTrotsSystemAssets} from '@veyocast/contracts';
+import {syncOnzeTrotsSystemAssets,syncOnzeTrotsV9SystemAssets} from '@veyocast/contracts';
 import {createSyncTemplatePreview} from '../../apps/control/app/(shell)/dashboard/studio/sync-template-preview';
 import type { StudioDocument } from "../../packages/studio/src/schema";
 import type {StudioSeriesDetail} from '../../apps/control/app/(shell)/dashboard/studio/types';
@@ -40,6 +40,7 @@ type Save = {
 };
 type Hooks = {
   approved?:boolean;
+  approvedV9?:boolean;
   approvedPages?:boolean;
   approvedManualFamily?:'birthdays'|'activities'|'agenda';
   dropFirstSave?: boolean;
@@ -58,7 +59,7 @@ type Hooks = {
   rejectSeriesRecovery?:boolean;
 };
 async function mount(page: Page, hooks: Hooks = {}) {
-  const approved=hooks.approvedManualFamily?createSyncStudioStarter({family:hooks.approvedManualFamily,tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation:hooks.approved?createSyncTemplatePreview(hooks.approvedPages?'birthdays':'standings'):undefined;
+  const approved=hooks.approvedManualFamily?createSyncStudioStarter({family:hooks.approvedManualFamily,tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation:hooks.approved||hooks.approvedV9?createSyncTemplatePreview(hooks.approvedPages?'birthdays':'standings',hooks.approvedV9?'sync-onzetrots-v9':'sync-onzetrots-v1'):undefined;
   if(approved?.rendererVersion==='sync-onzetrots-v1'&&hooks.approvedPages)approved.rich!.birthdays!.push({...approved.rich!.birthdays![0]!,id:'approved-seventh-birthday'});
   const document = approved?createSyncStudioDocument(approved,hooks.approvedPages?3:12):createSyncStudioStarter({
     family: hooks.family ?? "fixtures",
@@ -104,8 +105,8 @@ async function mount(page: Page, hooks: Hooks = {}) {
       contentType,
     });
   });
-  await page.route(`${origin}/onzetrots-approved-v1/**`,route=>{
-    const path=new URL(route.request().url()).pathname,asset=syncOnzeTrotsSystemAssets.find(asset=>asset.path===path);
+  await page.route(`${origin}/onzetrots-approved-v*/**`,route=>{
+    const path=new URL(route.request().url()).pathname,asset=[...syncOnzeTrotsSystemAssets,...syncOnzeTrotsV9SystemAssets].find(asset=>asset.path===path);
     if(!asset)return route.abort();const bytes=readFileSync(join(process.cwd(),'apps/control/public',path));
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.sha256);return route.fulfill({body:bytes,contentType:asset.mimeType});
   });
@@ -955,7 +956,7 @@ for(const family of ['birthdays','activities','agenda']as const)test(`manual ${f
  if(family==='birthdays'){
   await page.getByLabel('Naam · kaart 1',{exact:true}).fill('Eigen jarige');await page.getByLabel('Leeftijd · kaart 1',{exact:true}).fill('0');
   await page.getByLabel('Datum · kaart 1',{exact:true}).fill('24 oktober');await page.getByLabel('Team of toelichting · kaart 1',{exact:true}).fill('Eigen team');
-  await expect(stage.locator('.birthday-name')).toContainText('Eigen jarige');await expect(stage.locator('.birthday-age')).toHaveText('0');
+  await expect(stage.locator('.birthday-name')).toContainText('Eigen J.');await expect(stage.locator('.birthday-age')).toHaveText('0');
  }else{
   await page.getByLabel('Activiteit · kaart 1',{exact:true}).fill('Eigen clubactiviteit');await page.getByLabel('Toelichting · kaart 1',{exact:true}).fill('Eigen beschrijving');
   await page.getByLabel('Datum · kaart 1',{exact:true}).fill('27 oktober');await page.getByLabel('Tijd · kaart 1',{exact:true}).fill('19:00');await page.getByLabel('Locatie · kaart 1',{exact:true}).fill('Eigen clubhuis');
@@ -963,9 +964,29 @@ for(const family of ['birthdays','activities','agenda']as const)test(`manual ${f
  }
  await expect(stage.locator('.fixed-six-grid')).toHaveAttribute('data-filled-count','1');await expect(stage.locator('.empty-grid-slot')).toHaveCount(5);
  await page.getByRole('button',{name:'Opslaan',exact:true}).click();await expect.poll(()=>fixture.writes.length).toBe(1);
- const saved=fixture.writes[0]!.document.syncPresentation!;expect(saved.rendererVersion).toBe('sync-onzetrots-v1');
- if(saved.rendererVersion!=='sync-onzetrots-v1')throw Error('Wrong manual renderer');
+ const saved=fixture.writes[0]!.document.syncPresentation!;expect(saved.rendererVersion).toBe('sync-onzetrots-v9');
+ if(saved.rendererVersion!=='sync-onzetrots-v9')throw Error('Wrong manual renderer');
  if(family==='birthdays')expect(saved.rich?.birthdays).toEqual([expect.objectContaining({displayName:'Eigen jarige',age:0,dateLabel:'24 oktober',meta:'Eigen team'})]);
  else expect(saved.rich?.activities).toEqual([expect.objectContaining({title:'Eigen clubactiviteit',body:'Eigen beschrijving',dateLabel:'27 oktober',timeLabel:'19:00',location:'Eigen clubhuis'})]);
  await page.reload();await expect(stage.locator('.fixed-six-grid')).toHaveAttribute('data-filled-count','1');expect(fixture.errors).toEqual([]);
+});
+
+test('v9 replay starts the same scene from both studio and fullscreen, while reduced motion stays complete',async({page})=>{
+ const fixture=await mount(page,{approvedV9:true});
+ const stage=page.locator('.vc-stage-canvas');
+ await expect(stage.locator('[data-ot-header-text]')).toBeVisible();
+ const replay=page.getByRole('button',{name:'Opnieuw afspelen ↻',exact:true});
+ await replay.click();
+ await expect.poll(()=>stage.locator('.slide-header-container').evaluate(e=>Number(getComputedStyle(e).opacity))).toBe(0);
+ await expect.poll(()=>stage.locator('.slide-header-container').evaluate(e=>Number(getComputedStyle(e).opacity)),{timeout:4000}).toBe(1);
+ await page.getByRole('button',{name:'Pauzeren',exact:true}).click();
+ await page.getByRole('button',{name:'Voorbeeld',exact:true}).click();
+ const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
+ await dialog.getByRole('button',{name:'Opnieuw afspelen ↻',exact:true}).click();
+ await expect.poll(()=>dialog.locator('.slide-header-container').evaluate(e=>Number(getComputedStyle(e).opacity))).toBe(0);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await dialog.getByRole('button',{name:'Opnieuw afspelen ↻',exact:true}).click();
+ await expect(dialog.locator('.slide-header-container')).toHaveCSS('opacity','1');
+ await expect(dialog.locator('.screen')).toHaveClass(/intro-finished/);
+ expect(fixture.errors).toEqual([]);
 });

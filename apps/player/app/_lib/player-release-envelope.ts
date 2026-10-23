@@ -110,12 +110,14 @@ export async function loadPlayerReleaseEnvelope({
   enableSyncEngagePaging = false,
   enableSyncBackgrounds = false,
   enableSyncOnzeTrots = false,
+  enableSyncOnzeTrotsV9 = false,
   syncDynamicMode=false,
 }: {
   enableSyncStudio?:boolean;
   enableSyncEngagePaging?:boolean;
   enableSyncBackgrounds?:boolean;
   enableSyncOnzeTrots?:boolean;
+  enableSyncOnzeTrotsV9?:boolean;
   syncDynamicMode?:SyncDynamicMode;
   device: PlayerReleaseDevice;
   releaseId: string;
@@ -155,7 +157,7 @@ export async function loadPlayerReleaseEnvelope({
     syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,
   );
   const binaryArtifacts=new Map<string,ReturnType<typeof readSyncPublishedBinaryArtifact>['artifact']>();
-  const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => syncDynamicMode === 'dom' && (enableSyncOnzeTrots||value.presentation.rendererVersion!=='sync-onzetrots-v1') && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
+  const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => syncDynamicMode === 'dom' && (value.presentation.rendererVersion==='sync-onzetrots-v9'?enableSyncOnzeTrotsV9:enableSyncOnzeTrots||value.presentation.rendererVersion!=='sync-onzetrots-v1') && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
   if(syncDynamicMode){
     const selected=releaseItems.filter(item=>item.live_data_enabled&&item.dynamic_snapshot_id&&syncDynamicSnapshots.has(item.id)&&!dynamicDomIds.has(item.id)),ids=[...new Set(selected.map(item=>item.dynamic_snapshot_id!))];
     if(ids.length){
@@ -179,7 +181,7 @@ export async function loadPlayerReleaseEnvelope({
     validatedSyncPresentations.set(item.id,parsed.data);
     // Older supported profiles receive the complete, unchanged binary, without
     // an unknown strict DOM field or an online projection they cannot paginate.
-    if (enableSyncStudio&&(enableSyncOnzeTrots||parsed.data.rendererVersion!=='sync-onzetrots-v1')&&(!pagedEngage||enableSyncEngagePaging)&&(enableSyncBackgrounds || !syncBackgroundAssetForRef(parsed.data.style.backgroundAsset))) syncPresentations.set(item.id,parsed.data);
+    if (enableSyncStudio&&(parsed.data.rendererVersion==='sync-onzetrots-v9'?enableSyncOnzeTrotsV9:enableSyncOnzeTrots||parsed.data.rendererVersion!=='sync-onzetrots-v1')&&(!pagedEngage||enableSyncEngagePaging)&&(enableSyncBackgrounds || !syncBackgroundAssetForRef(parsed.data.style.backgroundAsset))) syncPresentations.set(item.id,parsed.data);
   }
   const studioAssetRefs=[...[...studioPresentations.values()].flatMap(sitesPresentationAssets),...[...syncPresentations.values()].flatMap(syncSlideAssets),...[...syncDynamicSnapshots].flatMap(([id,value])=>dynamicDomIds.has(id)?syncSlideAssets(value.presentation):[])].filter(ref=>ref.kind==="tenant");
   const validationRefs=[...studioAssetRefs,...[...validatedSyncPresentations.values()].flatMap(syncSlideAssets).filter(ref=>ref.kind==='tenant')];

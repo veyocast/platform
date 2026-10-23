@@ -37,6 +37,7 @@ import {
 } from "@veyocast/ui";
 import {
   syncContentFamilies,
+  isSyncOnzeTrotsPresentation,
   syncSlidePageCount,
   syncSlideDurationMs,
   syncSlideAssets,
@@ -55,6 +56,7 @@ import styles from "./sync-studio-frame.module.css";
 import { SyncBackgroundPicker } from "./sync-background-picker";
 import {SyncSlidePreview} from '../playlists/_components/sites/sync-studio-preview';
 import {SyncOnzeTrotsManualCards} from './sync-onzetrots-manual-cards';
+import {SyncOnzeTrotsV9Authoring} from './sync-onzetrots-v9-authoring';
 import { orientSyncBackground } from "../../../../lib/sync-background-choice";
 import type { StudioMediaAsset } from "./types";
 import {
@@ -159,6 +161,7 @@ export function SyncStudioFrame(props: FrameProps) {
   const [tab, setTab] = useState<(typeof tabs)[number][0]>(props.initialTab??"content"),
     [page, setPage] = useState(0),
     [playing, setPlaying] = useState(false),
+    [replayToken,setReplayToken]=useState(0),
     [fullPreview, setFullPreview] = useState(false),
     [sourceTab,setSourceTab]=useState<'manual'|'connected'>('manual'),
     [templatesOpen, setTemplatesOpen] = useState(false);
@@ -172,6 +175,7 @@ export function SyncStudioFrame(props: FrameProps) {
       ? "Gebruik rugnummers van 1 tot 99, met één linie per regel. Je invoer blijft bewaard."
       : null;
   const fullTrigger=useRef<HTMLElement|null>(null),templateTrigger=useRef<HTMLButtonElement|null>(null),imageInput=useRef<HTMLInputElement|null>(null);
+  const replayScene=()=>{setPlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);setPage(0);setReplayToken(value=>value+1);};
   const openFullPreview=(event:{currentTarget:HTMLElement})=>{fullTrigger.current=event.currentTarget;setFullPreview(true);};
   const validation = useMemo(()=>syncSlidePresentationSchema.safeParse(props.previewPresentation??presentation),[props.previewPresentation,presentation]),
     lastValid = useRef(props.previewPresentation??presentation);
@@ -181,7 +185,7 @@ export function SyncStudioFrame(props: FrameProps) {
       (family) => family.id === presentation.family,
     )!;
   const pages = syncSlidePageCount(preview),
-    transition=preview.rendererVersion==='sync-onzetrots-v1'?null:syncSlideTransition(preview),
+    transition=isSyncOnzeTrotsPresentation(preview)?null:syncSlideTransition(preview),
     portrait = preview.orientation === "portrait",
     seconds = Number(props.secondsPerPage),
     requestedSeconds = Number.isFinite(seconds) && seconds >= 3 && seconds <= 120 ? seconds : 12,
@@ -191,7 +195,7 @@ export function SyncStudioFrame(props: FrameProps) {
     setPage(0);
   }, [pages, presentation.family]);
   useEffect(() => {
-    if (!playing || preview.rendererVersion==='sync-onzetrots-v1') return;
+    if (!playing || isSyncOnzeTrotsPresentation(preview)) return;
     const timer = window.setInterval(
       () => setPage((current) => (current + 1) % pages),
       pageSeconds * 1000,
@@ -267,7 +271,7 @@ export function SyncStudioFrame(props: FrameProps) {
   const matchFamily = ["matchday", "next-match", "scoreboard", "goal"].includes(
     presentation.family,
   );
-  const previewNode = props.previewContent ?? (preview.rendererVersion==='sync-onzetrots-v1' ? <SyncSlidePreview presentation={preview} assetUrls={Object.fromEntries(syncSlideAssets(preview).flatMap(asset=>{const url=asset.kind==='tenant'?resolveAsset(asset):undefined;return asset.kind==='tenant'&&url?[[asset.mediaAssetId,url]]:[];}))} durationSeconds={effectiveSeconds} id={preview.family} active={playing} onPageChange={setPage} pageOverride={playing?undefined:Math.min(page,pages-1)}/> : (
+  const previewNode = props.previewContent ?? (isSyncOnzeTrotsPresentation(preview) ? <SyncSlidePreview presentation={preview} assetUrls={Object.fromEntries(syncSlideAssets(preview).flatMap(asset=>{const url=asset.kind==='tenant'?resolveAsset(asset):undefined;return asset.kind==='tenant'&&url?[[asset.mediaAssetId,url]]:[];}))} durationSeconds={effectiveSeconds} id={preview.family} active={playing} onPageChange={setPage} replayToken={replayToken} pageOverride={playing?undefined:Math.min(page,pages-1)}/> : (
     <SyncSlideStaticView
       presentation={preview}
       includeStyles={false}
@@ -354,6 +358,7 @@ export function SyncStudioFrame(props: FrameProps) {
         </div>
       )}
       {props.feedback}
+      {presentation.rendererVersion==='sync-onzetrots-v9'&&<SyncOnzeTrotsV9Authoring presentation={presentation} disabled={props.readOnly||props.busy||props.inputsDisabled} onChange={authoring=>onChange({authoring})}/>}
       <div className="vc-studio-workspace">
         <aside className="vc-studio-sidebar">
           <div className="vc-studio-tabs">
@@ -506,7 +511,7 @@ export function SyncStudioFrame(props: FrameProps) {
                       key={theme}
                       className={presentation.theme === theme ? "active" : ""}
                       aria-pressed={presentation.theme === theme}
-                      disabled={presentation.rendererVersion==='sync-onzetrots-v1'&&theme!=='onzetrots-tv'}
+                      disabled={isSyncOnzeTrotsPresentation(presentation)&&theme!=='onzetrots-tv'}
                       onClick={() => onChange({ theme })}
                     >
                       <div
@@ -524,12 +529,12 @@ export function SyncStudioFrame(props: FrameProps) {
                     </button>
                   ))}
                 </FieldGroup>
-                {presentation.rendererVersion==='sync-onzetrots-v1'&&<>
+                {isSyncOnzeTrotsPresentation(presentation)&&<>
                   <Field label="Variant"><select value={presentation.visual.mode} onChange={event=>onChange({visual:{...presentation.visual,mode:event.target.value as 'light'|'dark'}})}><option value="light">Licht</option><option value="dark">Donker</option></select></Field>
                   {['standings','period-standings','matchday'].includes(presentation.family)&&<Field label="Scrollsnelheid"><select value={presentation.visual.scrollSpeed} onChange={event=>onChange({visual:{...presentation.visual,scrollSpeed:event.target.value as 'slow'|'normal'|'fast'}})}><option value="slow">Rustig</option><option value="normal">Normaal</option><option value="fast">Sneller</option></select></Field>}
                   <Field label={`Containerdekking · ${presentation.visual.panelOpacity}%`}><input type="range" min={80} max={100} step={1} value={presentation.visual.panelOpacity} onChange={event=>onChange({visual:{...presentation.visual,panelOpacity:Number(event.target.value)}})}/></Field>
                 </>}
-                {presentation.rendererVersion!=='sync-onzetrots-v1'&&<>
+                {!isSyncOnzeTrotsPresentation(presentation)&&<>
                 <div className="vc-form-grid">
                 <Field label="Accentkleur" controlWrapperClassName="vc-color-input" adornment={<span>{presentation.style.accent}</span>}>
                   <input
@@ -581,7 +586,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 </>}
                 <SyncBackgroundPicker presentation={presentation} onChange={onChange} disabled={props.inputsDisabled} />
                 {props.onBackgroundUpload&&<><Button variant="secondary" onClick={()=>imageInput.current?.click()}><ImagePlus size={16}/>{props.uploading?'Achtergrond controleren…':'Eigen achtergrond uploaden'}</Button><input ref={imageInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden aria-label="Achtergrond uploaden" onChange={event=>{const file=event.target.files?.[0];event.target.value='';if(file)void props.onBackgroundUpload?.(file);}}/></>}
-                {presentation.rendererVersion!=='sync-onzetrots-v1'&&                <Field label={`Veilige marge · ${presentation.style.safeMargin}%`}>
+                {!isSyncOnzeTrotsPresentation(presentation)&&                <Field label={`Veilige marge · ${presentation.style.safeMargin}%`}>
                   <input
                     type="range"
                     min={2}
@@ -627,7 +632,7 @@ export function SyncStudioFrame(props: FrameProps) {
                     ))}
                   </select>
                 </Field>
-                {!props.connectedData&&presentation.rendererVersion==='sync-onzetrots-v1'&&['team-info','rss','club-story','activities','agenda','youtube'].includes(presentation.family)&&imageSelect(presentation.rich?.featureImage,featureImage=>onChange({rich:{...presentation.rich,featureImage}}),'Afbeelding bij de inhoud')}
+                {!props.connectedData&&isSyncOnzeTrotsPresentation(presentation)&&['team-info','rss','club-story','activities','agenda','youtube'].includes(presentation.family)&&imageSelect(presentation.rich?.featureImage,featureImage=>onChange({rich:{...presentation.rich,featureImage}}),'Afbeelding bij de inhoud')}
                 {imageSelect(
                   presentation.club.logo,
                   (logo) => onChange({ club: { ...presentation.club, logo } }),
@@ -679,8 +684,8 @@ export function SyncStudioFrame(props: FrameProps) {
                   </>}
                 </>}
                 {!props.connectedData&&['scoreboard','goal'].includes(presentation.family)&&<Field label="Wedstrijdklok"><input maxLength={40} value={presentation.match?.clock??''} onChange={event=>onChange({match:{homeScore:'',awayScore:'',date:'',time:'',...presentation.match,clock:event.target.value}})}/></Field>}
-                {!props.connectedData&&presentation.rendererVersion==='sync-onzetrots-v1'&&['birthdays','activities','agenda'].includes(presentation.family)&&<SyncOnzeTrotsManualCards presentation={presentation} onChange={rich=>onChange({rich})} imagePicker={imageSelect}/>}
-                {!props.connectedData&&rowFamilies.has(presentation.family)&&!(presentation.rendererVersion==='sync-onzetrots-v1'&&['birthdays','activities','agenda'].includes(presentation.family)) && (
+                {!props.connectedData&&isSyncOnzeTrotsPresentation(presentation)&&['birthdays','activities','agenda'].includes(presentation.family)&&<SyncOnzeTrotsManualCards presentation={presentation} onChange={rich=>onChange({rich})} imagePicker={imageSelect}/>}
+                {!props.connectedData&&rowFamilies.has(presentation.family)&&!(isSyncOnzeTrotsPresentation(presentation)&&['birthdays','activities','agenda'].includes(presentation.family)) && (
                   <>
                     <Field label="Rijen · één rij per regel">
                       <textarea
@@ -699,7 +704,7 @@ export function SyncStudioFrame(props: FrameProps) {
                     <div className="vc-form-grid">
                     <Field label="Rijen per pagina">
                       <input type="number" min={1} max={8}
-                        disabled={presentation.rendererVersion==='sync-onzetrots-v1'&&['standings','period-standings','matchday','birthdays','activities','agenda'].includes(presentation.family)}
+                        disabled={isSyncOnzeTrotsPresentation(presentation)&&['standings','period-standings','matchday','birthdays','activities','agenda'].includes(presentation.family)}
                         value={presentation.rowsPerPage}
                         onChange={(event) =>
                           onChange({ rowsPerPage: Math.min(8,Math.max(1,Number(event.target.value)||1)) })
@@ -833,7 +838,7 @@ export function SyncStudioFrame(props: FrameProps) {
             </div>
           </div>
           <div className={`vc-stage-canvas ${portrait ? "portrait" : ""}`}>
-            <motion.div key={presentation.rendererVersion==='sync-onzetrots-v1'?`${presentation.family}-${presentation.orientation}-approved`:`${presentation.family}-${page}-${presentation.orientation}-${presentation.style.motion??'geen'}`} initial={transition?{opacity:0,y:transition.offsetPx}:false} animate={{opacity:1,y:0}} transition={{duration:transition?transition.durationMs/1000:0,ease:'easeOut'}}>{previewNode}</motion.div>
+            <motion.div key={isSyncOnzeTrotsPresentation(presentation)?`${presentation.family}-${presentation.orientation}-approved`:`${presentation.family}-${page}-${presentation.orientation}-${presentation.style.motion??'geen'}`} initial={transition?{opacity:0,y:transition.offsetPx}:false} animate={{opacity:1,y:0}} transition={{duration:transition?transition.durationMs/1000:0,ease:'easeOut'}}>{previewNode}</motion.div>
           </div>
           {(!validation.success || rowsError || lineupError) && (
             <p role="status" className="vc-property-hint">
@@ -878,6 +883,7 @@ export function SyncStudioFrame(props: FrameProps) {
               )}
               {playing ? "Pauzeren" : "Afspelen"}
             </button>
+            {presentation.rendererVersion==='sync-onzetrots-v9'&&<button type="button" onClick={replayScene}>Opnieuw afspelen ↻</button>}
             <span>
               {Math.min(page + 1, pages)} / {pages}
             </span>
@@ -920,6 +926,7 @@ export function SyncStudioFrame(props: FrameProps) {
               Pagina {Math.min(page + 1, pages)} van {pages} ·{" "}
               {portrait ? "9:16" : "16:9"}
             </DialogDescription>
+            {presentation.rendererVersion==='sync-onzetrots-v9'&&<Button variant="secondary" onClick={replayScene}>Opnieuw afspelen ↻</Button>}
           </DialogHeader>
           <DialogBody>
             <div className={`vc-full-preview ${portrait ? "portrait" : ""}`}>

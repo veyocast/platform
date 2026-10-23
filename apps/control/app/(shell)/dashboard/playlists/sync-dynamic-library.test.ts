@@ -17,11 +17,11 @@ describe('independent Source library and pinned placement authority',()=>{
   const input=fixture(),seed=createSyncStudioStarter({family:'standings',tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation!;
   const presentation={...seed,rich:{standings:{ownTeamId:null,rows:Array.from({length:14},(_,i)=>({id:`standing-${i}`,teamId:`team-${i}`,clubId:null,teamName:`Gecontroleerd team ${i}`,position:i+1,played:null,won:null,drawn:null,lost:null,goalDifference:null,points:null,form:[]}))}}};
   input.snapshot.snapshot_data_json={type:'sport_standing',syncConfiguration:{schemaVersion:1,kind:'dynamic',rendererVersion:seed.rendererVersion,sourceRevision:seed.sourceRevision,slideType:'sport_standing',seed,secondsPerPage:5}};
-  input.snapshot.sync_render_result_json={...(input.snapshot.sync_render_result_json as Record<string,unknown>),presentation,durationMs:38000};input.media.duration_seconds=38;
+  input.snapshot.sync_render_result_json={...(input.snapshot.sync_render_result_json as Record<string,unknown>),presentation,durationMs:40000};input.media.duration_seconds=40;
   const source=readPublisherSyncDynamic(input),slide:Slide={id:id(91),name:source.name,image:'',seconds:source.durationSeconds/playlistPlacementPages({id:id(91),name:source.name,image:'',seconds:5,syncDynamic:source}),syncDynamic:source,mediaId:source.mediaAssetId};
   const empty:Playlist={id:id(92),name:'Gecontroleerde playlist',description:'',status:'Concept',updated:'',slides:[]};
-  expect(source.configuration.secondsPerPage).toBe(5);expect(minimumPlaylistPlacementSeconds(slide)).toBe(38);expect(slide.seconds).toBe(38);
-  expect(planPlaylistChanges(empty,{...empty,slides:[slide]},new Map([[slide.id,slide]]))[0]).toMatchObject({operation:'add_sync_dynamic',durationSeconds:38,snapshotId:source.snapshotId});
+  expect(source.configuration.secondsPerPage).toBe(5);expect(minimumPlaylistPlacementSeconds(slide)).toBe(40);expect(slide.seconds).toBe(40);
+  expect(planPlaylistChanges(empty,{...empty,slides:[slide]},new Map([[slide.id,slide]]))[0]).toMatchObject({operation:'add_sync_dynamic',durationSeconds:40,snapshotId:source.snapshotId});
   expect(()=>planPlaylistChanges(empty,{...empty,slides:[{...slide,seconds:5}]},new Map([[slide.id,slide]]))).toThrow('volledige afspeeluitvoer');
  });
  it('keeps an existing YouTube source while replacing only the placement fallback with the verified Source export',()=>{

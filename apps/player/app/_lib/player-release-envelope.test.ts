@@ -151,6 +151,16 @@ describe("paged Engage capability with complete binary fallback",()=>{
   fixture.admin={from(table:string){reads.push(table);const result=()=>({error:null,data:table==="playlist_release_items"?[row]:[]});const query={select(){return query;},eq(){return query;},in(){return query;},order(){return query;},limit(){return query;},single:async()=>({error:null,data:release}),maybeSingle:async()=>({error:null,data:null}),then(resolve:(value:unknown)=>unknown){return Promise.resolve(result()).then(resolve);}};return query;},storage:{from:()=>({createSignedUrl:async()=>({error:null,data:{signedUrl:"https://signed.example.invalid/complete-binary"}})})}};
   return{row,presentation,reads,load:(enableSyncStudio=false,enableSyncEngagePaging=false)=>loadPlayerReleaseEnvelope({device,releaseId:uuid(1),tenantId:uuid(4),enableSyncStudio,enableSyncEngagePaging})};
  }
+ it('requires the explicit v9 capability instead of treating an old OnzeTrots header as support',async()=>{
+  const value=setup(12,false);
+  value.row.sync_studio_presentation_json=syncSlidePresentationSchema.parse({schemaVersion:1,rendererVersion:'sync-onzetrots-v9',sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',family:'free',orientation:'landscape',theme:'onzetrots-tv',name:'Eigen nieuwe slide',title:'Eigen titel',club:{name:'Eigen club'},visual:{schemaVersion:1,mode:'light'},style:{motion:'geen'}});
+  const before=await loadPlayerReleaseEnvelope({device,releaseId:uuid(1),tenantId:uuid(4),enableSyncStudio:true,enableSyncOnzeTrots:true});
+  const after=await loadPlayerReleaseEnvelope({device,releaseId:uuid(1),tenantId:uuid(4),enableSyncStudio:true,enableSyncOnzeTrots:true,enableSyncOnzeTrotsV9:true});
+  expect(before.manifest.items[0]!.syncStudioPresentation).toBeUndefined();
+  expect(after.manifest.items[0]!.syncStudioPresentation?.rendererVersion).toBe('sync-onzetrots-v9');
+  expect(before.manifest.items[0]!.source).toEqual(after.manifest.items[0]!.source);
+  assertSyncPlayerAssetManifest(before.manifest);assertSyncPlayerAssetManifest(after.manifest);
+ });
  it("sends the identical complete MP4 to no-header and older Sync clients, and all twenty-four options to the new profile",async()=>{
   const test=setup(),old=await test.load(true),plain=await test.load(),fresh=await test.load(true,true);
   for(const body of[old,plain,fresh]){assertSyncPlayerAssetManifest(body.manifest);expect(body.manifest.items[0]).toMatchObject({kind:"video",durationSeconds:18,source:{bytes:1024,mimeType:"video/mp4",checksumSha256:"a".repeat(64)}});}

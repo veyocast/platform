@@ -30,3 +30,6 @@ apps/*/public/assets/*.svg binary
 docs/design/onzetrots-slides/** -text -eol whitespace=cr-at-eol,-blank-at-eof,-trailing-space
 apps/control/public/onzetrots-approved-v1/** -text -eol
 apps/player/public/onzetrots-approved-v1/** -text -eol
+
+apps/control/public/onzetrots-approved-v9/** -text -eol
+apps/player/public/onzetrots-approved-v9/** -text -eol

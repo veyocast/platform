@@ -1,15 +1,16 @@
 "use client";
 import React, {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import { syncSlidePageCount, syncSlideRendererAssets, syncBackgroundAssetForRef, syncSlideTransition,type SyncSlidePresentation } from "@veyocast/contracts";
-import { SyncSlideStaticView,measureSyncOnzeTrotsLayout,projectSyncOnzeTrotsMotion,applySyncOnzeTrotsMotion,advanceSyncOnzeTrotsTime } from "@veyocast/content-templates/sync-slide-static-view";
+import { isSyncOnzeTrotsPresentation,syncSlidePageCount, syncSlideRendererAssets, syncBackgroundAssetForRef, syncSlideTransition,type SyncSlidePresentation } from "@veyocast/contracts";
+import { SyncSlideStaticView,measureSyncOnzeTrotsV9Layout,measureSyncOnzeTrotsLayout,projectSyncOnzeTrotsMotion,applySyncOnzeTrotsMotion,advanceSyncOnzeTrotsTime } from "@veyocast/content-templates/sync-slide-static-view";
 import type { PlayerManifestItem } from "../_lib/player-manifest";
-import { supportsSyncSlideDom,supportsSyncOnzeTrots } from "../_lib/sync-player-capabilities";
+import { supportsSyncOnzeTrotsV9,supportsSyncSlideDom,supportsSyncOnzeTrots } from "../_lib/sync-player-capabilities";
 import type {LedScoresMatchState} from '../_lib/ledscores-match-experience';
 import {projectSyncLiveMatch,selectSyncLiveMatchState} from '../_lib/sync-live-match';
 import {
@@ -46,6 +47,7 @@ export function SyncStudioMedia({
     endedCallback=useRef(onEnded),
     endReported=useRef(false),
     elapsed = useRef(0),
+    introFinished=useRef(false),scenePage=useRef(0),
     [page, setPage] = useState(0),
     [failed, setFailed] = useState(false),
     [ready, setReady] = useState(passive),
@@ -66,7 +68,7 @@ export function SyncStudioMedia({
     return()=>window.clearInterval(timer);
   },[binding?.connectionId,passive,paused]);
   const supported =
-    supportsSyncSlideDom() && (presentation?.rendererVersion!=='sync-onzetrots-v1'||supportsSyncOnzeTrots()) && syncPreparedPresentation(item, origin);
+    supportsSyncSlideDom() && (!isSyncOnzeTrotsPresentation(presentation)||(presentation.rendererVersion==='sync-onzetrots-v9'?supportsSyncOnzeTrotsV9():supportsSyncOnzeTrots())) && syncPreparedPresentation(item, origin);
   const hasNaturalBoundary=(item.kind==='video'||Boolean(item.syncDynamic))&&onEnded!==undefined;
   const pages = presentation ? syncSlidePageCount(presentation) : 1,
     transition=presentation?syncSlideTransition(presentation):null,
@@ -108,7 +110,7 @@ export function SyncStudioMedia({
       }
     }, 5000);
     const background = syncBackgroundAssetForRef(presentation?.style.backgroundAsset);
-    const fonts = presentation?.rendererVersion==='sync-onzetrots-v1'?prepareSyncOnzeTrotsFonts(item.syncSystemAssetUrls!,origin):background ? prepareSyncBackgroundFonts(item.syncSystemAssetUrls!, origin) : null;
+    const fonts = isSyncOnzeTrotsPresentation(presentation)?prepareSyncOnzeTrotsFonts(item.syncSystemAssetUrls!,origin,presentation):background ? prepareSyncBackgroundFonts(item.syncSystemAssetUrls!, origin) : null;
     const images = [
       ...(presentation?syncSlideRendererAssets(presentation):[])
         .filter((asset) => asset.mimeType.startsWith("image/"))
@@ -148,6 +150,7 @@ export function SyncStudioMedia({
             box.width > 0 &&
             box.height > 0 &&
             (!animated||Number(getComputedStyle(animated).opacity)>0)&&
+            (presentation?.rendererVersion!=='sync-onzetrots-v9'||Number(getComputedStyle(frame.querySelector('.screen')!,'::before').opacity)>0)&&
             getComputedStyle(frame).visibility === "visible"
           ) {
             window.clearTimeout(timer);
@@ -184,7 +187,7 @@ export function SyncStudioMedia({
     passive,
   ]);
   useEffect(() => {
-    if (presentation?.rendererVersion==='sync-onzetrots-v1'||!frameReported || failed || paused || passive || endReported.current || (pages < 2 && !hasNaturalBoundary)) return;
+    if (isSyncOnzeTrotsPresentation(presentation)||!frameReported || failed || paused || passive || endReported.current || (pages < 2 && !hasNaturalBoundary)) return;
     let last = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
@@ -200,19 +203,25 @@ export function SyncStudioMedia({
     }, 100);
     return () => window.clearInterval(timer);
   }, [frameReported, failed, paused, passive, pages, loopMs, perPageMs,item.kind,item.id,hasNaturalBoundary,presentation]);
-  useEffect(()=>{
-    const element=root.current;if(presentation?.rendererVersion!=='sync-onzetrots-v1'||!element||!ready||failed)return;
+  useLayoutEffect(()=>{introFinished.current=false;scenePage.current=0;},[item.id]);
+  useLayoutEffect(()=>{
+    const element=root.current;if(!isSyncOnzeTrotsPresentation(presentation)||!element||!ready||failed)return;
+    const panelCount=presentation.rendererVersion==='sync-onzetrots-v9'?measureSyncOnzeTrotsV9Layout(element):0;
     const layouts=measureSyncOnzeTrotsLayout(element),reduced=matchMedia('(prefers-reduced-motion: reduce)');
     let previous:number|null=null,animation=0;
     const frame=(now:number)=>{
-      const running=frameReported&&!paused&&!passive&&!document.hidden&&!endReported.current;
+      const running=(frameReported||presentation.rendererVersion==='sync-onzetrots-v9'&&ready)&&!paused&&!passive&&!document.hidden&&!endReported.current;
       elapsed.current=advanceSyncOnzeTrotsTime(elapsed.current,previous,now,running);
       previous=running?now:null;
       if(hasNaturalBoundary&&running&&elapsed.current>=loopMs){endReported.current=true;endedCallback.current?.(item.id);return;}
       const local=elapsed.current%loopMs,currentPage=Math.floor(local/perPageMs);
+      if(scenePage.current!==currentPage){scenePage.current=currentPage;introFinished.current=false;}
       setPage(before=>before===currentPage?before:currentPage);
       const internal=Math.max(0,local-currentPage*perPageMs);
-      applySyncOnzeTrotsMotion(projectSyncOnzeTrotsMotion(internal,layouts,presentation.visual.scrollSpeed,reduced.matches),element);
+      const scene=presentation.rendererVersion==='sync-onzetrots-v9'?{panelCount,mode:presentation.visual.mode,paused:paused||passive,introFinished:introFinished.current,entranceAllowed:presentation.style.motion!=='geen'}:undefined;
+      const projected=projectSyncOnzeTrotsMotion(internal,layouts,presentation.visual.scrollSpeed,reduced.matches,scene);
+      if(projected.entrance&&!passive)introFinished.current=projected.entrance.finished;
+      applySyncOnzeTrotsMotion(projected,element);
       if(!passive)animation=requestAnimationFrame(frame);
     };
     frame(performance.now());return()=>cancelAnimationFrame(animation);

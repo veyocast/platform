@@ -3,7 +3,7 @@ import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import sharp from 'sharp';
-import {playerDynamicTemplatePayloadSchema,syncDynamicConfigurationSchema,syncSlideAssets,type PlayerDynamicTemplateAsset,type SyncSlidePresentation} from '@veyocast/contracts';
+import {playerDynamicTemplatePayloadSchema,syncDynamicConfigurationSchema,syncSlideAssets,syncSlidePosterTimeMs,type PlayerDynamicTemplateAsset,type SyncSlidePresentation} from '@veyocast/contracts';
 import {createSyncStudioDocument} from '@veyocast/studio';
 import {projectSyncDynamicSnapshot} from '@veyocast/content-templates/sync-dynamic-projector';
 import {DynamicRenderBackendError,type ClaimedDynamicRenderJob} from './dynamic-render-backend';
@@ -39,7 +39,7 @@ export async function renderSyncDynamicArtifact({job,assets,storageOrigin,render
  const capture=await captureFactory({presentation:projected.presentation,durationMs:document.motion.durationMs,assetSources,signal});
  let directory:string|undefined;
  try{
-  const poster=new Uint8Array(await capture.renderPng(Math.min(1200,document.motion.durationMs-1))),metadata=await sharp(poster).metadata();
+  const poster=new Uint8Array(await capture.renderPng(syncSlidePosterTimeMs(projected.presentation,document.motion.durationMs))),metadata=await sharp(poster).metadata();
   if(metadata.format!=='png'||metadata.width!==document.artboard.width||metadata.height!==document.artboard.height)throw rejected();
   let bytes=poster;
   if(document.motion.enabled){

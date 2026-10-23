@@ -6,6 +6,9 @@ export const syncBackgroundsHeader = "X-VeyoCast-Sync-Backgrounds";
 export const syncBackgroundsVersion = "sync-backgrounds-v1";
 export const syncOnzeTrotsHeader='X-VeyoCast-Sync-OnzeTrots';
 export const syncOnzeTrotsVersion='sync-onzetrots-v1';
+export const syncOnzeTrotsV9Header='X-VeyoCast-Sync-OnzeTrots-V9';
+export const syncOnzeTrotsV9Version='sync-onzetrots-v9';
+export function supportsSyncOnzeTrotsV9(){return supportsSyncOnzeTrots()&&CSS.supports('filter','blur(1px)');}
 export function supportsSyncOnzeTrots(){return supportsSyncBackgrounds()&&CSS.supports('position','sticky')&&typeof SVGForeignObjectElement!=='undefined'&&typeof Element.prototype.getAnimations==='function';}
 export const syncDynamicRendererHeader='X-VeyoCast-Sync-Dynamic';
 export const syncDynamicDomVersion='sync-dynamic-v1';

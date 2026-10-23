@@ -2,6 +2,7 @@ import {
   playerDynamicTemplatePayloadSchema,
   syncDynamicFamilyMatches,
   syncSlidePresentationSchema,
+  isSyncOnzeTrotsPresentation,
   type PlayerDynamicTemplatePayload,
   type SyncSlideAsset,
   type SyncSlidePresentation,
@@ -96,7 +97,7 @@ export function projectSyncDynamicSnapshot(
         presentation: syncSlidePresentationSchema.parse({
           ...slide,
           state: "ready",
-          ...(slide.rendererVersion==='sync-onzetrots-v1'?{rich:{phase:({pre_match:'scheduled',live:'live',paused:'paused',half_time:'halftime',finished:'finished'} as Record<string,string>)[String((payload.data.liveMatch as {state?:{status?:unknown}}|undefined)?.state?.status)]??'unknown'}}:{}),
+          ...(isSyncOnzeTrotsPresentation(slide)?{rich:{phase:({pre_match:'scheduled',live:'live',paused:'paused',half_time:'halftime',finished:'finished'} as Record<string,string>)[String((payload.data.liveMatch as {state?:{status?:unknown}}|undefined)?.state?.status)]??'unknown'}}:{}),
           rows: [],
           news: [],
           ownRowIndexes: [],
@@ -114,7 +115,7 @@ export function projectSyncDynamicSnapshot(
           match: {
             homeScore: String(state.home.score),
             awayScore: String(state.away.score),
-            clock: slide.rendererVersion==='sync-onzetrots-v1'&&live?.configuration?.showClock===false?'':state.clockLabel ?? "",
+            clock: isSyncOnzeTrotsPresentation(slide)&&live?.configuration?.showClock===false?'':state.clockLabel ?? "",
             date: "",
             time: "",
           },
@@ -391,7 +392,7 @@ export function projectSyncDynamicSnapshot(
           logo: image(view.clubLogoUrl) || slide.club.logo,
         },
       });
-    return {ok:true,presentation:presentation.rendererVersion==='sync-onzetrots-v1'?enrichSyncOnzeTrotsProjection(payload,presentation,view,now,image):presentation};
+    return {ok:true,presentation:isSyncOnzeTrotsPresentation(presentation)?enrichSyncOnzeTrotsProjection(payload,presentation,view,now,image):presentation};
   } catch {
     return { ok: false, code: "SYNC_PRESENTATION_BOUNDS_EXCEEDED" };
   }

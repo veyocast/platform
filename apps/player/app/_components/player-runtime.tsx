@@ -1,5 +1,5 @@
 "use client";
-import {supportsSyncOnzeTrots,syncOnzeTrotsHeader,syncOnzeTrotsVersion,supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
+import {supportsSyncOnzeTrotsV9,syncOnzeTrotsV9Header,syncOnzeTrotsV9Version,supportsSyncOnzeTrots,syncOnzeTrotsHeader,syncOnzeTrotsVersion,supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
 import {assertSyncDynamicConfigurationContinuity} from '../_lib/sync-player-assets';
 import {sourceDataNeedsBoundary} from '../_lib/player-source-data-boundary';
 import { playerMediaFrameBackgroundStyle } from "../_lib/player-media-frame";
@@ -1202,6 +1202,7 @@ export function PlayerRuntime() {
               ...(supportsSyncSlideDom()?{[syncEngagePagingHeader]:syncEngagePagingVersion}:{}),
               ...(supportsSyncBackgrounds()?{[syncBackgroundsHeader]:syncBackgroundsVersion}:{}),
               ...(supportsSyncOnzeTrots()?{[syncOnzeTrotsHeader]:syncOnzeTrotsVersion}:{}),
+              ...(supportsSyncOnzeTrotsV9()?{[syncOnzeTrotsV9Header]:syncOnzeTrotsV9Version}:{}),
               [syncDynamicRendererHeader]:supportsSyncSlideDom()?syncDynamicDomVersion:syncDynamicBinaryVersion,
               ...(manifestEtag ? { "If-None-Match": manifestEtag } : {})
             }

@@ -30,7 +30,7 @@ test("persisted new-design profiles drive the real preview and an explicit theme
   await expect(preview.locator('.signature')).toContainText('ONZE CLUB. ONZE TROTS.');
   await next(page); await page.getByRole("button", { name: "Ontwerp maken", exact: true }).click(); await expect.poll(() => state.creates.length).toBe(1);
   const original = state.creates[0]!.input; if (original.kind !== "manual") throw Error("manual");
-  expect(original.document.syncPresentation).toMatchObject({ rendererVersion:'sync-onzetrots-v1',theme: "onzetrots-tv", visual:{mode:'dark'},name: "Mijn eigen verhaal", body: "Onze echte toelichting blijft behouden.", style: { accent: "#cAb123", font: "Serif", fontChanged: true, background: "clubmuur", scale: 116, motion: "geen", showLogo: false } });
+  expect(original.document.syncPresentation).toMatchObject({ rendererVersion:'sync-onzetrots-v9',theme: "onzetrots-tv", visual:{mode:'dark'},name: "Mijn eigen verhaal", body: "Onze echte toelichting blijft behouden.", style: { accent: "#cAb123", font: "Serif", fontChanged: true, background: "clubmuur", scale: 116, motion: "geen", showLogo: false } });
   expect(JSON.stringify(original)).not.toContain(origin); expect(state.errors).toEqual([]);
 });
 

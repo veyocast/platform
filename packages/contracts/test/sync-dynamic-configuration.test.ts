@@ -8,7 +8,7 @@ const config=()=>({schemaVersion:1,kind:'dynamic',rendererVersion:'sync-v1',sour
 describe('independent Source dynamic configuration',()=>{
  it('keeps the generated database schema identical to the normalized wire schema',()=>{
   expect(generatedSchema).toEqual(z.toJSONSchema(syncDynamicConfigurationSchema,{target:'draft-7',io:'output'}));
-  const migration=readFileSync(new URL('../../../supabase/migrations/20261022183152_sync_onzetrots_approved_renderer.sql',import.meta.url),'utf8');
+  const migration=readFileSync(new URL('../../../supabase/migrations/20261023140732_sync_onzetrots_v9.sql',import.meta.url),'utf8');
   expect(migration.split('$sync_dynamic_schema$')[1]).toBe(JSON.stringify(generatedSchema));
  });
  it('keeps Source identity and static design choices without embedding a canonical dataset',()=>{

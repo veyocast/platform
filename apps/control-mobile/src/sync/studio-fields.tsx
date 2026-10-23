@@ -1,5 +1,5 @@
 import { AppText, Button, SegmentedControl, SurfaceCard, TextField, mobileSpacing } from "@veyocast/mobile-design-system";
-import { syncSlidePageCount,patchSyncSlideDraft, type SyncSlidePresentation } from "@veyocast/contracts";
+import { syncOnzeTrotsHeaderSubtitle,syncOnzeTrotsHeaderText,isSyncOnzeTrotsPresentation,syncSlidePageCount,patchSyncSlideDraft, type SyncSlidePresentation } from "@veyocast/contracts";
 import { updateSyncStudioDocument, type StudioDocument } from "@veyocast/studio/mobile-v3";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -21,6 +21,13 @@ export function SyncStudioFields({ document, disabled, onChange, onError }: {
   }
   const text = (key: "name" | "title" | "headline" | "subtitle" | "body" | "topLabel" | "footer" | "footerRight", label: string, multiline = false) => <TextField key={key} editable={!disabled} label={label} value={slide[key]} multiline={multiline} maxLength={key === "body" ? 4000 : key === "name" ? 120 : 400} onChangeText={value => patch({ [key]: value })} />;
   return <View style={{ gap: mobileSpacing.default }}>
+    {slide.rendererVersion==='sync-onzetrots-v9'&&<SurfaceCard>
+      <AppText variant="label">SLIDEHEADER</AppText>
+      <TextField editable={!disabled} label="Subtitel boven de kop" accessibilityLabel="Subtitel van deze slide" maxLength={120} value={syncOnzeTrotsHeaderSubtitle(slide)} onChangeText={value=>patch({authoring:{...slide.authoring,headerSubtitles:{...slide.authoring.headerSubtitles,[slide.family]:value}}})}/>
+      <TextField editable={!disabled} label="Headertekst" accessibilityLabel="Headertekst van deze slide" maxLength={120} value={syncOnzeTrotsHeaderText(slide)} onChangeText={value=>patch({authoring:{...slide.authoring,headerTexts:{...slide.authoring.headerTexts,[slide.family]:value}}})}/>
+      <Button variant="secondary" disabled={disabled} onPress={()=>{const headerTexts={...slide.authoring.headerTexts},headerSubtitles={...slide.authoring.headerSubtitles};delete headerTexts[slide.family];delete headerSubtitles[slide.family];patch({authoring:{...slide.authoring,headerTexts,headerSubtitles}});}}>Standaard herstellen</Button>
+      {['visitors','welcome'].includes(slide.family)&&<NumberInput label="Welkomstblok (100–200%, stappen van 5)" value={slide.authoring.welcomeScalePercent} disabled={disabled} min={100} max={200} apply={welcomeScalePercent=>{if(welcomeScalePercent%5!==0)throw Error();patch({authoring:{...slide.authoring,welcomeScalePercent}});}} onError={onError}/>}
+    </SurfaceCard>}
     <SegmentedControl accessibilityLabel="Ontwerpstappen" value={tab} onChange={setTab} options={[{ label: "Inhoud", value: "content" }, { label: "Opmaak", value: "design" }, { label: "Formaat", value: "format" }]} />
     <View pointerEvents={disabled ? "none" : "auto"} accessibilityState={{ disabled }} style={{ gap: mobileSpacing.default }}>
       {tab === "content" ? <>
@@ -44,12 +51,12 @@ export function SyncStudioFields({ document, disabled, onChange, onError }: {
         </SurfaceCard>; })}
         {slide.news.length > 4 ? <View style={{ flexDirection: "row", gap: mobileSpacing.compact }}><Button variant="secondary" disabled={newsPage === 0} onPress={() => setNewsPage(page => page - 1)}>Vorige artikelen</Button><Button variant="secondary" disabled={(newsPage + 1) * 4 >= slide.news.length} onPress={() => setNewsPage(page => page + 1)}>Volgende artikelen</Button></View> : null}
       </> : tab === "design" ? <>
-        {slide.rendererVersion==='sync-onzetrots-v1'&&<>
+        {isSyncOnzeTrotsPresentation(slide)&&<>
           <SegmentedControl accessibilityLabel="OnzeTrots-variant" value={slide.visual.mode} onChange={mode=>patch({visual:{...slide.visual,mode}})} options={[{label:'Licht',value:'light'},{label:'Donker',value:'dark'}]}/>
           {['standings','period-standings','matchday'].includes(slide.family)&&<SegmentedControl accessibilityLabel="Scrollsnelheid" value={slide.visual.scrollSpeed} onChange={scrollSpeed=>patch({visual:{...slide.visual,scrollSpeed}})} options={[{label:'Rustig',value:'slow'},{label:'Normaal',value:'normal'},{label:'Sneller',value:'fast'}]}/>}
           <NumberInput label="Containerdekking (80–100%)" value={slide.visual.panelOpacity} disabled={disabled} min={80} max={100} apply={panelOpacity=>patch({visual:{...slide.visual,panelOpacity}})} onError={onError}/>
         </>}
-        {slide.rendererVersion!=='sync-onzetrots-v1'&&<>
+        {!isSyncOnzeTrotsPresentation(slide)&&<>
         <SegmentedControl accessibilityLabel="Contentthema" value={slide.theme} onChange={theme => patch({ theme })} options={[{ label: "FieldFlow", value: "fieldflow" }, { label: "OnzeTrots TV", value: "onzetrots-tv" }]} />
         <SegmentedControl accessibilityLabel="Tekstuitlijning" value={slide.style.alignment} onChange={alignment => patch({ style: { ...slide.style, alignment } })} options={[{ label: "Links", value: "left" }, { label: "Midden", value: "center" }, { label: "Rechts", value: "right" }]} />
         <AppText muted>Huidig lettertype: {slide.style.font}</AppText>
@@ -59,15 +66,15 @@ export function SyncStudioFields({ document, disabled, onChange, onError }: {
         <NumberInput label="Veilige marge (2–15%)" value={slide.style.safeMargin} disabled={disabled} min={2} max={15} apply={safeMargin => patch({ style: { ...slide.style, safeMargin } })} onError={onError} />
         </>}
         <AppText variant="label">Achtergrond</AppText>
-        {slide.rendererVersion!=='sync-onzetrots-v1'&&<View style={{ gap: mobileSpacing.compact }}>{(["stadium", "gradient", "stripes", "clubmuur", "light"] as const).map((background, index) => <Button key={background} variant={slide.style.background === background ? "primary" : "secondary"} onPress={() => patch({ style: { ...slide.style, background } })}>{["Stadion", "Verloop", "Strepen", "Clubmuur", "Licht"][index]}</Button>)}</View>}
+        {!isSyncOnzeTrotsPresentation(slide)&&<View style={{ gap: mobileSpacing.compact }}>{(["stadium", "gradient", "stripes", "clubmuur", "light"] as const).map((background, index) => <Button key={background} variant={slide.style.background === background ? "primary" : "secondary"} onPress={() => patch({ style: { ...slide.style, background } })}>{["Stadion", "Verloop", "Strepen", "Clubmuur", "Licht"][index]}</Button>)}</View>}
         <NativeSitesPhotoPicker onPick={asset => { if (asset.kind === "tenant") patch({ style: { ...slide.style, background: "photo", backgroundAsset: asset } }); else onError(new Error("Kies een eigen, geverifieerde afbeelding uit deze organisatie.")); }} />
         <Button variant="secondary" onPress={() => patch({ style: { ...slide.style, showLogo: !slide.style.showLogo } })}>Logo {slide.style.showLogo ? "zichtbaar" : "verborgen"}</Button>
         <Button variant="secondary" onPress={() => patch({ style: { ...slide.style, showFooter: !slide.style.showFooter } })}>Voetregel {slide.style.showFooter ? "zichtbaar" : "verborgen"}</Button>
-        <SegmentedControl accessibilityLabel={slide.rendererVersion==='sync-onzetrots-v1'?"Binnenkomst":"Beweging"} value={slide.style.motion ?? (document.motion.enabled ? "rustig" : "geen")} onChange={motion => patch({ style: { ...slide.style, motion } })} options={[{ label: "Rustig", value: "rustig" }, { label: "Dynamisch", value: "dynamisch" }, { label: "Geen", value: "geen" }]} />
+        <SegmentedControl accessibilityLabel={isSyncOnzeTrotsPresentation(slide)?"Binnenkomst":"Beweging"} value={slide.style.motion ?? (document.motion.enabled ? "rustig" : "geen")} onChange={motion => patch({ style: { ...slide.style, motion } })} options={[{ label: "Rustig", value: "rustig" }, { label: "Dynamisch", value: "dynamisch" }, { label: "Geen", value: "geen" }]} />
       </> : <>
         <SegmentedControl accessibilityLabel="Schermformaat" value={slide.orientation} onChange={orientation => patch({ orientation })} options={[{ label: "Liggend · 16:9", value: "landscape" }, { label: "Staand · 9:16", value: "portrait" }]} />
         <NumberInput label="Seconden per pagina (3–120)" value={seconds} disabled={disabled} min={3} max={120} apply={value => patch({}, value)} onError={onError} />
-        <NumberInput label="Rijen per pagina (1–8)" value={slide.rowsPerPage} disabled={disabled||slide.rendererVersion==='sync-onzetrots-v1'&&['standings','period-standings','matchday','birthdays','activities','agenda'].includes(slide.family)} min={1} max={8} apply={rowsPerPage => patch({ rowsPerPage })} onError={onError} />
+        <NumberInput label="Rijen per pagina (1–8)" value={slide.rowsPerPage} disabled={disabled||isSyncOnzeTrotsPresentation(slide)&&['standings','period-standings','matchday','birthdays','activities','agenda'].includes(slide.family)} min={1} max={8} apply={rowsPerPage => patch({ rowsPerPage })} onError={onError} />
         <AppText>{syncSlidePageCount(slide)} pagina's · {document.motion.durationMs / 1000} seconden totaal</AppText>
       </>}
     </View>

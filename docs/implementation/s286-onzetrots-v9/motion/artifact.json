@@ -1,0 +1,15 @@
+{
+  "rendererVersion": "sync-onzetrots-v9",
+  "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+  "mimeType": "video/mp4",
+  "width": 1920,
+  "height": 1080,
+  "durationMs": 40000,
+  "byteLength": 12910482,
+  "checksumSha256": "d6fcaaf741c6b04d5516457805125f9b7aeb639dcc1443358606b1420650be58",
+  "poster": {
+    "byteLength": 1555051,
+    "checksumSha256": "7c13c4da939402415894bb7d6cc84a3e0188822ddd74d85ae25bb37a4f80d123"
+  },
+  "elapsedWallMs": 258358
+}
