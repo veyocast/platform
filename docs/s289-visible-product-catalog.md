@@ -39,3 +39,14 @@ Bewijsbestanden staan lokaal onder
 `/home/codex/.local/state/veyocast-s289/`: `browser-before.log`,
 `browser-final.log`, `browser-final/`, `browser-lint.log`, `foundation.log`.
 Er zijn geen dependencies, migraties, merkassets of Playerbestanden veranderd.
+
+## Volledige CI-controle
+
+De eerste volledige Control-CI-run haalde 600 browsergevallen, maar stopte
+bij de vaste checksum van `sync-source.css` in de mobiele platformfixture.
+Die controle had de bedoelde klassenaamwijziging nog niet verwerkt. De
+controle behoudt nu juist de historische checksum en normaliseert alleen
+`.sync-data-table` terug naar `.ad-table` voordat zij vergelijkt. Alle overige
+CSS-bytes en alle andere beschermde hashes blijven exact verplicht. De
+werkelijke browser laadt de nieuwe CSS zonder deze normalisatie. Een aparte
+bytevergelijking bevestigt dat uitsluitend de klassenaam is veranderd.

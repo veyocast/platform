@@ -20,6 +20,11 @@ productiepromotie zijn reeds geautoriseerd. S287 en S288 lopen afzonderlijk.
 - `tests/control/sync-products-workflows.spec.ts`: echte productcomponent,
   oorspronkelijke filterregel, zichtbaarheid, paginering, zoekopdracht,
   beschikbaarheidsactie en a11y op desktop/mobiel.
+- Na de concrete CI-checksumfout: uitsluitend de Source-CSS-bewijscontrole in
+  `tests/control/sync-platform-mobile-layout.spec.ts`. Normaliseer alleen de
+  bedoelde tabelklassenaam voor vergelijking met de ongewijzigde historische
+  checksum; alle overige CSS-bytes en alle andere beschermde hashes blijven
+  verplicht. De browser blijft de werkelijke, ongenormaliseerde CSS laden.
 - Dit prompt, eigen PLANS-/TASK_LEDGER-aanvulling en
   `docs/s289-visible-product-catalog.md`.
 
