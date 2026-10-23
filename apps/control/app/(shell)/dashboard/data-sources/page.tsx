@@ -18,7 +18,9 @@ import { SitesLedConnectionWizard } from "./led-scores/sites-led-connection-wiza
 import { testLedScoresSource } from "./led-scores/actions";
 import { SitesYouTubeWorkspace } from "../integrations/youtube/sites-youtube-workspace";
 import styles from "../sources/sync-source-dialogs.module.css";
-import { createProductSource, createRssSource, syncRssSource } from "./actions";
+import { createProductSource, createRssSource } from "./actions";
+
+import { RssSourceActions } from "./rss-source-controls";
 
 type PageProps = { searchParams: Promise<{ fout?: string; succes?: string; source?: string; connect?: string }> };
 export default async function DataSourcesPage({ searchParams }: PageProps) {
@@ -35,9 +37,9 @@ export default async function DataSourcesPage({ searchParams }: PageProps) {
   let createContent = null, dataContent = null, settingsContent = null, actions = null;
   if (selection?.provider === "rss") {
     createContent = <form action={createRssSource} className={styles.stack}><label className={styles.field}><span>Herkenbare naam</span><input name="name" required minLength={2} maxLength={120} placeholder="Bijvoorbeeld: Clubnieuws" /></label><label className={styles.field}><span>Publieke feed-URL</span><input name="url" required type="url" placeholder="https://club.nl/feed/" /></label><SourceNotice>Je feed wordt na bevestiging gecontroleerd en opgeslagen. Bij bronuitval blijven de laatst gevalideerde gegevens beschikbaar.</SourceNotice><Button type="submit"><Rss size={18} />Feed controleren en koppelen</Button></form>;
-    settingsContent = <SourceNotice>De opgeslagen naam, feed en verversfrequentie staan hierboven. Je kunt deze bron synchroniseren of een andere nieuwsfeed verbinden.</SourceNotice>;
+    settingsContent = <SourceNotice>Deze feed levert nieuwsartikelen. Kies Nieuwsslide maken om de artikelen in je clubstijl aan een playlist toe te voegen. De opgeslagen feed blijft behouden.</SourceNotice>;
     if (selected?.detail) dataContent = <div className={styles.list}>{selected.detail.items.length ? await Promise.all(selected.detail.items.map(async (item, index) => <article className={styles.news} key={item.id}><span className={styles.newsArt}><Rss size={24} aria-hidden="true" /></span><div><small>ARTIKEL {index + 1}</small><h3>{item.title}</h3><p>{item.detail}</p>{item.href && <a href={item.href} target="_blank" rel="noopener noreferrer">{item.href}</a>}</div>{item.href && <Image alt={`QR-code naar ${item.title}`} width={66} height={66} unoptimized src={await QRCode.toDataURL(item.href, { margin: 1, width: 66 })} />}</article>)) : <p>Er zijn nog geen opgeslagen nieuwsartikelen beschikbaar.</p>}</div>;
-    if (canManage && selected?.detail && selected.detail.status !== "paused") actions = <form action={syncRssSource}><input name="sourceId" type="hidden" value={selected.detail.id} /><Button type="submit" variant="secondary"><RefreshCw size={16} />Synchroniseren</Button></form>;
+    if (selected?.detail) actions = <RssSourceActions sourceId={selected.detail.id} canDesign={canDesign} canManage={canManage} paused={selected.detail.status === "paused"} />;
   } else if (selection?.provider === "twelve") {
     createContent = <form action={createProductSource} className={styles.stack}><label className={styles.field}><span>Herkenbare naam</span><input name="name" required minLength={2} maxLength={120} placeholder="Bijvoorbeeld: Kantinecatalogus" /></label><label className={styles.field}><span>Bronsoort</span><select name="kind"><option value="manual_products">Handmatige producten</option><option value="twelve_excel">Twelve Excel-export</option></select></label><SourceNotice>Dit is een importkoppeling. Excel of CSV wordt eerst gecontroleerd; importeren vervangt geen gepubliceerde menukaart.</SourceNotice><Button type="submit"><FileSpreadsheet size={18} />Productbron maken</Button></form>;
     settingsContent = <SourceNotice>De productcatalogus beheert producten en gecontroleerde imports. Een automatische Twelve-API-koppeling is hier niet actief.</SourceNotice>;

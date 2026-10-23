@@ -56,6 +56,31 @@ function journal(props: SyncCreateWizardData, draft = initialSyncCreateWizardDra
 }
 
 describe("all Source families retain truthful direct creation", () => {
+  it("starts RSS with its authorized feed and an explicit five-article round", () => {
+    const props = { ...data("rss"), initialSourceId: id(3), initialMode: "connected" as const };
+    const draft = initialSyncCreateWizardDraft(props), request = buildSyncWizardRequest(props, draft, null);
+    expect(draft).toMatchObject({ sourceId: id(3), newsLimit: "5", seconds: "10" });
+    expect(request.configuration.newsSelection).toEqual({ maximumArticles: 5 });
+  });
+  it.each(["", "0", "21", "2.5", "bad"])("rejects invalid RSS article selection %s", newsLimit => {
+    const { props, draft } = connected("rss"); draft.newsLimit = newsLimit;
+    expect(() => prepareSyncWizardCommand(props, draft, null, id(6))).toThrow("artikelen");
+  });
+  it("restores the exact RSS selection/nonce and rejects a changed pending selection", () => {
+    const { props, draft } = connected("rss"); draft.newsLimit = "8";
+    const pending = prepareSyncWizardCommand(props, draft, null, id(6));
+    const saved = journal(props, draft, pending);
+    expect(readSyncWizardJournal(JSON.stringify(saved), props)?.pending).toEqual(pending);
+    expect(() => readSyncWizardJournal(JSON.stringify({ ...saved, draft: { ...draft, newsLimit: "5" } }), props)).toThrow("article selection");
+  });
+  it("keeps a historical unbounded RSS command without inserting a new selection", () => {
+    const { props, draft } = connected("rss"); delete draft.newsLimit; draft.seconds = "5";
+    const pending = prepareSyncWizardCommand(props, draft, null, id(6));
+    const saved = readSyncWizardJournal(JSON.stringify(journal(props, draft, pending)), props)!;
+    expect(saved.draft.newsLimit).toBeUndefined(); expect(saved.pending).toEqual(pending);
+    if (saved.pending?.kind !== "connected" || !("configuration" in saved.pending.command.request)) throw Error("connected");
+    expect(saved.pending.command.request.configuration).not.toHaveProperty("newsSelection");
+  });
   it.each(syncContentFamilies.map(value => value.id))("creates the canonical manual document for %s", family => {
     const props = data(family), draft = initialSyncCreateWizardDraft(props), command = prepareSyncWizardCommand(props, draft, null, id(6));
     expect(command.kind).toBe("manual");

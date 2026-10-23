@@ -10,6 +10,41 @@ import { applySyncThemeCreationDefaults, syncThemeCreationStarterDefaults } from
 
 test.beforeAll(prepareWizardFixture);
 
+for (const width of [390, 1440]) test(`RSS feed stays selected and its article limit survives reload and receipt recovery at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  const props = fixture("rss"); props.initialMode = "connected"; props.initialSourceId = id(3);
+  const state = await mount(page, props, { rssPreview: true, dropFirst: true });
+  await expect(page.getByLabel("Gekoppelde bron", { exact: true })).toHaveValue(id(3));
+  await next(page);
+  await expect(page.getByRole("spinbutton", { name: "Nieuwste artikelen", exact: true })).toHaveValue("5");
+  await page.getByRole("spinbutton", { name: "Nieuwste artikelen", exact: true }).fill("7");
+  await page.reload(); await expect(page.getByRole("spinbutton", { name: "Nieuwste artikelen", exact: true })).toHaveValue("7");
+  await next(page); await next(page);
+  await page.getByRole("button", { name: "Bron controleren", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Ontwerp maken", exact: true })).toBeEnabled();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByRole("button", { name: "Ontwerp maken", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true })).toBeEnabled();
+  const original = JSON.stringify(state.creates[0]);
+  await page.reload(); await page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true }).click();
+  await expect.poll(() => state.creates.length).toBe(2);
+  expect(JSON.stringify(state.creates[1])).toBe(original);
+  const command = state.creates[1]!.input;
+  if (command.kind !== "connected" || !("configuration" in command.command.request)) throw Error("connected RSS command");
+  expect(command.command.request.configuration.newsSelection).toEqual({ maximumArticles: 7 });
+  expect(command.command.request.dataSourceId).toBe(id(3)); expect(state.errors).toEqual([]);
+});
+
+test("RSS preview blocks an overlong round before creating any command", async ({ page }) => {
+  const props = fixture("rss"); props.initialMode = "connected"; props.initialSourceId = id(3);
+  const state = await mount(page, props, { rssPreview: true });
+  await next(page); await page.getByRole("spinbutton", { name: "Nieuwste artikelen", exact: true }).fill("20");
+  await next(page); await next(page); await page.getByRole("button", { name: "Bron controleren", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("langer dan 120 seconden");
+  await expect(page.getByRole("button", { name: "Ontwerp maken", exact: true })).toBeDisabled();
+  expect(state.creates).toHaveLength(0);
+});
+
 test("persisted new-design profiles drive the real preview and an explicit theme choice without changing own content", async ({ page }) => {
   const props = fixture();
   const saved = { ...syncThemeCreationStarterDefaults("onzetrots-tv"), accent: "#cAb123", font: "Georgia" as const, mode: "dark" as const, background: "stadium" as const, scale: 116, motion: "geen" as const, showLogo: false };

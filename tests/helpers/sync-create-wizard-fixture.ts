@@ -34,7 +34,7 @@ export function fixture(family: SyncCreateWizardData["family"] = "welcome", conn
   };
 }
 type Sent = { input: SyncCreateWizardCommand; scope: string };
-export async function mount(page: Page, data = fixture(), opts: { dropFirst?: boolean; previewDenied?: boolean; delayedCreate?: boolean; rejectReplayOnce?: boolean } = {}) {
+export async function mount(page: Page, data = fixture(), opts: { dropFirst?: boolean; previewDenied?: boolean; delayedCreate?: boolean; rejectReplayOnce?: boolean; rssPreview?: boolean } = {}) {
   const creates: Sent[] = [], previews: unknown[] = [], reads: string[] = [], errors: string[] = [];
   const receipts = new Map<string, string>();
   let finishCreate: (() => Promise<void>) | null = null;
@@ -89,6 +89,10 @@ export async function mount(page: Page, data = fixture(), opts: { dropFirst?: bo
     if (path === "preview") {
       previews.push(body);
       if (opts.previewDenied) return route.fulfill({ json: { ok: false, error: "De bronrechten zijn niet bevestigd. Je ontwerp blijft behouden; controleer Bronnen." } });
+      if (opts.rssPreview) {
+        const count = body.input.configuration.newsSelection?.maximumArticles ?? 30;
+        return route.fulfill({ json: { ok: true, presentation: { ...body.input.configuration.syncConfiguration.seed, news: Array.from({ length: count }, (_, index) => ({ title: `Gecontroleerd artikel ${index + 1}`, intro: "Nieuws uit de gekozen testbron", source: "Eigen nieuwsbron", url: `https://example.org/article/${index}` })) }, assets: {}, source: { providerStatus: "ready", lastSuccessfulSyncAt: null, lastErrorCode: null } } });
+      }
       return route.fulfill({ json: { ok: true, presentation: { ...body.input.configuration.syncConfiguration.seed, rows: [["1", "Eigen team", "4", "12"]] }, assets: {}, source: { providerStatus: "healthy", lastSuccessfulSyncAt: null, lastErrorCode: null } } });
     }
     if (path === "engage-choices") return route.fulfill({ json: { ok: true, choices: [{ id: id(31), title: "Eigen publieksvraag", status: "live" }], hasMore: false } });

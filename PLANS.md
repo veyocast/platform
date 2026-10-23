@@ -106,6 +106,12 @@ afgesloten; fysieke apparaatproeven en ontbrekende browser-IDB-input blijven
 expliciet afzonderlijk geregistreerd. De PR bewaart daarna de echte CI- en
 staging/productionpromotie van dezelfde immutable SHA.
 
+S288 verbindt bestaande RSS-feeds met de gekoppelde nieuwswizard en het
+playlistfilter Nieuws & RSS. Een expliciete keuze van nieuwste artikelen,
+behouden opdrachtjournals en bewezen pixelgelijke stilstaand-framehergebruik
+maken de echte bron/export/playlistketen bruikbaar. Zie
+`prompts/sprints/S288-rss-playlist-flow.md` en `docs/s288-rss-playlist-flow.md`.
+
 ## Werkmodus
 
 VeyoCast wordt lokaal gebouwd met Codex in geïsoleerde Git-worktrees. GitHub blijft de bron van waarheid. Elke taak krijgt:

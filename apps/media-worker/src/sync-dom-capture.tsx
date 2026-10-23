@@ -120,6 +120,15 @@ export async function createSyncSlideCapture({
     throw new SitesDomCaptureError("document_load");
   // Check all supplied references before allocating a browser.
   buildSyncCaptureHtml(input, assetSources);
+  const staticRssAssets=input.rendererVersion==='sync-onzetrots-v9'&&input.family==='rss'&&(await Promise.all(syncSlideAssets(input).filter(asset=>asset.kind==='tenant').map(async asset=>{
+    const source=assetSources[asset.mediaAssetId],href=typeof source==='string'?source:source?.href;
+    const encoded=href?.match(/^data:image\/(?:png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/);
+    if(!encoded)return false;
+    try{
+      const bytes=Buffer.from(encoded[1]!,'base64'),metadata=await sharp(bytes,{animated:true}).metadata();
+      return(metadata.pages??1)===1&&!(metadata.format==='png'&&bytes.includes(Buffer.from('acTL')))&&!(metadata.format==='webp'&&bytes.includes(Buffer.from('ANIM')));
+    }catch{return false;}
+  }))).every(Boolean);
   const browser: Browser = await chromium.launch({
     args: [...sitesCaptureBrowserArgs],
     executablePath,
@@ -177,6 +186,7 @@ export async function createSyncSlideCapture({
       currentFrameIdentity='',
       rankLayouts:SyncOnzeTrotsRankLayout[]=[],
       v9PanelCount=0,
+      settledRss: { png: Buffer; atMs: number; signature: string } | undefined,
       settledPng:Buffer|undefined,
       png: Buffer | undefined,
       rgba: Buffer | undefined;
@@ -232,8 +242,16 @@ export async function createSyncSlideCapture({
       const transitionTime=transition?Math.min(transition.durationMs,Math.max(0,timeMs-target*pageMs)):0;
       const internalTime=internalMotion.enabled?Math.max(0,input.rendererVersion==='sync-onzetrots-v9'&&sceneState.paused?(sceneState.pausedAtMs??0):timeMs-target*pageMs):0;
       const identity=()=>JSON.stringify([input.rendererVersion,input.orientation,target,transitionTime,internalTime,rankLayouts,v9PanelCount,sceneState]);
+      let rssIsStill=false;
+      const rssSignature=()=>JSON.stringify([target,transitionTime,rankLayouts,v9PanelCount,sceneState]);
+      if(currentPage===target&&settledRss&&internalTime>=settledRss.atMs&&settledRss.signature===rssSignature()){
+        if(png!==settledRss.png){png=settledRss.png;rgba=undefined;}
+        currentTransitionTime=transitionTime;currentInternalTime=internalTime;currentFrameIdentity=identity();
+        return settledRss.png;
+      }
       if (currentPage === target && currentTransitionTime===transitionTime && currentInternalTime===internalTime && currentFrameIdentity===identity() && png) return png;
       if(currentPage!==target){
+      settledRss=undefined;
       failureStage = "document_load";
       await page.setContent(buildSyncCaptureHtml(input, assetSources, target), {
         waitUntil: "domcontentloaded",
@@ -290,6 +308,15 @@ export async function createSyncSlideCapture({
         const scene=input.rendererVersion==='sync-onzetrots-v9'?{panelCount:v9PanelCount,mode:input.visual.mode,paused:sceneState.paused??false,introFinished:sceneState.introFinished??false,entranceAllowed:input.style.motion!=='geen'}:undefined;
         const frame=projectSyncOnzeTrotsMotion(internalTime,rankLayouts,input.visual.scrollSpeed,sceneState.reducedMotion??false,scene);
         await page.evaluate(applySyncOnzeTrotsMotion,frame);
+        if(staticRssAssets&&frame.entrance?.finished&&rankLayouts.every(layout=>layout.range===0)){
+          // A completed entrance does not imply that nested content is static.
+          // Inspect the actual CSS effects; infinite or unfinished animations
+          // retain the complete per-frame capture path.
+          rssIsStill=await page.evaluate(time=>[...document.querySelectorAll('.screen')].every(screen=>screen.getAnimations({subtree:true}).every(animation=>{
+            const end=animation.effect?.getComputedTiming().endTime;
+            return typeof end==='number'&&Number.isFinite(end)&&end<=time;
+          })),internalTime);
+        }
       }
       if(transition){
         await page.evaluate(({transition,time})=>{
@@ -309,6 +336,7 @@ export async function createSyncSlideCapture({
         png=settledPng;
       }
       if(!png)throw new SitesDomCaptureError('raster_capture');
+      if(rssIsStill)settledRss={png,atMs:internalTime,signature:rssSignature()};
       currentTransitionTime=transitionTime;
       currentInternalTime=internalTime;
       currentFrameIdentity=identity();

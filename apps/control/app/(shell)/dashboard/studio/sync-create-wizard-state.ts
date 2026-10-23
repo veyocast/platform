@@ -29,6 +29,8 @@ export type SyncCreateWizardDraft = {
   mode: "manual" | "connected";
   presentation: SyncSlidePresentation;
   seconds: string;
+  /** Absent in historical journals: preserve their original unbounded request. */
+  newsLimit?: string;
   sourceId: string;
   selection: { mode: "all" | "selected"; contexts: SportlinkSlideContext[]; birthdayDays: 7 | 14 | 21 };
   rowsText: string;
@@ -63,8 +65,9 @@ export function initialSyncCreateWizardDraft(data: SyncCreateWizardData): SyncCr
   return {
     mode: data.initialMode,
     presentation: data.initialPresentation,
-    seconds: "5",
-    sourceId: "",
+    seconds: data.family === "rss" ? "10" : "5",
+    ...(data.family === "rss" ? { newsLimit: "5" } : {}),
+    sourceId: data.initialSourceId ?? "",
     selection: { mode: cfg && isSyncSportlinkType(cfg.slideType) && syncSportlinkSelectionPolicy(cfg).required ? "selected" : "all", contexts: [], birthdayDays: 7 },
     rowsText: data.initialPresentation.rows.map(row => row.join(" | ")).join("\n"),
     lineupText: data.initialPresentation.lineup.map(line => line.join(", ")).join("\n"),
@@ -88,6 +91,8 @@ export function syncCreateWizardDraftError(draft: SyncCreateWizardDraft): string
     return "Geef je ontwerp een naam van 2 tot 120 tekens.";
   if (!/^\d+$/.test(draft.seconds) || Number(draft.seconds) < 3 || Number(draft.seconds) > 120)
     return "Kies een gehele duur van 3 tot 120 seconden per pagina.";
+  if (draft.newsLimit !== undefined && (draft.presentation.family !== "rss" || !/^\d+$/.test(draft.newsLimit) || Number(draft.newsLimit) < 1 || Number(draft.newsLimit) > 20))
+    return "Kies 1 tot 20 nieuwste artikelen voor je nieuwsslide.";
   if (draft.mode === "manual") {
     if (syncWizardRowFamilies.has(draft.presentation.family) && syncRowsFromText(draft.rowsText) === null)
       return "Controleer je regels. Gebruik maximaal vier kolommen met | ertussen; je invoer blijft behouden.";
@@ -110,6 +115,8 @@ export function buildSyncWizardRequest(data: SyncCreateWizardData, draft: SyncCr
     sourceRevision: draft.presentation.sourceRevision, slideType: data.slideType,
     secondsPerPage: Number(draft.seconds), seed: connectedSyncWizardSeed(draft.presentation) });
   let configuration: Record<string, unknown> = { maxItems: 200, syncConfiguration: cfg };
+  if (cfg.slideType === "news" && draft.newsLimit !== undefined)
+    configuration.newsSelection = { maximumArticles: Number(draft.newsLimit) };
   if (isSyncSportlinkType(cfg.slideType)) {
     if (!options || options.sourceId !== draft.sourceId) throw Error("De teams en bronrechten zijn nog niet bevestigd. Wacht op de broncontrole of probeer opnieuw.");
     configuration = compileSyncSportlinkBinding(cfg, configuration, draft.selection, options.teams);
@@ -158,6 +165,7 @@ function validatePending(command: unknown, draft: SyncCreateWizardDraft): SyncCr
     const cfg = syncDynamicConfigurationSchema.parse(parsed.request.configuration.syncConfiguration);
     if (parsed.request.dataSourceId !== draft.sourceId || cfg.secondsPerPage !== Number(draft.seconds)
       || JSON.stringify(cfg.seed) !== JSON.stringify(connectedSyncWizardSeed(draft.presentation))) throw Error("Changed source command");
+    if (cfg.slideType === "news" && JSON.stringify(parsed.request.configuration.newsSelection) !== JSON.stringify(draft.newsLimit === undefined ? undefined : { maximumArticles: Number(draft.newsLimit) })) throw Error("Changed article selection");
     if (isSyncSportlinkType(cfg.slideType)) {
       const selection = readSyncSportlinkSelection(cfg, parsed.request.configuration);
       const expected = { ...draft.selection, contexts: draft.selection.mode === "all" ? [] : draft.selection.contexts };
@@ -178,11 +186,12 @@ export function readSyncWizardJournal(raw: string | null, scope: SyncCreateWizar
     || value.actorScope !== scope.actorScope || typeof value.actorScope !== "string" || value.actorScope.length > 200
     || value.family !== scope.family || !Number.isInteger(value.step) || Number(value.step) < 0 || Number(value.step) > 3) throw Error("Different journal scope");
   const draft = value.draft;
-  if (!record(draft) || !exactKeys(draft, ["mode", "presentation", "seconds", "sourceId", "selection", "rowsText", "lineupText"])
+  if (!record(draft) || !exactKeys(draft, ["mode", "presentation", "seconds", "sourceId", "selection", "rowsText", "lineupText", ...(Object.hasOwn(draft, "newsLimit") ? ["newsLimit"] : [])])
     || !["manual", "connected"].includes(String(draft.mode)) || typeof draft.seconds !== "string" || draft.seconds.length > 8
     || typeof draft.sourceId !== "string" || draft.sourceId !== "" && !uuid.test(draft.sourceId)
     || typeof draft.rowsText !== "string" || draft.rowsText.length > 400_000
-    || typeof draft.lineupText !== "string" || draft.lineupText.length > 4_000) throw Error("Invalid draft");
+    || typeof draft.lineupText !== "string" || draft.lineupText.length > 4_000
+    || Object.hasOwn(draft, "newsLimit") && (scope.family !== "rss" || typeof draft.newsLimit !== "string" || !/^\d{1,2}$/.test(draft.newsLimit) || Number(draft.newsLimit) < 1 || Number(draft.newsLimit) > 20)) throw Error("Invalid draft");
   const presentation = syncSlidePresentationSchema.safeParse(draft.presentation), selection = draft.selection;
   if (!presentation.success || presentation.data.family !== scope.family || !record(selection)
     || !exactKeys(selection, ["mode", "contexts", "birthdayDays"]) || !["all", "selected"].includes(String(selection.mode))

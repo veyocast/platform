@@ -5,6 +5,8 @@ import {createRequire} from "node:module";
 import {join} from "node:path";
 import {expect,test,type Page} from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { createSyncStudioStarter } from "../../packages/studio/src/sync";
+import { syncOnzeTrotsV9SystemAssets } from "../../packages/contracts/src/sync-onzetrots-v9-assets";
 
 /** Real source Editor/Library/Picker, bundled without a test route in production.
  * Only the unexercised video uploader is isolated. Library/save replies use a
@@ -71,6 +73,46 @@ async function mount(page:Page,qa=false){
  return{saves,setConflict:(value:boolean)=>{conflict=value;}};
 }
 async function contained(page:Page){const geometry=await page.getByRole("dialog").evaluate(dialog=>{const box=dialog.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth+1};});expect(geometry.left).toBeGreaterThanOrEqual(-1);expect(geometry.right).toBeLessThanOrEqual(geometry.width+1);expect(geometry.top).toBeGreaterThanOrEqual(-1);expect(geometry.bottom).toBeLessThanOrEqual(geometry.height+1);expect(geometry.overflow).toBe(false);}
+for (const width of [390, 1440]) test(`RSS picker finds three news designs and retains the selected snapshot at ${width}px`, async ({ page }, info) => {
+ await page.setViewportSize({ width, height: 1000 }); const transport = await mount(page);
+ const assets = new Map(syncOnzeTrotsV9SystemAssets.map(asset => [asset.path, asset]));
+ await page.route('**/onzetrots-approved-*/**', route => {
+  const path = new URL(route.request().url()).pathname, asset = assets.get(path as typeof syncOnzeTrotsV9SystemAssets[number]['path']);
+  if (!asset) return route.abort(); const bytes = readFileSync(join(process.cwd(), 'apps/control/public', path));
+  expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.sha256);
+  return route.fulfill({ contentType: asset.mimeType, body: bytes });
+ });
+ const id = (n: number) => `28800000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+ const designs = Array.from({ length: 3 }, (_, index) => {
+  const seed = createSyncStudioStarter({ family: 'rss', tenantName: 'Eigen nieuwsclub', theme: 'onzetrots-tv' }).syncPresentation!;
+  const news = Array.from({ length: 5 }, (_, n) => ({ title: `Artikel ${n + 1}`, intro: 'Gecontroleerd nieuws', source: `Nieuwsbron ${index + 1}`, url: `https://example.org/${index}/${n}` }));
+  const presentation = { ...seed, news, rich: { news: news.map((item, n) => ({ ...item, id: `source-${index}-article-${n}` })) } };
+  return { id: id(10 + index), name: `Nieuwsbron ${index + 1}`, snapshotId: id(20 + index), versionId: id(30 + index), templateVersionId: id(40), configuration: { schemaVersion: 1, kind: 'dynamic', rendererVersion: seed.rendererVersion, sourceRevision: seed.sourceRevision, slideType: 'news', seed, secondsPerPage: 10 }, presentation, assetUrls: {}, durationSeconds: 50, mediaAssetId: id(50 + index), checksumSha256: 'a'.repeat(64), kind: 'video', provider: 'news' };
+ });
+ const sources: string[] = [];
+ await page.route('**/api/publisher/library*', route => {
+  sources.push(new URL(route.request().url()).searchParams.get('source') ?? 'all');
+  return route.fulfill({ json: { media: [], projects: [], syncProjects: [], syncDesigns: designs, designs: [], folders: [], collections: [], total: 3, hasMore: false } });
+ });
+ await page.getByRole('button', { name: 'Toevoegen', exact: true }).click(); await page.getByRole('button', { name: 'Slides', exact: true }).click();
+ await page.getByRole('button', { name: 'Nieuws & RSS', exact: true }).click();
+ await expect.poll(() => sources.at(-1)).toBe('news');
+ for (const design of designs) await expect(page.getByRole('button', { name: `${design.name}, selecteren`, exact: true })).toBeVisible();
+ const firstArticle = page.getByRole('button', { name: 'Nieuwsbron 1, selecteren', exact: true }).locator('.screen .slide-content > *').first();
+ await expect(firstArticle).toHaveCSS('opacity', '1');
+ await expect(firstArticle).toContainText('Artikel 1');
+ const choice = page.getByRole('button', { name: 'Nieuwsbron 2, selecteren', exact: true });
+ await choice.focus(); await page.keyboard.press('Space');
+ await contained(page); await page.evaluate(() => document.fonts.ready);
+ expect((await new AxeBuilder({ page }).include('[aria-label="Inhoud toevoegen aan playlist"]').analyze()).violations).toEqual([]);
+ await page.screenshot({ path: info.outputPath(`rss-picker-${width}.png`) });
+ await page.getByRole('button', { name: '1 item toevoegen', exact: true }).click();
+ await expect(page.getByRole('region', { name: 'Playlistinhoud' })).toContainText('Nieuwsbron 2');
+ await page.getByRole('button', { name: 'Opslaan', exact: true }).click();
+ const added = transport.saves.at(-1)!.slides.at(-1)!;
+ expect(added.seconds).toBe(10); expect(added.syncDynamic).toMatchObject({ provider: 'news', snapshotId: id(21), versionId: id(31), durationSeconds: 50, presentation: { news: expect.any(Array) } });
+ expect(added.mediaId).toBe(id(51)); expect(added.syncStudio).toBeUndefined();
+});
 for(const width of[390,1440])test(`connected Source picker preserves its complete snapshot without Sites or Studio identity at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:1000});const transport=await mount(page),commands:unknown[]=[];
  await page.route('**/__sites-test/studio-prepare',route=>{commands.push(route.request().postDataJSON());return route.abort();});
