@@ -1,0 +1,20 @@
+{
+  "assertion": "Decoded full native RGBA buffers exactly equal; no masks or threshold",
+  "rendererVersion": "sync-onzetrots-v9",
+  "timeMs": 0,
+  "paused": true,
+  "width": 1920,
+  "height": 1080,
+  "frames": [
+    {
+      "path": "worker-goal-paused-0ms.png",
+      "bytes": 2306448,
+      "sha256": "cbb786567024f5b93278c4459c0c44d4c123d46c183e1461b68f57fffa306c31"
+    },
+    {
+      "path": "player-goal-paused-0ms.png",
+      "bytes": 2108772,
+      "sha256": "932b1d410fdb740c7cc11107b2f6cf98abfd0439e30bee2166c7cf333ba31d01"
+    }
+  ]
+}

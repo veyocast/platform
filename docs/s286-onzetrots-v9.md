@@ -156,3 +156,23 @@ De volledige Player-browsersuite van dezelfde tweede run is eveneens groen,
 inclusief de echte v9-export-/DOM-pariteit, introframes en offline/fallbacktests.
 De daaropvolgende commit wijzigt alleen de hierboven beschreven CI-bronkeuze
 en de bijbehorende documentatie; de product- en testbytes blijven gelijk.
+
+Alle veertien normale CI-jobs zijn op `f7f3a034` groen geworden, inclusief LED.
+Een extra gerichte controle vóór oplevering vond daarna een vroeg pauzegeval:
+de goalslide maakte haar hoofdentree af, terwijl de afzonderlijke GOAL-tekst
+half transparant bleef. V9 maakt die tekst nu volledig zichtbaar zodra de
+entree is afgerond of expliciet afgemaakt. Hervatten behoudt die eindtoestand;
+replay en normale start behouden hun entree. De historische renderer wijzigt niet.
+
+De v9-goalregel is één tekstnode, met dezelfde tekst en spaties als voorheen.
+Dit verwijdert het kleine glyphverschil door SSR-/clienttekstsegmentatie.
+De volledige gepauzeerde Worker-/Player-output op 0 ms is nu exact gelijk in
+native RGBA, zonder maskers of tolerantie. Beide PNG's en hun metadata staan
+onder `motion/`. Nieuwe browsercases controleren daarnaast vooraf laden op 0 ms
+en echte pauze/hervatting. Het oorspronkelijke rode pauzebewijs blijft bewaard.
+
+Na deze gerichte correctie: alle 36 v9-Playercases, 295 oude/nieuwe SSR-cases,
+255 gedeelde rendererunits, gerichte lint en renderer-typecheck groen. De vier
+goalbeelden zijn opnieuw genomen; de onafhankelijke prototypecapture behoudt
+daarbij de echte pauzestand. De volledige 144×-matrix en acht contactbladen
+zijn daarmee opnieuw samengesteld, met behoud van de overige native beelden.

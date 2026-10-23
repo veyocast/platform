@@ -51,7 +51,7 @@ try{
    for(const path of [`/assets/clubmuur-brush-v25/houtrust-${state.portrait?'portrait-941':'wide-1672'}.webp`,'/assets/clubmuur-lettering.webp']){const image=new Image();image.src=path;await image.decode();}
    const screen=document.querySelector<HTMLElement>('#screen')!,shell=screen.parentElement!;
    screen.style.setProperty('transform','scale(1.2)','important');Object.assign(shell.style,{position:'fixed',left:'0',top:'0',width:`${width}px`,height:`${height}px`,zIndex:'2147483000',borderRadius:'0',overflow:'visible'});
-   if(family==='goal'){screen.classList.remove('is-paused');screen.classList.add('intro-finished');for(const animation of screen.getAnimations({subtree:true})){animation.pause();animation.currentTime=1200;}}
+   if(family==='goal'){screen.classList.add('is-paused','intro-finished');for(const animation of screen.getAnimations({subtree:true})){animation.pause();animation.currentTime=1200;}}
    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
    const box=screen.getBoundingClientRect();if(Math.abs(box.width-width)>.001||Math.abs(box.height-height)>.001)throw Error('Reference canvas mismatch');
   },{family:family.id,orientation,mode,width,height});

@@ -67,6 +67,7 @@ const source=css.toString()+`
 .ot-v9-scope .screen:before{background-position:var(--ot-background-position,center)}
 .ot-v9-scope .screen.ot-controlled:before{animation:none!important;opacity:var(--ot-scene-background-opacity,var(--scene-background-opacity));transform:scale(var(--ot-scene-background-scale,1))}
 .ot-v9-scope .screen.ot-controlled .slide-header-container,.ot-v9-scope .screen.ot-controlled .slide-footer,.ot-v9-scope .screen.ot-controlled [data-ot-scene-panel]{animation:none!important}
+.ot-v9-scope .screen.intro-finished .goal-word{animation:none!important;opacity:1;transform:none}
 .ot-v9-scope .poll-panel h3,.ot-v9-scope .poll-option>span{overflow-wrap:anywhere;min-width:0}
 .ot-v9-scope .poll-option>b{flex-shrink:0}
 .ot-v9-scope .has-long-poll-question .poll-panel h3{font-size:24px;line-height:1.25;margin-bottom:16px}

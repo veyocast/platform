@@ -143,7 +143,9 @@ function MatchHero({slide,resolveAsset}:Props){
  </section>;
 }
 function Goal({slide,resolveAsset}:Props){
- return <div className="goal-scene"><CornerHeader slide={slide} resolveAsset={resolveAsset}/>{Array.from({length:26},(_,index)=><i key={index} className="confetti" style={{'--left':`${index*3.9}%`,'--delay':`${-index*.23}s`,'--rot':`${index*17}deg`,...(index%2?{background:'#8ebaff'}:{})} as CSSProperties}/>)}<div className="goal-word">{slide.headline||'GOOOAL!'}</div><p>{slide.body}</p><strong className="goal-score">{slide.home?.name} &nbsp; {slide.match?.homeScore||'–'} − {slide.match?.awayScore||'–'} &nbsp; {slide.away?.name}</strong></div>;
+ // One v9 text run keeps SSR/capture and client glyph rounding identical.
+ const scoreText=`${slide.home?.name??''} \u00a0 ${slide.match?.homeScore||'–'} − ${slide.match?.awayScore||'–'} \u00a0 ${slide.away?.name??''}`;
+ return <div className="goal-scene"><CornerHeader slide={slide} resolveAsset={resolveAsset}/>{Array.from({length:26},(_,index)=><i key={index} className="confetti" style={{'--left':`${index*3.9}%`,'--delay':`${-index*.23}s`,'--rot':`${index*17}deg`,...(index%2?{background:'#8ebaff'}:{})} as CSSProperties}/>)}<div className="goal-word">{slide.headline||'GOOOAL!'}</div><p>{slide.body}</p><strong className="goal-score">{slide.rendererVersion==='sync-onzetrots-v9'?scoreText:<>{slide.home?.name} &nbsp; {slide.match?.homeScore||'–'} − {slide.match?.awayScore||'–'} &nbsp; {slide.away?.name}</>}</strong></div>;
 }
 function InfoTable({slide,resolveAsset,page}:Props){
  const family=slide.family,rooms=['dressing-rooms','changing-rooms','team-arrivals'].includes(family),training=family==='training',cancellation=family==='cancellations';

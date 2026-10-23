@@ -165,3 +165,37 @@ for(const orientation of ['landscape','portrait']as const)for(const mode of ['li
   expect(fits).toHaveLength(count);if(fits.some(value=>!value.within||value.scale>scale))console.log({count,scale,fits});expect(fits.every(value=>value.within&&value.scale>0&&value.scale<=scale)).toBe(true);expect(state.errors).toEqual([]);
  }
 });
+
+
+for(const passive of [true,false])test(`a ${passive?'preloaded goal is complete at zero':'paused goal stays complete after resume'}`,async({page})=>{
+ const state=await mount(page,{family:'goal',passive});
+ if(passive){await expect(page.locator('.screen')).toHaveAttribute('data-ot-elapsed','0');}
+ else{
+  await expect.poll(()=>page.evaluate(()=>(globalThis as typeof globalThis&{ready:unknown[]}).ready?.length??0)).toBe(1);
+  await page.getByRole('button',{name:'Pauzeren',exact:true}).click();
+ }
+ await expect(page.locator('.goal-scene')).toHaveCSS('opacity','1');
+ await expect(page.locator('.goal-word')).toHaveCSS('opacity','1');
+ if(!passive){
+  await page.getByRole('button',{name:'Hervatten',exact:true}).click();
+  await expect(page.locator('.goal-word')).toHaveCSS('opacity','1');
+ }
+ expect(state.errors).toEqual([]);
+});
+
+test('the actual Worker and Player share a complete native goal when paused at zero',async({page},info)=>{
+ await page.setViewportSize({width:1920,height:1140});
+ const state=await mount(page,{family:'goal',native:true,passive:true});
+ await page.addStyleTag({content:'button{position:fixed;top:1100px;left:0}'});
+ const canvas=page.locator('.ot-approved-frame');await expect(canvas).toBeVisible();
+ await expect(page.locator('.screen')).toHaveAttribute('data-ot-elapsed','0');
+ await expect(page.locator('.goal-word')).toHaveCSS('opacity','1');
+ await page.evaluate(async()=>{await document.fonts.load('400 16px OTRubikDistressed');await document.fonts.ready;});
+ const directory=info.outputPath('worker-goal-paused');
+ execFileSync('pnpm',['exec','tsx','tests/helpers/sync-onzetrots-v9-intro-capture.mts',directory,'goal-paused'],{cwd:process.cwd(),timeout:45000,stdio:'pipe'});
+ const sharp=require(require.resolve('sharp',{paths:[process.cwd()+'/apps/media-worker/node_modules']}));
+ const png=await canvas.screenshot();writeFileSync(join(directory,'dom-0.png'),png);
+ const dom=await sharp(png).ensureAlpha().raw().toBuffer(),worker=await sharp(readFileSync(join(directory,'0.png'))).ensureAlpha().raw().toBuffer();
+ expect(dom.equals(Buffer.from(worker)),'native paused-goal pixels at 0 ms').toBe(true);
+ expect(state.errors).toEqual([]);
+});

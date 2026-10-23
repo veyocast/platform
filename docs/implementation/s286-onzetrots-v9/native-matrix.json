@@ -2176,10 +2176,10 @@
       "durationMs": 12000,
       "rendererVersion": "sync-onzetrots-v9",
       "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
-      "sha256": "91c63388d57df0741f50dd51e73609b0b61ae540c77617cdd42d8da052f16de6",
       "contextScalePercent": 130,
+      "sha256": "40367a862f85dd30a930762ae08d5cfbc87464d18c0dee30928b73c705c3fd0c",
       "comparison": {
-        "meanAbsoluteChannelDifference": 0.2073607896090535,
+        "meanAbsoluteChannelDifference": 0.2072969714506173,
         "pixelsOver25": 0.0010011574074074074
       }
     },
@@ -2196,10 +2196,10 @@
       "durationMs": 12000,
       "rendererVersion": "sync-onzetrots-v9",
       "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
-      "sha256": "7a5b7585d6b011acca71c77478917916f31dcb17f002e0650d9dcd5cbf65dbcc",
       "contextScalePercent": 130,
+      "sha256": "27397585ea70131ce2851ac834a7d41e26cf64ff51b821d79f5ce6a6616583ab",
       "comparison": {
-        "meanAbsoluteChannelDifference": 0.0926417824074074,
+        "meanAbsoluteChannelDifference": 0.09261799125514403,
         "pixelsOver25": 0.0009553433641975308
       }
     },
@@ -2216,10 +2216,10 @@
       "durationMs": 12000,
       "rendererVersion": "sync-onzetrots-v9",
       "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
-      "sha256": "7d6e3c1b5dfc0a64e1f208ef1f6c39a82c10a957ef5ee10a3f57b42a746d01f8",
       "contextScalePercent": 130,
+      "sha256": "623f4fe223ad7fa68c1f4c5a7954b890c1e88e502b4a1017a02308be0e9708a3",
       "comparison": {
-        "meanAbsoluteChannelDifference": 0.1412157600308642,
+        "meanAbsoluteChannelDifference": 0.14121736754115227,
         "pixelsOver25": 0.002037037037037037
       }
     },
@@ -2236,10 +2236,10 @@
       "durationMs": 12000,
       "rendererVersion": "sync-onzetrots-v9",
       "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
-      "sha256": "f2b325d426ff6d319df13452456f14a908771df048d390ecb7504403bfd1efe7",
       "contextScalePercent": 130,
+      "sha256": "3ced304c29752e744c1023b64d38561928a10f31b2d9a05f388d5efc56219640",
       "comparison": {
-        "meanAbsoluteChannelDifference": 0.054627057613168724,
+        "meanAbsoluteChannelDifference": 0.054643936471193415,
         "pixelsOver25": 0.0008559992283950617
       }
     },

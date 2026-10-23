@@ -1094,7 +1094,7 @@
       "width": 1920,
       "height": 1080,
       "elapsedMs": 1200,
-      "sha256": "6e801ba1b535bb3b50805897081bb4b1e9e00fa127bba0ea6542379090e13922"
+      "sha256": "d4b8140daaa3a1b6b040fdd24599606b08a9dc655870457537feae8f79bcdbe7"
     },
     {
       "family": "goal",
@@ -1104,7 +1104,7 @@
       "width": 1920,
       "height": 1080,
       "elapsedMs": 1200,
-      "sha256": "03e2e4652430baf80c38e68c96f0ca5a456ad8aa5e7161e1101eea4df36330e0"
+      "sha256": "0998c3fecfbff6b5a7eb1303518b629365fcb62b143d06bdefd1d112233ce7ad"
     },
     {
       "family": "goal",
@@ -1114,7 +1114,7 @@
       "width": 1080,
       "height": 1920,
       "elapsedMs": 1200,
-      "sha256": "7523c49dcd2ca410f8cc7592563e1802bd39d4f9d1a08ee70f8ff0e81dde60b8"
+      "sha256": "804952d0a5d2a33e02815e3d7e15eb0e6686ec940e0e9c5d07493f1b55235a02"
     },
     {
       "family": "goal",
@@ -1124,7 +1124,7 @@
       "width": 1080,
       "height": 1920,
       "elapsedMs": 1200,
-      "sha256": "b4b33d209c67f917dea36ae0dca9462081f7d193a256dd0825656b41f76af78c"
+      "sha256": "38a78c51b3a581dc3b70fdbee11579ffb2eeb1bc4909293b5117d2e9a56656c4"
     },
     {
       "family": "menu",
