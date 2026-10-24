@@ -73,6 +73,7 @@ const source=css.toString()+`
 .ot-v9-scope .poll-panel h3,.ot-v9-scope .poll-option>span{overflow-wrap:anywhere;min-width:0}
 .ot-v9-scope .poll-option>b{flex-shrink:0}
 .ot-v9-scope .has-long-poll-question .poll-panel h3{font-size:24px;line-height:1.25;margin-bottom:16px}
+.ot-v9-scope .screen[data-ot-marker]:not(.portrait) .has-long-poll-question .poll-panel h3{font-size:22px;line-height:1.25;margin-bottom:12px}
 .ot-v9-scope .portrait .has-long-poll-question .poll-panel h3{font-size:28px;margin-bottom:20px}
 .ot-v9-scope .has-long-poll-options .poll-option{font-size:18px;line-height:1.3;padding:12px;margin:8px 0}
 .ot-v9-scope .screen:not(.portrait) .has-long-poll-options .poll-panel{padding:24px}

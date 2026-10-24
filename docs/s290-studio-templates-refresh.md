@@ -11,7 +11,9 @@ Menu Studio gebruikte nog de zelfstandige v17-canvas. Een expliciet opgeslagen
 `onzeTrotsStyle` kiest nu het gedeelde v9-frame met de bestaande widgets erin.
 Licht/donker, categorieën, productkolommen, subregels, prijsoverschrijvingen,
 pagina’s, fotoverhouding, achtergrondpassing en contrastlaag blijven bedienbaar.
-Een donkere categorie krijgt geen oud wit binnenvlak. Een eigen accent krijgt
+Een donkere categorie krijgt geen oud wit binnenvlak. De oude globale
+Player-klasse `.panel` mag de kop niet op 860 px begrenzen; een expliciete
+scoperegel en echte host-/Playerbreedteproeven bewaren dezelfde uitlijning. Een eigen accent krijgt
 een leesbare tint op het bijbehorende goedgekeurde paneel.
 
 Het oorspronkelijke bestand `club-font-9.ttf` is Permanent Marker, bevestigd
@@ -22,6 +24,10 @@ logische pixels. Ongetagde historische v9-documenten blijven Rubik gebruiken.
 De Marker-face wordt alleen bij een expliciete keuze gedeclareerd en als
 geverifieerde rendererafhankelijkheid aangeboden; oude Player-documenten krijgen
 geen onverwachte of ontbrekende fontreferentie.
+Bij een bestaand bewerkbaar ontwerp telt de herstelde fontkeuze als een bewust
+op te slaan wijziging, ook zonder extra tekstwijziging. Alleen-lezen inspectie
+houdt het oorspronkelijke font; openen schrijft niets. Verloren antwoorden en
+bestaande herstelopdrachten behouden hun exacte inhoud en revisie.
 
 De playlistknop gebruikte de bij het openen geladen bibliotheek. Nu leest hij
 de exacte eigen bron opnieuw, onafhankelijk van de eerste acht ontwerpen,
@@ -76,10 +82,16 @@ gewijzigd. Voorbereiding en cacheverificatie blijven verplicht.
    fout-/herstel- en a11y-cases zijn uitgevoerd. De drie widgetbewerkproeven
    lezen de echte v9-achtergrond-pseudo-elementen; zij vonden en verifieerden
    het herstel van de eerder overschreven contrastlaag.
+   Alle 48 editor-/herstelproeven slagen ook met de opgeslagen fontbaseline.
+   De maximale publieksvraag krijgt uitsluitend bij Marker in liggend formaat
+   een passende kopmaat; alle vier lange-vraagproeven bewaken vraag, antwoorden
+   én toelichting zonder overlap met de footer.
 4. Render/Player: de Worker-gate heeft 35 groene tests, met echte Chromium-captures van twee menu­pagina’s
    in beide modi/oriëntaties. De volledige gewijzigde productie­documentinhoud
    is uitsluitend lokaal door de echte native capture gerenderd. 26 bestaande
-   Player/offline-cases en vier nieuwe koude offline-herstartcases zijn groen.
+   Player/offline-cases en vier nieuwe koude offline-herstartcases zijn groen, ook op de productiebuild
+   met alle API-/mediaverzoeken geblokkeerd en aantoonbaar volledig geschilderde
+   eindframes.
    De oorspronkelijke font-/assetguard, CSP, fallback en LKG blijven behouden.
    De vier referentiebeelden gebruiken duidelijk gecontroleerde testinhoud.
 5. Uitrol: exacte PR-commit en alle normale CI-checks moeten groen zijn vóór

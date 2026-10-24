@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import {test,expect,type Page} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {createSyncStudioStarter} from '../../packages/studio/src/sync';
+import {syncDynamicConfigurationSchema,syncOnzeTrotsSystemAssets,syncOnzeTrotsV9SystemAssets} from '@veyocast/contracts';
 import type {SyncDynamicCommand,SyncDynamicRequest,SyncDynamicConfiguration,SyncContentFamily} from '@veyocast/contracts';
 import {syncConnectedAuthoringType} from '../../apps/control/app/(shell)/dashboard/slides/sync-sportlink-binding';
 
@@ -18,13 +19,16 @@ test.beforeAll(()=>{
  const code=`const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/control/node_modules'],bundle:true,write:false,outfile:'fixture.js',platform:'browser',format:'iife',jsx:'automatic',loader:{'.module.css':'local-css','.css':'css'},plugins:[{name:'controlled-source-transport',setup(b){b.onResolve({filter:/sync-dynamic-actions$/},a=>({path:a.path,namespace:'commands'}));b.onLoad({filter:/.*/,namespace:'commands'},()=>({contents:'async function post(path,input){const reply=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(input)});if(!reply.ok)throw Error("Transport unavailable");return reply.json()}export const mutateSyncDynamicAuthoringAction=input=>post("/__source/write",input);export const previewSyncDynamicAuthoringAction=input=>post("/__source/preview",input);export const loadSyncDynamicBindingOptionsAction=input=>post("/__source/options",input);',loader:'js'}));b.onResolve({filter:/^next\\/navigation$/},a=>({path:a.path,namespace:'navigation'}));b.onLoad({filter:/.*/,namespace:'navigation'},()=>({contents:'export function useRouter(){return{replace:path=>window.location.replace(path)}}',loader:'js'}));b.onResolve({filter:/^next\\/link$/},a=>({path:a.path,namespace:'link'}));b.onLoad({filter:/.*/,namespace:'link'},()=>({contents:'import React from"react";export default function Link(props){return React.createElement("a",props)}',resolveDir:process.cwd(),loader:'js'}));}}]});const js=result.outputFiles.find(file=>file.path.endsWith('.js'))?.text;const css=result.outputFiles.find(file=>file.path.endsWith('.css'))?.text;if(!js||!css)throw Error('Fixture build omitted JavaScript or CSS');process.stdout.write(JSON.stringify({js,css}));`;
  bundle=JSON.parse(execFileSync(process.execPath,['-e',`(async()=>{${code}})().catch(e=>{console.error(e.message);process.exitCode=1})`],{encoding:'utf8',timeout:30000,maxBuffer:16*1024*1024}));
 });
-async function mount(page:Page,hooks:{dropSave?:boolean;dropPublish?:boolean;conflict?:boolean;reject?:boolean;failPreview?:boolean;create?:boolean;dropCreate?:boolean;sportFamily?:SyncContentFamily;optionsFail?:boolean}={}){
- const seed=createSyncStudioStarter({family:hooks.sportFamily??'menu',tenantName:'Eigen club'}).syncPresentation!;
- const cfg:SyncDynamicConfiguration={schemaVersion:1,kind:'dynamic',rendererVersion:'sync-v1',sourceRevision:seed.sourceRevision,slideType:syncConnectedAuthoringType(seed.family)!,secondsPerPage:3,seed:{...seed,name:'Eigen bronontwerp',rows:[],news:[],ownRowIndexes:[],state:'ready'}};
+async function mount(page:Page,hooks:{dropSave?:boolean;dropPublish?:boolean;conflict?:boolean;reject?:boolean;failPreview?:boolean;create?:boolean;dropCreate?:boolean;sportFamily?:SyncContentFamily;optionsFail?:boolean;historicalV9?:boolean}={}){
+ const seed=createSyncStudioStarter({family:hooks.sportFamily??'menu',tenantName:'Eigen club',...(hooks.historicalV9?{theme:'onzetrots-tv' as const}:{})}).syncPresentation!;
+ if(hooks.historicalV9)seed.style={...seed.style,font:'Inter',fontChanged:false};
+ const cfg:SyncDynamicConfiguration=syncDynamicConfigurationSchema.parse({schemaVersion:1,kind:'dynamic',rendererVersion:seed.rendererVersion,sourceRevision:seed.sourceRevision,slideType:syncConnectedAuthoringType(seed.family)!,secondsPerPage:3,seed:{...seed,name:'Eigen bronontwerp',rows:[],news:[],ownRowIndexes:[],state:'ready'}});
  const state={revision:hooks.create?0:4,request:{templateVersionId:id,dataSourceId:hooks.create?'':sourceId,configuration:{maxItems:200,syncConfiguration:cfg}}as SyncDynamicRequest};
  const writes:SyncDynamicCommand[]=[],previews:SyncDynamicRequest[]=[],receipts=new Map<string,unknown>(),errors:string[]=[];let jobs=0;
  page.on('pageerror',error=>errors.push(error.message));
  const css=['tokens/veyocast-design-tokens.css','packages/ui/src/styles.css','apps/control/app/globals.css','apps/control/app/fieldflow.css','apps/control/app/sync-source.css','apps/control/app/sync-adapter.css'].map(path=>readFileSync(path,'utf8').replace(/@import[^;]+;/g,'')).join('\n');
+ const approvedAssets=new Map([...syncOnzeTrotsSystemAssets,...syncOnzeTrotsV9SystemAssets].map(asset=>[asset.path as string,asset]));
+ await page.route('**/onzetrots-approved-*/**',route=>{const path=new URL(route.request().url()).pathname,asset=approvedAssets.get(path);if(!asset)return route.abort();return route.fulfill({body:readFileSync(join(process.cwd(),'apps/control/public',path)),contentType:asset.mimeType});});
  await page.route(origin+'/assets/*',route=>{const name=new URL(route.request().url()).pathname.split('/').at(-1)!;if(!/^[a-zA-Z0-9_.-]+$/.test(name))return route.abort();return route.fulfill({body:readFileSync(join(process.cwd(),'apps/control/public/assets',name)),contentType:name.endsWith('.woff2')?'font/woff2':name.endsWith('.ttf')?'font/ttf':'image/webp'});});
  await page.route(origin+'/__source/options',route=>{const input=route.request().postDataJSON()as {sourceId:string};return route.fulfill({json:hooks.optionsFail?{ok:false,error:'De teams en bronrechten konden niet worden bevestigd. Je ontwerp blijft behouden; controleer de bron.'}:{ok:true,options:{sourceId:input.sourceId,teams:[{externalId:'team-a',name:'Eigen team A',contexts:[{label:'Eigen competitie · poule A · periode 2',competitionId:'competition-a',phaseId:'2',poolId:'pool-a',seasonId:'2026-2027'}]}],capabilities:[{article:'club-matches',capability:'matches',available:true,enabled:true}],privacyPeople:true,privacyBirthdays:true}}});});
  await page.route(origin+'/__source/preview',route=>{
@@ -111,4 +115,12 @@ test('an exact committed Source create recovers even when team options become un
  await page.getByLabel('Gekoppelde bron',{exact:true}).selectOption(sourceId);await page.getByLabel('Team',{exact:true}).selectOption('team-a');await expect(page.getByRole('button',{name:'Maken en voorbereiden',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Maken en voorbereiden',exact:true}).click();await expect(page.getByRole('alert')).toContainText('antwoord is verloren');
  await page.route(origin+'/__source/options',route=>route.fulfill({json:{ok:false,error:'De bron is niet meer bereikbaar. Je opgeslagen opdracht blijft behouden.'}}));await page.reload();await expect(page.getByText('De bron is niet meer bereikbaar.',{exact:false})).toBeVisible();await page.getByRole('button',{name:'Dezelfde opdracht bevestigen',exact:true}).click();
  await expect(page).toHaveURL(origin+'/dashboard/slides/'+id);expect(run.writes).toHaveLength(2);expect(run.writes[1]).toEqual(run.writes[0]);expect(run.jobs()).toBe(1);expect(run.errors).toEqual([]);
+});
+
+test('an existing connected v9 draft can explicitly save the restored header font without a dummy content edit',async({page})=>{
+ const run=await mount(page,{historicalV9:true});expect(run.writes).toHaveLength(0);
+ await expect(page.getByRole('button',{name:'Opslaan',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Opslaan',exact:true}).click();
+ await expect.poll(()=>run.writes.length).toBe(1);const written=run.writes[0];expect(written?.action).toBe('save');
+ expect((run.state.request.configuration.syncConfiguration as SyncDynamicConfiguration).seed.style).toMatchObject({font:'Brush',fontChanged:true});
+ await expect(page.getByRole('button',{name:'Opslaan',exact:true})).toBeDisabled();expect(run.errors).toEqual([]);
 });

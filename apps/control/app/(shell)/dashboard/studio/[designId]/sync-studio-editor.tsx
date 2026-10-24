@@ -72,8 +72,8 @@ export type SyncStudioEditorProps = {
   series?:StudioSeriesDetail|null;
   sourceLibrary?:SyncStudioLibraryProject[];
 };
-const draftOf = (document: StudioDocument): SyncStudioDraft => {
-  const presentation = document.syncPresentation && syncOnzeTrotsMarkerDraft(document.syncPresentation);
+const draftOf = (document: StudioDocument, upgradeFont=true): SyncStudioDraft => {
+  const presentation = document.syncPresentation && (upgradeFont?syncOnzeTrotsMarkerDraft(document.syncPresentation):document.syncPresentation);
   if (!presentation) throw Error("Sync document required");
   return {
     presentation,
@@ -103,7 +103,7 @@ export function SyncStudioEditor({
 }: SyncStudioEditorProps) {
   const router = useRouter();
   const [initialDocument] = useState(() => project.document),
-    [draft, setDraft] = useState(() => draftOf(project.document));
+    [draft, setDraft] = useState(() => draftOf(project.document,isLive&&permissions.canEdit));
   const [history, setHistory] = useState<SyncStudioDraft[]>([]),
     [uploadedAssets,setUploadedAssets]=useState<StudioMediaAsset[]>([]),
     [uploading,setUploading]=useState(false),
@@ -131,7 +131,7 @@ export function SyncStudioEditor({
     [cacheWarning, setCacheWarning] = useState<string | null>(null),
     [hydrated, setHydrated] = useState(false);
   const revision = useRef(project.draftRevision),
-    baseline = useRef(serial(draft)),
+    baseline = useRef(serial(draftOf(project.document,false))),
     draftRef = useRef(draft),
     metadata = useRef(initialDocument.metadata),
     saveAttempt = useRef<SyncStudioSaveAttempt | null>(null),
@@ -266,10 +266,10 @@ export function SyncStudioEditor({
       window.location.reload();
       return;
     }
-    const next = draftOf(value);
+    const next = draftOf(value,canEdit);
     revision.current = nextRevision;
     metadata.current = value.metadata;
-    baseline.current = serial(next);
+    baseline.current = serial(draftOf(value,false));
     saveAttempt.current = null;
     confirmedRead.current = undefined;
     setUncertain(false);

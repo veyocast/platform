@@ -21,6 +21,8 @@ export function SitesApprovedMenu({presentation,resolveAsset,children}:{presenta
 
 export const approvedMenuCss=syncOnzeTrotsV9Styles({style:{font:'Brush',fontChanged:true}})+String.raw`
 .vm-approved{width:100%;height:100%}
+/* The legacy host also owns a generic .panel; it must not cap this header. */
+.vm-approved .slide-header-container{width:100%;max-width:none}
 .vm-approved[data-custom-accent] .screen{--blue:var(--vm-approved-accent)}
 .vm-approved .screen.ot-controlled:before{background-size:var(--vm-background-fit,cover);opacity:var(--vm-background-opacity,.95)}
 .vm-approved .vm-menu-panel{display:flex;flex-direction:column;width:100%;height:100%;padding:24px;min-height:0}

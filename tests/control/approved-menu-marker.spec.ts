@@ -19,7 +19,7 @@ window.show=({family='menu',orientation='landscape',mode='light',menu=false,hist
  const configuration=sitesDynamicConfigurationSchema.parse({schemaVersion:1,rendererVersion:'sites-v17',sourceRevision:'6800bc858436ba0843eaea89b682cd5b43c3521d',themeId:'onzetrots-tv',orientation,provider:'menu',title:'Onze menukaart',subtitle:'Vers uit onze kantine',unifiedKind:'kantine',menuWidgets:true,onzeTrotsStyle:'v9-marker-'+mode,safeArea:6,overlay:0});
  const products=[{id:'coffee',primary:'Koffie',secondary:'Groot · Klein',value:'€ 2,50',column:1},{id:'tea',primary:'Thee',value:'€ 0,00',column:2}];
  const presentation={kind:'dynamic',configuration,content:{kind:'kantine',title:configuration.title,subtitle:configuration.subtitle,clubName:'Eigen club',rows:products.map(({column,...row})=>row),menuPages:[{id:'page-1',columns:1,widgets:[{id:'category',type:'category',column:'full',columns:2,title:'Warme dranken',subtitle:'Met aandacht gemaakt',rows:products}]}]}};
- root.render(<div key={family+orientation+mode+menu+historical} data-family={family} style={{width:'100%',height:'100%'}}>{menu?<SitesPresentationView presentation={presentation} fitViewport/>:<SyncSlideStaticView presentation={slide}/>}</div>);
+ root.render(<div key={family+orientation+mode+menu+historical} className={menu?'menu-host':''} data-family={family} style={{width:'100%',height:'100%'}}>{menu?<SitesPresentationView presentation={presentation} fitViewport/>:<SyncSlideStaticView presentation={slide}/>}</div>);
 };window.show({});
 `;
 test.beforeAll(()=>{
@@ -28,7 +28,7 @@ test.beforeAll(()=>{
  bundle=execFileSync(process.execPath,['-e',script],{encoding:'utf8',maxBuffer:24*1024*1024});
 });
 async function mount(page:Page){
- await page.route('**/__approved-menu',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="nl"><style>*{box-sizing:border-box}html,body,#root{margin:0;width:100%;height:100%;overflow:hidden}</style><div id="root"></div><script>${bundle.replace(/<\/script/gi,'<\\/script')}</script></html>`}));
+ await page.route('**/__approved-menu',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="nl"><style>.menu-host .panel{width:min(860px,90vw);padding:clamp(28px,4vw,58px)}*{box-sizing:border-box}html,body,#root{margin:0;width:100%;height:100%;overflow:hidden}</style><div id="root"></div><script>${bundle.replace(/<\/script/gi,'<\\/script')}</script></html>`}));
  await page.route('**/onzetrots*/**',route=>{const path=new URL(route.request().url()).pathname;return route.fulfill({body:readFileSync(join(process.cwd(),'apps/control/public',path)),contentType:path.endsWith('.ttf')?'font/ttf':'image/webp'});});
  await page.goto('http://127.0.0.1:3343/__approved-menu');
 }
@@ -50,6 +50,7 @@ for(const orientation of ['landscape','portrait'] as const)for(const mode of ['l
   await page.setViewportSize(orientation==='portrait'?{width:390,height:844}:{width:1440,height:900});await mount(page);
   await page.evaluate(value=>Reflect.get(window,'show')(value),{orientation,mode,menu:true});
   await expect(page.locator('.vm-approved [data-ot-header-text]')).toHaveText('Onze menukaart');
+  const alignment=await page.locator('.vm-approved').evaluate(root=>{const header=root.querySelector('.slide-header-container')!.getBoundingClientRect(),panel=root.querySelector('.vm-menu-panel')!.getBoundingClientRect();return{headerLeft:header.left,headerRight:header.right,panelLeft:panel.left,panelRight:panel.right};});expect(alignment.headerLeft).toBeCloseTo(alignment.panelLeft,1);expect(alignment.headerRight).toBeCloseTo(alignment.panelRight,1);
   await expect(page.locator('.uc-header')).toHaveCount(0);await expect(page.locator('.vm-product')).toHaveCount(2);
   await expect(page.locator('.vm-product').first()).toContainText('Groot · Klein');await expect(page.locator('.vm-product').last()).toContainText('€ 0,00');
   const surface=await page.locator('.vm-widget').evaluate(element=>({background:getComputedStyle(element).backgroundColor,ink:getComputedStyle(element.querySelector('strong')!).color}));
