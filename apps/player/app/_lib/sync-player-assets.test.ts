@@ -401,3 +401,16 @@ describe("approved scene preparation", () => {
     }
   });
 });
+
+it('prepares only the declared historical or explicit Marker font dependencies',()=>{
+ const old=syncSlidePresentationSchema.parse({schemaVersion:1,rendererVersion:'sync-onzetrots-v9',sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',family:'menu',orientation:'portrait',theme:'onzetrots-tv',name:'Menu',title:'Onze kaart',club:{name:'Eigen club'},visual:{schemaVersion:1,mode:'light'},style:{}});
+ const current=syncSlidePresentationSchema.parse({...old,style:{...old.style,font:'Brush',fontChanged:true}});
+ for(const slide of [old,current]){
+  const urls=Object.fromEntries(syncSlideRendererAssets(slide).map(asset=>[asset.path,`blob:http://localhost/${asset.sha256}`]));
+  const css=syncPreparedCss(urls,'http://localhost',slide);
+  expect(css.includes('font-family:OTMarker;src:')).toBe(slide===current);
+  expect(css).not.toMatch(/url\(['"]?\//);
+ }
+ const urls=Object.fromEntries(syncSlideRendererAssets(old).map(asset=>[asset.path,`blob:http://localhost/${asset.sha256}`]));
+ expect(()=>syncPreparedCss(urls,'http://localhost',current)).toThrow('SYNC_PREPARED_ASSET_UNAVAILABLE');
+});

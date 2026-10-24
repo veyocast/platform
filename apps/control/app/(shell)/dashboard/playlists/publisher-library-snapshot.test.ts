@@ -1,12 +1,12 @@
 import {beforeEach,describe,expect,it,vi} from "vitest";
 import {loadPublisherLibrary} from "./library";
 import {studioSitesSystemTemplates,createSyncStudioStarter} from "@veyocast/studio";
-const fixture=vi.hoisted(()=>({wrongColumn:false,studioData:{} as unknown,syncData:{} as unknown,syncError:false,rpcs:[] as string[],queries:[] as Array<{table:string;columns:string;tenant?:string}>}));
+const fixture=vi.hoisted(()=>({wrongColumn:false,studioData:{} as unknown,syncData:{} as unknown,syncError:false,rpcs:[] as string[],queries:[] as Array<{table:string;columns:string;tenant?:string;id?:string}>}));
 const tenant="10000000-0000-4000-8000-000000000217",slideId="20000000-0000-4000-8000-000000000217",snapshotId="30000000-0000-4000-8000-000000000217",hash="a".repeat(64);
 vi.mock("../../../../lib/supabase/server",()=>({createControlSupabaseClient:async()=>({
  rpc(name:string){fixture.rpcs.push(name);return Promise.resolve({data:name==='list_publisher_sync_studio_v1'?fixture.syncData:fixture.studioData,error:name==='list_publisher_sync_studio_v1'&&fixture.syncError?{code:'57014'}:null});},
- from(table:string){const query={table,columns:"",unavailable:false,tenant:undefined as string|undefined};fixture.queries.push(query);
-  const builder={select(columns:string){query.columns=columns;return builder;},eq(key:string,value:string){if(key==="tenant_id")query.tenant=value;return builder;},not(key:string){if(key==="status")query.unavailable=true;return builder;},is:()=>builder,in:()=>builder,order:()=>builder,range:()=>builder,limit:()=>builder,
+ from(table:string){const query={table,columns:"",unavailable:false,tenant:undefined as string|undefined,id:undefined as string|undefined};fixture.queries.push(query);
+  const builder={select(columns:string){query.columns=columns;return builder;},eq(key:string,value:string){if(key==="tenant_id")query.tenant=value;if(key==="id")query.id=value;return builder;},not(key:string){if(key==="status")query.unavailable=true;return builder;},is:()=>builder,in:()=>builder,order:()=>builder,range:()=>builder,limit:()=>builder,maybeSingle:async()=>({data:query.id===slideId?{id:slideId,slide_type:"menu",status:"ready",menu_document_revision:2,menu_last_published_revision:1,active_draft_version_id:"draft"}:null,error:null}),
    then(resolve:(value:unknown)=>unknown){const unavailable=table==="dynamic_slide_snapshots"&&(fixture.wrongColumn||query.columns.split(",").includes("snapshot_hash"));
     const data=table==="dynamic_slides"?(query.unavailable?[]:[{id:slideId,name:"Opgeslagen menu",slide_type:"menu",orientation:"landscape",current_snapshot_id:snapshotId}]):table==="dynamic_slide_snapshots"?[{id:snapshotId,dynamic_slide_id:slideId,template_version_id:"40000000-0000-4000-8000-000000000217",source_revision_hash:hash,snapshot_data_json:{menu:{title:"Kantine",products:[{id:"coffee",name:"Clubkoffie",category:"Warm",priceMinor:250}]}},status:"ready"}]:[];
     return Promise.resolve({data:unavailable?null:data,error:unavailable?{code:"42703"}:null,count:1}).then(resolve);
@@ -50,4 +50,16 @@ describe("Clubverhaal canonical slide library",()=>{
  it('fails a partial Source read without reporting an empty or complete library',async()=>{
   fixture.syncError=true;await expect(loadPublisherLibrary(tenant,{tab:'studio'})).rejects.toThrow('Source-ontwerpen');
  });
+ it('reads an exact menu outside initial pagination and reports an unprepared saved revision',async()=>{
+  const page=await loadPublisherLibrary(tenant,{tab:'dynamic',designId:slideId});
+  expect(page.designs[0]?.id).toBe(slideId);
+  expect(page.sourceState).toEqual({pendingDraft:true,processing:false,href:'/dashboard/slides/menu-studio/'+slideId});
+  const sourceQueries=fixture.queries.filter(query=>query.table==='dynamic_slides');
+  expect(sourceQueries.length).toBe(3);expect(sourceQueries.every(query=>query.id===slideId&&query.tenant===tenant)).toBe(true);
+ });
+ it('returns no source or link for a missing or inaccessible design',async()=>{
+  const page=await loadPublisherLibrary(tenant,{tab:'dynamic',designId:'20000000-0000-4000-8000-000000000999'});
+  expect(page.designs).toEqual([]);expect(page.sourceState).toBeUndefined();expect(fixture.queries).toHaveLength(1);
+ });
+
 });

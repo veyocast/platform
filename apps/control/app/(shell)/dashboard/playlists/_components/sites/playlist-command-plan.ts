@@ -1,11 +1,21 @@
 import { mediaFrameFocusCoordinates, playlistBatchCommandSchema, type PlaylistBatchCommand, type PlaylistBatchOperation } from "@veyocast/contracts";
+import {buildSitesPresentationFromDynamicPayload} from "@veyocast/content-templates/sites-dynamic-projector";
 import {sitesPresentationPages}from"@veyocast/content-templates/sites-presentation-model";
 import type { Playlist, Slide } from "./model";
 import {syncSlidePageCount,syncSlideMinimumDurationMs} from '@veyocast/contracts';
 
 export function playlistPlacementPages(slide:Slide):number {
-  return slide.syncDynamic?syncSlidePageCount(slide.syncDynamic.presentation):slide.syncStudio?syncSlidePageCount(slide.syncStudio.presentation):slide.studioSlide?sitesPresentationPages({...slide.studioSlide.presentation,slide:{...slide.studioSlide.presentation.slide,themeId:slide.studioSlide.themeId}}):slide.design?Math.max(1,Math.ceil(slide.design.rows.length/Math.max(1,Number(slide.design.sitesConfiguration.rowsPerPage)))):1;
+ if(slide.syncDynamic)return syncSlidePageCount(slide.syncDynamic.presentation);
+ if(slide.syncStudio)return syncSlidePageCount(slide.syncStudio.presentation);
+ if(slide.studioSlide)return sitesPresentationPages({...slide.studioSlide.presentation,slide:{...slide.studioSlide.presentation.slide,themeId:slide.studioSlide.themeId}});
+ if(slide.design){
+  const presentation=buildSitesPresentationFromDynamicPayload(slide.design.payload,{...slide.design.sitesConfiguration,themeId:slide.design.themeId,seconds:slide.seconds});
+  if(presentation)return sitesPresentationPages(presentation);
+  return Math.max(1,Math.ceil(slide.design.rows.length/Math.max(1,Number(slide.design.sitesConfiguration.rowsPerPage))));
+ }
+ return 1;
 }
+
 const totalSeconds=(slide:Slide)=>Math.ceil(slide.seconds*playlistPlacementPages(slide));
 
 export const maximumPlaylistPlacementSeconds = (slide: Slide) => slide.mediaFrame ? 3600 : slide.syncStudio || slide.syncDynamic ? Math.floor(120 / playlistPlacementPages(slide)) : 180;

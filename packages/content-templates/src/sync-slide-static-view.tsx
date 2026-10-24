@@ -11,8 +11,8 @@ import {
 import { syncSlideCss } from "./sync-slide-styles";
 import {SyncOnzeTrotsView} from './sync-onzetrots-view';
 import {syncOnzeTrotsCss} from './sync-onzetrots-styles';
-import {syncOnzeTrotsV9Css} from './sync-onzetrots-v9-styles';
-export {syncOnzeTrotsV9Css} from './sync-onzetrots-v9-styles';
+import {syncOnzeTrotsV9Styles} from './sync-onzetrots-v9-styles';
+export {syncOnzeTrotsV9Css,syncOnzeTrotsV9Styles} from './sync-onzetrots-v9-styles';
 export * from './sync-onzetrots-v9-motion';
 export {syncOnzeTrotsCss} from './sync-onzetrots-styles';
 export * from './sync-onzetrots-motion';
@@ -735,7 +735,7 @@ export function SyncSlideStaticView({
 }) {
   const slide = syncSlidePresentationSchema.parse(presentation);
   if(isSyncOnzeTrotsPresentation(slide))return <>
-    {includeStyles&&<style>{slide.rendererVersion==='sync-onzetrots-v9'?syncOnzeTrotsV9Css:syncOnzeTrotsCss}</style>}
+    {includeStyles&&<style>{slide.rendererVersion==='sync-onzetrots-v9'?syncOnzeTrotsV9Styles(slide):syncOnzeTrotsCss}</style>}
     <div className={`sync-slide-root ${slide.rendererVersion==='sync-onzetrots-v9'?'ot-v9-scope':'ot-approved-scope'}`} data-renderer={slide.rendererVersion} aria-hidden={compact||undefined} style={{width:'100%',height:'100%'}}>
       <SyncOnzeTrotsView slide={slide} resolveAsset={resolveAsset} page={Math.min(syncSlidePageCount(slide)-1,Math.max(0,Number.isFinite(page)?Math.trunc(page):0))}/>
     </div>

@@ -2,6 +2,7 @@ import React, { type CSSProperties } from "react";
 import type { SitesPresentation } from "@veyocast/contracts";
 import type { SitesAssetResolver } from "./sites-presentation-model";
 import { SitesUnifiedV17Markup } from "./sites-unified-v17-markup";
+import {SitesApprovedMenu,isApprovedOnzeTrotsMenu} from './sites-approved-menu';
 
 /** Widgets are content inside the original Studio canvas, never a second theme. */
 export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, width, active=false }: {
@@ -33,17 +34,16 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
     "--vm-widget-height": `${widgetHeight}px`,
     "--vm-image-width": `${(nativeWidth - (portrait ? 184 : 192) - 2 * inset) / (menuPage.columns === 2 ? 2 : 1)}px`
   } as CSSProperties;
-  return <div className="vm-frame" style={{ width: width ?? nativeWidth, height: width ? width * nativeHeight / nativeWidth : nativeHeight }}>
-    <SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === "#03438a" ? "" : " vm-custom-accent"}`} canvasStyle={style} backgroundOverride={background || (config.themeId === "onzetrots-tv" && config.overlay > 0) ? { src: background, fit: background ? config.backgroundFit : "cover", overlay: config.overlay } : undefined}>
-      <div className="ucc-body"><div className="ucc-content ucc-canteen ucc-menu-columns vm-menu-panel">
+  const approved=isApprovedOnzeTrotsMenu(presentation);
+  const widgets=<div className={approved?'panel vm-menu-panel':'ucc-content ucc-canteen ucc-menu-columns vm-menu-panel'}>
         <div className="vm-products-fit" data-fit-box><div className="vm-content" data-fit-content>
-        <div className="ucc-menu-grid vm-widgets" data-columns={menuPage.columns} data-full={full}>
-          {menuPage.widgets.map((widget, index) => <section key={widget.id} className={`ucc-menu-category vm-widget vm-${widget.type}`} data-column={widget.column}>
+        <div className={approved?"vm-widgets":"ucc-menu-grid vm-widgets"} data-columns={menuPage.columns} data-full={full}>
+          {menuPage.widgets.map((widget, index) => <section key={widget.id} className={`${approved?"":"ucc-menu-category "}vm-widget vm-${widget.type}`} data-column={widget.column}>
             {(widget.title || widget.subtitle) && <header><span>{String(index + 1).padStart(2, "0")}</span><div><h2>{widget.title}</h2>{widget.subtitle && <p>{widget.subtitle}</p>}</div></header>}
             <div className="vm-widget-content">
               {widget.type === "category" && <div className="vm-products" data-columns={widget.columns}>
                 {Array.from({ length: widget.columns }, (_, column) => <div className="vm-product-column" key={column}>
-                  {widget.rows.filter(row => row.column === column + 1).map(row => <article key={row.id} className="ucc-menu-item vm-product">
+                  {widget.rows.filter(row => row.column === column + 1).map(row => <article key={row.id} className={approved?"vm-product":"ucc-menu-item vm-product"}>
                     {row.image && <img src={resolveAsset(row.image)} alt=""/>}
                     <span><strong>{row.primary}</strong>{row.secondary && <small>{row.secondary}</small>}</span>
                     {config.showPrices && row.value && <b>{row.value}</b>}
@@ -56,8 +56,9 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
         </div>
         </div></div>
         <strong className="vm-menu-slogan">Onze Club. Onze Trots.</strong>
-      </div></div>
-    </SitesUnifiedV17Markup>
+      </div>;
+  return <div className={`vm-frame${approved?' vm-canvas':''}`} style={{...style,width:width??nativeWidth,height:width?width*nativeHeight/nativeWidth:nativeHeight}}>
+    {approved?<SitesApprovedMenu presentation={presentation} resolveAsset={resolveAsset}>{widgets}</SitesApprovedMenu>:<SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === '#03438a'?'':' vm-custom-accent'}`} canvasStyle={style} backgroundOverride={background || (config.themeId === 'onzetrots-tv' && config.overlay > 0)?{src:background,fit:background?config.backgroundFit:'cover',overlay:config.overlay}:undefined}><div className="ucc-body">{widgets}</div></SitesUnifiedV17Markup>}
   </div>;
 }
 

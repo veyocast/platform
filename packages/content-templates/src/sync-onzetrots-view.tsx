@@ -4,7 +4,7 @@ import {syncOnzeTrotsHeaderSubtitle,syncOnzeTrotsHeaderText,syncOnzeTrotsSystemA
 import type {SyncSlideAssetResolver} from './sync-slide-static-view';
 import {syncOnzeTrotsSixSlots,selectSyncOnzeTrotsVisitors} from './sync-onzetrots-motion';
 
-type Props={slide:SyncOnzeTrotsPresentation;resolveAsset:SyncSlideAssetResolver;page:number};
+type Props={slide:SyncOnzeTrotsPresentation;resolveAsset:SyncSlideAssetResolver;page:number;children?:ReactNode};
 type Fixture=NonNullable<SyncOnzeTrotsRich['fixtures']>[number];
 const initial=(name:string)=>name.trim().split(/\s+/).slice(0,3).map(word=>word[0]).join('').toUpperCase();
 const lines=(text:string)=>text.split('\n').map((line,index)=><React.Fragment key={index}>{index>0&&<br/>}{line}</React.Fragment>);
@@ -206,7 +206,7 @@ function Content(props:Props){
 
 /** Real HTML containers inside one logical canvas. SVG only provides uniform
  * coordinate scaling; all data, text, images and scrolling remain native DOM. */
-export function SyncOnzeTrotsView({slide,resolveAsset,page}:Props){
+export function SyncOnzeTrotsView({slide,resolveAsset,page,children}:Props){
  const portrait=slide.orientation==='portrait',width=portrait?900:1600,height=portrait?1600:900,v9=slide.rendererVersion==='sync-onzetrots-v9';
  const background=slide.style.backgroundAsset&&resolveAsset(slide.style.backgroundAsset);
  const defaultPath=`/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-${portrait?'portrait-941':'wide-1672'}.webp`;
@@ -215,8 +215,8 @@ export function SyncOnzeTrotsView({slide,resolveAsset,page}:Props){
  return <div className="vc-slide-preview ot-approved-frame" style={{width:'100%',height:'100%',overflow:'hidden'}}>
   <svg className="ot-approved-canvas" viewBox={`0 0 ${width} ${height}`} style={{display:'block',width:'100%',height:'100%'}}>
    <foreignObject width={width} height={height}>
-    <div className={`screen${portrait?' portrait':''} ot-controlled`} data-theme={slide.visual.mode} data-ot-welcome-scale={v9?slide.authoring.welcomeScalePercent:undefined} style={{'--welcome-scale':v9?slide.authoring.welcomeScalePercent/100:undefined,'--ot-background-position':slide.style.backgroundPosition,'--bg':`url(${JSON.stringify(background??defaultBackground)})`,'--panel':slide.visual.mode==='light'?`rgba(255,255,255,${slide.visual.panelOpacity/100})`:`rgba(12,31,58,${slide.visual.panelOpacity/100})`,fontFamily:'OTManrope, Arial, sans-serif',lineHeight:'normal',letterSpacing:'normal',wordSpacing:'normal',fontStyle:'normal',fontVariant:'normal',textAlign:'left',textTransform:'none'} as CSSProperties}>
-     <div className={`slide-layout ${v9?'with-slide-header':'no-outer-heading'}`}>{v9&&<header className="panel slide-header-container"><div className="slide-header-copy"><p className="slide-subtitle" data-ot-header-subtitle hidden={!syncOnzeTrotsHeaderSubtitle(slide)}>{syncOnzeTrotsHeaderSubtitle(slide)}</p><h2 data-ot-header-text hidden={!syncOnzeTrotsHeaderText(slide)}>{syncOnzeTrotsHeaderText(slide)}</h2></div><ClubMark slide={slide} resolveAsset={resolveAsset} outer/></header>}<div className="slide-content"><Content slide={slide} resolveAsset={resolveAsset} page={page}/></div>{slide.style.showFooter&&<footer className="slide-footer"><span className="source">{slide.footer}</span><span className="signature"><span className="brand-brush" role="img" aria-label="OnzeTrots"/><small>ONZE CLUB. ONZE TROTS.</small></span></footer>}</div>
+    <div className={`screen${portrait?' portrait':''} ot-controlled`} data-theme={slide.visual.mode} data-ot-marker={v9&&slide.style.fontChanged&&slide.style.font==='Brush'||undefined} data-ot-welcome-scale={v9?slide.authoring.welcomeScalePercent:undefined} style={{'--welcome-scale':v9?slide.authoring.welcomeScalePercent/100:undefined,'--ot-background-position':slide.style.backgroundPosition,'--bg':`url(${JSON.stringify(background??defaultBackground)})`,'--panel':slide.visual.mode==='light'?`rgba(255,255,255,${slide.visual.panelOpacity/100})`:`rgba(12,31,58,${slide.visual.panelOpacity/100})`,fontFamily:'OTManrope, Arial, sans-serif',lineHeight:'normal',letterSpacing:'normal',wordSpacing:'normal',fontStyle:'normal',fontVariant:'normal',textAlign:'left',textTransform:'none'} as CSSProperties}>
+     <div className={`slide-layout ${v9?'with-slide-header':'no-outer-heading'}`}>{v9&&<header className="panel slide-header-container"><div className="slide-header-copy"><p className="slide-subtitle" data-ot-header-subtitle hidden={!syncOnzeTrotsHeaderSubtitle(slide)}>{syncOnzeTrotsHeaderSubtitle(slide)}</p><h2 data-ot-header-text hidden={!syncOnzeTrotsHeaderText(slide)}>{syncOnzeTrotsHeaderText(slide)}</h2></div><ClubMark slide={slide} resolveAsset={resolveAsset} outer/></header>}<div className="slide-content">{children??<Content slide={slide} resolveAsset={resolveAsset} page={page}/>}</div>{slide.style.showFooter&&<footer className="slide-footer"><span className="source">{slide.footer}</span><span className="signature"><span className="brand-brush" role="img" aria-label="OnzeTrots"/><small>ONZE CLUB. ONZE TROTS.</small></span></footer>}</div>
     </div>
    </foreignObject>
   </svg>

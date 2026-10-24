@@ -1,5 +1,12 @@
 # VeyoCast MVP Plan
 
+S290 brengt de actuele OnzeTrots-layout naar Twelve/Menu Studio, herstelt het
+oorspronkelijke Permanent Marker-headerfont en laat de playlist de actuele
+eigen bron opnieuw lezen en een opgeslagen gewijzigd menu bewust voorbereiden.
+Historische output blijft behouden; prijzen gaan eerst naar het concept.
+Zie `docs/s290-studio-templates-refresh.md` en het eigen sprintprompt voor
+bewijs, grenzen en de geautoriseerde staging-/productiepromotie.
+
 S287 herstelt de opslagcontrole achter geslaagde Sportlink-previews: alle
 clubteams vereisen in getypeerde Sync geen kunstmatig hoofdteam, en bestaande
 contextgebonden Sync-families kunnen hun gecontroleerde selectie bewaren.

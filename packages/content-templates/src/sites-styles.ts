@@ -18,4 +18,4 @@ export const sitesPresentationFrameCss = '.s191-experience-preview,.s191-led-sli
 
 export const sitesPresentationCss="@font-face{font-family:'Inter Variable';src:url('/fonts/inter.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}@font-face{font-family:'Manrope Variable';src:url('/fonts/manrope.woff2') format('woff2');font-weight:200 800;font-style:normal;font-display:swap}:root{--vc-font-body:'Inter Variable',sans-serif;--vc-font-display:'Manrope Variable',sans-serif}"+sitesPresentationBaseCss+sitesStudioCss+sitesExperienceCss+sitesLedCss+sitesTvCss+sitesPresentationHeadingCss+sitesPresentationFrameCss+sitesMenuWidgetCss;
 
-export {sitesMenuWidgetCss} from "./sites-menu-widgets-styles";
+export {sitesMenuWidgetCss,sitesMenuWidgetStyles} from "./sites-menu-widgets-styles";

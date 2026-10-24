@@ -7,7 +7,7 @@ import {LedSlideMarkup} from "./sites-led-markup";
 import {SlideCanvas} from "./sites-studio-canvas";
 import {SitesDynamicCanvas} from "./sites-dynamic-canvas";
 import {sitesPresentationCss} from "./sites-styles";
-import {sitesMenuWidgetCss} from "./sites-menu-widgets-styles";
+import {sitesMenuWidgetStyles} from "./sites-menu-widgets-styles";
 import {sitesV17Css} from "./sites-v17-styles";
 import {SitesUnifiedV17Markup} from "./sites-unified-v17-markup";
 import {sitesPresentationPages,resolveSitesSystemAsset,resolveSitesStudioPage,resolveSitesDynamicPage,type SitesAssetResolver} from "./sites-presentation-model";
@@ -24,6 +24,6 @@ export function SitesStaticView({presentation,resolveAsset=resolveSitesSystemAss
   if(config.themeId==="onzetrots-tv")node=<OnzeTrotsTvMarkup content={content} orientation={config.orientation} active={active} compact={compact}/>;
   else {node=config.provider==="led-scores"&&config.ledTheme!=="fieldflow"?<LedSlideMarkup design={design} background={design.background} active={active} compact={compact}/>:<SitesDynamicCanvas design={design} active={active} compact={compact}/>;}
  }
- const css=(rendererVersion===sitesCurrentPresentationVersion||(input.kind==="dynamic"&&input.content.menuPages)?sitesV17Css:sitesPresentationCss)+(input.kind==="dynamic"&&input.content.menuPages?sitesMenuWidgetCss:"");
+ const css=(rendererVersion===sitesCurrentPresentationVersion||(input.kind==="dynamic"&&input.content.menuPages)?sitesV17Css:sitesPresentationCss)+(input.kind==="dynamic"&&input.content.menuPages?sitesMenuWidgetStyles(input):"");
  return <>{includeStyles&&<style>{css.replace(/url\(["']?(\/[^"')]+)["']?\)/g,(match,path:string)=>systemAssetUrls[path]?`url("${systemAssetUrls[path]}")`:match)}</style>}{node}</>;
 }

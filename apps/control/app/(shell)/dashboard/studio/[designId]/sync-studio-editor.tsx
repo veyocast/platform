@@ -1,5 +1,5 @@
 "use client";
-import {patchSyncSlideDraft} from '@veyocast/contracts';
+import {patchSyncSlideDraft,syncOnzeTrotsMarkerDraft} from '@veyocast/contracts';
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -73,7 +73,7 @@ export type SyncStudioEditorProps = {
   sourceLibrary?:SyncStudioLibraryProject[];
 };
 const draftOf = (document: StudioDocument): SyncStudioDraft => {
-  const presentation = document.syncPresentation;
+  const presentation = document.syncPresentation && syncOnzeTrotsMarkerDraft(document.syncPresentation);
   if (!presentation) throw Error("Sync document required");
   return {
     presentation,

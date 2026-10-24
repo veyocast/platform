@@ -3,12 +3,12 @@ import {syncSlidePlacementTheme} from '@veyocast/contracts';
 
 import { useEffect, useRef, useState, type ReactNode, type SetStateAction } from 'react';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, CheckCheck, ChevronDown, Clock3, Copy, ImagePlus, ListChecks, ListOrdered, Monitor, Pause, Play, Plus, RotateCcw, Save, Search, Settings2, ShieldCheck, Trash2, Undo2, X } from 'lucide-react';
+import type {PublisherLibraryPage} from '../../library';
 import type { Media, Playlist, Slide,SyncDynamicLibraryDesign } from './model';
 import { AssetImage, type DynamicDesign } from './presentation-adapter';
 import type { Group, Screen } from './model';
 import { type StudioProject } from './presentation-adapter';
 import { maximumPlaylistPlacementSeconds, minimumPlaylistPlacementSeconds, playlistPlacementPages, refreshMediaFramePlacement } from './playlist-command-plan';
-import { PHOTOS } from './model';
 import { PlaylistMediaPicker } from './playlist-media-picker';
 import { ScreenThemePicker } from './screen-theme-picker';
 import { SyncSlidePreview } from './sync-studio-preview';
@@ -96,8 +96,12 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
   const [leave, setLeave] = useState<'close' | 'studio' | 'advanced' | null>(null);
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
+  const [refreshing,setRefreshing]=useState(false);
+  const [sourceHref,setSourceHref]=useState('');
+  const [preparableId,setPreparableId]=useState('');
+  const preparationKeys=useRef(new Map<string,string>());
   const [storageError, setStorageError] = useState('');
-  const pending = saving || busy;
+  const pending = saving || busy || refreshing;
   const canEdit = canWrite && !pending;
   const dirty = JSON.stringify(playlist) !== (confirmedPlaylist ? JSON.stringify(confirmedPlaylist) : initial.current);
   const active = playlist.slides.find(slide => slide.id === activeId) || playlist.slides[0];
@@ -265,16 +269,43 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
     updateSlides(playlist.slides.map(slide => supported.includes(slide.id) ? themedSlide(slide, themeId) : slide));
     setNotice(`${themeId === 'onzetrots-tv' ? 'OnzeTrots TV' : 'Oorspronkelijke stijl'} toegepast op ${supported.length} ${supported.length === 1 ? 'item' : 'items'}. Je inhoud en duur per pagina blijven behouden.${supported.length<ids.length?' Video’s behouden hun eigen beeld.':''}`);
   }
-  function refresh(slide: Slide) {
+  async function refresh(slide: Slide,prepare=false) {
+    if(!canEdit)return;
     if (slide.mediaFrame) { try { const next = refreshMediaFramePlacement(slide); updateSlides(playlist.slides.map(item => item.id === slide.id ? next : item)); setNotice('De gekozen media-ontwerpversie staat in je concept. Bestaande plaatsingsvoorkeuren blijven behouden; sla op om de versie te bevestigen.'); } catch (failure) { setNotice(failure instanceof Error ? failure.message : 'De media-ontwerpversie kon niet worden gekozen.'); } return; }
-    const latestSource=syncDesigns.find(design=>design.id===slide.designId);
-    if(slide.syncDynamic&&latestSource){patchSlide(slide.id,{syncDynamic:copy(latestSource),seconds:latestSource.durationSeconds/playlistPlacementPages({...slide,syncDynamic:latestSource}),kind:latestSource.kind,mediaId:latestSource.mediaAssetId,mediaChecksumSha256:latestSource.checksumSha256,image:'',orientation:latestSource.presentation.orientation});setNotice('De nieuwste volledige Source-versie staat in je concept. Sla op om deze keuze te bevestigen.');return;}
-    const latestDesign = designs.find(design => design.id === slide.designId);
+    if(slide.designId&&(slide.design||slide.syncDynamic)){
+      setRefreshing(true);setSourceHref('');setPreparableId('');setNotice(prepare?'Je opgeslagen prijswijzigingen worden als volledige menuversie voorbereid…':'De actuele Studio-versie wordt gecontroleerd…');
+      const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),prepare?190000:20000);
+      try{
+        if(prepare){
+          let operationId=preparationKeys.current.get(slide.designId);if(!operationId){operationId=crypto.randomUUID();preparationKeys.current.set(slide.designId,operationId);}
+          const response=await fetch('/api/publisher/library',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({designId:slide.designId,operationId}),signal:controller.signal});
+          if(!response.ok){setSourceHref(`/dashboard/slides/menu-studio/${slide.designId}`);setNotice('De voorbereiding is nog niet bevestigd. Je opgeslagen menu en playlist blijven behouden. Controleer het bronontwerp en probeer opnieuw.');return;}
+        }
+        let page:PublisherLibraryPage;
+        for(let poll=0;;poll++){
+          const response=await fetch(`/api/publisher/library?${new URLSearchParams({tab:'dynamic',designId:slide.designId})}`,{cache:'no-store',signal:controller.signal});
+          if(!response.ok)throw Error('Source unavailable');
+          page=await response.json() as PublisherLibraryPage;
+          const snapshot=page.syncDesigns?.find(design=>design.id===slide.designId)?.snapshotId??page.designs.find(design=>design.id===slide.designId)?.snapshotId;
+          if(!prepare||snapshot&&(snapshot!==(slide.syncDynamic?.snapshotId??slide.design?.snapshotId))||!page.sourceState?.pendingDraft||poll>=89)break;
+          await new Promise(resolve=>setTimeout(resolve,2000));
+        }
+        setPreparableId(page.sourceState?.canPrepare?slide.id:'');
+        const source=page.syncDesigns?.find(design=>design.id===slide.designId),design=page.designs.find(design=>design.id===slide.designId);
+        const current=slide.syncDynamic?.snapshotId??slide.design?.snapshotId;
+        if(!source&&!design){setSourceHref(page.sourceState?.href??'');setNotice(page.sourceState?.processing?'De nieuwste Studio-versie wordt nog voorbereid. Je huidige versie blijft behouden. Probeer opnieuw zodra het ontwerp gereed is.':'Er staat nog geen volledige Studio-versie klaar. Je huidige versie blijft behouden. Open het bronontwerp om de voorbereiding te controleren.');return;}
+        const snapshotId=source?.snapshotId??design!.snapshotId;
+        if(snapshotId===current){setSourceHref(page.sourceState?.pendingDraft?page.sourceState.href:'');setNotice(page.sourceState?.pendingDraft?'Je prijswijzigingen staan nog in een Studio-concept. Bereid dit gewijzigde menu eerst voor in Menu Studio en kies daarna opnieuw de nieuwste versie. De playlist bevat nu nog de vorige versie.':page.sourceState?.processing?'De nieuwe Studio-versie wordt nog voorbereid. Je huidige versie blijft behouden; probeer straks opnieuw.':'Deze playlist bevat al de nieuwste gereedstaande Studio-versie. Er is niets gewijzigd.');return;}
+        if(source){patchSlide(slide.id,{syncDynamic:copy(source),kind:source.kind,mediaId:source.mediaAssetId,mediaChecksumSha256:source.checksumSha256,image:'',orientation:source.presentation.orientation});}
+        else patchSlide(slide.id,{design:{...copy(design!),themeId:slide.design!.themeId,seconds:slide.seconds},image:design!.background||''});
+        setPreparableId('');setSourceHref(page.sourceState?.pendingDraft?page.sourceState.href:'');setNotice('De nieuwste volledige Studio-versie staat in je concept. Je naam, thema en duur per pagina blijven behouden. Sla de playlist op om deze keuze te bevestigen.'+(page.sourceState?.pendingDraft?' Er staat daarnaast een nieuwer Studio-concept open; dat is nog niet voorbereid.':''));
+      }catch{setNotice(controller.signal.aborted?'De actuele Studio-versie antwoordde niet op tijd. Je playlist blijft behouden; probeer opnieuw.':'De actuele Studio-versie kon niet worden geladen. Je playlist blijft behouden; probeer opnieuw.');}
+      finally{clearTimeout(deadline);setRefreshing(false);}
+      return;
+    }
     const latestSlide = projects.find(project => project.id === slide.studioProjectId)?.slides.find(item => item.id === slide.studioSlideId);
-    if (slide.design && latestDesign) patchSlide(slide.id, { design: { ...copy(latestDesign), seconds: slide.seconds }, image: latestDesign.background || PHOTOS.club });
-    else if (slide.studioSlide && latestSlide) patchSlide(slide.id, { mediaId:latestSlide.exportAssetId,studioSlide: { ...copy(latestSlide), duration: slide.seconds }, image: latestSlide.photo || '' });
-    else {setNotice('Er is nog geen nieuwe, gereedstaande versie beschikbaar.');return;}
-    setNotice('De nieuwste gereedstaande versie staat in je concept. Sla op om deze keuze te bevestigen.');
+    if (slide.studioSlide && latestSlide && latestSlide.exportId!==slide.studioSlide.exportId) {patchSlide(slide.id, { mediaId:latestSlide.exportAssetId,studioSlide: { ...copy(latestSlide), duration: slide.seconds }, image: latestSlide.photo || '' });setNotice('De nieuwste gereedstaande versie staat in je concept. Sla op om deze keuze te bevestigen.');}
+    else setNotice('Deze playlist bevat al de nieuwste gereedstaande Studio-versie. Er is niets gewijzigd.');
   }
   function toggleScreen(id: string) { setScreenIds(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id]); }
   function toggleGroup(group: Group) {
@@ -283,7 +314,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
   }
 
   function itemSettings(slide: Slide) {
-    const canRefresh = slide.mediaFrame ? Boolean(slide.mediaFrame.current && slide.mediaFrame.current.id !== slide.mediaFrame.selected.id && slide.mediaFrame.current.number > slide.mediaFrame.pinnedVersionNumber) : !!(slide.syncDynamic&&syncDesigns.some(design=>design.id===slide.designId))||!!(slide.design && designs.some(design => design.id === slide.designId)) || !!(slide.studioSlide && projects.some(project => project.id === slide.studioProjectId && project.slides.some(item => item.id === slide.studioSlideId)));
+    const canRefresh = slide.mediaFrame ? Boolean(slide.mediaFrame.current && slide.mediaFrame.current.id !== slide.mediaFrame.selected.id && slide.mediaFrame.current.number > slide.mediaFrame.pinnedVersionNumber) : !!(slide.designId&&(slide.syncDynamic||slide.design)) || !!(slide.studioSlide && projects.some(project => project.id === slide.studioProjectId && project.slides.some(item => item.id === slide.studioSlideId)));
     return <fieldset disabled={!canEdit}className={s.itemSettings}style={{border:0,margin:0,padding:0,minWidth:0}}>
       <label className={s.field}>Naam in playlist<input value={slide.name} onChange={event => patchSlide(slide.id, { name: event.target.value })} /></label>
       {slide.mediaFrame && <p className={s.hint}>Vastgezet op media-ontwerpversie {slide.mediaFrame.pinnedVersionNumber}.{slide.mediaFrame.selected.id !== slide.mediaFrame.pinnedVersionId ? ` Versie ${slide.mediaFrame.selected.number} is gekozen voor de volgende opslag.` : slide.mediaFrame.current && slide.mediaFrame.current.number > slide.mediaFrame.pinnedVersionNumber ? ` Versie ${slide.mediaFrame.current.number} is beschikbaar; vernieuwen gebeurt alleen op jouw verzoek.` : !slide.mediaFrame.current ? ' De actuele bron is niet beschikbaar voor vernieuwen.' : ''}</p>}
@@ -302,7 +333,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
       <div className={s.itemActions}>
         <button type="button" className={s.secondary} onClick={() => duplicate(slide)}><Copy size={17} />Kopiëren</button>
         <button type="button" className={s.danger} onClick={() => remove([slide.id])}><Trash2 size={17} />Verwijderen</button>
-        {canRefresh && <button type="button" className={s.refresh} onClick={() => refresh(slide)}><RotateCcw size={16} />{slide.mediaFrame?`Media-ontwerpversie ${slide.mediaFrame.current!.number} kiezen`:'Nieuwste Studio-versie'}</button>}
+        {canRefresh && <button type="button" className={s.refresh} onClick={() => void refresh(slide)}><RotateCcw size={16} />{slide.mediaFrame?`Media-ontwerpversie ${slide.mediaFrame.current!.number} kiezen`:'Nieuwste Studio-versie'}</button>}
       </div>
     </fieldset>;
   }
@@ -366,7 +397,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
     </> : <>
       <nav className={s.tabs} aria-label="Playlistweergave">{(['Inhoud', 'Voorbeeld', 'Details'] as const).map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => changeView(tab)}>{tab === 'Inhoud' ? <ListOrdered size={17} /> : tab === 'Voorbeeld' ? <Play size={17} /> : <Settings2 size={17} />}{tab}{tab === 'Inhoud' && <span>{playlist.slides.length}</span>}</button>)}</nav>
       <div className={s.body} ref={scrollBody}>
-        {notice && <div className={s.notice} role="status"><Check size={17} /><span>{notice}</span><button type="button" aria-label="Melding sluiten" onClick={() => setNotice('')}><X size={16} /></button></div>}
+        {notice && <div className={s.notice} role="status"><Check size={17} /><span>{notice}{preparableId&&<button type="button" className={s.secondary} disabled={refreshing} onClick={()=>{const source=playlist.slides.find(item=>item.id===preparableId);if(source)void refresh(source,true);}}>Gewijzigd menu voorbereiden</button>}{sourceHref&&<a className={s.secondary} href={sourceHref} target="_blank" rel="noreferrer">Gewijzigd ontwerp openen</a>}</span><button type="button" aria-label="Melding sluiten" onClick={() => {setNotice('');setSourceHref('');setPreparableId('');}}><X size={16} /></button></div>}
         {!!removed.length && <div className={s.undoNotice} role="status"><span>{removed.length} {removed.length === 1 ? 'item verwijderd' : 'items verwijderd'}.</span><button type="button" onClick={undoRemove}><Undo2 size={17} />Herstellen</button><button type="button" className={s.iconButton} aria-label="Herstelmelding sluiten" onClick={() => setRemoved([])}><X size={17} /></button></div>}
         {view === 'Details' ? <section className={s.details}>
           {playlist.name.trim().length < 2 && <p role="alert">De playlistnaam is te kort. Opslaan en publiceren wachten; vul minimaal twee tekens in.</p>}

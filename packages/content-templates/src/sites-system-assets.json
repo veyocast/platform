@@ -618,6 +618,76 @@
       "bytes": 386,
       "mimeType": "image/svg+xml",
       "sourceRevision": "b1cae899af19fc39908217253094c5240d7359fc"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-portrait-941.webp",
+      "sha256": "e96a079d1a96f3ca75305329431065d2c61b7f3548735f48811bb57d34be4a14",
+      "bytes": 524608,
+      "mimeType": "image/webp",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-wide-1672.webp",
+      "sha256": "4e654df31f432c922a44b1670f6bf8d64af3361d40645f410de0a4d696d46171",
+      "bytes": 596258,
+      "mimeType": "image/webp",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/clubmuur-lettering.webp",
+      "sha256": "c4bf31d7c6331f76f6e4db9bbac59052a01ad9c6f6ae3abe497925f90e15bf32",
+      "bytes": 428940,
+      "mimeType": "image/webp",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/fonts/club-font-2.ttf",
+      "sha256": "73bc9e17231e9073780d3c81574c7253cecd5645c93544df1a935054b39a364f",
+      "bytes": 87556,
+      "mimeType": "font/ttf",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/fonts/club-font-3.ttf",
+      "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77",
+      "bytes": 88228,
+      "mimeType": "font/ttf",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/fonts/club-font-4.ttf",
+      "sha256": "a13d9b41b0a471ce58f0e46d377fa3cc76615e4632c3b15eb397caadf7a13f0a",
+      "bytes": 94972,
+      "mimeType": "font/ttf",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/fonts/club-font-6.ttf",
+      "sha256": "6bad1a774228464cc88b8b0271555b266f7a3c64a7bedf15e165fdab4f6ac0ce",
+      "bytes": 95096,
+      "mimeType": "font/ttf",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/fonts/club-font-8.ttf",
+      "sha256": "b8f802f05b322a7345805f5b89f8bb976604cc719a91530918d5ce3c47160950",
+      "bytes": 95688,
+      "mimeType": "font/ttf",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v1/assets/fonts/club-font-9.ttf",
+      "sha256": "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c",
+      "bytes": 73276,
+      "mimeType": "font/ttf",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
+    },
+    {
+      "path": "/onzetrots-approved-v9/assets/fonts/RubikDistressed-Regular.ttf",
+      "sha256": "64a9962c862451507b5d8dbc1c4bf023ddbcad701bc73d277eae46723718327a",
+      "bytes": 892544,
+      "mimeType": "font/ttf",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a"
     }
   ]
 }

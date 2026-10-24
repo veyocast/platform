@@ -22,6 +22,9 @@ import React,{useState}from'react';import{createRoot}from'react-dom/client';
 import{sitesPresentationSchema,sitesDynamicConfigurationSchema,playerDynamicTemplatePayloadSchema}from'@veyocast/contracts';
 import{resolveSitesStudioSlide}from'@veyocast/content-templates/sites-presentation-model';
 import{createSyncStudioStarter,createSyncStudioDocument}from'@veyocast/studio';
+import{buildSitesMenuDocument}from'./apps/control/app/(shell)/dashboard/slides/menu-studio/sites-menu-document';
+import{buildMenuWidgetDocument,prepareMenuWidgets}from'./apps/control/app/(shell)/dashboard/slides/menu-studio/menu-widget-document';
+import{planPlaylistChanges}from'./apps/control/app/(shell)/dashboard/playlists/_components/sites/playlist-command-plan';
 import{PlaylistEditor}from'./apps/control/app/(shell)/dashboard/playlists/_components/sites/playlist-editor';
 import{PlaylistLibrary}from'./apps/control/app/(shell)/dashboard/playlists/_components/sites/playlist-library';
 import{PlaylistPlacementPreview}from'./apps/control/app/(shell)/dashboard/playlists/_components/sites/placement-preview';
@@ -37,6 +40,15 @@ const syncStart=createSyncStudioStarter({family:'fixtures',tenantName:'Eigen clu
 const syncDocument=createSyncStudioDocument({...syncStart,name:'Vijf eigen wedstrijden',rows:Array.from({length:5},(_,i)=>['Thuis '+(i+1),'Uit','12:00','Veld 1']),rowsPerPage:4,style:{...syncStart.style,motion:'geen'}},3);
 window.__syncFixture={document:syncDocument,project:{id:id(800),name:'Vijf eigen wedstrijden',revision:2,kind:'project',members:[{id:id(800),name:'Vijf eigen wedstrijden',draftRevision:2,presentation:syncDocument.syncPresentation,assetUrls:{},durationSeconds:6,exportKind:'video',exportId:id(801),exportAssetId:id(802),checksumSha256:'d'.repeat(64)}]}};
 window.__syncDynamicFixture={id:id(850),name:'Gekoppelde vijf wedstrijden',snapshotId:id(851),versionId:id(852),templateVersionId:id(853),configuration:{schemaVersion:1,kind:'dynamic',rendererVersion:'sync-v1',sourceRevision:syncStart.sourceRevision,slideType:'sport_program',seed:syncStart,secondsPerPage:3},presentation:syncDocument.syncPresentation,assetUrls:{},durationSeconds:6,mediaAssetId:id(854),checksumSha256:'e'.repeat(64),kind:'video',provider:'sportlink'};
+window.__menuDesign=(price=250,snapshot=950)=>{
+ const cfg=sitesDynamicConfigurationSchema.parse({schemaVersion:1,rendererVersion:'sites-v17',sourceRevision:'6800bc858436ba0843eaea89b682cd5b43c3521d',themeId:'onzetrots-tv',orientation:'portrait',provider:'menu',unifiedKind:'kantine',title:'Ons menu',menuWidgets:true,onzeTrotsStyle:'v9-marker-light',seconds:15});
+ const sourceDocument={schemaVersion:'menu-document.v2',id:'menu-test',tenantId:id(990),revision:snapshot-949,title:'Ons menu',createdAt:'2026-10-24T12:00:00.000Z',updatedAt:'2026-10-24T12:00:00.000Z',assets:[],pages:[{id:'menu-page',order:0,blocks:[]}],theme:{themeId:'onzetrots-tv',themeVersion:'11.0.0',mode:'light',brand:{accent:'#03438a'}}};
+ const products=[{id:id(940),sourceId:id(941),sourceKind:'twelve_excel',sourceRevision:'saved-source-'+snapshot,name:'Clubkoffie',priceCents:price,category:'Warme dranken',currency:'EUR',available:true,description:'',taxMode:'inclusive',taxRateBps:900}];
+ const draft=buildSitesMenuDocument(sourceDocument,products,cfg,true,[]),document=buildMenuWidgetDocument(prepareMenuWidgets(draft),products,cfg,[]);
+ const payload=playerDynamicTemplatePayloadSchema.parse({schemaVersion:1,orientation:'portrait',slideType:'menu',snapshotHash:'a'.repeat(64),snapshotId:id(snapshot),templateVersionId:id(942),templateSlug:'menu',data:{menuDocument:document,sitesConfiguration:cfg,brand:{clubName:'Eigen club'}}});
+ return{...cfg,id:id(943),name:'Ons menu',kind:'kantine',background:'',rows:[{id:'coffee',primary:'Clubkoffie',value:'€ '+(price/100).toFixed(2).replace('.',',')}],config:cfg,screenIds:[],groupNames:[],snapshotId:id(snapshot),payload,sitesConfiguration:cfg};
+};
+window.__plan=planPlaylistChanges;
 const initial={id:id(900),name:'Clubhuis vandaag',description:'Echte broncomponent met gecontroleerd transport',status:'Concept',updated:'Vandaag',slides:[{id:id(1),mediaId:id(201),name:'Clubfoto',image:'/__sites-test/assets/1.svg',seconds:12,kind:'image'},{id:id(2),mediaId:id(202),name:'Welkom',image:'/__sites-test/assets/2.svg',seconds:12,kind:'image'}]};
 const qaMode=new URLSearchParams(location.search).has("qa");
 const qaPhotos=["/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-3840x2160-web.webp","/fieldflow/photos/FF-PHOTO-06-community-3840x2560-web.webp","/fieldflow/photos/FF-PHOTO-04-matchday-live-3840x2160-web.webp","/fieldflow/photos/FF-PHOTO-05-sponsor-hub-3840x2160-web.webp"];
@@ -44,9 +56,9 @@ const qaInitial={...initial,name:"Clubhuis — Vandaag",description:"Het laatste
 const screens=[{id:id(700),name:'Clubhuis',group:'Binnen',orientation:'landscape',status:'unknown',playlist:initial.name}];
 if(qaMode){screens.splice(0,screens.length,...[{id:id(700),name:"Kantine TV 1",group:"Binnen",orientation:"landscape",status:"unknown",playlist:qaInitial.name},{id:id(701),name:"Kantine TV 2",group:"Binnen",orientation:"landscape",status:"unknown",playlist:qaInitial.name},{id:id(702),name:"Entree",group:"Apart",orientation:"landscape",status:"unknown",playlist:qaInitial.name}]);}
 function App(){const[playlist,setPlaylist]=useState(qaMode?qaInitial:initial),[open,setOpen]=useState(false),[notice,setNotice]=useState(''),[assets,setAssets]=useState(media),[selection,setSelection]=useState([]),[query,setQuery]=useState(''),[filter,setFilter]=useState('Alle playlists'),[sort,setSort]=useState('recent'),[view,setView]=useState('grid');
-window.__sitesFixture={playlist,media:assets,designs,projects};
+window.__sitesFixture={playlist,media:assets,designs,projects};window.__setPlaylist=setPlaylist;
 async function save(next){const response=await fetch('/__sites-test/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(next)});const body=await response.json();if(!response.ok||body.outcome!=='applied'){setNotice('Een andere sessie heeft serverversie 7 opgeslagen. Je eigen wijzigingen blijven open.');return null;}setPlaylist(body.playlist);setNotice('Je concept is bevestigd door de server.');return body.playlist;}
-return <main className="sync-control"><h1 className="sync-sr-only">Playlistcomponenttest</h1><PlaylistLibrary playlists={[playlist]}total={1}query={query}onQuery={setQuery}filter={filter}onFilter={setFilter}sort={sort}onSort={setSort}view={view}onView={setView}selection={selection}onSelection={setSelection}inventory={screens}onOpen={()=>setOpen(true)}onCreate={()=>setOpen(true)}onStudio={()=>{}}onDuplicate={()=>{}}onArchive={()=>{}}onRestore={()=>{}}/>{open&&<PlaylistEditor playlist={playlist}onChange={setPlaylist}onClose={()=>setOpen(false)}onSave={save}onPublish={(next,targets)=>{window.__qaPublished={playlist:next,targets};}}inventory={screens}groups={[{name:'Binnen',members:qaMode?[id(700),id(701)]:[id(700)]}]}initialScreenIds={[]}media={assets}onMediaChange={setAssets}designs={designs}projects={projects}onGoStudio={()=>{}}onAdvanced={()=>{}}notice={notice}renderPreview={(slide,active)=>slide.syncDynamic?<PlaylistPlacementPreview slide={slide}active={active}tenantName="Eigen club"/>:<img alt={'Voorbeeld van '+slide.name}src={slide.image||'/__sites-test/assets/1.svg'}style={{width:'100%',height:'100%',objectFit:'contain'}}/>}/>}</main>;}
+return <main className="sync-control"><h1 className="sync-sr-only">Playlistcomponenttest</h1><PlaylistLibrary playlists={[playlist]}total={1}query={query}onQuery={setQuery}filter={filter}onFilter={setFilter}sort={sort}onSort={setSort}view={view}onView={setView}selection={selection}onSelection={setSelection}inventory={screens}onOpen={()=>setOpen(true)}onCreate={()=>setOpen(true)}onStudio={()=>{}}onDuplicate={()=>{}}onArchive={()=>{}}onRestore={()=>{}}/>{open&&<PlaylistEditor playlist={playlist}onChange={setPlaylist}onClose={()=>setOpen(false)}onSave={save}onPublish={(next,targets)=>{window.__qaPublished={playlist:next,targets};}}inventory={screens}groups={[{name:'Binnen',members:qaMode?[id(700),id(701)]:[id(700)]}]}initialScreenIds={[]}media={assets}onMediaChange={setAssets}designs={designs}projects={projects}onGoStudio={()=>{}}onAdvanced={()=>{}}notice={notice}renderPreview={(slide,active)=>slide.syncDynamic||slide.design?.provider==='menu'?<PlaylistPlacementPreview slide={slide}active={active}tenantName="Eigen club"/>:<img alt={'Voorbeeld van '+slide.name}src={slide.image||'/__sites-test/assets/1.svg'}style={{width:'100%',height:'100%',objectFit:'contain'}}/>}/>}</main>;}
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);
 `;
 let bundle:{js:string;css:string};
@@ -73,6 +85,45 @@ async function mount(page:Page,qa=false){
  return{saves,setConflict:(value:boolean)=>{conflict=value;}};
 }
 async function contained(page:Page){const geometry=await page.getByRole("dialog").evaluate(dialog=>{const box=dialog.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth+1};});expect(geometry.left).toBeGreaterThanOrEqual(-1);expect(geometry.right).toBeLessThanOrEqual(geometry.width+1);expect(geometry.top).toBeGreaterThanOrEqual(-1);expect(geometry.bottom).toBeLessThanOrEqual(geometry.height+1);expect(geometry.overflow).toBe(false);}
+for(const width of [390,1440])test(`latest saved menu price is fetched and pinned explicitly at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:1000});const transport=await mount(page);
+ await page.evaluate(()=>{
+  const old=Reflect.get(window,'__menuDesign')(250,950),fixture=Reflect.get(window,'__sitesFixture');
+  // Initial props deliberately contain the OLD version. The HTTP read must win.
+  fixture.designs.splice(0,fixture.designs.length,old);
+  const initial={...fixture.playlist,slides:[{id:'19110000-0000-4000-8000-000000000001',name:'Mijn playlistnaam',seconds:17,image:'',designId:old.id,design:old}]};
+  Reflect.set(window,'__originalMenuPlaylist',JSON.parse(JSON.stringify(initial)));Reflect.get(window,'__setPlaylist')(initial);
+ });
+ const latest=await page.evaluate(()=>Reflect.get(window,'__menuDesign')(375,951));
+ let reads=0,pending=true,failed=true;const preparations:Array<{designId:string;operationId:string}>=[];
+ await page.route('**/api/publisher/library*',route=>{
+  if(route.request().method()==='POST'){preparations.push(route.request().postDataJSON());pending=false;return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true})});}
+  const params=new URL(route.request().url()).searchParams;
+  if(params.get('designId')){reads++;if(failed)return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Unavailable'})});expect(params.get('designId')).toBe(latest.id);expect(params.get('tab')).toBe('dynamic');return route.fulfill({contentType:'application/json',body:JSON.stringify({media:[],projects:[],designs:[pending?{...latest,snapshotId:'19110000-0000-4000-8000-000000000950'}:latest],sourceState:{pendingDraft:pending,processing:false,canPrepare:pending,href:'/dashboard/slides/menu-studio/'+latest.id},total:1,hasMore:false,folders:[],collections:[]})});}
+  return route.fallback();
+ });
+ await page.getByRole('button',{name:'Mijn playlistnaam, 17 seconden, instellingen openen'}).click();
+ await page.getByRole('button',{name:'Nieuwste Studio-versie'}).click();
+ await expect(page.getByRole('status').filter({hasText:'kon niet worden geladen'})).toBeVisible();
+ expect(await page.evaluate(()=>Reflect.get(window,'__sitesFixture').playlist.slides[0].design.rows[0].value)).toBe('€ 2,50');
+ failed=false;await page.getByRole('button',{name:'Nieuwste Studio-versie'}).click();
+ await expect(page.getByRole('status').filter({hasText:'Studio-concept'})).toBeVisible();await expect(page.getByRole('link',{name:'Gewijzigd ontwerp openen'})).toHaveAttribute('href','/dashboard/slides/menu-studio/'+latest.id);
+ await page.getByRole('button',{name:'Gewijzigd menu voorbereiden'}).click();
+ expect(preparations).toHaveLength(1);expect(preparations[0]!.designId).toBe(latest.id);expect(preparations[0]!.operationId).toMatch(/^[a-f0-9-]{36}$/);
+ await expect(page.getByRole('status').filter({hasText:'nieuwste volledige Studio-versie'})).toBeVisible();
+ const state=await page.evaluate(()=>{
+  const current=Reflect.get(window,'__sitesFixture').playlist,original=Reflect.get(window,'__originalMenuPlaylist');
+  return{slide:current.slides[0],operations:Reflect.get(window,'__plan')(original,current,new Map()),original};
+ });
+ expect(state.slide.name).toBe('Mijn playlistnaam');expect(state.slide.seconds).toBe(17);expect(state.slide.design.snapshotId).toBe(latest.snapshotId);
+ expect(state.slide.design.payload.data.menuDocument.pages[0].blocks[0].productNodes[0].snapshotFallback.price.amountMinor).toBe(375);
+ expect(state.original.slides[0].design.payload.data.menuDocument.pages[0].blocks[0].productNodes[0].snapshotFallback.price.amountMinor).toBe(250);
+ expect(state.operations).toContainEqual({operation:'refresh_dynamic',itemId:state.slide.id,expectedSnapshotId:latest.snapshotId});
+ await page.getByRole('button',{name:'Nieuwste Studio-versie'}).click();await expect(page.getByRole('status').filter({hasText:'al de nieuwste'})).toBeVisible();expect(reads).toBe(4);
+ await expect(page.getByRole('link',{name:'Gewijzigd ontwerp openen'})).toHaveCount(0);
+ expect(transport.saves).toHaveLength(0);await contained(page);
+ expect((await new AxeBuilder({page}).include('dialog').analyze()).violations).toEqual([]);
+});
 for (const width of [390, 1440]) test(`RSS picker finds three news designs and retains the selected snapshot at ${width}px`, async ({ page }, info) => {
  await page.setViewportSize({ width, height: 1000 }); const transport = await mount(page);
  const assets = new Map(syncOnzeTrotsV9SystemAssets.map(asset => [asset.path, asset]));
