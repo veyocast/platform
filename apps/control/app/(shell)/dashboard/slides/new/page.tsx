@@ -30,6 +30,8 @@ export default async function NewSlidePage({ searchParams }: PageProps) {
         templates: []
       };
 
+  if("themeId"in data&&data.themeId==="onzetrots-tv")redirect("/dashboard/studio/new?family=rss&mode=connected");
+
   if (!data.sources.length || !data.templates.length) {
     return (
       <>
@@ -97,7 +99,7 @@ async function loadNewsOptions(tenantId: string) {
       .order("name"),
     supabase
       .from("tenant_settings")
-      .select("primary_color")
+      .select("primary_color,default_theme_id")
       .eq("tenant_id", tenantId)
       .maybeSingle()
   ]);
@@ -131,6 +133,7 @@ async function loadNewsOptions(tenantId: string) {
     };
   }));
   return {
+    themeId:settingsResult.data?.default_theme_id,
     primaryColor: normalizePrimaryColor(
       settingsResult.data?.primary_color,
       themeCatalog.fieldflow.accentDefault

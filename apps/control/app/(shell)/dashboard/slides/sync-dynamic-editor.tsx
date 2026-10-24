@@ -83,7 +83,7 @@ export function SyncDynamicEditor(props:Props){
  function changeBinding(selection:SyncSportlinkSelection){
   const maximum=syncSportlinkSelectionPolicy(cfg).maximum;if(selection.contexts.length>maximum){setError(`Kies maximaal ${maximum} teams voor dit ontwerp. Je vorige selectie blijft behouden; maak de selectie kleiner.`);return;}
   const prior=draft.request.configuration.birthday as Record<string,unknown>|undefined;
-  const configuration={...clearSyncSportlinkBinding(draft.request.configuration),teamSelection:{mode:selection.mode,teamContexts:selection.contexts},...(cfg.slideType==='sport_birthdays'?{birthday:{...prior,period:{days:selection.birthdayDays,mode:selection.birthdayDays===21?'next_21_days':selection.birthdayDays===14?'next_14_days':'next_7_days'}}}:{})};
+  const configuration={...clearSyncSportlinkBinding(draft.request.configuration),teamSelection:{mode:selection.mode,teamContexts:selection.contexts,...(selection.matchLocation?{matchLocation:selection.matchLocation}:{})},...(selection.welcomeDays!==undefined?{arrival:{...draft.request.configuration.arrival as Record<string,unknown>,minutesBefore:selection.welcomeDays*1440,minutesAfter:0,emptyBehavior:'skip'}}:{}),...(cfg.slideType==='sport_birthdays'?{birthday:{...prior,period:{days:selection.birthdayDays,mode:selection.birthdayDays===21?'next_21_days':selection.birthdayDays===14?'next_14_days':'next_7_days'}}}:{})};
   edit({...draft,request:{...draft.request,configuration}});
  }
  function changeSource(sourceId:string){

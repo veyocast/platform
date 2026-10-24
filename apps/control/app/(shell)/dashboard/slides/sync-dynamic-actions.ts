@@ -1,5 +1,5 @@
 "use server";
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {revalidatePath} from 'next/cache';
 import {playerDynamicTemplatePayloadSchema,syncDynamicConfigurationSchema,syncDynamicRequestSchema,syncSlideAssets,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
 import {projectSyncDynamicSnapshot} from '@veyocast/content-templates/sync-dynamic-projector';
@@ -8,6 +8,7 @@ import {createControlSupabaseClient} from '../../../../lib/supabase/server';
 import {collectPreviewMediaAssetIds,loadPreviewAssets} from '../../../../lib/dynamic-preview-assets';
 import {syncDynamicCommandSchema,type SyncDynamicCommand,type SyncDynamicRequest} from './sync-dynamic-command';
 import {loadSyncSportlinkOptions} from './sync-sportlink-data';
+import {syncPreviewFailure,type SyncPreviewPhase} from './sync-preview-diagnostic';
 
 export async function loadSyncDynamicBindingOptionsAction(input:{sourceId:string}){
  const session=await requireTenantControlSession('tenant.dynamic_slide.write');
@@ -40,21 +41,29 @@ export async function mutateSyncDynamicAuthoringAction(input:SyncDynamicCommand)
 
 /** Read-only canonical preview. Only authorized output supplies provider IDs. */
 export async function previewSyncDynamicAuthoringAction(input:SyncDynamicRequest){
+ const correlationId=randomUUID();
+ const failure=(phase:SyncPreviewPhase,code?:string)=>{
+  const result=syncPreviewFailure(phase,code,correlationId);
+  console.warn(JSON.stringify({event:'sync_source_preview_failed',phase:result.phase,code:result.code,correlationId}));
+  return result;
+ };
  const session=await requireTenantControlSession('tenant.dynamic_slide.write');
  const request=syncDynamicRequestSchema.safeParse(input);
  const cfg=syncDynamicConfigurationSchema.safeParse(request.success?request.data.configuration.syncConfiguration:null);
  if(!session.isLive||!session.tenantId||!request.success||!cfg.success)return{ok:false,error:'Kies een beschikbare bron en een geldig ontwerp om de actuele inhoud te bekijken.'}as const;
  const client=await createControlSupabaseClient();if(!client)return{ok:false,error:'De veilige gegevensverbinding ontbreekt. Je ontwerp blijft behouden; probeer opnieuw.'}as const;
- const reply=await client.rpc('preview_dynamic_slide_v1',{p_tenant_id:session.tenantId,p_name:cfg.data.seed.name,p_template_version_id:input.templateVersionId,p_data_source_id:input.dataSourceId,p_configuration_json:input.configuration});
+ let reply:{data:unknown;error:{code:string}|null};
+ try{reply=await client.rpc('preview_dynamic_slide_v1',{p_tenant_id:session.tenantId,p_name:cfg.data.seed.name,p_template_version_id:request.data.templateVersionId,p_data_source_id:request.data.dataSourceId,p_configuration_json:request.data.configuration});}catch{return failure('rpc','08006');}
  const data=reply.data as Record<string,unknown>|null;
- if(reply.error||!data||!data.data||typeof data.data!=='object')return{ok:false,error:'De actuele bronselectie kon niet worden geladen. Controleer bron, team en periode; het opgeslagen ontwerp is behouden.'}as const;
+ if(reply.error)return failure('rpc',reply.error.code);
+ if(!data||Array.isArray(data)||!data.data||typeof data.data!=='object'||Array.isArray(data.data))return failure('envelope');
  const snapshot=data.data as Record<string,unknown>,ids=[...new Set([...collectPreviewMediaAssetIds(snapshot),...syncSlideAssets(cfg.data.seed).flatMap(ref=>ref.kind==='tenant'?[ref.mediaAssetId]:[])])];
  const assets=await loadPreviewAssets(client,session.tenantId,ids);
- if(ids.some(id=>!assets.has(id)))return{ok:false,error:'Een afbeelding uit deze bron is nog niet beschikbaar. De laatste volledige preview blijft staan; ververs na bronherstel.'}as const;
+ if(ids.some(id=>!assets.has(id)))return failure('assets');
  const payload=playerDynamicTemplatePayloadSchema.safeParse({schemaVersion:1,slideType:data.slideType,orientation:data.orientation,snapshotId:data.previewId,snapshotHash:createHash('sha256').update(JSON.stringify(snapshot)).digest('hex'),templateVersionId:data.templateVersionId,templateSlug:data.templateSlug,data:snapshot,assets:Object.fromEntries(assets)});
- if(!payload.success)return{ok:false,error:'De brongegevens voldoen niet aan het afspeelcontract. Controleer de bron; je ontwerp is behouden.'}as const;
+ if(!payload.success)return failure('payload');
  const projected=projectSyncDynamicSnapshot(payload.data,cfg.data.seed);
- if(!projected.ok)return{ok:false,error:'Deze bronselectie past niet volledig in het ontwerp. Beperk de selectie of verdeel de inhoud over een reeks.'}as const;
+ if(!projected.ok)return failure('projector',projected.code);
  const priceReviewHash=typeof data.priceReviewHash==='string'&&/^[a-f0-9]{64}$/.test(data.priceReviewHash)?data.priceReviewHash:undefined;
  return{ok:true,...(priceReviewHash?{priceReviewHash}:{}),presentation:projected.presentation,assets:Object.fromEntries(assets)as Record<string,PlayerDynamicTemplateAsset>,source:data.source as {providerStatus:string;lastSuccessfulSyncAt:string|null;lastErrorCode:string|null}}as const;
 }

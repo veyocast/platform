@@ -1,5 +1,10 @@
 # S286 — OnzeTrots v9 + grotere contextregels
 
+> Historisch revisiebewijs. Voor actuele titels/headers geldt vanaf de opdracht
+> van 24 oktober 2026 de [S291-canondelta](s291-onzetrots-consistency.md):
+> Barlow Condensed Black 900. Ongetagde opgeslagen publicaties behouden de
+> hieronder beschreven oorspronkelijke fonts.
+
 Implementatie en lokale eindgates groen; normale CI en uitrol volgen.
 
 Bron `5ba52a657d6d16ad103ba2fb43b8db18aa83715a` vervangt de tussentijdse

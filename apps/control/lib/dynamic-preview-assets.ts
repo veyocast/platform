@@ -1,3 +1,4 @@
+import {collectSyncSportMediaAssetIds} from '@veyocast/contracts';
 import "server-only";
 import {playerDynamicTemplateAssetSchema,type PlayerDynamicTemplateAsset} from "@veyocast/contracts";
 import type {createControlSupabaseClient} from "./supabase/server";
@@ -57,6 +58,7 @@ export function collectPreviewMediaAssetIds(snapshot: Record<string, unknown>) {
       add(item?.photoMediaAssetId);
     }
   }
+  for(const id of collectSyncSportMediaAssetIds(snapshot))ids.add(id);
   return [...ids];
 }
 

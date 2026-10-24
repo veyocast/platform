@@ -30,8 +30,8 @@ export async function POST(request:Request){
   if(!row.data.active_draft_version_id)return NextResponse.json({ok:true},{headers:{'Cache-Control':'private, no-store'}});
   const document=menuDocumentV2Schema.safeParse(row.data.configuration_json);if(!document.success||!document.data.sitesConfiguration?.menuWidgets)return NextResponse.json({error:'Open dit menu in Menu Studio om het ontwerp te controleren en voor te bereiden.'},{status:409});
   let revision=document.data.revision;
-  if(document.data.sitesConfiguration.themeId==='onzetrots-tv'&&!document.data.sitesConfiguration.onzeTrotsStyle){
-   const saved=await saveMenuStudioCommand({slideId:parsed.data.designId,command:{baseRevision:revision,operationId:parsed.data.operationId,operation:{kind:'set-sites-configuration',sitesConfiguration:{...document.data.sitesConfiguration,onzeTrotsStyle:document.data.theme.mode==='dark'?'v9-marker-dark':'v9-marker-light'}}}});
+  if(document.data.sitesConfiguration.themeId==='onzetrots-tv'&&!document.data.sitesConfiguration.onzeTrotsStyle?.startsWith('v10-')){
+   const saved=await saveMenuStudioCommand({slideId:parsed.data.designId,command:{baseRevision:revision,operationId:parsed.data.operationId,operation:{kind:'set-sites-configuration',sitesConfiguration:{...document.data.sitesConfiguration,onzeTrotsStyle:(document.data.sitesConfiguration.onzeTrotsStyle?.endsWith('-dark')??document.data.theme.mode==='dark')?'v10-barlow-dark':'v10-barlow-light'}}}});
    if(!saved.ok)return NextResponse.json({error:saved.message},{status:409});revision=saved.document.revision;
   }
   const prepared=await publishMenuStudio({slideId:parsed.data.designId,expectedRevision:revision,operationId:parsed.data.operationId});

@@ -1,3 +1,4 @@
+import {measureSyncOnzeTrotsV9Layout} from "@veyocast/content-templates/sync-slide-static-view";
 import React from "react";
 import { createHash,randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -150,6 +151,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
     }
     failureStage="dependency_decode";
     await page.evaluate(async()=>{await globalThis.document.fonts.ready;await Promise.all(Array.from(globalThis.document.images).map(img=>img.decode()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
+    if(input.kind==="dynamic"&&input.configuration.onzeTrotsStyle?.startsWith("v10-"))await page.evaluate(measureSyncOnzeTrotsV9Layout,undefined);
     currentPage=targetPage;animationEndTime=await page.evaluate(()=>Math.max(0,...globalThis.document.getAnimations().map(animation=>Number(animation.effect?.getComputedTiming().endTime??0))));
    }
    if(assetFailed)throw new SitesDomCaptureError("asset_integrity");

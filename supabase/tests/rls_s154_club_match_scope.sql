@@ -192,7 +192,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
-    's154-own-home', statement_timestamp() + interval '1 day 1 minute',
+    's154-own-home', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 1 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-own-home","name":"S154 club"}',
     '{"externalId":"s154-opponent-a","name":"Tegenstander A"}',
@@ -205,7 +205,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
-    's154-own-away', statement_timestamp() + interval '1 day 2 minutes',
+    's154-own-away', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 2 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-opponent-b","name":"Tegenstander B"}',
     '{"externalId":"s154-own-away","name":"S154 eigen uit"}',
@@ -218,7 +218,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
-    's154-foreign-foreign', statement_timestamp() + interval '1 day 3 minutes',
+    's154-foreign-foreign', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 3 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-opponent-c","name":"Tegenstander C"}',
     '{"externalId":"s154-opponent-d","name":"Tegenstander D"}',
@@ -229,7 +229,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
-    's154-inactive-home', statement_timestamp() + interval '1 day 4 minutes',
+    's154-inactive-home', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 4 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-inactive","name":"S154 inactief"}',
     '{"externalId":"s154-opponent-e","name":"Tegenstander E"}',
@@ -240,7 +240,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
-    's154-source-collision', statement_timestamp() + interval '1 day 5 minutes',
+    's154-source-collision', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 5 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-source-only","name":"Team uit andere bron"}',
     '{"externalId":"s154-opponent-f","name":"Tegenstander F"}',
@@ -251,7 +251,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
-    's154-tenant-collision', statement_timestamp() + interval '1 day 6 minutes',
+    's154-tenant-collision', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 6 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-tenant-only","name":"Team uit andere tenant"}',
     '{"externalId":"s154-opponent-g","name":"Tegenstander G"}',
@@ -262,7 +262,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-primary'),
-    's154-own-own', statement_timestamp() + interval '1 day 7 minutes',
+    's154-own-own', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 7 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-own-home","name":"S154 eigen thuis"}',
     '{"externalId":"s154-own-away","name":"S154 eigen uit"}',
@@ -273,7 +273,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-secondary'),
-    's154-legacy-home', statement_timestamp() + interval '1 day 11 minutes',
+    's154-legacy-home', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 11 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-legacy-own","name":"S154 legacy eigen team"}',
     '{"externalId":"s154-legacy-opponent-a","name":"Legacy tegenstander A"}',
@@ -284,7 +284,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-secondary'),
-    's154-legacy-away', statement_timestamp() + interval '1 day 12 minutes',
+    's154-legacy-away', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 12 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-legacy-opponent-b","name":"Legacy tegenstander B"}',
     '{"externalId":"s154-legacy-own","name":"S154 legacy eigen team"}',
@@ -295,7 +295,7 @@ insert into public.sports_matches (
   (
     '10000000-0000-4000-8000-000000001541',
     (select connection_id from s154_sources where name = 'tenant-a-secondary'),
-    's154-legacy-foreign', statement_timestamp() + interval '1 day 13 minutes',
+    's154-legacy-foreign', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 13 minutes') at time zone 'Europe/Amsterdam',
     'scheduled',
     '{"externalId":"s154-legacy-opponent-c","name":"Legacy tegenstander C"}',
     '{"externalId":"s154-legacy-opponent-d","name":"Legacy tegenstander D"}',
@@ -1660,7 +1660,7 @@ insert into public.sports_matches (
 ) values (
   '10000000-0000-4000-8000-000000001541',
   (select connection_id from s154_sources where name = 'tenant-a-secondary'),
-  's154-legacy-new', statement_timestamp() + interval '1 day 14 minutes',
+  's154-legacy-new', (((now() at time zone 'Europe/Amsterdam')::date + 1)::timestamp + interval '12 hours 14 minutes') at time zone 'Europe/Amsterdam',
   'scheduled',
   '{"externalId":"s154-legacy-own","name":"S154 legacy eigen team"}',
   '{"externalId":"s154-legacy-opponent-e","name":"Legacy tegenstander E"}',

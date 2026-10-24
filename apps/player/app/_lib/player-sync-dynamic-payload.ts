@@ -1,3 +1,4 @@
+import {collectSyncSportMediaAssetIds} from '@veyocast/contracts';
 import {createHash} from 'node:crypto';
 import {syncDynamicConfigurationSchema,syncDynamicBinaryPlaybackSchema,syncSlidePageCount,syncSlidePresentationSchema,syncSlideAssets,type SyncDynamicBinaryPlayback,type SyncDynamicConfiguration,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
 import {projectSyncDynamicSnapshot} from '@veyocast/content-templates/sync-dynamic-projector';
@@ -36,6 +37,7 @@ export function syncDynamicProjectionAssetIds(data:Record<string,unknown>,cfg:Sy
  const add=(value:unknown)=>{if(typeof value==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value))ids.add(value);};
  if(record(data.brand))add(data.brand.logoMediaAssetId);
  if(['sport_match_of_the_day','sport_next_match'].includes(cfg.slideType)&&record(data.sport)&&Array.isArray(data.sport.items))for(const item of data.sport.items.slice(0,1))if(record(item)){add(item.homeLogoMediaAssetId);add(item.awayLogoMediaAssetId);}
+ for(const id of collectSyncSportMediaAssetIds(data))add(id);
  return [...ids];
 }
 

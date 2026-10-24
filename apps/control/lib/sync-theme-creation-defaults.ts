@@ -22,7 +22,7 @@ export function applySyncThemeCreationDefaults(presentation: SyncSlidePresentati
   return syncSlidePresentationSchema.parse({ ...base, theme: themeId,
     rendererVersion:themeId==='onzetrots-tv'?syncOnzeTrotsV9RendererVersion:syncSlideRendererVersion,
     sourceRevision:themeId==='onzetrots-tv'?syncOnzeTrotsV9SourceRevision:syncSlideSourceRevision,
-    ...(themeId==='onzetrots-tv'?{rowsPerPage:6,authoring:presentation.rendererVersion==='sync-onzetrots-v9'?presentation.authoring:{schemaVersion:1,headerSubtitles:{},headerTexts:{},welcomeScalePercent:150},visual:{schemaVersion:1,mode:defaults.mode==='dark'?'dark':'light',scrollSpeed:'normal',panelOpacity:94},...(isSyncOnzeTrotsPresentation(presentation)&&presentation.rich?{rich:presentation.rich}:{})}:{}),
+    ...(themeId==='onzetrots-tv'?{rowsPerPage:6,authoring:{...(presentation.rendererVersion==='sync-onzetrots-v9'?presentation.authoring:{schemaVersion:1,headerSubtitles:{},headerTexts:{},welcomeScalePercent:150}),visualRevision:'onzetrots-20261024'},visual:{schemaVersion:1,mode:defaults.mode==='dark'?'dark':'light',scrollSpeed:'normal',panelOpacity:94},...(isSyncOnzeTrotsPresentation(presentation)&&presentation.rich?{rich:presentation.rich}:{})}:{}),
     style: { ...style,
     accent: defaults.accent, font: defaults.font === "Georgia" ? "Serif" : defaults.font, fontChanged: true,
     background: themeId==='onzetrots-tv'?'clubmuur':defaults.mode === "light" ? "light" : defaults.background === "clubkleur" ? "gradient" : defaults.background,

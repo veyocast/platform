@@ -467,5 +467,38 @@ export function syncSlideRendererAssets(slide:SyncSlidePresentation):ReadonlyArr
 
 /** Explicit unsaved authoring upgrade. Never apply to immutable playback input. */
 export function syncOnzeTrotsMarkerDraft(slide:SyncSlidePresentation):SyncSlidePresentation{
- return slide.rendererVersion===syncOnzeTrotsV9RendererVersion?{...slide,style:{...slide.style,font:'Brush',fontChanged:true}}:slide;
+ return slide.rendererVersion===syncOnzeTrotsV9RendererVersion?{...slide,authoring:{...slide.authoring,visualRevision:'onzetrots-20261024'},style:{...slide.style,font:'Brush',fontChanged:true}}:slide;
+}
+
+/** One semantic visual contract across authoring, capture and playback. */
+export function isSyncOnzeTrotsCurrent(slide:Pick<SyncSlidePresentation,'rendererVersion'> & {authoring?:{visualRevision?:string|undefined}|undefined}):boolean {
+ return slide.rendererVersion===syncOnzeTrotsV9RendererVersion&&slide.authoring?.visualRevision==='onzetrots-20261024';
+}
+
+/** Same controlled sport records in preview, capture and device manifests. */
+export function collectSyncSportMediaAssetIds(snapshot:Record<string,unknown>):string[]{
+ const ids=new Set<string>();
+ const record=(value:unknown):value is Record<string,unknown>=>Boolean(value&&typeof value==='object'&&!Array.isArray(value));
+ const sport=record(snapshot.sport)?snapshot.sport:{};
+ const matchday=record(sport.matchday)?sport.matchday:{};
+ for(const part of [sport,...['results','standings','fixtures'].map(key=>matchday[key])]){
+  if(!record(part)||!Array.isArray(part.items))continue;
+  for(const row of part.items.slice(0,200))if(record(row))for(const key of ['logoMediaAssetId','homeLogoMediaAssetId','awayLogoMediaAssetId','photoMediaAssetId']){
+   const value=row[key];if(typeof value==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value))ids.add(value);
+  }
+ }
+ return [...ids];
+}
+
+/** Empty controlled welcome content is ineligible, including an offline
+ * kickoff that has passed since the snapshot was prepared. */
+export function syncOnzeTrotsWelcomeShouldSkip(slide:SyncSlidePresentation|undefined,at=Date.now()):boolean{
+ if(!slide||!isSyncOnzeTrotsCurrent(slide)||!['welcome','visitors'].includes(slide.family)||!isSyncOnzeTrotsPresentation(slide))return false;
+ const selection=slide.rich?.visitorsSelection;if(!selection)return true;
+ return !(slide.rich?.fixtures??[]).some(fixture=>{
+  const kickoff=Date.parse(fixture.kickoffAt??'');
+  return fixture.status==='scheduled'&&fixture.home.clubId===selection.ownClubId&&fixture.home.teamId!==null
+   &&selection.ownTeamIds.includes(fixture.home.teamId)&&kickoff>at
+   &&(selection.windowMinutes===undefined||kickoff<=at+selection.windowMinutes*60000);
+ });
 }

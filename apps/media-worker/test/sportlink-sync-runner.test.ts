@@ -2050,3 +2050,15 @@ describe("Sportlink sync worker", () => {
   });
 });
 import { createServer } from "node:http";
+
+it('the independent match-details producer retains official pool identity after detail enrichment',async()=>{
+ const fixture={wedstrijdcode:11,thuisteamid:10,thuisteam:'Eigen club 1',uitteamid:20,uitteam:'Bezoekers',wedstrijddatum:'2026-10-25',aanvangstijd:'14:00',fase:'Competitie',poule:'C'};
+ const paths:string[]=[];
+ const client=new SportlinkClient('fixture-only',{maxAttempts:1,fetchImpl:async input=>{
+  const path=new URL(input instanceof Request?input.url:input).pathname;paths.push(path);
+  return Response.json(path==='/teams'?[{teamcode:10,teamnaam:'Eigen club 1'}]:path==='/poulelijst'?[{teamcode:10,poulecode:701,poule:'C',fase:'Competitie'}]:path==='/programma'||path==='/wedstrijd-informatie'?[fixture]:[]);
+ }});
+ const batch=await fetchSportlinkDataset('match_details',client,{connectionId:'20000000-0000-4000-8000-000000000291',dataSourceId:'30000000-0000-4000-8000-000000000291',datasetGroup:'match_details',encryptedClientId:'unused',encryptionIv:'unused',encryptionTag:'unused',runId:'40000000-0000-4000-8000-000000000291',tenantId:'10000000-0000-4000-8000-000000000291',timezone:'Europe/Amsterdam'});
+ expect(batch.matches).toHaveLength(1);expect(batch.matches[0]?.pool?.externalId).toBe('701');
+ expect(paths).toEqual(expect.arrayContaining(['/teams','/poulelijst','/wedstrijd-informatie']));
+});

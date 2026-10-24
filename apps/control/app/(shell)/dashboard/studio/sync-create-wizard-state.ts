@@ -8,7 +8,6 @@ import {
   syncSlidePresentationSchema,
   type SyncDynamicRequest,
   type SyncSlidePresentation,
-  type SportlinkSlideContext,
 } from "@veyocast/contracts";
 import { createSyncStudioDocument, safeParseStudioDocument } from "@veyocast/studio";
 import {
@@ -16,7 +15,7 @@ import {
   isSyncSportlinkType,
   readSyncSportlinkSelection,
   syncSportlinkSelectionPolicy,
-  type SyncSportlinkOptions,
+  type SyncSportlinkOptions,type SyncSportlinkSelection,
 } from "../slides/sync-sportlink-binding";
 import { syncLineupFromText, syncRowsFromText } from "./sync-studio-recovery";
 import type { SyncCreateWizardCommand, SyncCreateWizardData } from "./sync-create-wizard-types";
@@ -32,7 +31,7 @@ export type SyncCreateWizardDraft = {
   /** Absent in historical journals: preserve their original unbounded request. */
   newsLimit?: string;
   sourceId: string;
-  selection: { mode: "all" | "selected"; contexts: SportlinkSlideContext[]; birthdayDays: 7 | 14 | 21 };
+  selection: SyncSportlinkSelection;
   rowsText: string;
   lineupText: string;
 };
@@ -68,7 +67,7 @@ export function initialSyncCreateWizardDraft(data: SyncCreateWizardData): SyncCr
     seconds: data.family === "rss" ? "10" : "5",
     ...(data.family === "rss" ? { newsLimit: "5" } : {}),
     sourceId: data.initialSourceId ?? "",
-    selection: { mode: cfg && isSyncSportlinkType(cfg.slideType) && syncSportlinkSelectionPolicy(cfg).required ? "selected" : "all", contexts: [], birthdayDays: 7 },
+    selection: { mode: cfg && isSyncSportlinkType(cfg.slideType) && syncSportlinkSelectionPolicy(cfg).required ? "selected" : "all", contexts: [], birthdayDays: 7,...(data.slideType&&["sport_program","sport_results","sport_match_of_the_day"].includes(data.slideType)?{matchLocation:"both" as const}:{}),...(data.slideType==="sport_visitor_arrivals"?{welcomeDays:7}:{}) },
     rowsText: data.initialPresentation.rows.map(row => row.join(" | ")).join("\n"),
     lineupText: data.initialPresentation.lineup.map(line => line.join(", ")).join("\n"),
   };
@@ -169,7 +168,7 @@ function validatePending(command: unknown, draft: SyncCreateWizardDraft): SyncCr
     if (isSyncSportlinkType(cfg.slideType)) {
       const selection = readSyncSportlinkSelection(cfg, parsed.request.configuration);
       const expected = { ...draft.selection, contexts: draft.selection.mode === "all" ? [] : draft.selection.contexts };
-      if (selection.mode !== expected.mode || selection.birthdayDays !== expected.birthdayDays
+      if (selection.mode !== expected.mode || selection.birthdayDays !== expected.birthdayDays || (selection.matchLocation??"both")!==(expected.matchLocation??"both") || selection.welcomeDays!==expected.welcomeDays
         || JSON.stringify(selection.contexts.map(context => sportlinkSlideContextSchema.parse(context))) !== JSON.stringify(expected.contexts.map(context => sportlinkSlideContextSchema.parse(context)))) throw Error("Changed team selection");
     }
     return command as SyncCreateWizardCommand;
@@ -194,7 +193,9 @@ export function readSyncWizardJournal(raw: string | null, scope: SyncCreateWizar
     || Object.hasOwn(draft, "newsLimit") && (scope.family !== "rss" || typeof draft.newsLimit !== "string" || !/^\d{1,2}$/.test(draft.newsLimit) || Number(draft.newsLimit) < 1 || Number(draft.newsLimit) > 20)) throw Error("Invalid draft");
   const presentation = syncSlidePresentationSchema.safeParse(draft.presentation), selection = draft.selection;
   if (!presentation.success || presentation.data.family !== scope.family || !record(selection)
-    || !exactKeys(selection, ["mode", "contexts", "birthdayDays"]) || !["all", "selected"].includes(String(selection.mode))
+    || !exactKeys(selection, ["mode", "contexts", "birthdayDays",...(Object.hasOwn(selection,"matchLocation")?["matchLocation"]:[]),...(Object.hasOwn(selection,"welcomeDays")?["welcomeDays"]:[])]) || !["all", "selected"].includes(String(selection.mode))
+    || selection.matchLocation!==undefined&&!["both","home","away"].includes(String(selection.matchLocation))
+    || selection.welcomeDays!==undefined&&(typeof selection.welcomeDays!=="number"||selection.welcomeDays<=0||selection.welcomeDays>42||!Number.isInteger(selection.welcomeDays*1440))
     || ![7, 14, 21].includes(Number(selection.birthdayDays)) || typeof selection.birthdayDays !== "number"
     || !Array.isArray(selection.contexts) || selection.contexts.length > 500
     || selection.contexts.some(context => !sportlinkSlideContextSchema.safeParse(context).success)) throw Error("Invalid selection");

@@ -664,11 +664,14 @@ export async function fetchSportlinkDataset(
   }
 
   if (datasetGroup === "match_details") {
-    const program = await client.fetchArticle("programma", {
-      aantaldagen: 42,
-      aantalregels: 100
-    });
-    const baseMatches = mapSportlinkMatches(program.payload, "program");
+    // Details are an independent producer. Resolve the same official pool IDs
+    // as the ordinary matches sync before its upsert can replace those records.
+    const [program,teams,pools] = await Promise.all([
+      client.fetchArticle("programma", { aantaldagen:42, aantalregels:100 }),
+      client.fetchArticle("teams"), client.fetchArticle("poulelijst"),
+    ]);
+    const baseMatches = enrichSportlinkOwnMatchesWithPoolContexts(
+      mapSportlinkMatches(program.payload, "program"),teams.payload,pools.payload);
     const details = new Map<string, SportMatch>();
     const matchCodes = extractSportlinkRecords(program.payload)
       .map((match) => scalar(match.wedstrijdcode))
@@ -692,12 +695,10 @@ export async function fetchSportlinkDataset(
         throw error;
       }
     }
-    batch.matches = baseMatches.map((match) => {
+    batch.matches = enrichSportlinkOwnMatchesWithPoolContexts(baseMatches.map((match) => {
       const detail = details.get(match.externalId);
-      return detail
-        ? { ...detail, isHomeMatch: match.isHomeMatch }
-        : match;
-    });
+      return detail ? mergeSportlinkMatch(match,detail) : match;
+    }),teams.payload,pools.payload);
     batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches, signal);
     return batch;
   }

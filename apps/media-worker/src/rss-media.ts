@@ -7,7 +7,8 @@ import sharp from "sharp";
 
 import type { ClaimedRssSync } from "./rss-sync-runner";
 
-const maximumArticleImages = 12;
+// Same bounded item contract as the parser and historical news snapshots.
+const maximumArticleImages = 50;
 const mediaConcurrency = 3;
 
 export type RssMediaArtifact = {
@@ -43,7 +44,7 @@ export async function prepareRssMediaArtifacts(
       title:
         feed.articles.find((article) => article.externalId === image.externalId)
           ?.title ?? "RSS-nieuwsafbeelding",
-      url: image.url
+      url: image.url,alternatives:image.alternatives
     })),
     ...feed.articles.slice(0, maximumArticleImages).map((article) => ({
       externalId: article.externalId,
@@ -64,8 +65,11 @@ export async function prepareRssMediaArtifacts(
               type: "png",
               width: 512
             })
-          : (await fetchSafeRssImage(candidate.url)).body;
-        return await normalizeRssImage(job, candidate, input);
+          : null;
+        if(input)return await normalizeRssImage(job,candidate,input);
+        const urls=[candidate.url,...('alternatives' in candidate?candidate.alternatives??[]:[])].slice(0,6);
+        for(const url of urls){try{return await normalizeRssImage(job,candidate,(await fetchSafeRssImage(url)).body);}catch{/* The next feed-declared candidate passes the same network/decode guards. */}}
+        return null;
       } catch {
         // Remote media is supplementary. A valid normalized text feed remains
         // publishable when a supplier image is missing or temporarily broken.

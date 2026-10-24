@@ -64,7 +64,40 @@ export function measureSyncOnzeTrotsV9Layout(root: ParentNode = document): numbe
     let size = portrait ? 38 : 42;
     title.style.fontSize = `${size}px`;
     const available = copy.clientHeight - (subtitle.hidden ? 0 : subtitle.offsetHeight + 7);
-    while (size > 14 && title.scrollHeight > available + 1) title.style.fontSize = `${--size}px`;
+    while (size > (screen.dataset.otCurrent ? 30 : 14) && title.scrollHeight > available + 1) title.style.fontSize = `${--size}px`;
+  }
+  // Called after the verified fonts decode in preview, Worker and Player.
+  // Give the complete headline priority; only the summary may be shortened.
+  // Use logical dimensions so the same frame fits at every output scale.
+  if (screen.dataset.otCurrent) {
+    const article = screen.querySelector<HTMLElement>('.rss-copy');
+    const headline = article?.querySelector<HTMLElement>('[data-ot-article-title]');
+    const summary = article?.querySelector<HTMLElement>('[data-ot-summary]');
+    if (article && headline && summary) {
+      const style = getComputedStyle(article);
+      const others = [...article.children].filter(element => element !== headline && element !== summary) as HTMLElement[];
+      const room = article.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+        - others.reduce((height, element) => height + element.offsetHeight, 0)
+        - parseFloat(style.rowGap) * (article.children.length - 1);
+      let size = 48;
+      headline.style.fontSize = `${size}px`;
+      while (size > 36 && headline.offsetHeight > room) headline.style.fontSize = `${--size}px`;
+      const available = Math.max(0, room - headline.offsetHeight);
+      const full = summary.dataset.otSummary ?? '';
+      summary.textContent = full;
+      summary.hidden = !full;
+      if (full && summary.scrollHeight > available) {
+        let low = 0, high = full.length;
+        while (low < high) {
+          const middle = Math.ceil((low + high) / 2);
+          summary.textContent = full.slice(0, middle).trimEnd() + '…';
+          if (summary.scrollHeight <= available) low = middle;
+          else high = middle - 1;
+        }
+        summary.textContent = low ? full.slice(0, low).trimEnd() + '…' : '';
+        summary.hidden = !low;
+      }
+    }
   }
   const desired = Number(screen.dataset.otWelcomeScale ?? 150) / 100;
   for (const stage of screen.querySelectorAll<HTMLElement>('.visitor-stage')) {

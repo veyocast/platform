@@ -102,6 +102,6 @@ export function selectSyncOnzeTrotsVisitors(fixtures:readonly Fixture[],selectio
  return fixtures.filter(fixture=>{
   const kickoff=fixture.kickoffAt?Date.parse(fixture.kickoffAt):NaN;
   return fixture.home.clubId===selection.ownClubId&&fixture.home.teamId!==null&&teams.has(fixture.home.teamId)
-   &&Number.isFinite(kickoff)&&kickoff>reference&&fixture.status==='scheduled';
+   &&Number.isFinite(kickoff)&&kickoff>reference&&(selection.windowMinutes===undefined||kickoff<=reference+selection.windowMinutes*60000)&&fixture.status==='scheduled';
  }).sort((a,b)=>Date.parse(a.kickoffAt!)-Date.parse(b.kickoffAt!)||a.id.localeCompare(b.id,'en')).slice(0,4);
 }

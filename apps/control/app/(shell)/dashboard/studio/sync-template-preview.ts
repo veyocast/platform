@@ -157,5 +157,5 @@ export function createSyncTemplatePreview(family:SyncContentFamily,rendererVersi
   const names=['Sam K.','Nora D.','Milan J.','Sanne V.','Finn M.','Peter S.'];
   original.rich.birthdays.forEach((person,index)=>{person.displayName=names[index]??person.displayName;});
  }
- return syncSlidePresentationSchema.parse(rendererVersion==='sync-onzetrots-v1'?original:{...original,style:{...original.style,font:'Brush',fontChanged:true},rendererVersion,sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',authoring:{schemaVersion:1,headerSubtitles:{},headerTexts:family==='team-arrivals'?{'team-arrivals':'WELKOM OP HOUTRUST'}:{},welcomeScalePercent:150}});
+ return syncSlidePresentationSchema.parse(rendererVersion==='sync-onzetrots-v1'?original:{...original,style:{...original.style,font:'Brush',fontChanged:true},rendererVersion,sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',authoring:{schemaVersion:1,visualRevision:'onzetrots-20261024',headerSubtitles:{},headerTexts:family==='team-arrivals'?{'team-arrivals':'WELKOM OP HOUTRUST'}:{},welcomeScalePercent:150}});
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {redirect} from "next/navigation";
 
 import { hasCapability } from "@veyocast/auth";
 import { freezeThemePresentation } from "@veyocast/content-templates/theme-catalog";
@@ -18,6 +19,7 @@ export default async function BirthdayNewPage({ searchParams }: Props) {
   const data = session.isLive && session.tenantId
     ? await loadBirthdayWizardData(session.tenantId)
     : emptyData();
+  if(data.themePresentation.selection.ref.catalog==="v2"&&data.themePresentation.selection.ref.id==="onzetrots-tv")redirect("/dashboard/studio/new?family=birthdays&mode=connected");
   return <>
     <PageHeader
       actions={<Button asChild variant="secondary"><Link href="/dashboard/studio/new">Annuleren</Link></Button>}
