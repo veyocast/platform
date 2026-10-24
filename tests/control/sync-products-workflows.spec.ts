@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 // Actual Source component and styles, controlled read/command transport.
 // The separate pgTAP suite proves the real >1000-row query and RLS boundary.
@@ -91,7 +92,7 @@ async function mount(
   await page.route("**/__sync-catalog/fixture", (route) =>
     route.fulfill({
       contentType: "text/html",
-      body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><style>${css}\n${bundle.css}</style></head><body><div id="root"></div><script>${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>`,
+      body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><title>VeyoCast producten</title><style>${css}\n${bundle.css}</style></head><body><div id="root"></div><script>${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>`,
     }),
   );
   await page.goto(`${origin}/__sync-catalog/fixture`);
@@ -310,3 +311,52 @@ test("receipt confirmation does not replace a newer canonical product after a lo
     .filter({ has: page.getByText("Latere catalogusnaam", { exact: true }) });
   await expect(row).toContainText("€ 2,75");
 });
+
+// EasyList's published generic cosmetic rule; keep it enabled throughout.
+// https://github.com/easylist/easylist/blob/master/easylist/easylist_general_hide.txt
+for (const viewport of [{ width: 1440, height: 960 }, { width: 390, height: 844 }]) {
+  test(`products remain readable and operable with cosmetic table filtering at ${viewport.width}`, async ({ page }, info) => {
+    await page.setViewportSize(viewport);
+    const commands: unknown[] = [];
+    await page.route("**/__sync-catalog/availability", route => {
+      commands.push(route.request().postDataJSON());
+      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, active: false, revision: 2 }) });
+    });
+    const reads = await mount(page);
+    const table = page.getByRole("table").first();
+    const first = page.getByText("Catalog 0001", { exact: true });
+    await expect(first).toBeVisible();
+    const geometry = await table.boundingBox();
+    await page.addStyleTag({ content: ".ad-table { display: none !important; }" });
+    await page.evaluate(() => {
+      const check = document.createElement("div");
+      check.className = "ad-table";
+      check.dataset.cosmeticTableCheck = "true";
+      check.textContent = "Filtercontrole";
+      document.body.append(check);
+    });
+    await expect(page.locator("[data-cosmetic-table-check]")).toBeHidden();
+    await expect(table).toBeVisible();
+    await expect(first).toBeVisible();
+    expect(await table.boundingBox()).toEqual(geometry);
+    await expect(table.getByRole("row")).toHaveCount(51);
+    await expect(table.getByRole("row").nth(1)).toContainText("€ 2,00");
+    await page.getByRole("button", { name: "Volgende producten" }).click();
+    await expect(page.getByText("Catalog 0051", { exact: true })).toBeVisible();
+    await expect(table.getByRole("row")).toHaveCount(51);
+    expect(reads.at(-1)).toMatchObject({ offset: 50 });
+    await info.attach("products-page-two-with-filter", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    await page.getByRole("searchbox", { name: "Producten zoeken" }).fill("1005");
+    await expect(page.getByText("Catalog 1005", { exact: true })).toBeVisible();
+    await expect(table.getByRole("row")).toHaveCount(2);
+    await page.getByRole("searchbox", { name: "Producten zoeken" }).fill("");
+    const availability = page.getByRole("button", { name: "Catalog 0001: beschikbaar, klik om uit te zetten", exact: true });
+    await expect(availability).toBeVisible();
+    await availability.focus();
+    await page.keyboard.press("Enter");
+    await expect.poll(() => commands.length).toBe(1);
+    await expect(page.getByRole("button", { name: "Catalog 0001: niet beschikbaar, klik om aan te zetten", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+  });
+}

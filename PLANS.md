@@ -123,6 +123,11 @@ VeyoCast wordt lokaal gebouwd met Codex in geïsoleerde Git-worktrees. GitHub bl
 - review;
 - PR.
 
+S289 herstelt verborgen product-, prijs-, team- en sponsortabellen door de
+botsende gedeelde `ad-table`-klasse te vervangen. De bestaande filterregel blijft
+actief in de regressieproef. Zie `prompts/sprints/S289-visible-product-catalog.md`
+en `docs/s289-visible-product-catalog.md`.
+
 ## MVP-doel
 
 De MVP is pilot-ready wanneer:

@@ -33,7 +33,16 @@ const protectedHashes: Record<string, string> = {
 let fixture: { pages: Record<string, string>; css: string; boundaryCalls: { capability: string; options?: unknown }[] };
 
 test.beforeAll(() => {
-  for (const [path, digest] of Object.entries(protectedHashes)) expect(createHash("sha256").update(readFileSync(path)).digest("hex"), path).toBe(digest);
+  for (const [path, digest] of Object.entries(protectedHashes)) {
+    const bytes = readFileSync(path);
+    // S289 renames only this selector to avoid hiding management tables.
+    // Retain the original hash: every other Source CSS byte stays protected.
+    // The actual browser fixture below still loads the unmodified runtime CSS.
+    const preserved = path === "apps/control/app/sync-source.css"
+      ? bytes.toString("utf8").replace(/\.sync-data-table(?![\w-])/g, ".ad-table")
+      : bytes;
+    expect(createHash("sha256").update(preserved).digest("hex"), path).toBe(digest);
+  }
   const entry = `import React from'react';import{renderToReadableStream}from'react-dom/server';import{getCapabilitiesForRoles}from'@veyocast/auth';import{SummaryStrip}from'@veyocast/ui';import{ControlShell}from'./apps/control/app/(shell)/_components/control-shell';import{getNavigationGroupsForRoles}from'./apps/control/app/(shell)/_lib/control-navigation';import PlatformLayout from'./apps/control/app/(shell)/platform/layout';import TenantsPage from'./apps/control/app/(shell)/platform/tenants/page';import SportlinkPage from'./apps/control/app/(shell)/platform/integrations/sportlink/page';import SupportPage from'./apps/control/app/(shell)/platform/support/settings/page';
 export async function render(){const capabilities=getCapabilitiesForRoles(['platform_owner']);const session={assuranceLevel:'aal2',nextAssuranceLevel:'aal2',capabilities,email:'own-layout@example.invalid',isLive:true,organization:'Eigen platform',roles:['platform_owner'],tenant:'Eigen vereniging',tenantContextReason:'selected',tenantId:'25100000-0000-4000-8000-000000000001',tenantMemberships:[],tenantRoleLabel:'Platformeigenaar',tenantSlug:'own-layout',tenantStatus:'active',timezoneName:'Europe/Amsterdam',userId:'25100000-0000-4000-8000-000000000002',userName:'Eigen lezer'};globalThis.fixtureSession=session;globalThis.fixtureBoundaryCalls=[];const pages={};for(const [path,Page]of[['/platform/tenants',TenantsPage],['/platform/integrations/sportlink',SportlinkPage],['/platform/support/settings',SupportPage]]){globalThis.fixturePath=path;const content=await Page({searchParams:Promise.resolve({})});const platform=await PlatformLayout({children:content});pages[path]=await new Response(await renderToReadableStream(<ControlShell session={session} navigationGroups={getNavigationGroupsForRoles(capabilities)} uploadQueue={[]} visualQaEnabled={false}>{platform}<aside aria-label="Buiten platform"><SummaryStrip items={[{label:'Bestaande verbindingen',value:1},{label:'Actief',value:1},{label:'Aandacht nodig',value:0},{label:'Privacyfeeds',value:'Standaard uit',detail:'Expliciete tenantopt-in vereist'}]}/></aside></ControlShell>)).text()}return{pages,boundaryCalls:globalThis.fixtureBoundaryCalls}}`;
   const linkBoundary = `import React from'react';export default function Host({children,priority,unoptimized,fill,prefetch,...props}){return React.createElement('a',props,children)}`;

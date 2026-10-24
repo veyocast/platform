@@ -117,7 +117,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       </section>
 
       <section className="card ad-table-scroll" tabIndex={0} aria-label="Teamleden en uitnodigingen" data-team-panel="members">
-          <table className="ad-table"><caption className="sync-sr-only">Toegang binnen de actieve vereniging.</caption>
+          <table className="sync-data-table"><caption className="sync-sr-only">Toegang binnen de actieve vereniging.</caption>
               <thead><tr><th scope="col">Teamlid</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col"><span className="sync-sr-only">Beheer</span></th></tr></thead>
               <tbody>
                 {data.members.map((member) => {
@@ -173,7 +173,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
           <StatusPill label={`${data.invitations.length} totaal`} tone="neutral" />
         </div>
         {data.invitations.length ? (
-          <DataTable className="ad-table" frameClassName="ad-table-scroll" responsive={false} caption="Persoonlijke tenantuitnodigingen." tableKey="tenant-team-invitations">
+          <DataTable className="sync-data-table" frameClassName="ad-table-scroll" responsive={false} caption="Persoonlijke tenantuitnodigingen." tableKey="tenant-team-invitations">
               <thead><tr><th scope="col">E-mail</th><th scope="col">Rol</th><th scope="col">Status</th><th scope="col">Bezorging</th><th scope="col">Actie</th></tr></thead>
               <tbody>
                 {data.invitations.map((invitation) => {
