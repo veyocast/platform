@@ -10,7 +10,7 @@ import {
   type SyncSlidePresentation,
 } from "@veyocast/contracts";
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
-import {syncOnzeTrotsV9Css,syncOnzeTrotsCss} from '@veyocast/content-templates/sync-slide-static-view';
+import {syncOnzeTrotsV9Styles,syncOnzeTrotsCss} from '@veyocast/content-templates/sync-slide-static-view';
 import {resolvePlayerItemPresentation,type PlayerManifestItem} from "./player-manifest";
 
 /** Select a render input without rewriting immutable Studio fields during a
@@ -95,7 +95,7 @@ export function syncPreparedCss(
   presentation?:SyncSlidePresentation,
 ): string {
   const expected = new Set<string>((presentation?syncSlideRendererAssets(presentation):syncSystemAssets).map((asset) => asset.path));
-  return (presentation?.rendererVersion==='sync-onzetrots-v9'?syncOnzeTrotsV9Css:presentation?.rendererVersion===syncOnzeTrotsRendererVersion?syncOnzeTrotsCss:syncSlideCss).replace(
+  return (presentation?.rendererVersion==='sync-onzetrots-v9'?syncOnzeTrotsV9Styles(presentation):presentation?.rendererVersion===syncOnzeTrotsRendererVersion?syncOnzeTrotsCss:syncSlideCss).replace(
     /url\(\s*(['"]?)(\/(?:onzetrots-approved-v(?:1|9)\/)?assets\/[^)'"\s]+)\1\s*\)/g,
     (_match, _quote, path: string) => {
       const url = urls[path];

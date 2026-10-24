@@ -27,3 +27,11 @@ it("shares a fractional placement budget across menu pages without invalidating 
  const input=sitesPresentationSchema.parse({kind:"dynamic",configuration:{schemaVersion:1,rendererVersion:"sites-v17",sourceRevision:sitesCurrentPresentationSourceRevision,provider:"menu",unifiedKind:"kantine",themeId:"onzetrots-tv",orientation:"landscape",title:"Menu",menuWidgets:true,seconds:15},content:{kind:"kantine",title:"Menu",rows:[],menuPages:[1,2,3].map(index=>({id:`page-${index}`,columns:1,widgets:[{id:`deal-${index}`,type:"promo",column:"full",columns:1,title:`Deal ${index}`,rows:[]}]}))}});
  const markup=await buildSitesMarkup(input,{},20);expect(markup.pages).toHaveLength(3);expect(markup.pageDurationSeconds).toBe(20/3);expect(input.kind==="dynamic"&&input.configuration.seconds).toBe(15);expect(markup.pages[2]).toContain("Deal 3");
 });
+
+for(const mode of ['light','dark'] as const)it(`freezes the approved ${mode} menu and Marker dependencies without rewriting source data`,async()=>{
+ const input=sitesPresentationSchema.parse({kind:'dynamic',configuration:{schemaVersion:1,rendererVersion:'sites-v17',sourceRevision:sitesCurrentPresentationSourceRevision,provider:'menu',unifiedKind:'kantine',themeId:'onzetrots-tv',orientation:'portrait',title:'Onze menukaart',menuWidgets:true,onzeTrotsStyle:`v9-marker-${mode}`,seconds:15},content:{kind:'kantine',title:'Onze menukaart',clubName:'Eigen club',rows:[],menuPages:[{id:'page-1',columns:1,widgets:[{id:'drinks',type:'category',column:'full',columns:2,title:'Warme dranken',rows:[{id:'coffee',column:1,primary:'Clubkoffie',secondary:'Groot · Klein',value:'€ 3,75'}]}]}]}});
+ const before=JSON.stringify(input),markup=await buildSitesMarkup(input,{},17);
+ expect(markup.pages[0]).toContain('data-ot-marker="true"');expect(markup.pages[0]).toContain(`data-theme="${mode}"`);expect(markup.pages[0]).toContain('slide-header-container');expect(markup.pages[0]).toContain('€ 3,75');expect(markup.css).toContain('font-family:OTMarker');
+ expect(markup.pages.join('')).not.toMatch(/(?:src|href)="(?:https?:|\/onzetrots)/);expect(markup.css).not.toMatch(/url\(["']?\//);
+ expect(markup.assetTokens.every(asset=>asset.token===`VEYOSITES_ASSET_${asset.cacheKey.split('/').at(-1)}`)).toBe(true);expect(markup.pageDurationSeconds).toBe(17);expect(JSON.stringify(input)).toBe(before);
+});

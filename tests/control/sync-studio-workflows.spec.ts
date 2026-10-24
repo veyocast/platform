@@ -41,6 +41,7 @@ type Save = {
 type Hooks = {
   approved?:boolean;
   approvedV9?:boolean;
+  historicalV9?:boolean;
   approvedPages?:boolean;
   approvedManualFamily?:'birthdays'|'activities'|'agenda';
   dropFirstSave?: boolean;
@@ -60,6 +61,7 @@ type Hooks = {
 };
 async function mount(page: Page, hooks: Hooks = {}) {
   const approved=hooks.approvedManualFamily?createSyncStudioStarter({family:hooks.approvedManualFamily,tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation:hooks.approved||hooks.approvedV9?createSyncTemplatePreview(hooks.approvedPages?'birthdays':'standings',hooks.approvedV9?'sync-onzetrots-v9':'sync-onzetrots-v1'):undefined;
+  if(hooks.historicalV9&&approved){approved.style={...approved.style,font:'Inter',fontChanged:false};}
   if(approved?.rendererVersion==='sync-onzetrots-v1'&&hooks.approvedPages)approved.rich!.birthdays!.push({...approved.rich!.birthdays![0]!,id:'approved-seventh-birthday'});
   const document = approved?createSyncStudioDocument(approved,hooks.approvedPages?3:12):createSyncStudioStarter({
     family: hooks.family ?? "fixtures",
@@ -989,4 +991,16 @@ test('v9 replay starts the same scene from both studio and fullscreen, while red
  await expect(dialog.locator('.slide-header-container')).toHaveCSS('opacity','1');
  await expect(dialog.locator('.screen')).toHaveClass(/intro-finished/);
  expect(fixture.errors).toEqual([]);
+});
+
+test('historical v9 Marker choice is an explicit savable change and never silently written on open',async({page})=>{
+ const run=await mount(page,{approvedV9:true,historicalV9:true});
+ expect(run.writes).toHaveLength(0);expect(run.state.document.syncPresentation!.style.fontChanged).toBe(false);
+ const save=page.getByRole('button',{name:'Opslaan',exact:true});await expect(save).toBeEnabled();await save.click();
+ await expect.poll(()=>run.writes.length).toBe(1);expect(run.writes[0]!.document.syncPresentation!.style).toMatchObject({font:'Brush',fontChanged:true});
+ await expect(save).toBeDisabled();expect(run.state.document.syncPresentation!.style).toMatchObject({font:'Brush',fontChanged:true});expect(run.errors).toEqual([]);
+});
+test('read-only historical v9 inspection preserves its original font and performs no write',async({page})=>{
+ const run=await mount(page,{approvedV9:true,historicalV9:true,viewer:true});await expect(page.getByRole('button',{name:'Opslaan',exact:true})).toBeDisabled();
+ await expect(page.locator('.screen').first()).not.toHaveAttribute('data-ot-marker');expect(run.writes).toHaveLength(0);expect(run.state.document.syncPresentation!.style.fontChanged).toBe(false);
 });

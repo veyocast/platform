@@ -96,7 +96,7 @@ export function createSyncStudioStarter({
       name: definition.name,
       title: label,
       club: { name: tenantName, logo },
-      style: { background: theme === "onzetrots-tv" ? "clubmuur" : "stadium",motion:"rustig" },
+      style: { background: theme === "onzetrots-tv" ? "clubmuur" : "stadium",motion:"rustig",...(theme==='onzetrots-tv'?{font:'Brush',fontChanged:true}:{}) },
     }),
   );
 }

@@ -213,7 +213,7 @@ for(const width of [390,768,1440])test(`S215 widget authoring, appearance and re
  await page.getByRole('button',{name:'Volgende',exact:true}).click();await page.getByLabel('Titel op het scherm',{exact:true}).fill('Onze kantine');
  await page.getByRole('button',{name:'QA achtergrond',exact:true}).click();await page.getByLabel(/^Achtergrond passen/).selectOption('cover');
  await page.getByLabel('Accentkleur',{exact:true}).fill('#c12545');await page.getByLabel(/Contrastlaag/).fill('45');
- await expect(page.locator('.vm-canvas')).toHaveCSS('--vm-accent','#c12545');await expect(page.locator('.vm-background')).toHaveCSS('object-fit','cover');await expect(page.locator('.vm-shade')).toHaveCSS('opacity','0.45');
+ await expect(page.locator('.vm-canvas')).toHaveCSS('--vm-accent','#c12545');await expect.poll(()=>page.locator('.vm-approved .screen').evaluate(element=>({fit:getComputedStyle(element,'::before').backgroundSize,opacity:getComputedStyle(element,'::before').opacity,accent:getComputedStyle(element.querySelector('[data-ot-header-text]')!).color}))).toEqual({fit:'cover',opacity:'0.55',accent:'rgb(193, 37, 69)'});
  const bounds=await page.locator('.vm-product').evaluateAll(rows=>rows.map(row=>{const a=row.getBoundingClientRect(),b=row.closest('.vm-widget').getBoundingClientRect();return a.top>=b.top&&a.bottom<=b.bottom&&a.left>=b.left&&a.right<=b.right;}));expect(bounds.every(Boolean)).toBe(true);
  await page.getByRole('button',{name:'Volgende pagina',exact:true}).click();await expect(page.locator('.vm-widget h2')).toHaveText('Koffiedeal');await page.getByRole('button',{name:'Vorige pagina',exact:true}).click();
  await page.getByRole('button',{name:'Volgende',exact:true}).click();

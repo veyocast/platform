@@ -8,5 +8,10 @@ export const publisherLibraryFilterSchema = z.object({
   collectionId: z.string().uuid().optional(),
   favorites: z.enum(["true", "false"]).optional(),
   offset: z.coerce.number().int().min(0).max(10000).default(0),
-  assetId: z.string().uuid().optional()
+  assetId: z.string().uuid().optional(),
+  designId: z.string().uuid().optional()
+}).strict();
+
+export const publisherMenuPreparationSchema=z.object({
+  designId:z.string().uuid(),operationId:z.string().uuid(),
 }).strict();

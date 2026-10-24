@@ -461,5 +461,11 @@ export function syncSlideRendererAssets(slide:SyncSlidePresentation):ReadonlyArr
  // not selected an explicit gallery image yet.
  if(!slide.style.backgroundAsset)selected.add(`/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-${slide.orientation==='portrait'?'portrait-941':'wide-1672'}.webp`);
  const background=syncBackgroundAssetForRef(slide.style.backgroundAsset);
- return [...manifest.filter(asset=>selected.has(asset.path)),...syncSystemAssets.filter(asset=>selected.has(asset.path)),...(background?[background]:[])];
+ const marker=slide.rendererVersion===syncOnzeTrotsV9RendererVersion&&slide.style.fontChanged&&slide.style.font==='Brush'?syncOnzeTrotsSystemAssets.filter(asset=>asset.path==='/onzetrots-approved-v1/assets/fonts/club-font-9.ttf'):[];
+ return [...manifest.filter(asset=>selected.has(asset.path)),...syncSystemAssets.filter(asset=>selected.has(asset.path)),...marker,...(background?[background]:[])];
+}
+
+/** Explicit unsaved authoring upgrade. Never apply to immutable playback input. */
+export function syncOnzeTrotsMarkerDraft(slide:SyncSlidePresentation):SyncSlidePresentation{
+ return slide.rendererVersion===syncOnzeTrotsV9RendererVersion?{...slide,style:{...slide.style,font:'Brush',fontChanged:true}}:slide;
 }

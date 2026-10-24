@@ -20,13 +20,13 @@ for(const width of [390,1440])for(const orientation of ['landscape','portrait']a
    if(count===13)await expect(canvas.locator('.poll-option > b')).toHaveCount(0);
    const geometry=await canvas.evaluate(element=>{
     const box=element.getBoundingClientRect(),panel=element.querySelector('.poll-panel')!.getBoundingClientRect(),footer=element.querySelector('.slide-footer')!.getBoundingClientRect();
-    const nodes=[...element.querySelectorAll<HTMLElement>('.poll-panel > h3,.poll-option > span,.ot-qr')].map(node=>{const rect=node.getBoundingClientRect(),parent=node.closest('.poll-option,.poll-panel,.engage-aside')!.getBoundingClientRect(),scale=rect.width/node.clientWidth;return{className:node.classList.value,rect:rect.toJSON(),parent:parent.toJSON(),inkRight:rect.left+Math.max(node.clientWidth,node.scrollWidth)*scale,inkBottom:rect.top+Math.max(node.clientHeight,node.scrollHeight)*scale};});
+    const nodes=[...element.querySelectorAll<HTMLElement>('.poll-panel > h3,.poll-panel > p,.poll-option > span,.ot-qr')].map(node=>{const rect=node.getBoundingClientRect(),parent=node.closest('.poll-option,.poll-panel,.engage-aside')!.getBoundingClientRect(),scale=rect.width/node.clientWidth;return{className:node.classList.value,rect:rect.toJSON(),parent:parent.toJSON(),inkRight:rect.left+Math.max(node.clientWidth,node.scrollWidth)*scale,inkBottom:rect.top+Math.max(node.clientHeight,node.scrollHeight)*scale};});
     return{box:box.toJSON(),panel:panel.toJSON(),footerTop:footer.top,nodes,rows:[...element.querySelectorAll('.poll-option')].map(node=>node.getBoundingClientRect().toJSON())};
    });
    // Brush glyphs can extend beyond their line box into a visible margin.
    // Check their full ink extent against the containing panel, not a clipped
    // line-box approximation that would reject the original font's ascenders.
-   for(const node of geometry.nodes){expect(node.rect.left,node.className).toBeGreaterThanOrEqual(geometry.box.left);expect(node.inkRight,node.className).toBeLessThanOrEqual(Math.min(geometry.box.right,node.parent.right));expect(node.inkBottom,node.className).toBeLessThanOrEqual(Math.min(geometry.footerTop,node.parent.bottom));}
+   for(const node of geometry.nodes){expect(node.rect.left,node.className).toBeGreaterThanOrEqual(geometry.box.left);expect(node.inkRight,node.className).toBeLessThanOrEqual(Math.min(geometry.box.right,node.parent.right));expect(node.inkBottom,JSON.stringify({count,page:index,...node})).toBeLessThanOrEqual(Math.min(geometry.footerTop,node.parent.bottom));}
    for(const row of geometry.rows)expect(row.bottom).toBeLessThanOrEqual(geometry.panel.bottom);
    if(index<Math.ceil(count/4)-1)await preview.getByRole('button',{name:'Volgende keuzes',exact:true}).click();
   }

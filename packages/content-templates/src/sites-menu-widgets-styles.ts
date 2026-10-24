@@ -1,4 +1,7 @@
-/** Additive widget geometry; typography, scenery and surfaces come from v17. */
+import {approvedMenuCss} from './sites-approved-menu';
+import type {SitesPresentation} from '@veyocast/contracts';
+/** Historical unmarked widgets keep their exact v17 CSS. */
+export const sitesMenuWidgetStyles=(presentation:SitesPresentation)=>sitesMenuWidgetCss+(presentation.kind==='dynamic'&&presentation.configuration.themeId==='onzetrots-tv'&&presentation.configuration.onzeTrotsStyle?approvedMenuCss:'');
 export const sitesMenuWidgetCss = String.raw`
 @font-face{font-family:'Manrope Variable';src:url('/fonts/manrope.woff2') format('woff2');font-weight:200 800;font-style:normal;font-display:swap}
 .vm-frame{position:relative;flex:none;overflow:hidden;max-width:100%}

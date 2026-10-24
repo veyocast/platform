@@ -149,3 +149,21 @@ test("S221 LG never acknowledges a zero-height Sites frame and uses its verified
  await expect(page.locator(".lg-sites-canvas")).toHaveCount(0);
  expect(events.downloads).toEqual(["/__lg-sites/1.svg"]);
 });
+
+for(const orientation of ['landscape','portrait'] as const)for(const mode of ['light','dark'] as const)test(`approved OnzeTrots menu keeps Marker headers and prices after offline restart ${orientation}/${mode}`,async({page,context},info)=>{
+ test.setTimeout(90000);await page.clock.install();await page.setViewportSize(orientation==='portrait'?{width:720,height:1280}:{width:1280,height:720});
+ const data=release(1,'#ff5a1f',30),markup=JSON.parse(execFileSync('pnpm',['--filter','@veyocast/player','exec','tsx','app/_lib/menu-widget-canonical-fixture.ts',orientation,`approved-${mode}`],{encoding:'utf8'}));
+ Object.assign(data.manifest,{systemAssets:systemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType}))});Object.assign(data.manifest.items[0]!,{sitesPresentation:markup});
+ await fixture(page,()=>data);const response=await page.goto(`${playerUrl}/lg/legacy`);
+ const canvas=page.locator('.lg-sites-canvas.visible');await expect(canvas.locator('.vm-product strong')).toHaveText('Clubkoffie',{timeout:60000});
+ await expect(canvas).toHaveCSS('opacity','1');await expect(canvas.locator('.screen')).toHaveCSS('opacity','1');await expect(canvas.locator('.vm-menu-panel')).toHaveCSS('opacity','1');
+ const alignment=await canvas.evaluate(root=>{const header=root.querySelector('.slide-header-container')!.getBoundingClientRect(),panel=root.querySelector('.vm-menu-panel')!.getBoundingClientRect();return{headerLeft:header.left,headerRight:header.right,panelLeft:panel.left,panelRight:panel.right};});expect(alignment.headerLeft).toBeCloseTo(alignment.panelLeft,1);expect(alignment.headerRight).toBeCloseTo(alignment.panelRight,1);
+ await expect(canvas.locator('[data-ot-header-text]')).toHaveText('Onze kantine');await expect(canvas.locator('.vm-product>b')).toHaveText('€ 3,50');
+ expect(await canvas.locator('[data-ot-header-text]').evaluate(element=>({font:getComputedStyle(element).fontFamily,loaded:document.fonts.check('400 42px OTMarker')}))).toEqual({font:'OTMarker, cursive',loaded:true});
+ const bounds=await canvas.locator('.vm-product').evaluate(element=>{const box=element.getBoundingClientRect();return {x:box.x,y:box.y,right:box.right,bottom:box.bottom,width:innerWidth,height:innerHeight};});expect(bounds.x).toBeGreaterThanOrEqual(0);expect(bounds.y).toBeGreaterThanOrEqual(0);expect(bounds.right).toBeLessThanOrEqual(bounds.width+.1);expect(bounds.bottom).toBeLessThanOrEqual(bounds.height+.1);
+ const bootstrap=await response!.text(),headers=response!.headers();await page.route(`${playerUrl}/lg/legacy`,route=>route.fulfill({body:bootstrap,headers}));await page.route('**/api/player/**',route=>route.abort());await page.route('**/__lg-sites/*.svg',route=>route.abort());await context.setOffline(true);await page.reload();
+ await expect(canvas.locator('.vm-product strong')).toHaveText('Clubkoffie',{timeout:15000});await expect(canvas.locator('.vm-product>b')).toHaveText('€ 3,50');await expect(canvas.locator('[data-ot-header-text]')).toHaveText('Onze kantine');
+ await expect(canvas).toHaveCSS('opacity','1');await expect(canvas.locator('.screen')).toHaveCSS('opacity','1');await expect(canvas.locator('.vm-menu-panel')).toHaveCSS('opacity','1');
+ await info.attach('painted-layout',{contentType:'application/json',body:JSON.stringify(await canvas.evaluate(root=>[...root.querySelectorAll('.slide-layout,.slide-header-container,.slide-content,.vm-menu-panel')].map(element=>{const s=getComputedStyle(element);return{className:element.className,bounds:element.getBoundingClientRect().toJSON(),width:s.width,maxWidth:s.maxWidth,alignItems:s.alignItems,alignSelf:s.alignSelf,display:s.display,flex:s.flex};})),null,2)});
+ await page.screenshot({path:info.outputPath('approved-menu-offline.png')});await context.setOffline(false);
+});

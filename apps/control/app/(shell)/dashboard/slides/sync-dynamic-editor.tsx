@@ -3,7 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Button} from '@veyocast/ui';
-import {syncDynamicConfigurationSchema,syncDynamicRequestSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,syncSlidePresentationSchema,syncSlideDurationMs,type SyncDynamicConfiguration,type SyncSlidePresentation,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
+import {syncOnzeTrotsMarkerDraft,syncDynamicConfigurationSchema,syncDynamicRequestSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,syncSlidePresentationSchema,syncSlideDurationMs,type SyncDynamicConfiguration,type SyncSlidePresentation,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
 import {SyncStudioFrame} from '../studio/sync-studio-frame';
 import {SyncStudioField as Field} from '../studio/sync-studio-field';
 import {mutateSyncDynamicAuthoringAction,previewSyncDynamicAuthoringAction,loadSyncDynamicBindingOptionsAction} from './sync-dynamic-actions';
@@ -20,9 +20,10 @@ const serial=(value:unknown)=>JSON.stringify(value);
  * authoritative, and preview reads never enqueue a snapshot or render. */
 export function SyncDynamicEditor(props:Props){
  const router=useRouter();
- const initial:Draft={request:props.initialRequest,seconds:String((props.initialRequest.configuration.syncConfiguration as SyncDynamicConfiguration).secondsPerPage)};
+ const initialRequest={...props.initialRequest,configuration:{...props.initialRequest.configuration,syncConfiguration:{...(props.initialRequest.configuration.syncConfiguration as SyncDynamicConfiguration),seed:syncOnzeTrotsMarkerDraft((props.initialRequest.configuration.syncConfiguration as SyncDynamicConfiguration).seed)}}};
+ const initial:Draft={request:initialRequest,seconds:String((props.initialRequest.configuration.syncConfiguration as SyncDynamicConfiguration).secondsPerPage)};
  const [draft,setDraft]=useState(initial),[past,setPast]=useState<Draft[]>([]),[future,setFuture]=useState<Draft[]>([]);
- const [revision,setRevision]=useState(props.initialRevision),[baseline,setBaseline]=useState(serial(initial)),[hydrated,setHydrated]=useState(false);
+ const [revision,setRevision]=useState(props.initialRevision),[baseline,setBaseline]=useState(serial({...initial,request:props.initialRequest})),[hydrated,setHydrated]=useState(false);
  const [busy,setBusy]=useState(false),[attempt,setAttempt]=useState<SyncDynamicCommand|null>(null),[conflict,setConflict]=useState(false);
  const [message,setMessage]=useState<string|null>(null),[error,setError]=useState<string|null>(props.error),[previewError,setPreviewError]=useState<string|null>(null);
  const [preview,setPreview]=useState<Awaited<ReturnType<typeof previewSyncDynamicAuthoringAction>>|null>(null),[previewing,setPreviewing]=useState(false);

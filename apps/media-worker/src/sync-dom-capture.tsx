@@ -259,13 +259,13 @@ export async function createSyncSlideCapture({
       });
       failureStage = "font_load";
       if(isSyncOnzeTrotsPresentation(input)){
-        await page.evaluate(async(version)=>{
-          for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope',version==='sync-onzetrots-v9'?'400 16px OTRubikDistressed':'400 16px OTMarker']){
+        await page.evaluate(async({version,marker})=>{
+          for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope',version==='sync-onzetrots-v9'?'400 16px OTRubikDistressed':'400 16px OTMarker',...(marker?['400 16px OTMarker']:[])]){
             const faces=await document.fonts.load(font);
             if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('Approved OnzeTrots font unavailable');
           }
           await document.fonts.ready;
-        },input.rendererVersion);
+        },{version:input.rendererVersion,marker:input.style.fontChanged&&input.style.font==='Brush'});
       }else await loadSitesCaptureFonts(page);
       failureStage = "dependency_decode";
       await page.evaluate(async (background) => {

@@ -34,3 +34,19 @@ describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))("S215 menu PNG 
   try{const first=await capture.renderPng(1200),second=await capture.renderPng(16200);expect(first).not.toEqual(second);expect(await sharp(first).metadata()).toMatchObject({width:orientation==="landscape"?1920:1080,height:orientation==="landscape"?1080:1920});expect(measurements).toHaveLength(2);for(const measurement of measurements){const data=measurement as {viewport:{width:number;height:number};elements:Array<{bounds:{x:number;y:number;width:number;height:number};tag:string}>};for(const row of data.elements.filter(element=>["STRONG","SMALL","H1","H2","P"].includes(element.tag))){expect(row.bounds.x).toBeGreaterThanOrEqual(0);expect(row.bounds.y).toBeGreaterThanOrEqual(0);expect(row.bounds.x+row.bounds.width).toBeLessThanOrEqual(data.viewport.width);expect(row.bounds.y+row.bounds.height).toBeLessThanOrEqual(data.viewport.height);}}}finally{await capture.close();}
  },45000);
 });
+
+describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))('approved OnzeTrots menu uses the same native frame and original font',()=>{
+ for(const orientation of ['landscape','portrait'] as const)for(const mode of ['light','dark'] as const)it(`renders two complete ${orientation}/${mode} pages with saved prices`,async()=>{
+  const input=sitesPresentationSchema.parse({kind:'dynamic',configuration:{schemaVersion:1,rendererVersion:'sites-v17',sourceRevision:sitesCurrentPresentationSourceRevision,provider:'menu',unifiedKind:'kantine',themeId:'onzetrots-tv',orientation,title:'Onze menukaart',subtitle:'Vers uit de kantine',menuWidgets:true,onzeTrotsStyle:`v9-marker-${mode}`,seconds:15},content:{kind:'kantine',title:'Onze menukaart',subtitle:'Vers uit de kantine',clubName:'Eigen club',rows:[],menuPages:[{id:'first',columns:1,widgets:[{id:'drinks',type:'category',column:'full',columns:2,title:'Warme dranken',subtitle:'Met zorg gemaakt',rows:Array.from({length:12},(_,index)=>({id:`product-${index}`,column:index<6?1:2,primary:`Product ${index+1}`,secondary:'Groot · Klein · Met melk',value:index===0?'€ 3,75':'€ 0,00'}))}]},{id:'second',columns:1,widgets:[{id:'deal',type:'promo',column:'full',columns:1,title:'Koffiedeal',subtitle:'Koffie met iets lekkers',rows:[]}]}]}});
+  const measurements:unknown[]=[];
+  const capture=await createSitesPresentationCapture({presentation:input,executablePath:process.env.SITES_CAPTURE_TEST_CHROMIUM!,onMeasure:value=>measurements.push(value)});
+  try{
+   const first=await capture.renderPng(1200),second=await capture.renderPng(16200);
+   expect(first).not.toEqual(second);expect(await sharp(first).metadata()).toMatchObject({width:orientation==='landscape'?1920:1080,height:orientation==='landscape'?1080:1920});expect(measurements).toHaveLength(2);
+   for(const measurement of measurements){const data=measurement as {viewport:{width:number;height:number};elements:Array<{tag:string;font:string;bounds:{x:number;y:number;width:number;height:number}}>};
+    const headers=data.elements.filter(element=>element.tag==='H2');expect(headers.length).toBeGreaterThan(0);expect(headers.every(header=>header.font.includes('OTMarker'))).toBe(true);
+    for(const element of data.elements.filter(element=>['H2','STRONG','SMALL'].includes(element.tag))){expect(element.bounds.x).toBeGreaterThanOrEqual(0);expect(element.bounds.y).toBeGreaterThanOrEqual(0);expect(element.bounds.x+element.bounds.width).toBeLessThanOrEqual(data.viewport.width+.1);expect(element.bounds.y+element.bounds.height).toBeLessThanOrEqual(data.viewport.height+.1);}
+   }
+  }finally{await capture.close();}
+ },45000);
+});

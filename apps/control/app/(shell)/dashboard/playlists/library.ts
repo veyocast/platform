@@ -10,8 +10,8 @@ import {safeParseStudioDocument} from '@veyocast/studio';
 import {readPublisherSyncDynamic,type PublisherSyncMedia} from "./sync-dynamic-library";
 import type {SyncStudioLibraryProject} from './_components/sites/model';
 
-export type PublisherLibraryFilter={tab:"media"|"slides"|"studio"|"dynamic";source?:"all"|"studio"|"sportlink"|"led-scores"|"menu"|"news";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string};
-export type PublisherLibraryPage={media:Media[];projects:StudioProject[];syncProjects?:SyncStudioLibraryProject[];syncDesigns?:SyncDynamicLibraryDesign[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableDesigns?:Array<{id:string;name:string;status:string;processing:boolean;href:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
+export type PublisherLibraryFilter={tab:"media"|"slides"|"studio"|"dynamic";source?:"all"|"studio"|"sportlink"|"led-scores"|"menu"|"news";query?:string;folderId?:string;collectionId?:string;favorites?:boolean;offset?:number;assetId?:string;designId?:string};
+export type PublisherLibraryPage={sourceState?:{pendingDraft:boolean;processing:boolean;href:string;canPrepare?:boolean};media:Media[];projects:StudioProject[];syncProjects?:SyncStudioLibraryProject[];syncDesigns?:SyncDynamicLibraryDesign[];designs:DynamicDesign[];total:number;hasMore:boolean;folders:Array<{id:string;name:string}>;collections:Array<{id:string;name:string}>;unavailableDesigns?:Array<{id:string;name:string;status:string;processing:boolean;href:string}>;unavailableMedia?:Array<{id:string;name:string;status:"uploading"|"processing"|"validation_failed";message:string}>};
 const empty:PublisherLibraryPage={media:[],projects:[],designs:[],total:0,hasMore:false,folders:[],collections:[]};
 const pageSize=48;
 
@@ -54,7 +54,18 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
  }
  if(filter.tab==="dynamic"){
   const dynamicPageSize=8;
+  let sourceState:PublisherLibraryPage['sourceState'];
+  if(filter.designId){
+   const state=await supabase.from('dynamic_slides').select('id,slide_type,status,menu_document_revision,menu_last_published_revision,active_draft_version_id').eq('tenant_id',tenantId).eq('id',filter.designId).is('archived_at',null).maybeSingle();
+   if(state.error)throw Error('De actuele bronstatus kon niet worden gecontroleerd. Probeer opnieuw.');
+   if(!state.data)return {...empty};
+   const version=state.data.active_draft_version_id?await supabase.from('dynamic_slide_versions').select('status').eq('tenant_id',tenantId).eq('id',state.data.active_draft_version_id).maybeSingle():null;
+   if(version?.error)throw Error('De voorbereiding van het menu kon niet worden gecontroleerd.');
+   const menu=['menu','price_list'].includes(state.data.slide_type);
+   sourceState={pendingDraft:menu&&Boolean(state.data.active_draft_version_id)&&Number(state.data.menu_document_revision)>Number(state.data.menu_last_published_revision??0),processing:state.data.status==='rendering'||version?.data?.status==='publishing',href:menu?`/dashboard/slides/menu-studio/${state.data.id}`:`/dashboard/slides/${state.data.id}`};
+  }
   let query=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,orientation,current_snapshot_id",{count:"exact"}).eq("tenant_id",tenantId).eq("status","ready").order("updated_at",{ascending:false}).range(offset,offset+dynamicPageSize-1);
+  if(filter.designId)query=query.eq("id",filter.designId);
   if(filter.source==="menu")query=query.in("slide_type",["menu","price_list"]);
   else if(filter.source==="news")query=query.eq("slide_type","news");
   else if(filter.source==="led-scores")query=query.eq("slide_type","ledscores_live_match");
@@ -63,6 +74,7 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
   let unavailableQuery=supabase.from("dynamic_slides").select("id,name:library_sort_name,slide_type,status,configuration_json").eq("tenant_id",tenantId).not("status","in","(ready,archived)").is("archived_at",null).order("updated_at",{ascending:false}).limit(12);
   if(filter.source==="menu")unavailableQuery=unavailableQuery.in("slide_type",["menu","price_list"]);else if(filter.source==="news")unavailableQuery=unavailableQuery.eq("slide_type","news");else if(filter.source==="led-scores")unavailableQuery=unavailableQuery.eq("slide_type","ledscores_live_match");else if(filter.source==="sportlink")unavailableQuery=unavailableQuery.not("slide_type","in","(menu,price_list,ledscores_live_match,news)");
   if(filter.query)unavailableQuery=unavailableQuery.ilike("library_sort_name",`%${filter.query.replace(/[%_]/g,"")}%`);
+  if(filter.designId)unavailableQuery=unavailableQuery.eq("id",filter.designId);
   const unavailable=await unavailableQuery;if(unavailable.error)throw new Error("De ontwerpstatus kon niet worden gecontroleerd. Probeer opnieuw.");
 
   const slides=await query;if(slides.error)throw new Error("De opgeslagen ontwerpen konden niet worden geladen.");
@@ -85,7 +97,7 @@ export async function loadPublisherLibrary(tenantId:string,filter:PublisherLibra
    if(!configuration.success)throw new Error("De vormgeving van een opgeslagen slide kon niet worden gelezen.");const cfg=configuration.data;const presentation=buildSitesPresentationFromDynamicPayload(payload.data,cfg);
    return[{...cfg,id:slide.id,name:slide.name,kind:presentation?.kind==="dynamic"?presentation.content.kind:"generic",background:cfg.background?.kind==="system"?cfg.background.path:"",rows:presentation?.kind==="dynamic"?presentation.content.rows:[],config:cfg,screenIds:[],groupNames:[],snapshotId:snapshot.id,payload:payload.data,sitesConfiguration:cfg}];
   });
-  return{...empty,designs,syncDesigns,unavailableDesigns:(unavailable.data??[]).map(slide=>({id:slide.id,name:slide.name,status:slide.status,processing:slide.status==="rendering",href:slide.configuration_json&&Object.hasOwn(slide.configuration_json as object,'syncConfiguration')?`/dashboard/slides/${slide.id}`:["menu","price_list"].includes(slide.slide_type)?`/dashboard/slides/menu-studio/${slide.id}`:`/dashboard/slides/${slide.id}`})),total:slides.count??designs.length+syncDesigns.length,hasMore:offset+dynamicPageSize<(slides.count??0)};
+  return{...empty,sourceState,designs,syncDesigns,unavailableDesigns:(unavailable.data??[]).map(slide=>({id:slide.id,name:slide.name,status:slide.status,processing:slide.status==="rendering",href:slide.configuration_json&&Object.hasOwn(slide.configuration_json as object,'syncConfiguration')?`/dashboard/slides/${slide.id}`:["menu","price_list"].includes(slide.slide_type)?`/dashboard/slides/menu-studio/${slide.id}`:`/dashboard/slides/${slide.id}`})),total:slides.count??designs.length+syncDesigns.length,hasMore:offset+dynamicPageSize<(slides.count??0)};
  }
  const [series,syncSeries]=await Promise.all([
   supabase.rpc("list_publisher_studio_series_v2",{p_tenant_id:tenantId,p_offset:offset,p_search:filter.query||null}),
