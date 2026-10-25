@@ -13,5 +13,11 @@
     "menuObservedPublishedAt": "2026-10-25T20:28:20.143562+00:00"
   },
   "onlyChangedCanonicalField": "menuDocument.publication.publishedAt",
-  "productionPromoted": false
+  "productionPromoted": false,
+  "legacyMenuUpload": {
+    "errorCode": "binary_cache_artifact_budget_exceeded",
+    "currentBinarySlot": null,
+    "modernProtocol2PlaybackContinued": true,
+    "modernMenuPriceCents": 250
+  }
 }

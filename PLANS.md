@@ -1,6 +1,7 @@
 # VeyoCast MVP Plan
 
-S293 sluit tijdens de echte S292-stagingcanary gevonden Menu-metadatachurn.
+S293 sluit tijdens de echte S292-stagingcanary gevonden Menu-metadatachurn
+en de onterechte Source-postereis op begrensde legacy-Menu-PNG-upload.
 Protocol 2 houdt publicatie-observatietijd buiten data- en snapshotidentiteit;
 echte feiten en historische v1-hashes behouden hun betekenis. Zie
 `docs/s293-menu-observation-stability.md`; productiepromotie volgt pas na de

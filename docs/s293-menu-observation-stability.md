@@ -1,4 +1,4 @@
-# S293 — Stabiele Menu-identiteit na bronobservatie
+# S293 — Stabiele Menu-identiteit en begrensde legacy-upload
 
 De echte S292-stagingcanary op `4d3fa168f75e115687ca2a1de38a393ee07256fc`
 maakte een fout zichtbaar die de eerdere rollbacktests niet vonden. De
@@ -16,10 +16,22 @@ Versie-1- en onversioneerde hashes blijven via hun bestaande pad bytecompatibel.
 De forwardmigratie vervangt één pure private functie en behoudt haar gesloten
 ACL. Er wordt geen release, snapshot, target of productrecord herschreven.
 
+Een tweede echte canary vond dat de gedeelde backend bij iedere gepubliceerde
+binaire refresh een Source-poster eiste. Een geldige Menu-PNG werd daardoor
+vóór upload afgewezen als `binary_cache_artifact_budget_exceeded`. De backend
+valideert nu de eigen Menu-PNG-versie, configuratie, geometrie en bytes vóór
+het servergeleasete cachevak wordt aangeraakt. De grens van 64 MiB blijft;
+Source behoudt zijn verplichte poster en grens van 16 MiB. Menu-DOM-descriptors
+krijgen dezelfde byte-/checksumcontrole als Source-descriptors. Tien nieuwe
+backendtests gebruiken bestaande echte native PNG-output en de volledige
+claim→render→upload→completion-handoff, met controle op v1, Source-masquerade,
+corruptie, te grote uitvoer en stale leases. De moderne browser bleef spelen
+terwijl de legacyroute nog voorbereidde; legacyacceptatie volgt na deze fix.
+
 Ownership: één root-writer op `veyocast/s293-menu-observation-stability`, in de
-eigen worktree `castivo-s293`; één nieuwe migratie, eigen SQL/RPC-regressies en
-eigen documentatie/plan/ledger. Applicatie-, renderer-, asset-, dependency-,
-lockfile- en workflowcode blijven gelijk aan S292.
+eigen worktree `castivo-s293`; één nieuwe migratie, de gedeelde Worker-uploadbackend,
+eigen backend-/SQL-/RPC-regressies en eigen documentatie/plan/ledger. Renderer-,
+UI-, asset-, dependency-, lockfile- en workflowcode blijven gelijk aan S292.
 
 De oorspronkelijke SQL-regressie reproduceerde drie fouten van negentien vóór
 de migratie en slaagde daarna. De aanvullende echte Menu-RPC-keten gebruikt
@@ -47,8 +59,11 @@ databasetijd, zonder Control-netwerk, browserrendering of provideracquisitie.
 Het zijn geen productie-p95's. De bestaande S292-native-exportmetingen zijn
 afzonderlijke samples en worden niet als p95 of totale snelheidsfactor gebruikt.
 
-Workspace lint/typecheck/unit zijn elk 30/30 groen (JS-bronnen gelijk aan
-S292, overwegend geldige Turbocache). De verse reset en volledige SQL/RLS-run
+De laatste workspace lint/typecheck/unit zijn na de aanvullende uploadfix
+elk 30/30 groen; de Worker-build is eveneens groen. De ongewijzigde pakketten
+gebruiken hun geldige Turbocache. De tien nieuwe backendtests en veertien
+bestaande Source-workertests zijn groen; de uiteindelijke volledige Worker-
+suite is ook geslaagd. De verse reset en volledige SQL/RLS-run
 slagen met 147 bestanden en 4.830 assertions; db-lint op foutniveau is leeg.
 De daadwerkelijke RPC-proef en eigen runnerlint zijn groen. Actuele CI, nieuwe main-SHA, stagingcanary en
 expliciete productiepromotie worden per PR/run vastgelegd. Tot die verificatie

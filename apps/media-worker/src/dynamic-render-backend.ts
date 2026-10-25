@@ -4,6 +4,7 @@ import {
   syncDynamicConfigurationSchema,
   syncSlideAssets,
   syncDomDescriptorMimeType,
+  readMenuBinaryArtifact,
   playerDynamicTemplateAssetSchema,
   type PlayerDynamicTemplateAsset,
   type SyncSlidePresentation,
@@ -35,7 +36,7 @@ export type ClaimedDynamicRenderJob = {
 
 export type DynamicRenderArtifact = {
   menuDom?:{schemaVersion:2;mimeType:typeof syncDomDescriptorMimeType;durationMs:number;presentation:SitesPresentation};
-  menuBinary?:{mimeType:'image/png';durationMs:number;presentation:SitesPresentation};
+  menuBinary?:{schemaVersion:2;mimeType:'image/png';durationMs:number;presentation:SitesPresentation};
   dom?:{schemaVersion:2;mimeType:typeof syncDomDescriptorMimeType;durationMs:number;presentation:SyncSlidePresentation};
   sync?: {
     mimeType:'image/png'|'video/mp4';durationMs:number;presentation:SyncSlidePresentation;
@@ -212,12 +213,18 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     artifact: DynamicRenderArtifact
   ) {
     assertArtifactPath(job, artifact.storagePath,artifact.menuDom?.mimeType??artifact.menuBinary?.mimeType??artifact.dom?.mimeType??artifact.sync?.mimeType,artifact.checksumSha256);
-    if(artifact.dom){
+    if(artifact.menuBinary&&(!job.publishedRefresh||artifact.sync||artifact.dom||artifact.menuDom))throw invalidClaim();
+    if(artifact.dom||artifact.menuDom){
       if(job.publishedRefresh||artifact.byteLength>550000)throw invalidClaim();
       assertSourceArtifactBytes(artifact.bytes,artifact.byteLength,artifact.checksumSha256);
     }
     if(job.publishedRefresh){
-      if(!artifact.sync||artifact.byteLength>64*1024*1024||artifact.sync.poster.byteLength>16*1024*1024)throw new DynamicRenderBackendError('binary_cache_artifact_budget_exceeded',false,'De volledige uitvoer past niet binnen het begrensde Player-cachebudget. De laatste goede uitzending blijft behouden.');
+      if((!artifact.menuBinary&&!artifact.sync)||artifact.byteLength>64*1024*1024||(!artifact.menuBinary&&(!artifact.sync?.poster||artifact.sync.poster.byteLength>16*1024*1024)))throw new DynamicRenderBackendError('binary_cache_artifact_budget_exceeded',false,'De volledige uitvoer past niet binnen het begrensde Player-cachebudget. De laatste goede uitzending blijft behouden.');
+      if(artifact.menuBinary){
+        const metadata={...artifact.menuBinary,byteLength:artifact.byteLength,checksumSha256:artifact.checksumSha256,width:artifact.width,height:artifact.height,storagePath:artifact.storagePath};
+        if(!readMenuBinaryArtifact(job.snapshotData,metadata))throw invalidClaim();
+        assertSourceArtifactBytes(artifact.bytes,artifact.byteLength,artifact.checksumSha256);
+      }
       await this.clearBinarySlot(job.tenantId,job.outputMediaAssetId,job);
     }
     if(artifact.sync){
