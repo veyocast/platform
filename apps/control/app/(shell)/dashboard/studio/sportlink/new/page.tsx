@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {redirect} from "next/navigation";
 
 import {
   defaultThemeAppearanceSettings,
@@ -26,6 +27,7 @@ export default async function SportlinkNewPage({ searchParams }: PageProps) {
         defaultThemeSelection: platformDefaultThemeSelection,
         media: [], sources: [], teams: [], templates: []
       };
+  if(data.defaultThemeSelection.ref.catalog==="v2"&&data.defaultThemeSelection.ref.id==="onzetrots-tv")redirect("/dashboard/studio/new?group=Sport&mode=connected");
   return (
     <>
       {params.fout ? <p className="notice notice--critical" role="alert"><strong>Slides niet gemaakt.</strong> {params.fout}</p> : null}

@@ -44,7 +44,7 @@ export function enrichSyncOnzeTrotsProjection(payload:PlayerDynamicTemplatePaylo
  }
  if(payload.slideType==='sport_visitor_arrivals'){
   if(!scope?.ownClubId||!scope.ownTeamIds.length)throw Error('Controlled home selection unavailable');
-  rich.fixtures=fixtures;rich.visitorsSelection={ownClubId:scope.ownClubId,ownTeamIds:scope.ownTeamIds,referenceAt:now.toISOString()};
+  rich.fixtures=fixtures;rich.visitorsSelection={ownClubId:scope.ownClubId,ownTeamIds:scope.ownTeamIds,referenceAt:now.toISOString(),...(typeof record(sport.arrivalConfig).minutesBefore==='number'?{windowMinutes:record(sport.arrivalConfig).minutesBefore as number}:{})};
  }
  if(payload.slideType==='sport_match_of_the_day'){
   if(!scope?.context)throw Error('Matchday team/pool/season scope unavailable');
@@ -56,7 +56,7 @@ export function enrichSyncOnzeTrotsProjection(payload:PlayerDynamicTemplatePaylo
  }
  for(const page of view.pages){
   if(page.kind==='birthday'){for(const item of page.items){rich.birthdays??=[];add(rich.birthdays,{id:item.id,displayName:item.displayName,age:item.age,dateLabel:item.dateLabel,meta:item.meta});}}
-  else if(page.kind==='news'){for(const item of [page.item,...page.secondaryItems])if(item){rich.news??=[];add(rich.news,{id:item.id,title:item.title,intro:item.intro,source:item.source,url:item.link||undefined,heroImage:image(item.heroUrl)});}}
+  else if(page.kind==='news'){for(const item of [page.item,...page.secondaryItems])if(item){rich.news??=[];add(rich.news,{id:item.id,title:item.title,intro:item.intro,source:item.source,url:item.link||undefined,heroImage:image(item.heroUrl),...(view.providerLogoUrl?{providerLogo:image(view.providerLogoUrl)}:{})});}}
   else if(page.kind==='arrivals'||page.kind==='sport-list'||page.kind==='team'||page.kind==='sponsor'||page.kind==='trainings'||page.kind==='volunteers')for(const item of page.items){
    if(!('primary' in item))continue;
    if(payload.slideType==='sport_activities'){

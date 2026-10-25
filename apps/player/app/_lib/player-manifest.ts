@@ -1,3 +1,4 @@
+import {syncOnzeTrotsWelcomeShouldSkip} from '@veyocast/contracts';
 import type {PlayerSitesMarkup} from "./player-sites-markup";
 import type {PlayerScreenComposition} from "./player-screen-composition";
 
@@ -420,7 +421,7 @@ export function isPlayerManifestItemPlayable(
   at = Date.now()
 ) {
   const presentation = resolvePlayerItemPresentation(item);
-  if (!presentation.enabled) return false;
+  if (!presentation.enabled||syncOnzeTrotsWelcomeShouldSkip(item.syncDynamic?.presentation??item.syncStudioPresentation,at)) return false;
   if (
     item.dynamicTemplate &&
     evaluateDynamicTemplateEligibility(item.dynamicTemplate, new Date(at)) !== "eligible"

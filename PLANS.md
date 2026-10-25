@@ -1,5 +1,14 @@
 # VeyoCast MVP Plan
 
+S291 voert de expliciete font-/RSS-/Sportlink-opdracht van 24 oktober uit.
+Actuele OnzeTrots-ontwerpen gebruiken Barlow Condensed Black 900, een veilige
+RSS-compositie met artikelbeeld, QR en leverancierfooter, opgeslagen thuis-/uitkeuze
+en instelbare welkomperiode met lege-slide-skip. De nieuwe bewerkbare revisie
+`onzetrots-20261024` / Menu `v10-barlow-*` gaat via normale revisies en dezelfde
+preview/export/Player-keten. Oude immutable output blijft behouden. Zie
+`docs/s291-onzetrots-consistency.md` voor onderzoek, integratiekaart en bewijs.
+De onderstaande Rubik-/Marker-afspraken beschrijven historische revisies.
+
 S290 brengt de actuele OnzeTrots-layout naar Twelve/Menu Studio, herstelt het
 oorspronkelijke Permanent Marker-headerfont en laat de playlist de actuele
 eigen bron opnieuw lezen en een opgeslagen gewijzigd menu bewust voorbereiden.

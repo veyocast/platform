@@ -184,4 +184,15 @@ it.each(syncBackgroundAssets)("negotiates $path without extending old renderer m
   expect(fresh.manifest.items[0]!.syncStudioPresentation).toEqual(state.presentation);
   expect(fresh.manifest.totalBytes).toBe(10 + fresh.manifest.syncSystemAssets!.reduce((sum, ref) => sum + ref.bytes, 0));
 });
+  it('keeps current authoring fields out of old v9 DOM manifests and sends the verified complete Barlow asset to current clients',async()=>{
+    state.presentation=syncSlidePresentationSchema.parse({...state.presentation as object,rendererVersion:'sync-onzetrots-v9',sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',theme:'onzetrots-tv',visual:{schemaVersion:1,mode:'light'},authoring:{visualRevision:'onzetrots-20261024'}});
+    state.duration=12000;
+    const old=await loadPlayerReleaseEnvelope({...input,enableSyncStudio:true,enableSyncOnzeTrotsV9:true});
+    expect(old.manifest.items[0]!.syncStudioPresentation).toBeUndefined();expect(old.manifest.syncSystemAssets).toBeUndefined();
+    expect(old.manifest.items[0]!.source.url).toBe('https://media.example/frozen.png');
+    const current=await loadPlayerReleaseEnvelope({...input,enableSyncStudio:true,enableSyncOnzeTrotsV9:true,enableSyncOnzeTrotsCurrent:true});
+    expect(current.manifest.items[0]!.syncStudioPresentation).toEqual(state.presentation);
+    expect(current.manifest.syncSystemAssets!.some(asset=>asset.path==='/onzetrots-approved-v1/assets/fonts/club-font-3.ttf')).toBe(true);
+  });
+
 });

@@ -9,6 +9,8 @@ export const syncOnzeTrotsV9SourceRevision = '5ba52a657d6d16ad103ba2fb43b8db18aa
  * preserves every other header and the shared visitors/welcome scale. */
 export const syncOnzeTrotsV9AuthoringSchema = z.object({
   schemaVersion: z.literal(1).default(1),
+  /** Explicit opt-in on a new or consciously saved draft; absent means historical v9. */
+  visualRevision: z.literal('onzetrots-20261024').optional(),
   headerSubtitles: z.partialRecord(
     z.enum(syncContentFamilies.map(family => family.id)),
     z.string().max(120),

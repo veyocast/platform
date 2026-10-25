@@ -12,6 +12,19 @@ import {
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 
+export async function saveRssProviderLogo(formData:FormData){
+ const session=await requireTenantControlSession('tenant.data_source.manage');
+ const sourceId=String(formData.get('sourceId')??''),asset=String(formData.get('mediaAssetId')??'');
+ const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+ if(!session.isLive||!session.tenantId||session.tenantStatus!=='active'||!uuid.test(sourceId)||asset&&!uuid.test(asset))redirect('/dashboard/sources?fout=Controleer+je+rechten+en+het+leverancierlogo.');
+ const client=await createControlSupabaseClient();
+ if(!client)redirect('/dashboard/sources?fout=De+verbinding+ontbreekt.+Je+huidige+logo+blijft+behouden.');
+ const result=await client.rpc('set_rss_provider_logo_v1',{p_tenant_id:session.tenantId,p_source_id:sourceId,p_media_asset_id:asset||null});
+ if(result.error)redirect(`/dashboard/sources?source=rss:${sourceId}&fout=Het+logo+kon+niet+worden+opgeslagen.+Kies+een+beschikbare+eigen+afbeelding+en+probeer+opnieuw.`);
+ revalidatePath('/dashboard/sources');
+ redirect(`/dashboard/sources?source=rss:${sourceId}&succes=Het+leverancierlogo+is+opgeslagen.+Bestaande+ontwerpinstellingen+blijven+behouden.`);
+}
+
 export async function createRssSource(formData: FormData) {
   const session = await requireTenantControlSession("tenant.data_source.manage");
   const name = String(formData.get("name") ?? "").trim();

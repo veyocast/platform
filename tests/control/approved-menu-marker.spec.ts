@@ -14,12 +14,12 @@ import{SyncSlideStaticView}from'./packages/content-templates/src/sync-slide-stat
 import{SitesPresentationView}from'./packages/content-templates/src/sites-presentation';
 import{sitesDynamicConfigurationSchema}from'./packages/contracts/src/sites-presentation';
 const root=createRoot(document.getElementById('root'));
-window.show=({family='menu',orientation='landscape',mode='light',menu=false,historical=false})=>{
- const base=createSyncTemplatePreview(family),slide={...base,orientation,visual:{...base.visual,mode},style:{...base.style,...(historical?{font:'Inter',fontChanged:false}:{})}};
- const configuration=sitesDynamicConfigurationSchema.parse({schemaVersion:1,rendererVersion:'sites-v17',sourceRevision:'6800bc858436ba0843eaea89b682cd5b43c3521d',themeId:'onzetrots-tv',orientation,provider:'menu',title:'Onze menukaart',subtitle:'Vers uit onze kantine',unifiedKind:'kantine',menuWidgets:true,onzeTrotsStyle:'v9-marker-'+mode,safeArea:6,overlay:0});
+window.show=({family='menu',orientation='landscape',mode='light',menu=false,historical=false,unapproved=false})=>{
+ const base=createSyncTemplatePreview(family),slide={...base,orientation,visual:{...base.visual,mode},authoring:{...base.authoring,...(historical?{visualRevision:undefined}:{})},style:{...base.style,...(historical?{font:'Inter',fontChanged:false}:{})}};
+ const configuration=sitesDynamicConfigurationSchema.parse({schemaVersion:1,rendererVersion:'sites-v17',sourceRevision:'6800bc858436ba0843eaea89b682cd5b43c3521d',themeId:'onzetrots-tv',orientation,provider:'menu',title:'Onze menukaart',subtitle:'Vers uit onze kantine',unifiedKind:'kantine',menuWidgets:true,...(unapproved?{}:{onzeTrotsStyle:'v10-barlow-'+mode}),safeArea:6,overlay:0});
  const products=[{id:'coffee',primary:'Koffie',secondary:'Groot · Klein',value:'€ 2,50',column:1},{id:'tea',primary:'Thee',value:'€ 0,00',column:2}];
  const presentation={kind:'dynamic',configuration,content:{kind:'kantine',title:configuration.title,subtitle:configuration.subtitle,clubName:'Eigen club',rows:products.map(({column,...row})=>row),menuPages:[{id:'page-1',columns:1,widgets:[{id:'category',type:'category',column:'full',columns:2,title:'Warme dranken',subtitle:'Met aandacht gemaakt',rows:products}]}]}};
- root.render(<div key={family+orientation+mode+menu+historical} className={menu?'menu-host':''} data-family={family} style={{width:'100%',height:'100%'}}>{menu?<SitesPresentationView presentation={presentation} fitViewport/>:<SyncSlideStaticView presentation={slide}/>}</div>);
+ root.render(<div key={family+orientation+mode+menu+historical+unapproved} className={menu?'menu-host':''} data-family={family} style={{width:'100%',height:'100%'}}>{menu?<SitesPresentationView presentation={presentation} fitViewport/>:<SyncSlideStaticView presentation={slide}/>}</div>);
 };window.show({});
 `;
 test.beforeAll(()=>{
@@ -30,18 +30,20 @@ test.beforeAll(()=>{
 async function mount(page:Page){
  await page.route('**/__approved-menu',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="nl"><style>.menu-host .panel{width:min(860px,90vw);padding:clamp(28px,4vw,58px)}*{box-sizing:border-box}html,body,#root{margin:0;width:100%;height:100%;overflow:hidden}</style><div id="root"></div><script>${bundle.replace(/<\/script/gi,'<\\/script')}</script></html>`}));
  await page.route('**/onzetrots*/**',route=>{const path=new URL(route.request().url()).pathname;return route.fulfill({body:readFileSync(join(process.cwd(),'apps/control/public',path)),contentType:path.endsWith('.ttf')?'font/ttf':'image/webp'});});
+ await page.route('**/fonts/**',route=>route.fulfill({body:readFileSync(join(process.cwd(),'apps/control/public',new URL(route.request().url()).pathname)),contentType:'font/ttf'}));
  await page.goto('http://127.0.0.1:3343/__approved-menu');
 }
 for(const orientation of ['landscape','portrait'] as const)for(const mode of ['light','dark'] as const){
- test(`all 36 OnzeTrots headers use original Marker: ${orientation}/${mode}`,async({page})=>{
+ test(`all 36 current OnzeTrots headers use verified Barlow Black: ${orientation}/${mode}`,async({page})=>{
   await page.setViewportSize(orientation==='portrait'?{width:1080,height:1920}:{width:1920,height:1080});await mount(page);
   for(const family of syncContentFamilies){
    await page.evaluate(value=>Reflect.get(window,'show')(value),{family:family.id,orientation,mode});
    await expect(page.locator(`[data-family="${family.id}"] .screen`)).toHaveAttribute('data-ot-marker','true');
-   await page.evaluate(async()=>{await document.fonts.load('400 49px OTMarker');await document.fonts.ready;});
+   await page.evaluate(async()=>{await document.fonts.load('900 49px OTBarlow');await document.fonts.ready;});
    const header=page.locator('[data-ot-header-text]');await expect(header).toBeVisible();
-   expect(await header.evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTMarker');
-   const metrics=await header.evaluate(element=>{const a=element.getBoundingClientRect(),b=element.closest('header')!.getBoundingClientRect();return{left:a.left,right:a.right,top:a.top,bottom:a.bottom,parent:b.toJSON(),loaded:document.fonts.check('400 49px OTMarker')};});
+   const cdp=await page.context().newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const{root}=await cdp.send('DOM.getDocument');const{nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector:'[data-ot-header-text]'});const{fonts}=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});expect(fonts.length).toBeGreaterThan(0);expect(fonts.every(font=>font.isCustomFont&&font.postScriptName==='BarlowCondensed-Black')).toBe(true);await cdp.detach();
+   expect(await header.evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTBarlow');
+   const metrics=await header.evaluate(element=>{const a=element.getBoundingClientRect(),b=element.closest('header')!.getBoundingClientRect();return{left:a.left,right:a.right,top:a.top,bottom:a.bottom,parent:b.toJSON(),loaded:document.fonts.check('900 49px OTBarlow')};});
    expect(metrics.loaded).toBe(true);expect(metrics.left).toBeGreaterThanOrEqual(metrics.parent.left);expect(metrics.right).toBeLessThanOrEqual(metrics.parent.right+.1);expect(metrics.bottom).toBeLessThanOrEqual(metrics.parent.bottom+.1);
    const context=page.locator('.panel-context').first();if(await context.count())expect(await context.evaluate(element=>parseFloat(getComputedStyle(element).fontSize))).toBe(14.3);
   }
@@ -63,4 +65,12 @@ for(const orientation of ['landscape','portrait'] as const)for(const mode of ['l
 test('unmarked v9 keeps its historical Rubik header',async({page})=>{
  await mount(page);await page.evaluate(()=>Reflect.get(window,'show')({historical:true}));await expect(page.locator('.screen')).not.toHaveAttribute('data-ot-marker');
  expect(await page.locator('[data-ot-header-text]').evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTRubikDistressed');
+});
+
+
+test('the original local menu slogan actually draws Barlow Condensed Black glyphs',async({page})=>{
+ await mount(page);await page.evaluate(()=>Reflect.get(window,'show')({menu:true,unapproved:true}));
+ const slogan=page.locator('.vm-menu-slogan');await expect(slogan).toContainText('Onze Club. Onze Trots.');await page.evaluate(()=>document.fonts.ready);
+ const cdp=await page.context().newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const{root}=await cdp.send('DOM.getDocument');const{nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector:'.vm-menu-slogan'});const{fonts}=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});
+ expect(fonts.length).toBeGreaterThan(0);expect(fonts.every(font=>font.isCustomFont&&font.postScriptName==='BarlowCondensed-Black')).toBe(true);
 });

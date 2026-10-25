@@ -1,8 +1,8 @@
-import {sportDynamicSlideTypes,sportlinkBirthdayConfigurationSchema,sportlinkSlideTeamSelectionSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,type SyncSlidePresentation,type SportlinkSlideContext,type SyncDynamicConfiguration} from '@veyocast/contracts';
+import {sportlinkArrivalConfigSchema,sportDynamicSlideTypes,sportlinkBirthdayConfigurationSchema,sportlinkSlideTeamSelectionSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,type SyncSlidePresentation,type SportlinkSlideContext,type SyncDynamicConfiguration} from '@veyocast/contracts';
 
 export type SyncSportlinkTeam={externalId:string;name:string;contexts:Array<{label:string;competitionId:string;phaseId:string|null;poolId:string|null;seasonId:string|null}>};
 export type SyncSportlinkOptions={sourceId:string;teams:SyncSportlinkTeam[];capabilities:Array<{article:string;capability:string;available:boolean;enabled:boolean}>;privacyPeople:boolean;privacyBirthdays:boolean};
-export type SyncSportlinkSelection={mode:'all'|'selected';contexts:SportlinkSlideContext[];birthdayDays:7|14|21};
+export type SyncSportlinkSelection={mode:'all'|'selected';contexts:SportlinkSlideContext[];birthdayDays:7|14|21;matchLocation?:'both'|'home'|'away';welcomeDays?:number};
 export function syncConnectedAuthoringType(family:string,rendererVersion:SyncSlidePresentation['rendererVersion']='sync-v1'):'menu'|'news'|'ledscores_live_match'|(typeof sportDynamicSlideTypes)[number]|undefined{
  if(family==='menu')return'menu';if(family==='rss')return'news';
  if(family==='scoreboard'||family==='goal')return'ledscores_live_match';
@@ -28,7 +28,8 @@ export function readSyncSportlinkSelection(cfg:SyncDynamicConfiguration,configur
  if(!parsed.success)throw Error('De opgeslagen teamselectie is ongeldig. Kies de bron en teams opnieuw; het serverontwerp blijft behouden.');
  const birthday=configuration.birthday as {period?:{days?:unknown}}|undefined,days=birthday?.period?.days??7;
  if(![7,14,21].includes(Number(days)))throw Error('De opgeslagen verjaardagsperiode is ongeldig. Kies een periode opnieuw; het serverontwerp blijft behouden.');
- return{mode,contexts:parsed.data.teamContexts,birthdayDays:Number(days)as 7|14|21};
+ const arrival=configuration.arrival as {minutesBefore?:unknown}|undefined;
+ return{mode,contexts:parsed.data.teamContexts,birthdayDays:Number(days)as 7|14|21,...(raw&&'matchLocation' in raw?{matchLocation:sportlinkSlideTeamSelectionSchema.parse({...raw,mode,teamContexts:parsed.data.teamContexts}).matchLocation}:{}),...(typeof arrival?.minutesBefore==='number'?{welcomeDays:arrival.minutesBefore/1440}:{})};
 }
 
 /** Static selection only: the original canonical SQL builder still validates
@@ -44,11 +45,15 @@ export function compileSyncSportlinkBinding(cfg:SyncDynamicConfiguration,configu
   if(!team||context.competitionSelectionMode==='pinned'&&!team.contexts.some(option=>option.competitionId===context.competitionId&&option.phaseId===context.phaseId&&option.poolId===context.poolId&&option.seasonId===context.seasonId))throw Error('Een gekozen team of competitie hoort niet bij deze bron. Kies de selectie opnieuw.');
  }
  const result:Record<string,unknown>={...clearSyncSportlinkBinding(configuration),schemaVersion:1,maxItems:200,title:cfg.seed.title||cfg.seed.name,syncConfiguration:cfg};
- const teamSelection={mode:selection.mode,teamContexts:contexts};
+ const teamSelection=sportlinkSlideTeamSelectionSchema.parse({mode:selection.mode,teamContexts:contexts,...(selection.matchLocation?{matchLocation:selection.matchLocation}:{})});
+ if(selection.welcomeDays!==undefined){
+  if(!Number.isFinite(selection.welcomeDays)||selection.welcomeDays<=0||selection.welcomeDays>42||!Number.isInteger(selection.welcomeDays*1440))throw Error('Kies een vooruitkijkperiode van maximaal 42 dagen.');
+  result.arrival=sportlinkArrivalConfigSchema.parse({...configuration.arrival as Record<string,unknown>,minutesBefore:selection.welcomeDays*1440,minutesAfter:0,emptyBehavior:'skip'});
+ }
  if(cfg.slideType==='sport_program'||cfg.slideType==='sport_results'){
   const pool=cfg.seed.family.startsWith('pool-');
   result.blueprintKey=cfg.slideType==='sport_program'?(pool?'sportlink.pool_schedule_next_7_days':'sportlink.club_schedule_next_7_days'):(pool?'sportlink.pool_results_previous_7_days':'sportlink.club_results_previous_7_days');
-  if(!pool)result.teamSelection=teamSelection;
+  if(!pool||cfg.seed.rendererVersion==='sync-onzetrots-v9'&&cfg.seed.authoring?.visualRevision==='onzetrots-20261024'||selection.matchLocation!==undefined)result.teamSelection=teamSelection;
  }else if(cfg.slideType==='sport_standing')result.blueprintKey='sportlink.pool_standings';
  else if(['sport_visitor_arrivals','sport_referee_arrivals'].includes(cfg.slideType)){
   result.blueprintKey=cfg.slideType==='sport_visitor_arrivals'?'sportlink.visitor_arrivals':'sportlink.referee_arrivals';result.teamContexts=contexts;

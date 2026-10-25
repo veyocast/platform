@@ -1,5 +1,10 @@
 # S290 — Actuele menu’s, oorspronkelijke Marker-headers en echte versiecontrole
 
+> Historisch revisiebewijs. Voor actuele titels/headers geldt vanaf de opdracht
+> van 24 oktober 2026 de [S291-canondelta](s291-onzetrots-consistency.md):
+> Barlow Condensed Black 900. Ongetagde opgeslagen publicaties behouden de
+> hieronder beschreven oorspronkelijke fonts.
+
 De gebruiker meldt een oude Twelve/Menu Studio-layout, vraagt het oorspronkelijke
 handgeschreven headerfont terug en ziet geen effect na ‘Nieuwste Studio-versie’.
 De screenshots zijn de specifieke visuele opdracht; deze expliciete fontkeuze

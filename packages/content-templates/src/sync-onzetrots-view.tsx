@@ -1,6 +1,6 @@
 import React,{type CSSProperties,type ReactNode} from 'react';
 import QR from 'qrcode';
-import {syncOnzeTrotsHeaderSubtitle,syncOnzeTrotsHeaderText,syncOnzeTrotsSystemAssets,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
+import {isSyncOnzeTrotsCurrent,syncOnzeTrotsHeaderSubtitle,syncOnzeTrotsHeaderText,syncOnzeTrotsSystemAssets,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
 import type {SyncSlideAssetResolver} from './sync-slide-static-view';
 import {syncOnzeTrotsSixSlots,selectSyncOnzeTrotsVisitors} from './sync-onzetrots-motion';
 
@@ -13,7 +13,7 @@ const phases={scheduled:'De aftrap',live:'Live',paused:'Gepauzeerd',halftime:'Ru
 
 function Icon({name='shirt'}:{name?:string}){
  const paths:Record<string,string>={shirt:'m7 3 5 3 5-3 5 5-4 4-2-2v11H8V10l-2 2-4-4z',flag:'M4 22V3m0 0c5-4 10 4 16 0v10c-6 4-11-4-16 0',heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8',news:'M4 3h16v18H4zM8 7h8M8 11h8m-8 4h3m2 0h3m-8 3h8'};
- return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]??paths.shirt}/></svg>;
+ return <svg className="ot-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]??paths.shirt}/></svg>;
 }
 function Crest({name,asset,resolveAsset,className=''}:{name:string;asset?:SyncSlideAsset;resolveAsset:SyncSlideAssetResolver;className?:string}){
  const src=asset&&resolveAsset(asset);
@@ -116,10 +116,36 @@ function SixGrid({slide,resolveAsset,page}:Props){
  </div>;
 }
 
-function QRCode({url}:{url:string}){
+/** The fixed 1600/900 logical canvases render at 1.2 native pixels per unit.
+ * Integral native module pixels keep short and maximum-length URLs sharp. */
+function tvQrSize(url:string){try{const dimension=QR.create(url,{errorCorrectionLevel:'M'}).modules.size+8;return dimension*Math.max(3,Math.ceil(264/dimension))/1.2;}catch{return 0;}}
+function QRCode({url,tv=false}:{url:string;tv?:boolean}){
  const{modules}=QR.create(url,{errorCorrectionLevel:'M'}),quiet=4,dimension=modules.size+2*quiet;let path='';
  for(let y=0;y<modules.size;y++)for(let x=0;x<modules.size;x++)if(modules.get(y,x))path+=`M${x+quiet},${y+quiet}h1v1h-1z`;
- return <svg className="ot-qr" viewBox={`0 0 ${dimension} ${dimension}`} role="img" aria-label="QR-code voor de getoonde link" shapeRendering="crispEdges"><rect width={dimension} height={dimension} fill="white"/><path d={path} fill="black"/></svg>;
+ return <svg className="ot-qr" style={tv?{'--ot-qr-size':`${tvQrSize(url)}px`} as CSSProperties:undefined} viewBox={`0 0 ${dimension} ${dimension}`} role="img" aria-label="QR-code voor de getoonde link" shapeRendering="crispEdges"><rect width={dimension} height={dimension} fill="white"/><path d={path} fill="black"/></svg>;
+}
+function RssFeature({slide,resolveAsset,page}:Props){
+ const article=slide.rich?.news?.[page]??slide.news[page],richArticle=slide.rich?.news?.[page];
+ const photo=richArticle?.heroImage??slide.rich?.featureImage,src=photo&&resolveAsset(photo);
+ const qrSize=article?.url?tvQrSize(article.url):0;
+ const summary=(article?.intro??slide.body).replace(/\s+/gu,' ').trim();
+ return <div className="feature-grid rss-feature" data-article-id={richArticle?.id} style={{'--ot-rss-qr-size':`${qrSize}px`} as CSSProperties}>
+  <div className="photo-panel rss-photo-panel">
+   <div className="rss-photo">{src&&<img src={src} alt={slide.imageCaption||''}/>}</div>
+   {article?.url&&qrSize>0&&<aside className="rss-qr-zone"><p>Scan voor het volledige artikel</p><QRCode url={article.url} tv/></aside>}
+  </div>
+  <article className="panel feature-copy rss-copy">
+   <InlineHeader slide={slide} resolveAsset={resolveAsset}><span className="eyebrow">{article?.source??slide.topLabel}</span></InlineHeader>
+   <h3 data-ot-article-title>{article?.title||slide.headline||slide.title}</h3>
+   <p className="rss-summary" data-ot-summary={summary}>{summary}</p>
+   <div className="article-number">{page+1} / {Math.max(1,slide.rich?.news?.length??slide.news.length)}</div>
+  </article>
+ </div>;
+}
+function RssProvider({slide,resolveAsset,page}:Props){
+ const article=slide.rich?.news?.[page],logo=article?.providerLogo,src=logo&&resolveAsset(logo);
+ const name=article?.source??slide.news[page]?.source??'';
+ return <span className="rss-provider">{src?<img src={src} alt={name}/>:<span>{name}</span>}</span>;
 }
 function Feature({slide,resolveAsset,page}:Props){
  const richArticle=slide.rich?.news?.[page],article=richArticle??slide.news[page],asset=richArticle?.heroImage??slide.rich?.featureImage;
@@ -192,6 +218,7 @@ function Content(props:Props){
  if(['fixtures','club-program','team-program','pool-program','results','club-results','team-results','pool-results'].includes(slide.family))return <MatchPanel {...props} result={['results','club-results','team-results','pool-results'].includes(slide.family)}/>;
  if(['welcome','visitors'].includes(slide.family))return <Welcome {...props}/>;
  if(['birthdays','activities','agenda'].includes(slide.family))return <SixGrid {...props}/>;
+ if(slide.family==='rss'&&isSyncOnzeTrotsCurrent(slide))return <RssFeature {...props}/>;
  if(['team-info','rss','club-story'].includes(slide.family))return <Feature {...props}/>;
  if(['next-match','scoreboard'].includes(slide.family))return <MatchHero {...props}/>;
  if(slide.family==='goal')return <Goal {...props}/>;
@@ -207,7 +234,7 @@ function Content(props:Props){
 /** Real HTML containers inside one logical canvas. SVG only provides uniform
  * coordinate scaling; all data, text, images and scrolling remain native DOM. */
 export function SyncOnzeTrotsView({slide,resolveAsset,page,children}:Props){
- const portrait=slide.orientation==='portrait',width=portrait?900:1600,height=portrait?1600:900,v9=slide.rendererVersion==='sync-onzetrots-v9';
+ const portrait=slide.orientation==='portrait',width=portrait?900:1600,height=portrait?1600:900,v9=slide.rendererVersion==='sync-onzetrots-v9',current=isSyncOnzeTrotsCurrent(slide),rss=current&&slide.family==='rss';
  const background=slide.style.backgroundAsset&&resolveAsset(slide.style.backgroundAsset);
  const defaultPath=`/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-${portrait?'portrait-941':'wide-1672'}.webp`;
  const defaultAsset=syncOnzeTrotsSystemAssets.find(asset=>asset.path===defaultPath);
@@ -215,8 +242,8 @@ export function SyncOnzeTrotsView({slide,resolveAsset,page,children}:Props){
  return <div className="vc-slide-preview ot-approved-frame" style={{width:'100%',height:'100%',overflow:'hidden'}}>
   <svg className="ot-approved-canvas" viewBox={`0 0 ${width} ${height}`} style={{display:'block',width:'100%',height:'100%'}}>
    <foreignObject width={width} height={height}>
-    <div className={`screen${portrait?' portrait':''} ot-controlled`} data-theme={slide.visual.mode} data-ot-marker={v9&&slide.style.fontChanged&&slide.style.font==='Brush'||undefined} data-ot-welcome-scale={v9?slide.authoring.welcomeScalePercent:undefined} style={{'--welcome-scale':v9?slide.authoring.welcomeScalePercent/100:undefined,'--ot-background-position':slide.style.backgroundPosition,'--bg':`url(${JSON.stringify(background??defaultBackground)})`,'--panel':slide.visual.mode==='light'?`rgba(255,255,255,${slide.visual.panelOpacity/100})`:`rgba(12,31,58,${slide.visual.panelOpacity/100})`,fontFamily:'OTManrope, Arial, sans-serif',lineHeight:'normal',letterSpacing:'normal',wordSpacing:'normal',fontStyle:'normal',fontVariant:'normal',textAlign:'left',textTransform:'none'} as CSSProperties}>
-     <div className={`slide-layout ${v9?'with-slide-header':'no-outer-heading'}`}>{v9&&<header className="panel slide-header-container"><div className="slide-header-copy"><p className="slide-subtitle" data-ot-header-subtitle hidden={!syncOnzeTrotsHeaderSubtitle(slide)}>{syncOnzeTrotsHeaderSubtitle(slide)}</p><h2 data-ot-header-text hidden={!syncOnzeTrotsHeaderText(slide)}>{syncOnzeTrotsHeaderText(slide)}</h2></div><ClubMark slide={slide} resolveAsset={resolveAsset} outer/></header>}<div className="slide-content">{children??<Content slide={slide} resolveAsset={resolveAsset} page={page}/>}</div>{slide.style.showFooter&&<footer className="slide-footer"><span className="source">{slide.footer}</span><span className="signature"><span className="brand-brush" role="img" aria-label="OnzeTrots"/><small>ONZE CLUB. ONZE TROTS.</small></span></footer>}</div>
+    <div className={`screen${portrait?' portrait':''} ot-controlled`} data-theme={slide.visual.mode} data-ot-current={current||undefined} data-ot-marker={v9&&slide.style.fontChanged&&slide.style.font==='Brush'||undefined} data-ot-welcome-scale={v9?slide.authoring.welcomeScalePercent:undefined} style={{'--welcome-scale':v9?slide.authoring.welcomeScalePercent/100:undefined,'--ot-background-position':slide.style.backgroundPosition,'--bg':`url(${JSON.stringify(background??defaultBackground)})`,'--panel':slide.visual.mode==='light'?`rgba(255,255,255,${slide.visual.panelOpacity/100})`:`rgba(12,31,58,${slide.visual.panelOpacity/100})`,fontFamily:'OTManrope, Arial, sans-serif',lineHeight:'normal',letterSpacing:'normal',wordSpacing:'normal',fontStyle:'normal',fontVariant:'normal',textAlign:'left',textTransform:'none'} as CSSProperties}>
+     <div className={`slide-layout ${v9?'with-slide-header':'no-outer-heading'}`}>{v9&&<header className="panel slide-header-container"><div className="slide-header-copy"><p className="slide-subtitle" data-ot-header-subtitle hidden={!syncOnzeTrotsHeaderSubtitle(slide)}>{syncOnzeTrotsHeaderSubtitle(slide)}</p><h2 data-ot-header-text hidden={!syncOnzeTrotsHeaderText(slide)}>{syncOnzeTrotsHeaderText(slide)}</h2></div><ClubMark slide={slide} resolveAsset={resolveAsset} outer/></header>}<div className="slide-content">{children??<Content slide={slide} resolveAsset={resolveAsset} page={page}/>}</div>{slide.style.showFooter&&<footer className={`slide-footer${rss?' rss-footer':''}`}><span className="source">{slide.footer}</span><span className="signature"><span className="brand-brush" role="img" aria-label="OnzeTrots"/><small>ONZE CLUB. ONZE TROTS.</small></span>{rss&&<RssProvider slide={slide} resolveAsset={resolveAsset} page={page}/>}</footer>}</div>
     </div>
    </foreignObject>
   </svg>

@@ -1,3 +1,4 @@
+import {collectSyncSportMediaAssetIds} from '@veyocast/contracts';
 import {
   dynamicTemplateManifestSchema,
   syncDynamicConfigurationSchema,
@@ -546,6 +547,7 @@ export function collectDynamicRenderAssetIds(snapshot: unknown) {
     ? sportConfiguration.presentation
     : null;
   add(sportPresentation?.backgroundMediaAssetId);
+  for(const id of collectSyncSportMediaAssetIds(snapshot))add(id);
   return [...ids].slice(0, 201);
 }
 

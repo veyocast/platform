@@ -18,7 +18,7 @@ describe("Source defaults project into the real frozen presentation", () => {
     const {rendererVersion:oldRenderer,sourceRevision:oldSource,rowsPerPage:oldCapacity,...beforeFacts}=seed;
     expect({...facts,theme:seed.theme,style:seed.style}).toEqual(beforeFacts);
     if(theme==='onzetrots-tv'){
-      expect(authoring).toEqual({schemaVersion:1,headerSubtitles:{},headerTexts:{},welcomeScalePercent:150});expect(rendererVersion).toBe(syncOnzeTrotsV9RendererVersion);expect(sourceRevision).toBe(syncOnzeTrotsV9SourceRevision);
+      expect(authoring).toEqual({visualRevision:"onzetrots-20261024",schemaVersion:1,headerSubtitles:{},headerTexts:{},welcomeScalePercent:150});expect(rendererVersion).toBe(syncOnzeTrotsV9RendererVersion);expect(sourceRevision).toBe(syncOnzeTrotsV9SourceRevision);
       expect(visual).toEqual({schemaVersion:1,mode:'light',scrollSpeed:'normal',panelOpacity:94});expect(rowsPerPage).toBe(6);
     }else{expect(rendererVersion).toBe(oldRenderer);expect(sourceRevision).toBe(oldSource);expect(visual).toBeUndefined();expect(rowsPerPage).toBe(oldCapacity);}
     expect(result.style).toMatchObject({ accent: defaults.accent, font: "Manrope", fontChanged: true, background: theme==='onzetrots-tv'?"clubmuur":"light", motion: "rustig", showLogo: true, scale: 100 });

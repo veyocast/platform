@@ -27,7 +27,7 @@ export class RssParseError extends Error {
 export type ParsedNewsFeed = {
   articles: CanonicalNewsArticle[];
   media: {
-    articleImages: Array<{ externalId: string; url: string }>;
+    articleImages: Array<{ externalId: string; url: string; alternatives?: string[] }>;
     providerLogoUrl: string | null;
   };
   title: string;
@@ -44,7 +44,7 @@ export function parseRssOrAtom(
   if (entityDeclarationPattern.test(xml)) {
     throw new RssParseError("XML-entitydeclaraties zijn niet toegestaan.");
   }
-  const feedXml = readFeedDocument(stripInertFeedDoctypes(xml));
+  const feedXml = normalizeMediaNamespaces(readFeedDocument(stripInertFeedDoctypes(xml)));
   const rootTitle =
     firstTag(feedXml, "channel") && firstTag(firstTag(feedXml, "channel")!, "title") ||
     firstTag(feedXml, "feed") && firstTag(firstTag(feedXml, "feed")!, "title") ||
@@ -53,7 +53,7 @@ export function parseRssOrAtom(
   const providerLogoUrl = resolveHttpUrl(
     channel
       ? firstTag(firstTag(channel, "image") ?? "", "url")
-      : firstTag(firstTag(feedXml, "feed") ?? "", "logo"),
+      : (firstTag(firstTag(feedXml, "feed") ?? "", "logo") ?? firstTag(firstTag(feedXml, "feed") ?? "", "icon")),
     sourceUrl
   );
   const itemBlocks = [
@@ -68,8 +68,8 @@ export function parseRssOrAtom(
   );
   const candidates = blocks.flatMap((block, index) => {
     const title = cleanText(firstTag(block, "title") ?? "");
-    const link = rssLink(block) ?? sourceUrl;
-    if (!title || !isHttpUrl(link)) return [];
+    const link = resolveHttpUrl(rssLink(block), sourceUrl);
+    if (!title || !link) return [];
     const published = firstTag(block, "pubDate") ??
       firstTag(block, "published") ??
       firstTag(block, "updated");
@@ -79,7 +79,8 @@ export function parseRssOrAtom(
     const externalId = cleanText(
       firstTag(block, "guid") ?? firstTag(block, "id") ?? link
     ).slice(0, 512);
-    const imageUrl = rssImageUrl(block, sourceUrl);
+    const imageUrls = rssImageUrls(block, sourceUrl);
+    const imageUrl=imageUrls[0]??null;
     return [{
       article: {
         author: nullableText(
@@ -91,6 +92,7 @@ export function parseRssOrAtom(
         intro: nullableText(
           firstTag(block, "description") ??
           firstTag(block, "summary") ??
+          firstTag(block, "content:encoded") ??
           firstTag(block, "content")
         ),
         link,
@@ -99,14 +101,14 @@ export function parseRssOrAtom(
         sourceName: cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname,
         title
       } satisfies CanonicalNewsArticle,
-      imageUrl
+      imageUrl, imageUrls
     }];
   });
   const uniqueCandidates = uniqueLatestArticles(candidates);
   const articles = uniqueCandidates.map((candidate) => candidate.article);
   const articleImages = uniqueCandidates.flatMap((candidate) =>
     candidate.imageUrl
-      ? [{ externalId: candidate.article.externalId, url: candidate.imageUrl }]
+      ? [{ externalId: candidate.article.externalId, url: candidate.imageUrl,...(candidate.imageUrls.length>1?{alternatives:candidate.imageUrls.slice(1,6)}:{}) }]
       : []
   );
   if (!articles.length) {
@@ -239,7 +241,7 @@ function rssLink(block: string): string | null {
   return nullableText(atomAlternate ?? atomAny ?? firstTag(block, "link"));
 }
 
-function rssImageUrl(block: string, sourceUrl: string): string | null {
+function rssImageUrls(block: string, sourceUrl: string): string[] {
   const candidates: RssImageCandidate[] = [];
   let sourceOrder = 0;
   const addCandidate = (
@@ -331,7 +333,7 @@ function rssImageUrl(block: string, sourceUrl: string): string | null {
     return url ? [{ ...candidate, url }] : [];
   });
   validCandidates.sort(compareRssImageCandidates);
-  return validCandidates[0]?.url ?? null;
+  return [...new Set(validCandidates.map(candidate=>candidate.url))].slice(0,6);
 }
 
 type RssImageCandidate = {
@@ -467,13 +469,23 @@ function nullableText(value: string | null): string | null {
 }
 
 function cleanText(value: string): string {
-  return decodeEntities(
-    value
-      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-      .replace(/<[^>]+>/g, " ")
-  )
-    .replace(/\s+/g, " ")
-    .trim();
+  return decodeEntities(value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1"))
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi,' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+/** XML prefixes are aliases. Only the declared Media RSS namespace is mapped;
+ * the parser never resolves a namespace URI or any external entity. */
+function normalizeMediaNamespaces(xml:string):string {
+ const prefixes=[...xml.matchAll(/xmlns:([\w.-]+)\s*=\s*["']http:\/\/search.yahoo.com\/mrss\/?["']/gi)].map(match=>match[1]!);
+ for(const prefix of prefixes){
+  if(prefix==='media')continue;
+  const escaped=prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  xml=xml.replace(new RegExp('(<\\/?'+escaped+'):','g'),(_,tag:string)=>tag.replace(prefix,'media')+':');
+ }
+ return xml;
 }
 
 function decodeEntities(value: string): string {
@@ -495,7 +507,7 @@ function decodeEntities(value: string): string {
 function isHttpUrl(value: string): boolean {
   try {
     const parsed = new URL(value);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
+    return (parsed.protocol === "https:" || parsed.protocol === "http:") && !parsed.username && !parsed.password;
   } catch {
     return false;
   }

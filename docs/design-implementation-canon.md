@@ -224,3 +224,32 @@ De normatieve 92-case index en de actuele extra surface-/configuratie-/eisenstat
 staan in `docs/implementation/s161-royal-current/`. HTML-referenties zijn geen
 vooraf geslaagde screenshottests; DONE vereist werkelijk beoordeelde
 ref/new/diff-captures en de Player/offline/LG-gates.
+
+
+## OnzeTrots — expliciete titelrol vanaf 24 oktober 2026
+
+De gebruikersopdracht van 24 oktober heeft voor actuele OnzeTrots-titels en
+headers voorrang op de eerdere Rubik Distressed- en Permanent Marker-afspraken.
+`authoring.visualRevision=onzetrots-20261024` gebruikt de gedeelde semantische
+titelrol Barlow Condensed Black, echt gewicht 900, lokaal geregistreerd als
+`OTBarlow`. Menu Studio gebruikt `onzeTrotsStyle=v10-barlow-light|dark` en
+dezelfde compositie. De bestaande fontbytes zijn metadata-gecontroleerd en
+blijven via de geverifieerde assetregistratie beschikbaar in capture en offline.
+
+Dit geldt voor buitenkoptitels, artikelkoppen, menucategorieën en de drie
+matchday-koppen. Body, contextregels, wedstrijdgegevens en verjaardagsleeftijd
+houden hun eigen rollen. Het originele brushwoordmerk blijft artwork. Eén
+buitenheader: subtitel boven de titel links, eigen clublogo rechts. Alleen
+matchday behoudt de inhoudelijke binnenkoppen Uitslagen, Stand en Programma.
+
+Actuele RSS reserveert afzonderlijke ruimte voor de volledige kop, begrensde
+samenvatting, artikelfoto en zwarte/witte QR met vier modules vrije rand. Geen
+Lees-verder-knop. De leverancier staat rechtsonder, het compacte OnzeTrots-
+artwork direct links daarvan. Geen uitgeverslogo beschikbaar: echte bronnaam;
+een feedbeheerder kan een geverifieerd eigen media-asset instellen.
+
+Een nieuwe visuele revisie ontstaat uitsluitend in de bewerkbare authoringflow;
+bronrefresh overschrijft geen kopvelden. Opslaan, uitvoer voorbereiden en
+playlistpublicatie blijven aparte expliciete stappen. Ongetagde v9, v1 en
+oude menustijlen behouden hun historische contract. Zie
+[s291-onzetrots-consistency.md](s291-onzetrots-consistency.md).

@@ -89,7 +89,7 @@ export function createSyncStudioStarter({
       schemaVersion: 1,
       rendererVersion: theme==='onzetrots-tv'?syncOnzeTrotsV9RendererVersion:syncSlideRendererVersion,
       sourceRevision: theme==='onzetrots-tv'?syncOnzeTrotsV9SourceRevision:syncSlideSourceRevision,
-      ...(theme==='onzetrots-tv'?{visual:{schemaVersion:1,mode:'light',scrollSpeed:'normal',panelOpacity:94}}:{}),
+      ...(theme==='onzetrots-tv'?{visual:{schemaVersion:1,mode:'light',scrollSpeed:'normal',panelOpacity:94},authoring:{visualRevision:'onzetrots-20261024'}}:{}),
       family,
       orientation,
       theme,

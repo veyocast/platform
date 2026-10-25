@@ -49,10 +49,10 @@ export function createSyncOnzeTrotsRichSchema(asset:z.ZodType<SyncSlideAsset>){
  return z.object({
   teamSelection:z.object({ownClubId:id.nullable(),ownTeamIds:z.array(id).max(200),primaryTeamId:id.nullable()}).strict().optional(),
   standings:standings.optional(),fixtures:z.array(fixture).max(200).optional(),
-  visitorsSelection:z.object({ownClubId:id,ownTeamIds:z.array(id).min(1).max(200),referenceAt:z.iso.datetime({offset:true})}).strict().optional(),
+  visitorsSelection:z.object({ownClubId:id,ownTeamIds:z.array(id).min(1).max(200),referenceAt:z.iso.datetime({offset:true}),windowMinutes:z.number().int().min(1).max(60480).optional()}).strict().optional(),
   birthdays:z.array(z.object({id,displayName:text,age:z.number().int().min(0).max(130).nullable(),dateLabel:text,meta:text}).strict()).max(200).optional(),
   activities:z.array(z.object({id,title:text,body:z.string().max(4000),dateLabel:text,timeLabel:text,location:text,image:asset.optional()}).strict()).max(200).optional(),
-  news:z.array(z.object({id,title:text,intro:z.string().max(4000),source:text,url:publicUrl.optional(),heroImage:asset.optional()}).strict()).max(50).optional(),
+  news:z.array(z.object({id,title:text,intro:z.string().max(4000),source:text,url:publicUrl.optional(),heroImage:asset.optional(),providerLogo:asset.optional()}).strict()).max(50).optional(),
   sponsors:z.array(z.object({id,name:text,logo:asset.optional()}).strict()).max(200).optional(),
   infoRows:z.array(z.object({id,cells:z.tuple([text,text,text,text,text]),logo:asset.optional(),selected:z.boolean().default(false)}).strict()).max(200).optional(),
   lineupPlayers:z.array(z.object({number:z.number().int().min(1).max(99),name:text}).strict()).max(36).optional(),

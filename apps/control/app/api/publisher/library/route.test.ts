@@ -14,7 +14,7 @@ const request=(body:unknown={designId:design,operationId:key},origin='https://co
 beforeEach(()=>{
  vi.clearAllMocks();f.session=session;f.row={configuration_json:document,active_draft_version_id:key};f.queries=[];
  const query={select:()=>query,eq:(field:string,value:string)=>{f.queries.push([field,value]);return query;},in:()=>query,is:()=>query,maybeSingle:async()=>({data:f.row,error:null})};
- f.client.mockResolvedValue({from:()=>query});f.save.mockResolvedValue({ok:true,document:{...document,revision:3,sitesConfiguration:{...config,onzeTrotsStyle:'v9-marker-light'}}});f.publish.mockResolvedValue({ok:true});
+ f.client.mockResolvedValue({from:()=>query});f.save.mockResolvedValue({ok:true,document:{...document,revision:3,sitesConfiguration:{...config,onzeTrotsStyle:'v10-barlow-light'}}});f.publish.mockResolvedValue({ok:true});
  f.library.mockResolvedValue({designs:[],sourceState:{pendingDraft:true,processing:false,href:`/dashboard/slides/menu-studio/${design}`}});
 });
 describe('explicit preparation of saved menu prices',()=>{
@@ -28,13 +28,17 @@ describe('explicit preparation of saved menu prices',()=>{
  it('uses the authenticated tenant and updates only the saved style before preparing its exact acknowledged revision',async()=>{
   const response=await POST(request());expect(response.status).toBe(200);expect(await response.json()).toEqual({ok:true});
   expect(f.queries).toEqual([['tenant_id',tenant],['id',design]]);
-  expect(f.save).toHaveBeenCalledWith({slideId:design,command:{baseRevision:2,operationId:key,operation:{kind:'set-sites-configuration',sitesConfiguration:{...config,onzeTrotsStyle:'v9-marker-light'}}}});
+  expect(f.save).toHaveBeenCalledWith({slideId:design,command:{baseRevision:2,operationId:key,operation:{kind:'set-sites-configuration',sitesConfiguration:{...config,onzeTrotsStyle:'v10-barlow-light'}}}});
   expect(f.publish).toHaveBeenCalledWith({slideId:design,expectedRevision:3,operationId:key});
   expect(document.revision).toBe(2);expect(document.sitesConfiguration.onzeTrotsStyle).toBeUndefined();
  });
  it('keeps an already tagged dark style and reuses the original saved document revision',async()=>{
-  f.row={configuration_json:{...document,sitesConfiguration:{...config,onzeTrotsStyle:'v9-marker-dark'}},active_draft_version_id:key};
+  f.row={configuration_json:{...document,sitesConfiguration:{...config,onzeTrotsStyle:'v10-barlow-dark'}},active_draft_version_id:key};
   expect((await POST(request())).status).toBe(200);expect(f.save).not.toHaveBeenCalled();expect(f.publish).toHaveBeenCalledWith({slideId:design,expectedRevision:2,operationId:key});
+ });
+ it('upgrades an explicitly prepared historical dark menu while preserving its selected appearance',async()=>{
+  f.row={configuration_json:{...document,sitesConfiguration:{...config,onzeTrotsStyle:'v9-marker-dark'}},active_draft_version_id:key};
+  expect((await POST(request())).status).toBe(200);expect(f.save).toHaveBeenCalledWith(expect.objectContaining({command:expect.objectContaining({operation:expect.objectContaining({sitesConfiguration:expect.objectContaining({onzeTrotsStyle:'v10-barlow-dark'})})})}));
  });
  it('never prepares missing/foreign sources or continues after a concurrent edit refusal',async()=>{
   f.row=null;expect((await POST(request())).status).toBe(404);expect(f.publish).not.toHaveBeenCalled();

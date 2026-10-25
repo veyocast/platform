@@ -35,3 +35,19 @@ describe('Source selections compile into the existing canonical Sportlink contra
   const value=compileSyncSportlinkBinding(cfg,{},selection,teams);expect(readSyncSportlinkSelection(cfg,value)).toEqual(selection);
  });
 });
+
+describe('S291 selection persistence',()=>{
+ for(const kind of ['sport_program','sport_results','sport_match_of_the_day']as const)for(const matchLocation of ['both','home','away']as const)it(`${kind} round-trips ${matchLocation} with stable team identities`,()=>{
+  const cfg=configuration(kind),selection={mode:'selected' as const,contexts:[syncSportlinkAutoContext('own-team-1')],birthdayDays:7 as const,matchLocation};
+  const bound=compileSyncSportlinkBinding(cfg,{},selection,teams);
+  expect(bound.teamSelection).toMatchObject({matchLocation,teamContexts:selection.contexts});
+  expect(readSyncSportlinkSelection(cfg,structuredClone(bound))).toEqual(selection);
+ });
+ it('stores the selected welcome days in the existing arrival window and retains it on reopening',()=>{
+  const cfg=configuration('sport_visitor_arrivals'),selection={mode:'selected' as const,contexts:[syncSportlinkAutoContext('own-team-1')],birthdayDays:7 as const,welcomeDays:14};
+  const bound=compileSyncSportlinkBinding(cfg,{},selection,teams);
+  expect(bound.arrival).toMatchObject({minutesBefore:20160,minutesAfter:0,emptyBehavior:'skip'});
+  expect(readSyncSportlinkSelection(cfg,bound)).toEqual(selection);
+  expect(()=>compileSyncSportlinkBinding(cfg,{}, {...selection,welcomeDays:43},teams)).toThrow('42 dagen');
+ });
+});

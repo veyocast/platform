@@ -162,7 +162,8 @@ describe("RSS/Atom normalisatie", () => {
 
     expect(feed.media.articleImages).toEqual([{
       externalId: "beeldkwaliteit-1",
-      url: "https://example.org/images/original.jpg"
+      url: "https://example.org/images/original.jpg",
+      alternatives:["https://example.org/images/medium.jpg","https://example.org/images/thumbnail.jpg"]
     }]);
   });
 
@@ -286,4 +287,10 @@ describe("RSS/Atom normalisatie", () => {
       parseRssOrAtom("<rss><channel/></rss>", "https://example.com/feed")
     ).toThrowError("geen bruikbare nieuwsartikelen");
   });
+});
+
+it('normalizes encoded HTML, relative article/media URLs and Atom publisher icons without a dummy destination',()=>{
+ const parsed=parseRssOrAtom(`<feed><title>Eigen bron</title><icon>/icon.png</icon><entry><id>one</id><title>Artikel</title><link rel="alternate" href="/artikel"/><content type="html">&lt;p&gt;Veilige tekst&lt;/p&gt;&lt;script&gt;hidden()&lt;/script&gt;&lt;img src="/foto.jpg"/&gt;</content></entry><entry><title>Geen bestemming</title></entry></feed>`,'https://example.org/feed');
+ expect(parsed.articles).toHaveLength(1);expect(parsed.articles[0]).toMatchObject({link:'https://example.org/artikel',intro:'Veilige tekst'});
+ expect(parsed.media).toMatchObject({providerLogoUrl:'https://example.org/icon.png',articleImages:[{url:'https://example.org/foto.jpg'}]});
 });
