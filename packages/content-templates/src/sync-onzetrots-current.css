@@ -43,3 +43,4 @@
 .ot-v9-scope .screen.portrait[data-ot-current] .rss-copy h3{font-size:48px;line-height:1.12}
 .ot-v9-scope .screen.portrait[data-ot-current] .rss-copy .rss-summary{font-size:24px}
 .ot-v9-scope .screen.portrait[data-ot-current] .rss-provider{max-width:240px}
+.ot-v9-scope .screen[data-ot-current] .rss-copy[data-ot-tight-title]{padding:12px;gap:8px}

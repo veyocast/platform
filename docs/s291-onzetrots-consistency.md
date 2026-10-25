@@ -108,10 +108,10 @@ ontwerpen/revisies/snapshots/syncs/playlists/schermen vóór en na de controle.
 De helpers `s291-onzetrots-capture.mts`, `s291-live-rss.mts`,
 `s291-worker-frame.mts`, `s291-decode-qr.mts` en `s291-menu-capture.mts` gebruiken
 het echte capture-/projectorpad. Er is geen tweede productrenderer.
-Browser- en Worker-playwright-versies verschillen (1.61.1 versus vastgepinde
-1.54.2); de hele RSS-rastervergelijking staat daarom maximaal 2% gemiddelde
-kanaalafwijking toe voor antialiasing. Titelgeometrie, echte fontglyphs en
-QR-bestemming worden apart strikt gecontroleerd.
+Browser en Worker gebruiken voor de hele rastervergelijking hetzelfde volle
+Chromiumbestand; de driverpakketten zijn 1.61.1 en vastgepinde 1.54.2. De bestaande
+grens van 2% gemiddelde kanaalafwijking blijft behouden. Titelgeometrie, echte
+fontglyphs, paginanummer en QR-bestemming worden apart strikt gecontroleerd.
 
 ## Uitgevoerde verificatie en grenzen
 
@@ -122,7 +122,7 @@ QR-bestemming worden apart strikt gecontroleerd.
 - Werkelijke detailworker: 116 tests geslaagd; RSS-integraties 227 tests; twintig-image-/alternatieve-candidaatfixture geslaagd.
 - Wizard/header/reload/receipt-regressies: 33 van de eerste 35 geslaagd; twee welkomfixtures misten ten onrechte de actuele authoringcapability en zijn hersteld, daarna 2/2 geslaagd. Alle negen thuis-/uitcombinaties worden naar de echte commandovorm gestuurd.
 - Alle 144 headerfontcombinaties + vier Menu-widgetcomposities + ongetagde historische Rubik + werkelijk getekende oorspronkelijke slogan: 10 browsercases geslaagd.
-- Huidige RSS: 18 browsercases geslaagd: volledige kop, woordbreuk, maximumtitel, geen summary/URL, dichte/maximale URL, volledige Worker-PNG en echte artikelwisseling met overeenkomstige bron/QR. Eerdere harnasproblemen zijn bewaard; de volledige uiteindelijke suite is groen.
+- Huidige RSS: 20 browsercases geslaagd: volledige kop, woordbreuk, maximumtitel, geen summary/URL, dichte/maximale URL, volledige Worker-PNG en echte artikelwisseling met overeenkomstige bron/QR. Eerdere harnasproblemen zijn bewaard; de volledige uiteindelijke suite is groen.
 - Bestaande v9-Player: 35/36 in de eerste ronde; één card-readinessdeadline onder hostdruk, afzonderlijke herhaling 1/1 geslaagd. Intro, pauze, reduced motion, echte Worker/Player-entreepixels en verjaardagsrollen zijn uitgevoerd.
 - Relevante echte Control-routes voor dynamische inhoud, Bronnen en Studio: 3/3 toegankelijkheids-/bedieningschecks geslaagd. Negen volledige offlineplayerchecks geslaagd.
 - Werkelijke canonieke RSS-export met veilige assetverwerving, Chromium, FFmpeg en ffprobe: 1920×1080, 5 seconden / 150 frames. QR uit het uiteindelijke MP4-frame op 4 seconden decodeert naar de echte artikelbestemming. Op 2 seconden loopt de behouden intro nog; daar is bewust nog geen QR zichtbaar.
@@ -194,3 +194,19 @@ team `218380` herleidde de automatische context naar poule `826233` en
 een technische beheerdersread met een diagnostische configuratie in het
 geheugen; geen opgeslagen ontwerp, gebruikersimpersonatie of providersync.
 De readback na de normale uitrol wordt bij de PR/release vastgelegd.
+
+De laatste grenscontrole met 400 brede W-letters vond nog circa 8 native pixels
+afkapping in de liggende kaart. De gedeelde meting gebruikt daarvoor eerst
+compactere padding/gaps; de vaste ondergrens blijft 36 native pixels. De
+samenvatting levert ruimte in voordat titel of paginanummer verdwijnt. Deze
+zelfde meting draait in alle previews, Worker en Player. Een eerste lokale
+uitwerking bevatte een niet-serialiseerbare helper; de echte Worker-check vond
+die en de adapter is weer volledig zelfstandig gemaakt. Geen fout is als PASS
+geregistreerd. De aparte headless-shell en full Chromium hebben verschillende
+tekst-hintingmetrics: de volledige rastervergelijking gebruikt daarom hetzelfde
+volle browserbestand aan beide zijden, zonder de pixelgrens te verruimen.
+
+Uiteindelijke lokale controle: **20/20 RSS-cases geslaagd** in full Chromium,
+inclusief het complete Worker-frame met 400 brede letters en onafhankelijke
+QR-decodering. De aanvullende twee headless-shell-cases bewijzen eveneens
+volledige titel- én paginanummergrenzen. [Native grensframe](implementation/s291-onzetrots-consistency/rss-wide-title-frame.png).

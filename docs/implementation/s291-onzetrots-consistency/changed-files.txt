@@ -63,6 +63,7 @@ docs/implementation/s291-onzetrots-consistency/rss-export.json
 docs/implementation/s291-onzetrots-consistency/rss-live-ad-landscape.png
 docs/implementation/s291-onzetrots-consistency/rss-live-ad-portrait.png
 docs/implementation/s291-onzetrots-consistency/rss-video-frame.png
+docs/implementation/s291-onzetrots-consistency/rss-wide-title-frame.png
 docs/s286-onzetrots-v9.md
 docs/s290-studio-templates-refresh.md
 docs/s291-onzetrots-consistency.md

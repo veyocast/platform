@@ -3,10 +3,13 @@ import {join} from 'node:path';
 import{createRequire}from'node:module';
 import{tmpdir}from'node:os';
 import{execFileSync}from'node:child_process';
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,chromium,type Page} from '@playwright/test';
 import {syncSlidePresentationSchema,syncSlideRendererAssets,type SyncSlidePresentation} from '@veyocast/contracts';
 import {measureSyncOnzeTrotsV9Layout,measureSyncOnzeTrotsLayout,projectSyncOnzeTrotsMotion,applySyncOnzeTrotsMotion} from '@veyocast/content-templates/sync-slide-static-view';
 import {createSyncTemplatePreview} from '../../apps/control/app/(shell)/dashboard/studio/sync-template-preview';
+// Compare the actual full Chromium binary used by Worker with that same
+// browser. The runner's headless-shell has different text hinting metrics.
+test.use({launchOptions:{executablePath:chromium.executablePath()}});
 function buildSyncCaptureHtml(presentation:SyncSlidePresentation,index=0){
  const directory=mkdtempSync(join(tmpdir(),'s291-html-')),input=join(directory,'input.json'),output=join(directory,'slide.html');
  writeFileSync(input,JSON.stringify(presentation));
@@ -38,9 +41,9 @@ async function mount(page:Page,presentation:SyncSlidePresentation,index=0){
  return{requests,errors};
 }
 
-for(const orientation of ['landscape','portrait']as const)for(const kind of ['real','maximum','word','short','no-summary','dense-url','maximum-url','no-url']as const){
+for(const orientation of ['landscape','portrait']as const)for(const kind of ['real','maximum','word','wide-word','short','no-summary','dense-url','maximum-url','no-url']as const){
  test(`current RSS ${orientation}/${kind}: full headline, bounded summary, reserved QR/footer`,async({page})=>{
-  const headline=kind==='maximum'?'Volledige nieuwstitel met veel woorden en informatie voor het clubscherm. '.repeat(8).slice(0,400):kind==='word'?'Wedstrijdprogramma'.repeat(22).slice(0,400):kind==='short'?'Clubnieuws':title;
+  const headline=kind==='maximum'?'Volledige nieuwstitel met veel woorden en informatie voor het clubscherm. '.repeat(8).slice(0,400):kind==='wide-word'?'W'.repeat(400):kind==='word'?'Wedstrijdprogramma'.repeat(22).slice(0,400):kind==='short'?'Clubnieuws':title;
   const slide=fixture(orientation,headline,kind==='no-summary'?'':undefined,kind==='no-url'?undefined:kind==='maximum-url'?'https://example.org/'+('artikel-'.repeat(300)).slice(0,2028):kind==='dense-url'?'https://example.org/'+('artikel-'.repeat(45)):articleUrl);
   // Explicit undefined selects the default parameter; remove a missing URL after construction.
   if(kind==='no-url'&&slide.rendererVersion==='sync-onzetrots-v9')delete slide.rich!.news![0]!.url;
@@ -49,11 +52,12 @@ for(const orientation of ['landscape','portrait']as const)for(const kind of ['re
    const box=(selector:string)=>document.querySelector<HTMLElement>(selector)!.getBoundingClientRect().toJSON();
    const h=document.querySelector<HTMLElement>('[data-ot-article-title]')!,summary=document.querySelector<HTMLElement>('[data-ot-summary]')!;
    const range=document.createRange();range.selectNodeContents(h);
-   return{content:box('.rss-copy'),headline:box('[data-ot-article-title]'),glyphs:[...range.getClientRects()].map(r=>r.toJSON()),header:box('.slide-header-container'),footer:box('.slide-footer'),supplier:box('.rss-provider'),signature:box('.signature'),summary:summary.textContent,full:summary.dataset.otSummary,qr:document.querySelector('.rss-qr-zone svg')?.getBoundingClientRect().toJSON(),font:getComputedStyle(h).font,scrollWidth:h.scrollWidth,clientWidth:h.clientWidth};
+   return{content:box('.rss-copy'),headline:box('[data-ot-article-title]'),glyphs:[...range.getClientRects()].map(r=>r.toJSON()),number:box('.article-number'),header:box('.slide-header-container'),footer:box('.slide-footer'),supplier:box('.rss-provider'),signature:box('.signature'),summary:summary.textContent,full:summary.dataset.otSummary,qr:document.querySelector('.rss-qr-zone svg')?.getBoundingClientRect().toJSON(),font:getComputedStyle(h).font,scrollWidth:h.scrollWidth,clientWidth:h.clientWidth};
   });
   expect(await page.locator('[data-ot-article-title]').textContent()).toBe(headline);
   for(const glyph of geometry.glyphs){expect(glyph.top).toBeGreaterThanOrEqual(geometry.content.top);expect(glyph.bottom).toBeLessThanOrEqual(geometry.content.bottom);expect(glyph.right).toBeLessThanOrEqual(geometry.content.right);}
   expect(geometry.headline.top).toBeGreaterThanOrEqual(geometry.header.bottom);
+  expect(geometry.number.bottom).toBeLessThanOrEqual(geometry.content.bottom);
   expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth);
   expect(geometry.signature.right).toBeLessThan(geometry.supplier.left);
   expect(geometry.supplier.right).toBeLessThanOrEqual(1920);
@@ -77,16 +81,16 @@ for(const orientation of ['landscape','portrait']as const)for(const kind of ['re
 }
 
 test('the complete Worker frame has the same settled composition as the shared preview',async({page})=>{
- const slide=fixture('landscape');await mount(page,slide);
+ const slide=fixture('landscape','W'.repeat(400));await mount(page,slide);
  const directory=mkdtempSync(join(tmpdir(),'s291-frame-')),input=join(directory,'presentation.json'),output=join(directory,'frame.png');
  writeFileSync(input,JSON.stringify(slide));
  execFileSync(process.execPath,['--import','tsx','tests/helpers/s291-worker-frame.mts',input,output],{cwd:process.cwd(),timeout:45000});
  const frame=readFileSync(output);
- if(evidence)writeFileSync(join(evidence,'rss-worker-frame.png'),frame);
+ if(evidence){mkdirSync(evidence,{recursive:true});writeFileSync(join(evidence,'rss-worker-frame.png'),frame);writeFileSync(join(evidence,'rss-worker-preview.png'),await page.screenshot());writeFileSync(join(evidence,'rss-worker-preview.json'),JSON.stringify(await page.locator('.rss-copy').evaluate(node=>({article:node.getBoundingClientRect().toJSON(),compact:node.getAttribute('data-ot-tight-title'),font:getComputedStyle(node.querySelector('h3')!).font,title:node.querySelector('h3')!.getBoundingClientRect().toJSON()})),null,2));}
  const require=createRequire(join(process.cwd(),'apps/media-worker/package.json')),sharp=require('sharp');
- // Worker pins playwright-core 1.54.2; the acceptance browser is 1.61.1.
- // Compare the whole raster at native resolution with a 2% color-error bound
- // for different glyph antialiasing; exact geometry is asserted above.
+ // Both drivers use the same full Chromium executable. Compare the whole
+ // native raster with the existing 2% color-error bound; exact headline
+ // geometry, loaded glyphs and QR destinations are asserted separately.
  const native=await sharp(frame).removeAlpha().raw().toBuffer(),preview=await sharp(await page.screenshot()).removeAlpha().raw().toBuffer();
  expect(native.length).toBe(preview.length);
  let difference=0;for(let index=0;index<native.length;index++)difference+=Math.abs(native[index]!-preview[index]!);

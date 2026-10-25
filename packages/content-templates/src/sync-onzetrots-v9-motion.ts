@@ -74,14 +74,26 @@ export function measureSyncOnzeTrotsV9Layout(root: ParentNode = document): numbe
     const headline = article?.querySelector<HTMLElement>('[data-ot-article-title]');
     const summary = article?.querySelector<HTMLElement>('[data-ot-summary]');
     if (article && headline && summary) {
-      const style = getComputedStyle(article);
+      delete article.dataset.otTightTitle;
+      let style = getComputedStyle(article);
       const others = [...article.children].filter(element => element !== headline && element !== summary) as HTMLElement[];
-      const room = article.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
-        - others.reduce((height, element) => height + element.offsetHeight, 0)
-        - parseFloat(style.rowGap) * (article.children.length - 1);
+      const otherHeight = others.reduce((height, element) => height + element.offsetHeight, 0);
+      let room = article.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+        - otherHeight - parseFloat(style.rowGap) * (article.children.length - 1);
       let size = 48;
       headline.style.fontSize = `${size}px`;
       while (size > 36 && headline.offsetHeight > room) headline.style.fontSize = `${--size}px`;
+      // The widest allowed Latin words need the reserved padding/gaps back.
+      // Reserve all content first; the compact floor is still 36 native pixels.
+      if (headline.offsetHeight > room) {
+        article.dataset.otTightTitle = 'true';
+        style = getComputedStyle(article);
+        room = article.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+          - otherHeight - parseFloat(style.rowGap) * (article.children.length - 1);
+        size = 48;
+        headline.style.fontSize = `${size}px`;
+        while (size > 30 && headline.offsetHeight > room) headline.style.fontSize = `${--size}px`;
+      }
       const available = Math.max(0, room - headline.offsetHeight);
       const full = summary.dataset.otSummary ?? '';
       summary.textContent = full;
