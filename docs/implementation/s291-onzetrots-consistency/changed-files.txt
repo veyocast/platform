@@ -98,4 +98,5 @@ tests/helpers/s291-live-rss.mts
 tests/helpers/s291-menu-capture.mts
 tests/helpers/s291-onzetrots-capture.mts
 tests/helpers/s291-worker-frame.mts
+tests/helpers/sync-create-wizard-fixture.ts
 tests/player/s291-onzetrots-consistency.spec.ts

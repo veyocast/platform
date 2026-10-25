@@ -168,3 +168,29 @@ staan bij de beelden.
 Nieuwe expliciete thuis-/uitinstellingen voor de bestaande FieldFlow-poulefamilies worden eveneens vóór de limiet gefilterd; acht aanvullende geautoriseerde preview-/opslagcontroles dekken beide families en richtingen. Ontbrekende historische instellingen behouden hun bestaande gedrag.
 
 De volledige lijst gewijzigde bestanden staat in [changed-files.txt](implementation/s291-onzetrots-consistency/changed-files.txt).
+
+## Aanvullende normale CI-controles
+
+De eerste PR-commit `6835cf6d` doorliep lint/typecheck/unit/build en Android
+groen. De echte database-suite bevestigde alle 4.737 assertions. In de
+aansluitende media-/publicatiebrowserflow ontbrak na herladen één geopend
+metadata-venster, terwijl de server-readback van tags/collectie/favoriet al
+slaagde. De volledige gefaalde database-job is op dezelfde commit herhaald
+en slaagde daarna inclusief immutable publicatie, eerste-framebevestiging en
+offlinecontrole. De oorspronkelijke fout is behouden, niet als PASS geboekt.
+
+De brede Control-run had 634 PASS, 629 expliciete opt-in SKIP en één fout:
+`sync-create-wizard-fixture` registreerde bij iedere remount dezelfde
+`dialog.accept`-handler opnieuw. Bij `beforeunload` werd één dialoog daardoor
+tweemaal afgehandeld. De fixture bewaart nu één handler per browserpagina;
+geen productgedrag of geometrieassertie is aangepast. De oorspronkelijke acht
+Engage-cases slagen allemaal (1,8 minuut), zonder retries of skips; de volledige
+CI blijft vereist op de uiteindelijke commit.
+
+Een aanvullende read-only productiecontrole met de echte Duindorp-bron en
+team `218380` herleidde de automatische context naar poule `826233` en
+`seasonId=null`. De bestaande stabiele snapshotbuilder reproduceerde daarmee
+`23514: Complete matchday competition, pool and season required`. Dit was
+een technische beheerdersread met een diagnostische configuratie in het
+geheugen; geen opgeslagen ontwerp, gebruikersimpersonatie of providersync.
+De readback na de normale uitrol wordt bij de PR/release vastgelegd.

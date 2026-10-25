@@ -16,6 +16,7 @@ export const origin = "http://127.0.0.1:3387";
 export const id = (n: number) => `23400000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const require = createRequire(join(process.cwd(), "package.json"));
 let bundle: { js: string; css: string };
+const dialogPages = new WeakSet<Page>();
 export function prepareWizardFixture() {
   const entry = `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{SyncCreateWizard}from'./apps/control/app/(shell)/dashboard/studio/sync-create-wizard';function App(){const[data,setData]=useState(globalThis.fixture);globalThis.changeWizardData=setData;return <div className="sync-control app-shell" style={{display:'block',padding:'20px'}}><main id="control-content"><SyncCreateWizard data={data}/></main></div>}createRoot(document.getElementById('root')).render(<App/>);`;
   const actions = `async function request(path,input,scope){const r=await fetch('/__wizard/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input,scope})});if(!r.ok)throw Error('Transport unavailable');return r.json()}export const createSyncDesignWizardAction=(v,s)=>request('create',v,s);export const loadSyncWizardSportlinkOptionsAction=(v,s)=>request('options',v,s);export const previewSyncWizardAction=(v,s)=>request('preview',v,s);export const readSyncEngageChoicesAction=v=>request('engage-choices',v);export const readSyncEngageSelectionAction=v=>request('engage-selection',v);export const readSyncYouTubeChoicesAction=v=>request('youtube-choices',v);`;
@@ -39,7 +40,12 @@ export async function mount(page: Page, data = fixture(), opts: { dropFirst?: bo
   const receipts = new Map<string, string>();
   let finishCreate: (() => Promise<void>) | null = null;
   page.on("pageerror", error => errors.push(error.message));
-  page.on("dialog", dialog => void dialog.accept());
+  // Geometry cohorts remount the same page. A browser dialog has one owner;
+  // accumulating handlers would accept the same beforeunload more than once.
+  if (!dialogPages.has(page)) {
+    page.on("dialog", dialog => void dialog.accept());
+    dialogPages.add(page);
+  }
   const css = ["tokens/veyocast-design-tokens.css", "packages/ui/src/styles.css", "apps/control/app/globals.css", "apps/control/app/fieldflow.css", "apps/control/app/sync-source.css", "apps/control/app/sync-adapter.css"].map(path => readFileSync(path, "utf8").replace(/@import[^;]+;/g, "")).join("\n");
   // Resolve through the existing approved assets directory: ordinary local public
   // in a full checkout, canonical public behind the guarded assets link in sparse QA.
