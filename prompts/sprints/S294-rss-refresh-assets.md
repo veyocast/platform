@@ -23,6 +23,20 @@ Geen renderer, UI-styling, database, locked asset, dependency, lockfile of
 workflow wijzigen. Bewijs vóór/na via werkelijke projector en volledige
 manifestvoorbereiding; een handmatig verrijkte browserpresentatie alleen mist
 de fout. Test ook nieuwe versus hergebruikte media en offline herstel.
+
+Aanvullende expliciete stop-and-report: dezelfde ruwe datahash kan na herstel
+een complete assetset krijgen waar de oude response beelden wegliet. Breid
+ownership daarom gericht uit naar `player-screen-composition.ts` en de
+bestaande `player-source-data-boundary.test.ts`. Asset-ID/checksum/type/bytes
+horen bij de lokale voorbereidingsidentiteit; signed URLs niet. Zo wordt de
+herstelde set volledig geverifieerd en pas op de natuurlijke grens geactiveerd,
+ook bij dezelfde datahash/revisie. Wijzig geen wirehash of historische release.
+De gerichte browserregressie bewijst daarnaast dat een één-item Source-loop
+na de eerste grens zijn klok wel reset maar zijn gestopte interval/animatielus
+niet herstart. Aanvullende stop-and-report breidt ownership uitsluitend uit
+naar de twee effectafhankelijkheden in `sync-studio-media.tsx`: een nieuwe
+afspeeliteratie moet beide klokken opnieuw starten. Geen renderer/layout-
+wijziging of extra font-/beeldvoorbereiding per ronde.
 Workspacegates en relevante Player/offline/buildchecks moeten groen vóór
 commit/push. Normale PR/CI/main→staging en vervolgens expliciete productie-
 promotie blijven verplicht; productie blijft tot deze fix aangehouden.

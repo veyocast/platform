@@ -19,11 +19,21 @@ servergrens. Een onvolledige lookup voor een expliciet genoemde actuele
 bronasset wijst de kandidaat af: geen stilzwijgend uitgeklede presentatie.
 De Player behoudt dan zijn geldige lokale uitzending.
 
-Dit verandert geen renderer, huisstijl, database, publicatie, bronacquisitie,
-lease, dependency of binaire generatie. Nieuwe media worden voorbereid vóór
-de natuurlijke wissel. Gelijke checksums blijven dezelfde cache-identiteit
-houden bij een vernieuwde signed URL. Een ontbrekende optionele foto heeft
-geen asset-ID en blijft toegestaan.
+Een herstelresponse kan dezelfde canonieke datahash en revisie hebben als de
+oude response met ontbrekende beelden. Daarom bevat de lokale Source-/Menu-
+voorbereidingsidentiteit ook de stabiel gesorteerde asset-ID/checksum/type/
+bytes, inclusief eventuele postergegevens. Signed URLs tellen niet mee.
+Nieuwe of veranderde resources doorlopen zo de volledige cachevoorbereiding
+en natuurlijke wissel, zonder de wirehash, datarevisie of immutable release
+te herschrijven. Een ontbrekende optionele foto zonder asset-ID blijft geldig.
+
+De echte browserregressie vond bovendien een gestopte één-item Source-klok:
+na de eerste natuurlijke grens reset een nieuwe afspeeliteratie de tijd,
+maar de interval-/animatie-effecten startten niet opnieuw. Beide effecten
+hangen nu ook van die bestaande iteratie af. De renderer blijft gemount en
+behoudt zijn geverifieerde fonts; elke volgende ronde biedt weer een grens.
+Renderer/layout, database, bronacquisitie, leases, dependency en binaire
+generatie blijven behouden.
 
 Vier regressies doorlopen de echte descriptor→actuele manifestprojectie→
 cachevoorbereiding met gecontroleerde database-/Storage-transportfixtures:
@@ -35,23 +45,33 @@ werkelijke collector en projector, echte originele afbeeldingsbytes, nieuwe
 data, URL-vernieuwing en offline reload. Een rechtstreeks met beelden verrijkte
 browserfixture alleen had de oorspronkelijke fout niet gevonden.
 
-De eerste runnerpoging had een fout fixture-importpad; de packageboundarygate
-wees vervolgens de rechtstreekse cross-app testimport terecht af. De gedeelde
-transportfixture staat nu volgens het bestaande patroon onder `tests/helpers`;
-de boundarygate is ongewijzigd. De eerste browserfixture gebruikte een CJS-incompatibel import.meta en daarna
-een seed met rijke bronfeiten; beide fixtures zijn hersteld met behoud van de
-strikte contracts. Een TypeScript-testnarrowing en relatieve
-type-import zijn hersteld. De laatste workspace lint/typecheck/unit zijn elk
-30/30 groen. De Player-productiebuild en eigen runnerlint zijn groen. Het nieuwe browsergeval
+De gedeelde cross-app transportfixture staat volgens het bestaande patroon
+onder `tests/helpers`; de packageboundarygate en strikte contracts zijn
+behouden. De vijf aanvullende regressies voor resource-identiteit falen vóór
+herstel; daarna zijn alle tien boundarygevallen en vier manifest-/cachegevallen
+groen. De same-hash browsertest faalt vóór herstel zonder mediaverzoek en
+vindt na die correctie de gestopte afspeelklok. Met beide fixes slaagt hij
+in 43,6 s: de eerste foto heeft de juiste lengte maar een verkeerde checksum,
+blijft onzichtbaar, en wordt na de bestaande 30 s backoff correct opgehaald,
+op een natuurlijke grens zichtbaar en met de complete set opgeslagen.
+URL-vernieuwing downloadt geen foto opnieuw; offline reload behoudt foto,
+bronlogo en revisie 2 zonder pairing.
+Het meetbewijs staat in `implementation/s294-rss-refresh-assets/same-hash-repair.json`:
+precies twee fotoverzoeken (één corrupt, één correct), twee geverifieerde
+bronassets en nul extra fotoverzoeken bij URL-vernieuwing. Het offlinebeeld
+is daadwerkelijk visueel gecontroleerd.
+
+De laatste workspace lint/typecheck/unit zijn elk 30/30 groen. De Player-
+productiebuild en eigen runnerlint zijn groen. Het eerste nieuwe browsergeval
 slaagt in 12,1 s zonder retry: één descriptordownload, één nieuw mediaverzoek,
 geen extra media-/fontloads bij URL-vernieuwing en werkende offline reload.
 Een echte nieuwe afbeelding doorloopt de volledige voorbereiding: de lokale
 FontFace.load-teller gaat daarbij van 6 naar 12; dit wordt niet als nul fontwerk
 of netwerkdownloadwinst bij nieuwe media gepresenteerd. De bestaande test voor
-gelijke resources blijft ongewijzigd. De volledige gerichte Player-/offline-run is groen: 32/32 in 2,6 minuten,
-zonder retry of skip, inclusief echte Menu-widgets, legacy-binary, corrupte
-assets, rendererfouten en beide birthdayformaten. Exacte CI en uitrol volgen
-bij de PR.
+gelijke resources blijft ongewijzigd. De laatste gerichte Player-/offline-run
+is groen: 33/33 in 3,4 minuten zonder retry of skip, inclusief same-hash herstel.
+CI op de laatste head en uitrol worden vóór afronding toegevoegd. De suites bevatten echte Menu-
+widgets, legacy-binary, corrupte assets, rendererfouten en beide birthdayformaten.
 
 S293 blijft een afzonderlijke PR voor observatie-identiteit en legacy-upload.
 Productie wordt pas gepromoveerd nadat ook deze assetcorrectie via de normale

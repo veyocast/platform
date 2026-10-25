@@ -208,7 +208,7 @@ export function SyncStudioMedia({
       setPage(Math.floor((elapsed.current % loopMs) / perPageMs));
     }, 100);
     return () => window.clearInterval(timer);
-  }, [frameReported, failed, paused, passive, pages, loopMs, perPageMs,item.kind,item.id,hasNaturalBoundary,presentation]);
+  }, [frameReported, failed, paused, passive, pages, loopMs, perPageMs,item.kind,item.id,hasNaturalBoundary,presentation,iteration]);
   useLayoutEffect(()=>{elapsed.current=0;endReported.current=false;introFinished.current=false;scenePage.current=0;setPage(0);},[item.id,item.syncDynamic?.contentHash,iteration]);
   useLayoutEffect(()=>{
     const element=root.current;if(!isSyncOnzeTrotsPresentation(presentation)||!element||!ready||failed)return;
@@ -231,7 +231,7 @@ export function SyncStudioMedia({
       if(!passive)animation=requestAnimationFrame(frame);
     };
     frame(performance.now());return()=>cancelAnimationFrame(animation);
-  },[presentation,ready,frameReported,failed,paused,passive,page,loopMs,perPageMs,hasNaturalBoundary,item.id,transition?.durationMs]);
+  },[presentation,ready,frameReported,failed,paused,passive,page,loopMs,perPageMs,hasNaturalBoundary,item.id,transition?.durationMs,iteration]);
   if (!supported || !css || failed || !presentation) return fallback;
   return (
     <div
