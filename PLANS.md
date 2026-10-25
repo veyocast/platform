@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S293 sluit tijdens de echte S292-stagingcanary gevonden Menu-metadatachurn.
+Protocol 2 houdt publicatie-observatietijd buiten data- en snapshotidentiteit;
+echte feiten en historische v1-hashes behouden hun betekenis. Zie
+`docs/s293-menu-observation-stability.md`; productiepromotie volgt pas na de
+nieuwe gates en canary.
+
 S292 herstelt de live bevestigde RSS-completiongrens, verjaardagsbinding en
 matchday-teamselectie. Het onafhankelijke Source DOM-protocol 2 gebruikt de
 bestaande Source- én MenuDocument/widgetrenderer, eigen lichte queue, gecontroleerde originele assets en

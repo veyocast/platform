@@ -1,0 +1,46 @@
+{
+  "localOnly": true,
+  "separateTransactions": true,
+  "provider": "twelve_excel",
+  "importedProductSourceId": null,
+  "storageUpload": false,
+  "baseline": {
+    "hash": "3b5f64ae2279eae81a1938f9c05b2f9bad9a81175033d9bba1e959cb6fe38afc",
+    "jobs": 1,
+    "binary": 0,
+    "releases": 1,
+    "revision": 1,
+    "snapshots": 1,
+    "publishedAt": "2026-10-25T20:38:23.298907+00:00"
+  },
+  "observations": [
+    {
+      "hash": "3b5f64ae2279eae81a1938f9c05b2f9bad9a81175033d9bba1e959cb6fe38afc",
+      "jobs": 1,
+      "binary": 0,
+      "releases": 1,
+      "revision": 1,
+      "snapshots": 1,
+      "publishedAt": "2026-10-25T20:38:23.661595+00:00"
+    },
+    {
+      "hash": "3b5f64ae2279eae81a1938f9c05b2f9bad9a81175033d9bba1e959cb6fe38afc",
+      "jobs": 1,
+      "binary": 0,
+      "releases": 1,
+      "revision": 1,
+      "snapshots": 1,
+      "publishedAt": "2026-10-25T20:38:23.842529+00:00"
+    },
+    {
+      "hash": "3b5f64ae2279eae81a1938f9c05b2f9bad9a81175033d9bba1e959cb6fe38afc",
+      "jobs": 1,
+      "binary": 0,
+      "releases": 1,
+      "revision": 1,
+      "snapshots": 1,
+      "publishedAt": "2026-10-25T20:38:24.033011+00:00"
+    }
+  ],
+  "snapshotIdentityStable": true
+}
