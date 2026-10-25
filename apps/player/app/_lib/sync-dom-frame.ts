@@ -17,3 +17,8 @@ export function hasVisibleSyncDomFrame(root:ParentNode|null,rendererVersion:stri
  }
  return true;
 }
+
+export function hasVisibleMenuDomFrame(root:ParentNode|null):boolean{
+ const widgets=root?.querySelectorAll<HTMLElement>('.vm-widgets');if(!widgets?.length)return false;
+ return [...widgets].every(widget=>{const box=widget.getBoundingClientRect();if(!box.width||!box.height||!widget.textContent?.trim())return false;for(let element:HTMLElement|null=widget;element&&element!==root;element=element.parentElement){const style=getComputedStyle(element);if(style.visibility!=='visible'||Number(style.opacity)===0)return false;}return true;});
+}

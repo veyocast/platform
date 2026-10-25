@@ -367,7 +367,6 @@ revoke all on function private.validate_sync_dom_playlist_item_v2()from public,a
 create trigger playlist_items_dom_binding before insert or update of media_asset_id,dynamic_snapshot_id,dynamic_slide_id,duration_seconds on public.playlist_items for each row execute function private.validate_sync_dom_playlist_item_v2();
 
 notify pgrst,'reload schema';
-commit;
 -- A native explicit export may take minutes. Independent DOM readiness must
 -- never wait behind that capture lane. Both lanes retain the same fenced jobs.
 do $migration$
@@ -393,3 +392,4 @@ language sql stable security definer set search_path='' as $$
 $$;
 revoke all on function public.get_worker_queue_hint_v3(integer)from public,anon,authenticated,service_role;
 grant execute on function public.get_worker_queue_hint_v3(integer)to service_role;
+commit;

@@ -5,9 +5,9 @@ Scope: fixed menu boards, RSS news, Publisher integration and all Players
 
 ## Independent Source DOM protocol 2 (S292)
 
-This section governs newly opted-in Sync/Sportlink, RSS and Sync Menu designs.
-Version 1 and historical MenuDocument/Sites publications retain their original
-contracts below. No historical release is rewritten.
+This section governs newly opted-in Sync/Sportlink, RSS, Sync Menu and current
+MenuDocument/widget preparations. Version 1 and previously prepared
+MenuDocument/Sites publications retain their original contracts below. No historical release is rewritten.
 
 A tenant producer is disabled by default. A service-only audited command records
 the verified consumer release SHA before enabling protocol 2. Immutable Source
@@ -18,7 +18,12 @@ MIME `application/vnd.veyocast.sync-dom+json` (maximum 550,000 bytes). This is a
 code-free immutable descriptor. It contains the known renderer/presentation and
 checksum-bound resource metadata, never provider HTML, credentials, scripts or
 signed URLs. No poster, PNG or MP4 is a readiness prerequisite. Control previews
-use the same existing `SyncSlideStaticView` as the Player and explicit export.
+use the same existing `SyncSlideStaticView` or Menu Studio
+`SitesMenuWidgets`/`SitesApprovedMenu` as the Player and explicit export.
+Menu keeps its real widgets, stored document, provider identities and approved
+prices. New Menu transport has distinct strict `menuDom` metadata and the same
+manifest version 2; it never masquerades as the old Sync presentation.
+A source price proposal does not change approved published prices.
 
 Only explicit `sync-dynamic-v2` negotiation plus the actual renderer capabilities
 receives a version-2 manifest and strict version-2 metadata. The legacy strict
@@ -35,7 +40,10 @@ semantic data identity. Amsterdam's birthday selection day remains semantic.
 Live facts do not create new configuration snapshots or releases. Original
 photographs, logos and fonts are still prepared and verified. For protocol 2,
 a complete cached app shell and actual visible frame are required before the
-new local recovery point is committed. See the Player Offline Canon.
+new local recovery point is committed. Menu/data clocks restart for the accepted
+dataset, and every timed DOM zone reaches its own natural boundary before the
+composed update. Explicit Menu PNG uses the existing renderer and bounded
+three-slot cache, independently from DOM readiness. See the Player Offline Canon.
 
 ## Historical version-1 product boundary
 

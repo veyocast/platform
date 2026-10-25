@@ -19,9 +19,10 @@ import { createOrResumeDynamicSlideVersion } from "../version-actions";
 import { loadDynamicSlideVersionState } from "../version-data";
 import { slideEditorKind } from "../slide-management";
 import { VersionHistory } from "../version-history";
-import {readSyncDynamicArtifact,readSyncDynamicDomArtifact,type SyncSlidePresentation}from'@veyocast/contracts';
+import {readSyncDynamicArtifact,readSyncDynamicDomArtifact,readMenuDomArtifact,type SitesPresentation,type SyncSlidePresentation}from'@veyocast/contracts';
 import {loadCanonicalSnapshotAssets}from'../../playlists/library';
 import {SyncExportDownload}from'../sync-export-download';
+import {MenuDomPreview}from'../../playlists/playlist-preview';
 import {SyncSlidePreview}from'../../playlists/_components/sites/sync-studio-preview';
 
 type PageProps = {
@@ -89,7 +90,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
             }`}
             data-orientation={data.slide.orientation}
           >
-            {data.syncPreview?<SyncSlidePreview {...data.syncPreview} active intrinsic/>:data.newsPreview ? (
+            {data.menuPreview?<MenuDomPreview {...data.menuPreview}/>:data.syncPreview?<SyncSlidePreview {...data.syncPreview} active intrinsic/>:data.newsPreview ? (
               <div
                 className={styles.newsHtmlPreview}
                 style={{
@@ -230,6 +231,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     ...slideResult.data,
     ...currentVersion.data
   } : slideResult.data;
+  let menuPreview:{presentation:SitesPresentation;assetUrls:Record<string,string>}|null=null;
   let syncPreview:{presentation:SyncSlidePresentation;assetUrls:Record<string,string>;durationSeconds:number;id:string}|null=null;
   let previewUrl: string | null = null;
   let previewMimeType:string|null=null;
@@ -261,6 +263,8 @@ async function loadSlide(slideId: string, tenantId: string) {
       const assets=await loadCanonicalSnapshotAssets(tenantId,[snapshot.data?.snapshot_data_json,snapshot.data?.sync_render_result_json]);
       syncPreview={presentation:checked.artifact.presentation,assetUrls:Object.fromEntries(Object.entries(assets).map(([id,asset])=>[id,asset.url])),durationSeconds:checked.artifact.durationMs/1000,id:slide.current_snapshot_id};
     }
+    const menu=readMenuDomArtifact(snapshot.data?.snapshot_data_json,snapshot.data?.sync_render_result_json);
+    if(menu){previewMimeType=menu.artifact.mimeType;const assets=await loadCanonicalSnapshotAssets(tenantId,[snapshot.data?.snapshot_data_json,snapshot.data?.sync_render_result_json]);menuPreview={presentation:menu.artifact.presentation,assetUrls:Object.fromEntries(Object.entries(assets).map(([id,asset])=>[id,asset.url]))};}
     if (snapshot.data?.output_media_asset_id) {
       const variant = await supabase.from("media_variants").select("storage_bucket,storage_path,mime_type").eq('tenant_id',tenantId).eq("asset_id", snapshot.data.output_media_asset_id).eq("variant_type", "original").maybeSingle();
       if (variant.data?.storage_path&&variant.data.mime_type!=='application/vnd.veyocast.sync-dom+json') {
@@ -343,7 +347,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     previewMimeType,
     slide,
     sportSelection
-    ,syncPreview
+    ,syncPreview,menuPreview
   };
 }
 

@@ -84,7 +84,7 @@ aanroeptelling, geen gemeten download-, CPU- of volledige latentieverbetering.
 | Sportlink Studio | Wizardcompiler → read-only preview-RPC → canonieke payload → projector → dezelfde DOM-compositie | Nieuwe opt-in definitie → lichte descriptorqueue → ready zonder capture; originele assets en app shell gecontroleerd vóór eerste frame |
 | Nieuws/RSS | Veilige serverfetch → parser → echte foto's/QR/logo → transactionele completion; preview leest opgeslagen set | Zelfde onafhankelijke protocol-2-route; gewone feiten verversen via published_dynamic_data |
 | Twelve / Sync Menu | Echte handmatige/Twelve-productbron, goedgekeurde prijs-/configuratiebinding en directe gedeelde menucompositie | Nieuwe opt-in Sync-menu's gebruiken protocol 2; gepubliceerde prijzen behouden hun bestaande expliciete goedkeuringsregels |
-| Historische MenuDocument / Sites Menu Studio | Eigen MenuDocument/widget/prijsroute en SitesMenuWidgets/SitesApprovedMenu; eigen directe DOM-preview/opslag | Behoudt de bestaande binaire publicatievoorwaarden. Geen ongefundeerde claim dat deze andere route is omgebouwd of dezelfde timings heeft |
+| MenuDocument / Sites Menu Studio | Eigen bestaande MenuDocument/widget/prijsroute en SitesMenuWidgets/SitesApprovedMenu; echte wizardcompiler en guarded version writer blijven leidend | Nieuwe opt-in voorbereidingen krijgen eigen strikte menuDom-metadata en manifest 2, zonder capture. Bestaande voorbereide versie-1-publicaties behouden hun contract. Legacy/expliciete PNG deelt de begrensde cache |
 
 Nieuwe protocol-2-uitvoer is een `composition` met één immutable JSON-original,
 maximaal 550.000 bytes, zonder poster. De descriptor bevat alleen bekende
@@ -102,6 +102,12 @@ de bestaande cache met drie begrensde slots; een cache die nog voorbereidt
 houdt die player bij zijn laatste werkende release. Moderne doelen wachten
 daar niet op. Download bestand is een afzonderlijke, bevoegde aanvraag; dezelfde
 inhoud hergebruikt de uitvoer en een concept wordt niet ongemeld gepubliceerd.
+
+De werkelijke Menu Studio-route doorloopt afzonderlijk create/publish-RPC,
+DOM-workerclaim/completion en Publisher/target-RPC. Handmatige en opgeslagen
+Twelve-producten zijn in beide oriëntaties bewezen. Nieuwe bronprijzen veranderen
+de expliciet goedgekeurde publicatieprijzen niet. Dezelfde drie-slotcache bedient
+ook de Menu-PNG; de Menu Studio-pagina heeft een afzonderlijke downloadactie.
 
 Een eigen DOM-workerclaim voorkomt wachten achter een lange native export.
 De bestaande bron-/exportlussen blijven gescheiden en delen één compact hint-
@@ -121,8 +127,10 @@ playlistinhoud of planningen te vervangen. Historische releases blijven immutabl
 
 De nieuwe route controleert de bestaande service-workercontroller, matching
 cached document/code/styles, descriptorchecksums, rendererfonts en alle beelden.
-Nieuwe feiten gaan op een natuurlijke grens in. De lokale herstelversie wordt
-pas na een zichtbaar, niet-nul frame vastgelegd; heartbeat bevestigt afzonderlijk
+Nieuwe feiten gaan op een natuurlijke grens in. Menu- en zoneklokken worden
+voor de geaccepteerde set opnieuw gestart, zonder fonts of descriptor opnieuw
+te downloaden. De lokale herstelversie wordt
+pas na een zichtbaar, niet-nul frame van alle zones vastgelegd; heartbeat bevestigt afzonderlijk
 snapshot, contentHash en dataRevision. Een foutieve kandidaat overschrijft die
 herstelversie niet. Een renderexception herstelt de vorige geverifieerde data.
 De bestaande versie-1-herstelplaats blijft beschikbaar voor een approllback;
@@ -152,7 +160,8 @@ nieuwe contractversie toe; oude RPC-signaturen blijven beschikbaar.
 - RSS-SQL: 25/26/50 artikelen met alle maximaal 101 media, langere koppen,
   optioneel ontbrekende foto, atomair behoud, leases en idempotente retry.
   Matchday controleert ieder A/B/A2-item en volledige stand. De volledige
-  SQL-run telt 145 bestanden en 4.799 assertions; database-lint heeft nul findings.
+  SQL-run telt 146 bestanden en 4.811 assertions; database-lint op niveau error
+  heeft nul findings (bestaande warnings worden niet als nul findings geclaimd).
 
 Een lokale native meting van de twee bestaande routes in de kandidaatbuild
 levert Menu 2.385 bytes descriptor tegenover 2.533.177 bytes MP4 + 2.071.985 bytes
@@ -167,6 +176,13 @@ Per fixture zijn 30 pure descriptorvoorbereidingen in hetzelfde proces gemeten
 landscape p50 0,73 ms/p95 2,21 ms; portrait 0,65/1,13 ms; RSS landscape
 0,83/1,29 ms, portrait 1,12/2,03 ms. Dit omvat projectie/validatie/serialisatie;
 geen DB/netwerk, queue, bronacquisitie, browserstart of nieuw beelddecode.
+Voor de aparte MenuDocument/widget-route is één native PNG gemeten: 4,04 s,
+2.048.860 bytes, tegenover een descriptor van 1.818 bytes voor twee echte
+widgetpagina’s. De PNG gebruikt de historische eerste-pagina-exportroute;
+capabele DOM-playback toont alle widgetpagina’s. Een latere expliciete aanvraag
+hergebruikt de legacycache zonder nieuwe job. Dit is één lokale steekproef,
+zonder Storage-upload of fysieke hardwaremeting.
+
 De uitvoerbestanden bevatten de meetopzet en samplesamenvattingen. De routes zijn
 lokaal apart gemeten, zonder daar een productieversnellingsfactor uit af te leiden.
 
@@ -185,20 +201,34 @@ geen testassertie of timeout is verwijderd om groen te worden.
 
 Bevestigd: Control+a11y/E2E 94 PASS/22 bestaande conditionele skips; workspace
 lint/typecheck/test ieder 30/30; volledige build 18/18 plus finale Player-build.
-De brede Player-/offlinerun telt 385 PASS/15 conditionele skips. Na de laatste
-LG-compatibiliteitsdelta zijn de 90 relevante Player-/offlinegevallen opnieuw
-groen zonder skips of retries, waaronder de twaalf nieuwe DOM-gevallen en drie
-werkelijke standalone-LG-binarygevallen. Een eigen onjuiste controle op het
+De brede Player-/offlinerun inclusief de aparte Menu-route telt 398 PASS/15
+conditionele skips. Die run gaat vooraf aan de laatste Menu-/zoneklokcorrectie;
+op de finale build zijn de 63 relevante Player-/offlinegevallen groen zonder
+skips of retries: 7 Menu-gevallen (inclusief echte stilgezette grenscontrole en
+verschillende zonetimers), 12 Source-DOM-gevallen, 21 LG-compositiegevallen,
+14 publicatiewissels en 9 offlinegevallen. De drie standalone-LG-binarygevallen
+zijn daarnaast in de brede run groen; hun productcode is sindsdien ongewijzigd.
+Een eigen onjuiste controle op het
 aantal verborgen pairingvelden is gecorrigeerd naar zichtbaarheid en behoud
 van de credential; de betreffende rode logs blijven beschikbaar. Ruwe logs staan onder
 `/home/codex/.local/state/veyocast-s292` en in de eigen `/tmp/castivo-s292-*` logs.
 Screenshots en compacte meetresultaten staan naast dit document.
 
-De aparte MenuDocument/widget-publicatieroute wordt nog afgerond; het snelle
-Sync-menu is daarvoor geen vervangend bewijs. Er is nog geen S292-PR of
-deployment. Na de aanvullende implementatie en groene gates volgt de
-bestaande PR/review/main→staging→expliciete productieflow voor exact de actuele
-SHA. Verplichte GitHub-environmentreviews worden behouden. Postdeploy zijn de
+De aparte MenuDocument/widget-publicatieroute is geïmplementeerd en afzonderlijk
+getest. De eerdere test die alleen op een uiteindelijke prijswissel wachtte, miste
+een te vroege Menu-wissel; de aangescherpte stilgezette-kloktest en unitcontrole
+reproduceerden dit rood. De gedeelde grenscontrole omvat nu Menu en de eigen
+item-/zoneklokken volgen de geaccepteerde gegevensset. Ruwe rode logs blijven
+bewaard. De lokale eindgates zijn groen. De actuele PR/CI- en
+main→staging→expliciete productie-uitkomst per exacte SHA wordt in de PR en
+het opleveringsbericht vastgelegd; lokale gates zijn geen deploymentbewijs. Verplichte GitHub-environmentreviews worden behouden. Postdeploy zijn de
 drie echte RSS-syncs en hun reguliere cyclus, verjaardagsbroncontrole,
 matchday-teamselectie, consumeronderhandeling en live framebevestiging nog
 te controleren. Geen fysieke hardwareacceptatie of complete uitrol geclaimd.
+
+Voor applicatierollback naar code vóór protocol 2 gaat de producer eerst uit.
+Een reeds toegewezen versie-2-publicatie wordt daarmee niet herschreven; waar
+nodig wordt via de bestaande guarded flow een vorige compatibele publicatie
+hersteld. De database blijft forward-only en de lokale versie-1-herstelplaats
+blijft behouden. Reële playlistinhoud/planningen worden voor canarytests niet
+vervangen.

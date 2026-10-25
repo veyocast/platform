@@ -1,5 +1,5 @@
 import "server-only";
-import {readSyncDynamicDomArtifact}from'@veyocast/contracts';
+import {readSyncDynamicDomArtifact,readMenuDomArtifact}from'@veyocast/contracts';
 
 import {
   evaluatePlaylistReadiness,
@@ -359,7 +359,7 @@ export async function loadPlaylistStudio(
   }));
   const domReady=new Set(dynamicSnapshots.flatMap(snapshot=>{
     const cfg=(snapshot.snapshot_data_json as {syncConfiguration?:unknown}|null)?.syncConfiguration;
-    const checked=readSyncDynamicDomArtifact(cfg,snapshot.sync_render_result_json),asset=allAssets.find(asset=>asset.id===snapshot.output_media_asset_id);
+    const checked=readSyncDynamicDomArtifact(cfg,snapshot.sync_render_result_json)??readMenuDomArtifact(snapshot.snapshot_data_json,snapshot.sync_render_result_json),asset=allAssets.find(asset=>asset.id===snapshot.output_media_asset_id);
     return snapshot.status==='ready'&&checked&&asset?.kind==='composition'&&asset.variant?.checksumSha256===checked.artifact.checksumSha256&&asset.variant.fileSizeBytes===checked.artifact.byteLength?[snapshot.id]:[];
   }));
   const dynamicOutputAssetIds = new Set(

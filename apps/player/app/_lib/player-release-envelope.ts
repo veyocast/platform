@@ -1,3 +1,6 @@
+import {readMenuDomArtifact,readMenuBinaryArtifact,menuDomPlaybackSchema,menuDomAssetRefs,type MenuDomPlayback}from'@veyocast/contracts';
+import {buildSitesPresentationFromDynamicPayload}from'@veyocast/content-templates/sites-dynamic-projector';
+import {sitesPresentationPages}from'@veyocast/content-templates/sites-presentation-model';
 import {isSyncOnzeTrotsCurrent} from '@veyocast/contracts';
 import {syncOnzeTrotsWelcomeShouldSkip} from '@veyocast/contracts';
 import {collectSyncSportMediaAssetIds} from '@veyocast/contracts';
@@ -155,14 +158,32 @@ export async function loadPlayerReleaseEnvelope({
   if (releaseItems.length === 0) throw new Error("release has no items");
   const presentationDefaults = readPresentationDefaults(release.manifest_json);
   const configurationHashes = new Map<string, string>();
+  const menuDomSnapshots=new Map<string,{snapshot:SyncDynamicSnapshotRow;checked:NonNullable<ReturnType<typeof readMenuDomArtifact>>;dataRevision:number}>();
   const syncDynamicSnapshots=new Map<string,ReturnType<typeof readSyncDynamicReleaseSnapshot>>();
   const dynamicTemplates = await loadDynamicTemplatePayloads(
     admin,
     releaseItems,
     tenantId,
     configurationHashes,
-    syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,
+    syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,menuDomSnapshots,
   );
+  const menuPresentations=new Map<string,MenuDomPlayback>(),menuBinaries=new Map<string,NonNullable<ReturnType<typeof readMenuBinaryArtifact>>['artifact']>();
+  for(const [id,value]of menuDomSnapshots){
+    const payload=dynamicTemplates.get(id),presentation=buildSitesPresentationFromDynamicPayload(payload);if(!payload||presentation?.kind!=='dynamic'||!presentation.content.menuPages)throw Error('MENU_DOM_DATA_INVALID');
+    const {snapshot,checked}=value;
+    if(value.dataRevision===1&&JSON.stringify(buildSitesPresentationFromDynamicPayload(payload,checked.configuration))!==JSON.stringify(checked.artifact.presentation))throw Error('MENU_DOM_CANONICAL_MISMATCH');
+    if(syncDynamicMode==='dom-v2'){
+      const refs=menuDomAssetRefs(presentation);
+      menuPresentations.set(id,menuDomPlaybackSchema.parse({schemaVersion:2,configurationSnapshotId:snapshot.id,snapshotId:snapshot.id,templateVersionId:snapshot.template_version_id,configurationHash:createHash('sha256').update(JSON.stringify([snapshot.dynamic_slide_version_id,snapshot.template_version_id,checked.document,checked.configuration,releaseItems.find(item=>item.id===id)?.sites_configuration_json])).digest('hex'),contentHash:payload.snapshotHash,descriptorChecksumSha256:checked.artifact.checksumSha256,durationMs:sitesPresentationPages(presentation)*presentation.configuration.seconds*1000,dataRevision:value.dataRevision,presentation,assets:Object.fromEntries(refs.map(ref=>[ref.mediaAssetId,payload.assets?.[ref.mediaAssetId]]))}));
+    }
+  }
+  if(menuDomSnapshots.size&&syncDynamicMode!=='dom-v2'){
+    const ids=[...menuDomSnapshots.values()].map(value=>value.snapshot.id),result=await admin.rpc('get_sync_binary_playback_v1',{p_tenant_id:tenantId,p_snapshot_ids:ids});
+    if(result.error||!Array.isArray(result.data)||result.data.length>ids.length)throw Error('MENU_BINARY_UNAVAILABLE');
+    for(const [id,value]of menuDomSnapshots){const rows=result.data.filter((row:Record<string,unknown>)=>row?.snapshotId===value.snapshot.id);if(rows.length!==1)throw Error('SYNC_DYNAMIC_BINARY_PREPARING');const row=rows[0] as {artifact:unknown;dataRevision:unknown;contentHash:unknown};const binary=readMenuBinaryArtifact(value.snapshot.snapshot_data_json,row.artifact);
+      if(!binary||!Number.isSafeInteger(row.dataRevision)||Number(row.dataRevision)<1||typeof row.contentHash!=='string'||!/^[a-f0-9]{64}$/.test(row.contentHash)||!new RegExp('^tenants/'+tenantId+'/assets/[a-f0-9-]{36}/sync-dynamic/[a-f0-9-]{36}-'+binary.artifact.checksumSha256+'[.]png$').test(binary.artifact.storagePath))throw Error('MENU_BINARY_INVALID');menuBinaries.set(id,binary.artifact);
+    }
+  }
   const binaryArtifacts=new Map<string,ReturnType<typeof readSyncPublishedBinaryArtifact>['artifact']>();
   const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => (syncDynamicMode === 'dom'||syncDynamicMode==='dom-v2') && (value.metadata.schemaVersion===1||syncDynamicMode==='dom-v2') && (!isSyncOnzeTrotsCurrent(value.presentation)||enableSyncOnzeTrotsCurrent) && (value.presentation.rendererVersion==='sync-onzetrots-v9'?enableSyncOnzeTrotsV9:enableSyncOnzeTrots||value.presentation.rendererVersion!=='sync-onzetrots-v1') && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
   if(syncDynamicMode||releaseItems.some(item=>item.asset_kind==='composition')){
@@ -200,7 +221,7 @@ export async function loadPlayerReleaseEnvelope({
 
   const items = await Promise.all(
     releaseItems.map(async (originalItem): Promise<PlayerManifestItem> => {
-      const binary=binaryArtifacts.get(originalItem.id),item=binary?{...originalItem,storage_path:binary.storagePath,checksum_sha256:binary.checksumSha256,file_size_bytes:binary.byteLength,mime_type:binary.mimeType,asset_kind:binary.mimeType==='video/mp4'?'video' as const:'image' as const,duration_seconds:Math.max(originalItem.duration_seconds,binary.durationMs/1000)}:originalItem;
+      const binary=binaryArtifacts.get(originalItem.id)??menuBinaries.get(originalItem.id),item=binary?{...originalItem,storage_path:binary.storagePath,checksum_sha256:binary.checksumSha256,file_size_bytes:binary.byteLength,mime_type:binary.mimeType,asset_kind:binary.mimeType==='video/mp4'?'video' as const:'image' as const,duration_seconds:Math.max(originalItem.duration_seconds,binary.durationMs/1000)}:originalItem;
       const { data: signed, error: signedError } = await admin.storage
         .from(item.storage_bucket)
         .createSignedUrl(item.storage_path, 60 * 60);
@@ -228,7 +249,8 @@ export async function loadPlayerReleaseEnvelope({
         ...(studioPresentations.has(item.id)?{sitesStudioPresentation:studioPresentations.get(item.id),sitesStudioAssets:Object.fromEntries(sitesPresentationAssets(studioPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
         ...(syncPresentations.has(item.id)?{syncStudioPresentation:syncPresentations.get(item.id),syncStudioDurationMs:Number(item.sync_studio_duration_ms),syncStudioAssets:Object.fromEntries(syncSlideAssets(syncPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
         ...(syncDynamicSnapshots.has(item.id)&&syncDynamicMode?(dynamicDomIds.has(item.id)?{syncDynamic:syncDynamicPlaybackSchema.parse({...syncDynamicSnapshots.get(item.id)!.metadata,presentation:syncDynamicSnapshots.get(item.id)!.presentation,liveMatch:syncDynamicSnapshots.get(item.id)!.liveMatch,assets:Object.fromEntries(syncSlideAssets(syncDynamicSnapshots.get(item.id)!.presentation).flatMap(ref=>ref.kind==='tenant'?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))})}:{syncDynamicBinary:syncDynamicBinaryPlaybackSchema.parse(syncDynamicSnapshots.get(item.id)!.metadata)}):{}),
-        ...(dynamicTemplates.get(item.id)
+        ...(menuPresentations.has(item.id)?{menuDom:menuPresentations.get(item.id)}:{}),
+        ...(dynamicTemplates.get(item.id)&&!menuPresentations.has(item.id)
           ? { dynamicTemplate: dynamicTemplates.get(item.id) }
           : {}),
         ...(item.engage_public_id && item.engage_title && item.engage_question&&(!item.sync_studio_presentation_json||syncPresentations.has(item.id))
@@ -306,7 +328,7 @@ export async function loadPlayerReleaseEnvelope({
   for(const item of items)item.sitesPresentation=await buildPlayerSitesMarkup(item);
   const mainChecksums = new Set(items.map(item => item.source.checksumSha256));
   const frameAssetBytes = [...new Map(items.flatMap(item => Object.values(item.mediaFrameBackgroundAssets ?? {})).filter(asset => !mainChecksums.has(asset.checksumSha256)).map(asset => [asset.checksumSha256, asset])).values()].reduce((sum, asset) => sum + asset.bytes, 0);
-  const needsSites=items.some(item=>item.sitesStudioPresentation||item.dynamicTemplate?.data.sitesConfiguration||((item.dynamicTemplate?.data.themePresentation as {selection?:{ref?:{id?:string}}}|undefined)?.selection?.ref?.id==="onzetrots-tv"));
+  const needsSites=items.some(item=>item.menuDom||item.sitesStudioPresentation||item.dynamicTemplate?.data.sitesConfiguration||((item.dynamicTemplate?.data.themePresentation as {selection?:{ref?:{id?:string}}}|undefined)?.selection?.ref?.id==="onzetrots-tv"));
   const systemAssets=needsSites?sitesSystemAssets.files.map(asset=>({path:asset.path,checksumSha256:asset.sha256,bytes:asset.bytes,mimeType:asset.mimeType})):undefined;
   const domPresentations = [...syncPresentations.values(), ...[...syncDynamicSnapshots].flatMap(([id,value]) => dynamicDomIds.has(id) ? [value.presentation] : [])];
   const extraBackgrounds = [...new Map(domPresentations.flatMap(value => { const asset = syncBackgroundAssetForRef(value.style.backgroundAsset); return asset ? [[asset.path, asset] as const] : []; })).values()];
@@ -421,6 +443,7 @@ async function loadDynamicTemplatePayloads(
   syncDynamicMode:SyncDynamicMode,
   syncDynamicSnapshots:Map<string,ReturnType<typeof readSyncDynamicReleaseSnapshot>>,
   enableSyncBackgrounds:boolean,
+  menuDomSnapshots:Map<string,{snapshot:SyncDynamicSnapshotRow;checked:NonNullable<ReturnType<typeof readMenuDomArtifact>>;dataRevision:number}>,
 ) {
   const snapshotIds = [
     ...new Set(
@@ -446,9 +469,14 @@ async function loadDynamicTemplatePayloads(
       theme: snapshot.snapshot_data_json.themePresentation, editorial: snapshot.snapshot_data_json.editorial,sites:item.sites_configuration_json,
       ...(Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration')?{sync:snapshot.snapshot_data_json.syncConfiguration}:{})
     }));
+    if(snapshot&&item.asset_kind==='composition'&&!Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration')){
+      const checked=readMenuDomArtifact(snapshot.snapshot_data_json,snapshot.sync_render_result_json);
+      if(!checked||snapshot.status!=='ready'||checked.artifact.checksumSha256!==item.checksum_sha256||checked.artifact.byteLength!==item.file_size_bytes||checked.artifact.storagePath!==item.storage_path||checked.artifact.mimeType!==item.mime_type||item.duration_seconds*1000<checked.artifact.durationMs||!item.storage_path.startsWith('tenants/'+tenantId+'/assets/'))throw Error('MENU_DOM_RECEIPT_INVALID');
+      menuDomSnapshots.set(item.id,{snapshot,checked,dataRevision:1});
+    }
     if(snapshot&&(syncDynamicMode||item.asset_kind==='composition')&&Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'))syncDynamicSnapshots.set(item.id,readSyncDynamicReleaseSnapshot(snapshot,item,item.asset_kind==='composition'));
   }
-  if(releaseItems.some(item=>item.asset_kind==='composition'&&!syncDynamicSnapshots.has(item.id)))throw Error('SYNC_DYNAMIC_DOM_RELEASE_INVALID');
+  if(releaseItems.some(item=>item.asset_kind==='composition'&&!syncDynamicSnapshots.has(item.id)&&!menuDomSnapshots.has(item.id)))throw Error('SYNC_DYNAMIC_DOM_RELEASE_INVALID');
   const legacySnapshots=originalSnapshots.filter(snapshot=>!Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'));
   const legacyIds=new Set(legacySnapshots.map(snapshot=>snapshot.id));
   const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled&&item.dynamic_snapshot_id&&(legacyIds.has(item.dynamic_snapshot_id)||(syncDynamicMode==='dom'||syncDynamicMode==='dom-v2')&&syncDynamicSnapshots.has(item.id)&&(enableSyncBackgrounds||!syncBackgroundAssetForRef(syncDynamicSnapshots.get(item.id)!.presentation.style.backgroundAsset))))
@@ -457,6 +485,8 @@ async function loadDynamicTemplatePayloads(
     .select("snapshot_id,content_hash,data_json,data_revision,changed_at,last_error_code")
     .eq("tenant_id", tenantId).in("snapshot_id", liveIds) : null;
   const liveById = new Map((liveResult?.data ?? []).map((data) => [data.snapshot_id, data]));
+  if(liveResult?.error&&menuDomSnapshots.size)throw Error('MENU_DOM_DATA_UNAVAILABLE');
+  for(const value of menuDomSnapshots.values()){const live=liveById.get(value.snapshot.id);if(live){if(!Number.isSafeInteger(Number(live.data_revision))||Number(live.data_revision)<1)throw Error('MENU_DOM_DATA_INVALID');value.dataRevision=Number(live.data_revision);}}
   if(liveResult?.error&&(syncDynamicMode==='dom'||syncDynamicMode==='dom-v2')&&syncDynamicSnapshots.size)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');
   const sourceWork=releaseItems.flatMap(item=>{
     if((syncDynamicMode!=='dom'&&syncDynamicMode!=='dom-v2')||!item.live_data_enabled||!item.dynamic_snapshot_id)return [];

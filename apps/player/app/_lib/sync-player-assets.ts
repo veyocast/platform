@@ -1,4 +1,5 @@
 import {
+  menuDomPlaybackSchema,
   syncBackgroundAssetForRef,
   syncSlideAssets,
   syncSlidePresentationSchema,
@@ -13,7 +14,7 @@ import type { PlayerReleaseManifest } from "./player-manifest";
 export function assertSyncDynamicConfigurationContinuity(previous:PlayerReleaseManifest,next:PlayerReleaseManifest){
  if(previous.releaseId!==next.releaseId)return;
  const items=new Map(previous.items.map(item=>[item.id,item]));
- for(const item of next.items){const old=items.get(item.id),before=old?.syncDynamic??old?.syncDynamicBinary,after=item.syncDynamic??item.syncDynamicBinary;
+ for(const item of next.items){const old=items.get(item.id),before=old?.menuDom??old?.syncDynamic??old?.syncDynamicBinary,after=item.menuDom??item.syncDynamic??item.syncDynamicBinary;
   if(before&&!after)throw Error('SYNC_DYNAMIC_PROFILE_UNAVAILABLE');
   if(before&&after&&(before.configurationSnapshotId!==after.configurationSnapshotId||before.configurationHash!==after.configurationHash||before.templateVersionId!==after.templateVersionId))throw Error('SYNC_DYNAMIC_CONFIGURATION_CHANGED');
   if(before&&after&&Number(after.dataRevision??0)<Number(before.dataRevision??0))throw Error('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');
@@ -96,5 +97,6 @@ export function assertSyncPlayerAssetManifest(
     )
       throw Error("SYNC_STUDIO_ASSETS_UNAVAILABLE");
   }
-  if(manifest.items.some(item=>item.kind==='composition'&&item.syncDynamic?.schemaVersion!==2))throw Error('SYNC_DOM_CAPABILITY_REQUIRED');
+  for(const item of manifest.items)if(item.menuDom!==undefined){const menu=menuDomPlaybackSchema.safeParse(item.menuDom);if(!menu.success||!manifest.systemAssets?.length||item.syncDynamic||item.syncDynamicBinary||item.syncStudioPresentation||item.sitesStudioPresentation||item.dynamicTemplate||item.kind!=='composition'||item.source.mimeType!==syncDomDescriptorMimeType||item.source.checksumSha256!==menu.data.descriptorChecksumSha256||!item.source.url||item.source.bytes<1||item.source.bytes>550000||item.durationSeconds*1000<menu.data.durationMs)throw Error('MENU_DOM_PRESENTATION_INVALID');}
+  if(manifest.items.some(item=>item.kind==='composition'&&item.syncDynamic?.schemaVersion!==2&&!item.menuDom))throw Error('SYNC_DOM_CAPABILITY_REQUIRED');
 }

@@ -96,7 +96,7 @@ export function getCacheableAssets(
       );
     }
 
-    for (const asset of Object.values({...item.dynamicTemplate?.assets,...item.sitesStudioAssets,...item.syncStudioAssets,...item.syncDynamic?.assets,...item.mediaFrameBackgroundAssets})) {
+    for (const asset of Object.values({...item.dynamicTemplate?.assets,...item.sitesStudioAssets,...item.syncStudioAssets,...item.syncDynamic?.assets,...item.menuDom?.assets,...item.mediaFrameBackgroundAssets})) {
       assets.push(toDynamicCacheAsset(item, asset));
       if (
         asset.posterUrl && asset.posterBytes && asset.posterChecksumSha256
@@ -728,6 +728,7 @@ function withCachedUrls(
           ...(item.syncStudioAssets?{syncStudioAssets:Object.fromEntries(Object.entries(item.syncStudioAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           ...(item.mediaFrameBackgroundAssets?{mediaFrameBackgroundAssets:Object.fromEntries(Object.entries(item.mediaFrameBackgroundAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           ...(item.syncDynamic?{syncDynamic:{...item.syncDynamic,assets:Object.fromEntries(Object.entries(item.syncDynamic.assets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}}:{}),
+          ...(item.menuDom?{menuDom:{...item.menuDom,assets:Object.fromEntries(Object.entries(item.menuDom.assets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}}:{}),
           ...(dynamicTemplate ? { dynamicTemplate } : {}),
           ...(item.sitesStudioAssets?{sitesStudioAssets:Object.fromEntries(Object.entries(item.sitesStudioAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           source: {
@@ -821,6 +822,7 @@ export function refreshHydratedReleaseEnvelope({
           ...(item.syncStudioAssets?{syncStudioAssets:Object.fromEntries(Object.entries(item.syncStudioAssets).map(([id,asset])=>{const cached=cachedItem.syncStudioAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
           ...(item.mediaFrameBackgroundAssets?{mediaFrameBackgroundAssets:Object.fromEntries(Object.entries(item.mediaFrameBackgroundAssets).map(([id,asset])=>{const cached=cachedItem.mediaFrameBackgroundAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
           ...(item.syncDynamic?{syncDynamic:{...item.syncDynamic,assets:Object.fromEntries(Object.entries(item.syncDynamic.assets).map(([id,asset])=>{const cached=cachedItem.syncDynamic?.assets[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}}:{}),
+          ...(item.menuDom?{menuDom:{...item.menuDom,assets:Object.fromEntries(Object.entries(item.menuDom.assets).map(([id,asset])=>{const cached=cachedItem.menuDom?.assets[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}}:{}),
           ...(cachedItem.syncSystemAssetUrls?{syncSystemAssetUrls:cachedItem.syncSystemAssetUrls}:{}),
           ...(cachedItem.sitesSystemAssetUrls?{sitesSystemAssetUrls:cachedItem.sitesSystemAssetUrls}:{}),
           ...(item.dynamicTemplate

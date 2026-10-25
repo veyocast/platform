@@ -1,5 +1,5 @@
 "use client";
-import {hasVisibleSyncDomFrame} from "../_lib/sync-dom-frame";
+import {hasVisibleMenuDomFrame,hasVisibleSyncDomFrame} from "../_lib/sync-dom-frame";
 import {screenCompositionZoneFrameIdentity} from "../_lib/player-screen-composition";
 import {syncOnzeTrotsCurrentHeader,syncOnzeTrotsCurrentVersion} from '../_lib/sync-player-capabilities';
 import {supportsSyncDomV2,syncDynamicDomV2Version,supportsSyncOnzeTrotsV9,syncOnzeTrotsV9Header,syncOnzeTrotsV9Version,supportsSyncOnzeTrots,syncOnzeTrotsHeader,syncOnzeTrotsVersion,supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
@@ -456,7 +456,7 @@ export function PlayerRuntime() {
             runtimeRef.current=snapshot;setRuntime(snapshot);
             // A one-item data loop keeps the mounted renderer and verified fonts.
             // Its semantic identity resets only the page/motion clock.
-            if(snapshot.release.envelope.manifest.items.length===1&&snapshot.release.envelope.manifest.items[0]?.syncDynamic?.schemaVersion===2){playbackReadyRef.current=false;return;}
+            if(snapshot.release.envelope.manifest.items.length===1&&(snapshot.release.envelope.manifest.items[0]?.syncDynamic?.schemaVersion===2||snapshot.release.envelope.manifest.items[0]?.menuDom)){playbackReadyRef.current=false;return;}
           }catch{ /* Current complete content keeps playing; retry at a later boundary. */ }
         }else{
         const order = publicationPlaybackOrder(
@@ -603,7 +603,7 @@ export function PlayerRuntime() {
       currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
     if (activeItem?.id !== itemId) return;
     const binary=activeItem.syncDynamicBinary;
-    visibleSourceRef.current=activeItem.syncDynamic?.schemaVersion===2?{schemaVersion:2,itemId,configurationSnapshotId:activeItem.syncDynamic.configurationSnapshotId,dataRevision:activeItem.syncDynamic.dataRevision,contentHash:activeItem.syncDynamic.contentHash,rendererVersion:activeItem.syncDynamic.presentation.rendererVersion}:binary&&Number.isSafeInteger(binary.dataRevision)&&Number(binary.dataRevision)>0?{schemaVersion:1,transport:'binary',itemId,configurationSnapshotId:binary.configurationSnapshotId,dataRevision:binary.dataRevision!,contentHash:binary.contentHash}:null;
+    visibleSourceRef.current=activeItem.menuDom&&activeItem.menuDom.presentation.kind==='dynamic'?{schemaVersion:2,itemId,configurationSnapshotId:activeItem.menuDom.configurationSnapshotId,dataRevision:activeItem.menuDom.dataRevision,contentHash:activeItem.menuDom.contentHash,rendererVersion:activeItem.menuDom.presentation.configuration.rendererVersion}:activeItem.syncDynamic?.schemaVersion===2?{schemaVersion:2,itemId,configurationSnapshotId:activeItem.syncDynamic.configurationSnapshotId,dataRevision:activeItem.syncDynamic.dataRevision,contentHash:activeItem.syncDynamic.contentHash,rendererVersion:activeItem.syncDynamic.presentation.rendererVersion}:binary&&Number.isSafeInteger(binary.dataRevision)&&Number(binary.dataRevision)>0?{schemaVersion:1,transport:'binary',itemId,configurationSnapshotId:binary.configurationSnapshotId,dataRevision:binary.dataRevision!,contentHash:binary.contentHash}:null;
     if (!playbackReadyRef.current) setPlaybackReadyRevision((revision) => revision + 1);
     playbackReadyRef.current = true;
     if(!currentRuntime.release.envelope.composition)presentedReleaseIdRef.current = currentRuntime.release.envelope.manifest.releaseId;
@@ -1979,7 +1979,7 @@ export function PlayerRuntime() {
     // watchdog detects a stall; an unrelated wall timer must not cut it short.
     if (((activeItem.kind === "video"&&!activeItem.sitesStudioPresentation)||activeItem.syncDynamic||activeItem.onlinePlayback?.kind==="youtube") && !durationOverrideMs) return;
 
-    const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackAttempt}`;
+    const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackAttempt}${activeItem.menuDom?":"+activeItem.menuDom.contentHash:""}`;
     const durationMs = getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs);
     if (playbackTimerStateRef.current?.key !== timerKey) {
       playbackTimerStateRef.current = {
@@ -2535,9 +2535,10 @@ export function PlaybackScene({
   paused: boolean;
   watchdogTimeoutMs: number;
 }) {
-  const domResources=item.syncDynamic?.schemaVersion===2?JSON.stringify([item.syncDynamic.configurationHash,...Object.entries(item.syncDynamic.assets).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([id,asset])=>[id,asset.checksumSha256])]):'';
+  const dom=item.menuDom??(item.syncDynamic?.schemaVersion===2?item.syncDynamic:null);
+  const domResources=dom?JSON.stringify([dom.configurationHash,...Object.entries(dom.assets).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([id,asset])=>[id,asset.checksumSha256])]):'';
   const currentRoot=useRef<HTMLDivElement>(null);
-  const requestedKey = item.syncDynamic?.schemaVersion===2?`${item.id}:dom:${domResources}`:`${item.id}:${playbackAttempt}:${domResources}`;
+  const requestedKey = dom?`${item.id}:dom:${domResources}`:`${item.id}:${playbackAttempt}:${domResources}`;
   const lastVisibleSceneRef=useRef<PlaybackSceneEntry|null>(null);
   const requestedSceneRef = useRef<PlaybackSceneEntry>({
     item,
@@ -2613,6 +2614,7 @@ export function PlaybackScene({
     if (!scene.ready) return;
     let second=0;const started=performance.now();
     const report=()=>{
+      if(item.menuDom){const root=currentRoot.current?.querySelector<HTMLElement>('[data-menu-content-hash]');if(root?.dataset.menuContentHash!==item.menuDom.contentHash||!hasVisibleMenuDomFrame(root??null)){if(performance.now()-started<5000)second=requestAnimationFrame(report);return;}}
       if(item.syncDynamic?.schemaVersion===2){
         const root=currentRoot.current?.querySelector<HTMLElement>('[data-sync-ready="true"][data-sync-content-hash]');
         if(root?.dataset.syncContentHash!==item.syncDynamic.contentHash||!hasVisibleSyncDomFrame(root??null,item.syncDynamic.presentation.rendererVersion)){if(performance.now()-started<5000)second=requestAnimationFrame(report);return;}
@@ -2622,7 +2624,7 @@ export function PlaybackScene({
     };
     const first=requestAnimationFrame(()=>{second=requestAnimationFrame(report);});
     return()=>{cancelAnimationFrame(first);cancelAnimationFrame(second);};
-  },[onReady,scene.current.item.id,scene.current.key,scene.ready,item.syncDynamic?.schemaVersion===2?`${item.syncDynamic.contentHash}:${playbackAttempt}`:undefined]);
+  },[onReady,scene.current.item.id,scene.current.key,scene.ready,dom?`${dom.contentHash}:${playbackAttempt}`:undefined]);
 
 
   const currentClassName = scene.ready
@@ -2635,7 +2637,7 @@ export function PlaybackScene({
 
   return (
     <div className={`${styles.transitionStack} ${paused ? styles.paused : ""}`} data-underlay-paused={paused ? "true" : "false"}>
-      {!scene.ready&&!scene.outgoing&&item.syncDynamic?.schemaVersion===2?<div className={styles.scene} data-sync-dom-startup="true"><SyncPlayerStatus embedded stage="boot" landmark="Uitzending voorbereiden" footer="Lokale uitzending starten"/></div>:null}
+      {!scene.ready&&!scene.outgoing&&dom?<div className={styles.scene} data-sync-dom-startup="true"><SyncPlayerStatus embedded stage="boot" landmark="Uitzending voorbereiden" footer="Lokale uitzending starten"/></div>:null}
       {scene.outgoing ? (
         <div
           aria-hidden="true"
@@ -2714,7 +2716,9 @@ export function PlaybackMedia({
   paused?: boolean;
   watchdogTimeoutMs: number;
 }) {
-  const renderStudioFallback = item.syncStudioPresentation||item.syncDynamic
+  const renderStudioFallback = item.menuDom
+    ? (ready:(id:string)=>void)=>{const report=()=>onFailure(item.id,'SYNC_DOM_ERROR');return <SyncDomBoundary key={item.id} revision={item.menuDom!.contentHash} report={report} passive={passive}><SitesDynamicMedia iteration={iteration} item={item} presentation={item.menuDom!.presentation} onReady={ready} onBoundary={onBoundary} passive={passive} paused={paused} fallback={<SyncDomFailure report={report} passive={passive}/>} /></SyncDomBoundary>;}
+    : item.syncStudioPresentation||item.syncDynamic
     ? (ready: (itemId: string) => void,presentation?:SyncSlidePresentation) => {
       const report=()=>onFailure(item.id,'SYNC_DOM_ERROR');
       const content=<SyncStudioMedia iteration={iteration} item={item} presentationOverride={presentation} liveMatchStates={liveMatchStates} onReady={ready} onEnded={onEnded} passive={passive} paused={paused} fallback={item.syncDynamic?.schemaVersion===2?<SyncDomFailure report={report} passive={passive}/>:<BinaryPlaybackMedia item={item} onEnded={onEnded} onFailure={onFailure} onPlaybackStateChange={onPlaybackStateChange} onReady={ready} passive={passive} paused={paused} watchdogTimeoutMs={watchdogTimeoutMs} ownsImageBoundary={Boolean(item.syncDynamic)}/>}/>;

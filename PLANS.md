@@ -2,7 +2,7 @@
 
 S292 herstelt de live bevestigde RSS-completiongrens, verjaardagsbinding en
 matchday-teamselectie. Het onafhankelijke Source DOM-protocol 2 gebruikt de
-bestaande renderer, eigen lichte queue, gecontroleerde originele assets en
+bestaande Source- én MenuDocument/widgetrenderer, eigen lichte queue, gecontroleerde originele assets en
 zichtbare-framebevestiging; legacy en expliciete exports blijven begrensd.
 Verificatie en normale staging-/productiepromotie worden per exacte SHA
 vastgelegd in `docs/s292-dom-ready-recovery.md`.

@@ -1,4 +1,5 @@
 "use client";
+import type {MenuStudioProductOption,MenuStudioMediaOption}from"./menu-studio-options";
 
 import {
   DndContext,
@@ -106,35 +107,7 @@ const dutchProductCollator = new Intl.Collator("nl-NL", {
 });
 const looseProductsTarget = "loose-products";
 
-export type MenuStudioProductOption = {
-  available: boolean;
-  category: string;
-  currency: string;
-  description: string;
-  id: string;
-  name: string;
-  priceCents: number;
-  sourceId: string;
-  sourceKind: "manual_products" | "twelve_excel";
-  sourceRevision: string;
-  taxMode: "inclusive" | "exclusive" | "not-applicable";
-  taxRateBps?: number;
-  unitKey?: string;
-};
-
-export type MenuStudioMediaOption = {
-  assetVersion: string;
-  id: string;
-  kind: "animation" | "image" | "logo" | "video";
-  mimeType: string;
-  name: string;
-  posterAssetVersion?: string;
-  posterUrl?: string;
-  sha256: string;
-  tintable: boolean;
-  url: string;
-};
-
+export type {MenuStudioProductOption,MenuStudioMediaOption}from"./menu-studio-options";
 export function MenuStudioEditor({
   initialDocument,
   initialOrientation,

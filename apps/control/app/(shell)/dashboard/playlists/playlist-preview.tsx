@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-import type { PlayerPlaybackItem,SyncSlidePresentation } from "@veyocast/contracts";
+import type { PlayerPlaybackItem,SyncSlidePresentation,SitesPresentation } from "@veyocast/contracts";
+import {SitesPresentationView}from'@veyocast/content-templates/sites-presentation';
 import {SyncSlidePreview}from'./_components/sites/sync-studio-preview';
 
 export type PlaylistPreviewItem = PlayerPlaybackItem & {
   url: string;
   mediaFrameStyle?: CSSProperties;
+  menuPreview?:{presentation:SitesPresentation;assetUrls:Record<string,string>};
   syncPreview?:{presentation:SyncSlidePresentation;assetUrls:Record<string,string>};
 };
 
@@ -48,7 +50,7 @@ export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
         <label><input checked={orientation === "portrait"} name="preview-orientation" onChange={() => setOrientation("portrait")} type="radio" /> 9:16 staand</label>
       </fieldset>
       <div className="player-preview__stage" data-fit={activeItem.fitMode} data-orientation={orientation}>
-        {activeItem.syncPreview?<SyncSlidePreview {...activeItem.syncPreview} id={activeItem.id} durationSeconds={activeItem.durationSeconds} active={playing}/>:activeItem.kind === "video" ? (
+        {activeItem.menuPreview?<MenuDomPreview {...activeItem.menuPreview} active={playing}/>:activeItem.syncPreview?<SyncSlidePreview {...activeItem.syncPreview} id={activeItem.id} durationSeconds={activeItem.durationSeconds} active={playing}/>:activeItem.kind === "video" ? (
           <video
             aria-label={`Voorbeeldvideo ${activeItem.title}`}
             className="player-preview__media"
@@ -76,3 +78,5 @@ export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
     </div>
   );
 }
+
+export function MenuDomPreview({presentation,assetUrls,active=true}:{presentation:SitesPresentation;assetUrls:Record<string,string>;active?:boolean}){return <SitesPresentationView presentation={presentation} active={active} resolveAsset={asset=>asset.kind==='system'?asset.path:assetUrls[asset.mediaAssetId]}/>;}

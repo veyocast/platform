@@ -34,7 +34,7 @@ export const syncDynamicPlaybackSchema=z.discriminatedUnion('schemaVersion',[
 export type SyncDynamicPlayback=z.infer<typeof syncDynamicPlaybackSchema>;
 /** A device reports this only after an actual visible v2 frame, independently
  * of configuration publication and successful asset download. */
-export const syncDomFrameConfirmationSchema=z.object({schemaVersion:z.literal(2),itemId:z.uuid(),configurationSnapshotId:z.uuid(),dataRevision:z.number().int().positive(),contentHash:z.string().regex(/^[a-f0-9]{64}$/),rendererVersion:z.enum(['sync-v1','sync-onzetrots-v1','sync-onzetrots-v9'])}).strict();
+export const syncDomFrameConfirmationSchema=z.object({schemaVersion:z.literal(2),itemId:z.uuid(),configurationSnapshotId:z.uuid(),dataRevision:z.number().int().positive(),contentHash:z.string().regex(/^[a-f0-9]{64}$/),rendererVersion:z.enum(['sync-v1','sync-onzetrots-v1','sync-onzetrots-v9','sites-v11','sites-v17'])}).strict();
 export type SyncDomFrameConfirmation=z.infer<typeof syncDomFrameConfirmationSchema>;
 
 /** Explicit legacy binary decoders confirm their actual verified media frame. */

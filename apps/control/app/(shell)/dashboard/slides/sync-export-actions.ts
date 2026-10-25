@@ -1,5 +1,5 @@
 'use server';
-import {readSyncDynamicArtifact}from'@veyocast/contracts';
+import {readSyncDynamicArtifact,readMenuBinaryArtifact}from'@veyocast/contracts';
 import {requireTenantControlSession}from'../../../../lib/control-session';
 import {createControlSupabaseClient}from'../../../../lib/supabase/server';
 const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
@@ -9,11 +9,11 @@ export async function readSyncExportAction(snapshotId:string):Promise<SyncExport
  const session=await requireTenantControlSession('tenant.dynamic_slide.read'),client=await createControlSupabaseClient();
  if(!session.isLive||!session.tenantId||!client||!uuid.test(snapshotId))return failed();
  const result=await client.rpc('read_sync_export_v2',{p_tenant_id:session.tenantId,p_snapshot_id:snapshotId});
- const value=result.data as {status?:string;configuration?:unknown;artifact?:unknown}|null;
+ const value=result.data as {status?:string;configuration?:unknown;menuData?:unknown;artifact?:unknown}|null;
  if(result.error||!value)return failed();
  if(value.status==='preparing')return{status:'preparing'};
  if(value.status!=='ready')return failed();
- const parsed=readSyncDynamicArtifact(value.configuration,value.artifact);
+ const parsed=readSyncDynamicArtifact(value.configuration,value.artifact)??readMenuBinaryArtifact(value.menuData,value.artifact);
  if(!parsed)return failed();
  const path=parsed.artifact.storagePath,prefix=`tenants/${session.tenantId}/assets/`;
  const suffix=path.startsWith(prefix)?path.slice(prefix.length):'';

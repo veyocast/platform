@@ -7,6 +7,7 @@ import {
   playerDynamicTemplateAssetSchema,
   type PlayerDynamicTemplateAsset,
   type SyncSlidePresentation,
+  type SitesPresentation,
   type DynamicTemplateManifest
 } from "@veyocast/contracts";
 import {createHash} from 'node:crypto';
@@ -33,6 +34,8 @@ export type ClaimedDynamicRenderJob = {
 };
 
 export type DynamicRenderArtifact = {
+  menuDom?:{schemaVersion:2;mimeType:typeof syncDomDescriptorMimeType;durationMs:number;presentation:SitesPresentation};
+  menuBinary?:{mimeType:'image/png';durationMs:number;presentation:SitesPresentation};
   dom?:{schemaVersion:2;mimeType:typeof syncDomDescriptorMimeType;durationMs:number;presentation:SyncSlidePresentation};
   sync?: {
     mimeType:'image/png'|'video/mp4';durationMs:number;presentation:SyncSlidePresentation;
@@ -208,7 +211,7 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     job: ClaimedDynamicRenderJob,
     artifact: DynamicRenderArtifact
   ) {
-    assertArtifactPath(job, artifact.storagePath,artifact.dom?.mimeType??artifact.sync?.mimeType,artifact.checksumSha256);
+    assertArtifactPath(job, artifact.storagePath,artifact.menuDom?.mimeType??artifact.menuBinary?.mimeType??artifact.dom?.mimeType??artifact.sync?.mimeType,artifact.checksumSha256);
     if(artifact.dom){
       if(job.publishedRefresh||artifact.byteLength>550000)throw invalidClaim();
       assertSourceArtifactBytes(artifact.bytes,artifact.byteLength,artifact.checksumSha256);
@@ -226,7 +229,7 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
       // Even identical bytes from a later attempt have a different name.
       if(poster.storagePath!==artifact.storagePath)await this.uploadBytes(poster.storagePath,poster.bytes,'image/png',job.publishedRefresh);
     }
-    await this.uploadBytes(artifact.storagePath,artifact.bytes,artifact.dom?.mimeType??artifact.sync?.mimeType??'image/png',job.publishedRefresh);
+    await this.uploadBytes(artifact.storagePath,artifact.bytes,artifact.menuDom?.mimeType??artifact.menuBinary?.mimeType??artifact.dom?.mimeType??artifact.sync?.mimeType??'image/png',job.publishedRefresh);
   }
 
   private async uploadBytes(path:string,bytes:Uint8Array,mimeType:string,publishedRefresh=false){
@@ -252,13 +255,13 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     artifact: Omit<DynamicRenderArtifact, "bytes">
   ) {
     const { error } = await (job.publishedRefresh?this.binaryClient:this.client).rpc(
-      job.publishedRefresh?"complete_sync_binary_render_v1":artifact.dom?"complete_dynamic_dom_job_v2":"complete_dynamic_render_job_v2",
+      artifact.menuBinary?'complete_menu_binary_render_v2':artifact.menuDom?'complete_menu_dom_job_v2':job.publishedRefresh?"complete_sync_binary_render_v1":artifact.dom?"complete_dynamic_dom_job_v2":"complete_dynamic_render_job_v2",
       {
         ...(job.publishedRefresh?{p_tenant_id:job.tenantId,p_snapshot_id:job.snapshotId}:{p_job_id:job.jobId}),
         p_worker_id: workerId,
         p_lease_token:job.leaseToken,
         p_artifact:{byteLength:artifact.byteLength,checksumSha256:artifact.checksumSha256,height:artifact.height,width:artifact.width,storagePath:artifact.storagePath,
-          ...(artifact.dom??{}),...(artifact.sync?{mimeType:artifact.sync.mimeType,durationMs:artifact.sync.durationMs,presentation:artifact.sync.presentation,poster:{byteLength:artifact.sync.poster.byteLength,checksumSha256:artifact.sync.poster.checksumSha256,storagePath:artifact.sync.poster.storagePath}}:{})}
+          ...(artifact.dom??artifact.menuDom??artifact.menuBinary??{}),...(artifact.sync?{mimeType:artifact.sync.mimeType,durationMs:artifact.sync.durationMs,presentation:artifact.sync.presentation,poster:{byteLength:artifact.sync.poster.byteLength,checksumSha256:artifact.sync.poster.checksumSha256,storagePath:artifact.sync.poster.storagePath}}:{})}
       }
     );
     if (error) {

@@ -1,6 +1,8 @@
+import {buildSitesPresentationFromDynamicPayload}from'@veyocast/content-templates/sites-dynamic-projector';
+import sitesSystemAssets from '../../../../../../packages/content-templates/src/sites-system-assets.json';
 import "server-only";
 import type { CSSProperties } from "react";
-import { readSyncDynamicDomArtifact,syncSlideAssets,syncSlideRendererAssets,mediaFrameSettingsSchema, syncSystemAssets, type MediaFramePlaybackBackground } from "@veyocast/contracts";
+import { readSyncDynamicDomArtifact,readMenuDomArtifact,menuDomAssetRefs,syncSlideAssets,syncSlideRendererAssets,mediaFrameSettingsSchema, syncSystemAssets, type MediaFramePlaybackBackground } from "@veyocast/contracts";
 import { mediaFrameBackgroundStyle } from "../../../../../../packages/content-templates/src/media-frame-background";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import type { PlaylistStudioData } from "./data";
@@ -82,20 +84,22 @@ export async function loadPublicationMediaPreview(tenantId: string, items: Item[
   const bindings = items.some(item=>item.mediaFrameId||item.mediaFrameVersionId)?await loadMediaFramePlacements(client, tenantId, items):new Map<string,MediaFramePlacement>();
   const result=projectPublicationMediaPreview(items, enabledSections, bindings);
   if(!domItems.length)return result;
-  const snapshots=await client.from('dynamic_slide_snapshots').select('id,snapshot_data_json,sync_render_result_json,output_media_asset_id,status').eq('tenant_id',tenantId).in('id',domItems.map(item=>item.dynamicSnapshotId!));
+  const snapshots=await client.from('dynamic_slide_snapshots').select('id,template_version_id,source_revision_hash,snapshot_data_json,sync_render_result_json,output_media_asset_id,status').eq('tenant_id',tenantId).in('id',domItems.map(item=>item.dynamicSnapshotId!));
   if(snapshots.error)throw failed();
-  const assets=await loadCanonicalSnapshotAssets(tenantId,(snapshots.data??[]).flatMap(snapshot=>[snapshot.snapshot_data_json,snapshot.sync_render_result_json]));
+  const assets=await loadCanonicalSnapshotAssets(tenantId,[...(snapshots.data??[]).flatMap(snapshot=>[snapshot.snapshot_data_json,snapshot.sync_render_result_json]),...domItems.map(item=>item.sitesConfiguration)]);
   for(const item of domItems){
     const snapshot=snapshots.data?.find(snapshot=>snapshot.id===item.dynamicSnapshotId),data=snapshot?.snapshot_data_json as {syncConfiguration?:unknown}|null;
-    const checked=readSyncDynamicDomArtifact(data?.syncConfiguration,snapshot?.sync_render_result_json);
+    const source=readSyncDynamicDomArtifact(data?.syncConfiguration,snapshot?.sync_render_result_json),menu=readMenuDomArtifact(snapshot?.snapshot_data_json,snapshot?.sync_render_result_json),checked=source??menu;
     if(!item.domReady||!checked||snapshot?.status!=='ready'||snapshot.output_media_asset_id!==item.mediaAssetId)throw failed();
+    const menuPresentation=menu?buildSitesPresentationFromDynamicPayload({schemaVersion:1,snapshotId:snapshot.id,snapshotHash:snapshot.source_revision_hash,templateVersionId:snapshot.template_version_id,templateSlug:'menu-dom',slideType:'price_list',orientation:menu.configuration.orientation,data:snapshot.snapshot_data_json,assets},item.sitesConfiguration as Parameters<typeof buildSitesPresentationFromDynamicPayload>[1]):null;
+    if(menu&&!menuPresentation)throw failed();
     const assetUrls:Record<string,string>={},active=item.enabled&&(item.sectionId===null||enabledSections.has(item.sectionId));
-    for(const ref of syncSlideAssets(checked.artifact.presentation))if(ref.kind==='tenant'){
+    for(const ref of (source?syncSlideAssets(source.artifact.presentation):menuDomAssetRefs(menuPresentation)))if(ref.kind==='tenant'){
       const asset=assets[ref.mediaAssetId];if(!asset||asset.checksumSha256!==ref.checksumSha256)throw failed();assetUrls[ref.mediaAssetId]=asset.url;
       if(active)result.targetItems.push({checksumSha256:asset.checksumSha256,fileSizeBytes:asset.bytes});
     }
-    if(active)result.targetItems.push(...syncSlideRendererAssets(checked.artifact.presentation).map(asset=>({checksumSha256:asset.sha256,fileSizeBytes:asset.bytes})));
-    result.previewItems.push({id:item.id,kind:'image',title:item.asset!.title,durationSeconds:item.durationSeconds,fitMode:item.fitMode,muted:item.muted,enabled:item.enabled,url:'',syncPreview:{presentation:checked.artifact.presentation,assetUrls}});
+    if(active)result.targetItems.push(...(source?syncSlideRendererAssets(source.artifact.presentation):sitesSystemAssets.files).map(asset=>({checksumSha256:asset.sha256,fileSizeBytes:asset.bytes})));
+    result.previewItems.push({id:item.id,kind:'image',title:item.asset!.title,durationSeconds:item.durationSeconds,fitMode:item.fitMode,muted:item.muted,enabled:item.enabled,url:'',...(source?{syncPreview:{presentation:source.artifact.presentation,assetUrls}}:{menuPreview:{presentation:menuPresentation!,assetUrls}})});
   }
   const unique=new Map(result.targetItems.map(item=>[item.checksumSha256,item]));
   return{...result,targetItems:[...unique.values()],previewItems:result.previewItems.sort((a,b)=>items.findIndex(item=>item.id===a.id)-items.findIndex(item=>item.id===b.id)),totalBytes:[...unique.values()].reduce((sum,item)=>sum+item.fileSizeBytes,0)};

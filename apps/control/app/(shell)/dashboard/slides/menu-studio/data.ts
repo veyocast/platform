@@ -1,5 +1,5 @@
 import {
-  menuDocumentV2Schema,
+  menuDocumentV2Schema,readMenuDomArtifact,
   selectableThemeIdSchema,
   type MenuDocumentV2
 } from "@veyocast/contracts";
@@ -140,7 +140,7 @@ export async function loadMenuStudioSlide(tenantId: string, slideId: string) {
   if (!supabase) return null;
   const slideResult = await supabase
     .from("dynamic_slides")
-    .select("id, name, orientation, data_source_id, template_version_id, configuration_json, menu_document_revision, menu_last_published_revision, status")
+    .select("id, name, orientation, data_source_id, template_version_id, configuration_json, menu_document_revision, menu_last_published_revision, status,current_snapshot_id")
     .eq("tenant_id", tenantId)
     .eq("id", slideId)
     .neq("status", "archived")
@@ -155,8 +155,11 @@ export async function loadMenuStudioSlide(tenantId: string, slideId: string) {
     document.data.assets.map((asset) => asset.assetId)
   );
   if (!options?.source || !options.templates.length) return null;
+  const frozen=slideResult.data.current_snapshot_id?await supabase.from('dynamic_slide_snapshots').select('id,status,snapshot_data_json,sync_render_result_json').eq('tenant_id',tenantId).eq('dynamic_slide_id',slideId).eq('id',slideResult.data.current_snapshot_id).maybeSingle():null;
+  const exportSnapshotId=frozen&&!frozen.error&&frozen.data?.status==='ready'&&readMenuDomArtifact(frozen.data.snapshot_data_json,frozen.data.sync_render_result_json)?frozen.data.id:null;
   return {
     ...options,
+    exportSnapshotId,
     document: document.data,
     lastPublishedRevision: Number(slideResult.data.menu_last_published_revision ?? 0) || null,
     slide: slideResult.data

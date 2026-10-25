@@ -8,6 +8,7 @@ import type {
   SitesPresentation,
   SyncSlidePresentation,
   SyncDynamicPlayback,
+  MenuDomPlayback,
   SyncDynamicBinaryPlayback,
   PlayerEngagePlayback,
   PlayerPlaybackItem,
@@ -87,6 +88,7 @@ export type PlayerManifestItem = Omit<PlayerPlaybackItem,'kind'> & {
   syncStudioDurationMs?:number;
   syncStudioAssets?:Record<string,PlayerDynamicTemplateAsset>;
   syncDynamic?:SyncDynamicPlayback;
+  menuDom?:MenuDomPlayback;
   syncDynamicBinary?:SyncDynamicBinaryPlayback;
   syncSystemAssetUrls?:Record<string,string>;
   mediaFrameBackground?:MediaFramePlaybackBackground;
