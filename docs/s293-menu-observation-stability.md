@@ -1,4 +1,4 @@
-# S293 — Stabiele Menu-identiteit en begrensde legacy-upload
+# S293 — Stabiele bronidentiteit en begrensde legacy-Menu-upload
 
 De echte S292-stagingcanary op `4d3fa168f75e115687ca2a1de38a393ee07256fc`
 maakte een fout zichtbaar die de eerdere rollbacktests niet vonden. De
@@ -15,6 +15,22 @@ assetchecksum, documentrevisie en rendereridentiteit blijven semantisch.
 Versie-1- en onversioneerde hashes blijven via hun bestaande pad bytecompatibel.
 De forwardmigratie vervangt één pure private functie en behoudt haar gesloten
 ACL. Er wordt geen release, snapshot, target of productrecord herschreven.
+
+Twee afzonderlijke read-only productieobservaties van dezelfde Sportlink-
+uitselectie bevatten dezelfde wedstrijdfeiten, maar andere `generatedAt`,
+datasetrevisies en `themePresentation.resolvedMode.resolvedAt`. De bestaande
+Sportlink-sync schrijft `last_synced_at` ook bij gelijke feiten; de context-
+revisies zijn daarvan afgeleid. De normalizer sluit gericht de `revision`
+binnen `sport.matchday.context.revisions[]` uit, met behoud van datasetlabels,
+volgorde, team, competitie, pool en alle wedstrijdfeiten. Ook de afgeleide
+`sport.snapshotExpiresAt` en het themabepalingstijdstip zijn observatiemetadata.
+De ruwe gegevens blijven beschikbaar voor validatie en versheid; de echte
+Amsterdamse `syncEffectiveDay`, verjaardag, score, aftraptijd en themamodus
+blijven onderdeel van de inhoudsidentiteit. Er is geen algemene verwijdering
+van revisies elders in de data. De echte twee payloads krijgen lokaal dezelfde
+v2-hash, terwijl hun historische v1-hashes verschillend blijven. Het
+geanonimiseerde bewijs staat in
+`implementation/s293-menu-observation-stability/live-matchday-identity.json`.
 
 Een tweede echte canary vond dat de gedeelde backend bij iedere gepubliceerde
 binaire refresh een Source-poster eiste. Een geldige Menu-PNG werd daardoor
@@ -34,7 +50,9 @@ eigen backend-/SQL-/RPC-regressies en eigen documentatie/plan/ledger. Renderer-,
 UI-, asset-, dependency-, lockfile- en workflowcode blijven gelijk aan S292.
 
 De oorspronkelijke SQL-regressie reproduceerde drie fouten van negentien vóór
-de migratie en slaagde daarna. De aanvullende echte Menu-RPC-keten gebruikt
+de Menu-correctie. De uitbreiding naar 35 controles reproduceerde daarna vijf
+aanvullende fouten op de nog niet gecorrigeerde Sportlink-/thema-observaties.
+De aanvullende echte Menu-RPC-keten gebruikt
 een Twelve-product met `data_source_id = NULL`, zoals de echte import. Zij
 commit de fixture in een uitsluitend lokale testdatabase en voert vervolgens
 drie bronobservaties in afzonderlijke transacties uit. Daardoor verandert
@@ -63,8 +81,17 @@ De laatste workspace lint/typecheck/unit zijn na de aanvullende uploadfix
 elk 30/30 groen; de Worker-build is eveneens groen. De ongewijzigde pakketten
 gebruiken hun geldige Turbocache. De tien nieuwe backendtests en veertien
 bestaande Source-workertests zijn groen; de uiteindelijke volledige Worker-
-suite is ook geslaagd. De verse reset en volledige SQL/RLS-run
-slagen met 147 bestanden en 4.830 assertions; db-lint op foutniveau is leeg.
+suite is ook geslaagd. CI vond bij de eerste PNG-test een 5s-timeout op de
+diepe vergelijking van twee megabyte. De test controleert nu exact dezelfde
+doorgegeven bytebuffer via referentie; echte backend-checksumvalidatie,
+corruptietest, assertions en oorspronkelijke timeout blijven behouden. De
+volledige Worker-suite slaagt daarmee lokaal (394 PASS, 338 bestaande
+conditionele skips); de tien nieuwe cases duren samen 147 ms.
+De verse reset en volledige SQL/RLS-run omvatten 147 bestanden en 4.846
+assertions. De applicatieschema's `public,private` hebben nul db-lint-errors.
+Een ongerichte lint inclusief de pgTAP-extensie meldde acht fouten in de
+testextensie, waaronder ontbrekende transactionele pgTAP-hulptabellen; dat is
+afzonderlijk bewaard en geen fout in de gewijzigde applicatiefunctie.
 De daadwerkelijke RPC-proef en eigen runnerlint zijn groen. Actuele CI, nieuwe main-SHA, stagingcanary en
 expliciete productiepromotie worden per PR/run vastgelegd. Tot die verificatie
 blijft productie op de eerdere release en wordt geen volledige uitrol geclaimd.

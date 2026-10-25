@@ -12,7 +12,11 @@ gevalideerde Menu-PNG accepteert zonder Source-poster; alle Source-budgetten en
 lease-/bytes-/padcontroles blijven gelden. Geen bestaande migratie, renderer, productdata, locked asset, dependency,
 lockfile, workflow of historische release wijzigen.
 
-Publicatie-observatietijd hoort niet bij v2-inhoudsidentiteit; echte
+Publicatie-observatietijd hoort niet bij v2-inhoudsidentiteit; dat geldt ook
+voor de werkelijk bevestigde Sportlink-contextrevisies uit `last_synced_at`,
+afgeleide bronvervaltijd en het themabepalingstijdstip. Behoud de ruwe metadata,
+scope, datasetlabels, daadwerkelijke themamodus en Amsterdamse effectieve dag.
+Echte
 product-/prijs-/asset-/documentwijzigingen wel. V1 blijft strikt. Test met
 afzonderlijke transacties: `now()` binnen één rollbacktransactie is constant.
 Verifieer workspace lint/typecheck/test, verse eigen reset/RLS, db-lint en de

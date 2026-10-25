@@ -1,5 +1,5 @@
 begin;
-select plan(19);
+select plan(35);
 -- These are identity contracts, not a second Menu renderer. A live canary
 -- showed that the canonical builder restamps publication.publishedAt on reads.
 create function pg_temp.menu_data(protocol integer default 2)returns jsonb language sql as $$
@@ -26,5 +26,23 @@ select ok(not has_function_privilege('anon','private.sync_dom_semantic_data_v2(j
 select ok(not has_function_privilege('authenticated','private.sync_dom_semantic_data_v2(jsonb)','execute'),'tenant roles cannot execute the private normalizer directly');
 select ok(not has_function_privilege('service_role','private.sync_dom_semantic_data_v2(jsonb)','execute'),'service role has no additional direct helper grant');
 select is((select provolatile::text from pg_proc where oid='private.sync_dom_semantic_data_v2(jsonb)'::regprocedure),'i','identity normalization remains immutable');
+create function pg_temp.matchday_data()returns jsonb language sql as $$select '{"syncPlaybackProtocol":2,"type":"sport_match_of_the_day","sport":{"matchday":{"context":{"teamId":"own-team","competitionId":"competition","poolId":"pool","seasonId":null,"revisions":[{"dataset":"results","revision":100},{"dataset":"standings","revision":101},{"dataset":"fixtures","revision":102}]},"results":{"items":[{"id":"result-1","homeTeamId":"own-team","awayTeamId":"other-team","homeScore":2,"awayScore":1,"revision":1}]},"fixtures":{"items":[{"id":"fixture-1","homeTeamId":"own-team","awayTeamId":"other-team","kickoffAt":"2026-10-26T14:00:00Z"}]}}}}'::jsonb$$;
+select is(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,context,revisions,0,revision}','200')),'a last-synced observation revision is not a match fact');
+select is(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,context,revisions}','[{"dataset":"results","revision":200},{"dataset":"standings","revision":201},{"dataset":"fixtures","revision":202}]')),'all three observed dataset revisions are independent of fact identity');
+select isnt(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,context,revisions,0,dataset}','"fixtures"')),'dataset labels remain part of the controlled context');
+select isnt(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,context,teamId}','"other-team"')),'selected team identity is never normalized away');
+select isnt(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,context,poolId}','"other-pool"')),'selected competition pool remains semantic');
+select isnt(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,results,items,0,homeScore}','3')),'a real score change advances fact identity');
+select isnt(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,fixtures,items,0,kickoffAt}','"2026-10-26T15:00:00Z"')),'real kickoff time remains semantic');
+select is(private.sync_dom_semantic_data_v2(pg_temp.matchday_data())#>>'{sport,matchday,context,revisions,0,dataset}','results','dataset provenance labels are retained');
+select ok(not(private.sync_dom_semantic_data_v2(pg_temp.matchday_data())#>'{sport,matchday,context,revisions,0}'?'revision'),'only the observed numeric revision is omitted from identity');
+create function pg_temp.birthday_data()returns jsonb language sql as $$select '{"syncPlaybackProtocol":2,"type":"sport_birthdays","syncEffectiveDay":"2026-10-25","sport":{"fetchedAt":"2026-10-25T12:00:00Z","snapshotExpiresAt":"2026-11-15T12:00:00Z","birthdays":[{"id":"person-1","nextOccurrence":"2026-10-26"}]}}'::jsonb$$;
+select is(private.published_data_hash_v1(pg_temp.birthday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.birthday_data(),'{sport,snapshotExpiresAt}','"2026-11-15T12:05:00Z"')),'derived birthday source-expiry metadata is not a new birthday');
+select isnt(private.published_data_hash_v1(pg_temp.birthday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.birthday_data(),'{syncEffectiveDay}','"2026-10-26"')),'the actual Amsterdam rolling-window day remains semantic');
+select isnt(private.published_data_hash_v1(pg_temp.birthday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.birthday_data(),'{sport,birthdays,0,nextOccurrence}','"2026-10-27"')),'the actual birthday occurrence remains semantic');
+select is(private.published_data_hash_v1('{"syncPlaybackProtocol":2,"themePresentation":{"resolvedMode":{"mode":"light","resolvedAt":"2026-10-25T12:00:00Z"}}}'),private.published_data_hash_v1('{"syncPlaybackProtocol":2,"themePresentation":{"resolvedMode":{"mode":"light","resolvedAt":"2026-10-25T12:05:00Z"}}}'),'theme observation time is separate from the resolved appearance');
+select isnt(private.published_data_hash_v1('{"syncPlaybackProtocol":2,"themePresentation":{"resolvedMode":{"mode":"light","resolvedAt":"2026-10-25T12:00:00Z"}}}'),private.published_data_hash_v1('{"syncPlaybackProtocol":2,"themePresentation":{"resolvedMode":{"mode":"dark","resolvedAt":"2026-10-25T12:00:00Z"}}}'),'the real resolved theme mode still changes identity');
+select is(private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{syncPlaybackProtocol}','1')),private.published_data_hash_before_dom_v2(jsonb_set(pg_temp.matchday_data(),'{syncPlaybackProtocol}','1')),'historical rich Sportlink hashes retain their exact contract');
+select isnt(private.published_data_hash_v1(pg_temp.matchday_data()),private.published_data_hash_v1(jsonb_set(pg_temp.matchday_data(),'{sport,matchday,results,items,0,revision}','2')),'revision values outside the known observation context are not globally ignored');
 select *from finish();
 rollback;

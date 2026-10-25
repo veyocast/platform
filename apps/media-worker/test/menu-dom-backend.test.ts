@@ -24,7 +24,9 @@ function fixture(){
 
 it('uploads a complete Menu PNG without requiring a separate Source poster',async()=>{
  const f=fixture();await f.backend.uploadArtifact(f.job,f.artifact);await f.backend.completeJob(f.job,'menu-worker',f.artifact);
- expect(f.upload).toHaveBeenCalledOnce();expect(f.upload).toHaveBeenCalledWith(f.artifact.storagePath,f.bytes,expect.objectContaining({contentType:'image/png'}));
+ expect(f.upload).toHaveBeenCalledOnce();
+ const [uploadedPath,uploadedBytes,uploadOptions]=f.upload.mock.calls[0] as unknown as [string,Uint8Array,{contentType:string}];
+ expect(uploadedPath).toBe(f.artifact.storagePath);expect(uploadedBytes).toBe(f.bytes);expect(uploadOptions).toMatchObject({contentType:'image/png'});
  expect(f.rpc).toHaveBeenCalledWith('validate_sync_binary_storage_v1',expect.objectContaining({p_lease_token:f.job.leaseToken,p_slot_id:f.job.outputMediaAssetId}));
  expect(f.rpc).toHaveBeenCalledWith('complete_menu_binary_render_v2',expect.objectContaining({p_tenant_id:f.job.tenantId,p_snapshot_id:f.job.snapshotId,p_artifact:expect.objectContaining({schemaVersion:2,mimeType:'image/png',durationMs:12000})}));
  const receipt=f.rpc.mock.calls.find(([name])=>name==='complete_menu_binary_render_v2')![1].p_artifact as Record<string,unknown>;
