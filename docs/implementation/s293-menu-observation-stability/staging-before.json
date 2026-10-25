@@ -1,0 +1,23 @@
+{
+  "environment": "staging",
+  "revision": "4d3fa168f75e115687ca2a1de38a393ee07256fc",
+  "scope": "explicit internal canary only",
+  "before": {
+    "dataRevision": 2,
+    "sourceRevision": 1,
+    "menuObservedPublishedAt": "2026-10-25T20:21:53.902368+00:00"
+  },
+  "afterUnchangedRefresh": {
+    "dataRevision": 3,
+    "sourceRevision": 1,
+    "menuObservedPublishedAt": "2026-10-25T20:28:20.143562+00:00"
+  },
+  "onlyChangedCanonicalField": "menuDocument.publication.publishedAt",
+  "productionPromoted": false,
+  "legacyMenuUpload": {
+    "errorCode": "binary_cache_artifact_budget_exceeded",
+    "currentBinarySlot": null,
+    "modernProtocol2PlaybackContinued": true,
+    "modernMenuPriceCents": 250
+  }
+}

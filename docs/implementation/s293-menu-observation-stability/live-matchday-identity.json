@@ -1,0 +1,25 @@
+{
+  "localHashEvaluation": true,
+  "payloadsFrom": "two read-only production canonical observations",
+  "productionMutation": false,
+  "location": "away",
+  "matchFactsUnchanged": true,
+  "observedChanges": [
+    "data.generatedAt",
+    "data.sport.generatedAt",
+    "data.sport.matchday.context.revisions.0.revision",
+    "data.sport.matchday.context.revisions.2.revision",
+    "data.themePresentation.resolvedMode.resolvedAt"
+  ],
+  "results": 1,
+  "fixtures": 1,
+  "standings": 14,
+  "v2IdentityStable": true,
+  "historicalV1RetainsObservationIdentity": true,
+  "hashes": {
+    "v1After": "ee59931ed918e513abd25f9debcfde1082a10d317305c8946ab99ab73fa8145e",
+    "v2After": "7a4ba8e31b8791619276d944a26a099d7ff5a8579083547d3664f36a9d17c036",
+    "v1Before": "8d5270a2578b3994ffbd5b53bbcbf1c8d188f917fcaa530c3310936076afa01c",
+    "v2Before": "7a4ba8e31b8791619276d944a26a099d7ff5a8579083547d3664f36a9d17c036"
+  }
+}

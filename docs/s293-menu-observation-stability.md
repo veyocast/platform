@@ -1,0 +1,102 @@
+# S293 — Stabiele bronidentiteit en begrensde legacy-Menu-upload
+
+De echte S292-stagingcanary op `4d3fa168f75e115687ca2a1de38a393ee07256fc`
+maakte een fout zichtbaar die de eerdere rollbacktests niet vonden. De
+Menu-builder maakt bij iedere lezing een nieuwe `publication.publishedAt`.
+Alleen dat veld veranderde tussen het immutable snapshot en de actuele data.
+Een ongewijzigde refresh verhoogde de Menu-datarevisie van 2 naar 3 terwijl de
+bronrevisie 1 bleef. Productiepromotie is daarom aangehouden.
+
+De bestaande protocol-2-normalizer sluit nu ook het observatietijdstip onder
+`menuDocument.publication` en zijn canonieke `priceList.menuDocument`-alias
+uit. Dezelfde private normalizer bepaalt data- en snapshotidentiteit. De verse
+observatiemetadata blijft opgeslagen. Prijs, naam, beschikbaarheid,
+assetchecksum, documentrevisie en rendereridentiteit blijven semantisch.
+Versie-1- en onversioneerde hashes blijven via hun bestaande pad bytecompatibel.
+De forwardmigratie vervangt één pure private functie en behoudt haar gesloten
+ACL. Er wordt geen release, snapshot, target of productrecord herschreven.
+
+Twee afzonderlijke read-only productieobservaties van dezelfde Sportlink-
+uitselectie bevatten dezelfde wedstrijdfeiten, maar andere `generatedAt`,
+datasetrevisies en `themePresentation.resolvedMode.resolvedAt`. De bestaande
+Sportlink-sync schrijft `last_synced_at` ook bij gelijke feiten; de context-
+revisies zijn daarvan afgeleid. De normalizer sluit gericht de `revision`
+binnen `sport.matchday.context.revisions[]` uit, met behoud van datasetlabels,
+volgorde, team, competitie, pool en alle wedstrijdfeiten. Ook de afgeleide
+`sport.snapshotExpiresAt` en het themabepalingstijdstip zijn observatiemetadata.
+De ruwe gegevens blijven beschikbaar voor validatie en versheid; de echte
+Amsterdamse `syncEffectiveDay`, verjaardag, score, aftraptijd en themamodus
+blijven onderdeel van de inhoudsidentiteit. Er is geen algemene verwijdering
+van revisies elders in de data. De echte twee payloads krijgen lokaal dezelfde
+v2-hash, terwijl hun historische v1-hashes verschillend blijven. Het
+geanonimiseerde bewijs staat in
+`implementation/s293-menu-observation-stability/live-matchday-identity.json`.
+
+Een tweede echte canary vond dat de gedeelde backend bij iedere gepubliceerde
+binaire refresh een Source-poster eiste. Een geldige Menu-PNG werd daardoor
+vóór upload afgewezen als `binary_cache_artifact_budget_exceeded`. De backend
+valideert nu de eigen Menu-PNG-versie, configuratie, geometrie en bytes vóór
+het servergeleasete cachevak wordt aangeraakt. De grens van 64 MiB blijft;
+Source behoudt zijn verplichte poster en grens van 16 MiB. Menu-DOM-descriptors
+krijgen dezelfde byte-/checksumcontrole als Source-descriptors. Tien nieuwe
+backendtests gebruiken bestaande echte native PNG-output en de volledige
+claim→render→upload→completion-handoff, met controle op v1, Source-masquerade,
+corruptie, te grote uitvoer en stale leases. De moderne browser bleef spelen
+terwijl de legacyroute nog voorbereidde; legacyacceptatie volgt na deze fix.
+
+Ownership: één root-writer op `veyocast/s293-menu-observation-stability`, in de
+eigen worktree `castivo-s293`; één nieuwe migratie, de gedeelde Worker-uploadbackend,
+eigen backend-/SQL-/RPC-regressies en eigen documentatie/plan/ledger. Renderer-,
+UI-, asset-, dependency-, lockfile- en workflowcode blijven gelijk aan S292.
+
+De oorspronkelijke SQL-regressie reproduceerde drie fouten van negentien vóór
+de Menu-correctie. De uitbreiding naar 35 controles reproduceerde daarna vijf
+aanvullende fouten op de nog niet gecorrigeerde Sportlink-/thema-observaties.
+De aanvullende echte Menu-RPC-keten gebruikt
+een Twelve-product met `data_source_id = NULL`, zoals de echte import. Zij
+commit de fixture in een uitsluitend lokale testdatabase en voert vervolgens
+drie bronobservaties in afzonderlijke transacties uit. Daardoor verandert
+`now()` werkelijk; één rollbacktransactie verborg de oorspronkelijke fout.
+De observaties houden revisie 1, dezelfde inhoudshash, één snapshot, één job,
+één release en nul binaries. Ook snapshotidentiteit blijft stabiel. Alleen de
+observatiestempel wordt vers gehouden. Bewijs staat in
+`implementation/s293-menu-observation-stability/rpc-cross-transaction.json`.
+
+S292-stagingbewijs vóór deze vervolgfix: een echte AD-sync voltooide 30
+artikelen, 28 beschikbare foto's, 30 QR's en één logo (59 artifacts). RSS en
+Menu werden als descriptors van 7.819 en 1.868 bytes gereedgemaakt zonder
+binaire uitvoer. De gepaarde hosted browser bevestigde protocol-2-frames van
+beide oorspronkelijke renderers; een echte offline reload behield playback,
+fonts en pairing, inclusief de tweede widgetpagina. Dit is browserbewijs,
+geen fysieke LG-/Android-acceptatie.
+
+Op reeds opgeslagen stagingbrondata zijn dertig echte preview-RPC-aanroepen
+per route gemeten: nearest-rank p50/p95 voor RSS 412,623/420,525 ms en Menu
+27,178/32,605 ms; eerste aanroep respectievelijk 766,101/88,945 ms. Dit is
+databasetijd, zonder Control-netwerk, browserrendering of provideracquisitie.
+Het zijn geen productie-p95's. De bestaande S292-native-exportmetingen zijn
+afzonderlijke samples en worden niet als p95 of totale snelheidsfactor gebruikt.
+
+De laatste workspace lint/typecheck/unit zijn na de aanvullende uploadfix
+elk 30/30 groen; de Worker-build is eveneens groen. De ongewijzigde pakketten
+gebruiken hun geldige Turbocache. De tien nieuwe backendtests en veertien
+bestaande Source-workertests zijn groen; de uiteindelijke volledige Worker-
+suite is ook geslaagd. CI vond bij de eerste PNG-test een 5s-timeout op de
+diepe vergelijking van twee megabyte. De test controleert nu exact dezelfde
+doorgegeven bytebuffer via referentie; echte backend-checksumvalidatie,
+corruptietest, assertions en oorspronkelijke timeout blijven behouden. De
+volledige Worker-suite slaagt daarmee lokaal (394 PASS, 338 bestaande
+conditionele skips); de tien nieuwe cases duren samen 147 ms.
+De verse reset en volledige SQL/RLS-run omvatten 147 bestanden en 4.846
+assertions. De applicatieschema's `public,private` hebben nul db-lint-errors.
+Een ongerichte lint inclusief de pgTAP-extensie meldde acht fouten in de
+testextensie, waaronder ontbrekende transactionele pgTAP-hulptabellen; dat is
+afzonderlijk bewaard en geen fout in de gewijzigde applicatiefunctie.
+De daadwerkelijke RPC-proef en eigen runnerlint zijn groen. Actuele CI, nieuwe main-SHA, stagingcanary en
+expliciete productiepromotie worden per PR/run vastgelegd. Tot die verificatie
+blijft productie op de eerdere release en wordt geen volledige uitrol geclaimd.
+
+Een reeds bestaande staging-v2-binding kan bij de eerste herberekening één
+nieuwe normalisatiehash krijgen. Daarna veroorzaken gelijke observaties geen
+revisie of werk. Nieuw voorbereide v2-bindingen beginnen direct met de stabiele
+identiteit; historische v1-receipts houden hun oorspronkelijke betekenis.
