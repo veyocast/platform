@@ -1,13 +1,15 @@
 "use client";
+import {hasVisibleSyncDomFrame} from "../_lib/sync-dom-frame";
+import {screenCompositionZoneFrameIdentity} from "../_lib/player-screen-composition";
 import {syncOnzeTrotsCurrentHeader,syncOnzeTrotsCurrentVersion} from '../_lib/sync-player-capabilities';
-import {supportsSyncOnzeTrotsV9,syncOnzeTrotsV9Header,syncOnzeTrotsV9Version,supportsSyncOnzeTrots,syncOnzeTrotsHeader,syncOnzeTrotsVersion,supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
+import {supportsSyncDomV2,syncDynamicDomV2Version,supportsSyncOnzeTrotsV9,syncOnzeTrotsV9Header,syncOnzeTrotsV9Version,supportsSyncOnzeTrots,syncOnzeTrotsHeader,syncOnzeTrotsVersion,supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
 import {assertSyncDynamicConfigurationContinuity} from '../_lib/sync-player-assets';
 import {sourceDataNeedsBoundary} from '../_lib/player-source-data-boundary';
 import { playerMediaFrameBackgroundStyle } from "../_lib/player-media-frame";
 
 import { playerMediaTraffic } from "../_lib/media-traffic";
 
-import {screenCompositionGeometry} from "@veyocast/contracts";
+import {screenCompositionGeometry,type SyncDomFrameConfirmation,type SyncBinaryFrameConfirmation} from "@veyocast/contracts";
 import {screenCompositionIdentity,screenCompositionDataIdentity} from "../_lib/player-screen-composition";
 import {ScreenCompositionBoundary} from "../_lib/screen-composition-boundary";
 import {ScreenCompositionZone} from "./screen-composition-zone";
@@ -32,6 +34,8 @@ import React, {
 
 import {
   activateRelease,
+  hasSyncDomV2Envelope,
+  readCompatibilityRelease,
   garbageCollectPersistedPlayerMedia,
   hydrateCachedRelease,
   hydratePreparedRelease,
@@ -143,6 +147,7 @@ import {
 import styles from "./player-playback.module.css";
 import {SitesDynamicMedia} from "./sites-dynamic-media";
 import {SyncStudioMedia} from "./sync-studio-media";
+import {SyncDomBoundary,SyncDomFailure} from './sync-dom-boundary';
 import { DynamicTemplateMedia } from "./dynamic-template-media";
 import { EngagePlaybackMedia } from "./engage-playback-media";
 import { YouTubePlaybackMedia } from "./youtube-playback-media";
@@ -167,7 +172,10 @@ const pairingClaimPollIntervalMs = 2_000;
 const pairingProvisionCooldownMs = 5_000;
 let volatilePlayerInstanceId: string | null = null;
 
+function domTargetKey(envelope:PlayerManifestEnvelope){return `${envelope.manifest.releaseId}:${screenCompositionIdentity(envelope)}:${screenCompositionDataIdentity(envelope)}`;}
+
 export type PlaybackFailureCode =
+  | "SYNC_DOM_ERROR"
   | "IMAGE_ERROR"
   | "VIDEO_ERROR"
   | "VIDEO_PROGRESS_TIMEOUT"
@@ -256,7 +264,9 @@ export function PlayerRuntime() {
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
   const [playbackReadyRevision, setPlaybackReadyRevision] = useState(0);
   const publicationTraceRef = useRef<PublicationTrace | null>(null);
+  const failedDomTargetsRef=useRef(new Set<string>()),domCommitRef=useRef<{key:string;signal:AbortSignal}|null>(null),domPersistedRef=useRef<string|null>(null);
   const preparationErrorRef = useRef<string | null>(null);
+  const visibleSourceRef=useRef<SyncDomFrameConfirmation|SyncBinaryFrameConfirmation|null>(null);
   const signalReceivedAtRef = useRef<string | null>(null);
   const targetCommitRef = useRef<{ revision: string; at: string } | null>(null);
   const boundaryMonotonicRef = useRef<number | null>(null);
@@ -439,11 +449,14 @@ export function PlayerRuntime() {
         if(pending.dataOnly){
           if(!(await compositionBoundaryRef.current.holdAll(pending.token.signal))||!pending.token.isCurrent()){retryBoundary=true;return;}
           try{
-            await activateRelease({assets:pending.release.assets,deviceToken,envelope:pending.release.envelope,signal:pending.token.signal});
+            if(!hasSyncDomV2Envelope(pending.release.envelope))await activateRelease({assets:pending.release.assets,deviceToken,envelope:pending.release.envelope,signal:pending.token.signal});
             if(!pending.token.isCurrent()||pendingTargetRef.current!==pending){retryBoundary=true;return;}
             pendingTargetRef.current=null;
             snapshot={...snapshot,release:pending.release,pendingRelease:undefined,state:'PLAYING',syncMessage:'Actuele brongegevens gewisseld na de huidige slide; publicatie en volgorde zijn behouden.'};
             runtimeRef.current=snapshot;setRuntime(snapshot);
+            // A one-item data loop keeps the mounted renderer and verified fonts.
+            // Its semantic identity resets only the page/motion clock.
+            if(snapshot.release.envelope.manifest.items.length===1&&snapshot.release.envelope.manifest.items[0]?.syncDynamic?.schemaVersion===2){playbackReadyRef.current=false;return;}
           }catch{ /* Current complete content keeps playing; retry at a later boundary. */ }
         }else{
         const order = publicationPlaybackOrder(
@@ -460,7 +473,7 @@ export function PlayerRuntime() {
           if(!(await compositionBoundaryRef.current.holdAll(pending.token.signal))||!pending.token.isCurrent()){retryBoundary=true;return;}
           let committed = false;
           try {
-            await activateRelease({ assets: pending.release.assets, deviceToken,
+            if(!hasSyncDomV2Envelope(pending.release.envelope))await activateRelease({ assets: pending.release.assets, deviceToken,
               envelope: pending.release.envelope, signal: pending.token.signal });
             committed = true;
           } catch {
@@ -565,9 +578,17 @@ export function PlayerRuntime() {
 
   const acknowledgeVisibleComposition=useCallback(async()=>{
     const snapshot=runtimeRef.current;if(!isPlaybackRuntime(snapshot)||!playbackReadyRef.current)return;
-    const composition=snapshot.release.envelope.composition;if(!composition){presentedReleaseIdRef.current=snapshot.release.envelope.manifest.releaseId;return;}
-    if(Object.entries(composition.zones).some(([id,zone])=>zoneFramesRef.current.get(id)!==zone.manifest.releaseId))return;
+    const composition=snapshot.release.envelope.composition;
+    if(composition&&Object.entries(composition.zones).some(([id,zone])=>zoneFramesRef.current.get(id)!==screenCompositionZoneFrameIdentity(zone)))return;
+    const commit=domCommitRef.current,visibleKey=domTargetKey(snapshot.release.envelope),deviceToken=readStoredDeviceToken();
+    if(hasSyncDomV2Envelope(snapshot.release.envelope)&&commit?.key===visibleKey&&domPersistedRef.current!==visibleKey&&deviceToken&&!commit.signal.aborted){
+      domPersistedRef.current=visibleKey;
+      try{await activateRelease({assets:snapshot.release.assets,deviceToken,envelope:snapshot.release.envelope,signal:commit.signal});}
+      catch{if(domPersistedRef.current===visibleKey)domPersistedRef.current=null;return;}
+    }
+    if(commit?.signal.aborted&&hasSyncDomV2Envelope(snapshot.release.envelope)||!isPlaybackRuntime(runtimeRef.current)||domTargetKey(runtimeRef.current.release.envelope)!==visibleKey)return;
     presentedReleaseIdRef.current=snapshot.release.envelope.manifest.releaseId;
+    if(!composition)return;
     const trace=publicationTraceRef.current;if(trace?.releaseId===presentedReleaseIdRef.current&&!trace.firstFrameAt){trace.firstFrameAt=new Date().toISOString();if(boundaryMonotonicRef.current!==null)trace.frameAfterBoundaryMs=Math.round(performance.now()-boundaryMonotonicRef.current);sendHeartbeatRef.current?.();}
     const revision=snapshot.release.envelope.target?.revision,token=readStoredDeviceToken();if(!revision||!token||compositionAckInFlightRef.current)return;
     const key=`${composition.published.id}:${revision}`;if(compositionAckRef.current===key)return;
@@ -581,6 +602,8 @@ export function PlayerRuntime() {
     const activeItem =
       currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
     if (activeItem?.id !== itemId) return;
+    const binary=activeItem.syncDynamicBinary;
+    visibleSourceRef.current=activeItem.syncDynamic?.schemaVersion===2?{schemaVersion:2,itemId,configurationSnapshotId:activeItem.syncDynamic.configurationSnapshotId,dataRevision:activeItem.syncDynamic.dataRevision,contentHash:activeItem.syncDynamic.contentHash,rendererVersion:activeItem.syncDynamic.presentation.rendererVersion}:binary&&Number.isSafeInteger(binary.dataRevision)&&Number(binary.dataRevision)>0?{schemaVersion:1,transport:'binary',itemId,configurationSnapshotId:binary.configurationSnapshotId,dataRevision:binary.dataRevision!,contentHash:binary.contentHash}:null;
     if (!playbackReadyRef.current) setPlaybackReadyRevision((revision) => revision + 1);
     playbackReadyRef.current = true;
     if(!currentRuntime.release.envelope.composition)presentedReleaseIdRef.current = currentRuntime.release.envelope.manifest.releaseId;
@@ -619,6 +642,31 @@ export function PlayerRuntime() {
     const activeItem =
       currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
     if (activeItem?.id !== itemId) return;
+
+    if(code==='SYNC_DOM_ERROR'){
+      const failedKey=domTargetKey(currentRuntime.release.envelope),failed=failedDomTargetsRef.current;
+      failed.add(failedKey);if(failed.size>50)failed.delete(failed.values().next().value!);
+      preparationErrorRef.current='SYNC_DOM_RENDER_FAILED';latestTargetRef.current.cancel();pendingTargetRef.current=null;
+      lastPlaybackErrorRef.current={action:'RESTORE_LAST_KNOWN_GOOD',code,itemId,occurredAt:new Date().toISOString()};
+      const token=readStoredDeviceToken();
+      if(token){
+        const active=await readActiveRelease(token),previous=await readPreviousRelease(token),compatible=await readCompatibilityRelease(token);
+        for(const candidate of [active,previous,compatible]){
+          if(!candidate||failed.has(domTargetKey(candidate.envelope)))continue;
+          try{
+            const restored=await hydrateCachedRelease(candidate);
+            const current=runtimeRef.current;
+            if(!isPlaybackRuntime(current)||domTargetKey(current.release.envelope)!==failedKey){revokeHydratedRelease(restored);return;}
+            hydratedReleasesRef.current.push(restored);playbackReadyRef.current=false;setPlaybackAttempt(value=>value+1);
+            setRuntime({state:'OFFLINE_PLAYING',release:restored,activeIndex:resolveInitialPlaybackIndex(restored),syncMessage:'De laatste correcte uitzending is hersteld; nieuwe brongegevens konden niet veilig worden getoond.'});
+            return;
+          }catch{ /* Try the preserved compatibility release next. */ }
+        }
+        const current=runtimeRef.current;if(!isPlaybackRuntime(current)||domTargetKey(current.release.envelope)!==failedKey)return;
+        setRuntime({state:'READY',deviceToken:token,device:{...currentRuntime.release.envelope.device,activeReleaseId:null,desiredReleaseId:null},branding:currentRuntime.release.envelope.branding,syncMessage:'De weergave kon niet veilig starten. De schermkoppeling blijft behouden; herstel de bron of probeer een nieuwe versie.'});
+      }
+      return;
+    }
 
     const now = Date.now();
     const action = planPlayerRecovery({
@@ -1204,7 +1252,7 @@ export function PlayerRuntime() {
               ...(supportsSyncBackgrounds()?{[syncBackgroundsHeader]:syncBackgroundsVersion}:{}),
               ...(supportsSyncOnzeTrots()?{[syncOnzeTrotsHeader]:syncOnzeTrotsVersion}:{}),
               ...(supportsSyncOnzeTrotsV9()?{[syncOnzeTrotsV9Header]:syncOnzeTrotsV9Version,[syncOnzeTrotsCurrentHeader]:syncOnzeTrotsCurrentVersion}:{}),
-              [syncDynamicRendererHeader]:supportsSyncSlideDom()?syncDynamicDomVersion:syncDynamicBinaryVersion,
+              [syncDynamicRendererHeader]:supportsSyncDomV2()?syncDynamicDomV2Version:supportsSyncSlideDom()?syncDynamicDomVersion:syncDynamicBinaryVersion,
               ...(manifestEtag ? { "If-None-Match": manifestEtag } : {})
             }
           }
@@ -1280,6 +1328,7 @@ export function PlayerRuntime() {
         if (cancelled || requestController.signal.aborted) return;
 
         const currentRuntime = runtimeRef.current;
+        if(failedDomTargetsRef.current.has(domTargetKey(body))){manifestEtag=receivedEtag;syncSucceeded=true;return;}
         const releaseId = body.manifest.releaseId;
         const targetToken = latestTargetRef.current.observe(
           `${body.device.screenId}:${body.target?.revision ?? releaseId}:${releaseId}:${screenCompositionIdentity(body)}:${body.manifest.sponsorPlan?.revisionId ?? ""}:${screenCompositionDataIdentity(body)}`,
@@ -1410,6 +1459,7 @@ export function PlayerRuntime() {
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) return;
         if (!prepared.ok) throw new Error(prepared.error);
         const hydrated = await hydratePreparedRelease({ assets: prepared.assets, envelope: body });
+        if(hasSyncDomV2Envelope(body))domCommitRef.current={key:domTargetKey(body),signal:token.signal};
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
         const active=runtimeRef.current;
         if(isPlaybackRuntime(active)&&sourceDataNeedsBoundary(active.release.envelope,body)){
@@ -1418,7 +1468,7 @@ export function PlayerRuntime() {
           setRuntime(value=>isPlaybackRuntime(value)&&value.release.envelope.manifest.releaseId===body.manifest.releaseId?{...value,pendingRelease:hydrated,syncMessage:'Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.'}:value);
           return;
         }
-        await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken, envelope: body, signal: token.signal });
+        if(!hasSyncDomV2Envelope(body))await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken, envelope: body, signal: token.signal });
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
         hydratedReleasesRef.current.push(hydrated);
         setRuntime((value) => isPlaybackRuntime(value) && value.release.envelope.manifest.releaseId === body.manifest.releaseId
@@ -1443,6 +1493,7 @@ export function PlayerRuntime() {
           envelope: withSyncDiagnostics(body, "online", "publication verified") });
         if (cancelled || !token.isCurrent()) { revokeHydratedRelease(hydrated); return; }
         hydratedReleasesRef.current.push(hydrated);
+        if(hasSyncDomV2Envelope(body))domCommitRef.current={key:domTargetKey(body),signal:token.signal};
         if (publicationTraceRef.current?.releaseId === body.manifest.releaseId) {
           publicationTraceRef.current.assetsReadyAt = new Date().toISOString();
         }
@@ -1454,7 +1505,7 @@ export function PlayerRuntime() {
                 syncMessage: "Nieuwe inhoud gereed; wisselt na de huidige slide." } : value);
           return;
         }
-        await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken,
+        if(!hasSyncDomV2Envelope(hydrated.envelope))await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken,
           envelope: hydrated.envelope, signal: token.signal });
         if (cancelled || !token.isCurrent()) return;
         playbackReadyRef.current = false;
@@ -2019,6 +2070,8 @@ export function PlayerRuntime() {
             activeCompositionId:compositionAckRef.current?.split(":")[0]??null,
             desiredCompositionId:playbackRuntime?.release.envelope.composition?.published.id??null,
             runtimeVersion: currentPlayerApplicationVersion(),
+            sourceDomProtocol:supportsSyncDomV2()?2:undefined,
+            sourceDataConfirmation:visibleSourceRef.current,
             publicationTrace: publicationTraceRef.current,
             preparationError: preparationErrorRef.current,
             automationCapabilities,
@@ -2265,7 +2318,7 @@ function PlaybackView({
           watchdogTimeoutMs={watchdogTimeoutMs}
         />
         </div>
-        {runtime.release.envelope.composition&&screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).filter(zone=>zone.id!=="main").map(zone=>{const envelope=runtime.release.envelope.composition!.zones[zone.id as "side"|"bottom"];return envelope?<div key={zone.id} style={{position:"absolute",left:`${zone.left}%`,top:`${zone.top}%`,width:`${zone.width}%`,height:`${zone.height}%`,overflow:"hidden"}}><ScreenCompositionZone key={`${zone.id}:${envelope.manifest.releaseId}`} zoneId={zone.id as "side"|"bottom"} envelope={envelope} paused={underlayPaused} boundary={compositionBoundary} onFrame={onZoneFrame} liveMatchStates={liveMatchStates} watchdogTimeoutMs={watchdogTimeoutMs}/></div>:null;})}
+        {runtime.release.envelope.composition&&screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).filter(zone=>zone.id!=="main").map(zone=>{const envelope=runtime.release.envelope.composition!.zones[zone.id as "side"|"bottom"];return envelope?<div key={zone.id} style={{position:"absolute",left:`${zone.left}%`,top:`${zone.top}%`,width:`${zone.width}%`,height:`${zone.height}%`,overflow:"hidden"}}><ScreenCompositionZone key={`${zone.id}:${envelope.manifest.releaseId}`} zoneId={zone.id as "side"|"bottom"} envelope={envelope} paused={underlayPaused} boundary={compositionBoundary} onDomFailure={()=>onFailure(activeItem.id,'SYNC_DOM_ERROR')} onFrame={onZoneFrame} liveMatchStates={liveMatchStates} watchdogTimeoutMs={watchdogTimeoutMs}/></div>:null;})}
         <SponsorLayer
           onFullscreenVisibility={onSponsorPause} paused={goalPaused}
           activeItemId={activeItem.id}
@@ -2482,7 +2535,10 @@ export function PlaybackScene({
   paused: boolean;
   watchdogTimeoutMs: number;
 }) {
-  const requestedKey = `${item.id}:${playbackAttempt}`;
+  const domResources=item.syncDynamic?.schemaVersion===2?JSON.stringify([item.syncDynamic.configurationHash,...Object.entries(item.syncDynamic.assets).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([id,asset])=>[id,asset.checksumSha256])]):'';
+  const currentRoot=useRef<HTMLDivElement>(null);
+  const requestedKey = item.syncDynamic?.schemaVersion===2?`${item.id}:dom:${domResources}`:`${item.id}:${playbackAttempt}:${domResources}`;
+  const lastVisibleSceneRef=useRef<PlaybackSceneEntry|null>(null);
   const requestedSceneRef = useRef<PlaybackSceneEntry>({
     item,
     key: requestedKey
@@ -2507,7 +2563,7 @@ export function PlaybackScene({
     setScene((currentScene) => ({
       current: requestedScene,
       outgoing: currentScene.ready
-        ? currentScene.current
+        ? lastVisibleSceneRef.current?.key===currentScene.current.key?lastVisibleSceneRef.current:currentScene.current
         : currentScene.outgoing,
       ready: false,
       transition: requestedTransition
@@ -2555,12 +2611,19 @@ export function PlaybackScene({
 
   useEffect(() => {
     if (!scene.ready) return;
-    let second = 0;
-    const first = window.requestAnimationFrame(() => {
-      second = window.requestAnimationFrame(() => onReady(scene.current.item.id));
-    });
-    return () => { window.cancelAnimationFrame(first); if (second) window.cancelAnimationFrame(second); };
-  }, [onReady, scene.current.item.id, scene.current.key, scene.ready]);
+    let second=0;const started=performance.now();
+    const report=()=>{
+      if(item.syncDynamic?.schemaVersion===2){
+        const root=currentRoot.current?.querySelector<HTMLElement>('[data-sync-ready="true"][data-sync-content-hash]');
+        if(root?.dataset.syncContentHash!==item.syncDynamic.contentHash||!hasVisibleSyncDomFrame(root??null,item.syncDynamic.presentation.rendererVersion)){if(performance.now()-started<5000)second=requestAnimationFrame(report);return;}
+      }
+      lastVisibleSceneRef.current={item,key:scene.current.key};
+      onReady(scene.current.item.id);
+    };
+    const first=requestAnimationFrame(()=>{second=requestAnimationFrame(report);});
+    return()=>{cancelAnimationFrame(first);cancelAnimationFrame(second);};
+  },[onReady,scene.current.item.id,scene.current.key,scene.ready,item.syncDynamic?.schemaVersion===2?`${item.syncDynamic.contentHash}:${playbackAttempt}`:undefined]);
+
 
   const currentClassName = scene.ready
     ? {
@@ -2572,6 +2635,7 @@ export function PlaybackScene({
 
   return (
     <div className={`${styles.transitionStack} ${paused ? styles.paused : ""}`} data-underlay-paused={paused ? "true" : "false"}>
+      {!scene.ready&&!scene.outgoing&&item.syncDynamic?.schemaVersion===2?<div className={styles.scene} data-sync-dom-startup="true"><SyncPlayerStatus embedded stage="boot" landmark="Uitzending voorbereiden" footer="Lokale uitzending starten"/></div>:null}
       {scene.outgoing ? (
         <div
           aria-hidden="true"
@@ -2596,6 +2660,7 @@ export function PlaybackScene({
         </div>
       ) : null}
       <div
+        ref={currentRoot}
         className={`${styles.scene} ${styles.current} ${currentClassName}`}
         data-player-handoff={
           scene.ready ? "first-frame-ready" : "waiting-for-first-frame"
@@ -2605,6 +2670,7 @@ export function PlaybackScene({
       >
         <PlaybackMedia onBoundary={onBoundary}
           item={scene.current.key === requestedKey ? item : scene.current.item}
+          iteration={playbackAttempt}
           liveMatchStates={liveMatchStates}
           onEnded={onEnded}
           onFailure={onFailure}
@@ -2631,6 +2697,7 @@ export function PlaybackMedia({
   onFailure,
   onPlaybackStateChange,
   onReady,
+  iteration=0,
   passive = false,
   paused = false,
   watchdogTimeoutMs
@@ -2642,12 +2709,17 @@ export function PlaybackMedia({
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onPlaybackStateChange?: (state: "ended" | "paused" | "playing") => void;
   onReady: (itemId: string) => void;
+  iteration?:number;
   passive?: boolean;
   paused?: boolean;
   watchdogTimeoutMs: number;
 }) {
   const renderStudioFallback = item.syncStudioPresentation||item.syncDynamic
-    ? (ready: (itemId: string) => void,presentation?:SyncSlidePresentation) => <SyncStudioMedia item={item} presentationOverride={presentation} liveMatchStates={liveMatchStates} onReady={ready} onEnded={onEnded} passive={passive} paused={paused} fallback={<BinaryPlaybackMedia item={item} onEnded={onEnded} onFailure={onFailure} onPlaybackStateChange={onPlaybackStateChange} onReady={ready} passive={passive} paused={paused} watchdogTimeoutMs={watchdogTimeoutMs} ownsImageBoundary={Boolean(item.syncDynamic)}/>}/>
+    ? (ready: (itemId: string) => void,presentation?:SyncSlidePresentation) => {
+      const report=()=>onFailure(item.id,'SYNC_DOM_ERROR');
+      const content=<SyncStudioMedia iteration={iteration} item={item} presentationOverride={presentation} liveMatchStates={liveMatchStates} onReady={ready} onEnded={onEnded} passive={passive} paused={paused} fallback={item.syncDynamic?.schemaVersion===2?<SyncDomFailure report={report} passive={passive}/>:<BinaryPlaybackMedia item={item} onEnded={onEnded} onFailure={onFailure} onPlaybackStateChange={onPlaybackStateChange} onReady={ready} passive={passive} paused={paused} watchdogTimeoutMs={watchdogTimeoutMs} ownsImageBoundary={Boolean(item.syncDynamic)}/>}/>;
+      return item.syncDynamic?.schemaVersion===2?<SyncDomBoundary key={item.id} revision={item.syncDynamic.contentHash} report={report} passive={passive}>{content}</SyncDomBoundary>:content;
+    }
     : item.sitesStudioPresentation
     ? (ready: (itemId: string) => void) => <SitesDynamicMedia
       item={item}

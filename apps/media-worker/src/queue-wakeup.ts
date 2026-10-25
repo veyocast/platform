@@ -1,10 +1,17 @@
-export type RenderQueue = "media" | "studio" | "dynamic" | "published" | "maintenance";
-export type QueueHint = Record<RenderQueue, boolean>;
+export type RenderQueue = "media" | "studio" | "dynamic" | "published" | "maintenance" | "dom";
+export type QueueHint = Record<Exclude<RenderQueue,"dom">, boolean> & {dom?:boolean};
 
 export function parseQueueHint(value: unknown): QueueHint | null {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 31) return null;
   return { media: Boolean(value & 1), studio: Boolean(value & 2), dynamic: Boolean(value & 4),
     published: Boolean(value & 8), maintenance: Boolean(value & 16) };
+}
+
+/** Additive v3 bit keeps historical v2 hints strict. All six lanes share one
+ * compact read and their existing bounded safety claims. */
+export function parseQueueHintV3(value:unknown):QueueHint|null{
+ if(typeof value!=='number'||!Number.isInteger(value)||value<0||value>63)return null;
+ return{...parseQueueHint(value&31)!,dom:Boolean(value&32)};
 }
 
 /** One small shared readiness read replaces three permanent empty claim loops.
@@ -13,7 +20,7 @@ export function parseQueueHint(value: unknown): QueueHint | null {
  */
 export class QueueWakeup {
   private ready: QueueHint = { media: false, studio: false, dynamic: false, published: false, maintenance: false };
-  private safetyAt: QueueHintTimes = { media: 0, studio: 0, dynamic: 0, published: 0, maintenance: 0 };
+  private safetyAt: QueueHintTimes = { media: 0, studio: 0, dynamic: 0, published: 0, maintenance: 0, dom:0 };
   private nextCheckAt = 0;
   private pending: Promise<void> | null = null;
   private failures = 0;

@@ -1,5 +1,7 @@
 import {assertSyncPlayerAssetManifest,assertSyncDynamicConfigurationContinuity} from "./sync-player-assets";
 import { assertMediaFrameManifest, assertMediaFrameContinuity } from "./player-media-frame";
+import {hasCompleteSyncDomShell}from'./sync-dom-shell';
+import {screenCompositionDataIdentity,screenCompositionIdentity}from'./player-screen-composition';
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 import {publishedScreenCompositionSchema, syncBackgroundAssets} from "@veyocast/contracts";
 import {isSyncPreparedUrl} from "./sync-player-presentation";
@@ -32,6 +34,7 @@ let preparingMediaCount = 0;
 let mediaCollection: Promise<unknown> = Promise.resolve();
 
 export type PlayerCachePhase = "DOWNLOADING" | "VERIFYING";
+export function hasSyncDomV2Envelope(envelope:PlayerManifestEnvelope){return[envelope,...Object.values(envelope.composition?.zones??{})].some(zone=>zone.manifest.schemaVersion===2);}
 
 export type PlayerCacheAsset = {
   bytes: number;
@@ -47,6 +50,9 @@ export type CachedPlayerRelease = {
   assets: PlayerCacheAsset[];
   deviceToken: string;
   envelope: PlayerManifestEnvelope;
+  /** One verified v2 predecessor. Keep the original previousReleases slot
+   * readable by version-1 app rollbacks without changing the IndexedDB version. */
+  previousDom?:Pick<CachedPlayerRelease,'activatedAt'|'assets'|'deviceToken'|'envelope'>;
 };
 
 export type HydratedPlayerRelease = {
@@ -140,8 +146,9 @@ export async function preparePendingRelease({
   signal?: AbortSignal;
   store?: PlayerMediaStore;
 }): Promise<PlayerCacheResult> {
-  if (envelope.manifest.schemaVersion !== 1) return { ok: false, error: "PLAYER_UPDATE_REQUIRED" };
+  if (![1,2].includes(envelope.manifest.schemaVersion)) return { ok: false, error: "PLAYER_UPDATE_REQUIRED" };
   let assets:PlayerCacheAsset[];try{assets=getEnvelopeCacheableAssets(envelope);}catch{return {ok:false,error:"RELEASE_ASSET_MANIFEST_INVALID"};}
+  if(hasSyncDomV2Envelope(envelope)&&!await hasCompleteSyncDomShell(signal))return{ok:false,error:'SYNC_DOM_SHELL_UNAVAILABLE'};
   preparingMediaCount += 1;
   try {
     await mediaCollection;
@@ -241,8 +248,14 @@ export async function activateRelease({
     store.get(deviceToken)
   );
 
-  if (currentRelease && currentRelease.envelope.manifest.releaseId !== envelope.manifest.releaseId) {
-    await requestToPromise(previousStore.put(currentRelease));
+  if(currentRelease){
+    if(hasSyncDomV2Envelope(envelope)){
+      if(hasSyncDomV2Envelope(currentRelease.envelope)){
+        cachedRelease.previousDom=currentRelease.envelope.manifest.releaseId===envelope.manifest.releaseId&&screenCompositionIdentity(currentRelease.envelope)===screenCompositionIdentity(envelope)&&screenCompositionDataIdentity(currentRelease.envelope)===screenCompositionDataIdentity(envelope)?currentRelease.previousDom:{activatedAt:currentRelease.activatedAt,assets:currentRelease.assets,deviceToken:currentRelease.deviceToken,envelope:currentRelease.envelope};
+      }else await requestToPromise(previousStore.put(currentRelease));
+    }else if(!hasSyncDomV2Envelope(currentRelease.envelope)&&currentRelease.envelope.manifest.releaseId!==envelope.manifest.releaseId){
+      await requestToPromise(previousStore.put(currentRelease));
+    }
   }
   await requestToPromise(store.put(cachedRelease));
   await transactionDone(transaction);
@@ -259,8 +272,10 @@ export async function readActiveRelease(deviceToken: string) {
 }
 
 export async function readPreviousRelease(deviceToken: string) {
-  return readReleaseFromStore(playerPreviousReleaseStoreName, deviceToken);
+  const active=await readActiveRelease(deviceToken);
+  return active?.previousDom??readCompatibilityRelease(deviceToken);
 }
+export async function readCompatibilityRelease(deviceToken:string){return readReleaseFromStore(playerPreviousReleaseStoreName,deviceToken);}
 
 export async function recoverDeviceTokenFromPersistedRelease() {
   await migratePreviousPlayerStorage();
@@ -296,7 +311,7 @@ export async function garbageCollectPersistedPlayerMedia(
   const collection = async () => {
   const [activeRelease, previousRelease] = await Promise.all([
     readActiveRelease(deviceToken),
-    readPreviousRelease(deviceToken)
+    readCompatibilityRelease(deviceToken)
   ]);
   return garbageCollectPlayerMedia({
     releases: [activeRelease, previousRelease, ...inUse],
@@ -318,7 +333,7 @@ export async function garbageCollectPlayerMedia({
   store: PlayerMediaStore;
 }) {
   const retainedKeys = new Set(
-    releases.flatMap((release) => release?.assets.map((asset) => asset.cacheKey) ?? [])
+    releases.flatMap((release) => [...(release?.assets??[]),...(('previousDom'in(release??{})?(release as CachedPlayerRelease).previousDom?.assets:undefined)??[])].map(asset=>asset.cacheKey))
   );
   const storedKeys = await store.keys();
   const obsoleteKeys = storedKeys.filter(

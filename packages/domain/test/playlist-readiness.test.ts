@@ -117,3 +117,12 @@ describe("playlist publication readiness", () => {
     expect(evaluatePlaylistReadiness({ items: [malformedDimensions], playlistStatus: "draft", playlistTenantId: tenantId }).reasons[0]?.code).toBe("VARIANT_METADATA_INVALID");
   });
 });
+it('requires a checked DOM receipt and exact bounded descriptor MIME for independent publication readiness',()=>{
+ const original=readyItem(),asset={...original.asset!,kind:'composition',variant:{...original.asset!.variant!,mimeType:'application/vnd.veyocast.sync-dom+json',fileSizeBytes:3000}};
+ const item={...original,asset,domReady:true,durationSeconds:3};
+ const evaluate=(next:PlaylistReadinessItem)=>evaluatePlaylistReadiness({items:[next],playlistStatus:'draft',playlistTenantId:tenantId});
+ expect(evaluate(item).canPublish).toBe(true);
+ expect(evaluate({...item,domReady:false}).canPublish).toBe(false);
+ expect(evaluate({...item,asset:{...asset,variant:{...asset.variant,mimeType:'application/json'}}}).canPublish).toBe(false);
+ expect(evaluate({...item,asset:{...asset,variant:{...asset.variant,fileSizeBytes:550001}}}).canPublish).toBe(false);
+});

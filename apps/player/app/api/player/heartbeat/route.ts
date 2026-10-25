@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import {
   playerAutomationSyncSchema,
+  syncBinaryFrameConfirmationSchema,syncDomFrameConfirmationSchema,
   screenAutomationCapabilityReportSchema,
   screenAutomationCommandReportSchema
 } from "@veyocast/contracts";
@@ -55,6 +56,8 @@ export async function POST(request: Request) {
     activeCompositionId?:unknown;
     desiredCompositionId?:unknown;
     runtimeVersion?: unknown;
+    sourceDomProtocol?:unknown;
+    sourceDataConfirmation?:unknown;
     publicationTrace?: unknown;
     preparationError?: unknown;
     videoProbe?: unknown;
@@ -120,7 +123,8 @@ export async function POST(request: Request) {
         : inferredAutomationCapabilities(request),
       goalVideo: safeGoalVideoCapabilities(body.goalVideoCapabilities),
       mediaTraffic: traffic,
-      manifestSchemaVersions: [1],
+      manifestSchemaVersions: body.sourceDomProtocol===2?[1,2]:[1],
+      ...(body.sourceDomProtocol===2?{sourceDomProtocol:2}:{}),
       releaseHashAlgorithms: ["sha256"]
     },
     p_desired_release_id: body.desiredReleaseId ?? null,
@@ -138,6 +142,7 @@ export async function POST(request: Request) {
         process.env.DEPLOYMENT_SHA?.trim().slice(0, 120) ||
         "local",
       ...playbackErrorDetail,
+      sourceDataConfirmation:syncDomFrameConfirmationSchema.safeParse(body.sourceDataConfirmation).data??syncBinaryFrameConfirmationSchema.safeParse(body.sourceDataConfirmation).data??null,
       videoProbe: safeVideoProbe(body.videoProbe),
       publicationTrace: safePublicationTrace(body.publicationTrace),
       preparationError: typeof body.preparationError === "string" && /^[A-Z_0-9]{1,80}$/.test(body.preparationError) ? body.preparationError : null,

@@ -1,4 +1,5 @@
 import "server-only";
+import {readSyncDynamicDomArtifact}from'@veyocast/contracts';
 
 import {
   evaluatePlaylistReadiness,
@@ -271,7 +272,7 @@ export async function loadPlaylistStudio(
     chunkPlaylistStudioIds(snapshotIds).map((ids) =>
       supabase
         .from("dynamic_slide_snapshots")
-        .select("id, dynamic_slide_id, status, output_media_asset_id, snapshot_data_json")
+        .select("id, dynamic_slide_id, status, output_media_asset_id, snapshot_data_json,sync_render_result_json")
         .eq("tenant_id", tenantId)
         .in("id", ids)
     )
@@ -302,7 +303,7 @@ export async function loadPlaylistStudio(
     ...scopedAssetResults.map(({ data }) => data ?? [])
   );
   const imageAssetIds = assetRows
-    .filter(({ kind }) => kind === "image")
+    .filter(({ kind }) => kind === "image"||kind==='composition')
     .map(({ id }) => id);
   const videoAssetIds = assetRows
     .filter(({ kind }) => kind === "video")
@@ -328,7 +329,7 @@ export async function loadPlaylistStudio(
 
   const variants = await Promise.all(variantRows.map(async (variant): Promise<PlaylistStudioVariant> => {
     let previewUrl: string | null = null;
-    if (signPreviews) {
+    if (signPreviews&&variant.mime_type!=='application/vnd.veyocast.sync-dom+json') {
       const signed = await supabase.storage.from("tenant-media").createSignedUrl(variant.storage_path, 600);
       previewUrl = signed.data?.signedUrl ?? null;
     }
@@ -355,6 +356,11 @@ export async function loadPlaylistStudio(
     tenantId: asset.tenant_id,
     title: asset.title,
     variant: variants.find((variant) => variant.assetId === asset.id && variant.variantType === (asset.kind === "video" ? "player_1080p" : "original")) ?? null
+  }));
+  const domReady=new Set(dynamicSnapshots.flatMap(snapshot=>{
+    const cfg=(snapshot.snapshot_data_json as {syncConfiguration?:unknown}|null)?.syncConfiguration;
+    const checked=readSyncDynamicDomArtifact(cfg,snapshot.sync_render_result_json),asset=allAssets.find(asset=>asset.id===snapshot.output_media_asset_id);
+    return snapshot.status==='ready'&&checked&&asset?.kind==='composition'&&asset.variant?.checksumSha256===checked.artifact.checksumSha256&&asset.variant.fileSizeBytes===checked.artifact.byteLength?[snapshot.id]:[];
   }));
   const dynamicOutputAssetIds = new Set(
     dynamicSnapshots.flatMap((snapshot) =>
@@ -434,6 +440,7 @@ export async function loadPlaylistStudio(
     displayTitle: item.display_title,
     dynamicSlideId: item.dynamic_slide_id,
     dynamicSnapshotId: item.dynamic_snapshot_id,
+    domReady:Boolean(item.dynamic_snapshot_id&&domReady.has(item.dynamic_snapshot_id)),
     sitesConfiguration: item.sites_configuration_json,
     youtubeSourceId: item.youtube_source_id,
     engageCampaignId: item.engage_campaign_id,
@@ -488,6 +495,7 @@ export async function loadPlaylistStudio(
   );
   const readiness = evaluatePlaylistReadiness({
     items: publishableItems.map((item) => ({
+      domReady:item.domReady,
       asset: item.asset ? {
         deleted: Boolean(item.asset.deletedAt),
         id: item.asset.id,

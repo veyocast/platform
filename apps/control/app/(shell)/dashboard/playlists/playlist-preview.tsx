@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-import type { PlayerPlaybackItem } from "@veyocast/contracts";
+import type { PlayerPlaybackItem,SyncSlidePresentation } from "@veyocast/contracts";
+import {SyncSlidePreview}from'./_components/sites/sync-studio-preview';
 
 export type PlaylistPreviewItem = PlayerPlaybackItem & {
   url: string;
   mediaFrameStyle?: CSSProperties;
+  syncPreview?:{presentation:SyncSlidePresentation;assetUrls:Record<string,string>};
 };
 
 export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
@@ -46,7 +48,7 @@ export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
         <label><input checked={orientation === "portrait"} name="preview-orientation" onChange={() => setOrientation("portrait")} type="radio" /> 9:16 staand</label>
       </fieldset>
       <div className="player-preview__stage" data-fit={activeItem.fitMode} data-orientation={orientation}>
-        {activeItem.kind === "video" ? (
+        {activeItem.syncPreview?<SyncSlidePreview {...activeItem.syncPreview} id={activeItem.id} durationSeconds={activeItem.durationSeconds} active={playing}/>:activeItem.kind === "video" ? (
           <video
             aria-label={`Voorbeeldvideo ${activeItem.title}`}
             className="player-preview__media"

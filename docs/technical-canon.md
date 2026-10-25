@@ -1,5 +1,11 @@
 # VeyoCast Technical Canon v1
 
+S292 voegt een expliciet Source DOM-protocol 2 toe. Alleen een geverifieerde
+consumeruitrol kan de tenantproducer activeren. PNG/MP4 is geen algemene gate
+voor dit contract; versie 1 en historische MenuDocument/Sites-routes behouden
+hun bestaande voorwaarden. Zie [dynamic slides](dynamic-slides-canon.md) en
+[offline](player-offline-canon.md) voor de versiegrenzen en herstelregels.
+
 ## 1. Productdefinitie
 
 VeyoCast is een multi-tenant narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties met beheerde schermen. De MVP bestaat uit vier planes:

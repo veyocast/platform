@@ -1,4 +1,5 @@
 export type PlaylistStudioItem = {
+  domReady?:boolean;
   accessibilityName: string | null;
   asset: PlaylistStudioAsset | null;
   backgroundColor: string | null;
@@ -69,7 +70,7 @@ export type PlaylistStudioSection = {
 export type PlaylistStudioAsset = {
   deletedAt: string | null;
   id: string;
-  kind: "image" | "video";
+  kind: "image" | "video" | "composition";
   mimeType: string;
   status: string;
   tenantId: string;

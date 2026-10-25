@@ -1,9 +1,43 @@
 # VeyoCast dynamic slides canon
 
-Status: implemented HTML/CSS-first runtime with immutable PNG fallback (S84)
+Status: versioned DOM-ready Source protocol (S292); historical contracts retained
 Scope: fixed menu boards, RSS news, Publisher integration and all Players
 
-## Product boundary
+## Independent Source DOM protocol 2 (S292)
+
+This section governs newly opted-in Sync/Sportlink, RSS and Sync Menu designs.
+Version 1 and historical MenuDocument/Sites publications retain their original
+contracts below. No historical release is rewritten.
+
+A tenant producer is disabled by default. A service-only audited command records
+the verified consumer release SHA before enabling protocol 2. Immutable Source
+configuration, canonical facts and their `dataRevision` remain separate.
+
+A ready protocol-2 snapshot registers one generated `composition` original with
+MIME `application/vnd.veyocast.sync-dom+json` (maximum 550,000 bytes). This is a
+code-free immutable descriptor. It contains the known renderer/presentation and
+checksum-bound resource metadata, never provider HTML, credentials, scripts or
+signed URLs. No poster, PNG or MP4 is a readiness prerequisite. Control previews
+use the same existing `SyncSlideStaticView` as the Player and explicit export.
+
+Only explicit `sync-dynamic-v2` negotiation plus the actual renderer capabilities
+receives a version-2 manifest and strict version-2 metadata. The legacy strict
+version-1 decoder is unchanged. Older profiles receive the bounded existing
+binary cache, requested on actual demand. A preparing legacy target preserves
+its current complete release independently from ready DOM targets. Explicit
+file downloads use the same deduplicated binary cache and human permissions;
+requesting an export never publishes a draft. Failed exports do not invalidate
+DOM readiness. DOM descriptors have a separate fenced worker lane, so capture
+and encoding cannot occupy that lane. All lanes share one compact queue hint.
+
+Unchanged observations (including generatedAt/fetchedAt) do not advance the
+semantic data identity. Amsterdam's birthday selection day remains semantic.
+Live facts do not create new configuration snapshots or releases. Original
+photographs, logos and fonts are still prepared and verified. For protocol 2,
+a complete cached app shell and actual visible frame are required before the
+new local recovery point is committed. See the Player Offline Canon.
+
+## Historical version-1 product boundary
 
 A dynamic slide is not a remote provider page and never contains tenant-authored
 JavaScript. VeyoCast resolves provider data server-side and freezes a canonical

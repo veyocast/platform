@@ -103,6 +103,23 @@ describe("player heartbeat API", () => {
     expect(response.status).toBe(401);
     expect(body.error.code).toBe("INVALID_DEVICE_TOKEN");
   });
+  it('records explicit DOM capability separately from a bounded actual-frame confirmation',async()=>{
+    const frame={schemaVersion:2,itemId:'29200000-0000-4000-8000-000000000003',configurationSnapshotId:'29200000-0000-4000-8000-000000000005',dataRevision:2,contentHash:'a'.repeat(64),rendererVersion:'sync-onzetrots-v9'};
+    rpc.mockResolvedValueOnce({data:'heartbeat',error:null}).mockResolvedValueOnce({data:null,error:null});
+    const binaryFrame={schemaVersion:1,transport:'binary',itemId:frame.itemId,configurationSnapshotId:frame.configurationSnapshotId,dataRevision:3,contentHash:frame.contentHash};
+    await heartbeat({runtimeState:'PLAYING',syncPhase:'active',sourceDataConfirmation:binaryFrame});
+    expect(rpc).toHaveBeenNthCalledWith(1,'record_player_heartbeat_v3',expect.objectContaining({p_capabilities:expect.objectContaining({manifestSchemaVersions:[1]}),p_sync_detail:expect.objectContaining({sourceDataConfirmation:binaryFrame})}));
+    for(const invalid of [false,true]){
+      rpc.mockReset();rpc.mockResolvedValueOnce({data:'heartbeat',error:null}).mockResolvedValueOnce({data:null,error:null});
+      const result=await heartbeat({runtimeState:'PLAYING',syncPhase:'active',sourceDomProtocol:2,sourceDataConfirmation:invalid?{...frame,providerUrl:'https://untrusted.example'}:frame});
+      expect(result.status).toBe(200);
+      expect(rpc).toHaveBeenNthCalledWith(1,'record_player_heartbeat_v3',expect.objectContaining({p_capabilities:expect.objectContaining({manifestSchemaVersions:[1,2],sourceDomProtocol:2}),p_sync_detail:expect.objectContaining({sourceDataConfirmation:invalid?null:frame})}));
+    }
+    rpc.mockReset();rpc.mockResolvedValueOnce({data:'heartbeat',error:null}).mockResolvedValueOnce({data:null,error:null});
+    await heartbeat({runtimeState:'PLAYING',syncPhase:'active'});
+    expect(rpc).toHaveBeenNthCalledWith(1,'record_player_heartbeat_v3',expect.objectContaining({p_capabilities:expect.objectContaining({manifestSchemaVersions:[1]}),p_sync_detail:expect.objectContaining({sourceDataConfirmation:null})}));
+  });
+
 });
 
 function heartbeat(body: {
@@ -110,6 +127,8 @@ function heartbeat(body: {
   syncPhase: string | null;
   syncRetryAcknowledgedAt?: unknown;
   videoProbe?: unknown;
+  sourceDomProtocol?:unknown;
+  sourceDataConfirmation?:unknown;
 }) {
   return POST(
     new Request("https://player.veyocast.nl/api/player/heartbeat", {

@@ -5,7 +5,7 @@ import { VEYOCAST_APPS, getLocalUrl } from "@veyocast/config";
 import { createStructuredLogger } from "@veyocast/observability";
 
 import { readMediaWorkerConfig } from "./worker-config";
-import { parseQueueHint, QueueWakeup } from "./queue-wakeup";
+import { parseQueueHintV3, QueueWakeup } from "./queue-wakeup";
 import { PublishedDataRefreshRunner } from "./published-data-refresh-runner";
 import { PublicationVersionPruneRunner } from "./publication-version-prune-runner";
 import { runInquiryMailLoop, runInquiryMailOnce, readInquiryMailConfig } from "./inquiry-mail-runner";
@@ -195,10 +195,8 @@ async function main() {
     config.supabaseUrl,
     config.serviceRoleKey
   );
-  const dynamicBackend = new SupabaseDynamicRenderBackend(
-    config.supabaseUrl,
-    config.serviceRoleKey
-  );
+  const dynamicBackend = new SupabaseDynamicRenderBackend(config.supabaseUrl,config.serviceRoleKey,undefined,"legacy");
+  const domBackend = new SupabaseDynamicRenderBackend(config.supabaseUrl,config.serviceRoleKey,undefined,"dom");
   const rssBackend = new SupabaseRssSyncBackend(
     config.supabaseUrl,
     config.serviceRoleKey
@@ -222,6 +220,8 @@ async function main() {
       renderer: studioRenderer
     });
     logStudioRenderResult(logger, studioResult);
+    const domResult=await runDynamicRenderOnce({backend:domBackend,config,renderer:studioRenderer});
+    logDynamicRenderResult(logger,domResult);
     const dynamicResult = await runDynamicRenderOnce({
       backend: dynamicBackend,
       config,
@@ -254,6 +254,7 @@ async function main() {
       mediaResult.status === "failed" ||
       studioResult.status === "failed" ||
       dynamicResult.status === "failed" ||
+      domResult.status === "failed" ||
       rssResult.status === "failed" ||
       sportlinkResult.status === "failed"
     ) {
@@ -280,9 +281,9 @@ async function main() {
   const publishedDataRunner = new PublishedDataRefreshRunner(queueClient, { workerId: config.workerId });
   const versionPruneRunner = new PublicationVersionPruneRunner(queueClient);
   const queueWakeup = new QueueWakeup(async () => {
-    const { data, error } = await queueClient.rpc("get_worker_queue_hint_v2", { p_max_attempts: config.maxAttempts })
+    const { data, error } = await queueClient.rpc("get_worker_queue_hint_v3", { p_max_attempts: config.maxAttempts })
       .abortSignal(AbortSignal.timeout(10_000));
-    const hint = parseQueueHint(data);
+    const hint = parseQueueHintV3(data);
     if (error || !hint) {
       throw Object.assign(new Error("QUEUE_HINT_UNAVAILABLE"), { retryAfterMs: Math.max(0, queueRetryAfterUntil - Date.now()) });
     }
@@ -398,6 +399,12 @@ async function main() {
           },
           renderer: studioRenderer,
           signal: controller.signal
+        })),
+        supervise("dom",()=>runDynamicRenderLoop({
+          backend:domBackend,config,intervalMs:config.pollIntervalMs,
+          waitForWork:signal=>queueWakeup.wait("dom",signal),
+          onResult:result=>{queueWakeup.settled("dom",result.status);runtimeHealth.markPoll();runtimeHealth.markResult(result.status==='lease_lost'?'failed':result.status);logDynamicRenderResult(logger,result);},
+          renderer:studioRenderer,signal:controller.signal,
         })),
         supervise("dynamic", () => runDynamicRenderLoop({
           backend: dynamicBackend,
@@ -561,6 +568,7 @@ function logRssSyncResult(
     eventLogger.error("dynamic.rss.failed", {
       dataSourceId: result.dataSourceId,
       errorCode: result.errorCode,
+      ...('phase' in result ? {phase: result.phase, databaseCode: result.databaseCode} : {}),
       outcome: result.status
     });
   }

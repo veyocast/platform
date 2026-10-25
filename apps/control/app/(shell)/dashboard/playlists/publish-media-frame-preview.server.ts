@@ -1,22 +1,22 @@
 import "server-only";
 import type { CSSProperties } from "react";
-import { mediaFrameSettingsSchema, syncSystemAssets, type MediaFramePlaybackBackground } from "@veyocast/contracts";
+import { readSyncDynamicDomArtifact,syncSlideAssets,syncSlideRendererAssets,mediaFrameSettingsSchema, syncSystemAssets, type MediaFramePlaybackBackground } from "@veyocast/contracts";
 import { mediaFrameBackgroundStyle } from "../../../../../../packages/content-templates/src/media-frame-background";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import type { PlaylistStudioData } from "./data";
-import { loadMediaFramePlacements } from "./library";
+import { loadCanonicalSnapshotAssets,loadMediaFramePlacements } from "./library";
 import type { MediaFramePlacement } from "./_components/sites/model";
 import type { PlaylistPreviewItem } from "./playlist-preview";
 
 type Item = PlaylistStudioData["items"][number];
-type Download = { checksumSha256: string; fileSizeBytes: number };
+type Download = { checksumSha256: string; fileSizeBytes: number;sourceDomProtocol?:2 };
 const sha = /^[a-f0-9]{64}$/;
 const failed = () => new Error("De vastgezette media-ontwerpversie of achtergrond kon niet volledig worden gecontroleerd. Je concept is behouden; open de playlist opnieuw voordat je publiceert.");
 const validBytes = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) > 0;
 
 /** Original unbound representation, with no frame properties or new read boundary. */
 function unboundPreview(item: Item): PlaylistPreviewItem | null {
-  if (!item.asset?.variant?.previewUrl) return null;
+  if (!item.asset?.variant?.previewUrl||item.asset.kind==='composition') return null;
   return {
     accessibilityName: item.accessibilityName || undefined, backgroundColor: item.backgroundColor || undefined,
     cropFocus: { x: item.cropFocusX, y: item.cropFocusY }, displayTitle: item.displayTitle || undefined,
@@ -36,7 +36,7 @@ export function projectPublicationMediaPreview(items: Item[], enabledSections: R
   for (const item of items) {
     const active = item.enabled && (item.sectionId === null || enabledSections.has(item.sectionId));
     if (!item.mediaFrameId && !item.mediaFrameVersionId) {
-      if (active && item.asset?.variant) targetItems.push({ checksumSha256: item.asset.variant.checksumSha256, fileSizeBytes: item.asset.variant.fileSizeBytes });
+      if (active && item.asset?.variant) targetItems.push({ checksumSha256: item.asset.variant.checksumSha256, fileSizeBytes: item.asset.variant.fileSizeBytes,...(item.domReady?{sourceDomProtocol:2 as const}:{}) });
       const preview = unboundPreview(item); if (preview) previewItems.push(preview);
       continue;
     }
@@ -76,8 +76,27 @@ export function projectPublicationMediaPreview(items: Item[], enabledSections: R
 }
 
 export async function loadPublicationMediaPreview(tenantId: string, items: Item[], enabledSections: ReadonlySet<string>) {
-  if (!items.some(item => item.mediaFrameId || item.mediaFrameVersionId)) return projectPublicationMediaPreview(items, enabledSections, new Map());
+  const domItems=items.filter(item=>item.asset?.kind==='composition');
+  if (!domItems.length&&!items.some(item => item.mediaFrameId || item.mediaFrameVersionId)) return projectPublicationMediaPreview(items, enabledSections, new Map());
   const client = await createControlSupabaseClient(); if (!client) throw failed();
-  const bindings = await loadMediaFramePlacements(client, tenantId, items);
-  return projectPublicationMediaPreview(items, enabledSections, bindings);
+  const bindings = items.some(item=>item.mediaFrameId||item.mediaFrameVersionId)?await loadMediaFramePlacements(client, tenantId, items):new Map<string,MediaFramePlacement>();
+  const result=projectPublicationMediaPreview(items, enabledSections, bindings);
+  if(!domItems.length)return result;
+  const snapshots=await client.from('dynamic_slide_snapshots').select('id,snapshot_data_json,sync_render_result_json,output_media_asset_id,status').eq('tenant_id',tenantId).in('id',domItems.map(item=>item.dynamicSnapshotId!));
+  if(snapshots.error)throw failed();
+  const assets=await loadCanonicalSnapshotAssets(tenantId,(snapshots.data??[]).flatMap(snapshot=>[snapshot.snapshot_data_json,snapshot.sync_render_result_json]));
+  for(const item of domItems){
+    const snapshot=snapshots.data?.find(snapshot=>snapshot.id===item.dynamicSnapshotId),data=snapshot?.snapshot_data_json as {syncConfiguration?:unknown}|null;
+    const checked=readSyncDynamicDomArtifact(data?.syncConfiguration,snapshot?.sync_render_result_json);
+    if(!item.domReady||!checked||snapshot?.status!=='ready'||snapshot.output_media_asset_id!==item.mediaAssetId)throw failed();
+    const assetUrls:Record<string,string>={},active=item.enabled&&(item.sectionId===null||enabledSections.has(item.sectionId));
+    for(const ref of syncSlideAssets(checked.artifact.presentation))if(ref.kind==='tenant'){
+      const asset=assets[ref.mediaAssetId];if(!asset||asset.checksumSha256!==ref.checksumSha256)throw failed();assetUrls[ref.mediaAssetId]=asset.url;
+      if(active)result.targetItems.push({checksumSha256:asset.checksumSha256,fileSizeBytes:asset.bytes});
+    }
+    if(active)result.targetItems.push(...syncSlideRendererAssets(checked.artifact.presentation).map(asset=>({checksumSha256:asset.sha256,fileSizeBytes:asset.bytes})));
+    result.previewItems.push({id:item.id,kind:'image',title:item.asset!.title,durationSeconds:item.durationSeconds,fitMode:item.fitMode,muted:item.muted,enabled:item.enabled,url:'',syncPreview:{presentation:checked.artifact.presentation,assetUrls}});
+  }
+  const unique=new Map(result.targetItems.map(item=>[item.checksumSha256,item]));
+  return{...result,targetItems:[...unique.values()],previewItems:result.previewItems.sort((a,b)=>items.findIndex(item=>item.id===a.id)-items.findIndex(item=>item.id===b.id)),totalBytes:[...unique.values()].reduce((sum,item)=>sum+item.fileSizeBytes,0)};
 }

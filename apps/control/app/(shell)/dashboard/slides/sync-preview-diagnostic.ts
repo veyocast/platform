@@ -6,7 +6,10 @@ export function syncPreviewFailure(phase:SyncPreviewPhase,rawCode:string|undefin
  const code=rawCode&&/^(?:[0-9A-Z]{5}|PGRST[0-9]{3}|SYNC_[A-Z_]+)$/.test(rawCode)?rawCode:'UNKNOWN';
  const cause=phase==='assets'?'Een bronafbeelding is nog niet beschikbaar. Controleer de mediaverwerking bij Bronnen en probeer opnieuw.'
   :phase==='payload'?'De brongegevens passen niet bij het huidige afspeelcontract. Controleer de bron en probeer na herstel opnieuw.'
-  :phase==='projector'?'De gecontroleerde broninhoud kon niet volledig worden samengesteld. Beperk de selectie of controleer de brongegevens.'
+  :phase==='projector'?(code==='SYNC_PRESENTATION_BOUNDS_EXCEEDED'?'De geselecteerde inhoud overschrijdt de ontwerpgrenzen. Beperk de selectie of verdeel de inhoud over meerdere ontwerpen.'
+   :code==='SYNC_CANONICAL_FRESHNESS_INVALID'?'Het gecontroleerde bronmoment ontbreekt of is verouderd. Controleer de laatste geslaagde synchronisatie bij Bronnen en ververs de bron daar zo nodig expliciet.'
+   :code==='SYNC_CANONICAL_IDENTITY_INVALID'?'De wedstrijdgegevens horen niet allemaal bij het gekozen team en de competitie. Controleer de bronselectie en probeer na herstel opnieuw.'
+   :'De gecontroleerde brongegevens passen niet bij dit ontwerp. Controleer de bron; blijft dit gebeuren, geef de controlecode door.')
   :phase==='envelope'?'De broncontrole gaf een onvolledig antwoord. Probeer opnieuw; blijft dit gebeuren, geef de controlecode door.'
   :code==='42501'?'Je bronrechten of verenigingscontext zijn niet bevestigd. Open Bronnen binnen de juiste vereniging en controleer je toegang.'
   :code==='P2911'?'De actuele competitie is niet eenduidig. Kies bij Inhoud een team en een expliciete competitie; controleer de bron daarna opnieuw.'

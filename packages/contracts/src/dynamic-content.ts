@@ -289,7 +289,7 @@ export const canonicalNewsArticleSchema = z.object({
   publishedAt: z.string().datetime().nullable(),
   qrMediaAssetId: idSchema.nullable(),
   sourceName: safeLabelSchema,
-  title: safeLabelSchema
+  title: z.string().trim().min(1).max(400)
 });
 
 export const canonicalNewsFeedSchema = z.object({

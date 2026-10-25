@@ -19,7 +19,7 @@ export function syncPlayerContent(item:PlayerManifestItem){
  if(item.syncDynamic){
   if(item.syncStudioPresentation||item.sitesStudioPresentation)return null;
   const parsed=syncDynamicPlaybackSchema.safeParse(item.syncDynamic);
-  if(!parsed.success||parsed.data.fallbackChecksumSha256!==item.source.checksumSha256)return null;
+  if(!parsed.success||(parsed.data.schemaVersion===1?parsed.data.fallbackChecksumSha256:parsed.data.descriptorChecksumSha256)!==item.source.checksumSha256)return null;
   return {presentation:parsed.data.presentation,durationMs:parsed.data.durationMs,assets:parsed.data.assets};
  }
  if(!item.syncStudioPresentation)return null;

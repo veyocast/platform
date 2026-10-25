@@ -14,6 +14,28 @@
   diagnosepaneel. De enige vaste system mark is de locked VeyoCast-lock-up
   linksonder op 40% opacity.
 
+## Source DOM protocol 2
+
+Protocol 2 requires verified descriptor bytes, every referenced original image,
+all version-bound fonts/renderer assets, and a controlled service worker with
+the matching document and current app script/style URLs cached. It never uses
+an unverified network font or a provider page as a recovery path.
+
+After preparation, the candidate switches at a natural item/loop boundary. A
+visible, nonzero DOM frame confirms its snapshot/content hash/data revision;
+only then is the local release committed. Facts-only changes retain verified
+resource preparation. Lower revisions and same-revision hash collisions fail
+closed. Failed new bytes retain the current release. A renderer exception
+restores the prior verified DOM dataset or compatible release, retaining pairing.
+
+IndexedDB keeps one bounded previous DOM release inside the active record and
+preserves the existing version-1 previous-release slot for an app rollback.
+Garbage collection protects active, previous DOM, compatible previous, pending
+and composition-zone assets. No database-version upgrade or historical release
+rewrite is needed. The branded existing ready state is the final failsafe when
+no valid local release exists. Actual Source frame confirmation is distinct from
+configuration receipt, asset download, a healthy API, or a physical TV proof.
+
 ## State model
 
 ```text

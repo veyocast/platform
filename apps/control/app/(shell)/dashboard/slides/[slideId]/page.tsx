@@ -19,6 +19,10 @@ import { createOrResumeDynamicSlideVersion } from "../version-actions";
 import { loadDynamicSlideVersionState } from "../version-data";
 import { slideEditorKind } from "../slide-management";
 import { VersionHistory } from "../version-history";
+import {readSyncDynamicArtifact,readSyncDynamicDomArtifact,type SyncSlidePresentation}from'@veyocast/contracts';
+import {loadCanonicalSnapshotAssets}from'../../playlists/library';
+import {SyncExportDownload}from'../sync-export-download';
+import {SyncSlidePreview}from'../../playlists/_components/sites/sync-studio-preview';
 
 type PageProps = {
   params: Promise<{ slideId: string }>;
@@ -64,9 +68,10 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
               <Button type="submit" variant="secondary"><PencilLine aria-hidden="true" />Nieuwe versie maken</Button>
             </form>
           ) : null}
+          {canWrite&&data.previewMimeType==='application/vnd.veyocast.sync-dom+json'&&data.slide.current_snapshot_id?<SyncExportDownload key={data.slide.current_snapshot_id} snapshotId={data.slide.current_snapshot_id}/>:null}
           {canWrite && !versionState?.activeDraftVersionId ? <form action={refreshDynamicSlide}><input name="slideId" type="hidden" value={slideId} /><Button type="submit" variant="secondary"><RefreshCw aria-hidden="true" />Nieuwe snapshot</Button></form> : null}
         </div>}
-        description="Controleer de huidige immutable output en voeg die bewust toe aan een playlistconcept."
+        description="Bekijk het gepubliceerde ontwerp en voeg het toe aan een playlistconcept."
         eyebrow={session.tenant}
         status={slideStatus(data.slide.status)}
         title={data.slide.library_name ?? data.slide.name}
@@ -84,7 +89,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
             }`}
             data-orientation={data.slide.orientation}
           >
-            {data.newsPreview ? (
+            {data.syncPreview?<SyncSlidePreview {...data.syncPreview} active intrinsic/>:data.newsPreview ? (
               <div
                 className={styles.newsHtmlPreview}
                 style={{
@@ -225,6 +230,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     ...slideResult.data,
     ...currentVersion.data
   } : slideResult.data;
+  let syncPreview:{presentation:SyncSlidePresentation;assetUrls:Record<string,string>;durationSeconds:number;id:string}|null=null;
   let previewUrl: string | null = null;
   let previewMimeType:string|null=null;
   let newsPreview: {
@@ -247,10 +253,17 @@ async function loadSlide(slideId: string, tenantId: string) {
     team: string | null;
   } | null = null;
   if (slide.current_snapshot_id) {
-    const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id, snapshot_data_json").eq("id", slide.current_snapshot_id).maybeSingle();
+    const snapshot = await supabase.from("dynamic_slide_snapshots").select("output_media_asset_id, snapshot_data_json,sync_render_result_json").eq('tenant_id',tenantId).eq("id", slide.current_snapshot_id).maybeSingle();
+    const snapshotData=readRecord(snapshot.data?.snapshot_data_json);
+    const checked=readSyncDynamicDomArtifact(snapshotData?.syncConfiguration,snapshot.data?.sync_render_result_json)??readSyncDynamicArtifact(snapshotData?.syncConfiguration,snapshot.data?.sync_render_result_json);
+    if(checked){
+      previewMimeType=checked.artifact.mimeType;
+      const assets=await loadCanonicalSnapshotAssets(tenantId,[snapshot.data?.snapshot_data_json,snapshot.data?.sync_render_result_json]);
+      syncPreview={presentation:checked.artifact.presentation,assetUrls:Object.fromEntries(Object.entries(assets).map(([id,asset])=>[id,asset.url])),durationSeconds:checked.artifact.durationMs/1000,id:slide.current_snapshot_id};
+    }
     if (snapshot.data?.output_media_asset_id) {
       const variant = await supabase.from("media_variants").select("storage_bucket,storage_path,mime_type").eq('tenant_id',tenantId).eq("asset_id", snapshot.data.output_media_asset_id).eq("variant_type", "original").maybeSingle();
-      if (variant.data?.storage_path) {
+      if (variant.data?.storage_path&&variant.data.mime_type!=='application/vnd.veyocast.sync-dom+json') {
         const signed = await supabase.storage.from(variant.data.storage_bucket).createSignedUrl(variant.data.storage_path, 600);
         previewUrl = signed.data?.signedUrl ?? null;
         previewMimeType=variant.data.mime_type;
@@ -330,6 +343,7 @@ async function loadSlide(slideId: string, tenantId: string) {
     previewMimeType,
     slide,
     sportSelection
+    ,syncPreview
   };
 }
 

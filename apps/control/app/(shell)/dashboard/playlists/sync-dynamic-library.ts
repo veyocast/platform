@@ -1,4 +1,4 @@
-import {readSyncDynamicArtifact,syncSlideAssets,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
+import {readSyncDynamicArtifact,readSyncDynamicDomArtifact,syncDomDescriptorMimeType,syncSlideAssets,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
 import type {SyncDynamicLibraryDesign} from './_components/sites/model';
 
 export type PublisherSyncSnapshot={id:string;dynamic_slide_id:string;dynamic_slide_version_id?:string;template_version_id:string;source_revision_hash:string;snapshot_data_json:unknown;output_media_asset_id?:string|null;status?:string;sync_render_result_json?:unknown};
@@ -9,10 +9,10 @@ export type PublisherSyncMedia={id:string;status:string;kind:string;mime_type:st
  * configuration or guessed slug is constructed for connected Source content. */
 export function readPublisherSyncDynamic({snapshot,definition,assets,media}:{snapshot:PublisherSyncSnapshot;definition:{id:string;name:string};assets:Record<string,PlayerDynamicTemplateAsset>;media:PublisherSyncMedia|undefined}):SyncDynamicLibraryDesign{
  const data=snapshot.snapshot_data_json as {syncConfiguration?:unknown}|null;
- const checked=readSyncDynamicArtifact(data?.syncConfiguration,snapshot.sync_render_result_json);
+ const checked=readSyncDynamicDomArtifact(data?.syncConfiguration,snapshot.sync_render_result_json)??readSyncDynamicArtifact(data?.syncConfiguration,snapshot.sync_render_result_json);
  if(!checked||snapshot.status!=='ready'||snapshot.dynamic_slide_id!==definition.id||!uuid.test(snapshot.id)||!uuid.test(snapshot.template_version_id)||!snapshot.dynamic_slide_version_id||!uuid.test(snapshot.dynamic_slide_version_id)||!media||media.id!==snapshot.output_media_asset_id||media.status!=='ready')throw Error('Het gekoppelde Source-ontwerp heeft nog geen volledig gecontroleerde uitvoer. Open het bronontwerp en kies een gereedstaande versie.');
  const {artifact,configuration}=checked,kind=artifact.mimeType==='video/mp4'?'video':'image';
- if(media.kind!==kind||media.mime_type!==artifact.mimeType||media.checksum_sha256!==artifact.checksumSha256||Number(media.file_size_bytes)!==artifact.byteLength||media.width!==artifact.width||media.height!==artifact.height||kind==='video'&&Number(media.duration_seconds)*1000!==artifact.durationMs)throw Error('De volledige Source-uitvoer hoort niet bij deze snapshot. Selecteer een gecontroleerde versie opnieuw.');
+ if(media.kind!==(artifact.mimeType===syncDomDescriptorMimeType?'composition':kind)||media.mime_type!==artifact.mimeType||media.checksum_sha256!==artifact.checksumSha256||Number(media.file_size_bytes)!==artifact.byteLength||media.width!==artifact.width||media.height!==artifact.height||kind==='video'&&Number(media.duration_seconds)*1000!==artifact.durationMs)throw Error('De volledige Source-uitvoer hoort niet bij deze snapshot. Selecteer een gecontroleerde versie opnieuw.');
  const urls:Record<string,string>={};
  for(const ref of syncSlideAssets(artifact.presentation)){
   if(ref.kind!=='tenant')continue;const asset=assets[ref.mediaAssetId];

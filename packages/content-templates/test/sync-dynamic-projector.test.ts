@@ -321,7 +321,7 @@ describe("new Source projections of existing canonical snapshots", () => {
     });
     expect(projectSyncDynamicSnapshot(value, seed("birthdays"), now)).toEqual({
       ok: false,
-      code: "SYNC_CANONICAL_DATA_UNAVAILABLE",
+      code: "SYNC_CANONICAL_FRESHNESS_INVALID",
     });
   });
   it.each(['scoreboard','goal'] as const)('keeps the actual LED waiting state free of unobserved teams and scores in %s',family=>{

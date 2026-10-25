@@ -59,3 +59,19 @@ describe("Standalone LG Sites compositor",()=>{
  it("retains official YouTube occurrence order, skips unavailable IDs and obeys repeat/boundary policy",()=>{const value=context();value.videos=["abcdefghijk","lmnopqrstuv","abcdefghijk"];expect(evaluate(value,'lgYouTubeNextIndex(videos,0,{},false,false)')).toBe(1);expect(evaluate(value,'lgYouTubeNextIndex(videos,1,{},false,false)')).toBe(2);expect(evaluate(value,'lgYouTubeNextIndex(videos,2,{},false,false)')).toBeNull();expect(evaluate(value,'lgYouTubeNextIndex(videos,2,{},true,false)')).toBe(0);expect(evaluate(value,'lgYouTubeNextIndex(videos,0,{lmnopqrstuv:true},false,false)')).toBe(2);expect(evaluate(value,'lgYouTubeNextIndex(videos,0,{},true,true)')).toBeNull();});
  it("rejects incomplete YouTube metadata instead of using an arbitrary provider URL",()=>{const value=context();expect(evaluate(value,'lgYouTubeBinding({onlinePlayback:{kind:"youtube",privacyEnhanced:true,videoId:"abcdefghijk",playlistVideoIds:["lmnopqrstuv"],playlistRepeat:true}})')).toBeNull();expect(evaluate(value,'lgYouTubeBinding({onlinePlayback:{kind:"youtube",privacyEnhanced:true,videoId:"https://bad"}})')).toBeNull();});
 });
+
+it('validates the explicit binary decoder and refuses protocol 2 or mismatched complete bytes',()=>{
+ const value=context();value.item={...envelope().manifest.items[0],syncDynamicBinary:{schemaVersion:1,configurationSnapshotId:uuid(1),snapshotId:uuid(2),templateVersionId:uuid(3),configurationHash:hash,contentHash:'b'.repeat(64),fallbackChecksumSha256:hash,durationMs:3000,dataRevision:1}};
+ expect(evaluate(value,'lgSyncBinaryValid(item)')).toBe(true);expect(evaluate(value,'lgSyncBinaryFrame(item)')).toMatchObject({schemaVersion:1,transport:'binary',dataRevision:1,contentHash:'b'.repeat(64)});
+ evaluate(value,'item.syncDynamicBinary.schemaVersion=2');expect(evaluate(value,'lgSyncBinaryValid(item)')).toBe(false);
+ evaluate(value,'item.syncDynamicBinary.schemaVersion=1;item.syncDynamicBinary.fallbackChecksumSha256="f".repeat(64)');expect(evaluate(value,'lgSyncBinaryValid(item)')).toBe(false);
+ evaluate(value,'item.syncDynamicBinary.fallbackChecksumSha256=item.source.checksumSha256;item.syncDynamicBinary.presentation={}');expect(evaluate(value,'lgSyncBinaryValid(item)')).toBe(false);
+});
+it('distinguishes source facts within one frozen release and rejects regressed or forged revisions',()=>{
+ const value=context();const before=envelope();value.before=before;value.after=JSON.parse(JSON.stringify(before));
+ evaluate(value,'before.manifest.items[0].syncDynamicBinary={schemaVersion:1,configurationSnapshotId:"'+uuid(1)+'",templateVersionId:"'+uuid(2)+'",configurationHash:"'+hash+'",contentHash:"'+hash+'",dataRevision:2};after.manifest.items[0].syncDynamicBinary=JSON.parse(JSON.stringify(before.manifest.items[0].syncDynamicBinary));after.manifest.items[0].syncDynamicBinary.dataRevision=3;after.manifest.items[0].syncDynamicBinary.contentHash="b".repeat(64)');
+ expect(evaluate(value,'lgEnvelopeDataIdentity(before)!==lgEnvelopeDataIdentity(after)')).toBe(true);expect(evaluate(value,'lgSyncBinaryContinuity(before,after)')).toBe(true);
+ evaluate(value,'after.manifest.items[0].syncDynamicBinary.dataRevision=1');expect(evaluate(value,'lgSyncBinaryContinuity(before,after)')).toBe(false);
+ evaluate(value,'after.manifest.items[0].syncDynamicBinary.dataRevision=2');expect(evaluate(value,'lgSyncBinaryContinuity(before,after)')).toBe(false);
+ evaluate(value,'after.manifest.items[0].syncDynamicBinary.dataRevision=3;after.manifest.items[0].syncDynamicBinary.configurationHash="f".repeat(64)');expect(evaluate(value,'lgSyncBinaryContinuity(before,after)')).toBe(false);
+});

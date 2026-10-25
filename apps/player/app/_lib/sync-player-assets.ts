@@ -6,6 +6,7 @@ import {
   syncDynamicBinaryPlaybackSchema,
   syncSlideRendererAssets,
   syncSlideMinimumDurationMs,
+  syncDomDescriptorMimeType,
 } from "@veyocast/contracts";
 import type { PlayerReleaseManifest } from "./player-manifest";
 
@@ -16,6 +17,7 @@ export function assertSyncDynamicConfigurationContinuity(previous:PlayerReleaseM
   if(before&&!after)throw Error('SYNC_DYNAMIC_PROFILE_UNAVAILABLE');
   if(before&&after&&(before.configurationSnapshotId!==after.configurationSnapshotId||before.configurationHash!==after.configurationHash||before.templateVersionId!==after.templateVersionId))throw Error('SYNC_DYNAMIC_CONFIGURATION_CHANGED');
   if(before&&after&&Number(after.dataRevision??0)<Number(before.dataRevision??0))throw Error('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');
+  if(before?.dataRevision!==undefined&&after?.dataRevision===before.dataRevision&&after.contentHash!==before.contentHash)throw Error('SYNC_DYNAMIC_DATA_REVISION_COLLISION');
  }
 }
 
@@ -23,6 +25,7 @@ export function assertSyncDynamicConfigurationContinuity(previous:PlayerReleaseM
 export function assertSyncPlayerAssetManifest(
   manifest: PlayerReleaseManifest,
 ): void {
+  if(![1,2].includes(manifest.schemaVersion)||(manifest.schemaVersion===2)!==manifest.items.some(item=>item.kind==='composition'))throw Error('SYNC_DOM_ENVELOPE_VERSION_INVALID');
   const declared = manifest.syncSystemAssets,
     items = manifest.items.filter(
       (item) => item.syncStudioPresentation !== undefined||item.syncDynamic!==undefined,
@@ -57,7 +60,9 @@ export function assertSyncPlayerAssetManifest(
   }
   for (const item of items) {
     const dynamic=item.syncDynamic===undefined?null:syncDynamicPlaybackSchema.safeParse(item.syncDynamic);
-    if(dynamic&&(!dynamic.success||item.syncStudioPresentation||item.sitesStudioPresentation||item.dynamicTemplate||dynamic.data.fallbackChecksumSha256!==item.source.checksumSha256))throw Error('SYNC_DYNAMIC_PRESENTATION_INVALID');
+    if(dynamic&&(!dynamic.success||item.syncStudioPresentation||item.sitesStudioPresentation||item.dynamicTemplate||
+      (dynamic.data.schemaVersion===1?item.kind==='composition'||dynamic.data.fallbackChecksumSha256!==item.source.checksumSha256:
+        item.kind!=='composition'||item.source.mimeType!==syncDomDescriptorMimeType||dynamic.data.descriptorChecksumSha256!==item.source.checksumSha256||!item.source.url||item.source.bytes<1||item.source.bytes>550000)))throw Error('SYNC_DYNAMIC_PRESENTATION_INVALID');
     const content=dynamic?.success?dynamic.data:null;
     const parsed = syncSlidePresentationSchema.safeParse(
         content?.presentation??item.syncStudioPresentation,
@@ -91,4 +96,5 @@ export function assertSyncPlayerAssetManifest(
     )
       throw Error("SYNC_STUDIO_ASSETS_UNAVAILABLE");
   }
+  if(manifest.items.some(item=>item.kind==='composition'&&item.syncDynamic?.schemaVersion!==2))throw Error('SYNC_DOM_CAPABILITY_REQUIRED');
 }

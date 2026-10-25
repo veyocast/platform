@@ -45,6 +45,7 @@ export type PlaylistReadinessAsset = Readonly<{
 }>;
 
 export type PlaylistReadinessItem = Readonly<{
+  domReady?: boolean;
   asset: PlaylistReadinessAsset | null;
   durationSeconds: number;
   fitMode: string;
@@ -106,7 +107,7 @@ export function evaluatePlaylistReadiness(input: Readonly<{
 
     if (
       !Number.isInteger(item.durationSeconds) ||
-      item.durationSeconds < 5 ||
+      item.durationSeconds < (item.domReady&&item.asset?.kind==='composition'?3:5) ||
       item.durationSeconds > 3600
     ) {
       reasons.push(itemReason(item, "ITEM_DURATION_INVALID", "change_item_settings"));
@@ -140,7 +141,7 @@ export function evaluatePlaylistReadiness(input: Readonly<{
       continue;
     }
 
-    if (asset.kind !== "image" && asset.kind !== "video") {
+    if (asset.kind !== "image" && asset.kind !== "video" && !(asset.kind==='composition'&&item.domReady)) {
       reasons.push(itemReason(item, "ASSET_KIND_UNSUPPORTED", "replace_media"));
       continue;
     }
@@ -158,7 +159,7 @@ export function evaluatePlaylistReadiness(input: Readonly<{
     }
 
     const mimeSupported =
-      asset.kind === "video"
+      asset.kind === 'composition'?variant.mimeType==='application/vnd.veyocast.sync-dom+json'&&variant.fileSizeBytes<=550000:asset.kind === "video"
         ? variant.mimeType === "video/mp4"
         : supportedImageMimeTypes.has(variant.mimeType);
     if (!mimeSupported) {

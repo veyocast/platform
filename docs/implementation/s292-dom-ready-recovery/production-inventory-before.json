@@ -1,0 +1,29 @@
+{
+  "readOnly": true,
+  "tenant": "Duindorp SV",
+  "mediaAssets": [
+    {
+      "kind": "image",
+      "sourceKind": "generated",
+      "records": 369,
+      "registeredBytes": 5789612
+    },
+    {
+      "kind": "image",
+      "sourceKind": "user",
+      "records": 1,
+      "registeredBytes": 3384864
+    },
+    {
+      "kind": "video",
+      "sourceKind": "user",
+      "records": 17,
+      "registeredBytes": 285863116
+    }
+  ],
+  "releaseItemReferences": 12,
+  "distinctReleaseObjectPaths": 9,
+  "deletedObjects": 0,
+  "actualStorageSavingsMeasured": false,
+  "observedDate": "2026-10-25"
+}

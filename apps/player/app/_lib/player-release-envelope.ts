@@ -11,6 +11,8 @@ import sitesSystemAssets from "../../../../packages/content-templates/src/sites-
 import {
   syncSlidePresentationSchema, syncSlideAssets, syncSlideRendererAssets, syncSlideMinimumDurationMs, syncBackgroundAssetForRef, type SyncSlidePresentation,
   syncDynamicPlaybackSchema,
+  syncDynamicBinaryPlaybackSchema,
+  syncDynamicDomMetadataSchema,
   syncDynamicConfigurationSchema,
   sitesDynamicConfigurationSchema,
   sitesPresentationSchema,
@@ -57,7 +59,7 @@ type ReleaseItemRow = {
   source_item_id: string | null;
   live_data_enabled: boolean;
   accessibility_name: string | null;
-  asset_kind: "image" | "video";
+  asset_kind: "image" | "video" | "composition";
   asset_title: string;
   background_color: string | null;
   checksum_sha256: string;
@@ -162,15 +164,15 @@ export async function loadPlayerReleaseEnvelope({
     syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,
   );
   const binaryArtifacts=new Map<string,ReturnType<typeof readSyncPublishedBinaryArtifact>['artifact']>();
-  const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => syncDynamicMode === 'dom' && (!isSyncOnzeTrotsCurrent(value.presentation)||enableSyncOnzeTrotsCurrent) && (value.presentation.rendererVersion==='sync-onzetrots-v9'?enableSyncOnzeTrotsV9:enableSyncOnzeTrots||value.presentation.rendererVersion!=='sync-onzetrots-v1') && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
-  if(syncDynamicMode){
-    const selected=releaseItems.filter(item=>item.live_data_enabled&&item.dynamic_snapshot_id&&syncDynamicSnapshots.has(item.id)&&!dynamicDomIds.has(item.id)),ids=[...new Set(selected.map(item=>item.dynamic_snapshot_id!))];
+  const dynamicDomIds = new Set([...syncDynamicSnapshots].filter(([, value]) => (syncDynamicMode === 'dom'||syncDynamicMode==='dom-v2') && (value.metadata.schemaVersion===1||syncDynamicMode==='dom-v2') && (!isSyncOnzeTrotsCurrent(value.presentation)||enableSyncOnzeTrotsCurrent) && (value.presentation.rendererVersion==='sync-onzetrots-v9'?enableSyncOnzeTrotsV9:enableSyncOnzeTrots||value.presentation.rendererVersion!=='sync-onzetrots-v1') && (enableSyncBackgrounds || !syncBackgroundAssetForRef(value.presentation.style.backgroundAsset))).map(([id]) => id));
+  if(syncDynamicMode||releaseItems.some(item=>item.asset_kind==='composition')){
+    const selected=releaseItems.filter(item=>(item.live_data_enabled||item.asset_kind==='composition')&&item.dynamic_snapshot_id&&syncDynamicSnapshots.has(item.id)&&!dynamicDomIds.has(item.id)),ids=[...new Set(selected.map(item=>item.dynamic_snapshot_id!))];
     if(ids.length){
       const result=await admin.rpc('get_sync_binary_playback_v1',{p_tenant_id:tenantId,p_snapshot_ids:ids});
       if(result.error||!Array.isArray(result.data)||result.data.length>ids.length)throw Error('SYNC_DYNAMIC_BINARY_UNAVAILABLE');
       const rows=new Map<string,unknown>();
       for(const row of result.data){if(!row||typeof row!=='object'||Array.isArray(row)||typeof row.snapshotId!=='string'||!ids.includes(row.snapshotId)||rows.has(row.snapshotId))throw Error('SYNC_DYNAMIC_BINARY_INVALID');rows.set(row.snapshotId,row);}
-      for(const item of selected){const row=rows.get(item.dynamic_snapshot_id!);if(!row)continue;const fresh=readSyncPublishedBinaryArtifact(syncDynamicSnapshots.get(item.id)!,row,tenantId);binaryArtifacts.set(item.id,fresh.artifact);syncDynamicSnapshots.set(item.id,fresh.value);}
+      for(const item of selected){const row=rows.get(item.dynamic_snapshot_id!);if(!row){if(item.asset_kind==='composition')throw Error('SYNC_DYNAMIC_BINARY_PREPARING');continue;}const fresh=readSyncPublishedBinaryArtifact(syncDynamicSnapshots.get(item.id)!,row,tenantId);binaryArtifacts.set(item.id,fresh.artifact);syncDynamicSnapshots.set(item.id,fresh.value);}
     }
   }
   const studioPresentations=new Map<string,Extract<SitesPresentation,{kind:"studio"}>>();
@@ -225,7 +227,7 @@ export async function loadPlayerReleaseEnvelope({
         durationSeconds: item.duration_seconds,
         ...(studioPresentations.has(item.id)?{sitesStudioPresentation:studioPresentations.get(item.id),sitesStudioAssets:Object.fromEntries(sitesPresentationAssets(studioPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
         ...(syncPresentations.has(item.id)?{syncStudioPresentation:syncPresentations.get(item.id),syncStudioDurationMs:Number(item.sync_studio_duration_ms),syncStudioAssets:Object.fromEntries(syncSlideAssets(syncPresentations.get(item.id)!).flatMap(ref=>ref.kind==="tenant"?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))}:{}),
-        ...(syncDynamicSnapshots.has(item.id)?(dynamicDomIds.has(item.id)?{syncDynamic:syncDynamicPlaybackSchema.parse({...syncDynamicSnapshots.get(item.id)!.metadata,presentation:syncDynamicSnapshots.get(item.id)!.presentation,liveMatch:syncDynamicSnapshots.get(item.id)!.liveMatch,assets:Object.fromEntries(syncSlideAssets(syncDynamicSnapshots.get(item.id)!.presentation).flatMap(ref=>ref.kind==='tenant'?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))})}:{syncDynamicBinary:syncDynamicSnapshots.get(item.id)!.metadata}):{}),
+        ...(syncDynamicSnapshots.has(item.id)&&syncDynamicMode?(dynamicDomIds.has(item.id)?{syncDynamic:syncDynamicPlaybackSchema.parse({...syncDynamicSnapshots.get(item.id)!.metadata,presentation:syncDynamicSnapshots.get(item.id)!.presentation,liveMatch:syncDynamicSnapshots.get(item.id)!.liveMatch,assets:Object.fromEntries(syncSlideAssets(syncDynamicSnapshots.get(item.id)!.presentation).flatMap(ref=>ref.kind==='tenant'?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))})}:{syncDynamicBinary:syncDynamicBinaryPlaybackSchema.parse(syncDynamicSnapshots.get(item.id)!.metadata)}):{}),
         ...(dynamicTemplates.get(item.id)
           ? { dynamicTemplate: dynamicTemplates.get(item.id) }
           : {}),
@@ -328,7 +330,7 @@ export async function loadPlayerReleaseEnvelope({
       playlistId: release.playlist_id,
       publishedAt: release.published_at,
       releaseId: release.id,
-      schemaVersion: 1,
+      schemaVersion: items.some(item=>item.kind==='composition')?2:1,
       tenantId: release.tenant_id,
       totalBytes: release.total_bytes + items.reduce((sum,item,index)=>sum+item.source.bytes-releaseItems[index]!.file_size_bytes,0) + dynamicAssetBytes + studioAssetBytes + frameAssetBytes + uniqueSponsorAssetBytes(sponsorPlan)+(systemAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0)+(syncAssets?.reduce((sum,asset)=>sum+asset.bytes,0)??0),
       ...(systemAssets?{systemAssets}:{}),
@@ -430,15 +432,12 @@ async function loadDynamicTemplatePayloads(
   const result = new Map<string, PlayerDynamicTemplatePayload>();
   if (snapshotIds.length === 0) return result;
 
-  const snapshotResult = syncDynamicMode?await admin
-    .from('dynamic_slide_snapshots')
-    .select('id, source_revision_hash, snapshot_data_json, template_version_id, dynamic_slide_version_id, status, sync_render_result_json')
+  const snapshotResult = (syncDynamicMode||releaseItems.some(item=>item.asset_kind==='composition'))?await admin
+    .from('dynamic_slide_snapshots').select('id, source_revision_hash, snapshot_data_json, template_version_id, dynamic_slide_version_id, status, sync_render_result_json')
     .eq('tenant_id',tenantId).in('id',snapshotIds):await admin
-    .from("dynamic_slide_snapshots")
-    .select("id, source_revision_hash, snapshot_data_json, template_version_id, dynamic_slide_version_id")
-    .eq("tenant_id", tenantId)
-    .in("id", snapshotIds);
-  if (snapshotResult.error) return result;
+    .from('dynamic_slide_snapshots').select('id, source_revision_hash, snapshot_data_json, template_version_id, dynamic_slide_version_id')
+    .eq('tenant_id',tenantId).in('id',snapshotIds);
+  if (snapshotResult.error){if(releaseItems.some(item=>item.asset_kind==='composition'))throw Error('SYNC_DYNAMIC_DOM_RELEASE_INVALID');return result;}
   const originalSnapshots = (snapshotResult.data ?? []) as SyncDynamicSnapshotRow[];
   for (const item of releaseItems) {
     const snapshot = originalSnapshots.find((value) => value.id === item.dynamic_snapshot_id);
@@ -447,22 +446,23 @@ async function loadDynamicTemplatePayloads(
       theme: snapshot.snapshot_data_json.themePresentation, editorial: snapshot.snapshot_data_json.editorial,sites:item.sites_configuration_json,
       ...(Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration')?{sync:snapshot.snapshot_data_json.syncConfiguration}:{})
     }));
-    if(snapshot&&syncDynamicMode&&Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'))syncDynamicSnapshots.set(item.id,readSyncDynamicReleaseSnapshot(snapshot,item));
+    if(snapshot&&(syncDynamicMode||item.asset_kind==='composition')&&Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'))syncDynamicSnapshots.set(item.id,readSyncDynamicReleaseSnapshot(snapshot,item,item.asset_kind==='composition'));
   }
+  if(releaseItems.some(item=>item.asset_kind==='composition'&&!syncDynamicSnapshots.has(item.id)))throw Error('SYNC_DYNAMIC_DOM_RELEASE_INVALID');
   const legacySnapshots=originalSnapshots.filter(snapshot=>!Object.hasOwn(snapshot.snapshot_data_json,'syncConfiguration'));
   const legacyIds=new Set(legacySnapshots.map(snapshot=>snapshot.id));
-  const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled&&item.dynamic_snapshot_id&&(legacyIds.has(item.dynamic_snapshot_id)||syncDynamicMode==='dom'&&syncDynamicSnapshots.has(item.id)&&(enableSyncBackgrounds||!syncBackgroundAssetForRef(syncDynamicSnapshots.get(item.id)!.presentation.style.backgroundAsset))))
+  const liveIds = [...new Set(releaseItems.filter((item) => item.live_data_enabled&&item.dynamic_snapshot_id&&(legacyIds.has(item.dynamic_snapshot_id)||(syncDynamicMode==='dom'||syncDynamicMode==='dom-v2')&&syncDynamicSnapshots.has(item.id)&&(enableSyncBackgrounds||!syncBackgroundAssetForRef(syncDynamicSnapshots.get(item.id)!.presentation.style.backgroundAsset))))
     .flatMap((item) => item.dynamic_snapshot_id ? [item.dynamic_snapshot_id] : []))];
   const liveResult = liveIds.length ? await admin.from("published_dynamic_data")
     .select("snapshot_id,content_hash,data_json,data_revision,changed_at,last_error_code")
     .eq("tenant_id", tenantId).in("snapshot_id", liveIds) : null;
   const liveById = new Map((liveResult?.data ?? []).map((data) => [data.snapshot_id, data]));
-  if(liveResult?.error&&syncDynamicMode==='dom'&&syncDynamicSnapshots.size)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');
+  if(liveResult?.error&&(syncDynamicMode==='dom'||syncDynamicMode==='dom-v2')&&syncDynamicSnapshots.size)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');
   const sourceWork=releaseItems.flatMap(item=>{
-    if(syncDynamicMode!=='dom'||!item.live_data_enabled||!item.dynamic_snapshot_id)return [];
+    if((syncDynamicMode!=='dom'&&syncDynamicMode!=='dom-v2')||!item.live_data_enabled||!item.dynamic_snapshot_id)return [];
     const live=liveById.get(item.dynamic_snapshot_id),snapshot=originalSnapshots.find(value=>value.id===item.dynamic_snapshot_id),base=syncDynamicSnapshots.get(item.id);
     if(!live||!snapshot||!base||(!enableSyncBackgrounds&&syncBackgroundAssetForRef(base.presentation.style.backgroundAsset)))return [];
-    if(Number(live.data_revision)===1){base.metadata={...base.metadata,dataRevision:1};return [];}
+    if(Number(live.data_revision)===1){base.metadata=(base.metadata.schemaVersion===2?syncDynamicDomMetadataSchema:syncDynamicBinaryPlaybackSchema).parse({...base.metadata,dataRevision:1,contentHash:live.content_hash});return [];}
     return [{itemId:item.id,snapshot,base,live}];
   });
   const snapshots = legacySnapshots.map((snapshot) => {
