@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S294 herstelt de bij een echte RSS-datarefresh gevonden ontbrekende asset-
+overdracht. Initiële en actuele Source-payloads delen de bestaande begrensde
+collector; onvolledige metadata activeert geen uitgeklede kandidaat. Zie
+`docs/s294-rss-refresh-assets.md`. Productie volgt pas na deze aanvullende
+gates en stagingverificatie, met behoud van de afzonderlijke S293-correcties.
+
 S293 sluit tijdens de echte S292-stagingcanary gevonden Menu-metadatachurn,
 de bevestigde Sportlink-observatiechurn en de onterechte Source-postereis op
 begrensde legacy-Menu-PNG-upload. Protocol 2 houdt bekende observatiemetadata

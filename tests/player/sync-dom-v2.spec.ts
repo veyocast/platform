@@ -1,7 +1,9 @@
 import {createHash}from'node:crypto';
-import {writeFileSync}from'node:fs';
+import {readFileSync,writeFileSync}from'node:fs';
 import {expect,test,chromium,type Page}from'@playwright/test';
-import {syncSlideRendererAssets,syncSlideDurationMs,syncSlidePresentationSchema,syncDomDescriptorMimeType,type SyncSlidePresentation}from'@veyocast/contracts';
+import {syncDynamicConfigurationSchema,syncSlideRendererAssets,syncSlideDurationMs,syncSlidePresentationSchema,syncDomDescriptorMimeType,type PlayerDynamicTemplateAsset,type SyncSlidePresentation}from'@veyocast/contracts';
+import {syncDynamicProjectionAssetIds}from'../../apps/player/app/_lib/player-sync-dynamic-payload';
+import {projectSyncDynamicSnapshot}from'../../packages/content-templates/src/sync-dynamic-projector';
 import {createSyncTemplatePreview}from'../../apps/control/app/(shell)/dashboard/studio/sync-template-preview';
 import type {PlayerManifestEnvelope}from'../../apps/player/app/_lib/player-manifest';
 test.use({launchOptions:{executablePath:chromium.executablePath(),args:['--no-sandbox','--disable-dev-shm-usage','--num-raster-threads=1']}});
@@ -71,6 +73,27 @@ test('v2 facts change at the natural boundary without a new descriptor or font l
  state.setEnvelope(state.create(1));await page.evaluate(()=>window.dispatchEvent(new Event('online')));await page.waitForTimeout(1000);await expect(page.getByText('Actueel broodje',{exact:false}).last()).toBeVisible();expect((await stored(page)).dataRevision).toBe(2);
  await page.waitForTimeout(4500);expect(await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads)).toBe(fonts);await expect(page.getByText('Actueel broodje',{exact:false}).last()).toBeVisible();
  writeFileSync(info.outputPath('facts-refresh.json'),JSON.stringify({initialFontLoads:fonts,afterFontLoads:after,descriptorDownloads:state.downloads,additionalResourceDownloads:state.resourceDownloads-resources,updateToConfirmedFrameMs,visibleDataRevision:2}));
+});
+test('real RSS refresh projection retains original media through renewal and offline reload',async({page,context},info)=>{
+ test.setTimeout(90000);const state=await setup(page,'rss');await visible(page);await expect.poll(async()=>(await stored(page)).dataRevision).toBe(1);
+ const cfg=syncDynamicConfigurationSchema.parse({schemaVersion:1,kind:'dynamic',slideType:'news',secondsPerPage:4,rendererVersion:state.presentation.rendererVersion,sourceRevision:state.presentation.sourceRevision,seed:{...state.presentation,rich:undefined,rows:[],news:[],ownRowIndexes:[]}});
+ const hero=uuid(101),logo=uuid(102),all:Record<string,PlayerDynamicTemplateAsset>={};
+ const paths={[hero]:'/onzetrots-approved-v1/assets/club-life-v28/youth-1280.webp',[logo]:'/onzetrots-approved-v1/assets/logo.png'};
+ for(const [id,path]of Object.entries(paths)){const bytes=readFileSync('apps/player/public'+path);all[id]={bytes:bytes.byteLength,checksumSha256:createHash('sha256').update(bytes).digest('hex'),mimeType:path.endsWith('.png')?'image/png':'image/webp',url:origin+path+'?signature=first'};}
+ const data={type:'news',syncConfiguration:cfg,news:{providerLogoMediaAssetId:logo,sourceName:'Fixturebron',articles:[{externalId:'actual-refresh',title:'Actueel artikel met behouden beeld',intro:'Originele media blijven onderdeel van de actuele weergave.',link:'https://www.duindorpsv.nl/nieuws',heroMediaAssetId:hero}]}};
+ const assets=Object.fromEntries(syncDynamicProjectionAssetIds(data,cfg).flatMap(id=>all[id]?[[id,all[id]]]:[]));
+ const projected=projectSyncDynamicSnapshot({schemaVersion:1,snapshotId:uuid(5),snapshotHash:'d'.repeat(64),templateVersionId:uuid(6),templateSlug:'rss-refresh',orientation:'landscape',slideType:'news',data,assets},cfg.seed);
+ expect(projected.ok).toBe(true);if(!projected.ok)throw Error(projected.code);
+ let imageDownloads=0;page.on('request',request=>{if(Object.values(paths).includes(new URL(request.url()).pathname))imageDownloads++;});
+ const fonts=await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads),descriptorDownloads=state.downloads;
+ const next=state.create(2,projected.presentation);next.manifest.items[0]!.syncDynamic!.assets=assets;state.setEnvelope(next);await page.evaluate(()=>window.dispatchEvent(new Event('online')));
+ await expect.poll(async()=>(await stored(page)).dataRevision).toBe(2);await expect(page.locator('.rss-photo img')).toBeVisible();await expect(page.locator('.rss-provider img')).toBeVisible();await expect(page.locator('.rss-qr-zone svg')).toBeVisible();
+ await expect(page.getByText('Actueel artikel met behouden beeld',{exact:true})).toBeVisible();expect(imageDownloads).toBeGreaterThan(0);expect(state.downloads).toBe(descriptorDownloads);const fontsAfterNewMedia=await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads);
+ const downloaded=imageDownloads,renewed=structuredClone(next);for(const asset of Object.values(renewed.manifest.items[0]!.syncDynamic!.assets))asset.url=asset.url.replace('signature=first','signature=renewed');
+ state.setEnvelope(renewed);const requests=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>state.requests).toBeGreaterThan(requests);expect(imageDownloads).toBe(downloaded);expect(await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads)).toBe(fontsAfterNewMedia);
+ writeFileSync(info.outputPath('refresh-metrics.json'),JSON.stringify({fontsBefore:fonts,fontsAfterNewMedia,unchangedRenewalExtraFontLoads:0,descriptorDownloads:state.downloads,newMediaDownloads:downloaded,unchangedRenewalExtraMediaDownloads:0}));
+ await page.locator('.vc-slide-preview').last().screenshot({path:info.outputPath('rss-real-projection-refresh.png')});
+ state.setOffline(true);await context.setOffline(true);try{await page.reload();await visible(page);await expect(page.getByText('Actueel artikel met behouden beeld',{exact:true})).toBeVisible();await expect(page.locator('.rss-photo img')).toBeVisible();await expect(page.locator('.rss-provider img')).toBeVisible();expect((await stored(page)).dataRevision).toBe(2);await expect(page.getByLabel('Pairingcode')).toHaveCount(0);}finally{await context.setOffline(false);}
 });
 test('a complete DOM publication survives a real offline reload and rejects corrupt new descriptor bytes',async({page,context})=>{
  test.setTimeout(60000);const state=await setup(page);await visible(page);await expect.poll(async()=>(await stored(page)).dataRevision).toBe(1);
