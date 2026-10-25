@@ -13,8 +13,9 @@ import {
 } from "./dynamic-render-backend";
 import type { StudioExternalRenderer } from "./studio-render-image";
 import type { ReactDomDynamicThumbnailRenderer } from "./dynamic-react-thumbnail";
-import {renderSyncDynamicArtifact} from './sync-dynamic-render';
+import {renderSyncDynamicArtifact,prepareSyncDynamicDescriptor} from './sync-dynamic-render';
 import {createDynamicRenderLease} from './dynamic-render-lease';
+import {prepareMenuDomDescriptor}from'./menu-dom-render';
 
 export type DynamicRenderRunResult =
   | { status: "idle" }
@@ -66,13 +67,29 @@ export async function runDynamicRenderOnce({
     const requiresSource=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&Object.hasOwn(job.snapshotData,'syncConfiguration'));
     if(requiresSource){
       if(!job.leaseToken||!backend.renewJob)throw new DynamicRenderBackendError('sync_dynamic_lease_unavailable',false,'De gekoppelde bronweergave vereist een actuele beveiligde renderopdracht.');
-      const rendered=await sourceRenderer({job,renderer,assets:await backend.resolveAssets?.(job)??{},storageOrigin,signal});
+      const assets=await backend.resolveAssets?.(job)??{};
+      if(!job.publishedRefresh&&(job.snapshotData as Record<string,unknown>).syncPlaybackProtocol===2){
+        const prepared=prepareSyncDynamicDescriptor({job,assets});
+        const artifact={...prepared,storagePath:dynamicRenderStoragePath(job,prepared.dom.mimeType,prepared.checksumSha256)};
+        await lease.check();await backend.uploadArtifact(job,artifact);await lease.prepareCompletion();
+        await backend.completeJob(job,config.workerId,artifact);
+        return {jobId:job.jobId,mediaAssetId:job.outputMediaAssetId,status:'completed'};
+      }
+      const rendered=await sourceRenderer({job,renderer,assets,storageOrigin,signal});
       const artifact={bytes:rendered.bytes,byteLength:rendered.byteLength,checksumSha256:rendered.checksumSha256,height:rendered.height,width:rendered.width,storagePath:dynamicRenderStoragePath(job,rendered.mimeType,rendered.checksumSha256),sync:{mimeType:rendered.mimeType,durationMs:rendered.durationMs,presentation:rendered.presentation,poster:{...rendered.poster,storagePath:dynamicRenderStoragePath(job,'image/png',rendered.poster.checksumSha256)}}};
       await lease.check();
       await backend.uploadArtifact(job,artifact);
       await lease.prepareCompletion();
       await backend.completeJob(job,config.workerId,artifact);
       return {jobId:job.jobId,mediaAssetId:job.outputMediaAssetId,status:'completed'};
+    }
+    const menuV2=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&(job.snapshotData as Record<string,unknown>).syncPlaybackProtocol===2);
+    if(menuV2&&(!job.leaseToken||!backend.renewJob))throw new DynamicRenderBackendError('menu_dom_lease_unavailable',false,'De menuweergave vereist een actuele beveiligde opdracht.');
+    if(menuV2&&!job.publishedRefresh){
+      const prepared=prepareMenuDomDescriptor(job,await backend.resolveAssets?.(job)??{});
+      const artifact={...prepared,storagePath:dynamicRenderStoragePath(job,prepared.menuDom.mimeType,prepared.checksumSha256)};
+      await lease.check();await backend.uploadArtifact(job,artifact);await lease.prepareCompletion();await backend.completeJob(job,config.workerId,artifact);
+      return{jobId:job.jobId,mediaAssetId:job.outputMediaAssetId,status:'completed'};
     }
     const requiresSites=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&(
       (job.snapshotData as Record<string,unknown>).sitesConfiguration||
@@ -106,12 +123,15 @@ export async function runDynamicRenderOnce({
         width: job.manifest.canvas.width
       });
     }
+    const menuBinary=menuV2?{...prepareMenuDomDescriptor(job,await backend.resolveAssets?.(job)??{}).menuDom,mimeType:'image/png' as const}:undefined;
+    const checksumSha256=createHash('sha256').update(bytes).digest('hex');
     const artifact = {
       byteLength: bytes.byteLength,
       bytes,
-      checksumSha256: createHash("sha256").update(bytes).digest("hex"),
+      checksumSha256,
       height: job.manifest.canvas.height,
-      storagePath: dynamicRenderStoragePath(job),
+      storagePath: menuBinary?dynamicRenderStoragePath(job,'image/png',checksumSha256):dynamicRenderStoragePath(job),
+      ...(menuBinary?{menuBinary}:{}),
       width: job.manifest.canvas.width
     };
     await backend.uploadArtifact(job, artifact);

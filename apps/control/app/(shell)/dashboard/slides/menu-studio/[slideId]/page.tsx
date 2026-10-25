@@ -11,6 +11,7 @@ import { loadDynamicSlideVersionState } from "../../version-data";
 import { VersionHistory } from "../../version-history";
 import { loadMenuStudioSlide, menuStudioTemplateVersionIds } from "../data";
 import { SitesMenuWizard } from "../sites-menu-wizard";
+import {SyncExportDownload}from"../../sync-export-download";
 import { MenuStudioEditor } from "../menu-studio-editor";
 
 type PageProps = {
@@ -40,6 +41,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
       <PageHeader
         actions={<div className="menu-version-actions">
           <Button asChild variant="ghost"><Link href="/dashboard/slides">Terug naar slides</Link></Button>
+          {!versionState.activeDraftVersionId&&data.exportSnapshotId?<SyncExportDownload key={data.exportSnapshotId} snapshotId={data.exportSnapshotId}/>:null}
           {!versionState.activeDraftVersionId && versionState.currentVersionId ? (
             <form action={createOrResumeDynamicSlideVersion}>
               <input name="editor" type="hidden" value="menu" />

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { supportsSyncBackgrounds, supportsSyncSlideDom } from "./sync-player-capabilities";
+import { supportsSyncDomV2,readSyncDynamicMode,supportsSyncBackgrounds, supportsSyncSlideDom } from "./sync-player-capabilities";
 import {
   syncSlidePresentationSchema,
   syncSystemAssets,
@@ -334,7 +334,7 @@ function connectedFixture(){
 it('prepares the connected Source asset union while keeping its Studio fields absent',()=>{
  const value=connectedFixture(),item=value.manifest.items[0]!;expect(getCacheableAssets(value.manifest)).toHaveLength(12);expect(item.syncStudioPresentation).toBeUndefined();
  expect(syncPreparedPresentation(item,origin)).toBe(false);item.syncSystemAssetUrls=Object.fromEntries(syncSystemAssets.map(asset=>[asset.path,prepared(asset.sha256)]));expect(syncPreparedPresentation(item,origin)).toBe(true);
- item.syncDynamic!.fallbackChecksumSha256='f'.repeat(64);expect(syncPreparedPresentation(item,origin)).toBe(false);expect(()=>getCacheableAssets(value.manifest)).toThrow('SYNC_DYNAMIC_PRESENTATION_INVALID');
+ if(item.syncDynamic?.schemaVersion!==1)throw Error('Expected the strict legacy fixture');item.syncDynamic.fallbackChecksumSha256='f'.repeat(64);expect(syncPreparedPresentation(item,origin)).toBe(false);expect(()=>getCacheableAssets(value.manifest)).toThrow('SYNC_DYNAMIC_PRESENTATION_INVALID');
 });
 it('requires private connected images to be verified before DOM and preserves prepared access on URL refresh',()=>{
  const value=connectedFixture(),item=value.manifest.items[0]!,id='40000000-0000-4000-8000-000000000229';item.syncDynamic!.presentation.club.logo={kind:'tenant',mediaAssetId:id,checksumSha256:'d'.repeat(64)};item.syncDynamic!.assets={[id]:{bytes:100,checksumSha256:'d'.repeat(64),mimeType:'image/png',url:'https://media.example/own.png'}};item.syncSystemAssetUrls=Object.fromEntries(syncSystemAssets.map(asset=>[asset.path,prepared(asset.sha256)]));
@@ -358,6 +358,7 @@ it('retains the latest verified Source dataset when metadata disappears or a dat
 
 it('retains the latest verified complete binary when its data revision moves backwards',()=>{
  const cached=connectedFixture(),item=cached.manifest.items[0]!,metadata=item.syncDynamic!;
+ if(metadata.schemaVersion!==1)throw Error('Expected the strict legacy fixture');
  item.syncDynamicBinary={schemaVersion:metadata.schemaVersion,configurationSnapshotId:metadata.configurationSnapshotId,snapshotId:metadata.snapshotId,templateVersionId:metadata.templateVersionId,configurationHash:metadata.configurationHash,contentHash:metadata.contentHash,fallbackChecksumSha256:item.source.checksumSha256,durationMs:metadata.durationMs,dataRevision:4};delete item.syncDynamic;delete cached.manifest.syncSystemAssets;
  const stale=structuredClone(cached);stale.manifest.items[0]!.syncDynamicBinary!.dataRevision=3;expect(()=>refreshHydratedReleaseEnvelope({cachedEnvelope:cached,freshEnvelope:stale})).toThrow('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');expect(cached.manifest.items[0]!.syncDynamicBinary!.dataRevision).toBe(4);
 });
@@ -413,4 +414,17 @@ it('prepares only the declared historical or explicit Marker font dependencies',
  }
  const urls=Object.fromEntries(syncSlideRendererAssets(old).map(asset=>[asset.path,`blob:http://localhost/${asset.sha256}`]));
  expect(()=>syncPreparedCss(urls,'http://localhost',current)).toThrow('SYNC_PREPARED_ASSET_UNAVAILABLE');
+});
+
+it('advertises DOM v2 only with real rendering, integrity, offline-storage and service-worker APIs',()=>{
+ try{
+  expect(readSyncDynamicMode('sync-dynamic-v2')).toBe('dom-v2');expect(readSyncDynamicMode('sync-dynamic-v9')).toBe(false);
+  vi.stubGlobal('window',{});vi.stubGlobal('CSS',{supports:()=>true});vi.stubGlobal('ResizeObserver',class{});
+  vi.stubGlobal('document',{fonts:{load(){},add(){},delete(){}}});vi.stubGlobal('FontFace',class{load(){}});vi.stubGlobal('Image',class{decode(){}});
+  vi.stubGlobal('SVGForeignObjectElement',class{});vi.stubGlobal('Element',class{getAnimations(){return[];}});
+  vi.stubGlobal('crypto',{subtle:{digest(){}}});vi.stubGlobal('indexedDB',{});vi.stubGlobal('caches',{open(){}});vi.stubGlobal('navigator',{serviceWorker:{}});
+  expect(supportsSyncDomV2()).toBe(true);
+  vi.stubGlobal('navigator',{userAgent:'Brand new browser'});expect(supportsSyncDomV2()).toBe(false);
+  vi.stubGlobal('navigator',{serviceWorker:{}});vi.stubGlobal('crypto',{});expect(supportsSyncDomV2()).toBe(false);
+ }finally{vi.unstubAllGlobals();}
 });

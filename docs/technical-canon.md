@@ -1,5 +1,11 @@
 # VeyoCast Technical Canon v1
 
+S292 voegt een expliciet Source DOM-protocol 2 toe. Alleen een geverifieerde
+consumeruitrol kan de tenantproducer activeren. PNG/MP4 is geen algemene gate
+voor dit contract; versie 1 en historische MenuDocument/Sites-routes behouden
+hun bestaande voorwaarden. Zie [dynamic slides](dynamic-slides-canon.md) en
+[offline](player-offline-canon.md) voor de versiegrenzen en herstelregels.
+
 ## 1. Productdefinitie
 
 VeyoCast is een multi-tenant narrowcasting- en ClubTV-platform voor sportverenigingen en organisaties met beheerde schermen. De MVP bestaat uit vier planes:
@@ -290,3 +296,9 @@ Een rollback houdt actieve LKG intact en gebeurt forward-only: nieuwe v2-uitrol
 stoppen en zo nodig de snapshotwrapper in een opvolgmigratie naar de bewaarde
 legacybuilder laten delegeren. Een applicatierollback zonder v2-decoder of een
 destructieve rewrite van gepubliceerde data is verboden.
+
+S292 extends that independent DOM boundary to the actual MenuDocument/widget
+route through strict `menuDom` metadata. It reuses SitesMenuWidgets and
+SitesApprovedMenu, the guarded Menu Studio version writer and approved prices.
+PNG is requested through the existing bounded export cache for a genuine
+legacy consumer or explicit download; no ordinary Menu preparation captures it.

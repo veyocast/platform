@@ -1,0 +1,15 @@
+import {createSitesSourceDesign}from'../../apps/control/app/(shell)/dashboard/studio/sportlink/new/sites-source-design';
+import {buildMenuWidgetDocument,menuProductPlacement,menuWidgetLayout}from'../../apps/control/app/(shell)/dashboard/slides/menu-studio/menu-widget-document';
+import {menuDocumentV2Schema}from'../../packages/contracts/src/index';
+export const menuDomFixtureId=(n:number)=>`29220000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+export function menuDomFixture(provider:'manual_products'|'twelve_excel',orientation:'landscape'|'portrait',mode:'light'|'dark'='light'){
+ const id=menuDomFixtureId,tenant=id(1),source=id(3),product=id(4);
+  const design={...createSitesSourceDesign('menu','Onze kantine',orientation),themeId:'onzetrots-tv' as const,accent:'#03438a',seconds:6,menuWidgets:true,onzeTrotsStyle:mode==='dark'?'v10-barlow-dark' as const:'v10-barlow-light' as const};
+  const option={id:product,name:'Clubkoffie',description:'',priceCents:250,currency:'EUR',taxMode:'inclusive' as const,available:true,sourceKind:provider,sourceId:source,sourceRevision:'1',category:'Warme dranken',categoryId:id(7),imageAssetId:null};
+  const document=buildMenuWidgetDocument(menuDocumentV2Schema.parse({schemaVersion:'menu-document.v2',id:id(8),tenantId:tenant,revision:1,createdAt:'2026-10-25T12:00:00Z',updatedAt:'2026-10-25T12:00:00Z',title:'Onze kantine',theme:{themeId:'onzetrots-tv',themeVersion:'11.0.0',mode:'light',brand:{accent:'#03438a'}},assets:[],pages:[{id:'page-1',order:0,landscapeColumns:2,portraitColumns:1,blocks:[{id:'drinks',type:'category',order:0,layout:menuWidgetLayout(),source:{source:provider==='twelve_excel'?'twelve':'manual',...(provider==='twelve_excel'?{providerConnectionId:source}:{}),sourceCategoryId:id(7),sourceName:'Warme dranken'},productNodes:[menuProductPlacement(option,'coffee')],widget:{column:'left'}},{id:'offer',type:'promo',title:'Koffiedeal',body:'Met een koekje',order:1,layout:menuWidgetLayout(),widget:{column:'right'}}]},{id:'page-2',order:1,blocks:[{id:'note',type:'text',text:'Welkom in de kantine',order:0,layout:menuWidgetLayout()}]}]}),[option],design,[]);
+ return{design,document,option};
+}
+export function menuDomFixtureJob(orientation:'landscape'|'portrait'='landscape',mode:'light'|'dark'='light'){
+ const fixture=menuDomFixture('twelve_excel',orientation,mode),id=menuDomFixtureId;
+ return {jobId:id(20),tenantId:id(1),snapshotId:id(21),templateVersionId:id(22),templateSlug:'price-list-widget',snapshotHash:'a'.repeat(64),slideVersionId:id(23),leaseToken:id(24),outputMediaAssetId:id(25),slideName:'Onze kantine',orientation,markup:'unused',css:'',manifest:{engine:'veyocast-safe-template-v1' as const,schemaVersion:1 as const,canvas:{width:orientation==='portrait'?1080:1920,height:orientation==='portrait'?1920:1080},slideType:'price_list' as const,allowedFields:[],maxCollectionItems:100},snapshotData:{syncPlaybackProtocol:2,menuDocument:fixture.document,sitesConfiguration:fixture.design,brand:{clubName:'Eigen testclub'}}};
+}

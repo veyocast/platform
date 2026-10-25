@@ -34,6 +34,7 @@ export type ReleaseTargetScreen = {
 };
 
 export type ReleaseScreenPreflight = {
+  sourceDelivery?:'direct'|'compatible';
   activeReleaseId: string | null;
   desiredReleaseId: string | null;
   deviceId: string | null;
@@ -237,7 +238,7 @@ export async function loadReleaseDetail(
 
 export async function loadDraftPreflight(
   tenantId: string,
-  targetItems: readonly Readonly<{ checksumSha256: string; fileSizeBytes: number }>[],
+  targetItems: readonly Readonly<{ checksumSha256: string; fileSizeBytes: number;sourceDomProtocol?:2 }>[],
   targetScreenIds: readonly string[] = []
 ): Promise<DraftPreflightData> {
   const supabase = await createControlSupabaseClient();
@@ -334,7 +335,9 @@ export async function loadDraftPreflight(
       const device = devices.find((candidate) => candidate.screen_id === screen.id) ?? null;
       const cacheKnown = !device?.active_release_id ||
         !unavailableActiveReleaseIds.has(device.active_release_id);
+      const capabilities=parseCapabilities(device?.capabilities),hasDom=targetItems.some(item=>item.sourceDomProtocol===2),direct=Boolean(capabilities?.manifestSchemaVersions.includes(2)),compatible=hasDom&&!direct;
       return {
+        ...(hasDom?{sourceDelivery:direct?'direct' as const:'compatible' as const}:{}),
         activeReleaseId: device?.active_release_id ?? null,
         desiredReleaseId: device?.desired_release_id ?? null,
         deviceId: device?.id ?? null,
@@ -344,14 +347,14 @@ export async function loadDraftPreflight(
           activeReleaseChecksums: device?.active_release_id
             ? activeChecksums.get(device.active_release_id) ?? []
             : [],
-          capabilities: parseCapabilities(device?.capabilities),
+          capabilities,
           devicePresent: Boolean(device),
           heartbeatAt: device?.last_seen_at ?? null,
           now,
           previousReleaseChecksums: [],
-          release: { items: targetItems, schemaVersion: 1 },
+          release: { items: targetItems, schemaVersion: hasDom&&direct?2:1 },
           screenStatus: screen.status,
-          storageQuotaBytes: cacheKnown && device?.storage_quota_bytes !== null && device?.storage_quota_bytes !== undefined
+          storageQuotaBytes: !compatible&&cacheKnown && device?.storage_quota_bytes !== null && device?.storage_quota_bytes !== undefined
             ? Number(device.storage_quota_bytes)
             : null,
           storageUsedBytes: cacheKnown && device?.storage_used_bytes !== null && device?.storage_used_bytes !== undefined

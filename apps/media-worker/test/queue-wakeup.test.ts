@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { parseQueueHint, QueueWakeup, type RenderQueue } from "../src/queue-wakeup";
+import { parseQueueHint,parseQueueHintV3, QueueWakeup, type RenderQueue } from "../src/queue-wakeup";
 
 afterEach(() => vi.useRealTimers());
 describe("bounded idle worker traffic", () => {
@@ -25,8 +25,8 @@ describe("bounded idle worker traffic", () => {
     const read = vi.fn(async () => ({ media: false, studio: false, dynamic: false, published: false, maintenance: false }));
     const gate = new QueueWakeup(read, { random: () => 0.5 });
     const controller = new AbortController();
-    const claims = { media: 0, studio: 0, dynamic: 0, published: 0, maintenance: 0 };
-    const loops = (["media", "studio", "dynamic", "published", "maintenance"] as RenderQueue[]).map(async (queue) => {
+    const claims = { media: 0, studio: 0, dynamic: 0, published: 0, maintenance: 0,dom:0 };
+    const loops = (["media", "studio", "dynamic", "published", "maintenance","dom"] as RenderQueue[]).map(async (queue) => {
       while (!controller.signal.aborted) {
         await gate.wait(queue, controller.signal);
         if (controller.signal.aborted) break;
@@ -46,7 +46,7 @@ describe("bounded idle worker traffic", () => {
     expect(requests).toBeLessThan(478521 * 0.06);
     expect(gate.counters.emptyClaims).toBe(Object.values(claims).reduce((a, b) => a + b, 0));
     expect(gate.counters.workClaims).toBe(0);
-    // Five queues exercise a full day of timers; CI runs all workspace suites
+    // Six queues exercise a full day of timers; CI runs all workspace suites
     // concurrently. Keep the entire simulation and traffic assertions intact.
   }, 20_000);
 
@@ -89,4 +89,9 @@ describe("bounded idle worker traffic", () => {
     expect(gate.counters.emptyClaims).toBeGreaterThan(8);
     expect(vi.getTimerCount()).toBe(0);
   });
+});
+
+it('negotiates separate DOM work without relaxing historical hints',()=>{
+ expect(parseQueueHint(32)).toBeNull();expect(parseQueueHintV3(32)).toEqual({media:false,studio:false,dynamic:false,published:false,maintenance:false,dom:true});
+ expect(parseQueueHintV3(36)).toMatchObject({dynamic:true,dom:true});expect(parseQueueHintV3(64)).toBeNull();
 });

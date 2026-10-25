@@ -14,6 +14,7 @@ import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { loadDraftPreflight } from "../releases/data";
 import { loadPlaylistStudio } from "./data";
 import { getReadinessCopy } from "./readiness-copy";
+import {loadPublicationMediaPreview}from'./publish-media-frame-preview.server';
 
 type MutationRow = { actual_revision: number; outcome: "applied" | "conflict" };
 type GuardedMutationResult = {
@@ -529,7 +530,7 @@ export async function publishPlaylistGuided(formData: FormData) {
       .filter((section) => section.enabled)
       .map((section) => section.id)
   );
-  const targetItems = studio.items.flatMap((item) =>
+  let targetItems:Array<{checksumSha256:string;fileSizeBytes:number;sourceDomProtocol?:2}> = studio.items.flatMap((item) =>
     item.enabled &&
     (item.sectionId === null || enabledSections.has(item.sectionId)) &&
     item.asset?.variant
@@ -539,6 +540,10 @@ export async function publishPlaylistGuided(formData: FormData) {
         }]
       : []
   );
+  if(studio.items.some(item=>item.asset?.kind==='composition')){
+    try{targetItems=(await loadPublicationMediaPreview(session.tenantId,studio.items,enabledSections)).targetItems;}
+    catch{failPublish(playlistId,'De complete weergave kon niet worden gecontroleerd. Je concept blijft behouden; vernieuw de playlist en probeer opnieuw.');}
+  }
   const preflight = await loadDraftPreflight(session.tenantId, targetItems);
   if (preflight.error) failPublish(playlistId, `${preflight.error} Er is geen release gemaakt.`);
   const targets = preflight.screenStates.filter((state) => screenIds.includes(state.screen.id));

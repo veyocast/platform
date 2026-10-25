@@ -14,9 +14,13 @@ export function supportsSyncOnzeTrotsV9(){return supportsSyncOnzeTrots()&&CSS.su
 export function supportsSyncOnzeTrots(){return supportsSyncBackgrounds()&&CSS.supports('position','sticky')&&typeof SVGForeignObjectElement!=='undefined'&&typeof Element.prototype.getAnimations==='function';}
 export const syncDynamicRendererHeader='X-VeyoCast-Sync-Dynamic';
 export const syncDynamicDomVersion='sync-dynamic-v1';
+export const syncDynamicDomV2Version='sync-dynamic-v2';
 export const syncDynamicBinaryVersion='sync-dynamic-binary-v1';
-export type SyncDynamicMode=false|'dom'|'binary';
-export function readSyncDynamicMode(value:string|null):SyncDynamicMode{return value===syncDynamicDomVersion?'dom':value===syncDynamicBinaryVersion?'binary':false;}
+export type SyncDynamicMode=false|'dom'|'dom-v2'|'binary';
+export function readSyncDynamicMode(value:string|null):SyncDynamicMode{return value===syncDynamicDomV2Version?'dom-v2':value===syncDynamicDomVersion?'dom':value===syncDynamicBinaryVersion?'binary':false;}
+/** This product build owns the version-2 decoder. Actual DOM, verified media
+ * storage and offline shell support must be present before it advertises v2. */
+export function supportsSyncDomV2(){return supportsSyncOnzeTrotsV9()&&typeof crypto!=='undefined'&&typeof crypto.subtle?.digest==='function'&&typeof indexedDB!=='undefined'&&typeof caches!=='undefined'&&typeof caches.open==='function'&&'serviceWorker'in navigator;}
 
 /** Older WebViews retain the complete raster/video path. */
 export function supportsSyncSlideDom(): boolean {

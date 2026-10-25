@@ -14,6 +14,37 @@
   diagnosepaneel. De enige vaste system mark is de locked VeyoCast-lock-up
   linksonder op 40% opacity.
 
+## Source and Menu DOM protocol 2
+
+Protocol 2 requires verified descriptor bytes, every referenced original image,
+all version-bound fonts/renderer assets, and a controlled service worker with
+the matching document and current app script/style URLs cached. It never uses
+an unverified network font or a provider page as a recovery path.
+
+After preparation, the candidate switches at a natural page/item/loop boundary.
+Menu Studio uses its existing typed widget renderer under separate `menuDom`
+metadata. Timed DOM zones wait for their own boundary; accepted facts reset
+their page/item clocks while retaining verified resources. A
+visible, nonzero DOM frame confirms its snapshot/content hash/data revision;
+only then is the local release committed. Facts-only changes retain verified
+resource preparation. Lower revisions and same-revision hash collisions fail
+closed. Failed new bytes retain the current release. A renderer exception
+restores the prior verified DOM dataset or compatible release, retaining pairing.
+
+IndexedDB keeps one bounded previous DOM release inside the active record and
+preserves the existing version-1 previous-release slot for an app rollback.
+Garbage collection protects active, previous DOM, compatible previous, pending
+and composition-zone assets. No database-version upgrade or historical release
+rewrite is needed. The branded existing ready state is the final failsafe when
+no valid local release exists. Actual Source frame confirmation is distinct from
+configuration receipt, asset download, a healthy API, or a physical TV proof.
+
+Before rolling back to application code that predates version 2, disable new
+production of version 2 and restore compatible verified target publications
+through the existing guarded flow where necessary. Disabling the producer does
+not rewrite an already published version-2 release. Keep the previous local
+version-1 recovery slot and the forward-compatible database migration history.
+
 ## State model
 
 ```text

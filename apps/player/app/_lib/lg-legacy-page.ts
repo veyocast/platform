@@ -4733,6 +4733,7 @@ export function renderLgLegacyHtml() {
       };
     }
     function releaseAssets(envelope) {
+      if (!envelope || !envelope.manifest || envelope.manifest.schemaVersion !== 1) return null;
       var zones = lgCompositionZones(envelope);
       if (zones === null) return null;
       var items = playableItems(envelope);
@@ -4744,6 +4745,7 @@ export function renderLgLegacyHtml() {
       var assetId;
       for (index = 0; index < items.length; index += 1) {
         item = items[index];
+        if (!lgSyncBinaryValid(item) || item.kind === "composition") return null;
         if (!validMediaFrameBackground(item.mediaFrameBackground, item.mediaFrameBackgroundAssets, CONFIG.mediaFrameClubmuurAsset) || item.mediaFrameBackground && (item.dynamicTemplate || item.sitesPresentation || item.syncStudioPresentation || item.syncDynamic || item.onlinePlayback)) return null;
         asset = cacheAsset(item, "media", item.source);
         if (!asset) return null;
@@ -5301,7 +5303,8 @@ export function renderLgLegacyHtml() {
       runtime.invalidatedDuringFetch = false;
       headers = {
         Authorization: "Bearer " + runtime.deviceToken,
-        "Cache-Control": "no-store"
+        "Cache-Control": "no-store",
+        "X-VeyoCast-Sync-Dynamic": "sync-dynamic-binary-v1"
       };
       knownReleaseId = forceRefresh
         ? null
@@ -5373,6 +5376,8 @@ export function renderLgLegacyHtml() {
             return;
           }
           if (!transport && status >= 200 && status < 300 && isManifestEnvelope(body)) {
+            if (!lgSyncBinaryContinuity(runtime.envelope,body) || !lgSyncBinaryContinuity(runtime.syncBinaryTarget,body)) { runtime.manifestEtag=null; scheduleManifestSync(CONFIG.manifestIntervalMs); return; }
+            if (releaseAssets(body)) runtime.syncBinaryTarget=body;
             if (!observeTarget(body)) { scheduleManifestSync(CONFIG.manifestIntervalMs); return; }
             runtime.manifestEtag = manifestEtag || null;
             clearTemporaryPairing();
@@ -5394,7 +5399,7 @@ export function renderLgLegacyHtml() {
             if (
               !forceRefresh &&
               runtime.pendingRelease &&
-              releaseIdOf(runtime.pendingRelease.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.pendingRelease.envelope) === lgCompositionIdentity(body)
+              releaseIdOf(runtime.pendingRelease.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.pendingRelease.envelope) === lgCompositionIdentity(body) && lgEnvelopeDataIdentity(runtime.pendingRelease.envelope) === lgEnvelopeDataIdentity(body)
             ) {
               setState("SWITCH_PENDING");
               runtime.syncPhase = "switch_pending";
@@ -5440,7 +5445,7 @@ export function renderLgLegacyHtml() {
               if (runtime.publicationTrace && runtime.publicationTrace.releaseId === releaseIdOf(body)) runtime.publicationTrace.assetsReadyAt = new Date().toISOString();
               if (syncReceipt && runtime.syncRetryRequestedAt === syncReceipt) runtime.syncRetryAcknowledgedAt = syncReceipt;
               runtime.forceManifestRefresh = Boolean(runtime.syncRetryRequestedAt && runtime.syncRetryRequestedAt !== runtime.syncRetryAcknowledgedAt);
-              if (releaseIdOf(runtime.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(body)) {
+              if (releaseIdOf(runtime.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(body) && !lgSyncBinaryDataChanged(runtime.envelope,body)) {
                 runtime.pendingRelease = null;
                 refreshSameReleaseMediaAccess(body);
                 runtime.itemFailures = {};
@@ -5722,8 +5727,9 @@ export function renderLgLegacyHtml() {
           if (
             current && !current.requiresNativeNetworkVideo &&
             releaseIdOf(current.envelope) !== runtime.networkVideoReleaseId &&
-            (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope)) &&
-            (runtime.currentElement && runtime.currentElement.lgReleaseIdentity === releaseIdOf(current.envelope) + ":" + lgCompositionIdentity(current.envelope) ||
+            (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope) || lgSyncBinaryDataChanged(current.envelope,envelope)) &&
+            (lgSyncBinaryDataChanged(current.envelope,envelope) ? runtime.currentElement && runtime.currentElement.lgSourceDataIdentity === lgEnvelopeDataIdentity(current.envelope) :
+              runtime.currentElement && runtime.currentElement.lgReleaseIdentity === releaseIdOf(current.envelope) + ":" + lgCompositionIdentity(current.envelope) ||
               lgCompositionIdentity(current.envelope) === "full" &&
                 (releaseIdOf(current.envelope) === runtime.presentedReleaseId ||
                   envelope.device && releaseIdOf(current.envelope) === envelope.device.activeReleaseId))
@@ -6167,6 +6173,8 @@ export function renderLgLegacyHtml() {
         window.requestAnimationFrame(function () {
         if (runtime.currentElement !== element || generation !== runtime.playbackGeneration) return;
         runtime.presentedReleaseId = confirmedReleaseId;
+        element.lgSourceDataIdentity=lgEnvelopeDataIdentity(runtime.envelope);
+        runtime.sourceDataConfirmation=lgSyncBinaryFrame(runtime.currentItem);
         if (runtime.publicationTrace && runtime.publicationTrace.releaseId === confirmedReleaseId && !runtime.publicationTrace.firstFrameAt) {
           runtime.publicationTrace.firstFrameAt = new Date().toISOString();
           if (runtime.boundaryMonotonic !== null) runtime.publicationTrace.frameAfterBoundaryMs = Math.max(0, monotonicNow() - runtime.boundaryMonotonic);
@@ -10172,7 +10180,7 @@ export function renderLgLegacyHtml() {
             setState("ERROR_RECOVERABLE");
           }
         }
-        if (!cached || releaseIdOf(cached.envelope) === rejectedId) { unavailable(); return; }
+        if (!cached || releaseIdOf(cached.envelope) === rejectedId && !lgSyncBinaryDataChanged(cached.envelope,runtime.envelope)) { unavailable(); return; }
         var items = playableItems(cached.envelope);
         var index = items.findIndex(function (item) { return !item.onlinePlayback && (item.kind !== "video" || item.source && item.source.checksumSha256 !== runtime.rejectedVideoChecksum); });
         if (index < 0) { unavailable(); return; }
@@ -10607,6 +10615,7 @@ export function renderLgLegacyHtml() {
         goalVideoCapabilities: goalVideoCapabilities("static-lg", CONFIG.appVersion),
         activeReleaseId: runtime.presentedReleaseId,
         currentItemId: runtime.currentItem ? runtime.currentItem.id : null,
+        sourceDataConfirmation:runtime.sourceDataConfirmation||null,
         desiredReleaseId: runtime.desiredPlaybackReleaseKnown ? runtime.desiredPlaybackReleaseId : (pendingManifest
           ? pendingManifest.releaseId
           : device

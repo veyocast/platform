@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   SupabaseRssSyncBackend,
+  RssSyncBackendError,
   runRssSyncLoop,
   runRssSyncOnce
 } from "../src/rss-sync-runner";
@@ -12,6 +13,22 @@ afterEach(() => {
 });
 
 describe("scheduled RSS backend", () => {
+  it('preserves only a safe database completion code, never the raw payload or provider message', async () => {
+    const job={dataSourceId:'source',runId:'run',sourceUrl:'https://feed.test/rss',tenantId:'tenant'};
+    for(const code of ['22023','23514','55000','PRIVATE https://feed.test/?secret=value']){
+      const rpc=vi.fn().mockResolvedValue({data:null,error:{code,message:'private payload and credentials'}});
+      const backend=new SupabaseRssSyncBackend('https://supabase.test','test-only',{rpc});
+      try {await backend.complete(job,'worker',[],[]);throw Error('Expected completion rejection');}
+      catch(error){expect(error).toBeInstanceOf(RssSyncBackendError);expect(error).toMatchObject({code:'rss_sync_complete_failed',databaseCode:code.startsWith('PRIVATE')?'UNKNOWN':code});expect(String(error)).not.toContain('private payload');}
+    }
+  });
+  it('requires an acknowledged renewal for the exact claimed run',async()=>{
+    const rpc=vi.fn().mockResolvedValueOnce({data:true,error:null}).mockResolvedValueOnce({data:false,error:null});
+    const backend=new SupabaseRssSyncBackend('https://supabase.test','test-only',{rpc}),job={dataSourceId:'source',runId:'run',sourceUrl:'https://feed.test/rss',tenantId:'tenant'};
+    await expect(backend.renew(job,'worker')).resolves.toBeUndefined();
+    await expect(backend.renew(job,'worker')).rejects.toMatchObject({code:'rss_sync_lease_lost'});
+    expect(rpc).toHaveBeenCalledWith('renew_scheduled_rss_sync_v1',{p_run_id:'run',p_worker_id:'worker'});
+  });
   it("does not upload or invalidate the same content across 100 source checks", async () => {
     let present = false;
     const upload = vi.fn(async () => { present = true; return { error: null }; });

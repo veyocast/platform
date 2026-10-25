@@ -61,6 +61,7 @@ export function compileSyncSportlinkBinding(cfg:SyncDynamicConfiguration,configu
  else if(!policy.clubOnly)result.teamSelection=teamSelection;
  if(contexts[0])result.context=contexts[0];
  if(cfg.slideType==='sport_birthdays'){
+  result.blueprintKey='sportlink.birthdays';
   const prior=configuration.birthday as Record<string,unknown>|undefined;
   result.birthday=sportlinkBirthdayConfigurationSchema.parse({...prior,title:cfg.seed.title||cfg.seed.name,
    period:{days:selection.birthdayDays,mode:selection.birthdayDays===21?'next_21_days':selection.birthdayDays===14?'next_14_days':'next_7_days'},

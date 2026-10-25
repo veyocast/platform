@@ -14,5 +14,6 @@ export function readSyncPublishedBinaryArtifact(base:Base,value:unknown,tenantId
  const artifact=parsed.artifact,prefix=`tenants/${tenantId}/assets/`,relative=artifact.storagePath.startsWith(prefix)?artifact.storagePath.slice(prefix.length):'';
  const match=/^([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})\/sync-dynamic\/((?:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}-)?)([a-f0-9]{64})\.(png|mp4)$/.exec(relative);
  if(!match||match[3]!==artifact.checksumSha256||match[4]!== (artifact.mimeType==='video/mp4'?'mp4':'png')||artifact.poster.storagePath!==prefix+match[1]+'/sync-dynamic/'+match[2]+artifact.poster.checksumSha256+'.png')throw Error('SYNC_DYNAMIC_BINARY_INVALID');
- return{artifact,value:{...base,presentation:artifact.presentation,metadata:syncDynamicBinaryPlaybackSchema.parse({...base.metadata,contentHash:value.contentHash,dataRevision:Number(value.dataRevision),fallbackChecksumSha256:artifact.checksumSha256,durationMs:artifact.durationMs})}};
+ const metadata:Record<string,unknown>={...base.metadata,schemaVersion:1};delete metadata.descriptorChecksumSha256;
+ return{artifact,value:{...base,presentation:artifact.presentation,metadata:syncDynamicBinaryPlaybackSchema.parse({...metadata,contentHash:value.contentHash,dataRevision:Number(value.dataRevision),fallbackChecksumSha256:artifact.checksumSha256,durationMs:artifact.durationMs})}};
 }

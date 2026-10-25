@@ -96,7 +96,23 @@ it('never expands a captured deletion set after validation, even when a successo
 it('deletes a retired configuration only after all three scoped storage listings succeed and retains failed cleanup work',async()=>{
  const f=fixture(),slots=[f.job.outputMediaAssetId,'80000000-0000-4000-8000-000000000226','90000000-0000-4000-8000-000000000226'];
  const claim={cleanup_only:true,tenant_id:f.job.tenantId,snapshot_id:f.job.snapshotId,lease_token:f.job.leaseToken,slot_ids:slots};
- const rpc=vi.fn(async(name:string)=>({data:name==='claim_dynamic_render_job_v3'?[claim]:true,error:null}));const list=vi.fn(async()=>({data:[]as Array<{name:string}>,error:null})),remove=vi.fn(async()=>({error:null})),upload=vi.fn(async()=>({error:null}));
+ const rpc=vi.fn(async(name:string)=>({data:name==='claim_dynamic_render_job_v4'?[claim]:true,error:null}));const list=vi.fn(async()=>({data:[]as Array<{name:string}>,error:null})),remove=vi.fn(async()=>({error:null})),upload=vi.fn(async()=>({error:null}));
  const backend=new SupabaseDynamicRenderBackend('https://storage.test','controlled-service-key',{rpc,storage:{from:()=>({list,remove,upload})}});expect(await backend.claimJob('same-worker',60,3)).toBe(null);expect(list).toHaveBeenCalledTimes(3);expect(rpc).toHaveBeenLastCalledWith('finish_sync_binary_cleanup_v1',expect.objectContaining({p_success:true,p_snapshot_id:f.job.snapshotId}));expect(upload).not.toHaveBeenCalled();
  list.mockRejectedValueOnce(Error('Controlled storage outage'));await expect(backend.claimJob('same-worker',60,3)).rejects.toThrow('Controlled storage outage');expect(rpc).toHaveBeenLastCalledWith('finish_sync_binary_cleanup_v1',expect.objectContaining({p_success:false,p_snapshot_id:f.job.snapshotId}));
+});
+
+it.each(['menu','news','sport_program']as const)('prepares %s DOM-v2 with no capture, poster or encoder',async(type)=>{
+ const f=fixture(),family=type==='news'?'rss':type==='menu'?'menu':'fixtures';
+ const seed=syncSlidePresentationSchema.parse({...((f.job.snapshotData as {syncConfiguration:{seed:unknown}}).syncConfiguration.seed as object),family,style:{motion:'dynamisch'}});
+ f.job.manifest.slideType=type;
+ f.job.snapshotData={type,generatedAt:'2026-10-25T15:00:00Z',brand:{clubName:'Eigen club'},syncPlaybackProtocol:2,
+  syncConfiguration:{schemaVersion:1,kind:'dynamic',rendererVersion:seed.rendererVersion,sourceRevision:seed.sourceRevision,slideType:type,seed,secondsPerPage:3},
+  ...(type==='menu'?{menu:{products:[{id:'product-1',name:'Echte prijs',priceCents:250,category:'Kantine'}]}}:type==='news'?{news:{articles:[{id:'article-1',title:'Volledige kop',intro:'Gecontroleerd bericht',url:'https://news.example.test/1',sourceName:'Eigen bron',publishedAt:'2026-10-25T14:00:00Z'}]}}:{sport:{items:[{id:'match-1',homeTeam:'Team A',awayTeam:'Team B',date:'2026-10-26',time:'14:00',field:'1'}]}})};
+ expect(await runDynamicRenderOnce(f)).toMatchObject({status:'completed'});
+ expect(f.sourceRenderer).not.toHaveBeenCalled();expect(f.renderer.renderPng).not.toHaveBeenCalled();expect(f.renderer.renderRgba).not.toHaveBeenCalled();expect(f.reactDomRenderer.renderPng).not.toHaveBeenCalled();
+ const artifact=f.backend.uploadArtifact.mock.calls[0]![1];
+ expect(artifact.dom).toMatchObject({schemaVersion:2,mimeType:'application/vnd.veyocast.sync-dom+json'});expect(artifact.sync).toBeUndefined();
+ expect(artifact.storagePath).toMatch(/\/sync-dom\/[a-f0-9]{64}\.json$/);
+ expect(JSON.parse(new TextDecoder().decode(artifact.bytes))).toMatchObject({schemaVersion:2,snapshotId:f.job.snapshotId,configuration:{slideType:type}});
+ expect(JSON.stringify(artifact)).not.toContain('poster');
 });

@@ -23,3 +23,10 @@ it('scopes a live binding to Source score designs without exposing URLs or weake
  expect(syncDynamicPlaybackSchema.safeParse({...value,liveMatch:{...liveMatch,sourceUpdatedAt:'invalid'}}).success).toBe(false);
  expect(syncDynamicBinaryPlaybackSchema.safeParse({...metadata,liveMatch}).success).toBe(false);
 });
+it('requires an explicit independent v2 identity while the legacy binary decoder remains strict',()=>{
+ const{fallbackChecksumSha256,...common}=metadata;void fallbackChecksumSha256;
+ const value={...common,schemaVersion:2,descriptorChecksumSha256:'e'.repeat(64),dataRevision:1,presentation,assets:{}};
+ expect(syncDynamicPlaybackSchema.safeParse(value).success).toBe(true);
+ expect(syncDynamicBinaryPlaybackSchema.safeParse(value).success).toBe(false);
+ for(const changed of[{...value,fallbackChecksumSha256:'c'.repeat(64)},{...value,descriptorChecksumSha256:undefined},{...value,dataRevision:undefined},{...value,dataRevision:0},{...value,schemaVersion:3}])expect(syncDynamicPlaybackSchema.safeParse(changed).success).toBe(false);
+});

@@ -68,6 +68,7 @@ export function parseRssOrAtom(
   );
   const candidates = blocks.flatMap((block, index) => {
     const title = cleanText(firstTag(block, "title") ?? "");
+    if(title.length>400)throw new RssParseError('Een artikelkop overschrijdt de limiet van 400 tekens. De vorige bruikbare nieuwsset blijft behouden.');
     const link = resolveHttpUrl(rssLink(block), sourceUrl);
     if (!title || !link) return [];
     const published = firstTag(block, "pubDate") ??
@@ -85,7 +86,7 @@ export function parseRssOrAtom(
       article: {
         author: nullableText(
           firstTag(block, "author") ?? firstTag(block, "dc:creator")
-        ),
+        )?.slice(0,160)??null,
         canonicalLink: canonicalArticleLink(link),
         externalId: externalId || `${link}#${index}`,
         heroMediaAssetId: null,
@@ -98,7 +99,7 @@ export function parseRssOrAtom(
         link,
         publishedAt,
         qrMediaAssetId: null,
-        sourceName: cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname,
+        sourceName: (cleanText(rootTitle ?? "") || new URL(sourceUrl).hostname).slice(0,160),
         title
       } satisfies CanonicalNewsArticle,
       imageUrl, imageUrls

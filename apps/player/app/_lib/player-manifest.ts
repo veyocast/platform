@@ -8,6 +8,7 @@ import type {
   SitesPresentation,
   SyncSlidePresentation,
   SyncDynamicPlayback,
+  MenuDomPlayback,
   SyncDynamicBinaryPlayback,
   PlayerEngagePlayback,
   PlayerPlaybackItem,
@@ -73,7 +74,8 @@ export type PlayerManifestPresentationDefaults = {
   videoMuted: boolean;
 };
 
-export type PlayerManifestItem = PlayerPlaybackItem & {
+export type PlayerManifestItem = Omit<PlayerPlaybackItem,'kind'> & {
+  kind: PlayerPlaybackItem['kind'] | 'composition';
   sourceItemId?: string;
   contentHash?: string;
   dynamicTemplate?: PlayerDynamicTemplatePayload;
@@ -86,6 +88,7 @@ export type PlayerManifestItem = PlayerPlaybackItem & {
   syncStudioDurationMs?:number;
   syncStudioAssets?:Record<string,PlayerDynamicTemplateAsset>;
   syncDynamic?:SyncDynamicPlayback;
+  menuDom?:MenuDomPlayback;
   syncDynamicBinary?:SyncDynamicBinaryPlayback;
   syncSystemAssetUrls?:Record<string,string>;
   mediaFrameBackground?:MediaFramePlaybackBackground;
@@ -103,7 +106,7 @@ export type PlayerManifestItem = PlayerPlaybackItem & {
 };
 
 export type PlayerReleaseManifest = {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   tenantId: string;
   playlistId: string;
   releaseId: string;

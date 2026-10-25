@@ -1,0 +1,54 @@
+[
+  {
+    "provider": "manual_products",
+    "orientation": "landscape",
+    "descriptorBytes": 1818,
+    "prepareMs": 33.3724380000001,
+    "pages": 2,
+    "publicationSchema": 2,
+    "nativeCapture": false,
+    "binaryBeforeDemand": 0,
+    "approvedPricePreserved": true,
+    "unchangedRevision": true,
+    "rolledBack": true
+  },
+  {
+    "provider": "manual_products",
+    "orientation": "portrait",
+    "descriptorBytes": 1816,
+    "prepareMs": 3.6907900000001064,
+    "pages": 2,
+    "publicationSchema": 2,
+    "nativeCapture": false,
+    "binaryBeforeDemand": 0,
+    "approvedPricePreserved": true,
+    "unchangedRevision": true,
+    "rolledBack": true
+  },
+  {
+    "provider": "twelve_excel",
+    "orientation": "landscape",
+    "descriptorBytes": 1818,
+    "prepareMs": 2.68984300000011,
+    "pages": 2,
+    "publicationSchema": 2,
+    "nativeCapture": false,
+    "binaryBeforeDemand": 0,
+    "approvedPricePreserved": true,
+    "unchangedRevision": true,
+    "rolledBack": true
+  },
+  {
+    "provider": "twelve_excel",
+    "orientation": "portrait",
+    "descriptorBytes": 1816,
+    "prepareMs": 3.220916999999872,
+    "pages": 2,
+    "publicationSchema": 2,
+    "nativeCapture": false,
+    "binaryBeforeDemand": 0,
+    "approvedPricePreserved": true,
+    "unchangedRevision": true,
+    "rolledBack": true
+  }
+]

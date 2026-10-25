@@ -32,7 +32,7 @@ export async function loadSitesPlaylistEditor(tenantId: string, data: PlaylistSt
     ? await loadMediaFramePlacements(supabase, tenantId, data.items)
     : new Map<string, NonNullable<Slide["mediaFrame"]>>();
   const slides:Slide[]=data.items.map(item=>{
-    const slide:Slide={mediaChecksumSha256:item.asset?.variant?.checksumSha256,id:item.id,name:item.displayTitle||item.asset?.title||"Playlistitem",image:item.asset?.variant?.previewUrl??"",seconds:item.durationSeconds,mediaId:item.mediaAssetId,kind:item.asset?.kind,sourceKind:item.youtubeSourceId?"youtube":item.engageCampaignId?"engage":undefined,sourceId:item.youtubeSourceId??item.engageCampaignId??undefined,fallbackAssetId:item.mediaAssetId};
+    const slide:Slide={mediaChecksumSha256:item.asset?.variant?.checksumSha256,id:item.id,name:item.displayTitle||item.asset?.title||"Playlistitem",image:item.asset?.variant?.previewUrl??"",seconds:item.durationSeconds,mediaId:item.mediaAssetId,kind:item.asset?.kind==='composition'?'image':item.asset?.kind,sourceKind:item.youtubeSourceId?"youtube":item.engageCampaignId?"engage":undefined,sourceId:item.youtubeSourceId??item.engageCampaignId??undefined,fallbackAssetId:item.mediaAssetId};
     const mediaFrame = framePlacements.get(item.id);
     if (mediaFrame) {
       // A pinned frame is rawmedia, even when another historical export shares its asset.

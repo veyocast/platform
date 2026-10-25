@@ -1,13 +1,14 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Locked local Source artwork and the existing expiring-code QR endpoint. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { syncPlayerStatusCopy, validDisplayedPairingCode, type SyncPlayerStatusStage } from "../_lib/player-status-presentation";
 import { parsePlayerTimestamp } from "../_lib/player-time";
 import styles from "./sync-player-status.module.css";
 
 type StatusProblem = { code?: string; cause: string; effect: string; recovery: string };
 export type SyncPlayerStatusProps = {
+  embedded?:boolean;
   stage: SyncPlayerStatusStage;
   landmark: string;
   screenName?: string;
@@ -21,7 +22,8 @@ export type SyncPlayerStatusProps = {
 };
 
 /** Source PlayerExperience status canvas, driven only by real runtime facts. */
-export function SyncPlayerStatus({ stage, landmark, screenName, footer, detail, title, pairingCode, expiresAt, onRetry, problem }: SyncPlayerStatusProps) {
+export function SyncPlayerStatus({ embedded=false,stage, landmark, screenName, footer, detail, title, pairingCode, expiresAt, onRetry, problem }: SyncPlayerStatusProps) {
+  const embeddedId=useId(),Root=embedded?"div":"main",titleId=embedded?embeddedId:"player-title";
   const [qrOpen, setQrOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const qrTrigger = useRef<HTMLButtonElement>(null);
@@ -37,16 +39,16 @@ export function SyncPlayerStatus({ stage, landmark, screenName, footer, detail, 
   }, [qrOpen, canShowQr]);
   function closeQr() { setQrOpen(false); dialog.current?.close(); qrTrigger.current?.focus(); }
 
-  return <main aria-label={landmark} className={styles.root} data-sync-player-stage={visibleStage}>
+  return <Root role={embedded?"status":undefined} aria-label={landmark} className={styles.root} data-sync-player-stage={visibleStage}>
     <div className="px-player-canvas">
-      <section className={`px-splash has-brand-art ${visibleStage === "error" ? "error" : ""}`} aria-labelledby="player-title">
+      <section className={`px-splash has-brand-art ${visibleStage === "error" ? "error" : ""}`} aria-labelledby={titleId}>
         <div className="px-splash-hero" aria-hidden="true"><img src="/assets/brand-hero-800.webp" srcSet="/assets/brand-hero-480.webp 480w, /assets/brand-hero-800.webp 800w, /assets/brand-hero-1254.webp 1254w" sizes="(max-width: 800px) 90vw, 55vw" width="1254" height="1254" alt="" /><span className="px-splash-art-light" /><span className="px-splash-art-shimmer" /></div>
         <div className="px-splash-grid" /><div className="px-splash-halo" /><div className="px-splash-orbit one" /><div className="px-splash-orbit two" />
         <div className="px-splash-brand"><img src="/assets/full-light.svg" alt="VeyoCast" /></div>
         <div className="px-splash-center">
           <div aria-hidden="true" className={`px-splash-icon ${visibleStage}`}><StatusIcon stage={visibleStage} /></div>
           <span className="px-splash-eyebrow">{copy.eyebrow}</span>
-          <h1 id="player-title">{title ?? copy.title}</h1>
+          <h1 id={titleId}>{title ?? copy.title}</h1>
           <p>{detail ?? copy.body}</p>
           {visibleStage === "pairing" ? code ? <>
             <div aria-label="Pairingcode" className="px-pairing-screen-code">{code.slice(0, 3)} <b>{code.replace(/ /g, "").slice(3)}</b></div>
@@ -62,7 +64,7 @@ export function SyncPlayerStatus({ stage, landmark, screenName, footer, detail, 
       </section>
     </div>
     {canShowQr ? <dialog className="px-code-dialog" ref={dialog} aria-labelledby="pairing-qr-title" onCancel={closeQr} onClose={() => { setQrOpen(false); qrTrigger.current?.focus(); }}><h2 id="pairing-qr-title">Scherm koppelen</h2><p>Scan deze tijdelijke code met VeyoCast Control.</p><img width="256" height="256" alt="QR-code met tijdelijke VeyoCast-koppelcode" src={`/api/player/pairing/qr?code=${encodeURIComponent(code!.replace(/ /g, ""))}`} /><button onClick={closeQr} type="button">Sluiten</button></dialog> : null}
-  </main>;
+  </Root>;
 }
 
 // Exact Lucide paths used by the immutable Source (ISC, lucide-react).

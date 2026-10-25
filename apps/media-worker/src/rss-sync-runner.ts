@@ -34,6 +34,8 @@ export type RssSyncRunResult =
       itemCount?: number;
       runId: string;
       status: "completed" | "failed";
+      phase?: string;
+      databaseCode?: string;
     };
 
 type RpcClient = {
@@ -52,6 +54,14 @@ type RpcClient = {
     };
   };
 };
+
+export class RssSyncBackendError extends Error {
+  readonly databaseCode: string;
+  constructor(readonly code: string, rawCode?: string) {
+    super(code);
+    this.databaseCode = rawCode && /^(?:[0-9A-Z]{5}|PGRST[0-9]{3})$/.test(rawCode) ? rawCode : 'UNKNOWN';
+  }
+}
 
 export class SupabaseRssSyncBackend {
   private readonly client: RpcClient;
@@ -99,10 +109,15 @@ export class SupabaseRssSyncBackend {
       p_run_id: job.runId,
       p_worker_id: workerId
     });
-    if (result.error || !Number.isSafeInteger(Number(result.data))) {
-      throw new Error("rss_sync_complete_failed");
+    if (result.error || result.data === null || !Number.isSafeInteger(Number(result.data)) || Number(result.data)<0 || Number(result.data)>50) {
+      throw new RssSyncBackendError("rss_sync_complete_failed", result.error?.code);
     }
     return Number(result.data);
+  }
+
+  async renew(job: ClaimedRssSync, workerId: string) {
+    const result = await this.client.rpc('renew_scheduled_rss_sync_v1', {p_run_id: job.runId, p_worker_id: workerId});
+    if (result.error || result.data !== true) throw new RssSyncBackendError('rss_sync_lease_lost', result.error?.code);
   }
 
   async uploadMedia(media: RssMediaArtifact[]) {
@@ -158,10 +173,20 @@ export async function runRssSyncOnce({
     return { errorCode: "rss_sync_claim_failed", status: "failed" };
   }
   if (!job) return { status: "idle" };
+  let phase = 'fetch', leaseError: unknown, renewal: Promise<void> | undefined;
+  const timer = setInterval(() => {
+    if (renewal || leaseError) return;
+    renewal = backend.renew(job!, workerId).catch(error => { leaseError = error; }).finally(() => { renewal = undefined; });
+  }, Math.floor(Math.min(600, Math.max(30, lockTimeoutSeconds)) * 1000 / 3));
+  timer.unref();
   try {
     const response = await fetchSafeRss(job.sourceUrl);
+    phase = 'parse';
     const feed = parseRssOrAtom(response.body, response.finalUrl);
+    phase = 'media';
     const media = await prepareRssMediaArtifacts(job, feed);
+    if (leaseError) throw leaseError;
+    phase = 'upload';
     await backend.uploadMedia(media);
     const heroAssetByExternalId = new Map(
       media.flatMap((asset) =>
@@ -184,6 +209,12 @@ export async function runRssSyncOnce({
       qrMediaAssetId:
         qrAssetByExternalId.get(article.externalId) ?? null
     }));
+    clearInterval(timer);
+    await renewal;
+    if (leaseError) throw leaseError;
+    phase = 'lease';
+    await backend.renew(job, workerId);
+    phase = 'completion';
     const itemCount = await backend.complete(
       job,
       workerId,
@@ -207,9 +238,14 @@ export async function runRssSyncOnce({
     return {
       dataSourceId: job.dataSourceId,
       errorCode: failure.code,
+      phase: error instanceof RssSyncBackendError && error.code==='rss_sync_lease_lost' ? 'lease' : phase,
+      ...(error instanceof RssSyncBackendError ? {databaseCode: error.databaseCode} : {}),
       runId: job.runId,
       status: "failed"
     };
+  } finally {
+    clearInterval(timer);
+    await renewal;
   }
 }
 
@@ -278,6 +314,9 @@ function parseClaim(value: unknown): ClaimedRssSync {
 }
 
 function classifyRssSyncFailure(error: unknown) {
+  if (error instanceof RssSyncBackendError) return {code: error.code, message: error.code==='rss_sync_lease_lost'
+    ? 'De RSS-synchronisatie is door een nieuwe poging overgenomen. De vorige bruikbare nieuwsset blijft behouden.'
+    : `De RSS-completion kon niet worden bevestigd (databasecode ${error.databaseCode}). De vorige bruikbare nieuwsset blijft behouden.`};
   if (error instanceof SafeRssFetchError || error instanceof RssParseError) {
     return { code: error.code, message: error.message };
   }

@@ -1,5 +1,7 @@
 import {assertSyncPlayerAssetManifest,assertSyncDynamicConfigurationContinuity} from "./sync-player-assets";
 import { assertMediaFrameManifest, assertMediaFrameContinuity } from "./player-media-frame";
+import {hasCompleteSyncDomShell}from'./sync-dom-shell';
+import {screenCompositionDataIdentity,screenCompositionIdentity}from'./player-screen-composition';
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 import {publishedScreenCompositionSchema, syncBackgroundAssets} from "@veyocast/contracts";
 import {isSyncPreparedUrl} from "./sync-player-presentation";
@@ -32,6 +34,7 @@ let preparingMediaCount = 0;
 let mediaCollection: Promise<unknown> = Promise.resolve();
 
 export type PlayerCachePhase = "DOWNLOADING" | "VERIFYING";
+export function hasSyncDomV2Envelope(envelope:PlayerManifestEnvelope){return[envelope,...Object.values(envelope.composition?.zones??{})].some(zone=>zone.manifest.schemaVersion===2);}
 
 export type PlayerCacheAsset = {
   bytes: number;
@@ -47,6 +50,9 @@ export type CachedPlayerRelease = {
   assets: PlayerCacheAsset[];
   deviceToken: string;
   envelope: PlayerManifestEnvelope;
+  /** One verified v2 predecessor. Keep the original previousReleases slot
+   * readable by version-1 app rollbacks without changing the IndexedDB version. */
+  previousDom?:Pick<CachedPlayerRelease,'activatedAt'|'assets'|'deviceToken'|'envelope'>;
 };
 
 export type HydratedPlayerRelease = {
@@ -90,7 +96,7 @@ export function getCacheableAssets(
       );
     }
 
-    for (const asset of Object.values({...item.dynamicTemplate?.assets,...item.sitesStudioAssets,...item.syncStudioAssets,...item.syncDynamic?.assets,...item.mediaFrameBackgroundAssets})) {
+    for (const asset of Object.values({...item.dynamicTemplate?.assets,...item.sitesStudioAssets,...item.syncStudioAssets,...item.syncDynamic?.assets,...item.menuDom?.assets,...item.mediaFrameBackgroundAssets})) {
       assets.push(toDynamicCacheAsset(item, asset));
       if (
         asset.posterUrl && asset.posterBytes && asset.posterChecksumSha256
@@ -140,8 +146,9 @@ export async function preparePendingRelease({
   signal?: AbortSignal;
   store?: PlayerMediaStore;
 }): Promise<PlayerCacheResult> {
-  if (envelope.manifest.schemaVersion !== 1) return { ok: false, error: "PLAYER_UPDATE_REQUIRED" };
+  if (![1,2].includes(envelope.manifest.schemaVersion)) return { ok: false, error: "PLAYER_UPDATE_REQUIRED" };
   let assets:PlayerCacheAsset[];try{assets=getEnvelopeCacheableAssets(envelope);}catch{return {ok:false,error:"RELEASE_ASSET_MANIFEST_INVALID"};}
+  if(hasSyncDomV2Envelope(envelope)&&!await hasCompleteSyncDomShell(signal))return{ok:false,error:'SYNC_DOM_SHELL_UNAVAILABLE'};
   preparingMediaCount += 1;
   try {
     await mediaCollection;
@@ -241,8 +248,14 @@ export async function activateRelease({
     store.get(deviceToken)
   );
 
-  if (currentRelease && currentRelease.envelope.manifest.releaseId !== envelope.manifest.releaseId) {
-    await requestToPromise(previousStore.put(currentRelease));
+  if(currentRelease){
+    if(hasSyncDomV2Envelope(envelope)){
+      if(hasSyncDomV2Envelope(currentRelease.envelope)){
+        cachedRelease.previousDom=currentRelease.envelope.manifest.releaseId===envelope.manifest.releaseId&&screenCompositionIdentity(currentRelease.envelope)===screenCompositionIdentity(envelope)&&screenCompositionDataIdentity(currentRelease.envelope)===screenCompositionDataIdentity(envelope)?currentRelease.previousDom:{activatedAt:currentRelease.activatedAt,assets:currentRelease.assets,deviceToken:currentRelease.deviceToken,envelope:currentRelease.envelope};
+      }else await requestToPromise(previousStore.put(currentRelease));
+    }else if(!hasSyncDomV2Envelope(currentRelease.envelope)&&currentRelease.envelope.manifest.releaseId!==envelope.manifest.releaseId){
+      await requestToPromise(previousStore.put(currentRelease));
+    }
   }
   await requestToPromise(store.put(cachedRelease));
   await transactionDone(transaction);
@@ -259,8 +272,10 @@ export async function readActiveRelease(deviceToken: string) {
 }
 
 export async function readPreviousRelease(deviceToken: string) {
-  return readReleaseFromStore(playerPreviousReleaseStoreName, deviceToken);
+  const active=await readActiveRelease(deviceToken);
+  return active?.previousDom??readCompatibilityRelease(deviceToken);
 }
+export async function readCompatibilityRelease(deviceToken:string){return readReleaseFromStore(playerPreviousReleaseStoreName,deviceToken);}
 
 export async function recoverDeviceTokenFromPersistedRelease() {
   await migratePreviousPlayerStorage();
@@ -296,7 +311,7 @@ export async function garbageCollectPersistedPlayerMedia(
   const collection = async () => {
   const [activeRelease, previousRelease] = await Promise.all([
     readActiveRelease(deviceToken),
-    readPreviousRelease(deviceToken)
+    readCompatibilityRelease(deviceToken)
   ]);
   return garbageCollectPlayerMedia({
     releases: [activeRelease, previousRelease, ...inUse],
@@ -318,7 +333,7 @@ export async function garbageCollectPlayerMedia({
   store: PlayerMediaStore;
 }) {
   const retainedKeys = new Set(
-    releases.flatMap((release) => release?.assets.map((asset) => asset.cacheKey) ?? [])
+    releases.flatMap((release) => [...(release?.assets??[]),...(('previousDom'in(release??{})?(release as CachedPlayerRelease).previousDom?.assets:undefined)??[])].map(asset=>asset.cacheKey))
   );
   const storedKeys = await store.keys();
   const obsoleteKeys = storedKeys.filter(
@@ -713,6 +728,7 @@ function withCachedUrls(
           ...(item.syncStudioAssets?{syncStudioAssets:Object.fromEntries(Object.entries(item.syncStudioAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           ...(item.mediaFrameBackgroundAssets?{mediaFrameBackgroundAssets:Object.fromEntries(Object.entries(item.mediaFrameBackgroundAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           ...(item.syncDynamic?{syncDynamic:{...item.syncDynamic,assets:Object.fromEntries(Object.entries(item.syncDynamic.assets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}}:{}),
+          ...(item.menuDom?{menuDom:{...item.menuDom,assets:Object.fromEntries(Object.entries(item.menuDom.assets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}}:{}),
           ...(dynamicTemplate ? { dynamicTemplate } : {}),
           ...(item.sitesStudioAssets?{sitesStudioAssets:Object.fromEntries(Object.entries(item.sitesStudioAssets).map(([id,asset])=>[id,{...asset,url:playbackUrls[`/__veyocast-player-cache/${asset.checksumSha256}`]??asset.url}]))}:{}),
           source: {
@@ -806,6 +822,7 @@ export function refreshHydratedReleaseEnvelope({
           ...(item.syncStudioAssets?{syncStudioAssets:Object.fromEntries(Object.entries(item.syncStudioAssets).map(([id,asset])=>{const cached=cachedItem.syncStudioAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
           ...(item.mediaFrameBackgroundAssets?{mediaFrameBackgroundAssets:Object.fromEntries(Object.entries(item.mediaFrameBackgroundAssets).map(([id,asset])=>{const cached=cachedItem.mediaFrameBackgroundAssets?.[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}:{}),
           ...(item.syncDynamic?{syncDynamic:{...item.syncDynamic,assets:Object.fromEntries(Object.entries(item.syncDynamic.assets).map(([id,asset])=>{const cached=cachedItem.syncDynamic?.assets[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}}:{}),
+          ...(item.menuDom?{menuDom:{...item.menuDom,assets:Object.fromEntries(Object.entries(item.menuDom.assets).map(([id,asset])=>{const cached=cachedItem.menuDom?.assets[id];return [id,{...asset,url:cached?.checksumSha256===asset.checksumSha256?cached.url:asset.url}];}))}}:{}),
           ...(cachedItem.syncSystemAssetUrls?{syncSystemAssetUrls:cachedItem.syncSystemAssetUrls}:{}),
           ...(cachedItem.sitesSystemAssetUrls?{sitesSystemAssetUrls:cachedItem.sitesSystemAssetUrls}:{}),
           ...(item.dynamicTemplate

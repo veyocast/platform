@@ -44,12 +44,17 @@ describe('approved OnzeTrots canonical facts in the active projector',()=>{
   expect(projectSyncDynamicSnapshot(input,wire,now)).toEqual({ok:false,code:'SYNC_FAMILY_SCOPE_MISMATCH'});
  });
  it('combines three complete datasets only within one tenant/team/competition/pool/season context',()=>{
-  const context={tenantId:scope.tenantId,...scope.context},part=(items:unknown[])=>({context,items}),composite={context:{...context,revisions:['results','standings','fixtures'].map(dataset=>({dataset,revision:2}))},results:part([{...fixture(0),status:'finished',homeScore:1,awayScore:0}]),standings:part([row(0),{...row(1),teamId:'team-a'}]),fixtures:part([fixture(1)])};
+  const context={tenantId:scope.tenantId,...scope.context},part=(items:unknown[])=>({context,items}),composite={context:{...context,revisions:['results','standings','fixtures'].map(dataset=>({dataset,revision:2}))},results:part([{...fixture(0),kickoffAt:'2026-10-21T12:00:00Z',status:'finished',homeScore:1,awayScore:0}]),standings:part([row(0),{...row(1),teamId:'team-a'}]),fixtures:part([fixture(1)])};
   const input=payload('sport_match_of_the_day',{items:[],matchday:composite}),slide=project(input,'matchday');
   expect(slide.rich?.matchday?.results[0]?.homeScore).toBe(1);expect(slide.rich?.matchday?.standings.rows).toHaveLength(2);expect(slide.rich?.matchday?.fixtures[0]?.id).toBe('match-1');
   for(const [key,value]of Object.entries({tenantId:'10000000-0000-4000-8000-000000000286',teamId:'other-team',competitionId:'other-competition',poolId:'other-pool',seasonId:'2025'})){
    const changed=structuredClone(input),matchday=(changed.data.sport as {matchday:typeof composite}).matchday;Object.assign(matchday.fixtures.context,{[key]:value});
    expect(projectSyncDynamicSnapshot(changed,seed('matchday'),now).ok,key).toBe(false);
+  }
+  for(const part of ['results','fixtures'] as const){
+   const changed=structuredClone(input),matchday=(changed.data.sport as {matchday:typeof composite}).matchday;
+   (matchday[part].items[0] as Record<string,unknown>).homeTeamId='team-a2';
+   expect(projectSyncDynamicSnapshot(changed,seed('matchday'),now)).toEqual({ok:false,code:'SYNC_CANONICAL_IDENTITY_INVALID'});
   }
  });
  it('retains thirteen authorized birthdays and seven activities over six fixed places per page',()=>{
@@ -57,5 +62,17 @@ describe('approved OnzeTrots canonical facts in the active projector',()=>{
   expect(birthdays.rich?.birthdays).toHaveLength(13);expect(birthdays.rich?.birthdays?.[0]?.age).toBeNull();expect(syncSlidePageCount(birthdays)).toBe(3);
   const activities=project(payload('sport_activities',{items:Array.from({length:7},(_,i)=>({id:`event-${i}`,primary:`Activiteit ${i}`,secondary:'Eigen activiteit',date:'24 okt',time:'14:00'}))}),'activities');
   expect(activities.rich?.activities).toHaveLength(7);expect(syncSlidePageCount(activities)).toBe(2);
+ });
+ it('selects the birthday period from all 250 permitted source records before applying presentation limits',()=>{
+  const records=Array.from({length:250},(_,i)=>({id:`birthday-${i}`,displayName:`Persoon ${i}`,age:null,day:i<244?28:23,month:i<244?12:10,isToday:false,role:'',teams:[]}));
+  const input=payload('sport_birthdays',{fetchedAt:now.toISOString(),birthdays:records}),slide=project(input,'birthdays');
+  expect(slide.rich?.birthdays).toHaveLength(6);expect(slide.rich?.birthdays?.[0]?.id).toBe('birthday-244');
+  (input.data.sport as Record<string,unknown>).birthdays=[...records,{...records[0],id:'overflow'}];
+  expect(projectSyncDynamicSnapshot(input,seed('birthdays'),now)).toEqual({ok:false,code:'SYNC_PRESENTATION_BOUNDS_EXCEEDED'});
+ });
+ it('rejects a future or absent birthday observation separately from an empty valid collection',()=>{
+  for(const fetchedAt of [undefined,'invalid','2026-10-23T12:00:00Z']){
+   expect(projectSyncDynamicSnapshot(payload('sport_birthdays',{fetchedAt,birthdays:[]}),seed('birthdays'),now)).toEqual({ok:false,code:'SYNC_CANONICAL_FRESHNESS_INVALID'});
+  }
  });
 });

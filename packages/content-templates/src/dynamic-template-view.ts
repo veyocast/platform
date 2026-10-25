@@ -361,7 +361,8 @@ export function createDynamicTemplateView(
 /** Complete bounded row input for the new Sync projector only. Historical renderer
  * entrypoints retain their original limits, pagination and eligibility policies. */
 export function createCompleteDynamicTemplateView(value: unknown, now = new Date()): DynamicTemplateView | null {
-  return createDynamicTemplateViewInternal(value, false, now, undefined, 200);
+  const birthday=value&&typeof value==='object'&&'slideType'in value&&value.slideType==='sport_birthdays';
+  return createDynamicTemplateViewInternal(value, false, now, undefined, birthday?250:200);
 }
 
 /** Fixture-only entrypoint for typed families without a live provider gate. */

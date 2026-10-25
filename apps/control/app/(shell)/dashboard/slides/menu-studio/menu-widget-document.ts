@@ -1,5 +1,5 @@
 import { menuDocumentV2Schema, type MenuBlock, type MenuDocumentV2, type MenuProductPlacement, type SitesDynamicConfiguration } from "@veyocast/contracts";
-import type { MenuStudioMediaOption, MenuStudioProductOption } from "./menu-studio-editor";
+import type { MenuStudioMediaOption, MenuStudioProductOption } from "./menu-studio-options";
 
 export const menuWidgetZones = { landscape: { x: 96, y: 248, w: 1728, h: 704 }, portrait: { x: 72, y: 348, w: 936, h: 1388 } } as const;
 /** Decimal input becomes exact integer cents; no floating-point rounding. */
@@ -10,7 +10,7 @@ export function parseMenuPriceMinor(value: string): number | null {
   return amount <= 999_999_999 ? amount : null;
 }
 export function menuWidgetLayout() { return Object.fromEntries(Object.entries(menuWidgetZones).map(([key, zone]) => [key, { ...zone, rotation: 0 }])) as MenuBlock["layout"]; }
-export function menuProductPlacement(product: MenuStudioProductOption, id = crypto.randomUUID()): MenuProductPlacement {
+export function menuProductPlacement(product: MenuStudioProductOption, id: string = crypto.randomUUID()): MenuProductPlacement {
   return { id, kind: "product", order: 0, productRef: { productId: product.id, source: product.sourceKind === "twelve_excel" ? "twelve" : "manual", sourceRevision: product.sourceRevision, ...(product.sourceKind === "twelve_excel" ? { providerConnectionId: product.sourceId } : {}) }, snapshotFallback: { available: product.available, name: product.name, price: { amountMinor: product.priceCents, currency: product.currency, taxMode: product.taxMode, ...(product.taxRateBps === undefined ? {} : { taxRateBps: product.taxRateBps }), ...(product.unitKey ? { unitKey: product.unitKey } : {}) } } };
 }
 export function menuLinkedIds(document: MenuDocumentV2): string[] {

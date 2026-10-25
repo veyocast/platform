@@ -20,6 +20,50 @@ export function lgSitesRuntimeScript() {
         return binding.zoneId + ":" + binding.releaseId;
       }).join(":");
     }
+    function lgSyncBinaryValid(item) {
+      var value=item && item.syncDynamicBinary;
+      if (value===undefined) return true;
+      if (!value || typeof value!=="object" || Array.isArray(value)) return false;
+      var keys=["schemaVersion","configurationSnapshotId","snapshotId","templateVersionId","configurationHash","contentHash","fallbackChecksumSha256","durationMs","dataRevision"];
+      var ids=["configurationSnapshotId","snapshotId","templateVersionId"];
+      var hashes=["configurationHash","contentHash","fallbackChecksumSha256"];
+      return value.schemaVersion===1 && !item.syncDynamic && !item.syncStudioPresentation && !item.sitesStudioPresentation && !item.dynamicTemplate &&
+        Object.keys(value).every(function(key){return keys.indexOf(key)!==-1;}) &&
+        ids.every(function(key){return typeof value[key]==="string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(value[key]);}) &&
+        hashes.every(function(key){return typeof value[key]==="string" && /^[a-f0-9]{64}$/.test(value[key]);}) &&
+        typeof value.durationMs==="number" && Math.floor(value.durationMs)===value.durationMs && value.durationMs>=3000 && value.durationMs<=120000 &&
+        (value.dataRevision===undefined || typeof value.dataRevision==="number" && isFinite(value.dataRevision) && Math.floor(value.dataRevision)===value.dataRevision && value.dataRevision>=0 && value.dataRevision<=9007199254740991) &&
+        item.source && value.fallbackChecksumSha256===item.source.checksumSha256 &&
+        ((item.kind==="video" && item.source.mimeType==="video/mp4") || (item.kind==="image" && item.source.mimeType==="image/png"));
+    }
+    function lgSyncBinaryContinuity(before,after) {
+      if (!before || !after || !before.manifest || before.manifest.releaseId!==after.manifest.releaseId) return true;
+      var previous={};(before.manifest.items||[]).forEach(function(item){previous[item.id]=item.syncDynamicBinary;});
+      if (!(after.manifest.items||[]).every(function(item){
+        var old=previous[item.id],next=item.syncDynamicBinary;
+        if (!old) return true;
+        return Boolean(next && old.configurationSnapshotId===next.configurationSnapshotId && old.configurationHash===next.configurationHash && old.templateVersionId===next.templateVersionId &&
+          Number(next.dataRevision||0)>=Number(old.dataRevision||0) && !(old.dataRevision!==undefined && old.dataRevision===next.dataRevision && old.contentHash!==next.contentHash));
+      })) return false;
+      var beforeZones=before.composition&&before.composition.zones||{},afterZones=after.composition&&after.composition.zones||{};
+      return ["side","bottom"].every(function(id){return !afterZones[id] || lgSyncBinaryContinuity(beforeZones[id],afterZones[id]);});
+    }
+    function lgSyncBinaryFrame(item) {
+      var value=item&&item.syncDynamicBinary;
+      return value&&lgSyncBinaryValid(item)&&Number(value.dataRevision)>0?{schemaVersion:1,transport:"binary",itemId:item.id,configurationSnapshotId:value.configurationSnapshotId,dataRevision:value.dataRevision,contentHash:value.contentHash}:null;
+    }
+    function lgSyncBinaryDataIdentity(envelope) {
+      if (!envelope) return "";
+      var zones=envelope.composition&&envelope.composition.zones||{};
+      return [envelope,zones.side,zones.bottom].map(function(zone){
+        return (zone&&zone.manifest&&zone.manifest.items||[]).filter(function(item){return item.syncDynamicBinary;}).map(function(item){
+          return item.id+":"+item.syncDynamicBinary.contentHash+":"+String(item.syncDynamicBinary.dataRevision||0);
+        }).join(":");
+      }).join("|");
+    }
+    function lgSyncBinaryDataChanged(before,after) {
+      return lgSyncBinaryDataIdentity(before)!==lgSyncBinaryDataIdentity(after);
+    }
     function lgEnvelopeDataIdentity(envelope) {
       var envelopes = [envelope];
       var composition = envelope && envelope.composition;
@@ -28,7 +72,7 @@ export function lgSitesRuntimeScript() {
       }
       return envelopes.map(function (zone) {
         return (zone.manifest && zone.manifest.items || []).map(function (item) {
-          return item.id + ":" + (item.dynamicTemplate && item.dynamicTemplate.snapshotHash || "");
+          return item.id + ":" + (item.syncDynamicBinary ? "sync-binary-v1:" + item.syncDynamicBinary.contentHash + ":" + String(item.syncDynamicBinary.dataRevision || 0) : item.dynamicTemplate && item.dynamicTemplate.snapshotHash || "");
         }).join(":");
       }).join("|");
     }

@@ -181,3 +181,40 @@ describe("paged Engage capability with complete binary fallback",()=>{
   await expect(test.load(true)).rejects.toThrow("SITES_STUDIO_ASSETS_UNAVAILABLE");expect(test.reads).toContain("media_assets");
  });
 });
+
+describe('independent DOM v2 negotiation',()=>{
+ const uuid=(n:number)=>`29200000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+ function setup(){
+  const seed=syncSlidePresentationSchema.parse({schemaVersion:1,rendererVersion:'sync-v1',sourceRevision:'8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a',family:'fixtures',orientation:'landscape',theme:'fieldflow',name:'Eigen bronontwerp',title:'Ons programma',club:{name:'Onze club'},style:{motion:'geen'}});
+  const configuration={schemaVersion:1,kind:'dynamic',rendererVersion:seed.rendererVersion,sourceRevision:seed.sourceRevision,slideType:'sport_program',secondsPerPage:3,seed};
+  const presentation={...seed,rows:[['Team A','Team B','14:00','1']]as [string,string,string,string][]};
+  const path=`tenants/${uuid(4)}/assets/${uuid(7)}/sync-dom/${'a'.repeat(64)}.json`;
+  const artifact={schemaVersion:2,presentation,width:1920,height:1080,mimeType:'application/vnd.veyocast.sync-dom+json',byteLength:2048,durationMs:3000,storagePath:path,checksumSha256:'a'.repeat(64)};
+  const snapshot={id:uuid(10),dynamic_slide_version_id:uuid(11),template_version_id:uuid(12),status:'ready',source_revision_hash:'d'.repeat(64),snapshot_data_json:{type:'sport_program',syncPlaybackProtocol:2,syncConfiguration:configuration},sync_render_result_json:artifact};
+  const row={id:uuid(5),source_item_id:uuid(6),live_data_enabled:true,asset_kind:'composition',asset_title:'Eigen bronontwerp',duration_seconds:3,fit_mode:'contain',muted:true,transition:'none',crop_focus_x:.5,crop_focus_y:.5,background_color:null,volume_percent:0,trim_start_seconds:0,trim_end_seconds:null,visible_from:null,visible_until:null,enabled:true,accessibility_name:null,section_source_id:null,section_name:null,section_position_key:null,storage_bucket:'tenant-media',storage_path:path,mime_type:artifact.mimeType,file_size_bytes:2048,checksum_sha256:'a'.repeat(64),dynamic_snapshot_id:uuid(10),youtube_video_id:null,youtube_title:null,youtube_online_only:null,sites_configuration_json:null,sites_studio_presentation_json:null};
+  const binaryPath=`tenants/${uuid(4)}/assets/${uuid(13)}/sync-dynamic/${'e'.repeat(64)}.png`;
+  const binary={snapshotId:uuid(10),contentHash:'f'.repeat(64),dataRevision:2,artifact:{presentation,width:1920,height:1080,mimeType:'image/png',byteLength:4096,durationMs:3000,storagePath:binaryPath,checksumSha256:'e'.repeat(64),poster:{byteLength:4096,checksumSha256:'e'.repeat(64),storagePath:binaryPath}}};
+  const state={pending:false,missing:false,rpcCalls:[]as string[],signed:[]as string[]};
+  const release={id:uuid(1),tenant_id:uuid(4),playlist_id:uuid(8),version:1,manifest_hash:'b'.repeat(64),manifest_json:{schemaVersion:2},published_at:'2026-10-25T12:00:00Z',total_bytes:2048,total_duration_seconds:3};
+  fixture.admin={from(table:string){const result=()=>({error:null,data:table==='playlist_release_items'?[row]:table==='dynamic_slide_snapshots'?(state.missing?[]:[snapshot]):table==='published_dynamic_data'?[{snapshot_id:uuid(10),data_revision:1,content_hash:'d'.repeat(64),data_json:snapshot.snapshot_data_json}]:[]});const query={select(){return query;},eq(){return query;},in(){return query;},order(){return query;},limit(){return query;},single:async()=>({error:null,data:release}),maybeSingle:async()=>({error:null,data:null}),then(resolve:(value:unknown)=>unknown){return Promise.resolve(result()).then(resolve);}};return query;},rpc:async(name:string)=>{state.rpcCalls.push(name);return{error:null,data:state.pending?[]:[binary]};},storage:{from:()=>({createSignedUrl:async(path:string)=>{state.signed.push(path);return{error:null,data:{signedUrl:'https://signed.example.invalid/'+path}};}})}};
+  return{state,row,snapshot,load:(syncDynamicMode:false|'dom'|'dom-v2'|'binary')=>loadPlayerReleaseEnvelope({device:{activeReleaseId:uuid(1),desiredReleaseId:uuid(1),id:uuid(2),screenId:uuid(3),screenName:'Eigen scherm'},releaseId:uuid(1),tenantId:uuid(4),enableSyncStudio:true,enableSyncBackgrounds:true,syncDynamicMode})};
+ }
+ it('offers composition only to the explicit v2 decoder without requesting a binary',async()=>{
+  const value=setup(),body=await value.load('dom-v2');assertSyncPlayerAssetManifest(body.manifest);
+  expect(body.manifest.schemaVersion).toBe(2);expect(body.manifest.items[0]).toMatchObject({kind:'composition',syncDynamic:{schemaVersion:2,dataRevision:1,descriptorChecksumSha256:'a'.repeat(64)}});
+  expect(body.manifest.items[0]!.syncDynamic).not.toHaveProperty('fallbackChecksumSha256');expect(value.state.rpcCalls).toEqual([]);
+ });
+ it.each([false,'dom','binary']as const)('retains a complete strict legacy envelope for %s',async mode=>{
+  const value=setup(),body=await value.load(mode);assertSyncPlayerAssetManifest(body.manifest);
+  expect(body.manifest.schemaVersion).toBe(1);expect(body.manifest.items[0]).toMatchObject({kind:'image',source:{mimeType:'image/png',checksumSha256:'e'.repeat(64)}});
+  expect(JSON.stringify(body)).not.toContain('descriptorChecksumSha256');expect(JSON.stringify(body)).not.toContain('sync-dom+json');expect(value.state.signed.every(path=>path.endsWith('.png'))).toBe(true);expect(value.state.rpcCalls).toEqual(['get_sync_binary_playback_v1']);
+ });
+ it('keeps a preparing legacy profile independent from the already-ready DOM profile',async()=>{
+  const value=setup();value.state.pending=true;await expect(value.load('dom')).rejects.toThrow('SYNC_DYNAMIC_BINARY_PREPARING');expect((await value.load('dom-v2')).manifest.schemaVersion).toBe(2);
+ });
+ it.each([false,'dom-v2']as const)('fails closed for %s when a composition receipt is unavailable',async mode=>{
+  const value=setup();value.state.missing=true;await expect(value.load(mode)).rejects.toThrow('SYNC_DYNAMIC_DOM_RELEASE_INVALID');expect(value.state.signed).toEqual([]);
+ });
+
+
+});

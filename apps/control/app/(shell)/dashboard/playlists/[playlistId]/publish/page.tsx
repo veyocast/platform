@@ -79,6 +79,7 @@ export default async function PublishJourneyPage({ params, searchParams }: Publi
         }}
         preflightError={preflight.error}
         preflightStates={preflight.screenStates.map((state) => ({
+          sourceDelivery:state.sourceDelivery,
           heartbeatAt: state.heartbeatAt,
           preflight: state.preflight,
           screen: state.screen

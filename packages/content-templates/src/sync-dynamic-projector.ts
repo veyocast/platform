@@ -20,7 +20,7 @@ import {
   resolveMenuProductPrice,
   resolveMenuGroupPrice,
 } from "./menu-scene-model";
-import {enrichSyncOnzeTrotsProjection} from './sync-onzetrots-projector';
+import {enrichSyncOnzeTrotsProjection,SyncCanonicalIdentityError} from './sync-onzetrots-projector';
 
 export {syncDynamicFamilies} from '@veyocast/contracts';
 
@@ -32,6 +32,9 @@ export type SyncDynamicProjection =
         | "SYNC_SNAPSHOT_INVALID"
         | "SYNC_FAMILY_SCOPE_MISMATCH"
         | "SYNC_CANONICAL_DATA_UNAVAILABLE"
+        | "SYNC_CANONICAL_IDENTITY_INVALID"
+        | "SYNC_CANONICAL_FRESHNESS_INVALID"
+        | "SYNC_PROJECTION_INVALID"
         | "SYNC_PRESENTATION_BOUNDS_EXCEEDED";
     };
 
@@ -145,7 +148,7 @@ export function projectSyncDynamicSnapshot(
         return { ok: false, code: "SYNC_PRESENTATION_BOUNDS_EXCEEDED" };
       const node = pending.pop();
       if (Array.isArray(node)) {
-        if (node.length > 200)
+        if (node.length > (payload.slideType==='sport_birthdays'?250:200))
           return { ok: false, code: "SYNC_PRESENTATION_BOUNDS_EXCEEDED" };
         pending.push(...node);
       } else if (record(node))
@@ -157,9 +160,10 @@ export function projectSyncDynamicSnapshot(
         typeof timestamp === "string" ? Date.parse(timestamp) : NaN;
       if (
         !Number.isFinite(fetchedAt) ||
+        fetchedAt - now.valueOf() > 5 * 60000 ||
         now.valueOf() - fetchedAt > 21 * 86400000
       )
-        return { ok: false, code: "SYNC_CANONICAL_DATA_UNAVAILABLE" };
+        return { ok: false, code: "SYNC_CANONICAL_FRESHNESS_INVALID" };
     }
     const menuDocument = payload.data.menuDocument;
     const viewPayload: PlayerDynamicTemplatePayload =
@@ -376,6 +380,7 @@ export function projectSyncDynamicSnapshot(
         : ["matchday", "next-match"].includes(slide.family)
           ? !home
           : rows.length === 0;
+    if(rows.length>200||news.length>50)return {ok:false,code:'SYNC_PRESENTATION_BOUNDS_EXCEEDED'};
     const presentation=syncSlidePresentationSchema.parse({
         ...slide,
         state: empty ? "empty" : "ready",
@@ -393,7 +398,7 @@ export function projectSyncDynamicSnapshot(
         },
       });
     return {ok:true,presentation:isSyncOnzeTrotsPresentation(presentation)?enrichSyncOnzeTrotsProjection(payload,presentation,view,now,image):presentation};
-  } catch {
-    return { ok: false, code: "SYNC_PRESENTATION_BOUNDS_EXCEEDED" };
+  } catch (error) {
+    return { ok: false, code: error instanceof SyncCanonicalIdentityError?"SYNC_CANONICAL_IDENTITY_INVALID":error instanceof Error&&error.name==='ZodError'?"SYNC_SNAPSHOT_INVALID":"SYNC_PROJECTION_INVALID" };
   }
 }

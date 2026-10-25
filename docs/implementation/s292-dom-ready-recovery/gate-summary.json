@@ -1,0 +1,41 @@
+{
+  "baselineSha": "4cb895c363c69bf754184902e804fda2792ac85c",
+  "domV2Implemented": true,
+  "deployed": false,
+  "remainingImplementation": [],
+  "gates": {
+    "lintTasks": 30,
+    "typecheckTasks": 30,
+    "unitTasks": 30,
+    "buildTasks": 18,
+    "latestPlayerBuild": true,
+    "databaseFiles": 146,
+    "databaseAssertions": 4811,
+    "birthdayRpcCases": 12,
+    "sourceDomRpcCases": 4,
+    "nativeExplicitExports": 3,
+    "controlA11yE2E": {
+      "passed": 94,
+      "conditionalSkips": 22
+    },
+    "finalRelevantPlayerOffline": {
+      "passed": 63,
+      "failed": 0,
+      "retries": 0,
+      "conditionalSkips": 0
+    },
+    "ownRunnerLint": true,
+    "databaseLintErrors": 0,
+    "menuDocumentRpcCases": 4,
+    "latestControlBuild": true,
+    "fullPlayerOfflineBeforeFinalTimingDelta": {
+      "passed": 398,
+      "conditionalSkips": 15
+    },
+    "menuDomBrowserCases": 7
+  },
+  "hostInotifyWorkaround": "built_next_apps_without_dev_watchers",
+  "readOnlyProductionProbe": "https://github.com/veyocast/platform/actions/runs/40200937195",
+  "rawLogs": "/home/codex/.local/state/veyocast-s292",
+  "physicalHardwareAcceptance": false
+}

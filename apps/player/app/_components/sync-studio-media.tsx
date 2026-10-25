@@ -10,6 +10,7 @@ import React, {
 import { isSyncOnzeTrotsPresentation,syncSlidePageCount, syncSlideRendererAssets, syncBackgroundAssetForRef, syncSlideTransition,type SyncSlidePresentation } from "@veyocast/contracts";
 import { SyncSlideStaticView,measureSyncOnzeTrotsV9Layout,measureSyncOnzeTrotsLayout,projectSyncOnzeTrotsMotion,applySyncOnzeTrotsMotion,advanceSyncOnzeTrotsTime } from "@veyocast/content-templates/sync-slide-static-view";
 import type { PlayerManifestItem } from "../_lib/player-manifest";
+import {hasVisibleSyncDomFrame}from"../_lib/sync-dom-frame";
 import { supportsSyncOnzeTrotsV9,supportsSyncSlideDom,supportsSyncOnzeTrots } from "../_lib/sync-player-capabilities";
 import type {LedScoresMatchState} from '../_lib/ledscores-match-experience';
 import {projectSyncLiveMatch,selectSyncLiveMatchState} from '../_lib/sync-live-match';
@@ -31,7 +32,7 @@ export function SyncStudioMedia({
   paused = false,
   onEnded,
   liveMatchStates,
-  presentationOverride,
+  presentationOverride,iteration=0,
 }: {
   item: PlayerManifestItem;
   onReady: (id: string) => void;
@@ -41,6 +42,7 @@ export function SyncStudioMedia({
   onEnded?: (id:string)=>void;
   liveMatchStates?: ReadonlyMap<string,LedScoresMatchState>;
   presentationOverride?: SyncSlidePresentation;
+  iteration?:number;
 }) {
   const root = useRef<HTMLDivElement>(null),
     readyCallback=useRef(onReady),
@@ -58,6 +60,11 @@ export function SyncStudioMedia({
   endedCallback.current=onEnded;
   const content=useMemo(()=>syncPlayerContent(item),[item]),presentation = content?.presentation,
     origin = typeof location === "undefined" ? "" : location.origin;
+  // Canonical data revisions and fresh object instances do not change the
+  // verified local resources. Only a changed resource requires font/image prep.
+  const preparationIdentity=JSON.stringify([presentation?.rendererVersion,
+    Object.entries(item.syncSystemAssetUrls??{}).sort(([a],[b])=>a<b?-1:a>b?1:0),
+    Object.entries(content?.assets??{}).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([id,asset])=>[id,asset.checksumSha256,asset.mimeType,asset.bytes,asset.url])]);
   const binding=item.syncDynamic?.liveMatch;
   liveState.current=selectSyncLiveMatchState(binding,liveState.current,binding?liveMatchStates?.get(binding.connectionId):undefined);
   const displayPresentation=presentationOverride??(presentation?projectSyncLiveMatch(presentation,liveState.current,binding?.showClock??false,matchNow||Date.now()):undefined);
@@ -111,12 +118,12 @@ export function SyncStudioMedia({
     }, 5000);
     const background = syncBackgroundAssetForRef(presentation?.style.backgroundAsset);
     const fonts = isSyncOnzeTrotsPresentation(presentation)?prepareSyncOnzeTrotsFonts(item.syncSystemAssetUrls!,origin,presentation):background ? prepareSyncBackgroundFonts(item.syncSystemAssetUrls!, origin) : null;
-    const images = [
+    const images = [...new Set([
       ...(presentation?syncSlideRendererAssets(presentation):[])
         .filter((asset) => asset.mimeType.startsWith("image/"))
         .map((asset) => item.syncSystemAssetUrls![asset.path]!),
       ...Object.values(content?.assets ?? {}).map((asset) => asset.url),
-    ];
+    ])];
     void Promise.all([
       ...images.map((url) => {
         const image = new Image();
@@ -145,6 +152,7 @@ export function SyncStudioMedia({
             animated=root.current?.querySelector<HTMLElement>('.sync-slide-animated'),
             box = frame?.getBoundingClientRect();
           if (
+            (item.syncDynamic?.schemaVersion!==2||hasVisibleSyncDomFrame(root.current,presentation?.rendererVersion??''))&&
             frame &&
             box &&
             box.width > 0 &&
@@ -181,9 +189,7 @@ export function SyncStudioMedia({
     supported,
     css,
     item.id,
-    item.syncSystemAssetUrls,
-    item.syncStudioAssets,
-    item.syncDynamic,
+    preparationIdentity,
     passive,
   ]);
   useEffect(() => {
@@ -203,7 +209,7 @@ export function SyncStudioMedia({
     }, 100);
     return () => window.clearInterval(timer);
   }, [frameReported, failed, paused, passive, pages, loopMs, perPageMs,item.kind,item.id,hasNaturalBoundary,presentation]);
-  useLayoutEffect(()=>{introFinished.current=false;scenePage.current=0;},[item.id]);
+  useLayoutEffect(()=>{elapsed.current=0;endReported.current=false;introFinished.current=false;scenePage.current=0;setPage(0);},[item.id,item.syncDynamic?.contentHash,iteration]);
   useLayoutEffect(()=>{
     const element=root.current;if(!isSyncOnzeTrotsPresentation(presentation)||!element||!ready||failed)return;
     const panelCount=presentation.rendererVersion==='sync-onzetrots-v9'?measureSyncOnzeTrotsV9Layout(element):0;
@@ -232,6 +238,7 @@ export function SyncStudioMedia({
       className="playback-media playback-sync"
       data-sync-page={page}
       data-sync-ready={ready}
+      data-sync-content-hash={item.syncDynamic?.contentHash}
       ref={root}
       style={{
         width: "100%",

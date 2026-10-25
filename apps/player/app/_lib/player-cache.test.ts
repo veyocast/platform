@@ -79,7 +79,7 @@ describe("player cache contract", () => {
     const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
     if (!lookup.ok) throw new Error("fixture missing");
     const envelope = structuredClone(lookup.body);
-    Object.assign(envelope.manifest, { schemaVersion: 2 });
+    Object.assign(envelope.manifest, { schemaVersion: 3 });
     const store = new MemoryMediaStore();
     const read = vi.spyOn(store, "get");
     expect(await preparePendingRelease({ envelope, store })).toEqual({ ok: false, error: "PLAYER_UPDATE_REQUIRED" });

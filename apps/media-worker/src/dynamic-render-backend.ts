@@ -3,9 +3,11 @@ import {
   dynamicTemplateManifestSchema,
   syncDynamicConfigurationSchema,
   syncSlideAssets,
+  syncDomDescriptorMimeType,
   playerDynamicTemplateAssetSchema,
   type PlayerDynamicTemplateAsset,
   type SyncSlidePresentation,
+  type SitesPresentation,
   type DynamicTemplateManifest
 } from "@veyocast/contracts";
 import {createHash} from 'node:crypto';
@@ -32,6 +34,9 @@ export type ClaimedDynamicRenderJob = {
 };
 
 export type DynamicRenderArtifact = {
+  menuDom?:{schemaVersion:2;mimeType:typeof syncDomDescriptorMimeType;durationMs:number;presentation:SitesPresentation};
+  menuBinary?:{mimeType:'image/png';durationMs:number;presentation:SitesPresentation};
+  dom?:{schemaVersion:2;mimeType:typeof syncDomDescriptorMimeType;durationMs:number;presentation:SyncSlidePresentation};
   sync?: {
     mimeType:'image/png'|'video/mp4';durationMs:number;presentation:SyncSlidePresentation;
     poster:{bytes:Uint8Array;byteLength:number;checksumSha256:string;storagePath:string};
@@ -107,7 +112,8 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
   constructor(
     supabaseUrl: string,
     serviceRoleKey: string,
-    client?: DynamicRpcClient
+    client?: DynamicRpcClient,
+    private readonly queueProfile:'all'|'dom'|'legacy'='all'
   ) {
     this.client = client ?? createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
@@ -171,7 +177,7 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     maxAttempts: number
   ) {
     const { data, error } = await this.client.rpc(
-      "claim_dynamic_render_job_v3",
+      this.queueProfile==='dom'?"claim_sync_dom_ready_job_v2":this.queueProfile==='legacy'?"claim_dynamic_render_job_v3":"claim_dynamic_render_job_v4",
       {
         p_lock_timeout_seconds: lockTimeoutSeconds,
         p_max_attempts: maxAttempts,
@@ -205,7 +211,11 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     job: ClaimedDynamicRenderJob,
     artifact: DynamicRenderArtifact
   ) {
-    assertArtifactPath(job, artifact.storagePath,artifact.sync?.mimeType,artifact.checksumSha256);
+    assertArtifactPath(job, artifact.storagePath,artifact.menuDom?.mimeType??artifact.menuBinary?.mimeType??artifact.dom?.mimeType??artifact.sync?.mimeType,artifact.checksumSha256);
+    if(artifact.dom){
+      if(job.publishedRefresh||artifact.byteLength>550000)throw invalidClaim();
+      assertSourceArtifactBytes(artifact.bytes,artifact.byteLength,artifact.checksumSha256);
+    }
     if(job.publishedRefresh){
       if(!artifact.sync||artifact.byteLength>64*1024*1024||artifact.sync.poster.byteLength>16*1024*1024)throw new DynamicRenderBackendError('binary_cache_artifact_budget_exceeded',false,'De volledige uitvoer past niet binnen het begrensde Player-cachebudget. De laatste goede uitzending blijft behouden.');
       await this.clearBinarySlot(job.tenantId,job.outputMediaAssetId,job);
@@ -219,10 +229,10 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
       // Even identical bytes from a later attempt have a different name.
       if(poster.storagePath!==artifact.storagePath)await this.uploadBytes(poster.storagePath,poster.bytes,'image/png',job.publishedRefresh);
     }
-    await this.uploadBytes(artifact.storagePath,artifact.bytes,artifact.sync?.mimeType??'image/png',job.publishedRefresh);
+    await this.uploadBytes(artifact.storagePath,artifact.bytes,artifact.menuDom?.mimeType??artifact.menuBinary?.mimeType??artifact.dom?.mimeType??artifact.sync?.mimeType??'image/png',job.publishedRefresh);
   }
 
-  private async uploadBytes(path:string,bytes:Uint8Array,mimeType:'image/png'|'video/mp4',publishedRefresh=false){
+  private async uploadBytes(path:string,bytes:Uint8Array,mimeType:string,publishedRefresh=false){
     const { error } = await (publishedRefresh?this.binaryClient:this.client).storage
       .from("tenant-media")
       .upload(path, bytes, {
@@ -245,13 +255,13 @@ export class SupabaseDynamicRenderBackend implements DynamicRenderBackend {
     artifact: Omit<DynamicRenderArtifact, "bytes">
   ) {
     const { error } = await (job.publishedRefresh?this.binaryClient:this.client).rpc(
-      job.publishedRefresh?"complete_sync_binary_render_v1":"complete_dynamic_render_job_v2",
+      artifact.menuBinary?'complete_menu_binary_render_v2':artifact.menuDom?'complete_menu_dom_job_v2':job.publishedRefresh?"complete_sync_binary_render_v1":artifact.dom?"complete_dynamic_dom_job_v2":"complete_dynamic_render_job_v2",
       {
         ...(job.publishedRefresh?{p_tenant_id:job.tenantId,p_snapshot_id:job.snapshotId}:{p_job_id:job.jobId}),
         p_worker_id: workerId,
         p_lease_token:job.leaseToken,
         p_artifact:{byteLength:artifact.byteLength,checksumSha256:artifact.checksumSha256,height:artifact.height,width:artifact.width,storagePath:artifact.storagePath,
-          ...(artifact.sync?{mimeType:artifact.sync.mimeType,durationMs:artifact.sync.durationMs,presentation:artifact.sync.presentation,poster:{byteLength:artifact.sync.poster.byteLength,checksumSha256:artifact.sync.poster.checksumSha256,storagePath:artifact.sync.poster.storagePath}}:{})}
+          ...(artifact.dom??artifact.menuDom??artifact.menuBinary??{}),...(artifact.sync?{mimeType:artifact.sync.mimeType,durationMs:artifact.sync.durationMs,presentation:artifact.sync.presentation,poster:{byteLength:artifact.sync.poster.byteLength,checksumSha256:artifact.sync.poster.checksumSha256,storagePath:artifact.sync.poster.storagePath}}:{})}
       }
     );
     if (error) {
@@ -411,12 +421,12 @@ function assetResolutionFailure() {
 
 export function dynamicRenderStoragePath(
   job: Pick<ClaimedDynamicRenderJob, "outputMediaAssetId" | "tenantId" | "publishedRefresh" | "leaseToken">,
-  mimeType?:'image/png'|'video/mp4',checksumSha256?:string,
+  mimeType?:'image/png'|'video/mp4'|typeof syncDomDescriptorMimeType,checksumSha256?:string,
 ) {
   if(mimeType){
     if(!checksumSha256||!/^[a-f0-9]{64}$/.test(checksumSha256))throw new DynamicRenderBackendError('dynamic_storage_path_invalid',false,'Het gecontroleerde bronbestand mist een geldige checksum.');
     if(job.publishedRefresh&&(!job.leaseToken||!uuidPattern.test(job.leaseToken)))throw invalidClaim();
-    return `tenants/${job.tenantId}/assets/${job.outputMediaAssetId}/sync-dynamic/${job.publishedRefresh?job.leaseToken+'-':''}${checksumSha256}.${mimeType==='video/mp4'?'mp4':'png'}`;
+    return `tenants/${job.tenantId}/assets/${job.outputMediaAssetId}/${mimeType===syncDomDescriptorMimeType?'sync-dom':'sync-dynamic'}/${job.publishedRefresh?job.leaseToken+'-':''}${checksumSha256}.${mimeType===syncDomDescriptorMimeType?'json':mimeType==='video/mp4'?'mp4':'png'}`;
   }
   return `tenants/${job.tenantId}/assets/${job.outputMediaAssetId}/dynamic-slide.png`;
 }
@@ -459,7 +469,7 @@ export function parseClaimedDynamicRenderJob(
 
 function assertArtifactPath(
   job: ClaimedDynamicRenderJob,
-  storagePath: string,mimeType?:'image/png'|'video/mp4',checksumSha256?:string,
+  storagePath: string,mimeType?:'image/png'|'video/mp4'|typeof syncDomDescriptorMimeType,checksumSha256?:string,
 ) {
   if (storagePath !== dynamicRenderStoragePath(job,mimeType,checksumSha256)) {
     throw new DynamicRenderBackendError(

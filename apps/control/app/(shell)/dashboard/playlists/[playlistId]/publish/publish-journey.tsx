@@ -20,6 +20,7 @@ const steps = [
 ] as const;
 
 type PreflightState = {
+  sourceDelivery?:'direct'|'compatible';
   heartbeatAt: string | null;
   preflight: ReleasePreflightResult;
   screen: {
@@ -308,6 +309,7 @@ function ScreenChoice({
           {state.screen.location || "Geen locatie"}
         </span>
         <small>{state.screen.orientation === "portrait" ? "Staand" : "Liggend"} · {screenStatusLabel(state.screen.status)}</small>
+        {state.sourceDelivery?<small>{state.sourceDelivery==='direct'?'Directe weergave':'Eigen afspeelbestand; afzonderlijke voorbereiding'}</small>:null}
       </span>
       <span className={styles.screenSignals}>
         <StatusPill

@@ -28,6 +28,7 @@ describe('Source selections compile into the existing canonical Sportlink contra
  });
  it('preserves canonical birthday privacy choices and explicitly selects the full 21-day period',()=>{
   const cfg=configuration('sport_birthdays'),result=compileSyncSportlinkBinding(cfg,{birthday:{selection:{nameMode:'first',showAge:false}}},{mode:'selected',contexts:[syncSportlinkAutoContext('own-team-1')],birthdayDays:21},teams);
+  expect(result.blueprintKey).toBe('sportlink.birthdays');
   expect(result.birthday).toMatchObject({period:{days:21,mode:'next_21_days'},selection:{nameMode:'first',showAge:false,selectedTeamIds:['own-team-1'],includeWithoutTeam:false}});
  });
  it('reopens canonical source-team bindings without replacing them with an all-team selection',()=>{

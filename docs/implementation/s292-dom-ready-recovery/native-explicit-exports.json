@@ -1,0 +1,26 @@
+[
+  {
+    "type": "menu",
+    "explicitExport": true,
+    "nativeCapture": true,
+    "encode": true,
+    "exportMs": 34301.838252,
+    "bytes": 2533177,
+    "posterBytes": 2071985,
+    "durationMs": 4000,
+    "deduplicated": true,
+    "storageUpload": false
+  },
+  {
+    "type": "news",
+    "explicitExport": true,
+    "nativeCapture": true,
+    "encode": true,
+    "exportMs": 84934.53987200001,
+    "bytes": 7889668,
+    "posterBytes": 2634241,
+    "durationMs": 12000,
+    "deduplicated": true,
+    "storageUpload": false
+  }
+]

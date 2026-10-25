@@ -1,0 +1,13 @@
+{
+  "provider": "manual_products",
+  "orientation": "landscape",
+  "descriptorBytes": 1818,
+  "pages": 2,
+  "sampleCount": 1,
+  "exportMs": 4041.2654920000004,
+  "bytes": 2048860,
+  "mimeType": "image/png",
+  "sameSharedWidgetRenderer": true,
+  "explicitRequestReusesLegacyCache": true,
+  "storageUpload": false
+}

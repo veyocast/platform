@@ -1,6 +1,6 @@
 import {collectSyncSportMediaAssetIds} from '@veyocast/contracts';
 import {createHash} from 'node:crypto';
-import {syncDynamicConfigurationSchema,syncDynamicBinaryPlaybackSchema,syncSlidePageCount,syncSlidePresentationSchema,syncSlideAssets,type SyncDynamicBinaryPlayback,type SyncDynamicConfiguration,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
+import {readSyncDynamicDomArtifact,syncDynamicDomMetadataSchema,syncDynamicConfigurationSchema,syncDynamicBinaryPlaybackSchema,syncSlidePageCount,syncSlideDurationMs,syncSlideInternalMotion,syncSlidePresentationSchema,syncSlideAssets,type SyncDynamicBinaryPlayback,type SyncDynamicConfiguration,type PlayerDynamicTemplateAsset,type SyncDynamicDomMetadata,type SyncSlidePresentation} from '@veyocast/contracts';
 import {projectSyncDynamicSnapshot} from '@veyocast/content-templates/sync-dynamic-projector';
 import type {DynamicSnapshotPayloadRow} from './player-dynamic-template-payload';
 import {parseLedScoresLiveMatchConfig} from './ledscores-match-experience';
@@ -21,13 +21,20 @@ function readSyncLiveMatch(data:Record<string,unknown>,cfg:SyncDynamicConfigurat
 
 /** An authorized immutable snapshot and the exact complete binary from the
  * release must agree before the independent Source enhancement is offered. */
-export function readSyncDynamicReleaseSnapshot(snapshot:SyncDynamicSnapshotRow,item:{checksum_sha256:string;file_size_bytes:number;mime_type:string;asset_kind:string;duration_seconds:number}){
+export type SyncDynamicReleaseBase={presentation:SyncSlidePresentation;configuration:SyncDynamicConfiguration;metadata:SyncDynamicBinaryPlayback|SyncDynamicDomMetadata;liveMatch:ReturnType<typeof readSyncLiveMatch>};
+export function readSyncDynamicReleaseSnapshot(snapshot:SyncDynamicSnapshotRow,item:{checksum_sha256:string;file_size_bytes:number;mime_type:string;asset_kind:string;duration_seconds:number;storage_path?:string},allowDomV2=false):SyncDynamicReleaseBase{
  const cfg=syncDynamicConfigurationSchema.safeParse(snapshot.snapshot_data_json.syncConfiguration),result=snapshot.sync_render_result_json;
  if(!cfg.success||snapshot.status!=='ready'||!record(result))throw Error('SYNC_DYNAMIC_RELEASE_INVALID');
+ if(result.schemaVersion===2){
+  const checked=readSyncDynamicDomArtifact(cfg.data,result);
+  if(!allowDomV2||snapshot.snapshot_data_json.syncPlaybackProtocol!==2||!checked||item.asset_kind!=='composition'||item.mime_type!==checked.artifact.mimeType||item.checksum_sha256!==checked.artifact.checksumSha256||Number(item.file_size_bytes)!==checked.artifact.byteLength||item.storage_path!==checked.artifact.storagePath||item.duration_seconds*1000<checked.artifact.durationMs)throw Error('SYNC_DYNAMIC_DOM_RELEASE_INVALID');
+  return {presentation:checked.artifact.presentation,configuration:cfg.data,metadata:syncDynamicDomMetadataSchema.parse({schemaVersion:2,configurationSnapshotId:snapshot.id,snapshotId:snapshot.id,templateVersionId:snapshot.template_version_id,configurationHash:createHash('sha256').update(JSON.stringify(['sync-dom-v2',snapshot.dynamic_slide_version_id,snapshot.template_version_id,cfg.data])).digest('hex'),contentHash:snapshot.source_revision_hash,descriptorChecksumSha256:item.checksum_sha256,durationMs:checked.artifact.durationMs,dataRevision:1}),liveMatch:readSyncLiveMatch(snapshot.snapshot_data_json,cfg.data)};
+ }
+
  const presentation=syncSlidePresentationSchema.safeParse(result.presentation);
  if(!presentation.success)throw Error('SYNC_DYNAMIC_RELEASE_INVALID');
- const value=presentation.data,pages=syncSlidePageCount(value),video=pages>1||value.style.motion==='rustig'||value.style.motion==='dynamisch';
- if(result.checksumSha256!==item.checksum_sha256||Number(result.byteLength)!==Number(item.file_size_bytes)||result.mimeType!==item.mime_type||item.mime_type!==(video?'video/mp4':'image/png')||item.asset_kind!==(video?'video':'image')||value.orientation!==cfg.data.seed.orientation||value.family!==cfg.data.seed.family||value.theme!==cfg.data.seed.theme||result.durationMs!==cfg.data.secondsPerPage*pages*1000||Number(result.durationMs)>Number(item.duration_seconds)*1000)throw Error('SYNC_DYNAMIC_RELEASE_INVALID');
+ const value=presentation.data,pages=syncSlidePageCount(value),video=pages>1||syncSlideInternalMotion(value).enabled||value.style.motion==='rustig'||value.style.motion==='dynamisch';
+ if(result.checksumSha256!==item.checksum_sha256||Number(result.byteLength)!==Number(item.file_size_bytes)||result.mimeType!==item.mime_type||item.mime_type!==(video?'video/mp4':'image/png')||item.asset_kind!==(video?'video':'image')||value.rendererVersion!==cfg.data.rendererVersion||value.sourceRevision!==cfg.data.sourceRevision||value.orientation!==cfg.data.seed.orientation||value.family!==cfg.data.seed.family||value.theme!==cfg.data.seed.theme||result.durationMs!==syncSlideDurationMs(value,cfg.data.secondsPerPage)||Number(result.durationMs)>Number(item.duration_seconds)*1000)throw Error('SYNC_DYNAMIC_RELEASE_INVALID');
  const metadata:SyncDynamicBinaryPlayback={schemaVersion:1,configurationSnapshotId:snapshot.id,snapshotId:snapshot.id,templateVersionId:snapshot.template_version_id,configurationHash:createHash('sha256').update(JSON.stringify([snapshot.dynamic_slide_version_id,snapshot.template_version_id,cfg.data])).digest('hex'),contentHash:snapshot.source_revision_hash,fallbackChecksumSha256:item.checksum_sha256,durationMs:Number(result.durationMs)};
  return {presentation:value,configuration:cfg.data,metadata:syncDynamicBinaryPlaybackSchema.parse(metadata),liveMatch:readSyncLiveMatch(snapshot.snapshot_data_json,cfg.data)};
 }
@@ -50,7 +57,7 @@ export function projectSyncDynamicReleaseData({snapshot,live,base,template,asset
  if(!cfg.success||!record(data)||!liveCfg?.success||JSON.stringify(liveCfg.data)!==JSON.stringify(cfg.data)||template.slide_type!==cfg.data.slideType||template.orientation!==cfg.data.seed.orientation||!Number.isSafeInteger(Number(live.data_revision))||Number(live.data_revision)<1)throw Error('SYNC_DYNAMIC_DATA_INVALID');
  const result=projectSyncDynamicSnapshot({schemaVersion:1,snapshotId:snapshot.id,snapshotHash:live.content_hash,templateVersionId:snapshot.template_version_id,templateSlug:template.slug,orientation:template.orientation,slideType:template.slide_type,data,assets},cfg.data.seed,now);
  if(!result.ok)throw Error('SYNC_DYNAMIC_DATA_INVALID');
- const durationMs=syncSlidePageCount(result.presentation)*cfg.data.secondsPerPage*1000;
+ const durationMs=syncSlideDurationMs(result.presentation,cfg.data.secondsPerPage);
  if(durationMs>120000)throw Error('SYNC_DYNAMIC_DATA_INVALID');
- return {presentation:result.presentation,configuration:cfg.data,metadata:syncDynamicBinaryPlaybackSchema.parse({...base.metadata,durationMs,contentHash:live.content_hash,dataRevision:Number(live.data_revision)}),liveMatch:readSyncLiveMatch(data,cfg.data)};
+ return {presentation:result.presentation,configuration:cfg.data,metadata:(base.metadata.schemaVersion===2?syncDynamicDomMetadataSchema:syncDynamicBinaryPlaybackSchema).parse({...base.metadata,durationMs,contentHash:live.content_hash,dataRevision:Number(live.data_revision)}),liveMatch:readSyncLiveMatch(data,cfg.data)};
 }

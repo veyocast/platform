@@ -1,5 +1,12 @@
 # VeyoCast MVP Plan
 
+S292 herstelt de live bevestigde RSS-completiongrens, verjaardagsbinding en
+matchday-teamselectie. Het onafhankelijke Source DOM-protocol 2 gebruikt de
+bestaande Source- én MenuDocument/widgetrenderer, eigen lichte queue, gecontroleerde originele assets en
+zichtbare-framebevestiging; legacy en expliciete exports blijven begrensd.
+Verificatie en normale staging-/productiepromotie worden per exacte SHA
+vastgelegd in `docs/s292-dom-ready-recovery.md`.
+
 S291 voert de expliciete font-/RSS-/Sportlink-opdracht van 24 oktober uit.
 Actuele OnzeTrots-ontwerpen gebruiken Barlow Condensed Black 900, een veilige
 RSS-compositie met artikelbeeld, QR en leverancierfooter, opgeslagen thuis-/uitkeuze
