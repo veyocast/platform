@@ -1,4 +1,4 @@
-import {collectSyncSportMediaAssetIds} from '@veyocast/contracts';
+import {collectDynamicSnapshotMediaAssetIds}from'./player-dynamic-asset-ids';
 import {createHash} from 'node:crypto';
 import {readSyncDynamicDomArtifact,syncDynamicDomMetadataSchema,syncDynamicConfigurationSchema,syncDynamicBinaryPlaybackSchema,syncSlidePageCount,syncSlideDurationMs,syncSlideInternalMotion,syncSlidePresentationSchema,syncSlideAssets,type SyncDynamicBinaryPlayback,type SyncDynamicConfiguration,type PlayerDynamicTemplateAsset,type SyncDynamicDomMetadata,type SyncSlidePresentation} from '@veyocast/contracts';
 import {projectSyncDynamicSnapshot} from '@veyocast/content-templates/sync-dynamic-projector';
@@ -42,9 +42,7 @@ export function readSyncDynamicReleaseSnapshot(snapshot:SyncDynamicSnapshotRow,i
 export function syncDynamicProjectionAssetIds(data:Record<string,unknown>,cfg:SyncDynamicConfiguration){
  const ids=new Set(syncSlideAssets(cfg.seed).flatMap(ref=>ref.kind==='tenant'?[ref.mediaAssetId]:[]));
  const add=(value:unknown)=>{if(typeof value==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value))ids.add(value);};
- if(record(data.brand))add(data.brand.logoMediaAssetId);
- if(['sport_match_of_the_day','sport_next_match'].includes(cfg.slideType)&&record(data.sport)&&Array.isArray(data.sport.items))for(const item of data.sport.items.slice(0,1))if(record(item)){add(item.homeLogoMediaAssetId);add(item.awayLogoMediaAssetId);}
- for(const id of collectSyncSportMediaAssetIds(data))add(id);
+ for(const id of collectDynamicSnapshotMediaAssetIds(data))add(id);
  return [...ids];
 }
 
