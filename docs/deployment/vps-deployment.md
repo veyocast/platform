@@ -113,7 +113,13 @@ machinebrede Gitconfig of interactieve credentialinvoer.
    - `veyocast-marketing:${GITHUB_SHA}`.
 3. De lokale Docker image-ID's worden vastgelegd in releasemetadata. Marketing
    wordt vóór enige productieautorisatie in een tijdelijke container gezond
-   bevonden.
+   bevonden. Elke HTTP-probe heeft een deadline van vijf seconden, inclusief
+   het lezen van de responsebody. `docker exec` krijgt acht seconden en wordt
+   na nog twee seconden geforceerd gestopt als het TERM negeert. De bestaande
+   twintig pogingen met drie seconden tussenruimte blijven behouden; een
+   mislukte probe activeert geen release en de tijdelijke container wordt
+   opgeruimd. Dit begrenst een gevonden onbegrensde probe; de eerder bewezen
+   volle schijf blijft een afzonderlijke capaciteitsfout.
 4. `deploy-staging` voert een migration dry-run en forward migration uit,
    activeert alleen Control en Player en controleert lokale en publieke health.
    Deze job installeert uitsluitend de gepinde root-migratietooling; pnpm

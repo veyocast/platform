@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  closeSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   readFileSync,
   readdirSync,
   rmSync,
@@ -263,6 +265,169 @@ test("invalid migration budgets fail before any database connection or diagnosti
   assert.equal(run.result.stdout, "");
   assert.equal(run.result.stderr, "DATABASE_CONNECTION_CONFIG_INVALID\n");
 });
+
+test("Marketing image health accepts only the exact healthy release and removes its temporary container", () => {
+  const run = runMarketingHealth("success");
+  assert.equal(run.result.status, 0);
+  assert.equal(run.trace.filter((event) => event.startsWith("exec:")).length, 1);
+  assert.ok(run.trace.includes("fetch-deadline:5000"));
+  assert.ok(run.trace.includes("timeout:TERM:2s:8s"));
+  assert.equal(run.trace.filter((event) => event === "remove").length, 1);
+  assert.ok(!run.trace.includes("logs"));
+});
+
+for (const scenario of ["http-error", "invalid-shape", "wrong-sha", "request-hang", "body-hang"]) {
+  test(`Marketing image health rejects ${scenario} within bounded retries and cleans up`, () => {
+    const run = runMarketingHealth(scenario);
+    assert.equal(run.result.status, 1);
+    assert.equal(run.trace.filter((event) => event.startsWith("exec:")).length, 20);
+    assert.equal(run.trace.filter((event) => event === "sleep:3").length, 19);
+    if (scenario === "request-hang" || scenario === "body-hang") {
+      assert.equal(run.trace.filter((event) => event === "fetch-aborted").length, 20);
+    }
+    assert.ok(run.trace.includes("logs"));
+    assert.equal(run.trace.filter((event) => event === "remove").length, 1);
+    assert.match(run.result.stderr, /Marketing-healthcheck is mislukt/);
+  });
+}
+
+test("Marketing image health retries after a failed response without replacing the temporary container", () => {
+  const run = runMarketingHealth("retry-success");
+  assert.equal(run.result.status, 0);
+  assert.equal(run.trace.filter((event) => event === "run").length, 1);
+  assert.equal(run.trace.filter((event) => event.startsWith("exec:")).length, 2);
+  assert.deepEqual(run.trace.filter((event) => event.startsWith("sleep:")), ["sleep:3"]);
+  assert.equal(run.trace.filter((event) => event === "remove").length, 1);
+});
+
+test("Marketing image health kills a Docker exec that ignores TERM and can then recover", () => {
+  const run = runMarketingHealth("exec-hang");
+  assert.equal(run.result.status, 0);
+  assert.ok(run.trace.includes("exec-hang-ready"));
+  assert.equal(run.trace.filter((event) => event === "timeout:TERM:2s:8s").length, 2);
+  assert.equal(run.trace.filter((event) => event.startsWith("exec:")).length, 2);
+  assert.equal(run.trace.filter((event) => event === "remove").length, 1);
+});
+
+function runMarketingHealth(scenario) {
+  const directory = mkdtempSync(join(tmpdir(), "veyocast-marketing-health-"));
+  fixtures.push(directory);
+  const bin = join(directory, "bin");
+  mkdirSync(bin);
+  const traceFile = join(directory, "trace");
+  writeFileSync(traceFile, "");
+  const realTimeout = spawnSync("bash", ["-c", "command -v timeout"], { encoding: "utf8" });
+  assert.equal(realTimeout.status, 0, "GNU timeout must be available for the Docker deadline regression");
+  writeFileSync(join(bin, "timeout"), `#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ $1 == --signal=TERM && $2 == --kill-after=2s && $3 == 8s && $4 == docker && $5 == exec ]] || exit 97
+printf 'timeout:TERM:2s:8s\\n' >> "$TEST_TRACE"
+# Exercise the real deadline and forced kill. Only the deliberately stalled
+# process needs a short budget; normal Node startup has room on busy CI hosts.
+deadline=2s
+[[ $SCENARIO != exec-hang || -f $TEST_DIRECTORY/count ]] || deadline=0.2s
+exec "$TEST_TIMEOUT_EXECUTABLE" --signal=TERM --kill-after=0.05s "$deadline" "${"$"}{@:4}"
+`, { mode: 0o700 });
+  writeFileSync(join(bin, "sleep"), `#!/usr/bin/env bash
+set -Eeuo pipefail
+[[ $# == 1 && $1 == 3 ]] || exit 97
+printf 'sleep:%s\\n' "$1" >> "$TEST_TRACE"
+`, { mode: 0o700 });
+  writeFileSync(join(bin, "docker"), `#!/usr/bin/env bash
+set -Eeuo pipefail
+case "$1" in
+  run)
+    [[ $* == "run --detach --rm --name $TEST_CONTAINER --env DEPLOYMENT_SHA=$TEST_NEXT_SHA --env VEYOCAST_ENVIRONMENT=production veyocast-marketing:$TEST_NEXT_SHA" ]] || exit 97
+    printf 'run\\n' >> "$TEST_TRACE" ;;
+  exec)
+    [[ $# == 5 && $2 == "$TEST_CONTAINER" && $3 == node && $4 == -e ]] || exit 97
+    count=0
+    [[ ! -f $TEST_DIRECTORY/count ]] || count=$(<"$TEST_DIRECTORY/count")
+    count=$((count + 1))
+    printf '%s\\n' "$count" > "$TEST_DIRECTORY/count"
+    printf 'exec:%s\\n' "$count" >> "$TEST_TRACE"
+    if [[ $SCENARIO == exec-hang && $count == 1 ]]; then
+      trap '' TERM
+      printf 'exec-hang-ready\\n' >> "$TEST_TRACE"
+      while :; do :; done
+    fi
+    export TEST_ATTEMPT=$count
+    exec "$TEST_NODE_EXECUTABLE" --import "$TEST_DIRECTORY/fetch-fixture.mjs" "$4" "$5" ;;
+  rm)
+    [[ $# == 3 && $2 == --force && $3 == "$TEST_CONTAINER" ]] || exit 97
+    printf 'remove\\n' >> "$TEST_TRACE" ;;
+  logs)
+    [[ $# == 4 && $2 == --tail && $3 == 100 && $4 == "$TEST_CONTAINER" ]] || exit 97
+    printf 'logs\\n' >> "$TEST_TRACE" ;;
+  *) exit 97 ;;
+esac
+`, { mode: 0o700 });
+  writeFileSync(join(directory, "fetch-fixture.mjs"), `import assert from 'node:assert/strict';
+import {appendFileSync} from 'node:fs';
+const record=value=>appendFileSync(process.env.TEST_TRACE,value+'\\n');
+const realDeadline=AbortSignal.timeout.bind(AbortSignal);
+AbortSignal.timeout=milliseconds=>{
+  assert.equal(milliseconds,5000);
+  record('fetch-deadline:'+milliseconds);
+  return realDeadline(35);
+};
+globalThis.fetch=async(url,options)=>{
+  assert.equal(url,'http://127.0.0.1:3002/api/health');
+  const scenario=process.env.SCENARIO;
+  const hang=()=>new Promise((resolve,reject)=>{
+    record('fetch-hang:'+scenario+':'+(options?.signal?'bounded':'unbounded'));
+    const keepAlive=setInterval(()=>{},1000);
+    options?.signal?.addEventListener('abort',()=>{clearInterval(keepAlive);record('fetch-aborted');reject(options.signal.reason);},{once:true});
+  });
+  if(scenario==='request-hang')return hang();
+  return {
+    ok:scenario!=='http-error'&&!(scenario==='retry-success'&&process.env.TEST_ATTEMPT==='1'),
+    json:async()=>{
+      if(scenario==='body-hang')return hang();
+      assert.ok(options?.signal instanceof AbortSignal,'the deadline must cover headers and body');
+      if(scenario==='invalid-shape')return null;
+      return {status:'ok',service:'marketing',environment:'production',revision:scenario==='wrong-sha'?'0'.repeat(40):process.env.TEST_NEXT_SHA};
+    }
+  };
+};
+`);
+  const container = `veyocast-marketing-check-${nextSha.slice(0, 12)}-fixture`;
+  const program = `set -Eeuo pipefail\n${initialState}\n${shellFunctions}\n${shellTraps}\nwait_for_marketing_image`;
+  // A regressed shell can wait for its hanging child even after TERM. Separate
+  // its process group and capture to files so inherited pipes cannot stall the
+  // harness deadline; kill the complete fixture group before removing files.
+  const stdoutFile = join(directory, "stdout"), stderrFile = join(directory, "stderr");
+  const stdout = openSync(stdoutFile, "w"), stderr = openSync(stderrFile, "w");
+  let result, cleanupError;
+  try {
+    result = spawnSync("bash", ["-c", program], {
+      cwd: directory, detached: true,
+      env: {
+        ...process.env,
+        PATH: `${bin}:${process.env.PATH}`,
+        TEST_DIRECTORY: directory, TEST_TRACE: traceFile, SCENARIO: scenario,
+        TEST_CONTAINER: container, TEST_NEXT_SHA: nextSha,
+        TEST_TIMEOUT_EXECUTABLE: realTimeout.stdout.trim(), TEST_NODE_EXECUTABLE: process.execPath,
+        DEPLOYMENT_SHA: nextSha, GITHUB_RUN_ID: "fixture"
+      },
+      stdio: ["ignore", stdout, stderr], timeout: 8_000, killSignal: "SIGKILL"
+    });
+  } finally {
+    closeSync(stdout);
+    closeSync(stderr);
+    if (result?.pid) {
+      try { process.kill(-result.pid, "SIGKILL"); } catch (error) {
+        if (error.code !== "ESRCH") cleanupError = error;
+      }
+    }
+  }
+  if (cleanupError) throw cleanupError;
+  result.stdout = readFileSync(stdoutFile, "utf8");
+  result.stderr = readFileSync(stderrFile, "utf8");
+  assert.equal(result.error?.code, undefined, "the actual Marketing shell probe must finish within its deadlines");
+  const trace = readFileSync(traceFile, "utf8").trim().split("\n").filter(Boolean);
+  return { result, trace };
+}
 
 function runMigration(scenario, mode, { databaseUrl = "postgresql://fixture:synthetic-password@fixture.invalid/postgres", pgConnectTimeout } = {}) {
   const directory = mkdtempSync(join(tmpdir(), "veyocast-migration-lifecycle-"));
