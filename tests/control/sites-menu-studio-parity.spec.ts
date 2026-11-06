@@ -32,7 +32,7 @@ async function mount(page: Page, orientation: string, widgets: boolean, width: n
   const errors: string[] = []; page.on("pageerror",error=>errors.push(error.message));
   await page.setViewportSize({ width, height });
   await page.route("**/__menu-parity*", route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl"><head><style>@font-face{font-family:'Manrope Variable';src:url('/fonts/manrope.woff2') format('woff2');font-weight:200 800;font-display:swap}html,body,#root{margin:0;width:100%;height:100%;overflow:hidden}*{box-sizing:border-box}</style></head><body><div id="root"></div><script>${js.replace(/<\/script/giu,"<\\/script")}</script></body></html>` }));
-  await page.route(/\/(?:onzetrots|onzetrots-tv|fonts|fieldflow)\//u, route => {const path=new URL(route.request().url()).pathname;return route.fulfill({contentType:path.endsWith(".svg")?"image/svg+xml":path.endsWith(".ttf")?"font/ttf":path.endsWith(".woff2")?"font/woff2":path.endsWith(".png")?"image/png":"image/webp",body:readFileSync(join(process.cwd(),"apps/control/public",path))});});
+  await page.route(/\/(?:onzetrots|onzetrots-tv|onzetrots-approved-v1|fonts|fieldflow)\//u, route => {const path=new URL(route.request().url()).pathname;return route.fulfill({contentType:path.endsWith(".svg")?"image/svg+xml":path.endsWith(".ttf")?"font/ttf":path.endsWith(".woff2")?"font/woff2":path.endsWith(".png")?"image/png":"image/webp",body:readFileSync(join(process.cwd(),"apps/control/public",path))});});
   await page.goto(`http://127.0.0.1:3343/__menu-parity?orientation=${orientation}&widgets=${widgets?1:0}`);
   await expect.poll(async()=>({count:await page.locator(".uc-slide-title").count(),errors}),{timeout:5000}).toEqual({count:1,errors:[]});
   await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(image=>image.decode()));});
@@ -62,7 +62,7 @@ for (const orientation of ["portrait", "landscape"] as const) {
     await expect(page.getByText("Bestellen en afrekenen aan de bar.",{exact:true})).toHaveCount(0);
     await expect(page.locator(".vm-menu-slogan")).toHaveText("Onze Club. Onze Trots.");
     const metrics=await page.locator(".uc-slide").evaluate(canvas=>({font:getComputedStyle(canvas.querySelector('h1')!).fontFamily,fit:getComputedStyle(canvas.querySelector('.vm-content')!).getPropertyValue('--led-auto-fit'),title:canvas.querySelector('h1')!.textContent}));
-    expect(metrics.font).toContain("UC Display");if(orientation === "portrait")expect(Number(metrics.fit)).toBe(1);else expect(Number(metrics.fit)).toBeGreaterThan(.5);
+    expect(metrics.font).toContain("OTMarker");if(orientation === "portrait")expect(Number(metrics.fit)).toBe(1);else expect(Number(metrics.fit)).toBeGreaterThan(.5);
     writeFileSync(join(evidence,`${orientation}-readback.json`),JSON.stringify({orientation,header:"pixel-identical",footer:"pixel-identical",scenery:"pixel-identical",metrics},null,2));
   });
   for(const [width,height] of [[390,844],[768,900],[1440,900],[3840,2160]])test(`S216 ${orientation} content stays inside viewport ${width}x${height}`,async({page})=>{

@@ -4,13 +4,22 @@ import {readFile} from "node:fs/promises";
 import {dirname,join,resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {chromium,type Browser} from "playwright-core";
-import {captureSettledSitesRaster,loadSitesCaptureFonts,measureSitesCaptureRaster,sitesCaptureBrowserArgs} from "../../src/sites-dom-capture";
+import {fitSitesOnzeTrotsHeaders} from "@veyocast/content-templates/sites-presentation";
+import {ONZETROTS_FONT_FACE_CSS,ONZETROTS_HEADER_FONT_FAMILY,ONZETROTS_PRIMARY} from "@veyocast/content-templates/onzetrots-brand";
+import {captureSettledSitesRaster,loadSitesCaptureFonts,measureSitesCaptureRaster,sitesPresentationCaptureBrowserArgs} from "../../src/sites-dom-capture";
 import manifest from "../../../../packages/content-templates/src/sites-system-assets.json";
 interface BundleFile {path:string;text:string}
 interface SourcePlugin {name:string;setup(build:{onLoad(options:{filter:RegExp},callback:(args:{path:string})=>Promise<{contents:string;loader:"tsx"}>):void}):void}
 interface Bundler {build(options:Record<string,unknown>):Promise<{outputFiles:BundleFile[]}>}
 export const sourceComparisonHash=(value:Uint8Array|string)=>createHash("sha256").update(value).digest("hex");
 const immutableReferenceDirectory=fileURLToPath(new URL("../../../../docs/sites-v11-overname/reference/sites/",import.meta.url));
+// The independently frozen source retains its original content, geometry and
+// assets. Apply only the current, explicitly approved club brand to its header
+// roles, just as a saved presentation receives that runtime policy today.
+const sourceOnzeTrotsBrandCss=ONZETROTS_FONT_FACE_CSS+`
+.onzetrots-tv{--otv-accent:${ONZETROTS_PRIMARY}!important}
+.onzetrots-tv :is(h1,h2,h3,h4),.onzetrots-tv .nc-broadcast-brand strong,.onzetrots-tv .nc-broadcast-brand span,.onzetrots-tv .nc-broadcast-footer>span:not(.nc-brush-wordmark){font-family:${ONZETROTS_HEADER_FONT_FAMILY},cursive!important;font-weight:400!important;font-style:normal!important;font-synthesis:none!important}
+`;
 export const resolveSitesSourceReferenceDirectory=()=>process.env.SITES_REFERENCE_SOURCE_DIRECTORY??(process.env.SITES_SOURCE_COMPARE==="1"?immutableReferenceDirectory:undefined);
 export async function createSitesSourceReference(sourceDirectory:string,executablePath:string){
  const identities=JSON.parse(await readFile(new URL("../../../../docs/sites-v11-overname/reference/SOURCE-FILES.json",import.meta.url),"utf8"))as {sourceRevision:string;fileCount:number;files:Array<{path:string;bytes:number;sha256:string}>};
@@ -23,14 +32,15 @@ export async function createSitesSourceReference(sourceDirectory:string,executab
  const script=result.outputFiles.find(file=>file.path.endsWith(".js"))!.text,css=result.outputFiles.find(file=>file.path.endsWith(".css"))!.text;
  const files=["app/prototype/studio.tsx","app/prototype/studio.module.css","app/prototype/experience.tsx","app/prototype/experience.module.css","app/prototype/onzetrots-tv.tsx","app/prototype/onzetrots-tv.css","app/prototype/led-slide.tsx","app/prototype/led-slide.module.css","app/globals.css","app/fieldflow.css","app/prototype/onzetrots-tv-templates.ts","app/prototype/sportlink.tsx","app/prototype/led-scores.tsx","app/prototype/onzetrots-tv-adapter.ts"];
  const sourceHashes=Object.fromEntries(await Promise.all(files.map(async name=>[name,sourceComparisonHash(await readFile(join(sourceDirectory,name)))])));
- const browser:Browser=await chromium.launch({executablePath,headless:true,args:[...sitesCaptureBrowserArgs],timeout:15000});
+ const browser:Browser=await chromium.launch({executablePath,headless:true,args:[...sitesPresentationCaptureBrowserArgs],timeout:15000});
  const publicDirectory=fileURLToPath(new URL("../../../player/public/",import.meta.url)),assets=new Map(manifest.files.map(asset=>[asset.path,asset])),origin="http://sites-reference.invalid";
  return {sourceHashes,close:()=>browser.close(),project:async(kind:"studio"|"dynamic",value:unknown,pageIndex=0,pages=1)=>{const page=await browser.newPage();await page.route("**/*",route=>route.abort());try{await page.setContent(`<html><body><script>${script.replace(/<\/script/gi,"<\\/script")}</script></body></html>`);return await page.evaluate(({kind,value,pageIndex,pages})=>(globalThis as typeof globalThis & {projectSourceFixture:(kind:string,value:unknown,page:number,pages:number)=>unknown}).projectSourceFixture(kind,value,pageIndex,pages),{kind,value,pageIndex,pages});}finally{await page.close();}},fixtures:async()=>{const page=await browser.newPage();await page.route("**/*",route=>route.abort());try{await page.setContent(`<!doctype html><html data-design-system="fieldflow"><head><style>${css}</style></head><body><script>${script.replace(/<\/script/gi,"<\\/script")}</script></body></html>`);return await page.evaluate(()=>{const clock=Date.now;Date.now=()=>Date.parse("2026-10-11T10:00:00Z");try{return (globalThis as typeof globalThis & {readSourceFixtures:()=>unknown}).readSourceFixtures();}finally{Date.now=clock;}});}finally{await page.close();}},capture:async(kind:"studio"|"tv"|"experience"|"static",props:unknown,width:number,height:number,onMeasure?:(value:unknown)=>void)=>{
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1}),errors:string[]=[];page.on("pageerror",error=>errors.push(error.name));
   await page.route("**/*",async route=>{const url=new URL(route.request().url()),asset=assets.get(url.pathname);if(url.origin!==origin||!asset||url.search){errors.push("Unapproved reference request");await route.abort();return;}const bytes=await readFile(resolve(publicDirectory,asset.path.slice(1)));if(bytes.byteLength!==asset.bytes||sourceComparisonHash(bytes)!==asset.sha256){errors.push("Reference asset integrity");await route.abort();return;}await route.fulfill({status:200,contentType:asset.mimeType,body:bytes});});
   try{
+   const branded=kind==="tv"||((kind==="studio"||kind==="experience")&&Boolean(props)&&typeof props==="object"&&(props as {themeId?:unknown}).themeId==="onzetrots-tv");
    const frameCss=kind==="studio"?"":"#root>div{max-width:none!important;width:100%!important;border-radius:0!important;box-shadow:none!important}";
-   await page.setContent(kind==="static"?String(props).replaceAll("http://sites-render.invalid",origin):`<!doctype html><html lang="nl" data-design-system="fieldflow"><head><base href="${origin}/"><style>${css}</style><style>html,body,#root{margin:0;width:${width}px;height:${height}px;overflow:hidden}#root{container-type:inline-size}${frameCss}</style></head><body><div id="root"></div><script>${script.replace(/<\/script/gi,"<\\/script")}</script></body></html>`,{waitUntil:"load",timeout:15000});
+   await page.setContent(kind==="static"?String(props).replaceAll("http://sites-render.invalid",origin):`<!doctype html><html lang="nl" data-design-system="fieldflow"><head><base href="${origin}/"><style>${css}</style><style>${branded?sourceOnzeTrotsBrandCss:""}</style><style>html,body,#root{margin:0;width:${width}px;height:${height}px;overflow:hidden}#root{container-type:inline-size}${frameCss}</style></head><body><div id="root"></div><script>${script.replace(/<\/script/gi,"<\\/script")}</script></body></html>`,{waitUntil:"load",timeout:15000});
    if(kind!=="static"){
     await loadSitesCaptureFonts(page);
     await page.evaluate(({kind,props})=>(globalThis as typeof globalThis & {renderSource:(kind:string,props:unknown)=>void}).renderSource(kind,props),{kind,props});
@@ -38,6 +48,7 @@ export async function createSitesSourceReference(sourceDirectory:string,executab
    await page.waitForFunction(()=>globalThis.document.querySelector("#root,#sites-capture")!.childElementCount>0,{timeout:10000});
    await page.evaluate(async()=>{await globalThis.document.fonts.ready;await Promise.all(Array.from(globalThis.document.images).map(image=>image.decode()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
    await page.evaluate(()=>globalThis.document.getAnimations().forEach(animation=>{animation.pause();animation.currentTime=1200;}));
+   if(branded)await page.evaluate(fitSitesOnzeTrotsHeaders,undefined);
    const png=await captureSettledSitesRaster(page);
    if(errors.length)throw Error(`Reference failed: ${errors.join(",")}`);
    if(onMeasure)onMeasure(await measureSitesCaptureRaster(page,png));

@@ -993,14 +993,17 @@ test('v9 replay starts the same scene from both studio and fullscreen, while red
  expect(fixture.errors).toEqual([]);
 });
 
-test('historical v9 Marker choice is an explicit savable change and never silently written on open',async({page})=>{
+test('historical v9 uses the current header branding without changing its saved body font or making the draft dirty',async({page})=>{
  const run=await mount(page,{approvedV9:true,historicalV9:true});
- expect(run.writes).toHaveLength(0);expect(run.state.document.syncPresentation!.style.fontChanged).toBe(false);
- const save=page.getByRole('button',{name:'Opslaan',exact:true});await expect(save).toBeEnabled();await save.click();
- await expect.poll(()=>run.writes.length).toBe(1);expect(run.writes[0]!.document.syncPresentation!.style).toMatchObject({font:'Brush',fontChanged:true});
- await expect(save).toBeDisabled();expect(run.state.document.syncPresentation!.style).toMatchObject({font:'Brush',fontChanged:true});expect(run.errors).toEqual([]);
+ expect(run.writes).toHaveLength(0);expect(run.state.document.syncPresentation!.style).toMatchObject({font:'Inter',fontChanged:false});
+ await expect(page.locator('.vc-stage-canvas [data-ot-header-text]').first()).toHaveCSS('font-family',/OTMarker/);
+ const save=page.getByRole('button',{name:'Opslaan',exact:true});await expect(save).toBeDisabled();
+ await page.getByLabel('Ontwerpnaam',{exact:true}).fill('Eigen naam met huidige headerstijl');await expect(save).toBeEnabled();await save.click();
+ await expect.poll(()=>run.writes.length).toBe(1);expect(run.writes[0]!.document.syncPresentation!.style).toMatchObject({font:'Inter',fontChanged:false});
+ await expect(save).toBeDisabled();expect(run.errors).toEqual([]);
 });
-test('read-only historical v9 inspection preserves its original font and performs no write',async({page})=>{
+test('read-only historical v9 gets the current header font while preserving its saved body font and performing no write',async({page})=>{
  const run=await mount(page,{approvedV9:true,historicalV9:true,viewer:true});await expect(page.getByRole('button',{name:'Opslaan',exact:true})).toBeDisabled();
- await expect(page.locator('.screen').first()).not.toHaveAttribute('data-ot-marker');expect(run.writes).toHaveLength(0);expect(run.state.document.syncPresentation!.style.fontChanged).toBe(false);
+ await expect(page.locator('.vc-stage-canvas [data-ot-header-text]').first()).toHaveCSS('font-family',/OTMarker/);
+ expect(run.writes).toHaveLength(0);expect(run.state.document.syncPresentation!.style).toMatchObject({font:'Inter',fontChanged:false});expect(run.errors).toEqual([]);
 });

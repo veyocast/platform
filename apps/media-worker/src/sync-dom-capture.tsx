@@ -50,6 +50,50 @@ const publicDirectoryDefault = fileURLToPath(
 const maximumAssetBytes = 24 * 1024 * 1024,
   maximumSessionBytes = 96 * 1024 * 1024;
 
+/** Unknown image clocks retain the complete native capture path. Built-in
+ * buffers come only from the existing checksum-verified request cache. */
+export async function hasStaticSyncStandingsCaptureImages(
+  input: SyncSlidePresentation,
+  assetSources: StudioSvgAssetSources,
+  systemBytes: ReadonlyMap<string, Buffer>,
+): Promise<boolean> {
+  if (input.rendererVersion !== "sync-onzetrots-v9" || input.family !== "standings") return false;
+  const images: Buffer[] = [];
+  for (const asset of syncSlideAssets(input)) {
+    if (asset.kind !== "tenant") continue;
+    const source = assetSources[asset.mediaAssetId], href = typeof source === "string" ? source : source?.href;
+    const encoded = href?.match(/^data:image\/(?:png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/);
+    if (!encoded) return false;
+    const bytes = Buffer.from(encoded[1]!, "base64");
+    if (!bytes.byteLength || bytes.byteLength > maximumAssetBytes || createHash("sha256").update(bytes).digest("hex") !== asset.checksumSha256) return false;
+    images.push(bytes);
+  }
+  for (const asset of syncSlideRendererAssets(input).filter(asset => asset.mimeType.startsWith("image/"))) {
+    const bytes = systemBytes.get(asset.path);
+    if (!bytes || bytes.byteLength !== asset.bytes || createHash("sha256").update(bytes).digest("hex") !== asset.sha256) return false;
+    images.push(bytes);
+  }
+  try {
+    return (await Promise.all(images.map(async bytes => {
+      const metadata = await sharp(bytes, { animated: true }).metadata();
+      return ["png", "jpeg", "webp"].includes(metadata.format ?? "") && (metadata.pages ?? 1) === 1
+        && !(metadata.format === "png" && bytes.includes(Buffer.from("acTL")))
+        && !(metadata.format === "webp" && bytes.includes(Buffer.from("ANIM")));
+    }))).every(Boolean);
+  } catch { return false; }
+}
+
+/** Header readiness is independent of the document's saved body font choice. */
+export async function loadSyncOnzeTrotsCaptureFonts(page:Page,version:SyncSlidePresentation['rendererVersion']):Promise<void>{
+  await page.evaluate(async version=>{
+    for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope','400 16px OTMarker',...(version==='sync-onzetrots-v9'?['400 16px OTRubikDistressed']:[])]){
+      const faces=await document.fonts.load(font);
+      if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('Approved OnzeTrots font unavailable');
+    }
+    await document.fonts.ready;
+  },version);
+}
+
 /** Capture-only inline image transport. Public Player markup still forbids data URIs. */
 export function buildSyncCaptureHtml(
   presentation: SyncSlidePresentation,
@@ -187,6 +231,9 @@ export async function createSyncSlideCapture({
       rankLayouts:SyncOnzeTrotsRankLayout[]=[],
       v9PanelCount=0,
       settledRss: { png: Buffer; atMs: number; signature: string } | undefined,
+      standingsHold: { png: Buffer; rgba?: Buffer; key: string } | undefined,
+      staticStandingsAssets = false,
+      lastRequestedTime = -1,
       settledPng:Buffer|undefined,
       png: Buffer | undefined,
       rgba: Buffer | undefined;
@@ -235,6 +282,8 @@ export async function createSyncSlideCapture({
     const capture = async (timeMs: number) => {
       if (signal?.aborted || !Number.isFinite(timeMs))
         throw new SitesDomCaptureError("raster_capture");
+      if (timeMs < lastRequestedTime) standingsHold = undefined;
+      lastRequestedTime = timeMs;
       const target = Math.min(
         pages - 1,
         Math.max(0, Math.floor(timeMs / pageMs)),
@@ -252,6 +301,7 @@ export async function createSyncSlideCapture({
       if (currentPage === target && currentTransitionTime===transitionTime && currentInternalTime===internalTime && currentFrameIdentity===identity() && png) return png;
       if(currentPage!==target){
       settledRss=undefined;
+      standingsHold=undefined;
       failureStage = "document_load";
       await page.setContent(buildSyncCaptureHtml(input, assetSources, target), {
         waitUntil: "domcontentloaded",
@@ -259,13 +309,7 @@ export async function createSyncSlideCapture({
       });
       failureStage = "font_load";
       if(isSyncOnzeTrotsPresentation(input)){
-        await page.evaluate(async({version,marker})=>{
-          for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope',version==='sync-onzetrots-v9'?'400 16px OTRubikDistressed':'400 16px OTMarker',...(marker?['400 16px OTMarker']:[])]){
-            const faces=await document.fonts.load(font);
-            if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('Approved OnzeTrots font unavailable');
-          }
-          await document.fonts.ready;
-        },{version:input.rendererVersion,marker:input.style.fontChanged&&input.style.font==='Brush'});
+        await loadSyncOnzeTrotsCaptureFonts(page,input.rendererVersion);
       }else await loadSitesCaptureFonts(page);
       failureStage = "dependency_decode";
       await page.evaluate(async (background) => {
@@ -291,6 +335,7 @@ export async function createSyncSlideCapture({
         await page.evaluate(async(urls)=>{await Promise.all([...new Set(urls)].map(async url=>{const image=new Image();image.src=url;await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw Error('Approved image unavailable');}));},dependencies);
       }
       if (assetFailed) throw new SitesDomCaptureError("asset_integrity");
+      staticStandingsAssets = await hasStaticSyncStandingsCaptureImages(input, assetSources, cache);
       failureStage = "raster_capture";
       if(input.rendererVersion==='sync-onzetrots-v9')v9PanelCount=await page.evaluate(measureSyncOnzeTrotsV9Layout,undefined);
       rankLayouts=isSyncOnzeTrotsPresentation(input)?await page.evaluate(measureSyncOnzeTrotsLayout,undefined):[];
@@ -304,9 +349,11 @@ export async function createSyncSlideCapture({
       if (assetFailed) throw new SitesDomCaptureError("asset_integrity");
       currentPage = target;
       }
+      let standingsFrame: ReturnType<typeof projectSyncOnzeTrotsMotion> | undefined;
       if(isSyncOnzeTrotsPresentation(input)){
         const scene=input.rendererVersion==='sync-onzetrots-v9'?{panelCount:v9PanelCount,mode:input.visual.mode,paused:sceneState.paused??false,introFinished:sceneState.introFinished??false,entranceAllowed:input.style.motion!=='geen'}:undefined;
         const frame=projectSyncOnzeTrotsMotion(internalTime,rankLayouts,input.visual.scrollSpeed,sceneState.reducedMotion??false,scene);
+        standingsFrame = frame;
         await page.evaluate(applySyncOnzeTrotsMotion,frame);
         if(staticRssAssets&&frame.entrance?.finished&&rankLayouts.every(layout=>layout.range===0)){
           // A completed entrance does not imply that nested content is static.
@@ -327,6 +374,20 @@ export async function createSyncSlideCapture({
           animation.pause();animation.currentTime=time;
         },{transition,time:transitionTime});
       }
+      let standingsKey: string | undefined;
+      if (staticStandingsAssets && standingsFrame?.entrance?.finished) {
+        const complete = await page.evaluate(() => document.getAnimations().every(animation => {
+          const end = animation.effect?.getComputedTiming().endTime, time = animation.currentTime;
+          return animation.playState === "paused" && !animation.pending && typeof end === "number" && Number.isFinite(end) && typeof time === "number" && time >= end;
+        }));
+        if (complete) standingsKey = JSON.stringify([input.rendererVersion, input.orientation, target, transitionTime, rankLayouts, v9PanelCount, sceneState, { ...standingsFrame, elapsedMs: undefined }]);
+      }
+      if (standingsKey && standingsHold?.key === standingsKey) {
+        png = standingsHold.png; rgba = standingsHold.rgba;
+        currentTransitionTime=transitionTime;currentInternalTime=internalTime;currentFrameIdentity=identity();
+        return png;
+      }
+      standingsHold = undefined;
       if(internalMotion.enabled||transition&&transitionTime<transition.durationMs){
         await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
         png=await captureMovingPng();
@@ -337,6 +398,7 @@ export async function createSyncSlideCapture({
       }
       if(!png)throw new SitesDomCaptureError('raster_capture');
       if(rssIsStill)settledRss={png,atMs:internalTime,signature:rssSignature()};
+      if (standingsKey) standingsHold = { key: standingsKey, png };
       currentTransitionTime=transitionTime;
       currentInternalTime=internalTime;
       currentFrameIdentity=identity();
@@ -365,6 +427,7 @@ export async function createSyncSlideCapture({
         try {
           const bytes = await capture(time);
           rgba ??= await sharp(bytes).ensureAlpha().raw().toBuffer();
+          if (standingsHold?.png === bytes) standingsHold.rgba = rgba;
           return rgba;
         } catch (error) {
           throw safeFailure(error);

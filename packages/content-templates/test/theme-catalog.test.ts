@@ -40,6 +40,25 @@ import {
 } from "../src/theme-visual-matrix";
 
 describe("theme catalog v2", () => {
+  it("applies the OnzeTrots runtime brand to saved font/accent choices while retaining body typography and frozen input", () => {
+    for (const mode of ["light", "dark"] as const) {
+      const presentation = freezeThemePresentation({
+        appearance: { schemaVersion: 1, surfaces: { clubLogoBackground: "#102030", homeLogoBackground: "#FFFFFF" }, typography: { baseScale: 1.1, bodyFontRef: "vc-source-serif-4-v1", displayFontRef: "vc-anton-v1", sportScale: 1.2 } },
+        instant: "2026-09-09T08:00:00.000Z", timezone: "Europe/Amsterdam",
+        selection: { accent: "#FF5C20", categoryOverrides: [], modePolicy: { kind: "fixed", mode }, ref: { catalog: "v2", id: "onzetrots-tv", version: themeCatalog['onzetrots-tv'].version }, support: null },
+      });
+      const before = JSON.stringify(presentation), tokens = themeToEditorialTokens(presentation);
+      expect(tokens.accent).toBe("#03438A");
+      expect(themeCssVariables(presentation, { ...tokens, accent: "#E000FF" })).toMatchObject({
+        "--vc-theme-accent": "#03438A", "--vc-theme-display-font": '"OTMarker"', "--vc-theme-display-weight": 400,
+        "--vc-theme-body-font": '"Source Serif 4"', "--vc-theme-base-scale": 1.1,
+      });
+      expect(JSON.stringify(presentation)).toBe(before);
+      const fieldflow = { ...presentation, selection: { ...presentation.selection, ref: { catalog: "v2" as const, id: "fieldflow" as const, version: "1.0.0" } } };
+      expect(themeCssVariables(fieldflow, { ...tokens, accent: "#E000FF" })).toMatchObject({ "--vc-theme-accent": "#E000FF", "--vc-theme-display-font": '"Anton"', "--vc-theme-body-font": '"Source Serif 4"' });
+    }
+  });
+
   it("keeps both Sites themes authorable and every historical theme renderable", () => {
     expect(Object.keys(themeCatalog)).toEqual([...selectableThemeIds]);
     expect(themeManifest.themes).toHaveLength(12);

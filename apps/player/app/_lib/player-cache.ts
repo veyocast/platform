@@ -3,7 +3,7 @@ import { assertMediaFrameManifest, assertMediaFrameContinuity } from "./player-m
 import {hasCompleteSyncDomShell}from'./sync-dom-shell';
 import {screenCompositionDataIdentity,screenCompositionIdentity}from'./player-screen-composition';
 import sitesSystemAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
-import {publishedScreenCompositionSchema, syncBackgroundAssets} from "@veyocast/contracts";
+import {publishedScreenCompositionSchema, syncBackgroundAssets, syncBackgroundAssetForRef, syncSlidePresentationSchema, syncSlideRendererAssets} from "@veyocast/contracts";
 import {isSyncPreparedUrl} from "./sync-player-presentation";
 import type { PlayerDynamicTemplateAsset } from "@veyocast/contracts";
 import type { PlayerSponsorCreative, PlayerSponsorPlan } from "@veyocast/contracts";
@@ -567,7 +567,82 @@ export async function hydrateCachedRelease(
   cachedRelease: CachedPlayerRelease,
   store = createPlayerMediaStore(playerAssetCacheName)
 ): Promise<HydratedPlayerRelease> {
-  return hydratePreparedRelease(cachedRelease, store);
+  try {
+    return await hydratePreparedRelease(cachedRelease, store);
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== "SYNC_ASSET_MANIFEST_INVALID") throw error;
+    const legacy = legacyV9BinaryCache(cachedRelease);
+    if (!legacy) throw error;
+    return hydratePreparedRelease(legacy, store);
+  }
+}
+
+/** Only an already activated v1 cache may retain its verified raster fallback
+ * after the app adds the mandatory Marker dependency. Candidates and v2 DOM
+ * descriptors always use the current strict asset contract. */
+function legacyV9BinaryCache(cached: CachedPlayerRelease): Pick<CachedPlayerRelease, "assets" | "envelope"> | null {
+  const { envelope } = cached, manifest = envelope.manifest;
+  if (envelope.composition || manifest.schemaVersion !== 1) return null;
+  const items = manifest.items.filter(item => item.syncStudioPresentation !== undefined || item.syncDynamic !== undefined);
+  if (!items.length) return null;
+  const markerPath = "/onzetrots-approved-v1/assets/fonts/club-font-9.ttf";
+  let marker: ReturnType<typeof syncSlideRendererAssets>[number] | undefined;
+  const legacyItems: PlayerManifestItem[] = [], retainedPaths = new Set<string>();
+  for (const item of items) {
+    const parsed = syncSlidePresentationSchema.safeParse(item.syncDynamic?.presentation ?? item.syncStudioPresentation);
+    if (!parsed.success || (item.syncDynamic && item.syncDynamic.schemaVersion !== 1)) return null;
+    const dependencies = syncSlideRendererAssets(parsed.data);
+    if (parsed.data.rendererVersion !== "sync-onzetrots-v9") {
+      // Approved v1 already required this exact path. Its absence cannot be
+      // attributed to the new v9 dependency. The classic alias remains valid.
+      if (dependencies.some(asset => asset.path === markerPath)) return null;
+      dependencies.forEach(asset => retainedPaths.add(asset.path));
+      const background = syncBackgroundAssetForRef(parsed.data.style.backgroundAsset);
+      if (background) retainedPaths.add(background.path);
+      continue;
+    }
+    if ((parsed.data.style.fontChanged && parsed.data.style.font === "Brush") ||
+      !item.source.url || !Number.isSafeInteger(item.source.bytes) || item.source.bytes <= 0 ||
+      !/^[a-f0-9]{64}$/.test(item.source.checksumSha256) ||
+      (!item.source.mimeType.startsWith("image/") && !item.source.mimeType.startsWith("video/"))) return null;
+    marker = dependencies.find(asset => asset.path === markerPath);
+    legacyItems.push(item);
+  }
+  if (!marker || !manifest.syncSystemAssets || manifest.syncSystemAssets.some(asset => asset.path === markerPath)) return null;
+  let required: PlayerCacheAsset[];
+  try {
+    // This trusted descriptor is a validation supplement only. It is never
+    // advertised as cached, downloaded, persisted, or passed to a renderer.
+    required = getCacheableAssets({ ...manifest, syncSystemAssets: [...manifest.syncSystemAssets, {
+      path: marker.path, checksumSha256: marker.sha256, bytes: marker.bytes, mimeType: marker.mimeType
+    }] }).filter(asset => asset.url !== markerPath);
+  } catch { return null; }
+  const provided = new Map(cached.assets.map(asset => [asset.cacheKey, asset]));
+  if (required.some(asset => {
+    const stored = provided.get(asset.cacheKey);
+    return !stored || stored.bytes !== asset.bytes || stored.checksumSha256 !== asset.checksumSha256;
+  })) return null;
+  const binaryManifest = { ...manifest, items: manifest.items.map(item => {
+    if (!legacyItems.includes(item)) return item;
+    const binary = { ...item };
+    if (item.syncDynamic?.schemaVersion === 1) {
+      const content = item.syncDynamic;
+      binary.syncDynamicBinary = { schemaVersion: 1, configurationSnapshotId: content.configurationSnapshotId,
+        snapshotId: content.snapshotId, templateVersionId: content.templateVersionId,
+        configurationHash: content.configurationHash, contentHash: content.contentHash,
+        fallbackChecksumSha256: content.fallbackChecksumSha256, durationMs: content.durationMs,
+        ...(content.dataRevision !== undefined ? { dataRevision: content.dataRevision } : {}) };
+    }
+    delete binary.syncDynamic;
+    delete binary.syncStudioPresentation;
+    delete binary.syncStudioDurationMs;
+    delete binary.syncStudioAssets;
+    delete binary.syncSystemAssetUrls;
+    return binary;
+  }) };
+  if (retainedPaths.size) binaryManifest.syncSystemAssets = manifest.syncSystemAssets.filter(asset => retainedPaths.has(asset.path));
+  else delete binaryManifest.syncSystemAssets;
+  return { assets: cached.assets, envelope: { ...envelope, manifest: binaryManifest } };
 }
 
 export async function hydratePreparedRelease(
@@ -801,6 +876,14 @@ export function refreshHydratedReleaseEnvelope({
         : {}),
       items: freshEnvelope.manifest.items.map((item) => {
         const cachedItem = cachedItems.get(item.id);
+        if (cachedEnvelope.manifest.releaseId === freshEnvelope.manifest.releaseId &&
+          cachedItem && item.syncStudioPresentation &&
+          (cachedEnvelope.manifest.tenantId !== freshEnvelope.manifest.tenantId ||
+            cachedItem.source.checksumSha256 !== item.source.checksumSha256 ||
+            cachedItem.source.bytes !== item.source.bytes ||
+            cachedItem.source.mimeType !== item.source.mimeType)) {
+          throw Error("SYNC_IMMUTABLE_SOURCE_CHANGED");
+        }
         if (
           !cachedItem ||
           cachedItem.source.checksumSha256 !==

@@ -9,7 +9,7 @@ import {measureSyncOnzeTrotsV9Layout,measureSyncOnzeTrotsLayout,projectSyncOnzeT
 import {createSyncTemplatePreview} from '../../apps/control/app/(shell)/dashboard/studio/sync-template-preview';
 // Compare the actual full Chromium binary used by Worker with that same
 // browser. The runner's headless-shell has different text hinting metrics.
-test.use({launchOptions:{executablePath:chromium.executablePath()}});
+test.use({launchOptions:{executablePath:process.env.CHROMIUM_EXECUTABLE_PATH??chromium.executablePath()}});
 function buildSyncCaptureHtml(presentation:SyncSlidePresentation,index=0){
  const directory=mkdtempSync(join(tmpdir(),'s291-html-')),input=join(directory,'input.json'),output=join(directory,'slide.html');
  writeFileSync(input,JSON.stringify(presentation));
@@ -52,7 +52,7 @@ for(const orientation of ['landscape','portrait']as const)for(const kind of ['re
    const box=(selector:string)=>document.querySelector<HTMLElement>(selector)!.getBoundingClientRect().toJSON();
    const h=document.querySelector<HTMLElement>('[data-ot-article-title]')!,summary=document.querySelector<HTMLElement>('[data-ot-summary]')!;
    const range=document.createRange();range.selectNodeContents(h);
-   return{content:box('.rss-copy'),headline:box('[data-ot-article-title]'),glyphs:[...range.getClientRects()].map(r=>r.toJSON()),number:box('.article-number'),header:box('.slide-header-container'),footer:box('.slide-footer'),supplier:box('.rss-provider'),signature:box('.signature'),summary:summary.textContent,full:summary.dataset.otSummary,qr:document.querySelector('.rss-qr-zone svg')?.getBoundingClientRect().toJSON(),font:getComputedStyle(h).font,scrollWidth:h.scrollWidth,clientWidth:h.clientWidth};
+   return{content:box('.rss-copy'),headline:box('[data-ot-article-title]'),glyphs:[...range.getClientRects()].map(r=>r.toJSON()),number:box('.article-number'),header:box('.slide-header-container'),footer:box('.slide-footer'),supplier:box('.rss-provider'),signature:box('.signature'),summary:summary.textContent,full:summary.dataset.otSummary,qr:document.querySelector('.rss-qr-zone svg')?.getBoundingClientRect().toJSON(),font:getComputedStyle(h).font,fontWeight:getComputedStyle(h).fontWeight,scrollWidth:h.scrollWidth,clientWidth:h.clientWidth};
   });
   expect(await page.locator('[data-ot-article-title]').textContent()).toBe(headline);
   for(const glyph of geometry.glyphs){expect(glyph.top).toBeGreaterThanOrEqual(geometry.content.top);expect(glyph.bottom).toBeLessThanOrEqual(geometry.content.bottom);expect(glyph.right).toBeLessThanOrEqual(geometry.content.right);}
@@ -61,7 +61,7 @@ for(const orientation of ['landscape','portrait']as const)for(const kind of ['re
   expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth);
   expect(geometry.signature.right).toBeLessThan(geometry.supplier.left);
   expect(geometry.supplier.right).toBeLessThanOrEqual(1920);
-  expect(geometry.font).toContain('900');
+  expect(geometry.fontWeight).toBe('400');expect(geometry.font).toContain('OTMarker');
   if(geometry.summary!==geometry.full&&geometry.summary)expect(geometry.summary).toMatch(/…$/);
   await expect(page.locator('.blue-cta')).toHaveCount(0);
   await expect(page.getByText('Lees verder',{exact:true})).toHaveCount(0);
@@ -70,7 +70,7 @@ for(const orientation of ['landscape','portrait']as const)for(const kind of ['re
   const {root}=await cdp.send('DOM.getDocument');
   const {nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector:'[data-ot-article-title]'});
   const rendered=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});
-  expect(rendered.fonts.length).toBeGreaterThan(0);expect(rendered.fonts.every(font=>font.postScriptName==='BarlowCondensed-Black'&&font.isCustomFont)).toBe(true);
+  expect(rendered.fonts.length).toBeGreaterThan(0);expect(rendered.fonts.every(font=>font.postScriptName==='PermanentMarker-Regular'&&font.isCustomFont)).toBe(true);
   expect(result.errors).toEqual([]);
   const directory=evidence??mkdtempSync(join(tmpdir(),'s291-rss-'));mkdirSync(directory,{recursive:true});
   const screenshot=join(directory,`rss-${orientation}-${kind}.png`);await page.screenshot({path:screenshot});

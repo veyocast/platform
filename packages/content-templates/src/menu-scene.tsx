@@ -17,6 +17,7 @@ import {
 } from "@veyocast/contracts";
 
 import { freezeThemePresentation, themeCssVariables } from "./theme-catalog";
+import { onzeTrotsThemeCssVariables, onzeTrotsThemeFontCss, prepareThemeFonts } from "./onzetrots-theme-runtime";
 import styles from "./menu-scene.module.css";
 
 import {menuSceneZones,MENU_SCENE_CONTENT_FIT_VERSION,type MenuFloatingBlock,menuSceneCanvases,resolveMenuSceneScale,resolveMenuScenePages,resolveProductTitleDensity,formatMenuMoney,resolveMenuProductPrice,resolveMenuGroupPrice,type MenuSceneAsset,type MenuSceneRow,type ResolvedMenuScenePage} from "./menu-scene-model";
@@ -80,18 +81,16 @@ export function MenuScene({
     if (scale === null) return;
     let active = true;
     let frame = 0;
-    const fonts = "fonts" in documentGlobal()
-      ? documentGlobal().fonts.ready
-      : Promise.resolve();
+    const fonts = prepareThemeFonts(document.theme.themeId, documentGlobal().fonts);
     void fonts.then(() => {
       if (!active) return;
       frame = window.requestAnimationFrame(() => active && onReady());
-    });
+    }).catch(() => undefined);
     return () => {
       active = false;
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [onReady, scale]);
+  }, [document.theme.themeId, onReady, scale]);
 
   return (
     <div className={styles.viewport} data-alignment={alignment} ref={viewportRef}>
@@ -148,7 +147,8 @@ export function MenuSceneCanvas({
   const rootStyle = {
     ...themeCssVariables(themePresentation),
     ...themeOverrideStyle,
-    ...style
+    ...style,
+    ...onzeTrotsThemeCssVariables(document.theme.themeId)
   } as CSSProperties;
 
   useEffect(() => {
@@ -156,9 +156,7 @@ export function MenuSceneCanvas({
     if (!canvas) return;
     let active = true;
     let frame = 0;
-    const fontsReady = "fonts" in documentGlobal()
-      ? documentGlobal().fonts.ready
-      : Promise.resolve();
+    const fontsReady = prepareThemeFonts(document.theme.themeId, documentGlobal().fonts);
     void fontsReady.then(() => {
       if (!active) return;
       frame = window.requestAnimationFrame(() => {
@@ -176,17 +174,18 @@ export function MenuSceneCanvas({
         canvas.dataset.menuContentOverflow = overflow ? "true" : "false";
         onContentFit?.(overflow);
       });
-    });
+    }).catch(() => undefined);
     return () => {
       active = false;
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [document.id, document.updatedAt, onContentFit, orientation, page.id]);
+  }, [document.id, document.updatedAt, document.theme.themeId, onContentFit, orientation, page.id]);
 
   return (
     <section
       aria-label={document.title || "Menu"}
       className={styles.canvas}
+      data-generic-onzetrots={document.theme.themeId==='onzetrots-tv'||undefined}
       data-orientation={orientation}
       data-theme-id={document.theme.themeId}
       data-theme-mode={themeMode ?? document.theme.mode}
@@ -194,6 +193,7 @@ export function MenuSceneCanvas({
       ref={canvasRef}
       style={rootStyle}
     >
+      {document.theme.themeId==='onzetrots-tv'&&<style>{onzeTrotsThemeFontCss}</style>}
       <header className={styles.header} style={rectStyle(zones.header)}>
         <div>
           <span className={styles.kicker}>Menu</span>
@@ -395,7 +395,7 @@ function FloatingBlock({
     return <p className={styles.floatingText} data-role={block.role} style={style}>{block.text}</p>;
   }
   if (block.type === "promo") {
-    return <aside className={styles.promo} style={style}><strong>{block.title}</strong>{block.body ? <p>{block.body}</p> : null}</aside>;
+    return <aside className={styles.promo} style={style}><strong data-role="heading">{block.title}</strong>{block.body ? <p>{block.body}</p> : null}</aside>;
   }
   const asset = assets[block.assetId];
   if (!asset) return null;

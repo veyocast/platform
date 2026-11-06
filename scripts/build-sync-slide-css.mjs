@@ -1,6 +1,8 @@
 import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, URL } from "node:url";
+import { Buffer } from "node:buffer";
+import process from "node:process";
 import { join } from "node:path";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -53,10 +55,15 @@ base.walkRules((rule) => {
     ...rule.selectors.filter(selector=>/\.vc-(news|engage)-qr>a\b/.test(selector)).map(selector=>selector.replace(/>a\b/,'>.sync-qr-code')),
   );
 });
-const css = base.toString();
+// Paged Engage layout is maintained separately from the frozen Source CSS.
+// Regeneration must retain its full-text wrapping, option grid and QR boxes.
+const css = base.toString() + readFileSync(
+  join(root, "packages/content-templates/src/sync-slide-engage.css"),
+  "utf8",
+);
 writeFileSync(
   join(root, "packages/content-templates/src/sync-slide-styles.ts"),
-  `// Generated from Sync Source ${"8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a"}; run scripts/build-sync-slide-css.mjs.\nexport const syncSlideCss = ${JSON.stringify(css)};\n`,
+  `// Generated from Sync Source ${"8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a"}; run scripts/build-sync-slide-css.mjs.\nimport {ONZETROTS_LEGACY_SOURCE_BRAND_CSS} from './onzetrots-brand';\nexport const syncSlideCss = ${JSON.stringify(css)}+ONZETROTS_LEGACY_SOURCE_BRAND_CSS;\n`,
 );
 process.stdout.write(
   JSON.stringify({

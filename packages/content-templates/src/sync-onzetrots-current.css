@@ -1,7 +1,6 @@
-/* S291 authoring revision. Historical v9 and other themes keep their cascade.
- * OTBarlow 900 is the locally registered BarlowCondensed-Black font, identical
- * to /fonts/onzetrots-display.ttf used by the original menu slogan. */
-.ot-v9-scope .screen[data-ot-current]{--ot-title-font:OTBarlow,Arial,sans-serif}
+/* S291 geometry, with the runtime OnzeTrots header face shared by saved and
+ * newly authored slides. Body copy and numeric display faces retain theirs. */
+.ot-v9-scope .screen[data-ot-current]{--ot-title-font:OTMarker,cursive}
 .ot-v9-scope .screen[data-ot-current] h1,
 .ot-v9-scope .screen[data-ot-current] h2,
 .ot-v9-scope .screen[data-ot-current] h3,
@@ -11,7 +10,7 @@
 .ot-v9-scope .screen[data-ot-current] .sponsor-thanks,
 .ot-v9-scope .screen[data-ot-current] .visitor-copy>span,
 .ot-v9-scope .screen[data-ot-current] .vm-menu-slogan{
- font-family:var(--ot-title-font);font-weight:900;font-style:normal;font-synthesis:none;
+ font-family:var(--ot-title-font);font-weight:400;font-style:normal;font-synthesis:none;
 }
 .ot-v9-scope .screen[data-ot-current] .slide-header-container h2{line-height:1.08}
 .ot-v9-scope .screen[data-ot-current] .rss-feature{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:24px;min-height:0}

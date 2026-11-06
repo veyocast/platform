@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { chromium, type CDPSession } from "playwright-core";
+import { chromium, type CDPSession, type Page } from "playwright-core";
 import { createHash } from "node:crypto";
 import { syncSlidePresentationSchema, syncBackgroundScenes } from "@veyocast/contracts";
 import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
@@ -9,6 +9,7 @@ import sharp from "sharp";
 import {
   buildSyncCaptureHtml,
   createSyncSlideCapture,
+  loadSyncOnzeTrotsCaptureFonts,
 } from "../src/sync-dom-capture";
 
 function input() {
@@ -93,6 +94,38 @@ describe("Sync capture policy", () => {
       }),
     ).rejects.toMatchObject({ code: "studio_sites_capture_failed" });
   });
+});
+describe("OnzeTrots capture font readiness", () => {
+  const page = { evaluate: async (callback: (version: string) => Promise<void>, version: string) => callback(version) } as unknown as Page;
+  for (const version of ["sync-onzetrots-v1", "sync-onzetrots-v9"] as const) {
+    it(`${version}: loads Permanent Marker and the retained body/signature fonts before capture`, async () => {
+      try {
+        const load = vi.fn(async () => [{ status: "loaded" }]);
+        vi.stubGlobal("document", { fonts: { load, ready: Promise.resolve() } });
+        await loadSyncOnzeTrotsCaptureFonts(page, version);
+        expect(load.mock.calls.flat()).toEqual(expect.arrayContaining(["400 16px OTMarker", "800 16px OTBarlow", "900 16px OTBarlow", "400 16px OTManrope", "600 16px OTManrope", "800 16px OTManrope", ...(version === "sync-onzetrots-v9" ? ["400 16px OTRubikDistressed"] : [])]));
+        expect(load.mock.calls.flat().filter(font => font === "400 16px OTMarker")).toHaveLength(1);
+      } finally { vi.unstubAllGlobals(); }
+    });
+  }
+  it("cannot capture until the header face has finished loading", async () => {
+    let finishMarker!: () => void, markerRequested!: () => void;
+    const requested = new Promise<void>(resolve => { markerRequested = resolve; });
+    try {
+      vi.stubGlobal("document", { fonts: { ready: Promise.resolve(), load: (font: string) => font === "400 16px OTMarker" ? new Promise(resolve => { finishMarker = () => resolve([{ status: "loaded" }]); markerRequested(); }) : Promise.resolve([{ status: "loaded" }]) } });
+      let ready = false; const preparation = loadSyncOnzeTrotsCaptureFonts(page, "sync-onzetrots-v9").then(() => { ready = true; });
+      await requested; expect(ready).toBe(false);
+      finishMarker(); await preparation; expect(ready).toBe(true);
+    } finally { vi.unstubAllGlobals(); }
+  });
+  for (const markerFaces of [[], [{ status: "error" }]]) {
+    it(`rejects an unavailable header face (${markerFaces.length ? "decode failure" : "missing registration"})`, async () => {
+      try {
+        vi.stubGlobal("document", { fonts: { ready: Promise.resolve(), load: async (font: string) => font === "400 16px OTMarker" ? markerFaces : [{ status: "loaded" }] } });
+        await expect(loadSyncOnzeTrotsCaptureFonts(page, "sync-onzetrots-v9")).rejects.toThrow("Approved OnzeTrots font unavailable");
+      } finally { vi.unstubAllGlobals(); }
+    });
+  }
 });
 describe.runIf(Boolean(process.env.SITES_CAPTURE_TEST_CHROMIUM))(
   "actual Sync Chromium capture",

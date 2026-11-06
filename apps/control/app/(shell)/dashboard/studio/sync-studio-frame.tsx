@@ -52,6 +52,7 @@ import {
   type SyncSlideAssetResolver,
 } from "@veyocast/content-templates/sync-slide-static-view";
 import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
+import { ONZETROTS_PRIMARY } from "@veyocast/content-templates/onzetrots-brand";
 import styles from "./sync-studio-frame.module.css";
 import { SyncBackgroundPicker } from "./sync-background-picker";
 import {SyncSlidePreview} from '../playlists/_components/sites/sync-studio-preview';
@@ -158,6 +159,8 @@ const rowFamilies = new Set<SyncContentFamily>([
 /** Source Studio layout. Commands, confirmed state and provider controls belong to its controller. */
 export function SyncStudioFrame(props: FrameProps) {
   const { presentation, assets, resolveAsset, onChange } = props;
+  const onzeTrots = presentation.theme === "onzetrots-tv";
+  const displayAccent = onzeTrots ? ONZETROTS_PRIMARY : presentation.style.accent;
   const [tab, setTab] = useState<(typeof tabs)[number][0]>(props.initialTab??"content"),
     [page, setPage] = useState(0),
     [playing, setPlaying] = useState(false),
@@ -516,7 +519,7 @@ export function SyncStudioFrame(props: FrameProps) {
                     >
                       <div
                         className={`vc-theme-swatch ${theme === "onzetrots-tv" ? "onzetrots" : "fieldflow"}`}
-                        style={{ backgroundColor: presentation.style.accent }}
+                        style={{ backgroundColor: theme === "onzetrots-tv" ? ONZETROTS_PRIMARY : presentation.style.accent }}
                       ><span>Aa</span><i /></div>
                       <strong>
                         {theme === "fieldflow" ? "FieldFlow" : "OnzeTrots TV"}
@@ -536,10 +539,11 @@ export function SyncStudioFrame(props: FrameProps) {
                 </>}
                 {!isSyncOnzeTrotsPresentation(presentation)&&<>
                 <div className="vc-form-grid">
-                <Field label="Accentkleur" controlWrapperClassName="vc-color-input" adornment={<span>{presentation.style.accent}</span>}>
+                <Field label="Accentkleur" controlWrapperClassName="vc-color-input" adornment={<span>{displayAccent}</span>}>
                   <input
                     type="color"
-                    value={presentation.style.accent}
+                    value={displayAccent}
+                    disabled={onzeTrots}
                     onChange={(event) =>
                       setStyle({ accent: event.target.value })
                     }
@@ -849,7 +853,7 @@ export function SyncStudioFrame(props: FrameProps) {
           <div className="vc-stage-caption">
             <div>
               <span className="vc-theme-tag">
-                <span style={{ background: presentation.style.accent }} />
+                <span style={{ background: displayAccent }} />
                 {presentation.theme === "fieldflow" ? "FieldFlow" : "OnzeTrots"}
               </span>
               <span>

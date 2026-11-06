@@ -2,6 +2,7 @@ import React from "react";
 import {type CSSProperties,type RefObject} from 'react';
 import type {SitesDynamicDesignView as DynamicDesign} from './sites-render-types';
 import { sitesLedClasses as s } from "./sites-styles";
+import {ONZETROTS_PRIMARY} from "./onzetrots-brand";
 
 type TimelineItem={id:string;primary:string;value?:string};
 const factor=(value:unknown)=>{const n=Number(value??100);return Number.isFinite(n)?Math.max(.7,Math.min(2,n/100)):1};
@@ -20,14 +21,14 @@ export function LedSlideMarkup({design,background,active=false,compact=false,roo
  const showBranding=config.showBranding!==false;
  const margin=Math.max(1,Math.min(12,design.safeArea??3));const scale=factor(design.scale);
  const grunge=Math.max(0,Math.min(100,Number(config.grunge??55)))/100;
- const customAccent=design.accent==='#ff8127'?'#b8d7f2':design.accent;
+ const customAccent=design.themeId==='onzetrots-tv'?ONZETROTS_PRIMARY:design.accent==='#ff8127'?'#b8d7f2':design.accent;
  const titleScale=Math.min(1,18/Math.max(1,heading.length));const homeLogo=typeof config.homeLogo==='string'?config.homeLogo:'';const awayLogo=typeof config.awayLogo==='string'?config.awayLogo:'';
  const subtitle=moment==='live'?(config.showClock?`${String(config.clock||'—')} · wedstrijd bezig`:'Samen langs de lijn'):design.subtitle;
 
  // Measure natural content within independent, fixed grid regions. Transforming the
  // inner group leaves those regions unchanged, so a larger score cannot hit the timeline.
 
- return <div ref={rootRef} className={s.slide} data-theme={paper?'paper':'blue'} data-layout={design.layout} data-orientation={design.orientation} data-moment={moment} data-active={active} data-animation={String(config.animation||'rise')} data-compact={compact} data-branding={showBranding} style={{'--led-accent':customAccent,'--led-grunge':grunge,'--led-scale':scale,'--led-title-size':scale*factor(config.ledTitleScale)*titleScale,'--led-subtitle-size':scale*factor(config.ledTitleScale),'--led-score-size':scale*factor(config.ledScoreScale),'--led-logo-size':scale*factor(config.ledLogoScale),'--led-team-size':scale*factor(config.ledTeamScale),'--led-margin':`${margin}cqw`,'--led-overlay':Math.max(0,Math.min(.95,(design.overlay??20)/100)),'--led-align':design.align} as CSSProperties} aria-label={`OnzeTrots · ${design.name}`}>
+ return <div ref={rootRef} className={s.slide} data-theme={paper?'paper':'blue'} data-brand-theme={design.themeId} data-layout={design.layout} data-orientation={design.orientation} data-moment={moment} data-active={active} data-animation={String(config.animation||'rise')} data-compact={compact} data-branding={showBranding} style={{'--led-accent':customAccent,'--led-grunge':grunge,'--led-scale':scale,'--led-title-size':scale*factor(config.ledTitleScale)*titleScale,'--led-subtitle-size':scale*factor(config.ledTitleScale),'--led-score-size':scale*factor(config.ledScoreScale),'--led-logo-size':scale*factor(config.ledLogoScale),'--led-team-size':scale*factor(config.ledTeamScale),'--led-margin':`${margin}cqw`,'--led-overlay':Math.max(0,Math.min(.95,(design.overlay??20)/100)),'--led-align':design.align} as CSSProperties} aria-label={`OnzeTrots · ${design.name}`}>
   {background&&<img className={s.photo} src={background} alt="" style={{objectFit:config.backgroundFit==='cover'?'cover':'contain'}}/>}
   <div className={s.wash}/><div className={s.edgePaint} aria-hidden="true"/><div className={s.lightPaint} aria-hidden="true"/>
   <div className={s.content}>

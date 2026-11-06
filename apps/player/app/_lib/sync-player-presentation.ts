@@ -127,7 +127,8 @@ export function prepareSyncOnzeTrotsFonts(urls:Record<string,string>,origin:stri
   {family:'OTManrope',path:'/onzetrots-approved-v1/assets/fonts/club-font-8.ttf',weight:'800',format:'truetype'},
   {family:'OTBarlow',path:'/onzetrots-approved-v1/assets/fonts/club-font-2.ttf',weight:'800',format:'truetype'},
   {family:'OTBarlow',path:'/onzetrots-approved-v1/assets/fonts/club-font-3.ttf',weight:'900',format:'truetype'},
-  presentation?.rendererVersion==='sync-onzetrots-v9'?{family:'OTRubikDistressed',path:'/onzetrots-approved-v9/assets/fonts/RubikDistressed-Regular.ttf',weight:'400',format:'truetype'}:{family:'OTMarker',path:'/onzetrots-approved-v1/assets/fonts/club-font-9.ttf',weight:'400',format:'truetype'},
+  {family:'OTMarker',path:'/onzetrots-approved-v1/assets/fonts/club-font-9.ttf',weight:'400',format:'truetype'},
+  ...(presentation?.rendererVersion==='sync-onzetrots-v9'?[{family:'OTRubikDistressed',path:'/onzetrots-approved-v9/assets/fonts/RubikDistressed-Regular.ttf',weight:'400',format:'truetype'}]:[]),
  ]);
 }
 

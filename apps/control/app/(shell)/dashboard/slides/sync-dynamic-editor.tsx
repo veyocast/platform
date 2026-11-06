@@ -3,7 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Button} from '@veyocast/ui';
-import {syncOnzeTrotsMarkerDraft,syncDynamicConfigurationSchema,syncDynamicRequestSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,syncSlidePresentationSchema,syncSlideDurationMs,type SyncDynamicConfiguration,type SyncSlidePresentation,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
+import {syncDynamicConfigurationSchema,syncDynamicRequestSchema,syncDynamicFamilies,syncOnzeTrotsDynamicFamilies,syncSlidePresentationSchema,syncSlideDurationMs,type SyncDynamicConfiguration,type SyncSlidePresentation,type PlayerDynamicTemplateAsset} from '@veyocast/contracts';
 import {SyncStudioFrame} from '../studio/sync-studio-frame';
 import {SyncStudioField as Field} from '../studio/sync-studio-field';
 import {mutateSyncDynamicAuthoringAction,previewSyncDynamicAuthoringAction,loadSyncDynamicBindingOptionsAction} from './sync-dynamic-actions';
@@ -20,7 +20,7 @@ const serial=(value:unknown)=>JSON.stringify(value);
  * authoritative, and preview reads never enqueue a snapshot or render. */
 export function SyncDynamicEditor(props:Props){
  const router=useRouter();
- const initialRequest={...props.initialRequest,configuration:{...props.initialRequest.configuration,syncConfiguration:{...(props.initialRequest.configuration.syncConfiguration as SyncDynamicConfiguration),seed:syncOnzeTrotsMarkerDraft((props.initialRequest.configuration.syncConfiguration as SyncDynamicConfiguration).seed)}}};
+ const initialRequest=props.initialRequest;
  const initial:Draft={request:initialRequest,seconds:String((props.initialRequest.configuration.syncConfiguration as SyncDynamicConfiguration).secondsPerPage)};
  const [draft,setDraft]=useState(initial),[past,setPast]=useState<Draft[]>([]),[future,setFuture]=useState<Draft[]>([]);
  const [revision,setRevision]=useState(props.initialRevision),[baseline,setBaseline]=useState(serial({...initial,request:props.initialRequest})),[hydrated,setHydrated]=useState(false);

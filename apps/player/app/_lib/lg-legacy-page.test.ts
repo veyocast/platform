@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { Script, createContext } from "node:vm";
+import { createRequire } from "node:module";
 
 import { describe, expect, it } from "vitest";
 
@@ -14,6 +15,39 @@ function inlineRuntime(html: string) {
 }
 
 describe("Royal Current Static LG", () => {
+  it("keeps the generic OnzeTrots LG projection and playback valid ECMAScript 5", () => {
+    const acorn=createRequire(import.meta.url)('next/dist/compiled/acorn') as {parse:(source:string,options:{ecmaVersion:number})=>unknown};
+    const source=inlineRuntime(renderLgLegacyHtml());
+    const projection=source.slice(source.indexOf('function templateRuntimeThemeId('),source.indexOf('function templateVisitorArrivalValue('));
+    const playback=source.slice(source.indexOf('function playLedScoresLiveMatchTemplate('),source.indexOf('function playImage('));
+    expect(()=>acorn.parse(projection+playback,{ecmaVersion:5})).not.toThrow();
+  });
+  it("projects old generic OnzeTrots font/accent choices at runtime without changing body or FieldFlow", () => {
+    const html=renderLgLegacyHtml(),source=inlineRuntime(html);
+    const start=source.indexOf('function templateRuntimeThemeId('),end=source.indexOf('function templateVisitorArrivalValue(',start);
+    const values:Record<string,string>={'--vc-theme-body-font':'"Source Serif 4"','--vc-theme-display-font':'"Anton"','--accent':'#FF5C20'};
+    const root={style:{setProperty:(name:string,value:string)=>{values[name]=value;}},setAttribute:()=>undefined};
+    const context={root,CONFIG:{onzeTrotsBrand:{primary:'#03438A',headerFontFamily:'OTMarker'}},values};
+    new Script(source.slice(start,end)+';templateApplyOnzeTrotsBrand(root,"onzetrots-tv");').runInNewContext(context);
+    expect(values).toMatchObject({'--vc-theme-body-font':'"Source Serif 4"','--vc-theme-display-font':'"OTMarker"','--vc-theme-display-weight':'400','--vc-theme-accent':'#03438A','--accent':'#03438A','--live-accent':'#03438A'});
+    const before={...values};new Script(source.slice(start,end)+';templateApplyOnzeTrotsBrand(root,"fieldflow");').runInNewContext(context);expect(values).toEqual(before);
+    expect(html).toContain('href="/onzetrots-approved-v1/assets/fonts/club-font-9.ttf" as="font"');
+  });
+  it("requires the actual OT header face before dispatching generic live-match playback on LG", async () => {
+    const source=inlineRuntime(renderLgLegacyHtml());
+    const playback=source.slice(source.indexOf('function playDynamicTemplate('),source.indexOf('function playImage('));
+    for(const outcome of ['loaded','error','missing'] as const){
+      let complete!:(faces:{status:string}[])=>void;
+      const calls:string[]=[];
+      const item={kind:'video',dynamicTemplate:{slideType:'ledscores_live_match',data:{}}};
+      const context={item,runtime:{playbackGeneration:7,currentItem:item},CONFIG:{onzeTrotsBrand:{headerFontFamily:'OTMarker'}},templateRecord:(value:unknown)=>value,templateRuntimeThemeId:()=> 'onzetrots-tv',document:{fonts:{load:(font:string)=>{calls.push(font);return new Promise<{status:string}[]>(resolve=>{complete=resolve;});}}},playLedScoresLiveMatchTemplate:()=>calls.push('live'),playVideo:()=>calls.push('binary'),log:()=>undefined};
+      new Script(playback+';playDynamicTemplate(item,"cached-video",[],7);').runInNewContext(context);
+      expect(calls).toEqual(['400 16px OTMarker']);
+      complete(outcome==='missing'?[]:[{status:outcome}]);
+      await new Promise(resolve=>setTimeout(resolve,0));
+      expect(calls).toEqual(['400 16px OTMarker',outcome==='loaded'?'live':'binary']);
+    }
+  });
   it("ververst alleen URL-toegang voor dezelfde bevroren mediaframebron", () => {
     const source = inlineRuntime(renderLgLegacyHtml());
     const body = source.slice(source.indexOf("function refreshMediaFrameMediaAccess("), source.indexOf("function liveDataChanged("));

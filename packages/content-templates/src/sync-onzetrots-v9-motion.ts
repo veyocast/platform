@@ -64,7 +64,7 @@ export function measureSyncOnzeTrotsV9Layout(root: ParentNode = document): numbe
     let size = portrait ? 38 : 42;
     title.style.fontSize = `${size}px`;
     const available = copy.clientHeight - (subtitle.hidden ? 0 : subtitle.offsetHeight + 7);
-    while (size > (screen.dataset.otCurrent ? 30 : 14) && title.scrollHeight > available + 1) title.style.fontSize = `${--size}px`;
+    while (size > 14 && (title.scrollHeight > available + 1 || title.scrollWidth > title.clientWidth + 1)) title.style.fontSize = `${--size}px`;
   }
   // Called after the verified fonts decode in preview, Worker and Player.
   // Give the complete headline priority; only the summary may be shortened.

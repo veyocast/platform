@@ -1,5 +1,9 @@
 # VeyoCast Technical Canon v1
 
+OnzeTrots gebruikt voor nieuwe en bestaande CSS-slides primaire kleur #03438A
+en Permanent Marker voor koppen. Deze runtime-merkrollen vervangen oudere
+font-/accentkeuzes; zie [de merkafspraak](onzetrots-brand-policy.md).
+
 S292 voegt een expliciet Source DOM-protocol 2 toe. Alleen een geverifieerde
 consumeruitrol kan de tenantproducer activeren. PNG/MP4 is geen algemene gate
 voor dit contract; versie 1 en historische MenuDocument/Sites-routes behouden

@@ -68,6 +68,15 @@ describe('versioned v9 authoring boundary', () => {
     expect(syncSlideRendererAssets(slide).some(asset => asset.path.includes('RubikDistressed-Regular.ttf'))).toBe(true);
     expect(syncSlideRendererAssets(slide).some(asset => asset.path.includes('clubmuur-lettering.webp'))).toBe(true);
   });
+  it('always includes exactly the existing Permanent Marker header asset regardless of saved font choice', () => {
+    for (const style of [{}, {font: 'Serif', fontChanged: true}, {font: 'Brush', fontChanged: true}]) {
+      const slide = syncSlidePresentationSchema.parse({...input, style});
+      expect(syncSlideRendererAssets(slide).filter(asset => asset.path.endsWith('/club-font-9.ttf'))).toEqual([{
+        path: '/onzetrots-approved-v1/assets/fonts/club-font-9.ttf',
+        sha256: 'a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c', bytes: 73276, mimeType: 'font/ttf',
+      }]);
+    }
+  });
   it('samples the completed first page rather than the next page intro at the four-second boundary',()=>{
     const slide=syncSlidePresentationSchema.parse({...input,family:'birthdays',rows:Array.from({length:7},(_,i)=>['24','oktober',`Eigen ${i}`,'Eigen team'])});
     const minimum=syncSlideMinimumDurationMs(slide);

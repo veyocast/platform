@@ -352,6 +352,30 @@ export function lgSitesRuntimeScript() {
       });
     }
     function lgSitesAutoFit(artboard) {
+      // The brand font also applies to old saved Sites documents. Measure its
+      // loaded glyphs inside the existing fixed header; keep this bridge ES5.
+      var headings = Array.prototype.slice.call(artboard.querySelectorAll(".uc-slide[data-theme=onzetrots-tv] .uc-slide-title,.uc-slide[data-theme=onzetrots-tv] .uc-header-brand,.vm-approved [data-ot-header-text],.onzetrots-tv .otv-heading-text,.onzetrots-tv .nc-broadcast-brand strong"));
+      headings.forEach(function (heading) { if (heading.lgBrandOriginalFontSize === undefined) heading.lgBrandOriginalFontSize = heading.style.fontSize; heading.style.fontSize = heading.lgBrandOriginalFontSize; });
+      headings.sort(function (a,b) { return Number(a.classList.contains("uc-header-brand")) - Number(b.classList.contains("uc-header-brand")); });
+      for (var headingIndex = 0; headingIndex < headings.length; headingIndex += 1) {
+        var heading = headings[headingIndex];
+        var header = heading.parentElement;
+        while (header && header !== artboard && !/(^|\\s)(uc-header|slide-header-container|nc-broadcast-header|nk-heading|ns-heading)(\\s|$)/.test(header.className)) header = header.parentElement;
+        if (!header || header === artboard) continue;
+        var headerStyle = window.getComputedStyle(header);
+        var headerBounds = header.getBoundingClientRect();
+        var headerScale = headerBounds.height / Math.max(1, header.offsetHeight);
+        var headerTop = headerBounds.top + parseFloat(headerStyle.paddingTop) * headerScale;
+        var headerBottom = headerBounds.bottom - parseFloat(headerStyle.paddingBottom) * headerScale;
+        var headingSize = parseFloat(window.getComputedStyle(heading).fontSize);
+        var headingBase = headingSize;
+        for (var headingAttempt = 0; headingAttempt < 80 && headingSize > headingBase * .15; headingAttempt += 1) {
+          var headingBounds = heading.getBoundingClientRect();
+          if (heading.scrollWidth <= heading.clientWidth + 1 && headingBounds.top >= headerTop - 1 && headingBounds.bottom <= headerBottom + 1) break;
+          headingSize *= .94;
+          heading.style.fontSize = String(headingSize) + "px";
+        }
+      }
       var menuImages = artboard.querySelectorAll(".vm-widget-image[data-ratio]");
       for (var imageIndex = 0; imageIndex < menuImages.length; imageIndex += 1) {
         var frame = menuImages[imageIndex]; var image = frame.querySelector("img"); if (!image) continue;
@@ -379,6 +403,34 @@ export function lgSitesRuntimeScript() {
         var computed = window.getComputedStyle(element); var size = parseFloat(computed.fontSize); var baseSize = size; var maximum = parseFloat(computed.maxHeight);
         for (var attempt = 0; attempt < 22 && size > baseSize * .45 && (element.scrollWidth > element.clientWidth + 2 || isFinite(maximum) && element.scrollHeight > maximum + 2); attempt += 1) { size *= .94; element.style.fontSize = String(size) + "px"; }
       }
+    }
+    function lgSitesLoadBrandFont(artboard) {
+      return Promise.resolve(document.fonts && document.fonts.ready).then(function () {
+        if (!artboard.querySelector('.uc-slide[data-theme="onzetrots-tv"],.onzetrots-tv,.vm-approved,.s191-led-slide-slide[data-brand-theme="onzetrots-tv"]')) return;
+        if (!document.fonts || typeof document.fonts.load !== "function") throw new Error("LEGACY_SITES_BRAND_FONT_UNAVAILABLE");
+        return document.fonts.load("400 24px OTMarker").then(function (faces) {
+          if (!faces.length || faces.some(function (face) { return face.status !== "loaded"; })) throw new Error("LEGACY_SITES_BRAND_FONT_UNAVAILABLE");
+        });
+      });
+    }
+    function lgSitesDecodeBrandFont(sourceDocument, css) {
+      // Decode a refresh's new bytes before changing the visible DOM or its
+      // font-face rules. A detached FontFace never replaces the visible face.
+      var branded = sourceDocument.pages.some(function (html) { return /data-(?:brand-)?theme=["']onzetrots-tv["']|class=["'][^"']*(?:onzetrots-tv|vm-approved)\\b/.test(html); });
+      if (!branded) return Promise.resolve();
+      if (typeof window.FontFace !== "function") return Promise.reject(new Error("LEGACY_SITES_BRAND_FONT_UNAVAILABLE"));
+      var blocks = css.match(/@font-face\\s*\\{[^}]*\\}/gi) || [];
+      var sources = [];
+      blocks.forEach(function (block) {
+        if (!/font-family\\s*:\\s*["']?OTMarker(?:["']|\\s*;)/i.test(block)) return;
+        var source = /(?:^|[;{])\\s*src\\s*:\\s*([^;}]+)/i.exec(block);
+        if (source && sources.indexOf(source[1]) === -1) sources.push(source[1]);
+      });
+      if (!sources.length) return Promise.reject(new Error("LEGACY_SITES_BRAND_FONT_UNAVAILABLE"));
+      return Promise.all(sources.map(function (source) {
+        var face = new window.FontFace("OTMarker", source, {weight:"400",style:"normal"});
+        return face.load().then(function (loaded) { if (loaded.status !== "loaded") throw new Error("LEGACY_SITES_BRAND_FONT_UNAVAILABLE"); });
+      }));
     }
     function playSitesMarkup(item, fallbackUrl, objectUrls, generation) {
       if (!lgSitesMarkupSupported() || !lgSitesValidDocument(item.sitesPresentation)) return false;
@@ -428,28 +480,57 @@ export function lgSitesRuntimeScript() {
         }
         var allUrls = objectUrls.concat(extraUrls);
         var refreshGeneration = 0;
+        var applyingRefresh = false;
+        var queuedRefreshItem = null;
+        function finishRefresh() {
+          applyingRefresh = false;
+          var queued = queuedRefreshItem; queuedRefreshItem = null;
+          if (queued && generation === runtime.playbackGeneration && runtime.currentElement === root) root.refreshSitesData(queued);
+        }
         root.liveDataObjectUrls = extraUrls;
         root.refreshSitesData = function (freshItem) {
+          // A newer request may supersede preparation, but never interrupt the
+          // installed frame's validation/rollback. Keep only its latest facts.
+          if (applyingRefresh) { queuedRefreshItem = freshItem; return; }
           var refresh = ++refreshGeneration;
           lgSitesResolveDocument(freshItem, function (fresh, freshUrls) {
             if (!fresh || refresh !== refreshGeneration || generation !== runtime.playbackGeneration || runtime.currentElement !== root) { revokeObjectUrls(freshUrls); return; }
-            var oldUrls = root.liveDataObjectUrls || [];
-            resolved = fresh;
-            pageIndex = Math.min(pageIndex, resolved.document.pages.length - 1);
-            compiled = lgSitesCompileCss(lgSitesReplaceTokens(resolved.document.css, resolved.replacements), resolved.document.width, resolved.document.height);
-            style.textContent = compiled.css;
-            root.liveDataObjectUrls = freshUrls;
-            runtime.currentObjectUrls = runtime.currentObjectUrls.filter(function (url) { return oldUrls.indexOf(url) === -1; }).concat(freshUrls);
-            render();
-            Promise.resolve(document.fonts && document.fonts.ready).then(function () { if (refresh === refreshGeneration && runtime.currentElement === root) { fit(); revokeObjectUrls(oldUrls); } });
+            var freshCompiled = lgSitesCompileCss(lgSitesReplaceTokens(fresh.document.css, fresh.replacements), fresh.document.width, fresh.document.height);
+            lgSitesDecodeBrandFont(fresh.document, freshCompiled.css).then(function () {
+              if (refresh !== refreshGeneration || generation !== runtime.playbackGeneration || runtime.currentElement !== root) { revokeObjectUrls(freshUrls); return; }
+              var oldUrls = root.liveDataObjectUrls || [], oldResolved = resolved, oldCompiled = compiled, oldPage = pageIndex;
+              var oldObjectUrls = runtime.currentObjectUrls;
+              applyingRefresh = true;
+              resolved = fresh;
+              pageIndex = Math.min(pageIndex, resolved.document.pages.length - 1);
+              compiled = freshCompiled;
+              style.textContent = compiled.css;
+              root.liveDataObjectUrls = freshUrls;
+              // Keep the old URLs alive until the replacement has real glyphs.
+              runtime.currentObjectUrls = oldObjectUrls.concat(freshUrls);
+              render();
+              lgSitesLoadBrandFont(artboard).then(function () {
+                if (refresh !== refreshGeneration || runtime.currentElement !== root) { finishRefresh(); return; }
+                fit();
+                runtime.currentObjectUrls = runtime.currentObjectUrls.filter(function (url) { return oldUrls.indexOf(url) === -1; });
+                revokeObjectUrls(oldUrls);
+                finishRefresh();
+              }).catch(function () {
+                if (refresh !== refreshGeneration || runtime.currentElement !== root) { finishRefresh(); return; }
+                resolved = oldResolved; compiled = oldCompiled; pageIndex = oldPage;
+                style.textContent = compiled.css; root.liveDataObjectUrls = oldUrls; runtime.currentObjectUrls = oldObjectUrls;
+                render(); revokeObjectUrls(freshUrls); log("LEGACY_SITES_BRAND_FONT_UNAVAILABLE", item.id);
+                finishRefresh();
+              });
+            }).catch(function () { revokeObjectUrls(freshUrls); log("LEGACY_SITES_BRAND_FONT_UNAVAILABLE", item.id); });
           });
         };
-        root.lgCleanup = function () { refreshGeneration += 1; window.removeEventListener("resize", fit); artboard.removeEventListener("animationend", fit); };
+        root.lgCleanup = function () { refreshGeneration += 1; queuedRefreshItem = null; window.removeEventListener("resize", fit); artboard.removeEventListener("animationend", fit); };
         beginPendingMedia(root, allUrls);
         render();
         window.addEventListener("resize", fit);
         artboard.addEventListener("animationend", fit);
-        Promise.resolve(document.fonts && document.fonts.ready).then(function () {
+        lgSitesLoadBrandFont(artboard).then(function () {
           if (generation !== runtime.playbackGeneration || runtime.pendingElement !== root) return;
           var images = Array.prototype.slice.call(artboard.querySelectorAll("img"));
           return Promise.all(images.map(function (image) { return image.complete ? Promise.resolve() : new Promise(function (resolve) { image.onload = image.onerror = resolve; }); })).then(function () {
@@ -460,7 +541,7 @@ export function lgSitesRuntimeScript() {
               if (commitPendingMedia(root, allUrls, generation)) { window.clearTimeout(runtime.watchdogTimer); runtime.watchdogTimer = null; scheduleTemplateAdvance(advance, Math.max(1000, Number(resolved.document.pageDurationSeconds) * 1000 || itemDurationMs(item))); }
             });
           });
-        });
+        }).catch(function () { log("LEGACY_SITES_BRAND_FONT_UNAVAILABLE", item.id); });
         runtime.watchdogTimer = window.setTimeout(function () {
           if (generation !== runtime.playbackGeneration || runtime.pendingElement !== root) return;
           cancelPendingMedia();

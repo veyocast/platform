@@ -34,6 +34,21 @@ function context(extra:RuntimeContext={}){
  `).runInNewContext(value);
  return value;
 }
+
+it("requires decoded Marker faces for branded LG frames while preserving the nonbrand font boundary",async()=>{
+ const load=vi.fn().mockResolvedValue([{status:"loaded"}]),value=context({fontLoad:load});
+ evaluate(value,'document.fonts={ready:Promise.resolve(),load:fontLoad};var brandRoot={querySelector:function(){return true;}};var fieldRoot={querySelector:function(){return false;}}');
+ await expect(evaluate(value,"lgSitesLoadBrandFont(brandRoot)")).resolves.toBeUndefined();expect(load).toHaveBeenCalledWith("400 24px OTMarker");load.mockResolvedValue([{status:"error"}]);
+ await expect(evaluate(value,"lgSitesLoadBrandFont(brandRoot)")).rejects.toThrow("LEGACY_SITES_BRAND_FONT_UNAVAILABLE");load.mockClear();await expect(evaluate(value,"lgSitesLoadBrandFont(fieldRoot)")).resolves.toBeUndefined();expect(load).not.toHaveBeenCalled();
+});
+
+it("predecodes fresh LG Marker bytes without installing or mutating a visible font face",async()=>{
+ const decode=vi.fn().mockResolvedValue({status:"loaded"}),value=context({decode});
+ evaluate(value,'window.FontFace=function(family,source){this.load=function(){return decode(family,source);}};var branded={pages:[\'<div class="uc-slide" data-theme="onzetrots-tv"></div>\']};var fontCss=\'@font-face{font-family:OTMarker;src:url("blob:new-verified-font");font-weight:400}\';');
+ await expect(evaluate(value,"lgSitesDecodeBrandFont(branded,fontCss)")).resolves.toBeDefined();expect(decode).toHaveBeenCalledWith("OTMarker",'url("blob:new-verified-font")');
+ decode.mockRejectedValue(new Error("decode failed"));await expect(evaluate(value,"lgSitesDecodeBrandFont(branded,fontCss)")).rejects.toThrow("decode failed");
+ await expect(evaluate(value,'lgSitesDecodeBrandFont(branded,"body{color:red}")')).rejects.toThrow("LEGACY_SITES_BRAND_FONT_UNAVAILABLE");
+});
 function evaluate<T=unknown>(value:RuntimeContext,code:string){return new Script(code).runInNewContext(value) as T;}
 function loadAssets(value:RuntimeContext){const html=renderLgLegacyHtml();const source=html.slice(html.indexOf("    function cacheAsset("),html.indexOf("    function sha256Hex("));const validator=html.slice(html.indexOf("var validMediaFrameBackground ="),html.indexOf("var normalizeLgSitesCss ="));evaluate(value,`${validator} function playableItems(entry){return entry.manifest.items;} function templateRecord(entry){return entry;} ${source}`);}
 

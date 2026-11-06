@@ -49,12 +49,13 @@ test("pre-caches and reloads the complete player shell without a network connect
   });
 
   const cachedShell = await page.evaluate(async () => {
-    const cache = await caches.open("veyocast-player-shell-v5");
+    const cache = await caches.open("veyocast-player-shell-v6");
     const paths = (await cache.keys()).map((request) => new URL(request.url).pathname);
     return {
       hasIcon: paths.includes("/brand/veyocast-icon-maskable-512.png"),
       hasHero: paths.includes("/assets/brand-hero-800.webp"),
       hasManifest: paths.includes("/manifest.webmanifest"),
+      hasMarker: paths.includes("/onzetrots-approved-v1/assets/fonts/club-font-9.ttf"),
       hasNextAssets: paths.some((path) => path.startsWith("/_next/static/")),
       hasRoot: paths.includes("/")
     };
@@ -63,6 +64,7 @@ test("pre-caches and reloads the complete player shell without a network connect
     hasIcon: true,
     hasHero: true,
     hasManifest: true,
+    hasMarker: true,
     hasNextAssets: true,
     hasRoot: true
   });
@@ -77,6 +79,14 @@ test("pre-caches and reloads the complete player shell without a network connect
     await page.reload();
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByText("Geen internetverbinding", { exact: true })).toBeVisible();
+    const marker = await page.evaluate(async () => {
+      const path = "/onzetrots-approved-v1/assets/fonts/club-font-9.ttf";
+      const response = await fetch(path), bytes = await response.arrayBuffer();
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), value => value.toString(16).padStart(2, "0")).join("");
+      const face = await new FontFace("OfflineOnzeTrotsHeader", `url(${path})`, { weight: "400" }).load();
+      return { bytes: bytes.byteLength, hash, status: face.status };
+    });
+    expect(marker).toEqual({ bytes: 73276, hash: "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c", status: "loaded" });
   } finally {
     await context.setOffline(false);
   }
