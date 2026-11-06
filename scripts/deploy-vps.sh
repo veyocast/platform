@@ -478,8 +478,11 @@ wait_for_marketing_image() {
 
   local attempt
   for attempt in $(seq 1 20); do
-    if docker exec "${temporary_marketing_container}" node -e \
-      "fetch('http://127.0.0.1:3002/api/health').then(async r=>{const b=await r.json();if(!r.ok||b.status!=='ok'||b.service!=='marketing'||b.environment!=='production'||b.revision!=='${DEPLOYMENT_SHA}')process.exit(1)}).catch(()=>process.exit(1))"; then
+    # Bound both the HTTP response body and a stalled Docker exec/daemon. The
+    # outer deadline leaves Node time to report its earlier request deadline.
+    if timeout --signal=TERM --kill-after=2s 8s \
+      docker exec "${temporary_marketing_container}" node -e \
+      "fetch('http://127.0.0.1:3002/api/health',{signal:AbortSignal.timeout(5000)}).then(async r=>{const b=await r.json();if(!r.ok||b?.status!=='ok'||b.service!=='marketing'||b.environment!=='production'||b.revision!=='${DEPLOYMENT_SHA}')process.exit(1)}).catch(()=>process.exit(1))"; then
       docker rm --force "${temporary_marketing_container}" >/dev/null
       temporary_marketing_container=""
       return 0
