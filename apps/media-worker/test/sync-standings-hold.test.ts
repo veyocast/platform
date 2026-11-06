@@ -9,7 +9,7 @@ import { createSyncSlideCapture, hasStaticSyncStandingsCaptureImages } from "../
 
 const animatedPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACGFjVEwAAAACAAAAAPONk3AAAAAaZmNUTAAAAAAAAAACAAAAAgAAAAAAAAAAAAEACgAA6FTcAAAAABFJREFUeJxj+M/A8B+EGWAMAEfKB/lnWW63AAAAGmZjVEwAAAABAAAAAgAAAAIAAAAAAAAAAAABAAoAAHMnNtQAAAAUZmRBVAAAAAJ4nGNgYPj/H4KhDAA/0gf51gDBTQAAAABJRU5ErkJggg==", "base64");
 const mediaAssetId = "29600000-0000-4000-8000-000000000001";
-const checksum = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
+const checksum = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 function input() {
   return syncSlidePresentationSchema.parse({
     schemaVersion: 1, rendererVersion: "sync-onzetrots-v9", sourceRevision: "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
