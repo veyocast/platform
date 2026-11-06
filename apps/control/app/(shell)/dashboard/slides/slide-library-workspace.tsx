@@ -41,6 +41,9 @@ import {
 import { createOrResumeDynamicSlideVersion } from "./version-actions";
 import { addDynamicSlideToPlaylist } from "./actions";
 import { DynamicSlideLivePreview } from "./new/dynamic-slide-live-preview";
+import { MenuDomPreview } from "../playlists/playlist-preview";
+import { SyncSlidePreview } from "../playlists/_components/sites/sync-studio-preview";
+import previewStyles from "../dynamic-content.module.css";
 import {
   archiveSlideResources,
   renameSlideResource,
@@ -334,15 +337,21 @@ function SlidePreviewDialog({ row }: { row: SlideLibraryRow }) {
         <DialogHeader>
           <DialogTitle>{row.name}</DialogTitle>
           <DialogDescription>
-            Dit is dezelfde HTML/CSS-renderer als op de Player, gevoed met de huidige immutable snapshot.
+            Bekijk het opgeslagen ontwerp met dezelfde HTML/CSS-renderer als op de Player.
           </DialogDescription>
         </DialogHeader>
-        <DialogBody>
+        <DialogBody className={styles.previewBody} tabIndex={0}>
           {loading && !result ? (
             <div aria-live="polite" className={styles.previewLoading} role="status">
               <Clock3 aria-hidden="true" />
-              <strong>Player-preview laden…</strong>
-              <span>De huidige immutable snapshot en bijbehorende assets worden veilig geladen.</span>
+              <strong>Ontwerp laden…</strong>
+              <span>Het opgeslagen ontwerp en de bijbehorende bronbeelden worden geladen.</span>
+            </div>
+          ) : result?.ok && result.cssPreview ? (
+            <div className={`${previewStyles.preview} ${styles.savedPreview}`} data-orientation={result.payload.orientation}>
+              {result.cssPreview.kind === "source"
+                ? <SyncSlidePreview presentation={result.cssPreview.presentation} assetUrls={result.cssPreview.assetUrls} durationSeconds={result.cssPreview.durationSeconds} id={result.cssPreview.id} active intrinsic />
+                : <MenuDomPreview presentation={result.cssPreview.presentation} assetUrls={result.cssPreview.assetUrls} />}
             </div>
           ) : (
             <DynamicSlideLivePreview loading={false} result={result} />

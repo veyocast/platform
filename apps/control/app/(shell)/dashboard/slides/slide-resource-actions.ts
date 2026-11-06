@@ -13,6 +13,11 @@ import {
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlAdminClient } from "../../../../lib/supabase/admin";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { loadSavedSlideCssPreview, type SavedSlideCssPreview } from "./saved-slide-css-preview";
+
+type ResourceCssPreview =
+  | Omit<Extract<SavedSlideCssPreview, { kind: "source" }>, "payload">
+  | Omit<Extract<SavedSlideCssPreview, { kind: "menu" }>, "payload">;
 
 export type SlideResourcePreviewResult =
   | {
@@ -20,6 +25,7 @@ export type SlideResourcePreviewResult =
       missingAssetCount: number;
       ok: true;
       payload: PlayerDynamicTemplatePayload;
+      cssPreview?: ResourceCssPreview;
       source: {
         lastErrorCode: string | null;
         lastSuccessfulSyncAt: string | null;
@@ -148,14 +154,32 @@ export async function loadSlideResourcePreview(
 
   const slideResult = await supabase
     .from("dynamic_slides")
-    .select("id,name,orientation,slide_type,current_snapshot_id,current_published_version_id")
+    .select("id,tenant_id,name,orientation,slide_type,current_snapshot_id,current_published_version_id,active_draft_version_id")
     .eq("tenant_id", session.tenantId)
     .eq("id", slideId)
     .maybeSingle();
-  if (slideResult.error || !slideResult.data?.current_snapshot_id) {
+  if (slideResult.error || !slideResult.data) {
     return previewError(
-      slideResult.error?.code ?? "PREVIEW_NOT_READY",
-      "Deze slide heeft nog geen gereedstaande immutable snapshot. Wacht op de verwerking of maak vanuit de slide een nieuwe snapshot."
+      slideResult.error?.code ?? "PREVIEW_SELECTION_INVALID",
+      "Het opgeslagen ontwerp kon niet worden gelezen. Controleer je toegang en open het opnieuw."
+    );
+  }
+  const directPreview = await loadSavedSlideCssPreview(supabase, session.tenantId, slideResult.data);
+  if (directPreview) {
+    const { payload, ...cssPreview } = directPreview;
+    return {
+      ok: true,
+      payload,
+      cssPreview,
+      itemCount: previewItemCount(payload.data),
+      missingAssetCount: 0,
+      source: { lastErrorCode: null, lastSuccessfulSyncAt: null, providerStatus: "saved_design" }
+    };
+  }
+  if (!slideResult.data.current_snapshot_id) {
+    return previewError(
+      "PREVIEW_NOT_READY",
+      "Het opgeslagen voorbeeld is nog niet beschikbaar. Controleer de bron of open het ontwerp opnieuw."
     );
   }
 

@@ -24,6 +24,7 @@ import {loadCanonicalSnapshotAssets}from'../../playlists/library';
 import {SyncExportDownload}from'../sync-export-download';
 import {MenuDomPreview}from'../../playlists/playlist-preview';
 import {SyncSlidePreview}from'../../playlists/_components/sites/sync-studio-preview';
+import {loadSavedSlideCssPreview} from '../saved-slide-css-preview';
 
 type PageProps = {
   params: Promise<{ slideId: string }>;
@@ -72,7 +73,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
           {canWrite&&data.previewMimeType==='application/vnd.veyocast.sync-dom+json'&&data.slide.current_snapshot_id?<SyncExportDownload key={data.slide.current_snapshot_id} snapshotId={data.slide.current_snapshot_id}/>:null}
           {canWrite && !versionState?.activeDraftVersionId ? <form action={refreshDynamicSlide}><input name="slideId" type="hidden" value={slideId} /><Button type="submit" variant="secondary"><RefreshCw aria-hidden="true" />Nieuwe snapshot</Button></form> : null}
         </div>}
-        description="Bekijk het gepubliceerde ontwerp en voeg het toe aan een playlistconcept."
+        description="Bekijk het opgeslagen ontwerp en voeg het toe aan een playlistconcept."
         eyebrow={session.tenant}
         status={slideStatus(data.slide.status)}
         title={data.slide.library_name ?? data.slide.name}
@@ -137,7 +138,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
             ) : data.previewUrl ? (
               <Image alt={`Offline fallback van ${data.slide.name}`} fill sizes="70vw" src={data.previewUrl} unoptimized />
             ) : (
-              <div className={styles.previewPlaceholder}><RefreshCw aria-hidden="true" /><span>De eerste workerpreview is nog niet gereed.</span></div>
+              <div className={styles.previewPlaceholder}><RefreshCw aria-hidden="true" /><span>Het opgeslagen schermvoorbeeld is nog niet beschikbaar. Controleer de bron of open het ontwerp opnieuw.</span></div>
             )}
           </div>
           <div className={styles.cardBody}>
@@ -173,9 +174,8 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
         <aside className={styles.formSection}>
           <h2>Beschikbaar in playlistmaker</h2>
           <p className={styles.muted}>
-            De Player toont deze slide als echte HTML/CSS. De immutable PNG
-            blijft uitsluitend beschikbaar als technische offline fallback
-            voor oudere apparaten.
+            Bekijk het ontwerp direct als HTML/CSS. De uitvoer voor oudere
+            apparaten wordt apart voorbereid.
           </p>
           {canAdd && data.playlists.length ? (
             <form action={addDynamicSlideToPlaylist} className={styles.form}>
@@ -203,7 +203,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
               )}
               <Button type="submit"><ListPlus aria-hidden="true" />Aan playlist toevoegen</Button>
             </form>
-          ) : <p className="notice notice--warning">{data.slide.status === "ready" ? "Maak eerst een playlistconcept of vraag schrijfrechten." : "Wacht tot de snapshot gereed is."}</p>}
+          ) : <p className="notice notice--warning">{data.slide.status === "ready" ? "Maak eerst een playlistconcept of vraag schrijfrechten." : "Het ontwerp is opgeslagen. Toevoegen aan een playlist kan zodra de controle is afgerond."}</p>}
         </aside>
       </div>
       {versionState ? <VersionHistory canWrite={canWrite} editor="sportlink" slideId={slideId} versions={versionState.versions} /> : null}
@@ -338,6 +338,11 @@ async function loadSlide(slideId: string, tenantId: string) {
         };
       }
     }
+  }
+  if (!syncPreview && !menuPreview) {
+    const directPreview = await loadSavedSlideCssPreview(supabase, tenantId, slide);
+    if (directPreview?.kind === 'source') syncPreview = { presentation: directPreview.presentation, assetUrls: directPreview.assetUrls, durationSeconds: directPreview.durationSeconds, id: directPreview.id };
+    if (directPreview?.kind === 'menu') menuPreview = { presentation: directPreview.presentation, assetUrls: directPreview.assetUrls };
   }
   return {
     newsPlayback,
