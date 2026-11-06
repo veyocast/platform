@@ -71,6 +71,21 @@
   color: var(--foreground);
 }
 
+.previewBody {
+  grid-auto-rows: max-content;
+}
+
+.savedPreview {
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  width: 100%;
+}
+
+.savedPreview[data-orientation="portrait"] {
+  aspect-ratio: 9 / 16;
+  min-height: 0;
+}
+
 .previewMeta {
   display: grid;
   gap: 0.5rem;
@@ -79,7 +94,7 @@
 }
 
 .previewMeta > div {
-  background: var(--surface-subtle, var(--muted));
+  background: var(--vc-surface-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   display: grid;

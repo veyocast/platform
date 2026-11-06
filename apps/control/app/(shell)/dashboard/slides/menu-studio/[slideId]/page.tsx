@@ -13,6 +13,8 @@ import { loadMenuStudioSlide, menuStudioTemplateVersionIds } from "../data";
 import { SitesMenuWizard } from "../sites-menu-wizard";
 import {SyncExportDownload}from"../../sync-export-download";
 import { MenuStudioEditor } from "../menu-studio-editor";
+import { MenuDomPreview } from "../../../playlists/playlist-preview";
+import styles from "../../../dynamic-content.module.css";
 
 type PageProps = {
   params: Promise<{ slideId: string }>;
@@ -50,7 +52,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
             </form>
           ) : null}
         </div>}
-        description="Wijzigingen worden als getypeerde, revision-aware operaties opgeslagen. Publiceren maakt een nieuwe immutable snapshot; de laatste goede release blijft actief bij fouten."
+        description="Bekijk je opgeslagen menu. Maak een nieuwe versie om wijzigingen te publiceren; de huidige versie blijft ondertussen actief."
         eyebrow={session.tenant}
         status={draftVersion
           ? { label: `Concept v${draftVersion.versionNumber}`, tone: "warning" }
@@ -80,7 +82,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
       /> : draftVersion?.status === "publishing" ? (
         <section className="data-surface">
           <h2>Versie v{draftVersion.versionNumber} wordt gepubliceerd</h2>
-          <p>De nieuwe immutable preview wordt volledig opgebouwd en gecontroleerd. Tot die gereed is, blijft de vorige huidige versie actief in playlists en op schermen.</p>
+          <p>Je kunt het opgeslagen ontwerp hieronder al bekijken. De nieuwe versie wordt gecontroleerd voor gebruik in playlists; de huidige versie blijft ondertussen actief op je schermen.</p>
         </section>
       ) : (
         <section className="data-surface">
@@ -93,6 +95,14 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
           </form>
         </section>
       )}
+      {draftVersion?.status !== "draft" && data.savedPreview?.kind === "menu" ? (
+        <section className={styles.card} aria-labelledby="saved-menu-preview-title">
+          <h2 id="saved-menu-preview-title">Opgeslagen schermvoorbeeld</h2>
+          <div className={styles.preview} data-orientation={data.savedPreview.presentation.kind === "dynamic" ? data.savedPreview.presentation.configuration.orientation : data.slide.orientation}>
+            <MenuDomPreview presentation={data.savedPreview.presentation} assetUrls={data.savedPreview.assetUrls} />
+          </div>
+        </section>
+      ) : null}
       <VersionHistory canWrite editor="menu" slideId={slideId} versions={versionState.versions} />
       <style>{`.menu-version-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}`}</style>
     </>

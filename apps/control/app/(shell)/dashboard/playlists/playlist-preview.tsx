@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import type { PlayerPlaybackItem,SyncSlidePresentation,SitesPresentation } from "@veyocast/contracts";
-import {SitesPresentationView}from'@veyocast/content-templates/sites-presentation';
+import {SitesPresentationView,sitesPresentationPages}from'@veyocast/content-templates/sites-presentation';
 import {SyncSlidePreview}from'./_components/sites/sync-studio-preview';
 
 export type PlaylistPreviewItem = PlayerPlaybackItem & {
@@ -79,4 +79,18 @@ export function PlaylistPreview({ items }: { items: PlaylistPreviewItem[] }) {
   );
 }
 
-export function MenuDomPreview({presentation,assetUrls,active=true}:{presentation:SitesPresentation;assetUrls:Record<string,string>;active?:boolean}){return <SitesPresentationView presentation={presentation} active={active} resolveAsset={asset=>asset.kind==='system'?asset.path:assetUrls[asset.mediaAssetId]}/>;}
+export function MenuDomPreview({presentation,assetUrls,active=true}:{presentation:SitesPresentation;assetUrls:Record<string,string>;active?:boolean}){
+  // Signed URL renewal does not restart the menu. Only canonical content changes
+  // reset its page; pausing retains the current page without scheduling work.
+  const contentKey=useMemo(()=>JSON.stringify(presentation),[presentation]);
+  const pages=sitesPresentationPages(presentation),seconds=presentation.kind==='dynamic'?presentation.configuration.seconds:0;
+  const [cursor,setCursor]=useState({contentKey,page:0});
+  const page=cursor.contentKey===contentKey?Math.min(cursor.page,pages-1):0;
+  useEffect(()=>{
+    setCursor(value=>value.contentKey===contentKey?value:{contentKey,page:0});
+    if(!active||pages<2||seconds<=0)return;
+    const timer=setInterval(()=>setCursor(value=>({contentKey,page:((value.contentKey===contentKey?value.page:0)+1)%pages})),seconds*1000);
+    return()=>clearInterval(timer);
+  },[active,contentKey,pages,seconds]);
+  return <SitesPresentationView presentation={presentation} page={page} active={active} resolveAsset={asset=>asset.kind==='system'?asset.path:assetUrls[asset.mediaAssetId]}/>;
+}

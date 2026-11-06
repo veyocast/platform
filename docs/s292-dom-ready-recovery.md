@@ -86,6 +86,24 @@ aanroeptelling, geen gemeten download-, CPU- of volledige latentieverbetering.
 | Twelve / Sync Menu | Echte handmatige/Twelve-productbron, goedgekeurde prijs-/configuratiebinding en directe gedeelde menucompositie | Nieuwe opt-in Sync-menu's gebruiken protocol 2; gepubliceerde prijzen behouden hun bestaande expliciete goedkeuringsregels |
 | MenuDocument / Sites Menu Studio | Eigen bestaande MenuDocument/widget/prijsroute en SitesMenuWidgets/SitesApprovedMenu; echte wizardcompiler en guarded version writer blijven leidend | Nieuwe opt-in voorbereidingen krijgen eigen strikte menuDom-metadata en manifest 2, zonder capture. Bestaande voorbereide versie-1-publicaties behouden hun contract. Legacy/expliciete PNG deelt de begrensde cache |
 
+Het openen van een opgeslagen Source- of Menu-ontwerp projecteert de canonieke
+opgeslagen invoer rechtstreeks naar diezelfde CSS-renderer. De detailpagina,
+de Menu-openpagina en de expliciet geopende bibliotheekpreview wachten daarvoor
+niet op `current_snapshot_id`, een workerreceipt of een PNG/MP4. Een bestaande
+gepubliceerde versie blijft leidend. Alleen bij het eerste ontwerp zonder
+vorige goede versie mag de exact bijbehorende publicerende versie alvast als
+voorbeeld worden getoond. Tenant-, versie-, template-, bron- en
+assetchecksumcontroles blijven verplicht; dit schrijft geen status, rendertaak
+of publicatie. Ontbrekende of afgekeurde bronbestanden geven geen verzonnen
+preview. De aparte playlist-/publicatiegereedheid blijft ongewijzigd.
+
+De voorafgaande productiemeting onderscheidt dit van de descriptorverwerking:
+de ene Menu-opdracht wachtte 4,190 s en verwerkte 0,426 s; de ene Source-opdracht
+wachtte 5,569 s en verwerkte 0,439 s. Dit zijn afzonderlijke queue-/werkmomenten,
+geen gemeten Control-UI-latentie of p95. De oude detailpagina vereiste het
+workerresultaat voordat zij CSS toonde en ververste die toestand niet zelf.
+Het directe leespad verwijdert die afhankelijkheid voor het voorbeeld.
+
 Nieuwe protocol-2-uitvoer is een `composition` met één immutable JSON-original,
 maximaal 550.000 bytes, zonder poster. De descriptor bevat alleen bekende
 productrenderer, presentatie en gecontroleerde resource-identiteiten. Fonts,
