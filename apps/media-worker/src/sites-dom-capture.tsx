@@ -39,6 +39,11 @@ const maximumSessionBytes=96*1024*1024;
  * raster workers. Use the same deterministic transport for Source and output.
  */
 export const sitesCaptureBrowserArgs:readonly string[]=["--disable-dev-shm-usage","--no-sandbox","--num-raster-threads=1"];
+/** Sites and its independent Source capture need full tile rasterization:
+ * adjacent equal screenshots do not exclude reused partial tile contents.
+ * Moving Sync capture retains the shared base launch configuration above.
+ */
+export const sitesPresentationCaptureBrowserArgs:readonly string[]=[...sitesCaptureBrowserArgs,"--disable-partial-raster"];
 /** Fit effects must first measure the audited fonts, rather than a fallback
  * whose later load can race the initial ResizeObserver callback.
  */
@@ -118,7 +123,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
  if(signal?.aborted)throw new SitesDomCaptureError();
  const trustedBundle=browserLifecycle?await getSitesBrowserRenderBundle().catch(()=>{throw new SitesDomCaptureError();}):undefined;
  const tenantAssetSources=browserLifecycle?browserAssetSources(assetSources):{};
- const browser:Browser=await chromium.launch({args:[...sitesCaptureBrowserArgs],executablePath,headless:true,timeout:15000});
+ const browser:Browser=await chromium.launch({args:[...sitesPresentationCaptureBrowserArgs],executablePath,headless:true,timeout:15000});
  if(signal?.aborted){await browser.close().catch(()=>undefined);throw new SitesDomCaptureError();}
  let page:Page;const close=()=>browser.close().catch(()=>undefined);const onAbort=()=>{void close();};signal?.addEventListener("abort",onAbort,{once:true});
  const deadline=setTimeout(()=>{void close();},Math.min(300000,60000+totalDurationMs*2));

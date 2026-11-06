@@ -1,9 +1,11 @@
-import {describe,expect,it} from "vitest";
-import {createSitesStudioDocument,studioSitesSystemTemplates} from "@veyocast/studio";
-import {buildSitesCaptureHtml,createSitesStudioCapture} from "../src/sites-dom-capture";
+import {describe,expect,it,vi} from "vitest";
+import {chromium} from "playwright-core";
+import {createSitesStudioDocument,createSyncStudioStarter,studioSitesSystemTemplates} from "@veyocast/studio";
+import {buildSitesCaptureHtml,createSitesStudioCapture,sitesCaptureBrowserArgs} from "../src/sites-dom-capture";
+import {createSyncSlideCapture} from "../src/sync-dom-capture";
 import sharp from "sharp";
 import {createServer} from "node:http";
-import {sitesCurrentPresentationSourceRevision,sitesDynamicConfigurationSchema,sitesPresentationSchema} from "@veyocast/contracts";
+import {sitesCurrentPresentationSourceRevision,sitesDynamicConfigurationSchema,sitesPresentationSchema,syncSlideInternalMotion} from "@veyocast/contracts";
 import {createSitesPresentationCapture} from "../src/sites-dom-capture";
 import {getSitesBrowserRenderBundle} from "../src/sites-dom-browser-bundle";
 function led(title="Live tussenstand"){
@@ -11,6 +13,20 @@ function led(title="Live tussenstand"){
 }
 function document(){const template=studioSitesSystemTemplates.find(template=>template.id==="sites-v11-tv-programma-landscape-hd")?.document.sitesPresentation;if(template?.kind!=="studio")throw Error("missing template");return createSitesStudioDocument({...template.slide,tv:{...template.slide.tv!,rows:Array.from({length:17},(_,index)=>({id:`match-${index}`,primary:`Team ${index}`,home:`Team ${index}`,away:`Opponent ${index}`,time:"14:00"}))}});}
 describe("trusted Sites DOM capture",()=>{
+ it("uses full tile rasterization for Sites while a moving Sync capture keeps its original launch policy",async()=>{
+  const moving=createSyncStudioStarter({family:"free",tenantName:"Eigen club",theme:"onzetrots-tv"}).syncPresentation!;
+  expect(syncSlideInternalMotion(moving).enabled).toBe(true);
+  const stopped=new Error("Inspect launch policy before allocating a browser"),launch=vi.spyOn(chromium,"launch").mockRejectedValue(stopped);
+  try{
+   await expect(createSitesStudioCapture({document:document()})).rejects.toBe(stopped);
+   const sitesArgs=launch.mock.calls[0]![0]!.args!;
+   expect(sitesArgs).toEqual([...sitesCaptureBrowserArgs,"--disable-partial-raster"]);
+   launch.mockClear();
+   await expect(createSyncSlideCapture({presentation:moving})).rejects.toBe(stopped);
+   expect(launch.mock.calls[0]![0]!.args).toEqual(sitesCaptureBrowserArgs);
+   expect(launch.mock.calls[0]![0]!.args).not.toContain("--disable-partial-raster");
+  }finally{launch.mockRestore();}
+ });
  it("renders every canonical page with a network-denying document policy",()=>{const input=document().sitesPresentation!;const pages=[0,1,2].map(page=>buildSitesCaptureHtml(input,{},page));for(let index=0;index<17;index++)expect(pages.join("")).toContain(`Team ${index}<`);expect(pages[0]).not.toContain("Team 16<");expect(pages[2]).toContain("Team 16<");expect(pages[0]).toContain("script-src 'none'; connect-src 'none'");expect(pages[0]).not.toContain("<script");});
  it("does not embed an unverified URL as a tenant image",()=>{const input=document().sitesPresentation!;if(input.kind!=="studio")throw Error("missing");input.slide.photo={kind:"tenant",mediaAssetId:"10000000-0000-4000-8000-000000191231",checksumSha256:"a".repeat(64)};const html=buildSitesCaptureHtml(input,{"10000000-0000-4000-8000-000000191231":"https://example.invalid/member.png"});expect(html).not.toContain("example.invalid");});
  it("reuses one fixed browser bundle instead of compiling per frame or presentation",async()=>{const first=getSitesBrowserRenderBundle(),second=getSitesBrowserRenderBundle();expect(second).toBe(first);expect(Buffer.byteLength(await first)).toBeLessThan(2*1024*1024);expect(getSitesBrowserRenderBundle()).toBe(first);});
