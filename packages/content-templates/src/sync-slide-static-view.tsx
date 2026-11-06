@@ -12,6 +12,7 @@ import { syncSlideCss } from "./sync-slide-styles";
 import {SyncOnzeTrotsView} from './sync-onzetrots-view';
 import {syncOnzeTrotsCss} from './sync-onzetrots-styles';
 import {syncOnzeTrotsV9Styles} from './sync-onzetrots-v9-styles';
+import {ONZETROTS_PRIMARY} from './onzetrots-brand';
 export {syncOnzeTrotsV9Css,syncOnzeTrotsV9Styles} from './sync-onzetrots-v9-styles';
 export * from './sync-onzetrots-v9-motion';
 export {syncOnzeTrotsCss} from './sync-onzetrots-styles';
@@ -244,10 +245,10 @@ function SyncSlideMarkup({
           : s.font || "Inter, sans-serif",
     textAlign: s.alignment,
     "--slide-heading-font":
-      s.font === "Brush" || (ours && !s.fontChanged)
+      ours || s.font === "Brush"
         ? "OnzeTrots Brush, Impact, sans-serif"
         : "inherit",
-    "--slide-accent": s.accent,
+    "--slide-accent": ours ? ONZETROTS_PRIMARY : s.accent,
     "--slide-scale": s.scale / 100,
     "--slide-margin": `${s.safeMargin}%`,
     ...(s.background === "light"

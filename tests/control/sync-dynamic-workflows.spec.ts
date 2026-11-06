@@ -117,10 +117,13 @@ test('an exact committed Source create recovers even when team options become un
  await expect(page).toHaveURL(origin+'/dashboard/slides/'+id);expect(run.writes).toHaveLength(2);expect(run.writes[1]).toEqual(run.writes[0]);expect(run.jobs()).toBe(1);expect(run.errors).toEqual([]);
 });
 
-test('an existing connected v9 draft can explicitly save the restored header font without a dummy content edit',async({page})=>{
+test('an existing connected v9 draft displays current headers without changing its saved body font or requiring a save',async({page})=>{
  const run=await mount(page,{historicalV9:true});expect(run.writes).toHaveLength(0);
- await expect(page.getByRole('button',{name:'Opslaan',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Opslaan',exact:true}).click();
- await expect.poll(()=>run.writes.length).toBe(1);const written=run.writes[0];expect(written?.action).toBe('save');
- expect((run.state.request.configuration.syncConfiguration as SyncDynamicConfiguration).seed.style).toMatchObject({font:'Brush',fontChanged:true});
- await expect(page.getByRole('button',{name:'Opslaan',exact:true})).toBeDisabled();expect(run.errors).toEqual([]);
+ await expect(page.locator('.vc-stage-canvas [data-ot-header-text]').first()).toHaveCSS('font-family',/OTMarker/);
+ const save=page.getByRole('button',{name:'Opslaan',exact:true});await expect(save).toBeDisabled();
+ expect((run.state.request.configuration.syncConfiguration as SyncDynamicConfiguration).seed.style).toMatchObject({font:'Inter',fontChanged:false});
+ await page.getByLabel('Ontwerpnaam',{exact:true}).fill('Eigen bronontwerp met huidige koppen');await expect(save).toBeEnabled();await save.click();
+ await expect.poll(()=>run.writes.length).toBe(1);expect(run.writes[0]?.action).toBe('save');
+ expect((run.state.request.configuration.syncConfiguration as SyncDynamicConfiguration).seed.style).toMatchObject({font:'Inter',fontChanged:false});
+ await expect(save).toBeDisabled();expect(run.errors).toEqual([]);
 });

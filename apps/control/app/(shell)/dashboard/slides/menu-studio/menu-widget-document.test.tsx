@@ -23,7 +23,8 @@ describe("Menu widget persistence and display",()=>{
   expect(sitesPresentationPages(presentation)).toBe(2);expect(presentation.content.menuPages?.[0]?.widgets[0]).toMatchObject({column:"right",columns:2,rows:[{column:2,primary:"Clubkoffie",secondary:"Met koekje · Cappuccino",value:"€ 2,50"}]});
   expect(sitesPresentationAssets(presentation)).toContainEqual(design.background);
   const html=renderToStaticMarkup(<SitesStaticView presentation={presentation} page={0} resolveAsset={asset=>asset.kind==="system"?asset.path:photo.url}/>);
-  expect(html).toContain('data-column="right"');expect(html).toContain('<strong>Clubkoffie</strong><small>Met koekje · Cappuccino</small>');expect(html).toContain('object-fit:contain');expect(html).toContain('opacity:0.4');expect(html).toContain('--vm-accent:#c12545');expect(html).toContain('text-align:right');
+  expect(html).toContain('data-column="right"');expect(html).toContain('<strong>Clubkoffie</strong><small>Met koekje · Cappuccino</small>');expect(html).toContain('object-fit:contain');expect(html).toContain('opacity:0.4');expect(html).toContain('--vm-accent:#03438A');expect(html).toContain('text-align:right');
+  expect(design.accent).toBe("#c12545");expect(reopened.theme.brand?.accent).toBe("#c12545");
   expect(renderToStaticMarkup(<SitesStaticView presentation={presentation} page={1}/>)).toContain("Koffiedeal");
  });
  it("keeps every product when a two-column widget requires multiple screen pages",()=>{

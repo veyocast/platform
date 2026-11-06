@@ -18,6 +18,8 @@ import {
 
 import manifestSource from "./THEME-MANIFEST.v1.json";
 import { contrastRatio } from "./editorial-arena-theme";
+import { ONZETROTS_PRIMARY } from "./onzetrots-brand";
+import { onzeTrotsThemeCssVariables } from "./onzetrots-theme-runtime";
 import {
   royalCurrentCssVariables,
   royalCurrentEditorialTokens
@@ -233,7 +235,8 @@ export function themeCssVariables(
     "--vc-theme-sport-score-size-compact": cssPixels(
       42 * baseScale * sportScaleFromDefault
     ),
-    "--vc-theme-sport-scale": appearance.typography.sportScale
+    "--vc-theme-sport-scale": appearance.typography.sportScale,
+    ...onzeTrotsThemeCssVariables(theme.id)
   };
 }
 
@@ -255,7 +258,7 @@ export function themeToEditorialTokens(
   const selection = snapshot.selection;
   const theme = resolveThemeDefinition(selection);
   const palette = theme[snapshot.resolvedMode.mode];
-  const accent = selection.accent ?? theme.accentDefault;
+  const accent = theme.id==='onzetrots-tv'?ONZETROTS_PRIMARY:selection.accent ?? theme.accentDefault;
   const dark = snapshot.resolvedMode.mode === "dark";
   const fieldflow = theme.id === "fieldflow";
   return {

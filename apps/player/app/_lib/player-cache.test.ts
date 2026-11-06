@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { syncBackgroundAssets, syncSlidePresentationSchema, syncSystemAssets } from "@veyocast/contracts";
+import { syncBackgroundAssets, syncSlidePresentationSchema, syncSlideRendererAssets, syncSystemAssets } from "@veyocast/contracts";
 
 import {
   demoOnlineDeviceToken,
@@ -11,6 +11,7 @@ import {
   getCacheableAssets,
   garbageCollectPlayerMedia,
   garbageCollectPersistedPlayerMedia,
+  hydrateCachedRelease,
   hydratePreparedRelease,
   migratePreviousReleaseCacheKeys,
   playerStorageReserveBytes,
@@ -668,5 +669,134 @@ describe("approved background hydration before activation", () => {
     const image = vi.fn(() => { throw Error("old cache must not gain a decoder"); }); vi.stubGlobal("Image", image);
     const result = await hydratePreparedRelease(value, value.store);
     expect(result.envelope.manifest.syncSystemAssets).toHaveLength(11); expect(image).not.toHaveBeenCalled();
+  });
+});
+
+const legacyMarkerPath = "/onzetrots-approved-v1/assets/fonts/club-font-9.ttf";
+async function legacyV9Cache(dynamic = false, fontChanged = true, video = false) {
+  const lookup = getPlayerManifestForToken(demoOnlineDeviceToken);
+  if (!lookup.ok) throw Error("fixture missing");
+  const envelope = structuredClone(lookup.body);
+  envelope.manifest.items = [envelope.manifest.items[0]!];
+  const item = envelope.manifest.items[0]!;
+  const binary = readFileSync(new URL(video ? "../../demo-assets/demoveyo.mp4" : "../../public/assets/sync-icon-192.png", import.meta.url));
+  const mimeType = video ? "video/mp4" : "image/png";
+  item.kind = video ? "video" : "image";
+  item.durationSeconds = 10;
+  item.source = { bytes: binary.byteLength, checksumSha256: await sha256Hex(Uint8Array.from(binary).buffer), mimeType, url: "https://media.example/old-complete" };
+  const presentation = syncSlidePresentationSchema.parse({ schemaVersion: 1, rendererVersion: "sync-onzetrots-v9", sourceRevision: "5ba52a657d6d16ad103ba2fb43b8db18aa83715a", family: "welcome", orientation: "landscape", theme: "onzetrots-tv", name: "Bestaande slide", title: "Welkom", club: { name: "Eigen club" }, visual: { schemaVersion: 1, mode: "light" }, style: { font: "Manrope", fontChanged, motion: "geen" } });
+  if (dynamic) item.syncDynamic = { schemaVersion: 1, configurationSnapshotId: "11111111-1111-4111-8111-111111111111", snapshotId: "22222222-2222-4222-8222-222222222222", templateVersionId: "33333333-3333-4333-8333-333333333333", configurationHash: "a".repeat(64), contentHash: "b".repeat(64), fallbackChecksumSha256: item.source.checksumSha256, durationMs: 6000, dataRevision: 4, presentation, assets: {} };
+  else { item.syncStudioPresentation = presentation; item.syncStudioDurationMs = 6000; item.syncStudioAssets = {}; }
+  envelope.manifest.syncSystemAssets = syncSlideRendererAssets(presentation).map(asset => ({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType }));
+  const assets = getCacheableAssets(envelope.manifest).filter(asset => asset.url !== legacyMarkerPath);
+  envelope.manifest.syncSystemAssets = envelope.manifest.syncSystemAssets.filter(asset => asset.path !== legacyMarkerPath);
+  const store = new MemoryMediaStore();
+  for (const asset of assets) await store.put(asset.cacheKey, new Response(asset.kind === "system" ? readFileSync(new URL(`../../public${asset.url}`, import.meta.url)) : binary, { headers: { "Content-Type": asset.kind === "system" ? envelope.manifest.syncSystemAssets.find(value => value.path === asset.url)!.mimeType : mimeType } }));
+  return { activatedAt: "2026-11-05T12:00:00Z", deviceToken: demoOnlineDeviceToken, envelope, assets, store };
+}
+
+describe("previously verified v9 cache compatibility", () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  it.each([false, true])("boots the complete old v1 binary when its saved fontChanged=%s asset set predates mandatory Marker", async fontChanged => {
+    const cached = await legacyV9Cache(false, fontChanged), before = JSON.stringify(cached.envelope), keys = await cached.store.keys();
+    const fetch = vi.spyOn(globalThis, "fetch");
+    const result = await hydrateCachedRelease(cached, cached.store), item = result.envelope.manifest.items[0]!;
+    expect(item.syncStudioPresentation).toBeUndefined(); expect(item.syncStudioAssets).toBeUndefined(); expect(item.syncStudioDurationMs).toBeUndefined(); expect(result.envelope.manifest.syncSystemAssets).toBeUndefined();
+    expect(item.source.url).toBe(`/__veyocast-player-cache/${item.source.checksumSha256}`);
+    expect(item.source.checksumSha256).toBe(cached.envelope.manifest.items[0]!.source.checksumSha256);
+    expect(JSON.stringify(cached.envelope)).toBe(before); expect(await cached.store.keys()).toEqual(keys); expect(fetch).not.toHaveBeenCalled();
+  });
+  it.each([false, true])("retains an unrelated classic Source DOM profile in a mixed old cache, approved background=%s", async withBackground => {
+    const cached = await legacyV9Cache(), classic = structuredClone(cached.envelope.manifest.items[0]!), background = withBackground ? syncBackgroundAssets[2]! : undefined;
+    classic.id = "classic-source";
+    classic.syncStudioPresentation = syncSlidePresentationSchema.parse({ schemaVersion: 1, rendererVersion: "sync-v1", sourceRevision: "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a", family: "free", orientation: "landscape", theme: "onzetrots-tv", name: "Klassiek", title: "Klassieke Source", club: { name: "Eigen club" }, style: background ? { background: "photo", backgroundAsset: { kind: "system", path: background.path, checksumSha256: background.sha256 } } : {} });
+    classic.syncStudioDurationMs = 3000;
+    const classicManifest = { ...cached.envelope.manifest, items: [classic], syncSystemAssets: [...syncSystemAssets, ...(background ? [background] : [])].map(asset => ({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType })) };
+    for (const asset of getCacheableAssets(classicManifest)) {
+      if (!cached.assets.some(value => value.cacheKey === asset.cacheKey)) cached.assets.push(asset);
+      if (asset.kind === "system") await cached.store.put(asset.cacheKey, new Response(readFileSync(new URL(`../../public${asset.url}`, import.meta.url)), { headers: { "Content-Type": classicManifest.syncSystemAssets.find(value => value.path === asset.url)!.mimeType } }));
+    }
+    cached.envelope.manifest.items.push(classic);
+    cached.envelope.manifest.syncSystemAssets = [...new Map([...cached.envelope.manifest.syncSystemAssets!, ...classicManifest.syncSystemAssets].map(asset => [asset.path, asset])).values()];
+    if (background) { const { width, height } = background; vi.stubGlobal("Image", class { src = ""; naturalWidth = width; naturalHeight = height; removeAttribute() {} async decode() {} }); }
+    const before = JSON.stringify(cached.envelope), result = await hydrateCachedRelease(cached, cached.store);
+    expect(result.envelope.manifest.items[0]!.syncStudioPresentation).toBeUndefined();
+    expect(result.envelope.manifest.items[1]!.syncStudioPresentation).toEqual(classic.syncStudioPresentation);
+    expect(result.envelope.manifest.syncSystemAssets).toEqual(classicManifest.syncSystemAssets);
+    expect(Object.keys(result.envelope.manifest.items[1]!.syncSystemAssetUrls!)).toHaveLength(background ? 12 : 11);
+    if (background) expect(result.envelope.manifest.items[1]!.syncSystemAssetUrls![background.path]).toBe(`/__veyocast-player-cache/${background.sha256}`);
+    expect(JSON.stringify(cached.envelope)).toBe(before);
+  });
+  it.each(["approved-v1", "Brush-v9"])("does not treat a historically required Marker dependency as a new omission: %s", async profile => {
+    const cached = await legacyV9Cache(), item = structuredClone(cached.envelope.manifest.items[0]!);
+    item.id = "historically-requires-marker";
+    const presentation = item.syncStudioPresentation!;
+    const input = { ...presentation, ...(profile === "approved-v1" ? { rendererVersion: "sync-onzetrots-v1", sourceRevision: "ae83f2b4312408eacae9f29177d3c743e104185b" } : {}), style: { ...presentation.style, font: "Brush", fontChanged: true } };
+    if (profile === "approved-v1") Reflect.deleteProperty(input, "authoring");
+    item.syncStudioPresentation = syncSlidePresentationSchema.parse(input);
+    cached.envelope.manifest.items.push(item);
+    cached.envelope.manifest.syncSystemAssets = [...new Map([...cached.envelope.manifest.syncSystemAssets!, ...syncSlideRendererAssets(item.syncStudioPresentation).filter(asset => asset.path !== legacyMarkerPath).map(asset => ({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType }))].map(asset => [asset.path, asset])).values()];
+    for (const asset of cached.envelope.manifest.syncSystemAssets!) {
+      const cacheKey = `/__veyocast-player-cache/${asset.checksumSha256}`;
+      if (!cached.assets.some(value => value.cacheKey === cacheKey)) cached.assets.push({ ...asset, url: asset.path, cacheKey, itemId: "sync-v1", kind: "system" });
+      await cached.store.put(cacheKey, new Response(readFileSync(new URL(`../../public${asset.path}`, import.meta.url)), { headers: { "Content-Type": asset.mimeType } }));
+    }
+    const resolve = vi.spyOn(cached.store, "resolvePlaybackUrl");
+    await expect(hydrateCachedRelease(cached, cached.store)).rejects.toThrow("SYNC_ASSET_MANIFEST_INVALID"); expect(resolve).not.toHaveBeenCalled();
+  });
+  it("also preserves a complete checksum-verified historical MP4 fallback", async () => {
+    const cached = await legacyV9Cache(false, true, true), source = cached.envelope.manifest.items[0]!.source;
+    const result = await hydrateCachedRelease(cached, cached.store), item = result.envelope.manifest.items[0]!;
+    expect(item.kind).toBe("video"); expect(item.syncStudioPresentation).toBeUndefined();
+    expect(item.source).toMatchObject({ bytes: source.bytes, checksumSha256: source.checksumSha256, mimeType: "video/mp4", url: `/__veyocast-player-cache/${source.checksumSha256}` });
+  });
+  it("retains exact v1 dynamic binary confirmation metadata while removing only its obsolete DOM profile", async () => {
+    const cached = await legacyV9Cache(true), before = JSON.stringify(cached.envelope), dynamic = cached.envelope.manifest.items[0]!.syncDynamic!;
+    const result = await hydrateCachedRelease(cached, cached.store), item = result.envelope.manifest.items[0]!;
+    expect(item.syncDynamic).toBeUndefined();
+    expect(item.syncDynamicBinary).toEqual({ schemaVersion: 1, configurationSnapshotId: dynamic.configurationSnapshotId, snapshotId: dynamic.snapshotId, templateVersionId: dynamic.templateVersionId, configurationHash: dynamic.configurationHash, contentHash: dynamic.contentHash, fallbackChecksumSha256: cached.envelope.manifest.items[0]!.source.checksumSha256, durationMs: dynamic.durationMs, dataRevision: 4 });
+    expect(JSON.stringify(cached.envelope)).toBe(before);
+  });
+  it("keeps new candidates strict even when a complete historical binary is cached", async () => {
+    const cached = await legacyV9Cache(), resolve = vi.spyOn(cached.store, "resolvePlaybackUrl"), fetch = vi.spyOn(globalThis, "fetch");
+    await expect(hydratePreparedRelease(cached, cached.store)).rejects.toThrow("SYNC_ASSET_MANIFEST_INVALID");
+    await expect(preparePendingRelease({ envelope: cached.envelope, store: cached.store })).resolves.toEqual({ ok: false, error: "RELEASE_ASSET_MANIFEST_INVALID" });
+    expect(resolve).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+  });
+  it("keeps the verified binary during ordinary same-release signed URL rotation", async () => {
+    const cached = await legacyV9Cache(), hydrated = await hydrateCachedRelease(cached, cached.store), before = JSON.stringify(cached.envelope);
+    const fresh = structuredClone(cached.envelope), marker = syncSlideRendererAssets(fresh.manifest.items[0]!.syncStudioPresentation!).find(asset => asset.path === legacyMarkerPath)!;
+    fresh.manifest.syncSystemAssets!.push({ path: marker.path, checksumSha256: marker.sha256, bytes: marker.bytes, mimeType: marker.mimeType });
+    fresh.manifest.items[0]!.source.url = "https://media.example/rotated-access.png";
+    const refreshed = refreshHydratedReleaseEnvelope({ cachedEnvelope: hydrated.envelope, freshEnvelope: fresh });
+    expect(refreshed.manifest.items[0]!.syncStudioPresentation).toBeUndefined(); expect(refreshed.manifest.syncSystemAssets).toBeUndefined();
+    expect(refreshed.manifest.items[0]!.source.url).toBe(hydrated.envelope.manifest.items[0]!.source.url);
+    expect(JSON.stringify(cached.envelope)).toBe(before); expect(fresh.manifest.items[0]!.syncStudioPresentation).toBeDefined();
+  });
+  it.each(["checksum", "bytes", "mime", "tenant"])("rejects same-release Studio %s mutation instead of reattaching unprepared DOM", async fault => {
+    const cached = await legacyV9Cache(), hydrated = await hydrateCachedRelease(cached, cached.store), before = JSON.stringify(hydrated.envelope);
+    const fresh = structuredClone(cached.envelope), item = fresh.manifest.items[0]!, marker = syncSlideRendererAssets(item.syncStudioPresentation!).find(asset => asset.path === legacyMarkerPath)!;
+    fresh.manifest.syncSystemAssets!.push({ path: marker.path, checksumSha256: marker.sha256, bytes: marker.bytes, mimeType: marker.mimeType });
+    if (fault === "checksum") item.source.checksumSha256 = "f".repeat(64);
+    else if (fault === "bytes") item.source.bytes += 1;
+    else if (fault === "mime") item.source.mimeType = "video/mp4";
+    else fresh.manifest.tenantId = "99999999-9999-4999-8999-999999999999";
+    expect(() => refreshHydratedReleaseEnvelope({ cachedEnvelope: hydrated.envelope, freshEnvelope: fresh })).toThrow("SYNC_IMMUTABLE_SOURCE_CHANGED");
+    expect(JSON.stringify(hydrated.envelope)).toBe(before);
+  });
+  it.each(["missing", "corrupt", "size"])("rejects an old cache with a %s binary before creating playback URLs", async fault => {
+    const cached = await legacyV9Cache(), media = cached.assets.find(asset => asset.kind === "media")!, resolve = vi.spyOn(cached.store, "resolvePlaybackUrl");
+    if (fault === "missing") await cached.store.delete(media.cacheKey);
+    else { const bytes = new Uint8Array(await (await cached.store.get(media.cacheKey))!.arrayBuffer()); if (fault === "corrupt") bytes[20] = bytes[20]! ^ 1; await cached.store.put(media.cacheKey, new Response(fault === "size" ? bytes.subarray(1) : bytes)); }
+    await expect(hydrateCachedRelease(cached, cached.store)).rejects.toThrow("missing or corrupt"); expect(resolve).not.toHaveBeenCalled();
+  });
+  it.each(["asset", "duration", "binary-metadata", "v2", "incomplete-list"])("does not downgrade a different invalid cached manifest: %s", async fault => {
+    const cached = await legacyV9Cache(true), item = cached.envelope.manifest.items[0]!, resolve = vi.spyOn(cached.store, "resolvePlaybackUrl");
+    if (fault === "asset") cached.envelope.manifest.syncSystemAssets!.pop();
+    else if (fault === "duration") item.syncDynamic!.durationMs = 1;
+    else if (fault === "binary-metadata") { if (item.syncDynamic?.schemaVersion === 1) item.syncDynamic.fallbackChecksumSha256 = "f".repeat(64); }
+    else if (fault === "incomplete-list") cached.assets = cached.assets.filter(asset => asset.kind !== "system");
+    else { const old = item.syncDynamic!; if (old.schemaVersion !== 1) throw Error("fixture"); const { fallbackChecksumSha256, ...metadata } = old; expect(fallbackChecksumSha256).toBe(item.source.checksumSha256); item.syncDynamic = { ...metadata, schemaVersion: 2, dataRevision: 4, descriptorChecksumSha256: item.source.checksumSha256 }; item.kind = "composition"; item.source.mimeType = "application/vnd.veyocast.sync-dom+json"; cached.envelope.manifest.schemaVersion = 2; }
+    await expect(hydrateCachedRelease(cached, cached.store)).rejects.toThrow(); expect(resolve).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,7 @@ import {SyncOnzeTrotsView} from './sync-onzetrots-view';
 import {syncOnzeTrotsV9Styles} from './sync-onzetrots-v9-styles';
 import {contrastRatio} from './editorial-arena-theme';
 import type {SitesAssetResolver} from './sites-presentation-model';
+import {ONZETROTS_PRIMARY} from './onzetrots-brand';
 
 type Menu=Extract<SitesPresentation,{kind:'dynamic'}>;
 export const isApprovedOnzeTrotsMenu=(menu:Menu)=>menu.configuration.themeId==='onzetrots-tv'&&Boolean(menu.configuration.onzeTrotsStyle);
@@ -13,10 +14,9 @@ export const isApprovedOnzeTrotsMenu=(menu:Menu)=>menu.configuration.themeId==='
 export function SitesApprovedMenu({presentation,resolveAsset,children}:{presentation:Menu;resolveAsset:SitesAssetResolver;children:ReactNode}){
  const config=presentation.configuration,content=presentation.content;
  const base=syncSlidePresentationSchema.parse({schemaVersion:1,rendererVersion:'sync-onzetrots-v9',sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',family:'menu',orientation:config.orientation,theme:'onzetrots-tv',name:config.title,club:{name:content.clubName??''},title:config.title,footer:'',style:{font:'Brush',fontChanged:true,showLogo:config.showBranding,showFooter:config.showBranding,motion:'geen'},visual:{schemaVersion:1,mode:config.onzeTrotsStyle?.endsWith('-dark')?'dark':'light',panelOpacity:94},authoring:{...(config.onzeTrotsStyle?.startsWith('v10-')?{visualRevision:'onzetrots-20261024'}:{}),headerTexts:{menu:content.title},headerSubtitles:{menu:content.subtitle??''}}}) as SyncOnzeTrotsV9Presentation;
- const custom=config.accent.toLowerCase()!=='#03438a';
- const accent=approvedMenuAccent(config.accent,base.visual.mode);
+ const accent=ONZETROTS_PRIMARY;
  const slide={...base,club:{...base.club,logo:content.logo},style:{...base.style,backgroundAsset:config.background}};
- return <div className="ot-v9-scope vm-approved" data-custom-accent={custom||undefined} style={{'--vm-approved-accent':accent,'--vm-background-fit':config.backgroundFit,'--vm-background-opacity':(100-config.overlay)/100} as React.CSSProperties}><SyncOnzeTrotsView slide={slide} resolveAsset={asset=>resolveAsset(asset as Parameters<SitesAssetResolver>[0])} page={0}>{children}</SyncOnzeTrotsView></div>;
+ return <div className="ot-v9-scope vm-approved" style={{'--vm-approved-accent':accent,'--vm-background-fit':config.backgroundFit,'--vm-background-opacity':(100-config.overlay)/100} as React.CSSProperties}><SyncOnzeTrotsView slide={slide} resolveAsset={asset=>resolveAsset(asset as Parameters<SitesAssetResolver>[0])} page={0}>{children}</SyncOnzeTrotsView></div>;
 }
 
 export const approvedMenuCss=syncOnzeTrotsV9Styles({style:{font:'Brush',fontChanged:true}})+String.raw`

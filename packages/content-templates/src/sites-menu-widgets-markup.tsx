@@ -3,6 +3,7 @@ import type { SitesPresentation } from "@veyocast/contracts";
 import type { SitesAssetResolver } from "./sites-presentation-model";
 import { SitesUnifiedV17Markup } from "./sites-unified-v17-markup";
 import {SitesApprovedMenu,isApprovedOnzeTrotsMenu} from './sites-approved-menu';
+import {ONZETROTS_PRIMARY} from './onzetrots-brand';
 
 /** Widgets are content inside the original Studio canvas, never a second theme. */
 export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, width, active=false }: {
@@ -13,6 +14,7 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
   active?: boolean;
 }) {
   const config = presentation.configuration;
+  const accent = config.themeId === "onzetrots-tv" ? ONZETROTS_PRIMARY : config.accent;
   const content = presentation.content;
   const menuPage = content.menuPages?.[page];
   if (!menuPage) return null;
@@ -26,8 +28,8 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
   const rows = full ? menuPage.widgets.length : Math.max(1, ...["left", "right"].map(lane => menuPage.widgets.filter(widget => widget.column === lane || widget.column === "full").length));
   const widgetHeight = Math.max(120, ((portrait ? 1530 : 790) - 250 - 2 * inset) / Math.max(1, rows));
   const style = {
-    "--vm-accent": config.accent,
-    "--vm-accent-ink": accentInk(config.accent),
+    "--vm-accent": accent,
+    "--vm-accent-ink": accentInk(accent),
     "--vm-scale": config.scale / 100,
     "--vm-inset": `${inset}px`,
     "--vm-align": config.align,
@@ -57,8 +59,8 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
         </div></div>
         <strong className="vm-menu-slogan">Onze Club. Onze Trots.</strong>
       </div>;
-  return <div className={`vm-frame${approved?' vm-canvas':''}`} style={{...style,width:width??nativeWidth,height:width?width*nativeHeight/nativeWidth:nativeHeight}}>
-    {approved?<SitesApprovedMenu presentation={presentation} resolveAsset={resolveAsset}>{widgets}</SitesApprovedMenu>:<SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${config.accent.toLowerCase() === '#03438a'?'':' vm-custom-accent'}`} canvasStyle={style} backgroundOverride={background || (config.themeId === 'onzetrots-tv' && config.overlay > 0)?{src:background,fit:background?config.backgroundFit:'cover',overlay:config.overlay}:undefined}><div className="ucc-body">{widgets}</div></SitesUnifiedV17Markup>}
+  return <div className={`vm-frame${approved?' vm-canvas':''}`} data-brand-theme={config.themeId} style={{...style,width:width??nativeWidth,height:width?width*nativeHeight/nativeWidth:nativeHeight}}>
+    {approved?<SitesApprovedMenu presentation={presentation} resolveAsset={resolveAsset}>{widgets}</SitesApprovedMenu>:<SitesUnifiedV17Markup active={active} presentation={presentation} resolveAsset={resolveAsset} width={width} canvasClassName={`vm-canvas${accent.toLowerCase() === ONZETROTS_PRIMARY.toLowerCase()?'':' vm-custom-accent'}`} canvasStyle={style} backgroundOverride={background || (config.themeId === 'onzetrots-tv' && config.overlay > 0)?{src:background,fit:background?config.backgroundFit:'cover',overlay:config.overlay}:undefined}><div className="ucc-body">{widgets}</div></SitesUnifiedV17Markup>}
   </div>;
 }
 

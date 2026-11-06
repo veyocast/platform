@@ -34,16 +34,16 @@ async function mount(page:Page){
  await page.goto('http://127.0.0.1:3343/__approved-menu');
 }
 for(const orientation of ['landscape','portrait'] as const)for(const mode of ['light','dark'] as const){
- test(`all 36 current OnzeTrots headers use verified Barlow Black: ${orientation}/${mode}`,async({page})=>{
+ test(`all 36 current OnzeTrots headers use verified Permanent Marker: ${orientation}/${mode}`,async({page})=>{
   await page.setViewportSize(orientation==='portrait'?{width:1080,height:1920}:{width:1920,height:1080});await mount(page);
   for(const family of syncContentFamilies){
    await page.evaluate(value=>Reflect.get(window,'show')(value),{family:family.id,orientation,mode});
    await expect(page.locator(`[data-family="${family.id}"] .screen`)).toHaveAttribute('data-ot-marker','true');
-   await page.evaluate(async()=>{await document.fonts.load('900 49px OTBarlow');await document.fonts.ready;});
+   await page.evaluate(async()=>{await document.fonts.load('400 49px OTMarker');await document.fonts.ready;});
    const header=page.locator('[data-ot-header-text]');await expect(header).toBeVisible();
-   const cdp=await page.context().newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const{root}=await cdp.send('DOM.getDocument');const{nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector:'[data-ot-header-text]'});const{fonts}=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});expect(fonts.length).toBeGreaterThan(0);expect(fonts.every(font=>font.isCustomFont&&font.postScriptName==='BarlowCondensed-Black')).toBe(true);await cdp.detach();
-   expect(await header.evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTBarlow');
-   const metrics=await header.evaluate(element=>{const a=element.getBoundingClientRect(),b=element.closest('header')!.getBoundingClientRect();return{left:a.left,right:a.right,top:a.top,bottom:a.bottom,parent:b.toJSON(),loaded:document.fonts.check('900 49px OTBarlow')};});
+   const cdp=await page.context().newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const{root}=await cdp.send('DOM.getDocument');const{nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector:'[data-ot-header-text]'});const{fonts}=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});expect(fonts.length).toBeGreaterThan(0);expect(fonts.every(font=>font.isCustomFont&&font.postScriptName==='PermanentMarker-Regular')).toBe(true);await cdp.detach();
+   expect(await header.evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTMarker');
+   const metrics=await header.evaluate(element=>{const a=element.getBoundingClientRect(),b=element.closest('header')!.getBoundingClientRect();return{left:a.left,right:a.right,top:a.top,bottom:a.bottom,parent:b.toJSON(),loaded:document.fonts.check('400 49px OTMarker')};});
    expect(metrics.loaded).toBe(true);expect(metrics.left).toBeGreaterThanOrEqual(metrics.parent.left);expect(metrics.right).toBeLessThanOrEqual(metrics.parent.right+.1);expect(metrics.bottom).toBeLessThanOrEqual(metrics.parent.bottom+.1);
    const context=page.locator('.panel-context').first();if(await context.count())expect(await context.evaluate(element=>parseFloat(getComputedStyle(element).fontSize))).toBe(14.3);
   }
@@ -62,15 +62,15 @@ for(const orientation of ['landscape','portrait'] as const)for(const mode of ['l
   await page.screenshot({path:info.outputPath('approved-menu.png')});
  });
 }
-test('unmarked v9 keeps its historical Rubik header',async({page})=>{
+test('unmarked saved v9 receives the current Permanent Marker header',async({page})=>{
  await mount(page);await page.evaluate(()=>Reflect.get(window,'show')({historical:true}));await expect(page.locator('.screen')).not.toHaveAttribute('data-ot-marker');
- expect(await page.locator('[data-ot-header-text]').evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTRubikDistressed');
+ expect(await page.locator('[data-ot-header-text]').evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTMarker');
 });
 
 
-test('the original local menu slogan actually draws Barlow Condensed Black glyphs',async({page})=>{
+test('the untagged saved menu slogan actually draws Permanent Marker glyphs',async({page})=>{
  await mount(page);await page.evaluate(()=>Reflect.get(window,'show')({menu:true,unapproved:true}));
  const slogan=page.locator('.vm-menu-slogan');await expect(slogan).toContainText('Onze Club. Onze Trots.');await page.evaluate(()=>document.fonts.ready);
  const cdp=await page.context().newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const{root}=await cdp.send('DOM.getDocument');const{nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector:'.vm-menu-slogan'});const{fonts}=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});
- expect(fonts.length).toBeGreaterThan(0);expect(fonts.every(font=>font.isCustomFont&&font.postScriptName==='BarlowCondensed-Black')).toBe(true);
+ expect(fonts.length).toBeGreaterThan(0);expect(fonts.every(font=>font.isCustomFont&&font.postScriptName==='PermanentMarker-Regular')).toBe(true);
 });

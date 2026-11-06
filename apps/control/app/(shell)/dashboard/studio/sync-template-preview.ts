@@ -1,4 +1,5 @@
 import approved from './sync-onzetrots-preview-fixtures.json';
+import { ONZETROTS_PRIMARY } from '@veyocast/content-templates/onzetrots-brand';
 import {
   isSyncOnzeTrotsPresentation,
   syncContentFamilies,
@@ -143,7 +144,7 @@ function createLegacySyncTemplatePreview(family: SyncContentFamily): SyncSlidePr
     lineup: family === "lineup" ? [[9], [7, 10, 11], [6, 8], [2, 3, 4, 5], [1]] : [],
     news: family === "rss" ? news.map(([title, intro]) => ({ title, intro, source: "Duindorp SV · Sportpark Houtrust", url: "https://www.duindorpsv.nl/" })) : [],
     imageCaption: "EEN CLUB. EEN VERHAAL.",
-    style: { background: "stadium", font: "Inter", motion: "rustig" },
+    style: { background: "stadium", accent: ONZETROTS_PRIMARY, font: "Inter", motion: "rustig" },
   });
 }
 
@@ -153,6 +154,7 @@ export function createSyncTemplatePreview(family:SyncContentFamily,rendererVersi
  if(rendererVersion==='sync-v1')return createLegacySyncTemplatePreview(family);
  const original=syncSlidePresentationSchema.parse(approved.fixtures[family]);
  if(!isSyncOnzeTrotsPresentation(original))throw Error('Approved display fixture unavailable');
+ original.style.accent=ONZETROTS_PRIMARY;
  if(rendererVersion==='sync-onzetrots-v9'&&original.rich?.birthdays){
   const names=['Sam K.','Nora D.','Milan J.','Sanne V.','Finn M.','Peter S.'];
   original.rich.birthdays.forEach((person,index)=>{person.displayName=names[index]??person.displayName;});

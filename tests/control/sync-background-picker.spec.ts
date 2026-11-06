@@ -302,7 +302,7 @@ async function mount(page: Page, hooks: Hooks = {}) {
 }
 
 
-for (const width of [390, 1440]) test(`Source theme swatches reflect the approved draft accent without writes at ${width}px`, async ({ page }, info) => {
+for (const width of [390, 1440]) test(`Source theme swatches keep FieldFlow accent and fixed OnzeTrots branding without writes at ${width}px`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 1000 });
   const run = await mount(page, { accent: "#205d77" });
   const serverBefore = JSON.stringify(run.state.document);
@@ -316,9 +316,11 @@ for (const width of [390, 1440]) test(`Source theme swatches reflect the approve
   await page.evaluate(() => document.fonts.ready);
   await info.attach("source-theme-swatches-before", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
   await info.attach("source-theme-swatch-contract", { body: Buffer.from(JSON.stringify({ sourcePath, sourceSha256: createHash("sha256").update(source).digest("hex"), approvedAccent: "#205d77", actual: await swatches.evaluateAll(nodes => nodes.map(node => ({ color: getComputedStyle(node).backgroundColor, gradient: getComputedStyle(node).backgroundImage }))) })), contentType: "application/json" });
-  for (const swatch of await swatches.all()) await expect(swatch).toHaveCSS("background-color", "rgb(32, 93, 119)");
+  await expect(page.locator(".vc-theme-swatch.fieldflow")).toHaveCSS("background-color", "rgb(32, 93, 119)");
+  await expect(page.locator(".vc-theme-swatch.onzetrots")).toHaveCSS("background-color", "rgb(3, 67, 138)");
   await page.getByLabel("Accentkleur", { exact: true }).fill("#2459ed");
-  for (const swatch of await swatches.all()) await expect(swatch).toHaveCSS("background-color", "rgb(36, 89, 237)");
+  await expect(page.locator(".vc-theme-swatch.fieldflow")).toHaveCSS("background-color", "rgb(36, 89, 237)");
+  await expect(page.locator(".vc-theme-swatch.onzetrots")).toHaveCSS("background-color", "rgb(3, 67, 138)");
   for (const [theme, label] of [["fieldflow", "FieldFlow"], ["onzetrots-tv", "OnzeTrots TV"]])
     await expect(page.locator(".vc-theme-options").getByRole("button", { name: new RegExp(label!) })).toHaveAttribute("aria-pressed", String(originalTheme === theme));
   expect(JSON.stringify(run.state.document)).toBe(serverBefore);

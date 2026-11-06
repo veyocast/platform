@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./onzetrots-brand": {
+      "types": "./dist/onzetrots-brand.d.ts",
+      "default": "./src/onzetrots-brand.ts"
+    },
     "./sync-slide-static-view": {
       "types": "./dist/sync-slide-static-view.d.ts",
       "default": "./src/sync-slide-static-view.tsx"

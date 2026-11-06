@@ -2,6 +2,7 @@
 import {useLayoutEffect,useRef} from "react";
 import type {SitesDynamicDesignView as DynamicDesign} from "./sites-render-types";
 import {LedSlideMarkup} from "./sites-led-markup";
+import {fitSitesOnzeTrotsHeaders,loadSitesOnzeTrotsHeaderFont} from "./sites-onzetrots-brand";
 export function LedSlidePreview({design,background,active=false,compact=false}:{design:DynamicDesign;background:string;active?:boolean;compact?:boolean}){
  const root=useRef<HTMLDivElement>(null);
  useLayoutEffect(()=>{
@@ -9,6 +10,7 @@ export function LedSlidePreview({design,background,active=false,compact=false}:{
   let frame=0;let disposed=false;
   const measure=()=>{
    if(disposed)return;
+   fitSitesOnzeTrotsHeaders(node);
    const sizes=Array.from(node.querySelectorAll<HTMLElement>('[data-fit-box]')).map(box=>{
     const inner=box.querySelector<HTMLElement>('[data-fit-content]');
     if(!inner)return null;
@@ -29,7 +31,7 @@ export function LedSlidePreview({design,background,active=false,compact=false}:{
   node.querySelectorAll('[data-fit-box]').forEach(box=>observer?.observe(box));
   window.addEventListener('resize',schedule);
   node.addEventListener('animationend',schedule);
-  void document.fonts?.ready.then(()=>{if(!disposed)schedule()});
+  void loadSitesOnzeTrotsHeaderFont(node.parentElement).then(()=>{if(!disposed)schedule()}).catch(()=>undefined);
   return()=>{disposed=true;cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener('resize',schedule);node.removeEventListener('animationend',schedule)};
  },[design,background]);
 

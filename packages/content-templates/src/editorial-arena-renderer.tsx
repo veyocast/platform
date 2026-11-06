@@ -43,6 +43,7 @@ import {
   type EditorialArenaViewportFit
 } from "./editorial-arena-layout";
 import { editorialThemeCssVariables } from "./editorial-arena-theme";
+import { onzeTrotsThemeCssVariables, onzeTrotsThemeFontCss, prepareThemeFonts } from "./onzetrots-theme-runtime";
 import type {
   PriceListRenderPage,
   ResolvedPriceListItem,
@@ -204,9 +205,7 @@ export function EditorialArenaRenderer({
     if (!view || viewportFit === null || passive || readyRef.current) return;
     let active = true;
     let frame = 0;
-    const fontsReady = "fonts" in document
-      ? document.fonts.ready
-      : Promise.resolve();
+    const fontsReady = prepareThemeFonts(view.themeId);
     void fontsReady.then(() => {
       if (!active) return;
       frame = window.requestAnimationFrame(() => {
@@ -214,7 +213,7 @@ export function EditorialArenaRenderer({
         readyRef.current = true;
         onReady(item.id);
       });
-    });
+    }).catch(() => undefined);
     return () => {
       active = false;
       if (frame) window.cancelAnimationFrame(frame);
@@ -271,6 +270,7 @@ export function EditorialArenaRenderer({
     "--vc-motion-duration": `${transition.durationMs}ms`,
     "--vc-motion-easing": transition.easing,
     "--vc-motion-translate": `${transition.translatePercent}%`,
+    ...onzeTrotsThemeCssVariables(view.themeId),
     height: canvas.height,
     opacity: viewportFit === null ? 0 : 1,
     transform: `translate(-50%, -50%) scale(${viewportFit?.scale ?? 1})`,
@@ -279,9 +279,11 @@ export function EditorialArenaRenderer({
 
   return (
     <div className={styles.arenaViewport} ref={viewportRef}>
+      {view.themeId==='onzetrots-tv'&&<style>{onzeTrotsThemeFontCss}</style>}
       <section
         aria-label={item.accessibilityName ?? item.title}
         className={styles.arenaRoot}
+        data-generic-onzetrots={view.themeId==='onzetrots-tv'||undefined}
         data-birthday-radius={view.birthday?.configuration.presentation.radius}
         data-canvas-height={canvas.height}
         data-canvas-width={canvas.width}

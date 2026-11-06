@@ -1,5 +1,6 @@
 import { resolveSportListLayout } from "./sport-list-layout";
 import { sportMatchBelongsOnSlide } from "./sport-match-phase";
+import { onzeTrotsThemeTokens } from "./onzetrots-theme-runtime";
 import {
   editorialArenaActiveSlideTypes,
   editorialArenaConfigurationSchema,
@@ -355,14 +356,14 @@ export function createDynamicTemplateView(
   now = new Date(),
   contentHeight?: number
 ): DynamicTemplateView | null {
-  return createDynamicTemplateViewInternal(value, false, now, contentHeight);
+  return brandDynamicTemplateView(createDynamicTemplateViewInternal(value, false, now, contentHeight));
 }
 
 /** Complete bounded row input for the new Sync projector only. Historical renderer
  * entrypoints retain their original limits, pagination and eligibility policies. */
 export function createCompleteDynamicTemplateView(value: unknown, now = new Date()): DynamicTemplateView | null {
   const birthday=value&&typeof value==='object'&&'slideType'in value&&value.slideType==='sport_birthdays';
-  return createDynamicTemplateViewInternal(value, false, now, undefined, birthday?250:200);
+  return brandDynamicTemplateView(createDynamicTemplateViewInternal(value, false, now, undefined, birthday?250:200));
 }
 
 /** Fixture-only entrypoint for typed families without a live provider gate. */
@@ -370,7 +371,13 @@ export function createDynamicTemplateFixtureView(
   value: unknown,
   now = new Date()
 ): DynamicTemplateView | null {
-  return createDynamicTemplateViewInternal(value, true, now);
+  return brandDynamicTemplateView(createDynamicTemplateViewInternal(value, true, now));
+}
+
+function brandDynamicTemplateView(view:DynamicTemplateView|null):DynamicTemplateView|null{
+  if(!view||view.themeId!=='onzetrots-tv')return view;
+  const themeTokens=onzeTrotsThemeTokens(view.themeId,view.theme,view.themeTokens);
+  return{...view,accentColor:themeTokens.accent,themeTokens};
 }
 
 function createDynamicTemplateViewInternal(

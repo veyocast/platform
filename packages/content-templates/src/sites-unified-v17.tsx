@@ -4,6 +4,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { SitesPresentation } from "@veyocast/contracts";
 import { SitesUnifiedV17Markup } from "./sites-unified-v17-markup";
 import type { SitesAssetResolver } from "./sites-presentation-model";
+import {fitSitesOnzeTrotsHeaders,loadSitesOnzeTrotsHeaderFont} from "./sites-onzetrots-brand";
 
 export function fitSitesUnifiedViewport(containerWidth: number, containerHeight: number, orientation: "landscape" | "portrait") {
   const canvasWidth = orientation === "portrait" ? 1080 : 1920;
@@ -29,6 +30,16 @@ export function SitesUnifiedV17({ presentation, resolveAsset, active = false, fi
     observer.observe(element);
     return () => observer.disconnect();
   }, [fitViewport, orientation]);
+
+  useMeasuredLayoutEffect(() => {
+    const element=ref.current;
+    if(!element)return;
+    let current=true;
+    const fit=()=>{if(current)fitSitesOnzeTrotsHeaders(element);};
+    fit();
+    void loadSitesOnzeTrotsHeaderFont(element).then(fit).catch(()=>undefined);
+    return()=>{current=false;};
+  },[presentation,frameWidth]);
 
   useEffect(() => {
     const element = ref.current;

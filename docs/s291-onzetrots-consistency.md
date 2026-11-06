@@ -1,5 +1,11 @@
 # S291 — onderzoek en bewijs
 
+De opdracht van 6 november 2026 vervangt de hieronder historisch beschreven
+Barlow-headerkeuze: alle bestaande en nieuwe OnzeTrots CSS-slides gebruiken
+nu primaire kleur #03438A en Permanent Marker voor koppen. De oorspronkelijke
+onderzoeksresultaten blijven als historie staan; de actuele afspraak staat in
+[onzetrots-brand-policy.md](onzetrots-brand-policy.md).
+
 Baseline, GitHub main en werkelijk gedeployde Control zijn op 24 oktober 2026
 `f5f3535375f067a9c9a28b2c0021c5be08ea7994`. De oorspronkelijke lokale main
 was verouderd en is niet gebruikt als implementatiebasis. De bijlagen zijn

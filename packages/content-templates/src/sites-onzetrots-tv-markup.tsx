@@ -2,6 +2,7 @@ import React from "react";
 import {type CSSProperties,type ReactNode,type RefObject} from 'react';
 
 import {ONZETROTS_TV_ASSETS as ASSETS,type OnzeTrotsTvContent} from './sites-screen-themes';
+import {ONZETROTS_PRIMARY} from './onzetrots-brand';
 
 
 export type SitesTvPreviewProps={content:OnzeTrotsTvContent;orientation:'landscape'|'portrait';active?:boolean;compact?:boolean};
@@ -48,7 +49,7 @@ export function OnzeTrotsTvMarkup({content,orientation,active=false,compact=fals
  const portrait=orientation==='portrait';const canvasWidth=portrait?1080:1920;const canvasHeight=portrait?1920:1080;
  const background=content.background===`${ASSETS}/clubmuur-wall.webp`?'':content.background||'';
  const factor=scaleFactor(content.scale);const density=Math.min(1,5/Math.max(5,content.rows.length));const safe=(bounded(content.safeArea,0,12,4)-4)*canvasWidth/100;
- const vars={'--otv-scale':factor,'--otv-density':density,'--otv-logo-scale':scaleFactor(content.logoScale),'--otv-title-scale':scaleFactor(content.titleScale),'--otv-align':content.align||(['score','goal'].includes(content.kind)?'center':'left'),'--otv-accent':content.accent||'#03438a','--otv-score-scale':scaleFactor(content.scoreScale),'--otv-team-scale':scaleFactor(content.teamScale),'--otv-custom-overlay':bounded(content.overlay,0,90,25)/100,'--otv-safe':`${safe}px`,'--otv-row-count':Math.max(1,content.rows.length)} as CSSProperties;
+ const vars={'--otv-scale':factor,'--otv-density':density,'--otv-logo-scale':scaleFactor(content.logoScale),'--otv-title-scale':scaleFactor(content.titleScale),'--otv-align':content.align||(['score','goal'].includes(content.kind)?'center':'left'),'--otv-accent':ONZETROTS_PRIMARY,'--otv-score-scale':scaleFactor(content.scoreScale),'--otv-team-scale':scaleFactor(content.teamScale),'--otv-custom-overlay':bounded(content.overlay,0,90,25)/100,'--otv-safe':`${safe}px`,'--otv-row-count':Math.max(1,content.rows.length)} as CSSProperties;
  let body:ReactNode;
  switch(content.kind){case 'wedstrijd':body=<Matchday content={content}/>;break;case 'programma':body=<Programme content={content}/>;break;case 'uitslagen':body=<Results content={content}/>;break;case 'stand':body=<Standings content={content}/>;break;case 'kantine':body=<Canteen content={content}/>;break;case 'clubnieuws':body=<News content={content}/>;break;case 'partners':body=<Partners content={content}/>;break;case 'welkom':body=<Welcome content={content}/>;break;case 'score':case 'goal':body=<Score content={content}/>;break;case 'lineup':body=<Lineup content={content}/>;break;default:body=<Generic content={content}/>;}
  const sports=['wedstrijd','programma','uitslagen','stand'].includes(content.kind);const club=['kantine','clubnieuws','partners','welkom'].includes(content.kind);

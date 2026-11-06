@@ -50,6 +50,17 @@ const publicDirectoryDefault = fileURLToPath(
 const maximumAssetBytes = 24 * 1024 * 1024,
   maximumSessionBytes = 96 * 1024 * 1024;
 
+/** Header readiness is independent of the document's saved body font choice. */
+export async function loadSyncOnzeTrotsCaptureFonts(page:Page,version:SyncSlidePresentation['rendererVersion']):Promise<void>{
+  await page.evaluate(async version=>{
+    for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope','400 16px OTMarker',...(version==='sync-onzetrots-v9'?['400 16px OTRubikDistressed']:[])]){
+      const faces=await document.fonts.load(font);
+      if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('Approved OnzeTrots font unavailable');
+    }
+    await document.fonts.ready;
+  },version);
+}
+
 /** Capture-only inline image transport. Public Player markup still forbids data URIs. */
 export function buildSyncCaptureHtml(
   presentation: SyncSlidePresentation,
@@ -259,13 +270,7 @@ export async function createSyncSlideCapture({
       });
       failureStage = "font_load";
       if(isSyncOnzeTrotsPresentation(input)){
-        await page.evaluate(async({version,marker})=>{
-          for(const font of ['800 16px OTBarlow','900 16px OTBarlow','400 16px OTManrope','600 16px OTManrope','800 16px OTManrope',version==='sync-onzetrots-v9'?'400 16px OTRubikDistressed':'400 16px OTMarker',...(marker?['400 16px OTMarker']:[])]){
-            const faces=await document.fonts.load(font);
-            if(!faces.length||faces.some(face=>face.status!=='loaded'))throw Error('Approved OnzeTrots font unavailable');
-          }
-          await document.fonts.ready;
-        },{version:input.rendererVersion,marker:input.style.fontChanged&&input.style.font==='Brush'});
+        await loadSyncOnzeTrotsCaptureFonts(page,input.rendererVersion);
       }else await loadSitesCaptureFonts(page);
       failureStage = "dependency_decode";
       await page.evaluate(async (background) => {

@@ -89,7 +89,7 @@ describe("Chosen Source template layout examples", () => {
     expect(preview.style).toMatchObject({
       background: original.settings.background,
       font: original.settings.font,
-      accent: original.settings.accent,
+      accent: "#03438A",
       fontChanged: false,
       scale: 100, alignment: "left", safeMargin: 5, showLogo: true, showFooter: true,
     });

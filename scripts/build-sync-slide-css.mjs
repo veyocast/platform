@@ -1,6 +1,8 @@
 import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, URL } from "node:url";
+import { Buffer } from "node:buffer";
+import process from "node:process";
 import { join } from "node:path";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -56,7 +58,7 @@ base.walkRules((rule) => {
 const css = base.toString();
 writeFileSync(
   join(root, "packages/content-templates/src/sync-slide-styles.ts"),
-  `// Generated from Sync Source ${"8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a"}; run scripts/build-sync-slide-css.mjs.\nexport const syncSlideCss = ${JSON.stringify(css)};\n`,
+  `// Generated from Sync Source ${"8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a"}; run scripts/build-sync-slide-css.mjs.\nimport {ONZETROTS_LEGACY_SOURCE_BRAND_CSS} from './onzetrots-brand';\nexport const syncSlideCss = ${JSON.stringify(css)}+ONZETROTS_LEGACY_SOURCE_BRAND_CSS;\n`,
 );
 process.stdout.write(
   JSON.stringify({

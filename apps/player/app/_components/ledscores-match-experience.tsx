@@ -2,7 +2,10 @@
 
 /* eslint-disable @next/next/no-img-element -- Signed Player media is short lived and rendered directly. */
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+
+import { ONZETROTS_PRIMARY } from "@veyocast/content-templates/onzetrots-brand";
+import { onzeTrotsThemeFontCss, prepareThemeFonts } from "../../../../packages/content-templates/src/onzetrots-theme-runtime";
 
 import {
   formatLedScoresClock,
@@ -275,6 +278,9 @@ export function LedScoresLiveMatchSlide({
   theme?: FrozenPlayerTheme | null;
 }) {
   const readyRef = useRef(false);
+  const themeRef = theme?.snapshot.selection?.ref;
+  const themeId = themeRef?.catalog === "v2" ? themeRef.id : undefined;
+  const onzeTrots = themeId === "onzetrots-tv";
   const tickingNow = useLedScoresNow(true, fixedNow);
   const serverNow = ledScoresMatchServerNow(state, tickingNow);
   const stale = isLedScoresMatchStateStale(state, tickingNow);
@@ -288,9 +294,19 @@ export function LedScoresLiveMatchSlide({
 
   useEffect(() => {
     if (readyRef.current) return;
-    readyRef.current = true;
-    onReady?.();
-  }, [onReady]);
+    if (!onzeTrots) {
+      readyRef.current = true;
+      onReady?.();
+      return;
+    }
+    let cancelled = false;
+    void prepareThemeFonts(themeId ?? "").then(() => {
+      if (cancelled || readyRef.current) return;
+      readyRef.current = true;
+      onReady?.();
+    }).catch(() => { /* A required header face must load before activation. */ });
+    return () => { cancelled = true; };
+  }, [onReady, themeId, onzeTrots]);
 
   return (
     <section
@@ -298,6 +314,7 @@ export function LedScoresLiveMatchSlide({
       className={styles.liveSlide}
       data-accent={config.accentMode}
       data-design-revision={theme?.designRevision ?? "player-fallback"}
+      data-generic-onzetrots={onzeTrots || undefined}
       data-has-timeline={config.template === "match_center" &&
         config.showTimeline && timeline.length ? "true" : "false"}
       data-motion-state={theme?.motionEnabled === false ? "off" : "on"}
@@ -306,8 +323,9 @@ export function LedScoresLiveMatchSlide({
       data-template={config.template}
       data-theme-mode={theme?.mode ?? "dark"}
       data-testid="ledscores-live-match-slide"
-      style={theme?.style}
+      style={onzeTrots ? { ...theme?.style, "--live-accent": ONZETROTS_PRIMARY } as CSSProperties : theme?.style}
     >
+      {onzeTrots ? <style>{onzeTrotsThemeFontCss}</style> : null}
       <div className={styles.liveBackdrop} aria-hidden="true"><span /><span /><span /></div>
       <header className={styles.liveHeader}>
         <div>

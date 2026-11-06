@@ -5,6 +5,7 @@ import {
   syncSystemAssets,
   syncBackgroundAssets,
   syncSlideRendererAssets,
+  syncSlideMinimumDurationMs,
 } from "@veyocast/contracts";
 import {
   getPlayerManifestForToken,
@@ -21,6 +22,7 @@ import {
   isSyncPreparedUrl,
   syncPlaybackFrame,
   prepareSyncBackgroundFonts,
+  prepareSyncOnzeTrotsFonts,
 } from "./sync-player-presentation";
 import sitesAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
 const origin = "https://player.veyocast.nl";
@@ -53,6 +55,16 @@ function fixture(): PlayerManifestEnvelope {
   return result;
 }
 const prepared = (hash: string) => `/__veyocast-player-cache/${hash}`;
+const markerPath = "/onzetrots-approved-v1/assets/fonts/club-font-9.ttf";
+const markerHash = "a73712ce4f3b32d3c7a1a657d56c6aaf50c719b7fa7fe0541905fe77f5a9906c";
+function onzeTrotsPresentation(version: "sync-onzetrots-v1" | "sync-onzetrots-v9", font = "Inter", fontChanged = false) {
+  return syncSlidePresentationSchema.parse({
+    schemaVersion: 1, rendererVersion: version,
+    sourceRevision: version === "sync-onzetrots-v9" ? "5ba52a657d6d16ad103ba2fb43b8db18aa83715a" : "ae83f2b4312408eacae9f29177d3c743e104185b",
+    family: "welcome", orientation: "landscape", theme: "onzetrots-tv", name: "Onze trots", title: "Welkom", club: { name: "Eigen club" },
+    visual: { schemaVersion: 1, mode: "light" }, style: { font, fontChanged },
+  });
+}
 
 it("keeps core DOM negotiation while requiring an actual image decoder for the additive gallery capability", () => {
   try {
@@ -123,6 +135,52 @@ describe("gallery-owned cached font readiness", () => {
       const state = setup(face => new Promise(resolve => finishes.push(() => { face.status = "loaded"; resolve(face); })));
       const preparation = prepareSyncBackgroundFonts(urls, origin); await Promise.resolve();
       preparation.dispose(); for (const finish of finishes) finish(); await preparation.ready;
+      expect([...state.registered]).toEqual([state.globalFace]);
+    } finally { vi.unstubAllGlobals(); }
+  });
+  for (const version of ["sync-onzetrots-v1", "sync-onzetrots-v9"] as const) {
+    for (const [font, fontChanged] of [["Inter", false], ["Serif", true], ["Brush", true]] as const) {
+      it(`${version} ${font}/${fontChanged}: downloads and loads the checksum-bound header face offline`, async () => {
+        try {
+          const slide = onzeTrotsPresentation(version, font, fontChanged), value = fixture();
+          const assets = syncSlideRendererAssets(slide);
+          expect(assets.filter(asset => asset.path === markerPath)).toEqual([{ path: markerPath, sha256: markerHash, bytes: 73276, mimeType: "font/ttf" }]);
+          value.manifest.items[0]!.syncStudioPresentation = slide;
+          value.manifest.items[0]!.syncStudioDurationMs = syncSlideMinimumDurationMs(slide);
+          value.manifest.syncSystemAssets = assets.map(asset => ({ path: asset.path, checksumSha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType }));
+          expect(getCacheableAssets(value.manifest).some(asset => asset.cacheKey === prepared(markerHash))).toBe(true);
+          const state = setup(), urls = Object.fromEntries(assets.map(asset => [asset.path, prepared(asset.sha256)]));
+          const preparation = prepareSyncOnzeTrotsFonts(urls, origin, slide);
+          await preparation.ready;
+          expect(state.created.some(face => face.family === "OTMarker" && face.descriptors.weight === "400" && face.source.includes(prepared(markerHash)) && face.status === "loaded")).toBe(true);
+          expect(state.created.map(face => face.family)).toEqual(expect.arrayContaining(["OTManrope", "OTBarlow", ...(version === "sync-onzetrots-v9" ? ["OTRubikDistressed"] : [])]));
+          expect(state.created.every(face => face.source.includes("/__veyocast-player-cache/"))).toBe(true);
+          expect(state.globalLoad).not.toHaveBeenCalled();
+          preparation.dispose(); expect([...state.registered]).toEqual([state.globalFace]);
+        } finally { vi.unstubAllGlobals(); }
+      });
+    }
+  }
+  it("waits for the v9 header face even when the other cached fonts have loaded", async () => {
+    let finishMarker: (() => void) | undefined;
+    try {
+      const slide = onzeTrotsPresentation("sync-onzetrots-v9");
+      const state = setup(face => face.family === "OTMarker" ? new Promise(resolve => { finishMarker = () => { face.status = "loaded"; resolve(face); }; }) : Promise.resolve(Object.assign(face, { status: "loaded" })));
+      const urls = { ...Object.fromEntries(syncSlideRendererAssets(slide).map(asset => [asset.path, prepared(asset.sha256)])), [markerPath]: prepared(markerHash) };
+      const preparation = prepareSyncOnzeTrotsFonts(urls, origin, slide);
+      let ready = false; void preparation.ready.then(() => { ready = true; });
+      await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+      expect(ready).toBe(false); expect(finishMarker).toBeTypeOf("function");
+      finishMarker!(); await preparation.ready;
+      expect(ready).toBe(true); preparation.dispose(); expect([...state.registered]).toEqual([state.globalFace]);
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it("rejects a failed v9 header face and removes the partially prepared body fonts", async () => {
+    try {
+      const slide = onzeTrotsPresentation("sync-onzetrots-v9");
+      const state = setup(face => face.family === "OTMarker" ? Promise.reject(Error("cached marker decode failed")) : Promise.resolve(Object.assign(face, { status: "loaded" })));
+      const urls = { ...Object.fromEntries(syncSlideRendererAssets(slide).map(asset => [asset.path, prepared(asset.sha256)])), [markerPath]: prepared(markerHash) };
+      await expect(prepareSyncOnzeTrotsFonts(urls, origin, slide).ready).rejects.toThrow("cached marker decode failed");
       expect([...state.registered]).toEqual([state.globalFace]);
     } finally { vi.unstubAllGlobals(); }
   });
@@ -403,17 +461,20 @@ describe("approved scene preparation", () => {
   });
 });
 
-it('prepares only the declared historical or explicit Marker font dependencies',()=>{
+it('prepares the verified Marker dependency for every saved OnzeTrots v9 font choice',()=>{
  const old=syncSlidePresentationSchema.parse({schemaVersion:1,rendererVersion:'sync-onzetrots-v9',sourceRevision:'5ba52a657d6d16ad103ba2fb43b8db18aa83715a',family:'menu',orientation:'portrait',theme:'onzetrots-tv',name:'Menu',title:'Onze kaart',club:{name:'Eigen club'},visual:{schemaVersion:1,mode:'light'},style:{}});
  const current=syncSlidePresentationSchema.parse({...old,style:{...old.style,font:'Brush',fontChanged:true}});
- for(const slide of [old,current]){
+ const custom=syncSlidePresentationSchema.parse({...old,style:{...old.style,font:'Serif',fontChanged:true}});
+ for(const slide of [old,current,custom]){
   const urls=Object.fromEntries(syncSlideRendererAssets(slide).map(asset=>[asset.path,`blob:http://localhost/${asset.sha256}`]));
   const css=syncPreparedCss(urls,'http://localhost',slide);
-  expect(css.includes('font-family:OTMarker;src:')).toBe(slide===current);
+  const markerFace=css.match(/@font-face\s*\{[^}]+\}/g)?.find(face=>/font-family:\s*['"]?OTMarker(?:['"]|;|\s)/.test(face));
+  expect(markerFace).toContain(`blob:http://localhost/${markerHash}`);
   expect(css).not.toMatch(/url\(['"]?\//);
  }
  const urls=Object.fromEntries(syncSlideRendererAssets(old).map(asset=>[asset.path,`blob:http://localhost/${asset.sha256}`]));
- expect(()=>syncPreparedCss(urls,'http://localhost',current)).toThrow('SYNC_PREPARED_ASSET_UNAVAILABLE');
+ delete urls[markerPath];
+ for(const slide of [old,current,custom])expect(()=>syncPreparedCss(urls,'http://localhost',slide)).toThrow('SYNC_PREPARED_ASSET_UNAVAILABLE');
 });
 
 it('advertises DOM v2 only with real rendering, integrity, offline-storage and service-worker APIs',()=>{

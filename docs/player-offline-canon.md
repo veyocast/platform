@@ -1,5 +1,11 @@
 # Player Offline Canon
 
+OnzeTrots-headervoorbereiding omvat voor alle historische en huidige
+rendererprofielen het lokale Permanent Marker-font. Source/Sites controleren
+de rendererassetchecksum; oudere generieke thema's bereiden het als vertrouwd
+appasset in de shellcache voor. Fontdecode en headerfit zijn voltooid vóór
+framebevestiging; zie [de merkafspraak](onzetrots-brand-policy.md).
+
 ## Principles
 
 - The player starts from last-known-good whenever possible.

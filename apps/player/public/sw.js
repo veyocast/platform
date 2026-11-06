@@ -1,6 +1,6 @@
 /* global Headers, ReadableStream, Request, Response, URL, caches, fetch, self */
 
-const SHELL_CACHE = "veyocast-player-shell-v5";
+const SHELL_CACHE = "veyocast-player-shell-v6";
 const SHELL_CACHE_PREFIX = "veyocast-player-shell-";
 const ASSET_CACHE = "veyocast-player-assets-v1";
 const CACHE_PATH_PREFIX = "/__veyocast-player-cache/";
@@ -8,6 +8,7 @@ const SHELL_ENTRYPOINTS = [
   "/lg",
   "/lg/legacy",
   "/manifest.webmanifest",
+  "/onzetrots-approved-v1/assets/fonts/club-font-9.ttf",
   "/brand/veyocast-icon-primary.svg",
   "/brand/veyocast-icon-maskable-512.png",
   "/brand/veyocast-logo-inverse.svg",

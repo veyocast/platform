@@ -15,6 +15,7 @@ import { birthdayCalendarDay } from "../../../../packages/content-templates/src/
 import { sportMatchBelongsOnSlide } from "../../../../packages/content-templates/src/sport-match-phase";
 import { legacyGoalOverlayCss, legacyGoalOverlayScript } from "./lg-goal-overlay-runtime";
 import { themeBaseFontSizes } from "../../../../packages/content-templates/src/theme-catalog";
+import { ONZETROTS_FONT_FACE_CSS, ONZETROTS_HEADER_FONT_FAMILY, ONZETROTS_HEADER_FONT_PATH, ONZETROTS_PRIMARY } from "../../../../packages/content-templates/src/onzetrots-brand";
 
 import { currentPlayerApplicationVersion } from "./player-app-update";
 import themeManifestSource from "../../../../packages/content-templates/src/THEME-MANIFEST.v1.json";
@@ -109,6 +110,7 @@ const legacyConfig = {
   themeFontSizes: themeBaseFontSizes,
   themeManifestVersion: themeManifestSource.manifestVersion,
   themeFontFamilies: legacyFontFamilies,
+  onzeTrotsBrand: { primary: ONZETROTS_PRIMARY, headerFontFamily: ONZETROTS_HEADER_FONT_FAMILY },
   videoProgressTimeoutMs: 10_000,
   videoStartTimeoutMs: 15_000
 } as const;
@@ -263,12 +265,15 @@ export function renderLgLegacyHtml() {
   <link rel="preload" href="/fonts/royal-current/roboto-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/royal-current/roboto-900.woff2" as="font" type="font/woff2" crossorigin>
   ${legacyAdditionalFontPreloads}
+  <link rel="preload" href="${ONZETROTS_HEADER_FONT_PATH}" as="font" type="font/ttf" crossorigin>
   <style>
     @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:400;font-display:block;src:url("/fonts/royal-current/roboto-400.woff2") format("woff2")}
     @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:500;font-display:block;src:url("/fonts/royal-current/roboto-500.woff2") format("woff2")}
     @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:700;font-display:block;src:url("/fonts/royal-current/roboto-700.woff2") format("woff2")}
     @font-face{font-family:"VeyoCast Royal Current Roboto";font-style:normal;font-weight:900;font-display:block;src:url("/fonts/royal-current/roboto-900.woff2") format("woff2")}
     ${legacyAdditionalFontFaces}
+    ${ONZETROTS_FONT_FACE_CSS}
+    .dynamic-template[data-theme-id="onzetrots-tv"] h1,.dynamic-template[data-theme-id="onzetrots-tv"] h2,.dynamic-template[data-theme-id="onzetrots-tv"] h3,.dynamic-template[data-theme-id="onzetrots-tv"] h4,.dynamic-template[data-theme-id="onzetrots-tv"] .legacy-price-category{font-family:OTMarker,cursive!important;font-weight:400!important;font-style:normal;font-synthesis:none}
     .lg-engage-media{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;width:100%;height:100%}
     .lg-engage-artboard{position:absolute;overflow:hidden;transform-origin:0 0}
     .lg-screen-composition,.lg-sites-canvas,.lg-youtube-media{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;width:100%;height:100%}
@@ -6520,6 +6525,24 @@ export function renderLgLegacyHtml() {
         ? '"VeyoCast Royal Current Roboto"'
         : '"' + family.replace(/"/g, "") + '"';
     }
+    function templateRuntimeThemeId(snapshot) {
+      var menu = templateRecord(snapshot.menuDocument) || templateRecord((templateRecord(snapshot.priceList) || {}).menuDocument);
+      var menuTheme = templateRecord(menu && menu.theme);
+      if (menuTheme && typeof menuTheme.themeId === "string") return menuTheme.themeId;
+      var presentation = templateRecord(snapshot.themePresentation) || {};
+      var selection = templateRecord(presentation.selection) || {};
+      return templateText((templateRecord(selection.ref) || {}).id, "editorial");
+    }
+    function templateApplyOnzeTrotsBrand(root, themeId) {
+      if (themeId !== "onzetrots-tv") return;
+      var brand = CONFIG.onzeTrotsBrand;
+      root.setAttribute("data-theme-id", themeId);
+      ["--accent", "--vc-accent", "--vc-theme-accent", "--live-accent"].forEach(function (name) { root.style.setProperty(name, brand.primary); });
+      root.style.setProperty("--vc-theme-display-font", JSON.stringify(brand.headerFontFamily));
+      root.style.setProperty("--vc-theme-display-weight", "400");
+      root.style.setProperty("--vc-theme-accent-ink", "#ffffff");
+      root.style.setProperty("--vc-text-on-accent", "#ffffff");
+    }
     function templateVisitorArrivalValue(value, kind) {
       var prefix = kind === "field"
         ? /^\\s*Veld\\s*:?\\s*/i
@@ -9267,6 +9290,7 @@ export function renderLgLegacyHtml() {
         root.style.setProperty("--live-accent", royalPalette["--accent"]);
         root.style.setProperty("--vc-shadow", royalMode === "glass" ? "rgba(0,0,0,.28)" : "rgba(19,32,68,.12)");
       }
+      templateApplyOnzeTrotsBrand(root, templateRuntimeThemeId(snapshot));
       render = function (changedConnectionId) {
         var shell;
         var top;
@@ -9376,13 +9400,29 @@ export function renderLgLegacyHtml() {
       schedulePlaybackAdvance(itemDurationMs(item));
       log("LEGACY_TEMPLATE_READY", "ledscores_live_match " + payload.templateSlug);
     }
-    function playDynamicTemplate(item, fallbackUrl, objectUrls, generation) {
+    function playDynamicTemplate(item, fallbackUrl, objectUrls, generation, headerFontReady) {
       var payload = item.dynamicTemplate;
+      var snapshot = templateRecord(payload.data) || {};
+      var runtimeThemeId = templateRuntimeThemeId(snapshot);
+      if (runtimeThemeId === "onzetrots-tv" && headerFontReady !== true) {
+        var fallback = function () {
+          if (generation !== runtime.playbackGeneration || item !== runtime.currentItem) return;
+          log("LEGACY_TEMPLATE_HEADER_FONT_UNAVAILABLE", "Permanent Marker");
+          if (item.kind === "video") playVideo(item, fallbackUrl, objectUrls, generation, false);
+          else playImage(item, fallbackUrl, objectUrls, generation);
+        };
+        if (!document.fonts || typeof document.fonts.load !== "function") { fallback(); return; }
+        document.fonts.load("400 16px " + CONFIG.onzeTrotsBrand.headerFontFamily).then(function (faces) {
+          if (!faces.length || faces.some(function (face) { return face.status !== "loaded"; })) throw new Error("Header font unavailable");
+          if (generation !== runtime.playbackGeneration || item !== runtime.currentItem) return;
+          playDynamicTemplate(item, fallbackUrl, objectUrls, generation, true);
+        }).catch(fallback);
+        return;
+      }
       if (payload.slideType === "ledscores_live_match") {
         playLedScoresLiveMatchTemplate(item, objectUrls, generation);
         return;
       }
-      var snapshot = templateRecord(payload.data) || {};
       var root = templateNode("section", "dynamic-template");
       var header = templateNode("header", "");
       var body = templateNode("div", "dynamic-body");
@@ -9805,6 +9845,8 @@ export function renderLgLegacyHtml() {
         root.style.setProperty("--rc-result-row-size-portrait", String(29 * baseScale * sportScale) + "px");
         root.style.setProperty("--accent", royalCurrentPalette["--accent"]);
       }
+      templateApplyOnzeTrotsBrand(root, runtimeThemeId);
+      if (runtimeThemeId === "onzetrots-tv") accent = CONFIG.onzeTrotsBrand.primary;
       if (payload.slideType === "menu") {
         sourceLabel = "Clubkantine";
         title = templateText((templateRecord(snapshot.data) || {}).title, "Menu vandaag");

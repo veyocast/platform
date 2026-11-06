@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { chromium,type Browser,type Page } from "playwright-core";
 import sharp from "sharp";
 import {SitesStaticView} from "@veyocast/content-templates/sites-static-view";
+import {fitSitesOnzeTrotsHeaders} from "@veyocast/content-templates/sites-presentation";
 import {sitesPresentationPages} from "@veyocast/content-templates/sites-presentation-model";
 import { sitesV17Css } from "@veyocast/content-templates/sites-v17-styles";
 import { sitesPresentationCss, sitesMenuWidgetStyles } from "@veyocast/content-templates/sites-styles";
@@ -67,7 +68,7 @@ export async function captureSettledSitesRaster(page:Page):Promise<Buffer>{
 }
 /** Optional diagnostic measurements from browser bytes before PNG conversion. */
 export async function measureSitesCaptureRaster(page:Page,png:Uint8Array){
- const document=await page.evaluate(()=>({viewport:{width:innerWidth,height:innerHeight,devicePixelRatio},elements:Array.from(globalThis.document.querySelectorAll("h2,p,span,strong,small,[data-fit-content],img")).map(node=>{
+ const document=await page.evaluate(()=>({viewport:{width:innerWidth,height:innerHeight,devicePixelRatio},elements:Array.from(globalThis.document.querySelectorAll(".uc-header,.slide-header-container,.nc-broadcast-header,h1,h2,h3,h4,p,span,strong,small,[data-fit-content],img")).map(node=>{
   const style=getComputedStyle(node),parent=node.parentElement;
   return {tag:node.tagName,className:node.className,font:style.fontFamily,size:style.fontSize,weight:style.fontWeight,variation:style.fontVariationSettings,fit:style.getPropertyValue("--led-auto-fit"),letterSpacing:style.letterSpacing,width:node.clientWidth,height:node.clientHeight,transform:style.transform,bounds:node.getBoundingClientRect().toJSON(),smoothing:style.getPropertyValue("-webkit-font-smoothing"),rendering:style.textRendering,
    ...(node instanceof HTMLImageElement?{image:{naturalWidth:node.naturalWidth,naturalHeight:node.naturalHeight,complete:node.complete,sourcePath:node.currentSrc.startsWith("data:")?"data:":node.currentSrc?new URL(node.currentSrc).pathname:"",objectFit:style.objectFit,objectPosition:style.objectPosition,imageRendering:style.imageRendering,filter:style.filter,opacity:style.opacity},parent:parent?{tag:parent.tagName,className:parent.className,transform:getComputedStyle(parent).transform,bounds:parent.getBoundingClientRect().toJSON()}:null}:{})};
@@ -152,6 +153,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
     failureStage="dependency_decode";
     await page.evaluate(async()=>{await globalThis.document.fonts.ready;await Promise.all(Array.from(globalThis.document.images).map(img=>img.decode()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
     if(input.kind==="dynamic"&&input.configuration.onzeTrotsStyle?.startsWith("v10-"))await page.evaluate(measureSyncOnzeTrotsV9Layout,undefined);
+    await page.evaluate(fitSitesOnzeTrotsHeaders,undefined);
     currentPage=targetPage;animationEndTime=await page.evaluate(()=>Math.max(0,...globalThis.document.getAnimations().map(animation=>Number(animation.effect?.getComputedTiming().endTime??0))));
    }
    if(assetFailed)throw new SitesDomCaptureError("asset_integrity");

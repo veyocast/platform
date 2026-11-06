@@ -451,18 +451,20 @@ export function syncSlideAssets(
 }
 
 /** Renderer bytes and content references form one version-bound dependency set.
- * Historical documents retain the exact original eleven renderer assets. */
+ * The original Sync profile retains its eleven renderer assets. */
 export function syncSlideRendererAssets(slide:SyncSlidePresentation):ReadonlyArray<{path:string;sha256:string;bytes:number;mimeType:string}>{
  if(!isSyncOnzeTrotsPresentation(slide))return syncSystemAssets;
  const manifest=slide.rendererVersion===syncOnzeTrotsV9RendererVersion?syncOnzeTrotsV9SystemAssets:syncOnzeTrotsSystemAssets;
  const selected=new Set<string>(slide.rendererVersion===syncOnzeTrotsV9RendererVersion?syncOnzeTrotsV9CssAssetPaths:syncOnzeTrotsCssAssetPaths);
+ // Every OnzeTrots header uses the same audited Permanent Marker bytes,
+ // including saved documents whose body font choice predates the brand rule.
+ selected.add('/onzetrots-approved-v1/assets/fonts/club-font-9.ttf');
  for(const asset of syncSlideAssets(slide))if(asset.kind==='system')selected.add(asset.path);
  // The approved backdrop is also required when a hand-authored document has
  // not selected an explicit gallery image yet.
  if(!slide.style.backgroundAsset)selected.add(`/onzetrots-approved-v1/assets/clubmuur-brush-v25/houtrust-${slide.orientation==='portrait'?'portrait-941':'wide-1672'}.webp`);
  const background=syncBackgroundAssetForRef(slide.style.backgroundAsset);
- const marker=slide.rendererVersion===syncOnzeTrotsV9RendererVersion&&slide.style.fontChanged&&slide.style.font==='Brush'?syncOnzeTrotsSystemAssets.filter(asset=>asset.path==='/onzetrots-approved-v1/assets/fonts/club-font-9.ttf'):[];
- return [...manifest.filter(asset=>selected.has(asset.path)),...syncSystemAssets.filter(asset=>selected.has(asset.path)),...marker,...(background?[background]:[])];
+ return [...manifest.filter(asset=>selected.has(asset.path)),...syncSystemAssets.filter(asset=>selected.has(asset.path)),...(background?[background]:[])];
 }
 
 /** Explicit unsaved authoring upgrade. Never apply to immutable playback input. */
