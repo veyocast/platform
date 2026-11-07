@@ -5,6 +5,7 @@ import {syncContentFamilies,syncSlidePresentationSchema,syncSlideRendererAssets}
 import {SyncSlideStaticView} from '@veyocast/content-templates/sync-slide-static-view';
 import {createSyncStudioDocument,parseStudioDocument} from '@veyocast/studio';
 import {createSyncTemplatePreview} from './sync-template-preview';
+const birthdayHeadings=(html:string)=>[...html.matchAll(/<h3\b[^>]*class="birthday-name"[^>]*>([\s\S]*?)<\/h3>/g)].map(([,heading])=>heading!.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim());
 
 describe('current v9 common renderer',()=>{
  for(const family of syncContentFamilies)for(const orientation of ['landscape','portrait']as const)for(const mode of ['light','dark']as const)it(`${family.id}/${orientation}/${mode}: semantic headers, real font and immutable document`,()=>{
@@ -22,7 +23,7 @@ describe('current v9 common renderer',()=>{
    const markup=html.slice(html.indexOf('<article'));
    expect(markup.indexOf('birthday-card-header')).toBeLessThan(markup.indexOf('birthday-name'));
    expect(markup.indexOf('birthday-name')).toBeLessThan(markup.indexOf('birthday-age-block'));
-   expect(markup).toContain('Gefeliciteerd, Sam K.!');
+   expect(birthdayHeadings(markup)).toContain('Gefeliciteerd, Sam K.!');
   }
  });
  it('escapes both saved fields as text, keeps empty fields empty and does not invent a missing initial',()=>{
@@ -31,6 +32,6 @@ describe('current v9 common renderer',()=>{
   const slide=syncSlidePresentationSchema.parse({...base,authoring:{...base.authoring,headerSubtitles:{birthdays:text},headerTexts:{birthdays:''}},rich:{...base.rich,birthdays:[{id:'private-display-name',displayName:'Sam',age:12,dateLabel:'Vandaag',meta:'Eigen team'}]}});
   const html=renderToStaticMarkup(<SyncSlideStaticView presentation={slide}/>);
   expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');expect(html).not.toContain('<img src="x"');
-  expect(html).toContain('data-ot-header-text="true" hidden=""');expect(html).toContain('Gefeliciteerd, Sam!');expect(html).not.toContain('Gefeliciteerd, Sam K.');
+  expect(html).toContain('data-ot-header-text="true" hidden=""');expect(birthdayHeadings(html)).toEqual(['Gefeliciteerd, Sam!']);expect(birthdayHeadings(html).join('\n')).not.toContain('Gefeliciteerd, Sam K.');
  });
 });

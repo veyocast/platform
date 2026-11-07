@@ -5,6 +5,7 @@ import{syncContentFamilies,syncSlidePresentationSchema,syncSlideAssets,syncSlide
 import{SyncSlideStaticView}from'@veyocast/content-templates/sync-slide-static-view';
 import{createSyncStudioStarter,createSyncStudioDocument}from'@veyocast/studio';
 import{createSyncTemplatePreview}from'./sync-template-preview';
+const birthdayHeadings=(html:string)=>[...html.matchAll(/<h3\b[^>]*class="birthday-name"[^>]*>([\s\S]*?)<\/h3>/g)].map(([,heading])=>heading!.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim());
 describe('approved OnzeTrots display catalogue in the actual shared renderer',()=>{
  for(const family of ['birthdays','activities','agenda']as const)it(`${family}: keeps all explicit manual labels in six fixed slots and on continuation pages`,()=>{
   const example=createSyncStudioStarter({family,tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation!;
@@ -12,7 +13,9 @@ describe('approved OnzeTrots display catalogue in the actual shared renderer',()
   expect(createSyncStudioDocument(presentation,3).motion.durationMs).toBe(8000);
   const first=renderToStaticMarkup(<SyncSlideStaticView presentation={presentation} page={0}/>),last=renderToStaticMarkup(<SyncSlideStaticView presentation={presentation} page={1}/>);
   expect(first).toContain('data-filled-count="6"');expect(last).toContain('data-filled-count="1"');expect(last.match(/class="empty-grid-slot"/g)).toHaveLength(5);
-  expect(first).toContain(family==='birthdays'?'Gefeliciteerd, Eigen 0.':'Eigen activiteit 0');expect(last).toContain(family==='birthdays'?'Gefeliciteerd, Eigen 6.':'Eigen activiteit 6');
+  if(family==='birthdays'){
+   expect(birthdayHeadings(first)).toContain('Gefeliciteerd, Eigen 0.!');expect(birthdayHeadings(last)).toEqual(['Gefeliciteerd, Eigen 6.!']);
+  }else{expect(first).toContain('Eigen activiteit 0');expect(last).toContain('Eigen activiteit 6');}
  });
  for(const family of ['goal','scoreboard','next-match']as const)it(`${family}: an unobserved match renders its waiting state without a goal or invented score`,()=>{
   const example=createSyncTemplatePreview(family,'sync-onzetrots-v1'),presentation=syncSlidePresentationSchema.parse({...example,state:'empty',home:undefined,away:undefined,match:undefined});

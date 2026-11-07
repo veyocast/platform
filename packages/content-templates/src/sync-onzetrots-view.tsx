@@ -109,7 +109,14 @@ function SixGrid({slide,resolveAsset,page}:Props){
  return <div className={`${birthday?'birthday-grid':'event-grid'} fixed-six-grid`} data-grid-kind={slide.family} data-slot-count="6" data-filled-count={Math.min(6,Math.max(0,items.length-page*6))}>
   {syncOnzeTrotsSixSlots<(typeof items)[number]>(items,page).map((item,index)=>{
    if(!item)return <div className="empty-grid-slot" aria-hidden="true" data-empty-slot={index+1} key={`empty-${index}`}/>;
-   if('displayName' in item)return <article className="panel birthday-card" key={item.id}><header className="birthday-card-header"><span>{item.dateLabel}</span><ClubMark slide={slide} resolveAsset={resolveAsset}/></header>{slide.rendererVersion==='sync-onzetrots-v9'&&<h3 className="birthday-name">Gefeliciteerd, {birthdayDisplayName(item.displayName)}!</h3>}<div className="birthday-age-block"><b className="birthday-age">{item.age??'–'}</b>{item.age!==null&&<span>JAAR</span>}</div>{slide.rendererVersion!=='sync-onzetrots-v9'&&<h3 className="birthday-name">Gefeliciteerd, {item.displayName}!</h3>}<p>{item.meta}</p></article>;
+   if('displayName' in item)return <article className="panel birthday-card" data-has-age={item.age!==null||undefined} key={item.id}>
+    <header className="birthday-card-header"><span>{item.dateLabel}</span><ClubMark slide={slide} resolveAsset={resolveAsset}/></header>
+    <div className="birthday-copy">
+     <h3 className="birthday-name"><span className="birthday-greeting">Gefeliciteerd,</span>{' '}<span className="birthday-person">{slide.rendererVersion==='sync-onzetrots-v9'?birthdayDisplayName(item.displayName):item.displayName}!</span></h3>
+     {item.meta.trim()&&<p className="birthday-meta">{item.meta}</p>}
+    </div>
+    {item.age!==null&&<div className="birthday-age-block"><b className="birthday-age">{item.age}</b><span>JAAR</span></div>}
+   </article>;
    const photoAsset=item.image??slide.rich?.featureImage,photo=photoAsset&&resolveAsset(photoAsset);
    return <article className="panel event-card" key={item.id}>{photo&&<img className="event-photo" src={photo} alt=""/>}<div className="event-copy"><InlineHeader slide={slide} resolveAsset={resolveAsset}><span className="event-date">{item.dateLabel} · {slide.family==='agenda'?'CLUBAGENDA':'CLUBACTIVITEIT'}</span></InlineHeader><h3>{item.title}</h3><p>{item.body}</p><small>{[item.timeLabel,item.location].filter(Boolean).join(' · ')}</small></div></article>;
   })}
