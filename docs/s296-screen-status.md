@@ -71,11 +71,14 @@ contact en de laatst bekende inhoud beschikbaar.
 De metadata-only read is
 `get_screen_source_status_s296_v1(p_tenant_id, p_screen_id)`. De gewone
 Controlsessie gebruikt geen service-role om PDD te lezen. De afzonderlijke
-databasewriter integreert forwardmigratie en tenant/RLS-proeven in dezelfde
-branch onder rootcoördinatie. Een ontbrekende of falende metadataread toont
+databasewriter heeft forwardmigratie en 31 gerichte tenant/RLS-proeven in dezelfde
+branch geïntegreerd onder rootcoördinatie. Een ontbrekende of falende metadataread toont
 expliciet onbekend; contact en publicatiehistorie blijven bruikbaar. De
-consumentenproeven gebruiken gecontroleerde metadata en claimen geen live
-database-readback. De SQL/RLS-gate krijgt zijn eigen integratiebewijs.
+consumentenproeven gebruiken gecontroleerde metadata en claimen geen productie-
+database-readback. De geïsoleerde SQL-proef slaagde 31/31 in 3 seconden; public/
+private lint en securityadvisors vonden nul issues. Zie het afzonderlijke
+[RPC-bewijs](implementation/s296-screen-status/metadata-rpc-evidence.json). De
+volledige geïntegreerde reset/RLS-gate blijft onderdeel van root/CI.
 
 RPC-uitkomst: maximaal 200 metadataobjecten met `snapshotId`, `sourceName`,
 `sourceKind`, `datasetKey`, `lastSuccessAt`, `lastAttemptAt`, `checkedAt`,

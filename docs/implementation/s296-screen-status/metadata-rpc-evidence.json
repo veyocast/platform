@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "task": "S296",
+  "writer": "database_matchday, serialized SQL ownership",
+  "scope": "Metadata-only screen source RPC; no dataset payload or credentials",
+  "files": [
+    {
+      "path": "supabase/migrations/20261109120358_s296_screen_source_status.sql",
+      "sha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33"
+    },
+    {
+      "path": "supabase/tests/rls_s296_screen_source_status.sql",
+      "sha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62"
+    }
+  ],
+  "verification": {
+    "isolatedDatabase": "local test database on64432, database writer controlled",
+    "targetedPgTap": {
+      "passed": 31,
+      "failed": 0,
+      "durationSeconds": 3,
+      "scope": "exact desired/confirmed release and composition zones; independent Sportlink datasets; cross-tenant/capability/anonymous denial; invalid/future frame; stale device desire; frozen binding; no writes"
+    },
+    "databaseLint": {
+      "schemas": [
+        "public",
+        "private"
+      ],
+      "issues": 0
+    },
+    "securityAdvisors": {
+      "issues": 0
+    },
+    "logs": [
+      {
+        "path": "/tmp/s296-source-rpc-ddl-final.log",
+        "sha256": "3865f9ef32f49e4b7f643acad28348b08f52af1b4225608e49609cda4c16ec96"
+      },
+      {
+        "path": "/tmp/s296-source-rpc-tests-final.log",
+        "sha256": "485f7acfd9f9d3ac9512d7f28d67c051904a60fe3bd47d4f790a90c426d3bcbb"
+      },
+      {
+        "path": "/tmp/s296-s299-db-lint-final.log",
+        "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+      },
+      {
+        "path": "/tmp/s296-s299-db-advisors-final.log",
+        "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+      }
+    ]
+  },
+  "limits": [
+    "Full integrated reset/RLS and exact production build remain normal root/CI gates",
+    "No production query or data/schedule mutation"
+  ]
+}
