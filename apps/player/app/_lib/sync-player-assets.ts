@@ -9,12 +9,12 @@ import {
   syncSlideMinimumDurationMs,
   syncDomDescriptorMimeType,
 } from "@veyocast/contracts";
-import type { PlayerReleaseManifest } from "./player-manifest";
+import { playerDynamicDataSchema, type PlayerManifestEnvelope, type PlayerReleaseManifest } from "./player-manifest";
 
 export function assertSyncDynamicConfigurationContinuity(previous:PlayerReleaseManifest,next:PlayerReleaseManifest){
  if(previous.releaseId!==next.releaseId)return;
  const items=new Map(previous.items.map(item=>[item.id,item]));
- for(const item of next.items){const old=items.get(item.id),before=old?.menuDom??old?.syncDynamic??old?.syncDynamicBinary,after=item.menuDom??item.syncDynamic??item.syncDynamicBinary;
+ for(const item of next.items){const old=items.get(item.id),before=old?.dynamicData??old?.menuDom??old?.syncDynamic??old?.syncDynamicBinary,after=item.dynamicData??item.menuDom??item.syncDynamic??item.syncDynamicBinary;
   if(before&&!after)throw Error('SYNC_DYNAMIC_PROFILE_UNAVAILABLE');
   if(before&&after&&(before.configurationSnapshotId!==after.configurationSnapshotId||before.configurationHash!==after.configurationHash||before.templateVersionId!==after.templateVersionId))throw Error('SYNC_DYNAMIC_CONFIGURATION_CHANGED');
   if(before&&after&&Number(after.dataRevision??0)<Number(before.dataRevision??0))throw Error('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');
@@ -22,10 +22,26 @@ export function assertSyncDynamicConfigurationContinuity(previous:PlayerReleaseM
  }
 }
 
+/** Each authorized zone has its own data revision. Check it before observing a
+ * new target: observing first would already cancel a newer prepared candidate. */
+export function assertSyncDynamicEnvelopeContinuity(previous:PlayerManifestEnvelope,next:PlayerManifestEnvelope){
+ assertSyncDynamicConfigurationContinuity(previous.manifest,next.manifest);
+ for(const id of ['side','bottom']as const){
+  const before=previous.composition?.zones[id],after=next.composition?.zones[id];
+  if(before&&after)assertSyncDynamicEnvelopeContinuity(before,after);
+ }
+}
+
 /** The independent Source manifest is never appended to the old strict 82-asset manifest. */
 export function assertSyncPlayerAssetManifest(
   manifest: PlayerReleaseManifest,
 ): void {
+  for(const item of manifest.items)if(item.dynamicData!==undefined){
+    const parsed=playerDynamicDataSchema.safeParse(item.dynamicData),payload=item.dynamicTemplate;
+    if(!parsed.success||!payload||item.menuDom||item.syncDynamic||item.syncDynamicBinary||
+      parsed.data.configurationSnapshotId!==payload.snapshotId||parsed.data.snapshotId!==payload.snapshotId||
+      parsed.data.templateVersionId!==payload.templateVersionId||parsed.data.contentHash!==payload.snapshotHash)throw Error('DYNAMIC_DATA_IDENTITY_INVALID');
+  }
   if(![1,2].includes(manifest.schemaVersion)||(manifest.schemaVersion===2)!==manifest.items.some(item=>item.kind==='composition'))throw Error('SYNC_DOM_ENVELOPE_VERSION_INVALID');
   const declared = manifest.syncSystemAssets,
     items = manifest.items.filter(

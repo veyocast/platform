@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T03:31:00Z",
+  "status": "PASS_SOURCE_FROZEN",
+  "database": {
+    "project": "veyocast-s295-verify",
+    "port": 64432,
+    "resetFromEmptyWithSeed": true,
+    "migration": {
+      "path": "/home/codex/repos/veyocast-sportlink-playback/supabase/migrations/20261109000829_s295_sportlink_observation_scope.sql",
+      "sha256": "12db2a793a896bd79eb747bd7bdc93e81ad91586427d72f651083db05368f9e7",
+      "bytes": 33651
+    },
+    "testFiles": 149,
+    "assertions": 4937,
+    "seconds": 104,
+    "lintErrors": 0,
+    "advisorErrors": 0
+  },
+  "change": {
+    "scope": "Only live published data core completion for historical nonprotocol2 projections",
+    "location": "supabase/migrations/20261109000829_s295_sportlink_observation_scope.sql:263",
+    "decision": "If existing sync_dom_semantic_data_v2(new dataset) equals the same normalization of installed binding.data_json, keep installed binding.content_hash; existing UPDATE preserves rawdata, revision and changed_at while advancing checked_at/source_revision.",
+    "unchanged": [
+      "historical published_data_hash_v1 and published_data_hash_before_dom_v2 functions",
+      "existing sync_dom_semantic_data_v2 function",
+      "frozen snapshot bytes/hash contracts",
+      "immutable playlistrelease bytes",
+      "protocol2 completion behavior",
+      "lease, tenant/snapshot locks and generation finalization"
+    ]
+  },
+  "historicalHashDefinitionProof": {
+    "byteIdentical": true,
+    "before": {
+      "path": "/tmp/s295-legacy-hash-definitions.sql",
+      "sha256": "0799250fbc31796467bec04a0108e6b161a927f69b6bd10efe50b066bc5b8275",
+      "bytes": 1744
+    },
+    "after": {
+      "path": "/tmp/s295-legacy-hash-definitions-after.sql",
+      "sha256": "0799250fbc31796467bec04a0108e6b161a927f69b6bd10efe50b066bc5b8275",
+      "bytes": 1744
+    }
+  },
+  "redGreen": {
+    "focusedFile": {
+      "path": "/home/codex/repos/veyocast-sportlink-playback/supabase/tests/s295_published_sportlink_chain.sql",
+      "sha256": "341d740b5d0023e42292fe7f190766d778e14765746a4cf7249957b51813810a",
+      "bytes": 42041
+    },
+    "focusedAssertions": 58,
+    "redFailures": [
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49
+    ],
+    "red": {
+      "path": "/tmp/s295-legacy-semantic-before-fix.log",
+      "sha256": "5539265be398f5ba72d55609957c5e303def8a9d952636f0749b277e9e0693cc",
+      "bytes": 25394
+    },
+    "green": {
+      "path": "/tmp/s295-legacy-semantic-after-fix.log",
+      "sha256": "fe580fb178c75863021b8a64cbfdb190d85a664d0af3b83f16f07a4c041f78c2",
+      "bytes": 308
+    }
+  },
+  "acceptance": {
+    "historicalBindings": "Real protocol1 birthday and matchday published fixtures with device-authorized data_key",
+    "unchangedObservationAssertions": "supabase/tests/s295_published_sportlink_chain.sql:267\u2013271 (both families)",
+    "scoreChange": "same test:275",
+    "standingsOnlyChange": "same test:279",
+    "birthdayOccurrenceChange": "same test:282",
+    "clockWindowExpiry": "same test:286",
+    "confirmedEmptyKeepsStanding": "same test:289",
+    "frozenSnapshotAndReleaseBytes": "same test:290\u2013291"
+  },
+  "logs": [
+    {
+      "path": "/tmp/s295-legacy-semantic-db-reset.log",
+      "sha256": "93d6a190d7cfcfdd652b3b20ce63365f05ea9d1d9b8ad765d8fb9d576c779c44",
+      "bytes": 19906
+    },
+    {
+      "path": "/tmp/s295-full-rls-legacy-semantic-final.log",
+      "sha256": "d0ad837c1f23bd9dc5a9d0b93e129b581d01718575cb078e5c7423b9da9fcc41",
+      "bytes": 27158
+    },
+    {
+      "path": "/tmp/s295-db-lint-legacy-semantic-final.log",
+      "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297",
+      "bytes": 114
+    },
+    {
+      "path": "/tmp/s295-advisors-legacy-semantic-final.log",
+      "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c",
+      "bytes": 87
+    }
+  ],
+  "independentReview": "Worker agent completed read-only review: PASS; no writer changes.",
+  "limits": [
+    "This SQL regression exercises actual builder, leased refreshqueue and active PDDcore completion; binary preparation and real HTTP/frame transport are independent existing gates.",
+    "Successful-observation timestamps are advanced in representative rollback fixtures so source times can move within a transaction; no provider timing is measured.",
+    "Parent may regenerate root publication fixture after this suite; no further database/source work remains in this agent."
+  ]
+}

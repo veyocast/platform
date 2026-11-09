@@ -1,4 +1,4 @@
-import {syncOnzeTrotsWelcomeShouldSkip} from '@veyocast/contracts';
+import {syncOnzeTrotsWelcomeShouldSkip,syncDynamicBinaryPlaybackSchema} from '@veyocast/contracts';
 import type {PlayerSitesMarkup} from "./player-sites-markup";
 import type {PlayerScreenComposition} from "./player-screen-composition";
 
@@ -74,11 +74,29 @@ export type PlayerManifestPresentationDefaults = {
   videoMuted: boolean;
 };
 
+/** Additive source identity for historical dynamic payloads. It stays outside
+ * their strict schema so older Players can continue decoding the same facts. */
+export const playerDynamicDataSchema = syncDynamicBinaryPlaybackSchema.pick({
+  schemaVersion: true,
+  configurationSnapshotId: true,
+  snapshotId: true,
+  templateVersionId: true,
+  configurationHash: true,
+  contentHash: true,
+  dataRevision: true
+}).required({ dataRevision: true }).refine(value => value.dataRevision > 0, {
+  message: "A verified source revision must be positive."
+});
+export type PlayerDynamicData = Required<Pick<SyncDynamicBinaryPlayback,
+  "schemaVersion" | "configurationSnapshotId" | "snapshotId" | "templateVersionId"
+  | "configurationHash" | "contentHash" | "dataRevision">>;
+
 export type PlayerManifestItem = Omit<PlayerPlaybackItem,'kind'> & {
   kind: PlayerPlaybackItem['kind'] | 'composition';
   sourceItemId?: string;
   contentHash?: string;
   dynamicTemplate?: PlayerDynamicTemplatePayload;
+  dynamicData?: PlayerDynamicData;
   onlinePlayback?: PlayerEngagePlayback | PlayerYouTubePlayback;
   sitesSystemAssetUrls?:Record<string,string>;
   sitesPresentation?:PlayerSitesMarkup;

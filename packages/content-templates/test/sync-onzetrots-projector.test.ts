@@ -33,6 +33,11 @@ describe('approved OnzeTrots canonical facts in the active projector',()=>{
   expect(slide.rich?.standings?.rows[0]).toMatchObject({played:null,won:null,drawn:null,lost:null,points:-1,goalDifference:-5,form:['W','GL','V']});
   expect(syncSlidePageCount(slide)).toBe(1);expect(JSON.stringify(input)).toBe(before);
  });
+ it('derives official goal difference from Sportlink goalsFor/goalsAgainst while retaining an explicit saldo',()=>{
+  const {goalDifference:discard,...source}=row(0);void discard;
+  const slide=project(payload('sport_standing',{items:[{...source,goalsFor:7,goalsAgainst:2},{...row(1),goalsFor:7,goalsAgainst:2}]}),'standings');
+  expect(slide.rich?.standings?.rows.map(item=>item.goalDifference)).toEqual([5,-5]);
+ });
  it('supports new linked welcome only through this version and checks both home IDs before limiting',()=>{
   const records=[{...fixture(0),id:'foreign-home',homeClubId:'club-b'},{...fixture(0),id:'unknown-home',homeTeamId:'unknown'},{...fixture(0),id:'cancelled',status:'cancelled'},...Array.from({length:5},(_,i)=>fixture(4-i))];
   const input=payload('sport_visitor_arrivals',{items:records}),slide=project(input,'welcome');
@@ -55,6 +60,24 @@ describe('approved OnzeTrots canonical facts in the active projector',()=>{
    const changed=structuredClone(input),matchday=(changed.data.sport as {matchday:typeof composite}).matchday;
    (matchday[part].items[0] as Record<string,unknown>).homeTeamId='team-a2';
    expect(projectSyncDynamicSnapshot(changed,seed('matchday'),now)).toEqual({ok:false,code:'SYNC_CANONICAL_IDENTITY_INVALID'});
+  }
+ });
+ it.each(['landscape','portrait'] as const)('places own result and latest other pool results in the existing three places for %s',orientation=>{
+  const context={tenantId:scope.tenantId,...scope.context};
+  const own={...fixture(0),id:'own-result',kickoffAt:'2026-10-20T12:00:00Z',status:'finished',homeScore:0,awayScore:0};
+  const other=(index:number)=>({...fixture(index),id:`pool-${index}`,homeTeamId:`foreign-${index}`,kickoffAt:`2026-10-21T${12+index}:00:00Z`,status:'finished',homeScore:index,awayScore:0,tenantId:scope.tenantId,sourceConnectionId:scope.sourceConnectionId,competitionId:scope.context.competitionId,poolId:scope.context.poolId,seasonId:scope.context.seasonId,phaseId:'phase-a'});
+  const composite={context:{...context,revisions:['results','standings','fixtures'].map(dataset=>({dataset,revision:2}))},results:{context,items:[own]},standings:{context,items:[row(0)]},fixtures:{context,items:[fixture(1)]},poolResults:{context,sourceConnectionId:scope.sourceConnectionId,phaseId:'phase-a',items:[other(0),{...other(0),...own},{...other(1),id:'older-own',homeTeamId:scope.context.teamId},other(1)]}};
+  const input=payload('sport_match_of_the_day',{items:[],matchday:composite});input.orientation=orientation;
+  const chosenSeed={...seed('matchday'),orientation};
+  const result=projectSyncDynamicSnapshot(input,chosenSeed,now);
+  expect(result.ok).toBe(true);if(!result.ok||result.presentation.rendererVersion==='sync-v1')throw Error('Missing matchday');
+  expect(result.presentation.rich?.matchday?.results.slice(0,3).map(item=>item.id)).toEqual(['own-result','pool-1','pool-0']);
+  expect(result.presentation.rich?.matchday?.results[0]?.homeScore).toBe(0);
+  expect(result.presentation.rich?.teamSelection?.primaryTeamId).toBe('team-a');
+  for(const [key,value]of Object.entries({tenantId:'other-tenant',sourceConnectionId:'other-source',competitionId:'other-competition',poolId:'other-pool',seasonId:'2025',phaseId:'other-phase'})){
+   const changed=structuredClone(input),matchday=(changed.data.sport as {matchday:typeof composite}).matchday;
+   Object.assign(matchday.poolResults.items[0]!,{[key]:value});
+   expect(projectSyncDynamicSnapshot(changed,chosenSeed,now)).toEqual({ok:false,code:'SYNC_CANONICAL_IDENTITY_INVALID'});
   }
  });
  it('retains thirteen authorized birthdays and seven activities over six fixed places per page',()=>{

@@ -1,0 +1,4356 @@
+{
+  "schemaVersion": 1,
+  "generatedFromIsolatedDatabase": true,
+  "variants": [
+    {
+      "orientation": "landscape",
+      "releaseId": "3ce4e797-f63f-4f2f-860c-0cefb9be6c35",
+      "snapshotId": "e6083950-3f05-461e-81b1-0b266da35d89",
+      "templateVersionId": "c97f1291-0b7b-4b5f-93d9-d121d1053a10",
+      "configurationHash": "2bdbcb8529ab7ff613f2a2b20bc07fbcb7e340aabb7d7154af2a958a2487632d",
+      "descriptor": "{\"schemaVersion\":2,\"snapshotId\":\"e6083950-3f05-461e-81b1-0b266da35d89\",\"templateVersionId\":\"c97f1291-0b7b-4b5f-93d9-d121d1053a10\",\"configuration\":{\"schemaVersion\":1,\"kind\":\"dynamic\",\"rendererVersion\":\"sync-onzetrots-v9\",\"sourceRevision\":\"5ba52a657d6d16ad103ba2fb43b8db18aa83715a\",\"slideType\":\"sport_match_of_the_day\",\"seed\":{\"schemaVersion\":1,\"rendererVersion\":\"sync-onzetrots-v9\",\"sourceRevision\":\"5ba52a657d6d16ad103ba2fb43b8db18aa83715a\",\"family\":\"matchday\",\"orientation\":\"landscape\",\"theme\":\"onzetrots-tv\",\"name\":\"Onze wedstrijddag\",\"club\":{\"name\":\"Fixture club\",\"tagline\":\"\"},\"title\":\"WEDSTRIJDDAG\",\"headline\":\"\",\"body\":\"\",\"subtitle\":\"\",\"topLabel\":\"CLUB TV\",\"footer\":\"\",\"footerRight\":\"\",\"rows\":[],\"rowsPerPage\":6,\"ownRowIndexes\":[],\"category\":\"\",\"subline\":\"\",\"lineup\":[],\"news\":[],\"imageCaption\":\"\",\"state\":\"ready\",\"style\":{\"motion\":\"rustig\",\"background\":\"clubmuur\",\"backgroundPosition\":\"center\",\"font\":\"Brush\",\"fontChanged\":true,\"accent\":\"#03438a\",\"alignment\":\"left\",\"scale\":100,\"safeMargin\":5,\"showLogo\":true,\"showFooter\":true},\"visual\":{\"schemaVersion\":1,\"mode\":\"light\",\"scrollSpeed\":\"normal\",\"panelOpacity\":94},\"authoring\":{\"schemaVersion\":1,\"visualRevision\":\"onzetrots-20261024\",\"headerSubtitles\":{},\"headerTexts\":{},\"welcomeScalePercent\":150}},\"secondsPerPage\":5},\"presentation\":{\"schemaVersion\":1,\"rendererVersion\":\"sync-onzetrots-v9\",\"sourceRevision\":\"5ba52a657d6d16ad103ba2fb43b8db18aa83715a\",\"family\":\"matchday\",\"orientation\":\"landscape\",\"theme\":\"onzetrots-tv\",\"name\":\"Onze wedstrijddag\",\"club\":{\"name\":\"S295 isolated publication\",\"tagline\":\"\"},\"title\":\"WEDSTRIJDDAG\",\"headline\":\"\",\"body\":\"\",\"subtitle\":\"\",\"topLabel\":\"CLUB TV\",\"footer\":\"\",\"footerRight\":\"\",\"rows\":[],\"rowsPerPage\":6,\"ownRowIndexes\":[],\"category\":\"\",\"subline\":\"\",\"lineup\":[],\"news\":[],\"imageCaption\":\"\",\"state\":\"ready\",\"style\":{\"motion\":\"rustig\",\"background\":\"clubmuur\",\"backgroundPosition\":\"center\",\"font\":\"Brush\",\"fontChanged\":true,\"accent\":\"#03438a\",\"alignment\":\"left\",\"scale\":100,\"safeMargin\":5,\"showLogo\":true,\"showFooter\":true},\"visual\":{\"schemaVersion\":1,\"mode\":\"light\",\"scrollSpeed\":\"normal\",\"panelOpacity\":94},\"rich\":{\"teamSelection\":{\"ownClubId\":\"own-club\",\"ownTeamIds\":[\"295100\"],\"primaryTeamId\":\"295100\"},\"matchday\":{\"context\":{\"tenantId\":\"29500000-0000-4000-9000-000000000001\",\"teamId\":\"295100\",\"competitionId\":\"league\",\"poolId\":\"701\",\"seasonId\":null,\"revisions\":[{\"dataset\":\"results\",\"revision\":1794195058423},{\"dataset\":\"standings\",\"revision\":1794195058423},{\"dataset\":\"fixtures\",\"revision\":1794195058423}]},\"results\":[{\"id\":\"295001\",\"home\":{\"teamId\":\"295100\",\"clubId\":\"own-club\",\"name\":\"Eigen team\"},\"away\":{\"teamId\":\"295103\",\"clubId\":null,\"name\":\"Eigen tegenstander\"},\"kickoffAt\":\"2026-11-08T03:30:58.385+00:00\",\"status\":\"finished\",\"field\":null,\"homeRoom\":null,\"awayRoom\":null,\"venue\":\"\",\"homeScore\":3,\"awayScore\":1},{\"id\":\"295005\",\"home\":{\"teamId\":\"295105\",\"clubId\":null,\"name\":\"Poule C\"},\"away\":{\"teamId\":\"295106\",\"clubId\":null,\"name\":\"Poule D\"},\"kickoffAt\":\"2026-11-02T03:30:58.385+00:00\",\"status\":\"finished\",\"field\":null,\"homeRoom\":null,\"awayRoom\":null,\"venue\":\"\",\"homeScore\":1,\"awayScore\":1}],\"standings\":{\"ownTeamId\":\"295100\",\"rows\":[{\"id\":\"295101\",\"teamId\":\"295101\",\"clubId\":null,\"teamName\":\"Poule A\",\"position\":1,\"played\":2,\"won\":1,\"drawn\":0,\"lost\":1,\"goalDifference\":1,\"points\":4,\"form\":[]},{\"id\":\"295100\",\"teamId\":\"295100\",\"clubId\":\"own-club\",\"teamName\":\"Eigen team\",\"position\":2,\"played\":2,\"won\":1,\"drawn\":0,\"lost\":1,\"goalDifference\":2,\"points\":3,\"form\":[]},{\"id\":\"295104\",\"teamId\":\"295104\",\"clubId\":null,\"teamName\":\"Poule B\",\"position\":3,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-1,\"points\":1,\"form\":[]},{\"id\":\"295105\",\"teamId\":\"295105\",\"clubId\":null,\"teamName\":\"Poule C\",\"position\":4,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-2,\"points\":1,\"form\":[]},{\"id\":\"295106\",\"teamId\":\"295106\",\"clubId\":null,\"teamName\":\"Poule D\",\"position\":5,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-3,\"points\":1,\"form\":[]},{\"id\":\"295103\",\"teamId\":\"295103\",\"clubId\":null,\"teamName\":\"Eigen tegenstander\",\"position\":6,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-4,\"points\":1,\"form\":[]},{\"id\":\"295102\",\"teamId\":\"295102\",\"clubId\":null,\"teamName\":\"Volgende tegenstander\",\"position\":7,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-5,\"points\":1,\"form\":[]},{\"id\":\"295110\",\"teamId\":\"295110\",\"clubId\":null,\"teamName\":\"Pouleclub 8\",\"position\":8,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-6,\"points\":1,\"form\":[]},{\"id\":\"295111\",\"teamId\":\"295111\",\"clubId\":null,\"teamName\":\"Pouleclub 9\",\"position\":9,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-7,\"points\":1,\"form\":[]},{\"id\":\"295112\",\"teamId\":\"295112\",\"clubId\":null,\"teamName\":\"Pouleclub 10\",\"position\":10,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-8,\"points\":1,\"form\":[]},{\"id\":\"295113\",\"teamId\":\"295113\",\"clubId\":null,\"teamName\":\"Pouleclub 11\",\"position\":11,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-9,\"points\":1,\"form\":[]},{\"id\":\"295114\",\"teamId\":\"295114\",\"clubId\":null,\"teamName\":\"Pouleclub 12\",\"position\":12,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-10,\"points\":1,\"form\":[]},{\"id\":\"295115\",\"teamId\":\"295115\",\"clubId\":null,\"teamName\":\"Pouleclub 13\",\"position\":13,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-11,\"points\":1,\"form\":[]},{\"id\":\"295116\",\"teamId\":\"295116\",\"clubId\":null,\"teamName\":\"Pouleclub 14\",\"position\":14,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-12,\"points\":1,\"form\":[]}]},\"fixtures\":[{\"id\":\"295003\",\"home\":{\"teamId\":\"295100\",\"clubId\":\"own-club\",\"name\":\"Eigen team\"},\"away\":{\"teamId\":\"295102\",\"clubId\":null,\"name\":\"Volgende tegenstander\"},\"kickoffAt\":\"2026-11-12T03:30:58.385+00:00\",\"status\":\"scheduled\",\"field\":null,\"homeRoom\":null,\"awayRoom\":null,\"venue\":\"\",\"homeScore\":null,\"awayScore\":null}]}},\"authoring\":{\"schemaVersion\":1,\"visualRevision\":\"onzetrots-20261024\",\"headerSubtitles\":{},\"headerTexts\":{},\"welcomeScalePercent\":150}},\"assets\":{}}",
+      "descriptorChecksum": "3f9e19e9308fa3e73bf5b17ded58111f1eb8cf94f22ebdd97aa3226e18b770ba",
+      "durationMs": 42000,
+      "initial": {
+        "label": "published",
+        "dataRevision": 1,
+        "contentHash": "19f7383b12c6689ee6ca8b6d30fc5047020cc16a757b168ad45cb379be87431e",
+        "dataKey": "e6083950-3f05-461e-81b1-0b266da35d89:1",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "landscape",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195058423
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 2,
+                    "points": 3,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "standing": {
+        "label": "standings-only",
+        "dataRevision": 2,
+        "contentHash": "877e065c28c59f4ca46a217bc0a7858e1ef8d4e6989beec5aebe10de9fb72885",
+        "dataKey": "e6083950-3f05-461e-81b1-0b266da35d89:2",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "landscape",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195058423
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "added": {
+        "label": "new-pool-result",
+        "dataRevision": 3,
+        "contentHash": "107be23a35ab702c9bbd55e27047a9adc97c1d4894b67b27b3d0b5db2b002862",
+        "dataKey": "e6083950-3f05-461e-81b1-0b266da35d89:3",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "landscape",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195058423
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295002",
+                  "home": {
+                    "teamId": "295101",
+                    "clubId": null,
+                    "name": "Poule A"
+                  },
+                  "away": {
+                    "teamId": "295104",
+                    "clubId": null,
+                    "name": "Poule B"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 0,
+                  "awayScore": 0
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "corrected": {
+        "label": "pool-results-only",
+        "dataRevision": 4,
+        "contentHash": "c9e52bd0dfd26e8e5cf0e9fc294db091057ddfd8a9f41ba34aea9265bca29b3c",
+        "dataKey": "e6083950-3f05-461e-81b1-0b266da35d89:4",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "landscape",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195058423
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295002",
+                  "home": {
+                    "teamId": "295101",
+                    "clubId": null,
+                    "name": "Poule A"
+                  },
+                  "away": {
+                    "teamId": "295104",
+                    "clubId": null,
+                    "name": "Poule B"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 2,
+                  "awayScore": 0
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "expired": {
+        "label": "local-midnight-unchanged-provider",
+        "dataRevision": 5,
+        "contentHash": "b9bd64ee437812680cb73fdaba9a8659c1ffb56f923c7fe3ed1290f5b97624d5",
+        "dataKey": "e6083950-3f05-461e-81b1-0b266da35d89:5",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "landscape",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195058423
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295002",
+                  "home": {
+                    "teamId": "295101",
+                    "clubId": null,
+                    "name": "Poule A"
+                  },
+                  "away": {
+                    "teamId": "295104",
+                    "clubId": null,
+                    "name": "Poule B"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 2,
+                  "awayScore": 0
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "empty": {
+        "label": "confirmed-empty-results",
+        "dataRevision": 6,
+        "contentHash": "d5da4aa08eeae8f0963d53d5f7558fa4d01aebd3c3e5b971c7d78fa547f443b4",
+        "dataKey": "e6083950-3f05-461e-81b1-0b266da35d89:6",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "landscape",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195058423
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195058423
+                  }
+                ]
+              },
+              "results": [],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      }
+    },
+    {
+      "orientation": "portrait",
+      "releaseId": "61434cd3-a5b6-45fd-94e9-045b487e522f",
+      "snapshotId": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271",
+      "templateVersionId": "cfc80ed8-b0fe-43e1-92a1-e123a6ae0fdf",
+      "configurationHash": "8f7cd9040ac36ef209a58a9532ea8d31e4155d78f37eead04ca7412c67d74e8b",
+      "descriptor": "{\"schemaVersion\":2,\"snapshotId\":\"2cb2e0e2-0b7c-4323-8332-1c64b23a0271\",\"templateVersionId\":\"cfc80ed8-b0fe-43e1-92a1-e123a6ae0fdf\",\"configuration\":{\"schemaVersion\":1,\"kind\":\"dynamic\",\"rendererVersion\":\"sync-onzetrots-v9\",\"sourceRevision\":\"5ba52a657d6d16ad103ba2fb43b8db18aa83715a\",\"slideType\":\"sport_match_of_the_day\",\"seed\":{\"schemaVersion\":1,\"rendererVersion\":\"sync-onzetrots-v9\",\"sourceRevision\":\"5ba52a657d6d16ad103ba2fb43b8db18aa83715a\",\"family\":\"matchday\",\"orientation\":\"portrait\",\"theme\":\"onzetrots-tv\",\"name\":\"Onze wedstrijddag\",\"club\":{\"name\":\"Fixture club\",\"tagline\":\"\"},\"title\":\"WEDSTRIJDDAG\",\"headline\":\"\",\"body\":\"\",\"subtitle\":\"\",\"topLabel\":\"CLUB TV\",\"footer\":\"\",\"footerRight\":\"\",\"rows\":[],\"rowsPerPage\":6,\"ownRowIndexes\":[],\"category\":\"\",\"subline\":\"\",\"lineup\":[],\"news\":[],\"imageCaption\":\"\",\"state\":\"ready\",\"style\":{\"motion\":\"rustig\",\"background\":\"clubmuur\",\"backgroundPosition\":\"center\",\"font\":\"Brush\",\"fontChanged\":true,\"accent\":\"#03438a\",\"alignment\":\"left\",\"scale\":100,\"safeMargin\":5,\"showLogo\":true,\"showFooter\":true},\"visual\":{\"schemaVersion\":1,\"mode\":\"light\",\"scrollSpeed\":\"normal\",\"panelOpacity\":94},\"authoring\":{\"schemaVersion\":1,\"visualRevision\":\"onzetrots-20261024\",\"headerSubtitles\":{},\"headerTexts\":{},\"welcomeScalePercent\":150}},\"secondsPerPage\":5},\"presentation\":{\"schemaVersion\":1,\"rendererVersion\":\"sync-onzetrots-v9\",\"sourceRevision\":\"5ba52a657d6d16ad103ba2fb43b8db18aa83715a\",\"family\":\"matchday\",\"orientation\":\"portrait\",\"theme\":\"onzetrots-tv\",\"name\":\"Onze wedstrijddag\",\"club\":{\"name\":\"S295 isolated publication\",\"tagline\":\"\"},\"title\":\"WEDSTRIJDDAG\",\"headline\":\"\",\"body\":\"\",\"subtitle\":\"\",\"topLabel\":\"CLUB TV\",\"footer\":\"\",\"footerRight\":\"\",\"rows\":[],\"rowsPerPage\":6,\"ownRowIndexes\":[],\"category\":\"\",\"subline\":\"\",\"lineup\":[],\"news\":[],\"imageCaption\":\"\",\"state\":\"ready\",\"style\":{\"motion\":\"rustig\",\"background\":\"clubmuur\",\"backgroundPosition\":\"center\",\"font\":\"Brush\",\"fontChanged\":true,\"accent\":\"#03438a\",\"alignment\":\"left\",\"scale\":100,\"safeMargin\":5,\"showLogo\":true,\"showFooter\":true},\"visual\":{\"schemaVersion\":1,\"mode\":\"light\",\"scrollSpeed\":\"normal\",\"panelOpacity\":94},\"rich\":{\"teamSelection\":{\"ownClubId\":\"own-club\",\"ownTeamIds\":[\"295100\"],\"primaryTeamId\":\"295100\"},\"matchday\":{\"context\":{\"tenantId\":\"29500000-0000-4000-9000-000000000001\",\"teamId\":\"295100\",\"competitionId\":\"league\",\"poolId\":\"701\",\"seasonId\":null,\"revisions\":[{\"dataset\":\"results\",\"revision\":1794195060600},{\"dataset\":\"standings\",\"revision\":1794195060600},{\"dataset\":\"fixtures\",\"revision\":1794195060600}]},\"results\":[{\"id\":\"295001\",\"home\":{\"teamId\":\"295100\",\"clubId\":\"own-club\",\"name\":\"Eigen team\"},\"away\":{\"teamId\":\"295103\",\"clubId\":null,\"name\":\"Eigen tegenstander\"},\"kickoffAt\":\"2026-11-08T03:30:58.385+00:00\",\"status\":\"finished\",\"field\":null,\"homeRoom\":null,\"awayRoom\":null,\"venue\":\"\",\"homeScore\":3,\"awayScore\":1},{\"id\":\"295005\",\"home\":{\"teamId\":\"295105\",\"clubId\":null,\"name\":\"Poule C\"},\"away\":{\"teamId\":\"295106\",\"clubId\":null,\"name\":\"Poule D\"},\"kickoffAt\":\"2026-11-02T03:30:58.385+00:00\",\"status\":\"finished\",\"field\":null,\"homeRoom\":null,\"awayRoom\":null,\"venue\":\"\",\"homeScore\":1,\"awayScore\":1}],\"standings\":{\"ownTeamId\":\"295100\",\"rows\":[{\"id\":\"295101\",\"teamId\":\"295101\",\"clubId\":null,\"teamName\":\"Poule A\",\"position\":1,\"played\":2,\"won\":1,\"drawn\":0,\"lost\":1,\"goalDifference\":1,\"points\":4,\"form\":[]},{\"id\":\"295100\",\"teamId\":\"295100\",\"clubId\":\"own-club\",\"teamName\":\"Eigen team\",\"position\":2,\"played\":2,\"won\":1,\"drawn\":0,\"lost\":1,\"goalDifference\":2,\"points\":3,\"form\":[]},{\"id\":\"295104\",\"teamId\":\"295104\",\"clubId\":null,\"teamName\":\"Poule B\",\"position\":3,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-1,\"points\":1,\"form\":[]},{\"id\":\"295105\",\"teamId\":\"295105\",\"clubId\":null,\"teamName\":\"Poule C\",\"position\":4,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-2,\"points\":1,\"form\":[]},{\"id\":\"295106\",\"teamId\":\"295106\",\"clubId\":null,\"teamName\":\"Poule D\",\"position\":5,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-3,\"points\":1,\"form\":[]},{\"id\":\"295103\",\"teamId\":\"295103\",\"clubId\":null,\"teamName\":\"Eigen tegenstander\",\"position\":6,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-4,\"points\":1,\"form\":[]},{\"id\":\"295102\",\"teamId\":\"295102\",\"clubId\":null,\"teamName\":\"Volgende tegenstander\",\"position\":7,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-5,\"points\":1,\"form\":[]},{\"id\":\"295110\",\"teamId\":\"295110\",\"clubId\":null,\"teamName\":\"Pouleclub 8\",\"position\":8,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-6,\"points\":1,\"form\":[]},{\"id\":\"295111\",\"teamId\":\"295111\",\"clubId\":null,\"teamName\":\"Pouleclub 9\",\"position\":9,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-7,\"points\":1,\"form\":[]},{\"id\":\"295112\",\"teamId\":\"295112\",\"clubId\":null,\"teamName\":\"Pouleclub 10\",\"position\":10,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-8,\"points\":1,\"form\":[]},{\"id\":\"295113\",\"teamId\":\"295113\",\"clubId\":null,\"teamName\":\"Pouleclub 11\",\"position\":11,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-9,\"points\":1,\"form\":[]},{\"id\":\"295114\",\"teamId\":\"295114\",\"clubId\":null,\"teamName\":\"Pouleclub 12\",\"position\":12,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-10,\"points\":1,\"form\":[]},{\"id\":\"295115\",\"teamId\":\"295115\",\"clubId\":null,\"teamName\":\"Pouleclub 13\",\"position\":13,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-11,\"points\":1,\"form\":[]},{\"id\":\"295116\",\"teamId\":\"295116\",\"clubId\":null,\"teamName\":\"Pouleclub 14\",\"position\":14,\"played\":2,\"won\":0,\"drawn\":1,\"lost\":1,\"goalDifference\":-12,\"points\":1,\"form\":[]}]},\"fixtures\":[{\"id\":\"295003\",\"home\":{\"teamId\":\"295100\",\"clubId\":\"own-club\",\"name\":\"Eigen team\"},\"away\":{\"teamId\":\"295102\",\"clubId\":null,\"name\":\"Volgende tegenstander\"},\"kickoffAt\":\"2026-11-12T03:30:58.385+00:00\",\"status\":\"scheduled\",\"field\":null,\"homeRoom\":null,\"awayRoom\":null,\"venue\":\"\",\"homeScore\":null,\"awayScore\":null}]}},\"authoring\":{\"schemaVersion\":1,\"visualRevision\":\"onzetrots-20261024\",\"headerSubtitles\":{},\"headerTexts\":{},\"welcomeScalePercent\":150}},\"assets\":{}}",
+      "descriptorChecksum": "0742e1efe05d83161bbe24a716c9bde7229beaa124c237d3bb623e001e0b4584",
+      "durationMs": 45000,
+      "initial": {
+        "label": "published",
+        "dataRevision": 1,
+        "contentHash": "253b92d98734eeb6f80d34147ebe475418b528a7b79f40dc5267c88308f1dea7",
+        "dataKey": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271:1",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "portrait",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195060600
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 2,
+                    "points": 3,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "standing": {
+        "label": "standings-only",
+        "dataRevision": 2,
+        "contentHash": "b306315a79447034580cd5d1a133b945c9a9fac11abd6b98de44d774d8972e8a",
+        "dataKey": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271:2",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "portrait",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195060600
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "added": {
+        "label": "new-pool-result",
+        "dataRevision": 3,
+        "contentHash": "9afefdb5145eb0693f250a712782ec88abbab4fd3b1b47a7497dc9ec7884d595",
+        "dataKey": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271:3",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "portrait",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195060600
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295002",
+                  "home": {
+                    "teamId": "295101",
+                    "clubId": null,
+                    "name": "Poule A"
+                  },
+                  "away": {
+                    "teamId": "295104",
+                    "clubId": null,
+                    "name": "Poule B"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 0,
+                  "awayScore": 0
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "corrected": {
+        "label": "pool-results-only",
+        "dataRevision": 4,
+        "contentHash": "70aea2cb1502e5ca3a4a3dad476b78ba4afc4bd1f19cf6187e2decbab149d19a",
+        "dataKey": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271:4",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "portrait",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195060600
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295002",
+                  "home": {
+                    "teamId": "295101",
+                    "clubId": null,
+                    "name": "Poule A"
+                  },
+                  "away": {
+                    "teamId": "295104",
+                    "clubId": null,
+                    "name": "Poule B"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 2,
+                  "awayScore": 0
+                },
+                {
+                  "id": "295005",
+                  "home": {
+                    "teamId": "295105",
+                    "clubId": null,
+                    "name": "Poule C"
+                  },
+                  "away": {
+                    "teamId": "295106",
+                    "clubId": null,
+                    "name": "Poule D"
+                  },
+                  "kickoffAt": "2026-11-02T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 1,
+                  "awayScore": 1
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "expired": {
+        "label": "local-midnight-unchanged-provider",
+        "dataRevision": 5,
+        "contentHash": "2065e854a4717c6335b763fb35cdcaa2a4300d5ea99658c74df892868d56bd58",
+        "dataKey": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271:5",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "portrait",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195060600
+                  }
+                ]
+              },
+              "results": [
+                {
+                  "id": "295001",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295103",
+                    "clubId": null,
+                    "name": "Eigen tegenstander"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 3,
+                  "awayScore": 1
+                },
+                {
+                  "id": "295002",
+                  "home": {
+                    "teamId": "295101",
+                    "clubId": null,
+                    "name": "Poule A"
+                  },
+                  "away": {
+                    "teamId": "295104",
+                    "clubId": null,
+                    "name": "Poule B"
+                  },
+                  "kickoffAt": "2026-11-08T03:30:58.385+00:00",
+                  "status": "finished",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": 2,
+                  "awayScore": 0
+                }
+              ],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      },
+      "empty": {
+        "label": "confirmed-empty-results",
+        "dataRevision": 6,
+        "contentHash": "33aaf94a65d3abca568e09400153054d28cebab6cc15735ae4c6bbe6101c937f",
+        "dataKey": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271:6",
+        "presentation": {
+          "schemaVersion": 1,
+          "rendererVersion": "sync-onzetrots-v9",
+          "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+          "family": "matchday",
+          "orientation": "portrait",
+          "theme": "onzetrots-tv",
+          "name": "Onze wedstrijddag",
+          "club": {
+            "name": "S295 isolated publication",
+            "tagline": ""
+          },
+          "title": "WEDSTRIJDDAG",
+          "headline": "",
+          "body": "",
+          "subtitle": "",
+          "topLabel": "CLUB TV",
+          "footer": "",
+          "footerRight": "",
+          "rows": [],
+          "rowsPerPage": 6,
+          "ownRowIndexes": [],
+          "category": "",
+          "subline": "",
+          "lineup": [],
+          "news": [],
+          "imageCaption": "",
+          "state": "ready",
+          "style": {
+            "motion": "rustig",
+            "background": "clubmuur",
+            "backgroundPosition": "center",
+            "font": "Brush",
+            "fontChanged": true,
+            "accent": "#03438a",
+            "alignment": "left",
+            "scale": 100,
+            "safeMargin": 5,
+            "showLogo": true,
+            "showFooter": true
+          },
+          "visual": {
+            "schemaVersion": 1,
+            "mode": "light",
+            "scrollSpeed": "normal",
+            "panelOpacity": 94
+          },
+          "rich": {
+            "teamSelection": {
+              "ownClubId": "own-club",
+              "ownTeamIds": [
+                "295100"
+              ],
+              "primaryTeamId": "295100"
+            },
+            "matchday": {
+              "context": {
+                "tenantId": "29500000-0000-4000-9000-000000000001",
+                "teamId": "295100",
+                "competitionId": "league",
+                "poolId": "701",
+                "seasonId": null,
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 1794195060600
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 1794195060600
+                  }
+                ]
+              },
+              "results": [],
+              "standings": {
+                "ownTeamId": "295100",
+                "rows": [
+                  {
+                    "id": "295100",
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "teamName": "Eigen team",
+                    "position": 1,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 5,
+                    "points": 9,
+                    "form": []
+                  },
+                  {
+                    "id": "295101",
+                    "teamId": "295101",
+                    "clubId": null,
+                    "teamName": "Poule A",
+                    "position": 2,
+                    "played": 2,
+                    "won": 1,
+                    "drawn": 0,
+                    "lost": 1,
+                    "goalDifference": 1,
+                    "points": 4,
+                    "form": []
+                  },
+                  {
+                    "id": "295104",
+                    "teamId": "295104",
+                    "clubId": null,
+                    "teamName": "Poule B",
+                    "position": 3,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -1,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295105",
+                    "teamId": "295105",
+                    "clubId": null,
+                    "teamName": "Poule C",
+                    "position": 4,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -2,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295106",
+                    "teamId": "295106",
+                    "clubId": null,
+                    "teamName": "Poule D",
+                    "position": 5,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -3,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295103",
+                    "teamId": "295103",
+                    "clubId": null,
+                    "teamName": "Eigen tegenstander",
+                    "position": 6,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -4,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295102",
+                    "teamId": "295102",
+                    "clubId": null,
+                    "teamName": "Volgende tegenstander",
+                    "position": 7,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -5,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295110",
+                    "teamId": "295110",
+                    "clubId": null,
+                    "teamName": "Pouleclub 8",
+                    "position": 8,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -6,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295111",
+                    "teamId": "295111",
+                    "clubId": null,
+                    "teamName": "Pouleclub 9",
+                    "position": 9,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -7,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295112",
+                    "teamId": "295112",
+                    "clubId": null,
+                    "teamName": "Pouleclub 10",
+                    "position": 10,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -8,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295113",
+                    "teamId": "295113",
+                    "clubId": null,
+                    "teamName": "Pouleclub 11",
+                    "position": 11,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -9,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295114",
+                    "teamId": "295114",
+                    "clubId": null,
+                    "teamName": "Pouleclub 12",
+                    "position": 12,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -10,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295115",
+                    "teamId": "295115",
+                    "clubId": null,
+                    "teamName": "Pouleclub 13",
+                    "position": 13,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -11,
+                    "points": 1,
+                    "form": []
+                  },
+                  {
+                    "id": "295116",
+                    "teamId": "295116",
+                    "clubId": null,
+                    "teamName": "Pouleclub 14",
+                    "position": 14,
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 1,
+                    "lost": 1,
+                    "goalDifference": -12,
+                    "points": 1,
+                    "form": []
+                  }
+                ]
+              },
+              "fixtures": [
+                {
+                  "id": "295003",
+                  "home": {
+                    "teamId": "295100",
+                    "clubId": "own-club",
+                    "name": "Eigen team"
+                  },
+                  "away": {
+                    "teamId": "295102",
+                    "clubId": null,
+                    "name": "Volgende tegenstander"
+                  },
+                  "kickoffAt": "2026-11-12T03:30:58.385+00:00",
+                  "status": "scheduled",
+                  "field": null,
+                  "homeRoom": null,
+                  "awayRoom": null,
+                  "venue": "",
+                  "homeScore": null,
+                  "awayScore": null
+                }
+              ]
+            }
+          },
+          "authoring": {
+            "schemaVersion": 1,
+            "visualRevision": "onzetrots-20261024",
+            "headerSubtitles": {},
+            "headerTexts": {},
+            "welcomeScalePercent": 150
+          }
+        }
+      }
+    }
+  ]
+}

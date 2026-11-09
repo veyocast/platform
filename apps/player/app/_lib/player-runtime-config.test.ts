@@ -28,11 +28,11 @@ describe("player runtime timing", () => {
 
   it("accepts and bounds explicit timing overrides in development", () => {
     const searchParams = new URLSearchParams(
-      "durationMs=100&syncMs=90000&watchdogMs=1000"
+      "durationMs=100&syncMs=900000&watchdogMs=1000"
     );
     expect(resolvePlayerRuntimeTiming(searchParams, true)).toEqual({
       durationOverrideMs: 250,
-      manifestSyncIntervalMs: defaultManifestSyncIntervalMs,
+      manifestSyncIntervalMs: 120_000,
       watchdogTimeoutMs: 1_000
     });
   });

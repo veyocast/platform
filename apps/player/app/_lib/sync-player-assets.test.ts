@@ -25,6 +25,7 @@ import {
   prepareSyncOnzeTrotsFonts,
 } from "./sync-player-presentation";
 import sitesAssets from "../../../../packages/content-templates/src/sites-system-assets.json";
+import { assertSyncDynamicEnvelopeContinuity } from "./sync-player-assets";
 const origin = "https://player.veyocast.nl";
 function fixture(): PlayerManifestEnvelope {
   const actual = getPlayerManifestForToken(demoOnlineDeviceToken);
@@ -419,6 +420,55 @@ it('retains the latest verified complete binary when its data revision moves bac
  if(metadata.schemaVersion!==1)throw Error('Expected the strict legacy fixture');
  item.syncDynamicBinary={schemaVersion:metadata.schemaVersion,configurationSnapshotId:metadata.configurationSnapshotId,snapshotId:metadata.snapshotId,templateVersionId:metadata.templateVersionId,configurationHash:metadata.configurationHash,contentHash:metadata.contentHash,fallbackChecksumSha256:item.source.checksumSha256,durationMs:metadata.durationMs,dataRevision:4};delete item.syncDynamic;delete cached.manifest.syncSystemAssets;
  const stale=structuredClone(cached);stale.manifest.items[0]!.syncDynamicBinary!.dataRevision=3;expect(()=>refreshHydratedReleaseEnvelope({cachedEnvelope:cached,freshEnvelope:stale})).toThrow('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');expect(cached.manifest.items[0]!.syncDynamicBinary!.dataRevision).toBe(4);
+});
+
+for(const zoneId of ['side','bottom']as const)it(`rejects stale ${zoneId} Source revisions before a candidate can be replaced`,()=>{
+ const current=connectedFixture(),child=connectedFixture();child.manifest.releaseId='10000000-0000-4000-8000-000000000295';
+ current.composition={published:{id:'20000000-0000-4000-8000-000000000295',revision:1,configuration:{schemaVersion:1,layout:zoneId==='side'?'sidebar':'bottom',orientation:'landscape',mainWidthPercent:70,bottomHeightPercent:20,zones:[{id:'main',playlistId:current.manifest.playlistId},{id:zoneId,playlistId:child.manifest.playlistId}]},bindings:[{zoneId:'main',playlistId:current.manifest.playlistId,releaseId:current.manifest.releaseId,publicationId:'30000000-0000-4000-8000-000000000295',configRevision:1},{zoneId,playlistId:child.manifest.playlistId,releaseId:child.manifest.releaseId,publicationId:'40000000-0000-4000-8000-000000000295',configRevision:1}]},zones:{[zoneId]:child}};
+ child.manifest.items[0]!.syncDynamic!.dataRevision=2;
+ const stale=structuredClone(current);stale.composition!.zones[zoneId]!.manifest.items[0]!.syncDynamic!.dataRevision=1;
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,stale)).toThrow('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');
+ const differentMain=structuredClone(stale);differentMain.manifest.releaseId='60000000-0000-4000-8000-000000000295';
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,differentMain)).toThrow('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');
+ const collision=structuredClone(current);collision.composition!.zones[zoneId]!.manifest.items[0]!.syncDynamic!.contentHash='e'.repeat(64);
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,collision)).toThrow('SYNC_DYNAMIC_DATA_REVISION_COLLISION');
+ const newer=structuredClone(current);newer.composition!.zones[zoneId]!.manifest.items[0]!.syncDynamic!.dataRevision=3;
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,newer)).not.toThrow();
+ // Revision ordering belongs to this publication and zone, never another one.
+ stale.composition!.zones[zoneId]!.manifest.releaseId='50000000-0000-4000-8000-000000000295';
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,stale)).not.toThrow();
+});
+
+function legacyRevisionFixture(){
+ const value=fixture(),item=value.manifest.items[0]!;delete item.syncStudioPresentation;delete item.syncStudioDurationMs;delete item.syncStudioAssets;delete value.manifest.syncSystemAssets;
+ const snapshot='10000000-0000-4000-8000-000000000626',template='20000000-0000-4000-8000-000000000626';
+ item.dynamicTemplate={schemaVersion:1,snapshotId:snapshot,templateVersionId:template,templateSlug:'historical-news',snapshotHash:'b'.repeat(64),orientation:'landscape',slideType:'news',data:{},assets:{}};
+ item.dynamicData={schemaVersion:1,configurationSnapshotId:snapshot,snapshotId:snapshot,templateVersionId:template,configurationHash:'a'.repeat(64),contentHash:'b'.repeat(64),dataRevision:2};return value;
+}
+it('keeps supported historical payloads and binds additive source identity outside their strict facts',()=>{
+ const value=legacyRevisionFixture();expect(()=>getCacheableAssets(value.manifest)).not.toThrow();const old=structuredClone(value);delete old.manifest.items[0]!.dynamicData;
+ expect(()=>getCacheableAssets(old.manifest)).not.toThrow();expect(()=>assertSyncDynamicEnvelopeContinuity(old,value)).not.toThrow();
+ expect(()=>assertSyncDynamicEnvelopeContinuity(value,old)).toThrow('SYNC_DYNAMIC_PROFILE_UNAVAILABLE');
+});
+for(const invalid of ['revision-zero','revision-string','snapshot','configuration-snapshot','template','hash','unknown-field']as const)it(`rejects invalid historical source metadata (${invalid}) before assets or a candidate can replace verified facts`,()=>{
+ const value=legacyRevisionFixture(),item=value.manifest.items[0]!,metadata=item.dynamicData!;
+ if(invalid==='revision-zero')metadata.dataRevision=0;
+ else if(invalid==='revision-string')Object.assign(metadata,{dataRevision:'3'});
+ else if(invalid==='snapshot')metadata.snapshotId='30000000-0000-4000-8000-000000000626';
+ else if(invalid==='configuration-snapshot')metadata.configurationSnapshotId='30000000-0000-4000-8000-000000000626';
+ else if(invalid==='template')metadata.templateVersionId='30000000-0000-4000-8000-000000000626';
+ else if(invalid==='hash')metadata.contentHash='c'.repeat(64);
+ else Object.assign(metadata,{unchecked:true});
+ expect(()=>getCacheableAssets(value.manifest)).toThrow('DYNAMIC_DATA_IDENTITY_INVALID');
+});
+it('rejects historical revision regression and collisions while accepting a real correction back to an earlier fact hash',()=>{
+ const current=legacyRevisionFixture(),stale=structuredClone(current);stale.manifest.items[0]!.dynamicData!.dataRevision=1;
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,stale)).toThrow('SYNC_DYNAMIC_DATA_REVISION_REGRESSED');
+ const corrected=structuredClone(current);corrected.manifest.items[0]!.dynamicData!.contentHash='c'.repeat(64);corrected.manifest.items[0]!.dynamicTemplate!.snapshotHash='c'.repeat(64);
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,corrected)).toThrow('SYNC_DYNAMIC_DATA_REVISION_COLLISION');
+ corrected.manifest.items[0]!.dynamicData!.dataRevision=3;expect(()=>assertSyncDynamicEnvelopeContinuity(current,corrected)).not.toThrow();
+ corrected.manifest.items[0]!.dynamicData!.contentHash=current.manifest.items[0]!.dynamicData!.contentHash;corrected.manifest.items[0]!.dynamicTemplate!.snapshotHash=current.manifest.items[0]!.dynamicTemplate!.snapshotHash;
+ expect(()=>assertSyncDynamicEnvelopeContinuity(current,corrected)).not.toThrow();
 });
 
 

@@ -1,0 +1,2 @@
+.root{position:absolute;inset:0;overflow:hidden}
+.root > :global([data-sync-player-stage]){height:100%}

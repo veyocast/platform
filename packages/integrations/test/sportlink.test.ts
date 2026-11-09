@@ -413,6 +413,18 @@ describe("Sportlink server-only adapter", () => {
     );
   });
 
+  it("preserves separately supplied kickoff, pool identity and season-only restrictions", () => {
+    const matches = mapSportlinkMatches([{
+      thuisteam: "Onze club", uitteam: "Bezoekers", wedstrijdcode: 80,
+      wedstrijddatum: "2026-11-07", aanvangstijd: "14:30", poulecode: 701,
+      seizoen: "2025/2026", uitslag: "0-0"
+    }], "results");
+    expect(matches[0]).toMatchObject({
+      startsAt: "2026-11-07T13:30:00.000Z", pool: { externalId: "701" },
+      competition: { season: "2025/2026" }, status: "finished", homeTeam: { score: 0 }, awayTeam: { score: 0 }
+    });
+  });
+
   it("normalizes Europe/Amsterdam wall-clock dates across daylight saving time", () => {
     const matches = mapSportlinkMatches([
       {

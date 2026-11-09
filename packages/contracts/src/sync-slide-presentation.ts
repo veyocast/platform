@@ -339,9 +339,16 @@ export function syncSlidePosterTimeMs(slide:SyncSlidePresentation,durationMs:num
  return slide.rendererVersion===syncOnzeTrotsV9RendererVersion?Math.min(4000,Math.max(0,firstPageMs-1)):Math.min(1200,Math.max(0,durationMs-1));
 }
 
+/** Same checked result-slot marker for markup and motion policy. */
+export function syncOnzeTrotsMatchdayResultSlots(slide:SyncSlidePresentation){
+ if(!isSyncOnzeTrotsPresentation(slide)||slide.family!=='matchday')return 0;
+ const data=slide.rich?.matchday;
+ return data?.results.some(item=>item.home.teamId!==data.context.teamId&&item.away.teamId!==data.context.teamId)?Math.min(3,data.results.length):0;
+}
+
 /** Logical geometry from the approved cascade. This is a duration bound, not a
  * substitute for measuring the actual browser viewport for frame projection. */
-export function syncSlideInternalMotion(slide:SyncSlidePresentation){
+export function syncSlideInternalMotion(slide:SyncSlidePresentation):{enabled:boolean;minimumMs:number;fitAvailableDuration?:boolean}{
  if(!isSyncOnzeTrotsPresentation(slide))return {enabled:false,minimumMs:3000};
  const phased=slide.rendererVersion===syncOnzeTrotsV9RendererVersion&&slide.style.motion!=='geen',introMinimum=phased?4000:3000;
  if(slide.family==='goal')return {enabled:true,minimumMs:introMinimum};
@@ -351,10 +358,14 @@ export function syncSlideInternalMotion(slide:SyncSlidePresentation){
  const count=dashboard?slide.rich?.matchday?.standings.rows.length??0:slide.rich?.standings?.rows.length??slide.rows.length;
  const rowHeight=dashboard?(portrait?78:67):(portrait?100:72);
  const viewport=slide.rendererVersion===syncOnzeTrotsV9RendererVersion?(dashboard?(portrait?492:385):(portrait?1142:483)):(dashboard?(portrait?646:527):(portrait?1193:524));
+ const resultSlots=syncOnzeTrotsMatchdayResultSlots(slide),fitAvailableDuration=resultSlots>0;
+ // These durations also admit already published descriptors. Keep that frozen
+ // contract; checked pool results fit their measured scroll into its duration.
+ const extraResultsHeight=portrait?(resultSlots===3?288:resultSlots===2?140:0):0;
  const range=Math.max(0,count*rowHeight-viewport);
- if(!range)return {enabled:phased,minimumMs:introMinimum};
+ if(!range)return {enabled:phased||fitAvailableDuration&&count*rowHeight>viewport-extraResultsHeight,minimumMs:introMinimum,...(fitAvailableDuration?{fitAvailableDuration}: {})};
  const speed={slow:19,normal:30,fast:48}[slide.visual.scrollSpeed];
- return {enabled:true,minimumMs:Math.max(introMinimum,Math.ceil(5000+2000*range/speed))};
+ return {enabled:true,minimumMs:Math.max(introMinimum,Math.ceil(5000+2000*range/speed)),...(fitAvailableDuration?{fitAvailableDuration}: {})};
 }
 
 export function syncSlideMinimumDurationMs(slide:SyncSlidePresentation){
@@ -483,7 +494,7 @@ export function collectSyncSportMediaAssetIds(snapshot:Record<string,unknown>):s
  const record=(value:unknown):value is Record<string,unknown>=>Boolean(value&&typeof value==='object'&&!Array.isArray(value));
  const sport=record(snapshot.sport)?snapshot.sport:{};
  const matchday=record(sport.matchday)?sport.matchday:{};
- for(const part of [sport,...['results','standings','fixtures'].map(key=>matchday[key])]){
+ for(const part of [sport,...['results','poolResults','standings','fixtures'].map(key=>matchday[key])]){
   if(!record(part)||!Array.isArray(part.items))continue;
   for(const row of part.items.slice(0,200))if(record(row))for(const key of ['logoMediaAssetId','homeLogoMediaAssetId','awayLogoMediaAssetId','photoMediaAssetId']){
    const value=row[key];if(typeof value==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value))ids.add(value);

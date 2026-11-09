@@ -139,6 +139,32 @@ diagnostiek automatisch over geldige publieke content leggen.
 
 ## S185: actuele opdracht en live gegevens
 
+Iedere daadwerkelijke dynamische afspeelbeurt start een geautoriseerde
+conditionele manifestcontrole op VeyoCast. Release, zone, itempositie en de
+afspeeliteratie identificeren die beurt; een datarender, preload of uitgaande
+transitie maakt geen nieuwe beurt. Gelijktijdige activaties delen de lopende
+controle en maximaal één vervolgcontrole, met de bestaande foutbackoff.
+Geverifieerde lokale inhoud start direct. Een normale ongewijzigde 200-response
+vóór het eerste frame herstart geen afspeelpoging. Expliciet herstel behoudt
+zijn afzonderlijke retrygrens. Een volledig voorbereide gegevenskandidaat mag
+vóór het eerste gevalideerde frame van de geraakte afspeelbeurt instromen.
+Framebewijs is monotoon per release/zone/itempositie/afspeeliteratie en wordt
+niet gewist door een datarender. Een zichtbare gewijzigde zijzone houdt haar
+natuurlijke grens wanneer de hoofdzone nog geen frame heeft getoond. Late
+framecallbacks moeten hun afspeelidentiteit én gegevensidentiteit bewijzen.
+Periodieke, realtime- en onlinehersteltriggers
+blijven bestaan. Iedere compositiezone houdt haar eigen natuurlijke grens;
+een gegevenswissel in een nevenzone herstart de onveranderde hoofdzone niet.
+Bij dezelfde immutable compositie wacht een gegevenswissel uitsluitend op de
+gewijzigde zones. Ongewijzigde zones behouden hun decoder, afspeelbeurt en
+deadline; een nieuwe publicatie behoudt de grens van alle vereiste zones.
+Een bevestigde lege dataset wordt samen met haar geverifieerde resources
+opgeslagen. Historische lege sportitems behouden hun skipcontract. Een geheel
+lege afspeelvolgorde toont de bestaande gereed-toestand; een lege compositiezone
+behoudt de andere zones. Na zichtbare lege tekst biedt een vierseconden-idlegrens
+ruimte aan nieuwe geverifieerde feiten. Die grens is geen dynamische
+itemactivatie en veroorzaakt zelf geen manifest- of providerverzoek.
+
 De playlist-ID is de logische publicatie-identiteit. `playlist_publications`
 verwijst naar één immutable configuratierevisie; `screens.target_revision`
 ordent ook wisselingen tussen playlists. De player bereidt slechts één volgende

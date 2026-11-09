@@ -10,15 +10,15 @@ async function setup(page:Page){
   const asset=images[(revision-1)%2]!;
   return{...baseline,device:{...baseline.device,desiredReleaseId:uuid(1)},target:{revision:'1',configRevision:'1',publicationId:uuid(2),assignmentSource:'default',committedAt:new Date().toISOString()},manifest:{...baseline.manifest,schemaVersion:1,releaseId:uuid(1),items:[{...baseline.manifest.items[0]!,id:uuid(3),sourceItemId:uuid(4),kind:'image',fitMode:'contain',durationSeconds:3,accessibilityName:`Bronrevisie ${revision}`,contentHash:'c'.repeat(64),source:{url:`${origin}/binary-source-${revision}.png`,bytes:asset.bytes.length,checksumSha256:asset.sha,mimeType:'image/png'},syncDynamicBinary:{schemaVersion:1,configurationSnapshotId:uuid(5),snapshotId:uuid(5),templateVersionId:uuid(6),configurationHash:'c'.repeat(64),contentHash:String(revision).repeat(64),fallbackChecksumSha256:asset.sha,durationMs:3000,dataRevision:revision}}]}};
  };
- let desired=release(1),offline=false,downloads=0,requests=0;const modes:string[]=[],frames:number[]=[];
+ let desired=release(1),offline=false,downloads=0,requests=0;const modes:string[]=[],frames:number[]=[],phases:string[]=[];
  await page.addInitScript(()=>{localStorage.setItem('veyocast.player.deviceToken','a'.repeat(48));localStorage.setItem('veyocast.player.installationCredential','i'.repeat(48));});
  await page.route('**/api/player/installation',route=>route.fulfill({json:{ok:true,bound:true,installationCredential:'i'.repeat(48)}}));
  await page.route('**/api/player/realtime',route=>route.fulfill({status:204}));
  await page.route('**/api/player/manifest*',route=>{requests++;modes.push(route.request().headers()['x-veyocast-sync-dynamic']??'');return offline?route.abort():route.fulfill({json:desired});});
- await page.route('**/api/player/heartbeat',route=>{const body=route.request().postDataJSON();if(body.sourceDataConfirmation?.transport==='binary')frames.push(body.sourceDataConfirmation.dataRevision);return route.fulfill({json:{ok:true}});});
+ await page.route('**/api/player/heartbeat',route=>{const body=route.request().postDataJSON();phases.push(body.syncPhase);if(body.sourceDataConfirmation?.transport==='binary')frames.push(body.sourceDataConfirmation.dataRevision);return route.fulfill({json:{ok:true}});});
  await page.route('**/binary-source-*.png',route=>{downloads++;const revision=Number(new URL(route.request().url()).pathname.match(/(\d+)\.png$/)![1]);return route.fulfill({body:images[(revision-1)%2]!.bytes,contentType:'image/png'});});
  await page.goto(origin+'/lg/legacy');await expect(page.getByRole('img',{name:'Bronrevisie 1',exact:true})).toBeVisible();await expect.poll(()=>frames.includes(1)).toBe(true);
- return{release,set(value:PlayerManifestEnvelope){desired=value;},setOffline(value:boolean){offline=value;},modes,frames,get downloads(){return downloads;},get requests(){return requests;}};
+ return{release,set(value:PlayerManifestEnvelope){desired=value;},setOffline(value:boolean){offline=value;},modes,frames,phases,get downloads(){return downloads;},get requests(){return requests;}};
 }
 test('the actual standalone LG negotiates binary v1, switches facts at a boundary and retains them offline',async({page,context})=>{
  test.setTimeout(60000);const state=await setup(page);expect(state.modes).toContain('sync-dynamic-binary-v1');
@@ -30,6 +30,15 @@ test('a forged binary metadata checksum cannot replace the verified LG frame',as
  const state=await setup(page),invalid=state.release(2);invalid.manifest.items[0]!.syncDynamicBinary!.fallbackChecksumSha256='f'.repeat(64);state.set(invalid);
  const prior=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>state.requests).toBeGreaterThan(prior);await page.waitForTimeout(1000);
  await expect(page.getByRole('img',{name:'Bronrevisie 1',exact:true})).toBeVisible();expect(state.frames).not.toContain(2);expect(state.downloads).toBe(1);
+});
+test('a stale binary 200 cannot cancel the newer LG dataset already prepared for a natural boundary',async({page})=>{
+ await page.clock.install();const state=await setup(page);await page.clock.pauseAt(new Date(Date.now()+100));
+ state.phases.length=0;
+ state.set(state.release(2));await page.evaluate(()=>window.dispatchEvent(new Event('online')));await page.clock.runFor(1);await expect.poll(()=>state.phases.includes('switch_pending')).toBe(true);
+ await expect(page.getByRole('img',{name:'Bronrevisie 1',exact:true})).toBeVisible();expect(state.frames).not.toContain(2);
+ state.set(state.release(1));const requests=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await page.clock.runFor(1);await expect.poll(()=>state.requests).toBeGreaterThan(requests);
+ await page.clock.fastForward(3500);await page.clock.resume();
+ await expect(page.getByRole('img',{name:'Bronrevisie 2',exact:true})).toBeVisible();await expect.poll(()=>state.frames.includes(2)).toBe(true);
 });
 test('LG retains the previous painted dataset of the same release when the active cache is damaged',async({page,context})=>{
  const state=await setup(page);state.set(state.release(2));await page.evaluate(()=>window.dispatchEvent(new Event('online')));

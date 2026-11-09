@@ -1,0 +1,1 @@
+{"fixture":true,"itemDurationMs":12000,"pageDurationMs":4000,"periodicIntervalMs":60000,"boundariesMs":[3879,7747],"initialDomRetainedAcrossUnchanged200":true,"renewedAccess":true,"renewedAccessObserved":["/__lg-sites/1.svg?signature=renewed-1","/__lg-sites/1.svg?signature=renewed-2"],"downloads":["/__lg-sites/1.svg"],"requests":5}

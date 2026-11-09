@@ -7,6 +7,7 @@ export function lgSitesRuntimeScript() {
     var legacyIsCompositionZone = Boolean(window.frameElement && window.frameElement.getAttribute("data-lg-composition-zone"));
     var legacyZoneCallbacks = null;
     var legacyZoneHeld = false;
+    var legacyZoneResumePage = null;
     var legacyZoneBlueprint = legacyIsCompositionZone ? null : document.documentElement.outerHTML;
     var legacyCompositionPending = null;
     var legacyCompositionAckKey = null;
@@ -36,11 +37,30 @@ export function lgSitesRuntimeScript() {
         item.source && value.fallbackChecksumSha256===item.source.checksumSha256 &&
         ((item.kind==="video" && item.source.mimeType==="video/mp4") || (item.kind==="image" && item.source.mimeType==="image/png"));
     }
+    function lgDynamicDataValid(item) {
+      var value=item&&item.dynamicData;
+      if(value===undefined)return true;
+      var payload=item.dynamicTemplate;
+      if(!value||typeof value!=="object"||Array.isArray(value)||!payload||typeof payload!=="object"||Array.isArray(payload)||item.syncDynamic||item.syncDynamicBinary||item.menuDom)return false;
+      var keys=["schemaVersion","configurationSnapshotId","snapshotId","templateVersionId","configurationHash","contentHash","dataRevision"];
+      return value.schemaVersion===1&&Object.keys(value).every(function(key){return keys.indexOf(key)!==-1;})&&
+        ["configurationSnapshotId","snapshotId","templateVersionId"].every(function(key){return typeof value[key]==="string"&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(value[key]);})&&
+        ["configurationHash","contentHash"].every(function(key){return typeof value[key]==="string"&&/^[a-f0-9]{64}$/.test(value[key]);})&&
+        typeof value.dataRevision==="number"&&isFinite(value.dataRevision)&&Math.floor(value.dataRevision)===value.dataRevision&&value.dataRevision>0&&value.dataRevision<=9007199254740991&&
+        value.configurationSnapshotId===payload.snapshotId&&value.snapshotId===payload.snapshotId&&value.templateVersionId===payload.templateVersionId&&value.contentHash===payload.snapshotHash;
+    }
+    function lgDynamicDataIdentity(item) {
+      var value=item.dynamicData,source=item.source||{},assets=item.dynamicTemplate&&item.dynamicTemplate.assets||{};
+      return "dynamic-data-v1:"+value.contentHash+":"+value.dataRevision+":"+source.checksumSha256+":"+source.mimeType+":"+source.bytes+":"+Object.keys(assets).sort().map(function(id){
+        var asset=assets[id]||{};
+        return [id,asset.checksumSha256,asset.mimeType,asset.bytes,asset.posterChecksumSha256,asset.posterMimeType,asset.posterBytes].join(":");
+      }).join("|");
+    }
     function lgSyncBinaryContinuity(before,after) {
-      if (!before || !after || !before.manifest || before.manifest.releaseId!==after.manifest.releaseId) return true;
-      var previous={};(before.manifest.items||[]).forEach(function(item){previous[item.id]=item.syncDynamicBinary;});
-      if (!(after.manifest.items||[]).every(function(item){
-        var old=previous[item.id],next=item.syncDynamicBinary;
+      if (!before || !after || !before.manifest || !after.manifest) return true;
+      var previous={};(before.manifest.items||[]).forEach(function(item){previous[item.id]=item.dynamicData||item.syncDynamicBinary;});
+      if (before.manifest.releaseId===after.manifest.releaseId && !(after.manifest.items||[]).every(function(item){
+        var old=previous[item.id],next=item.dynamicData||item.syncDynamicBinary;
         if (!old) return true;
         return Boolean(next && old.configurationSnapshotId===next.configurationSnapshotId && old.configurationHash===next.configurationHash && old.templateVersionId===next.templateVersionId &&
           Number(next.dataRevision||0)>=Number(old.dataRevision||0) && !(old.dataRevision!==undefined && old.dataRevision===next.dataRevision && old.contentHash!==next.contentHash));
@@ -56,8 +76,8 @@ export function lgSitesRuntimeScript() {
       if (!envelope) return "";
       var zones=envelope.composition&&envelope.composition.zones||{};
       return [envelope,zones.side,zones.bottom].map(function(zone){
-        return (zone&&zone.manifest&&zone.manifest.items||[]).filter(function(item){return item.syncDynamicBinary;}).map(function(item){
-          return item.id+":"+item.syncDynamicBinary.contentHash+":"+String(item.syncDynamicBinary.dataRevision||0);
+        return (zone&&zone.manifest&&zone.manifest.items||[]).filter(function(item){return item.dynamicData||item.syncDynamicBinary;}).map(function(item){
+          return item.id+":"+(item.dynamicData?lgDynamicDataIdentity(item):item.syncDynamicBinary.contentHash+":"+String(item.syncDynamicBinary.dataRevision||0));
         }).join(":");
       }).join("|");
     }
@@ -72,7 +92,7 @@ export function lgSitesRuntimeScript() {
       }
       return envelopes.map(function (zone) {
         return (zone.manifest && zone.manifest.items || []).map(function (item) {
-          return item.id + ":" + (item.syncDynamicBinary ? "sync-binary-v1:" + item.syncDynamicBinary.contentHash + ":" + String(item.syncDynamicBinary.dataRevision || 0) : item.dynamicTemplate && item.dynamicTemplate.snapshotHash || "");
+          return item.id + ":" + (item.dynamicData?lgDynamicDataIdentity(item):item.syncDynamicBinary ? "sync-binary-v1:" + item.syncDynamicBinary.contentHash + ":" + String(item.syncDynamicBinary.dataRevision || 0) : item.dynamicTemplate && item.dynamicTemplate.snapshotHash || "");
         }).join(":");
       }).join("|");
     }
@@ -105,12 +125,21 @@ export function lgSitesRuntimeScript() {
       }
       return zones;
     }
-    function lgZoneBoundary() {
+    function lgZoneBoundary(resumePage) {
       if (!legacyIsCompositionZone || !legacyZoneCallbacks || !legacyZoneCallbacks.boundary()) return false;
       legacyZoneHeld = true;
+      legacyZoneResumePage = resumePage || null;
       clearPlaybackTimers();
       silenceCurrentMediaEvents();
       return true;
+    }
+    function lgZoneResume() {
+      if (!legacyZoneHeld) return;
+      var resumePage = legacyZoneResumePage;
+      legacyZoneHeld = false;
+      legacyZoneResumePage = null;
+      if (resumePage) resumePage();
+      else nextItem(true);
     }
     function lgCompositionCancelBoundary() {
       var controller = runtime.currentElement && runtime.currentElement.lgComposition;
@@ -124,13 +153,64 @@ export function lgSitesRuntimeScript() {
       if (!controller) return;
       controller.frames.forEach(function (frame) { if (frame.contentWindow && frame.contentWindow.__veyocastLgZone) frame.contentWindow.__veyocastLgZone.pause(paused); });
     }
+    function lgCompositionChangedDataZones(controller, pending) {
+      if (!controller || !pending || releaseIdOf(controller.envelope) !== releaseIdOf(pending.envelope) ||
+          lgCompositionIdentity(controller.envelope) !== lgCompositionIdentity(pending.envelope)) return null;
+      // Each changed zone owns its boundary, including a main zone entering
+      // or leaving its verified empty state. Unchanged decoders keep running.
+      var before = controller.envelope.composition.zones;
+      var after = pending.envelope.composition.zones;
+      var changed = ["main", "side", "bottom"].filter(function (id) {
+        var oldZone = id === "main" ? { manifest: controller.envelope.manifest } : before[id];
+        var nextZone = id === "main" ? { manifest: pending.envelope.manifest } : after[id];
+        return oldZone && nextZone && lgEnvelopeDataIdentity(oldZone) !== lgEnvelopeDataIdentity(nextZone);
+      });
+      return changed.length ? changed : null;
+    }
+    function lgCompositionApplyPendingData() {
+      var controller = runtime.currentElement && runtime.currentElement.lgComposition;
+      var pending = runtime.pendingRelease;
+      var changed = lgCompositionChangedDataZones(controller, pending);
+      if (!changed || !changed.every(function (id) { return controller.held[id]; }) || runtime.activationInFlight) return false;
+      runtime.activationInFlight = true;
+      persistRelease(pending.envelope, pending.assets, function (error) {
+        runtime.activationInFlight = false;
+        if (error || runtime.pendingRelease !== pending || pending.generation !== runtime.targetGeneration || controller.disposed) {
+          controller.activationRequested = false;
+          controller.held = {};
+          if (!controller.disposed) controller.frames.forEach(function (frame) {
+            var bridge = frame.contentWindow && frame.contentWindow.__veyocastLgZone;
+            if (bridge) bridge.resume();
+          });
+          return;
+        }
+        runtime.envelope = pending.envelope;
+        runtime.pendingRelease = null;
+        controller.envelope = pending.envelope;
+        controller.held = {};
+        controller.activationRequested = false;
+        changed.forEach(function (id) { controller.ready[id] = false; });
+        controller.frames.forEach(function (frame) {
+          var id = frame.getAttribute("data-lg-composition-zone");
+          var bridge = frame.contentWindow && frame.contentWindow.__veyocastLgZone;
+          var fresh = id === "main" ? pending.envelope : pending.envelope.composition.zones[id];
+          if (!bridge || !fresh) return;
+          if (changed.indexOf(id) !== -1) bridge.acceptData(fresh);
+          else { bridge.refresh(fresh); bridge.resume(); }
+        });
+        setState(runtime.offline ? "OFFLINE_PLAYING" : "PLAYING");
+        runtime.syncPhase = "active";
+        sendHeartbeat();
+      });
+      return true;
+    }
     function lgCompositionStart(envelope, generation) {
       var zones = lgCompositionZones(envelope);
       if (!zones || !zones.length || !legacyZoneBlueprint) { failItem("LEGACY_COMPOSITION_INVALID"); return; }
       var root = document.createElement("div");
       root.className = "lg-screen-composition";
       root.style.background = "#050505";
-      var controller = { root: root, envelope: envelope, frames: [], ready: {}, held: {}, generation: generation, disposed: false, committed: false, timer: null };
+      var controller = { root: root, envelope: envelope, frames: [], ready: {}, held: {}, generation: generation, disposed: false, committed: false, activationPending: false, timer: null };
       root.lgComposition = controller;
       root.lgCleanup = function () {
         if (controller.disposed) return;
@@ -152,17 +232,27 @@ export function lgSitesRuntimeScript() {
         if (controller.disposed || generation !== runtime.playbackGeneration) return;
         controller.ready[id] = true;
         if (id === "main") { controller.mainItem = item; controller.mainIndex = index; if (controller.committed) { runtime.currentItem = item; runtime.activeIndex = index; } }
-        if (controller.committed || !zones.every(function (zone) { return controller.ready[zone.id]; })) return;
+        if (controller.committed) {
+          if (zones.every(function (zone) { return controller.ready[zone.id]; })) root.lgSourceDataIdentity = lgEnvelopeDataIdentity(controller.envelope);
+          return;
+        }
+        if (!zones.every(function (zone) { return controller.ready[zone.id]; })) return;
         window.clearTimeout(controller.timer);
         controller.committed = true;
         runtime.currentItem = controller.mainItem;
         runtime.activeIndex = controller.mainIndex;
-        if (commitPendingMedia(root, [], generation)) legacyCompositionPending = null;
+        if (commitPendingMedia(root, [], generation)) {
+          legacyCompositionPending = null;
+          if (controller.activationPending) { controller.activationPending = false; requestDynamicManifestCheck(); }
+        }
       }
       function boundary(id) {
         if (controller.disposed || runtime.currentElement !== root || !runtime.pendingRelease || runtime.goalPauseApplied) return false;
+        var changed = lgCompositionChangedDataZones(controller, runtime.pendingRelease);
+        if (changed && changed.indexOf(id) === -1) return false;
         controller.held[id] = true;
-        if (!controller.activationRequested && zones.every(function (zone) { return controller.held[zone.id]; })) { controller.activationRequested = true; window.setTimeout(function () {
+        var required = changed || zones.map(function (zone) { return zone.id; });
+        if (!controller.activationRequested && required.every(function (zoneId) { return controller.held[zoneId]; })) { controller.activationRequested = true; window.setTimeout(function () {
           if (!controller.disposed && runtime.currentElement === root && runtime.pendingRelease) nextItem();
         }, 0); }
         return true;
@@ -194,6 +284,11 @@ export function lgSitesRuntimeScript() {
           if (!bridge) { failed(); return; }
           bridge.initialize(zone.envelope, zone.id === "main" ? runtime.activeIndex : 0, {
             ready: function (item, index) { frameReady(zone.id, item, index); },
+            activated: function () {
+              if (controller.disposed || generation !== runtime.playbackGeneration) return;
+              if (controller.committed) requestDynamicManifestCheck();
+              else controller.activationPending = true;
+            },
             boundary: function () { return boundary(zone.id); }, wantsBoundary: function () { return Boolean(runtime.pendingRelease); }, failed: failed
           });
         } catch (error) { failed(); }
@@ -227,9 +322,32 @@ export function lgSitesRuntimeScript() {
           byId("offline").style.display = "none";
           playCurrent();
         },
-        resume: function () { if (legacyZoneHeld) { legacyZoneHeld = false; nextItem(); } },
+        resume: lgZoneResume,
         pause: function (paused) { if (paused) pauseGoalUnderlay(); else resumeGoalUnderlay(); },
         refresh: function (envelope) { refreshSameReleaseMediaAccess(envelope); },
+        acceptData: function (envelope) {
+          var item = playableItems(envelope)[runtime.activeIndex];
+          var root = runtime.currentElement;
+          if (legacyZoneHeld && legacyZoneResumePage && item && item.sitesPresentation && root && root.refreshSitesData) {
+            var resumePage = legacyZoneResumePage;
+            // A prepared facts update at a page boundary keeps the same
+            // installed canvas, occurrence and next-page clock.
+            root.refreshSitesData(item, function (installed) {
+              if (root !== runtime.currentElement || resumePage !== legacyZoneResumePage) return;
+              if (installed) {
+                runtime.envelope = envelope;
+                runtime.currentItem = item;
+                if (legacyZoneCallbacks) legacyZoneCallbacks.ready(item, runtime.activeIndex);
+              }
+              lgZoneResume();
+            });
+            return;
+          }
+          runtime.envelope = envelope;
+          legacyZoneHeld = false;
+          legacyZoneResumePage = null;
+          playCurrent();
+        },
         dispose: function () { legacyZoneCallbacks = null; runtime.playbackGeneration += 1; clearMedia(); }
       };
     }
@@ -242,6 +360,17 @@ export function lgSitesRuntimeScript() {
         ["portrait", "landscape"].indexOf(value.orientation) !== -1 && value.width === (value.orientation === "portrait" ? 1080 : 1920) && value.height === (value.orientation === "portrait" ? 1920 : 1080) &&
         Array.isArray(value.pages) && value.pages.length > 0 && value.pages.length <= 250 && value.pages.every(function (page) { return typeof page === "string" && page.length <= 1048576; }) &&
         typeof value.css === "string" && value.css.length <= 1048576 && Array.isArray(value.assetTokens) && value.assetTokens.length <= 2000);
+    }
+    function lgSitesSameDocument(before, after) {
+      if (!lgSitesValidDocument(before) || !lgSitesValidDocument(after)) return false;
+      if (!["rendererVersion", "sourceRevision", "orientation", "width", "height", "pageDurationSeconds", "css"].every(function (key) { return before[key] === after[key]; })) return false;
+      if (before.pages.length !== after.pages.length || !before.pages.every(function (page, index) { return page === after.pages[index]; })) return false;
+      var tokens = function (value) {
+        if (!value.assetTokens.every(function (entry) { return entry && typeof entry.token === "string" && typeof entry.cacheKey === "string"; })) return null;
+        return value.assetTokens.map(function (entry) { return entry.token + ":" + entry.cacheKey; }).sort();
+      };
+      var oldTokens = tokens(before), freshTokens = tokens(after);
+      return Boolean(oldTokens && freshTokens && oldTokens.length === freshTokens.length && oldTokens.every(function (entry, index) { return entry === freshTokens[index]; }));
     }
     function lgSitesResolveDocument(item, callback) {
       var value = item.sitesPresentation;
@@ -470,13 +599,18 @@ export function lgSitesRuntimeScript() {
           lgSitesInlineUnits(artboard, resolved.document.width, resolved.document.height);
           fit();
         }
-        function advance() {
+        function continuePage() {
           if (generation !== runtime.playbackGeneration) return;
-          if (runtime.pendingRelease || legacyIsCompositionZone && legacyZoneCallbacks && legacyZoneCallbacks.boundary()) { nextItem(); return; }
           pageIndex += 1;
           if (pageIndex >= resolved.document.pages.length) { nextItem(); return; }
           render();
           scheduleTemplateAdvance(advance, Math.max(1000, Number(resolved.document.pageDurationSeconds) * 1000 || itemDurationMs(item)));
+        }
+        function advance() {
+          if (generation !== runtime.playbackGeneration) return;
+          if (runtime.pendingRelease) { nextItem(); return; }
+          if (pageIndex + 1 < resolved.document.pages.length && lgZoneBoundary(continuePage)) return;
+          continuePage();
         }
         var allUrls = objectUrls.concat(extraUrls);
         var refreshGeneration = 0;
@@ -485,19 +619,23 @@ export function lgSitesRuntimeScript() {
         function finishRefresh() {
           applyingRefresh = false;
           var queued = queuedRefreshItem; queuedRefreshItem = null;
-          if (queued && generation === runtime.playbackGeneration && runtime.currentElement === root) root.refreshSitesData(queued);
+          if (queued && generation === runtime.playbackGeneration && runtime.currentElement === root) root.refreshSitesData(queued.item, queued.installed);
         }
         root.liveDataObjectUrls = extraUrls;
-        root.refreshSitesData = function (freshItem) {
+        root.refreshSitesData = function (freshItem, installed) {
           // A newer request may supersede preparation, but never interrupt the
           // installed frame's validation/rollback. Keep only its latest facts.
-          if (applyingRefresh) { queuedRefreshItem = freshItem; return; }
+          if (applyingRefresh) { queuedRefreshItem = { item: freshItem, installed: installed }; return; }
+          // The access-only manifest path may renew source URLs after an
+          // unchanged 200. Its checksum-addressed document is already local;
+          // retain the installed nodes, entrance animation and page clock.
+          if (lgSitesSameDocument(resolved.document, freshItem.sitesPresentation)) { if (installed) installed(true); return; }
           var refresh = ++refreshGeneration;
           lgSitesResolveDocument(freshItem, function (fresh, freshUrls) {
-            if (!fresh || refresh !== refreshGeneration || generation !== runtime.playbackGeneration || runtime.currentElement !== root) { revokeObjectUrls(freshUrls); return; }
+            if (!fresh || refresh !== refreshGeneration || generation !== runtime.playbackGeneration || runtime.currentElement !== root) { revokeObjectUrls(freshUrls); if (installed) installed(false); return; }
             var freshCompiled = lgSitesCompileCss(lgSitesReplaceTokens(fresh.document.css, fresh.replacements), fresh.document.width, fresh.document.height);
             lgSitesDecodeBrandFont(fresh.document, freshCompiled.css).then(function () {
-              if (refresh !== refreshGeneration || generation !== runtime.playbackGeneration || runtime.currentElement !== root) { revokeObjectUrls(freshUrls); return; }
+              if (refresh !== refreshGeneration || generation !== runtime.playbackGeneration || runtime.currentElement !== root) { revokeObjectUrls(freshUrls); if (installed) installed(false); return; }
               var oldUrls = root.liveDataObjectUrls || [], oldResolved = resolved, oldCompiled = compiled, oldPage = pageIndex;
               var oldObjectUrls = runtime.currentObjectUrls;
               applyingRefresh = true;
@@ -510,19 +648,22 @@ export function lgSitesRuntimeScript() {
               runtime.currentObjectUrls = oldObjectUrls.concat(freshUrls);
               render();
               lgSitesLoadBrandFont(artboard).then(function () {
-                if (refresh !== refreshGeneration || runtime.currentElement !== root) { finishRefresh(); return; }
+                if (refresh !== refreshGeneration || runtime.currentElement !== root) { finishRefresh(); if (installed) installed(false); return; }
                 fit();
+                if (!lgSitesFrameReady(artboard)) throw new Error("LEGACY_SITES_FRAME_UNAVAILABLE");
                 runtime.currentObjectUrls = runtime.currentObjectUrls.filter(function (url) { return oldUrls.indexOf(url) === -1; });
                 revokeObjectUrls(oldUrls);
                 finishRefresh();
+                if (installed) installed(true);
               }).catch(function () {
                 if (refresh !== refreshGeneration || runtime.currentElement !== root) { finishRefresh(); return; }
                 resolved = oldResolved; compiled = oldCompiled; pageIndex = oldPage;
                 style.textContent = compiled.css; root.liveDataObjectUrls = oldUrls; runtime.currentObjectUrls = oldObjectUrls;
                 render(); revokeObjectUrls(freshUrls); log("LEGACY_SITES_BRAND_FONT_UNAVAILABLE", item.id);
                 finishRefresh();
+                if (installed) installed(false);
               });
-            }).catch(function () { revokeObjectUrls(freshUrls); log("LEGACY_SITES_BRAND_FONT_UNAVAILABLE", item.id); });
+            }).catch(function () { revokeObjectUrls(freshUrls); log("LEGACY_SITES_BRAND_FONT_UNAVAILABLE", item.id); if (installed) installed(false); });
           });
         };
         root.lgCleanup = function () { refreshGeneration += 1; queuedRefreshItem = null; window.removeEventListener("resize", fit); artboard.removeEventListener("animationend", fit); };

@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T03:23:20Z",
+  "database": "isolated127.0.0.1:64432",
+  "scope": [
+    "sport.fetchedAt",
+    "sport.snapshotExpiresAt",
+    "sport.matchday.context.revisions[*].revision"
+  ],
+  "status": "REPRODUCED_HISTORICAL_PROTOCOL1_OBSERVATION_CHURN",
+  "chainProofs": [
+    {
+      "result": {
+        "family": "matchday",
+        "hashAfter": "9cff9a09a763466f8a46b38916629a9e50f2c4d13e6802c2569fb4ff3cca775c",
+        "hashBefore": "7206ef4da5abe8d1b2512cc4eb340788311c6e829b748526bc62103f53480921",
+        "metadataAfter": {
+          "fetchedAt": null,
+          "contextRevisions": [
+            {
+              "dataset": "results",
+              "revision": 1794194833946
+            },
+            {
+              "dataset": "standings",
+              "revision": 1794194533946
+            },
+            {
+              "dataset": "fixtures",
+              "revision": 1794194833946
+            }
+          ],
+          "snapshotExpiresAt": null
+        },
+        "revisionAfter": 2,
+        "dataKeyChanged": true,
+        "metadataBefore": {
+          "fetchedAt": null,
+          "contextRevisions": [
+            {
+              "dataset": "results",
+              "revision": 1794194533946
+            },
+            {
+              "dataset": "standings",
+              "revision": 1794194533946
+            },
+            {
+              "dataset": "fixtures",
+              "revision": 1794194533946
+            }
+          ],
+          "snapshotExpiresAt": null
+        },
+        "revisionBefore": 1,
+        "effectiveProtocol": 1,
+        "factsEqualDroppingOnlyRequestedMetadata": true
+      },
+      "sql": {
+        "path": "/tmp/s295-legacy-matchday-observation-probe.sql",
+        "sha256": "d83e54f95d489fefea317a786e85dce4b3fe6a80de1eec9fb1f9e96d27608d01"
+      },
+      "log": {
+        "path": "/tmp/s295-legacy-matchday-observation-probe.log",
+        "sha256": "bd9ba09683dbbfee4a65fdcf0560a3aa98ff4a8ab6b1093d76bf85cf87ed3cbf"
+      }
+    },
+    {
+      "result": {
+        "family": "birthday",
+        "hashAfter": "afcbe40621d29caee52fd92d0a5bfa52ba882d9766328635f4b3f0207ee053ad",
+        "hashBefore": "879c406662dcf31907c8060369cfbe6d5e56d93a8c56b7e4b384982ca46e208c",
+        "metadataAfter": {
+          "fetchedAt": "2026-11-09T03:27:28.388044+00:00",
+          "contextRevisions": null,
+          "snapshotExpiresAt": "2026-11-30T03:27:28.388044+00:00"
+        },
+        "revisionAfter": 2,
+        "dataKeyChanged": true,
+        "metadataBefore": {
+          "fetchedAt": "2026-11-09T03:22:28.388044+00:00",
+          "contextRevisions": null,
+          "snapshotExpiresAt": "2026-11-30T03:22:28.388044+00:00"
+        },
+        "revisionBefore": 1,
+        "effectiveProtocol": 1,
+        "factsEqualDroppingOnlyRequestedMetadata": true
+      },
+      "sql": {
+        "path": "/tmp/s295-legacy-birthday-observation-probe.sql",
+        "sha256": "9e9aa9b4241f408015b949828903962f476d4d8280ee89be95c9af7ccda2a452"
+      },
+      "log": {
+        "path": "/tmp/s295-legacy-birthday-observation-probe.log",
+        "sha256": "34770e5f7fa79f759e12c2003053ff713fb2624b019b94b452b6378016c3b0f4"
+      }
+    }
+  ],
+  "fieldHashProofs": [
+    {
+      "field": "sport.fetchedAt",
+      "family": "birthday",
+      "protocol": 1,
+      "hashChanged": true
+    },
+    {
+      "field": "sport.fetchedAt",
+      "family": "birthday",
+      "protocol": 2,
+      "hashChanged": false
+    },
+    {
+      "field": "sport.snapshotExpiresAt",
+      "family": "birthday",
+      "protocol": 1,
+      "hashChanged": true
+    },
+    {
+      "field": "sport.snapshotExpiresAt",
+      "family": "birthday",
+      "protocol": 2,
+      "hashChanged": false
+    },
+    {
+      "field": "sport.matchday.context.revisions[*].revision",
+      "family": "matchday",
+      "protocol": 1,
+      "hashChanged": true
+    },
+    {
+      "field": "sport.matchday.context.revisions[*].revision",
+      "family": "matchday",
+      "protocol": 2,
+      "hashChanged": false
+    }
+  ],
+  "fieldHashSql": {
+    "path": "/tmp/s295-legacy-target-metadata-hashes.sql",
+    "sha256": "8707e9a389f1736859dd630e68b2d6b5cf36ee9703acab9a9ae161dac8e00057"
+  },
+  "fieldHashLog": {
+    "path": "/tmp/s295-legacy-target-metadata-hashes.log",
+    "sha256": "3754819ae302915376d5aa79c779d7a02a2a4833367d8119d6d6dac7761cac31"
+  },
+  "activeDefinitions": {
+    "path": "/tmp/s295-legacy-hash-definitions.sql",
+    "sha256": "0799250fbc31796467bec04a0108e6b161a927f69b6bd10efe50b066bc5b8275"
+  },
+  "reproduce": [
+    "PGPASSWORD=postgres psql -XAtq -h127.0.0.1 -p64432 -Upostgres -dpostgres -vON_ERROR_STOP=1 -f /tmp/s295-legacy-matchday-observation-probe.sql",
+    "PGPASSWORD=postgres psql -XAtq -h127.0.0.1 -p64432 -Upostgres -dpostgres -vON_ERROR_STOP=1 -f /tmp/s295-legacy-birthday-observation-probe.sql",
+    "PGPASSWORD=postgres psql -XAtq -h127.0.0.1 -p64432 -Upostgres -dpostgres -vON_ERROR_STOP=1 -f /tmp/s295-legacy-target-metadata-hashes.sql"
+  ],
+  "limits": [
+    "No repository/migration/test edits performed for this diagnostic.",
+    "Both fixture transactions explicitly roll back; fixture tenant count checked0 afterward.",
+    "Source-observation timestamps are advanced directly in representative isolated records; this does not measure a real provider observation.",
+    "Uses actual builder, queueclaim and active private PDDcore completion; binary preparation wrapper and browser/HTTP are intentionally outside this narrowly scoped proof.",
+    "Historical defaultprotocol1 means no syncPlaybackProtocol2 flag; individual hash cases also explicitly use numericprotocol1.",
+    "Only the three named metadata paths were varied; signed URLs and other source families were not audited."
+  ],
+  "impact": "Unchanged visible facts still advance PDDcontent_hash/data_revision and authorized data_key for supported historical protocol1 birthday/matchday payloads; protocol2 ignores these specific observation-only fields. Exact HTTP200/304 or visible redraw was not measured in this diagnostic."
+}

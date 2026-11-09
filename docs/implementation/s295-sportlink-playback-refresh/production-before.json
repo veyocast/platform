@@ -1,0 +1,459 @@
+{
+  "observedAt": "2026-11-09T00:10:00Z",
+  "observedAtApproximate": true,
+  "sourceMainSha": "282bcec3e986207b5b01ea186325297b2b974b11",
+  "readOnly": true,
+  "productionProjectRef": "gjmdqsukjfhmmblnmhqd",
+  "stagingProjectRef": "jibbtdicrptsyftobavq",
+  "latestMigration": "20261025203330",
+  "tenantId": "b25addaf-f558-40ee-8569-ec979c4218ba",
+  "connections": [
+    {
+      "id": "7944b364-b1a2-4e27-911c-187fca3678c0",
+      "status": "active",
+      "timezone": "Europe/Amsterdam",
+      "lastError": null,
+      "nextSyncAt": "2026-11-09T01:03:28.97691+00:00",
+      "dataSourceId": "02c66a89-caf5-43ec-8f48-bcbf1825e5a4",
+      "lastSuccessAt": "2026-11-09T00:03:28.97691+00:00",
+      "selectedTeams": [
+        "218380",
+        "218382",
+        "381608",
+        "355471",
+        "394546",
+        "396026",
+        "401347",
+        "321350",
+        "310570",
+        "314227",
+        "392934",
+        "398572",
+        "398573",
+        "347491",
+        "383122",
+        "354116",
+        "329331",
+        "329357",
+        "366525",
+        "312711",
+        "327712",
+        "326146",
+        "329359",
+        "310571",
+        "341715",
+        "351599",
+        "329358",
+        "351601"
+      ]
+    }
+  ],
+  "policies": [
+    {
+      "dataset": "public_people",
+      "enabled": true,
+      "frequency": "daily",
+      "nextSyncAt": "2026-11-09T03:47:21.327575+00:00",
+      "lastSuccessAt": "2026-11-08T03:47:29.437535+00:00"
+    },
+    {
+      "dataset": "volunteers",
+      "enabled": false,
+      "frequency": "daily",
+      "nextSyncAt": "2026-10-13T11:51:43.341915+00:00",
+      "lastSuccessAt": null
+    },
+    {
+      "dataset": "competitions",
+      "enabled": true,
+      "frequency": "daily",
+      "nextSyncAt": "2026-11-09T15:14:11.777438+00:00",
+      "lastSuccessAt": "2026-11-08T15:14:43.363436+00:00"
+    },
+    {
+      "dataset": "teams",
+      "enabled": true,
+      "frequency": "daily",
+      "nextSyncAt": "2026-11-09T23:05:08.979345+00:00",
+      "lastSuccessAt": "2026-11-08T23:05:09.152825+00:00"
+    },
+    {
+      "dataset": "club_profile",
+      "enabled": true,
+      "frequency": "daily",
+      "nextSyncAt": "2026-11-09T23:05:39.348548+00:00",
+      "lastSuccessAt": "2026-11-08T23:05:39.748299+00:00"
+    },
+    {
+      "dataset": "matches",
+      "enabled": true,
+      "frequency": "hourly",
+      "nextSyncAt": "2026-11-09T00:45:15.386426+00:00",
+      "lastSuccessAt": "2026-11-08T23:46:01.593353+00:00"
+    },
+    {
+      "dataset": "match_details",
+      "enabled": true,
+      "frequency": "hourly",
+      "nextSyncAt": "2026-11-09T01:03:19.325669+00:00",
+      "lastSuccessAt": "2026-11-09T00:03:28.97691+00:00"
+    },
+    {
+      "dataset": "activities",
+      "enabled": false,
+      "frequency": "daily",
+      "nextSyncAt": "2026-11-06T15:13:33.482408+00:00",
+      "lastSuccessAt": "2026-11-05T15:13:33.897596+00:00"
+    }
+  ],
+  "slides": [
+    {
+      "id": "a39233c9-6b7c-4b26-a47e-bf6834b35042",
+      "slideType": "sport_match_of_the_day",
+      "snapshotId": "241a626a-9b88-4195-b8bf-73409b5290a0",
+      "orientation": "landscape",
+      "blueprint": null,
+      "context": {
+        "poolId": null,
+        "phaseId": null,
+        "seasonId": null,
+        "competitionId": null,
+        "providerTeamId": "218380",
+        "competitionSelectionMode": "auto_current"
+      },
+      "teamSelection": {
+        "mode": "selected",
+        "teamContexts": [
+          {
+            "poolId": null,
+            "phaseId": null,
+            "seasonId": null,
+            "competitionId": null,
+            "providerTeamId": "218380",
+            "competitionSelectionMode": "auto_current"
+          }
+        ]
+      },
+      "maxItems": 200,
+      "renderer": "sync-onzetrots-v9",
+      "syncPlaybackProtocol": 2
+    },
+    {
+      "id": "33911735-3c84-4416-9c0f-a21c8eedc050",
+      "slideType": "sport_results",
+      "snapshotId": "7fc37862-cfc4-40ba-8c18-c1183a15bd9c",
+      "orientation": "portrait",
+      "blueprint": "sportlink.club_results_previous_7_days",
+      "context": null,
+      "teamSelection": {
+        "mode": "all",
+        "teamContexts": [],
+        "matchLocation": "both"
+      },
+      "maxItems": 200,
+      "renderer": "sync-onzetrots-v9",
+      "syncPlaybackProtocol": 1
+    },
+    {
+      "id": "7b7f1162-79cb-413b-9c6f-3138d2fab928",
+      "slideType": "sport_results",
+      "snapshotId": "a3c1ff9a-237a-47b9-862e-aa7b038415d6",
+      "orientation": "landscape",
+      "blueprint": "sportlink.club_results_previous_7_days",
+      "context": null,
+      "teamSelection": {
+        "mode": "all",
+        "teamContexts": [],
+        "matchLocation": "both"
+      },
+      "maxItems": 200,
+      "renderer": "sync-onzetrots-v9",
+      "syncPlaybackProtocol": 2
+    },
+    {
+      "id": "2bc2cc2c-8605-4368-9f83-3cbf0798fdc6",
+      "slideType": "sport_match_of_the_day",
+      "snapshotId": "a77308a4-a61d-41c0-aa7c-b54c488c2797",
+      "orientation": "portrait",
+      "blueprint": null,
+      "context": {
+        "poolId": null,
+        "phaseId": null,
+        "seasonId": null,
+        "competitionId": null,
+        "providerTeamId": "218380",
+        "competitionSelectionMode": "auto_current"
+      },
+      "teamSelection": {
+        "mode": "selected",
+        "teamContexts": [
+          {
+            "poolId": null,
+            "phaseId": null,
+            "seasonId": null,
+            "competitionId": null,
+            "providerTeamId": "218380",
+            "competitionSelectionMode": "auto_current"
+          }
+        ]
+      },
+      "maxItems": 200,
+      "renderer": "sync-onzetrots-v9",
+      "syncPlaybackProtocol": 2
+    }
+  ],
+  "bindings": [
+    {
+      "items": [
+        {
+          "live": true,
+          "releaseId": "acfda604-0db6-4c51-8724-3b9db6202a57"
+        }
+      ],
+      "context": null,
+      "changed_at": "2026-11-08T10:44:46.860528+00:00",
+      "checked_at": "2026-11-09T00:03:32.029687+00:00",
+      "slide_type": "sport_results",
+      "snapshot_id": "a3c1ff9a-237a-47b9-862e-aa7b038415d6",
+      "content_hash": "e2ff77bfb1b95d67c61df33364ec877fdf2492baeb280c81ec67d85e29f43fcb",
+      "data_revision": 5,
+      "last_error_code": null,
+      "source_revision": 1324
+    },
+    {
+      "items": [
+        {
+          "live": true,
+          "releaseId": "acfda604-0db6-4c51-8724-3b9db6202a57"
+        }
+      ],
+      "context": {
+        "poolId": "826233",
+        "teamId": "218380",
+        "seasonId": null,
+        "tenantId": "b25addaf-f558-40ee-8569-ec979c4218ba",
+        "revisions": [
+          {
+            "dataset": "results",
+            "revision": 1794182608976
+          },
+          {
+            "dataset": "standings",
+            "revision": 1794150883363
+          },
+          {
+            "dataset": "fixtures",
+            "revision": 1794182608976
+          }
+        ],
+        "competitionId": "89578cd804224102bbc4210cf1eea97ec87ec203dd1ab5f4b2d8792f8b501322"
+      },
+      "changed_at": "2026-11-08T23:03:26.803067+00:00",
+      "checked_at": "2026-11-09T00:03:31.227502+00:00",
+      "slide_type": "sport_match_of_the_day",
+      "snapshot_id": "241a626a-9b88-4195-b8bf-73409b5290a0",
+      "content_hash": "24cef34e1f329de67de83ecb724d2476377c9320be56efec37d22949351a13cd",
+      "data_revision": 6,
+      "last_error_code": null,
+      "source_revision": 1324
+    },
+    {
+      "items": null,
+      "context": null,
+      "changed_at": "2026-11-06T23:05:00.17532+00:00",
+      "checked_at": "2026-11-07T14:42:30.114658+00:00",
+      "slide_type": "sport_results",
+      "snapshot_id": "a69e1a1b-98ae-4c51-b805-02e6f2087c3f",
+      "content_hash": "392243209fe14c8daa8bf52d2991305f7af40e02389852408b274c1e01c4605a",
+      "data_revision": 3,
+      "last_error_code": null,
+      "source_revision": 1254
+    }
+  ],
+  "latestRuns": [
+    {
+      "id": "ace86f97-19a2-47ba-8c83-38bf10aece8c",
+      "status": "succeeded",
+      "error_code": null,
+      "read_count": 100,
+      "started_at": "2026-11-09T00:03:19.325669+00:00",
+      "finished_at": "2026-11-09T00:03:28.97691+00:00",
+      "changed_count": 0,
+      "connection_id": "7944b364-b1a2-4e27-911c-187fca3678c0",
+      "dataset_group": "match_details",
+      "skipped_count": 0,
+      "deactivated_count": 0
+    },
+    {
+      "id": "25abb276-6e32-464b-bac2-d58110bda663",
+      "status": "succeeded",
+      "error_code": null,
+      "read_count": 436,
+      "started_at": "2026-11-08T23:45:15.386426+00:00",
+      "finished_at": "2026-11-08T23:46:01.593353+00:00",
+      "changed_count": 0,
+      "connection_id": "7944b364-b1a2-4e27-911c-187fca3678c0",
+      "dataset_group": "matches",
+      "skipped_count": 0,
+      "deactivated_count": 0
+    },
+    {
+      "id": "b7df7424-2f3e-4b88-9980-6a480117c956",
+      "status": "succeeded",
+      "error_code": null,
+      "read_count": 100,
+      "started_at": "2026-11-08T23:03:14.821547+00:00",
+      "finished_at": "2026-11-08T23:03:23.633371+00:00",
+      "changed_count": 0,
+      "connection_id": "7944b364-b1a2-4e27-911c-187fca3678c0",
+      "dataset_group": "match_details",
+      "skipped_count": 0,
+      "deactivated_count": 0
+    },
+    {
+      "id": "4b0e3d74-9dce-4f7c-8b9b-2cada93e91dc",
+      "status": "succeeded",
+      "error_code": null,
+      "read_count": 437,
+      "started_at": "2026-11-08T22:45:07.173424+00:00",
+      "finished_at": "2026-11-08T22:45:57.213751+00:00",
+      "changed_count": 0,
+      "connection_id": "7944b364-b1a2-4e27-911c-187fca3678c0",
+      "dataset_group": "matches",
+      "skipped_count": 0,
+      "deactivated_count": 0
+    },
+    {
+      "id": "9dc8eeec-15eb-4ef3-bc2b-7e0facb2fcda",
+      "status": "succeeded",
+      "error_code": null,
+      "read_count": 100,
+      "started_at": "2026-11-08T22:03:12.820638+00:00",
+      "finished_at": "2026-11-08T22:03:31.222559+00:00",
+      "changed_count": 0,
+      "connection_id": "7944b364-b1a2-4e27-911c-187fca3678c0",
+      "dataset_group": "match_details",
+      "skipped_count": 0,
+      "deactivated_count": 0
+    },
+    {
+      "id": "cfe5a7a3-00c6-4e43-be0c-c462c6722ca6",
+      "status": "succeeded",
+      "error_code": null,
+      "read_count": 437,
+      "started_at": "2026-11-08T21:45:07.14265+00:00",
+      "finished_at": "2026-11-08T21:45:55.11431+00:00",
+      "changed_count": 0,
+      "connection_id": "7944b364-b1a2-4e27-911c-187fca3678c0",
+      "dataset_group": "matches",
+      "skipped_count": 0,
+      "deactivated_count": 0
+    }
+  ],
+  "playerProfiles": [
+    {
+      "platform": "Android",
+      "appVersion": "282bcec3e986207b5b01ea186325297b2b974b11",
+      "lastSeenAt": "2026-11-08T12:41:15.152253+00:00",
+      "activeReleaseId": "acfda604-0db6-4c51-8724-3b9db6202a57",
+      "capabilities": {
+        "manifestSchemaVersions": [
+          1,
+          2
+        ],
+        "sourceDomProtocol": 2,
+        "runtime": "react",
+        "browserVersion": "156.0.8078.47"
+      }
+    },
+    {
+      "platform": "Android",
+      "appVersion": "282bcec3e986207b5b01ea186325297b2b974b11",
+      "lastSeenAt": "2026-11-07T17:33:54.899769+00:00",
+      "activeReleaseId": "acfda604-0db6-4c51-8724-3b9db6202a57",
+      "capabilities": {
+        "manifestSchemaVersions": [
+          1,
+          2
+        ],
+        "sourceDomProtocol": 2,
+        "runtime": "react",
+        "browserVersion": "156.0.8078.47"
+      }
+    },
+    {
+      "platform": "Windows",
+      "appVersion": "87b30fa654d1361a80356e2f961b93f728af3560",
+      "lastSeenAt": "2026-10-23T22:07:14.479801+00:00",
+      "activeReleaseId": "ca9d15e0-3c95-4b2d-a0f5-93073962d1ca",
+      "capabilities": {
+        "manifestSchemaVersions": [
+          1
+        ],
+        "sourceDomProtocol": null,
+        "runtime": "react",
+        "browserVersion": "155.0.0.0"
+      }
+    },
+    {
+      "platform": "Android",
+      "appVersion": "282bcec3e986207b5b01ea186325297b2b974b11",
+      "lastSeenAt": "2026-11-07T15:10:04.169152+00:00",
+      "activeReleaseId": "506d090b-e699-450f-b860-b162797423e9",
+      "capabilities": {
+        "manifestSchemaVersions": [
+          1,
+          2
+        ],
+        "sourceDomProtocol": 2,
+        "runtime": "react",
+        "browserVersion": "156.0.8078.47"
+      }
+    },
+    {
+      "platform": "Android",
+      "appVersion": "282bcec3e986207b5b01ea186325297b2b974b11",
+      "lastSeenAt": "2026-11-07T18:04:51.243044+00:00",
+      "activeReleaseId": "695aaabb-a89e-4e8c-b6dc-bbb6d548627c",
+      "capabilities": {
+        "manifestSchemaVersions": [
+          1,
+          2
+        ],
+        "sourceDomProtocol": 2,
+        "runtime": "react",
+        "browserVersion": "156.0.8078.47"
+      }
+    },
+    {
+      "platform": "browser",
+      "appVersion": "282bcec3e986207b5b01ea186325297b2b974b11",
+      "lastSeenAt": "2026-11-08T16:59:56.570356+00:00",
+      "activeReleaseId": "506d090b-e699-450f-b860-b162797423e9",
+      "capabilities": {
+        "manifestSchemaVersions": [
+          1
+        ],
+        "sourceDomProtocol": null,
+        "runtime": "static-lg",
+        "browserVersion": "79.0.3945.79"
+      }
+    }
+  ],
+  "contentSchedules": 0,
+  "workflowRuns": [
+    {
+      "id": 42538600641,
+      "purpose": "publication-runtime",
+      "status": "waiting_for_protected_environment"
+    },
+    {
+      "id": 42538602901,
+      "purpose": "worker-live-integration-diagnostics",
+      "status": "waiting_for_protected_environment"
+    }
+  ],
+  "providerParametersMeasured": false,
+  "visibleFramesMeasured": false,
+  "credentialsOrProviderPayloadsIncluded": false
+}

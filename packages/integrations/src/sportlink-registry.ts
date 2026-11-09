@@ -26,7 +26,7 @@ const team = z.object({
 const teamPool = z.object({ teamcode: code, lokaleteamcode: code }).strict();
 const match = z.object({ wedstrijdcode: code }).strict();
 const schedule = z.object({
-  wedstrijdtype: text, teamcode: code.optional(), lokaleteamcode: code.optional(),
+  wedstrijdtype: text, teamcode: teamReferenceCode.optional(), lokaleteamcode: teamReferenceCode.optional(),
   aantalregels: integer(1, 500), aantaldagen: integer(0, 365),
   weekoffset: integer(-52, 52), gebruiklokaleteamgegevens: yesNo,
   sorteervolgorde: text, eigenwedstrijden: yesNo, thuis: yesNo, uit: yesNo,

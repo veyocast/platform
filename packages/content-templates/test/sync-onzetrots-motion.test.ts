@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {syncOnzeTrotsRankScrollAt,syncOnzeTrotsPinnedRowY,syncOnzeTrotsSixSlots,advanceSyncOnzeTrotsTime,selectSyncOnzeTrotsVisitors} from '../src/sync-onzetrots-motion';
+import {syncOnzeTrotsRankScrollAt,syncOnzeTrotsPinnedRowY,syncOnzeTrotsSixSlots,advanceSyncOnzeTrotsTime,selectSyncOnzeTrotsVisitors,projectSyncOnzeTrotsMotion} from '../src/sync-onzetrots-motion';
 
 describe('approved OnzeTrots deterministic behavior',()=>{
  it('samples both holds and directions, including zero/invalid ranges',()=>{
@@ -7,6 +7,25 @@ describe('approved OnzeTrots deterministic behavior',()=>{
   for(const range of [0,-1,NaN,Infinity])expect(syncOnzeTrotsRankScrollAt(4000,range)).toBe(0);
   expect(syncOnzeTrotsRankScrollAt(3500,100,'slow')).toBe(19);
   expect(syncOnzeTrotsRankScrollAt(3500,100,'fast')).toBe(48);
+ });
+ it.each([[7,9000],[8,14000]] as const)('shows the last of %i standings rows and returns within an already published %ims page', (count,durationMs)=>{
+  const viewportHeight=204,rowHeight=78,range=count*rowHeight-viewportHeight;
+  const layout={range,viewportHeight,rowHeight,ownIndex:0},before=JSON.stringify(layout);
+  const at=(time:number)=>projectSyncOnzeTrotsMotion(time,[layout],'normal',false,undefined,durationMs).ranks[0]!;
+  expect(syncOnzeTrotsRankScrollAt(durationMs/2,range)).toBeLessThan(range);
+  expect(at(durationMs/2).scrollTop).toBeCloseTo(range,8);
+  expect(count*rowHeight-at(durationMs/2).scrollTop).toBeLessThanOrEqual(viewportHeight);
+  expect(at(durationMs-1).scrollTop).toBeLessThan(1);
+  expect(at(durationMs).scrollTop).toBeCloseTo(0,8);
+  expect(syncOnzeTrotsPinnedRowY(0,rowHeight,viewportHeight,at(durationMs/2).scrollTop)).toBe(0);
+  expect(projectSyncOnzeTrotsMotion(durationMs/2,[layout],'normal',true,undefined,durationMs).ranks[0]!.scrollTop).toBe(0);
+  expect(JSON.stringify(layout)).toBe(before);
+ });
+ it('retains configured scrolling when its cycle fits and ignores invalid optional durations',()=>{
+  for(const speed of ['slow','normal','fast'] as const){
+   expect(syncOnzeTrotsRankScrollAt(3500,300,speed,100000)).toBe(syncOnzeTrotsRankScrollAt(3500,300,speed));
+   for(const duration of [0,-1,NaN,Infinity])expect(syncOnzeTrotsRankScrollAt(3500,300,speed,duration)).toBe(syncOnzeTrotsRankScrollAt(3500,300,speed));
+  }
  });
  it('clamps first, middle and last own row at both edges without a duplicate',()=>{
   expect(syncOnzeTrotsPinnedRowY(0,60,300,300)).toBe(0);

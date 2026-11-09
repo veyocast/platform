@@ -1,6 +1,6 @@
 import {createHash}from'node:crypto';
 import {readFileSync,writeFileSync}from'node:fs';
-import {expect,test,chromium,type Page}from'@playwright/test';
+import {expect,test,chromium,type Page,type Route}from'@playwright/test';
 import {syncDynamicConfigurationSchema,syncSlideRendererAssets,syncSlideDurationMs,syncSlidePresentationSchema,syncDomDescriptorMimeType,type PlayerDynamicTemplateAsset,type SyncSlidePresentation}from'@veyocast/contracts';
 import {syncDynamicProjectionAssetIds}from'../../apps/player/app/_lib/player-sync-dynamic-payload';
 import {projectSyncDynamicSnapshot}from'../../packages/content-templates/src/sync-dynamic-projector';
@@ -74,6 +74,31 @@ test('v2 facts change at the natural boundary without a new descriptor or font l
  await page.waitForTimeout(4500);expect(await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads)).toBe(fonts);await expect(page.getByText('Actueel broodje',{exact:false}).last()).toBeVisible();
  writeFileSync(info.outputPath('facts-refresh.json'),JSON.stringify({initialFontLoads:fonts,afterFontLoads:after,descriptorDownloads:state.downloads,additionalResourceDownloads:state.resourceDownloads-resources,updateToConfirmedFrameMs,visibleDataRevision:2}));
 });
+test('a stale same-publication 200 cannot cancel newer Source facts prepared for the next boundary',async({page})=>{
+ await page.clock.install();const state=await setup(page);await visible(page);await expect.poll(async()=>(await stored(page)).dataRevision).toBe(1);
+ await page.clock.pauseAt(new Date(Date.now()+100));
+ const logoId=uuid(501),logo=readFileSync('apps/player/public/assets/sync-icon-192.png'),checksum=createHash('sha256').update(logo).digest('hex');let heldAsset:Route|undefined;
+ await page.route('**/__s295-preparing-source.png',route=>{heldAsset=route;});
+ const changed=syncSlidePresentationSchema.parse({...state.presentation,club:{...state.presentation.club,logo:{kind:'tenant',mediaAssetId:logoId,checksumSha256:checksum}},rows:state.presentation.rows.map((row,index)=>index===0?['Nieuwste voorbereide uitslag',...row.slice(1)]:row)});
+ const newer=state.create(2,changed);newer.manifest.items[0]!.syncDynamic!.assets[logoId]={bytes:logo.byteLength,checksumSha256:checksum,mimeType:'image/png',url:origin+'/__s295-preparing-source.png'};
+ state.setEnvelope(newer);let requests=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>state.requests).toBeGreaterThan(requests);
+ await expect.poll(()=>Boolean(heldAsset)).toBe(true);
+ // A stale read must preserve the candidate even before its assets finish.
+ state.setEnvelope(state.create(1));requests=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>state.requests).toBeGreaterThan(requests);
+ await heldAsset!.fulfill({body:logo,contentType:'image/png'}).catch(()=>undefined);
+ await expect(page.getByText('Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.',{exact:true})).toHaveCount(1);
+ expect((await stored(page)).dataRevision).toBe(1);
+ state.setEnvelope(state.create(1));requests=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>state.requests).toBeGreaterThan(requests);
+ await page.waitForTimeout(100);
+ await expect(page.getByText('Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.',{exact:true})).toHaveCount(1);
+ // Let the remaining real item clock reach its boundary. Advancing the fake
+ // clock through asynchronous replacement preparation also consumes its
+ // absolute readiness budget before the new renderer can animate a frame.
+ await page.clock.resume();
+ const current=page.locator('[data-player-handoff="first-frame-ready"]').filter({has:page.locator(`[data-sync-content-hash="${newer.manifest.items[0]!.syncDynamic!.contentHash}"]`)});
+ await expect(current.getByText('Nieuwste voorbereide uitslag',{exact:false})).toBeVisible();await expect.poll(async()=>(await stored(page)).dataRevision).toBe(2);
+ await expect.poll(()=>state.frameReceipts.find(frame=>frame.revision===2)?.contentVisible).toBe(true);
+});
 test('real RSS refresh projection retains original media through renewal and offline reload',async({page,context},info)=>{
  test.setTimeout(90000);const state=await setup(page,'rss');await visible(page);await expect.poll(async()=>(await stored(page)).dataRevision).toBe(1);
  const cfg=syncDynamicConfigurationSchema.parse({schemaVersion:1,kind:'dynamic',slideType:'news',secondsPerPage:4,rendererVersion:state.presentation.rendererVersion,sourceRevision:state.presentation.sourceRevision,seed:{...state.presentation,rich:undefined,rows:[],news:[],ownRowIndexes:[]}});
@@ -87,13 +112,15 @@ test('real RSS refresh projection retains original media through renewal and off
  let imageDownloads=0;page.on('request',request=>{if(Object.values(paths).includes(new URL(request.url()).pathname))imageDownloads++;});
  const fonts=await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads),descriptorDownloads=state.downloads;
  const next=state.create(2,projected.presentation);next.manifest.items[0]!.syncDynamic!.assets=assets;state.setEnvelope(next);await page.evaluate(()=>window.dispatchEvent(new Event('online')));
- await expect.poll(async()=>(await stored(page)).dataRevision).toBe(2);await expect(page.locator('.rss-photo img')).toBeVisible();await expect(page.locator('.rss-provider img')).toBeVisible();await expect(page.locator('.rss-qr-zone svg')).toBeVisible();
- await expect(page.getByText('Actueel artikel met behouden beeld',{exact:true})).toBeVisible();expect(imageDownloads).toBeGreaterThan(0);expect(state.downloads).toBe(descriptorDownloads);const fontsAfterNewMedia=await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads);
+ const current=page.locator('[data-player-handoff="first-frame-ready"]').filter({has:page.locator(`[data-sync-content-hash="${next.manifest.items[0]!.syncDynamic!.contentHash}"]`)});
+ await expect.poll(async()=>(await stored(page)).dataRevision).toBe(2);await expect(current.locator('.rss-photo img')).toBeVisible();await expect(current.locator('.rss-provider img')).toBeVisible();await expect(current.locator('.rss-qr-zone svg')).toBeVisible();
+ for(const [selector,id]of [['.rss-photo img',hero],['.rss-provider img',logo]]){const image=current.locator(selector!);await expect(image).toHaveAttribute('src',new RegExp(all[id!]!.checksumSha256));await expect.poll(()=>image.evaluate(node=>(node as HTMLImageElement).complete&&(node as HTMLImageElement).naturalWidth>0)).toBe(true);}
+ await expect(current.getByText('Actueel artikel met behouden beeld',{exact:true})).toBeVisible();expect(imageDownloads).toBeGreaterThan(0);expect(state.downloads).toBe(descriptorDownloads);const fontsAfterNewMedia=await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads);
  const downloaded=imageDownloads,renewed=structuredClone(next);for(const asset of Object.values(renewed.manifest.items[0]!.syncDynamic!.assets))asset.url=asset.url.replace('signature=first','signature=renewed');
  state.setEnvelope(renewed);const requests=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>state.requests).toBeGreaterThan(requests);expect(imageDownloads).toBe(downloaded);expect(await page.evaluate(()=>(window as unknown as {s292FontLoads:number}).s292FontLoads)).toBe(fontsAfterNewMedia);
  writeFileSync(info.outputPath('refresh-metrics.json'),JSON.stringify({fontsBefore:fonts,fontsAfterNewMedia,unchangedRenewalExtraFontLoads:0,descriptorDownloads:state.downloads,newMediaDownloads:downloaded,unchangedRenewalExtraMediaDownloads:0}));
- await page.locator('.vc-slide-preview').last().screenshot({path:info.outputPath('rss-real-projection-refresh.png')});
- state.setOffline(true);await context.setOffline(true);try{await page.reload();await visible(page);await expect(page.getByText('Actueel artikel met behouden beeld',{exact:true})).toBeVisible();await expect(page.locator('.rss-photo img')).toBeVisible();await expect(page.locator('.rss-provider img')).toBeVisible();expect((await stored(page)).dataRevision).toBe(2);await expect(page.getByLabel('Pairingcode')).toHaveCount(0);}finally{await context.setOffline(false);}
+ await current.locator('.vc-slide-preview').screenshot({path:info.outputPath('rss-real-projection-refresh.png')});
+ state.setOffline(true);await context.setOffline(true);try{await page.reload();await visible(page);await expect(current.getByText('Actueel artikel met behouden beeld',{exact:true})).toBeVisible();await expect(current.locator('.rss-photo img')).toBeVisible();await expect(current.locator('.rss-provider img')).toBeVisible();expect((await stored(page)).dataRevision).toBe(2);await expect(page.getByLabel('Pairingcode')).toHaveCount(0);}finally{await context.setOffline(false);}
 });
 test('a same-hash RSS asset repair rejects corrupt media and commits only the complete verified set',async({page,context},info)=>{
  test.setTimeout(90000);const state=await setup(page,'rss','landscape','light',false,8,true);await visible(page);await expect.poll(async()=>(await stored(page)).dataRevision).toBe(2);await expect(page.locator('.rss-photo img')).toHaveCount(0);

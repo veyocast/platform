@@ -1,0 +1,88 @@
+{
+  "runtimeBuildId": "xY_Z2TviobCpHZ6QQ7BmI",
+  "fixturesControlled": true,
+  "hostedStaging": false,
+  "actualProvider": false,
+  "proofs": [
+    {
+      "platform": "static-lg",
+      "family": "news",
+      "verifiedFrame": true,
+      "originChangeToVisibleFrameMs": 10549,
+      "files": [
+        {
+          "path": "activation/static-lg-news.json",
+          "sha256": "701f7adab68e21b702f1ea39e7ec74f4403f78735b49928c958afb64f7eadd49"
+        },
+        {
+          "path": "activation/static-lg-news-before.png",
+          "sha256": "141d36f9d18e860d8a875a33284dab31e485689a92114c4d81ab74504f820f85"
+        },
+        {
+          "path": "activation/static-lg-news-updated.png",
+          "sha256": "efded8e742bf90d09fcf8030ae80b0000bfb241b311c9686983a089665dbb95d"
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "family": "news",
+      "verifiedFrame": true,
+      "originChangeToVisibleFrameMs": 6258,
+      "files": [
+        {
+          "path": "activation/browser-news.json",
+          "sha256": "89f0c62722dca1e2147274bb2a34e293ff9d765c77ed45f8989b5ef3d60d229d"
+        },
+        {
+          "path": "activation/browser-news-before.png",
+          "sha256": "d941b0cdae8df93c7c5d111c2487911413bf8b8cea09b3b1e66c75ae76a41a51"
+        },
+        {
+          "path": "activation/browser-news-updated.png",
+          "sha256": "3e5d8cf06aea311ea234986bab06b76f8f5557ffde8d381cd054e294a445981f"
+        }
+      ]
+    },
+    {
+      "platform": "static-lg",
+      "family": "sport_results",
+      "verifiedFrame": true,
+      "originChangeToVisibleFrameMs": 10547,
+      "files": [
+        {
+          "path": "activation/static-lg-sport-results.json",
+          "sha256": "e0f954de2f9a4fd1c6928852ebac85dd56991fd43f42830349755c22d2c68120"
+        },
+        {
+          "path": "activation/static-lg-sport-results-before.png",
+          "sha256": "3e18ab5f7e204fe3dfca5e632a74e5c8b700aea98a7a6b46da11a8b7745dba98"
+        },
+        {
+          "path": "activation/static-lg-sport-results-updated.png",
+          "sha256": "9ba98d9d9a4a6d00bb4eae4f06aabd95b1892698e8b501475b3fcee2fea88574"
+        }
+      ]
+    },
+    {
+      "platform": "browser",
+      "family": "sport_results",
+      "verifiedFrame": true,
+      "originChangeToVisibleFrameMs": 5254,
+      "files": [
+        {
+          "path": "activation/browser-sport-results.json",
+          "sha256": "ffb417dcc9142b74886d84d021f56bea9fa9c85639a9b1de947941db19ccdb36"
+        },
+        {
+          "path": "activation/browser-sport-results-before.png",
+          "sha256": "4e262c767de2baa21350184064c338273a204d6df81e42431f6e272ed516a9db"
+        },
+        {
+          "path": "activation/browser-sport-results-updated.png",
+          "sha256": "f8a412cc00f813432324587fdab86706923272b77747d5e66084712a5bb8e072"
+        }
+      ]
+    }
+  ]
+}

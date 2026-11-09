@@ -279,27 +279,44 @@ for (const platform of ["browser", "static-lg"] as const) {
     await expect(page.getByRole("img", { name: "Target 4", exact: true })).toBeVisible();
   });
 
-  test(`${platform}: live results update the existing slide without publication or remount`, async ({ page }) => {
+  test(`${platform}: live results retain the current frame until its boundary and preserve publication order`, async ({ page }) => {
     const { incidentPayload, playIncidentPayload } = await import("./celebrations-layout-fixture");
-    await page.clock.setFixedTime(new Date("2026-09-09T12:00:00Z"));
+    await page.clock.install({ time: new Date("2026-09-09T12:00:00Z") });
     const payload = incidentPayload("sport_results", "landscape");
     const sport = payload.data.sport as { items: Array<Record<string, unknown>> };
     sport.items = [{ ...sport.items[0], id: "live-result", kickoffAt: "2026-09-09T10:00:00Z", homeTeam: "Live thuisploeg", awayTeam: "Live tegenstander", homeScore: 1, awayScore: 0, status: "Gespeeld" }];
     await playIncidentPayload(page, payload, platform === "static-lg", 60);
     const slide = page.locator('[data-slide-type="sport_results"]');
     await expect(slide.getByText("Live thuisploeg", { exact: true })).toBeVisible();
+    if (platform === "browser") {
+      await expect(slide.locator('xpath=ancestor::*[@data-player-handoff]').first()).toHaveAttribute("data-player-handoff", "first-frame-ready");
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    }
     await slide.evaluate((element) => element.setAttribute("data-original-dom", "preserved"));
+    const started = await page.evaluate(() => performance.now());
     const envelope = await (await page.request.get(`${playerURL}/api/player/manifest?deviceToken=demo-online`)).json() as PlayerManifestEnvelope;
     const image = envelope.manifest.items[0]!;
     sport.items[0]!.homeTeam = "Actuele thuisploeg";
     payload.snapshotHash = "d".repeat(64);
     envelope.manifest.items = [{ ...image, id: "birthday-test-item", durationSeconds: 60, dynamicTemplate: payload }, { ...image, id: "after-birthday", title: "Normale vervolgslide", durationSeconds: 60 }];
     const shown: string[] = [];
-    await page.route("**/api/player/heartbeat", (route) => { const body = route.request().postDataJSON(); if (body.activeReleaseId) shown.push(body.activeReleaseId); return route.fulfill({ json: { ok: true } }); });
+    const phases: string[] = [];
+    const readyItems: string[] = [];
+    await page.route("**/api/player/heartbeat", (route) => { const body = route.request().postDataJSON(); if (body.activeReleaseId) shown.push(body.activeReleaseId); if (body.syncPhase) phases.push(body.syncPhase); if (body.syncPhase === "active" && body.currentItemId) readyItems.push(body.currentItemId); return route.fulfill({ json: { ok: true } }); });
     await page.route("**/api/player/manifest*", (route) => route.fulfill({ json: envelope }));
     await page.evaluate(() => window.dispatchEvent(new Event("online")));
-    await expect(slide.getByText("Actuele thuisploeg", { exact: true })).toBeVisible();
+    if (platform === "browser") await expect(page.getByLabel("Player diagnostics")).toContainText("Nieuwe brongegevens volledig gecontroleerd");
+    else await expect.poll(() => phases.includes("switch_pending")).toBe(true);
+    const elapsed = await page.evaluate(() => performance.now()) - started;
+    await page.clock.fastForward(Math.max(1, 58_000 - elapsed));
+    await expect(slide.getByText("Live thuisploeg", { exact: true })).toBeVisible();
+    await expect(slide.getByText("Actuele thuisploeg", { exact: true })).toHaveCount(0);
     await expect(slide).toHaveAttribute("data-original-dom", "preserved");
+    await page.clock.fastForward(2500);
+    await expect(page.getByRole("img", { name: "Normale vervolgslide", exact: true })).toBeVisible();
+    if (platform === "browser") await expect.poll(() => readyItems.includes("after-birthday")).toBe(true);
+    await page.clock.fastForward(60_500);
+    await expect(slide.getByText("Actuele thuisploeg", { exact: true })).toBeVisible();
     await page.route("**/api/player/manifest*", (route) => route.fulfill({ status: 503, json: { error: { code: "PLAYER_API_UNAVAILABLE" } } }));
     await page.evaluate(() => window.dispatchEvent(new Event("online")));
     await expect(slide.getByText("Actuele thuisploeg", { exact: true })).toBeVisible();

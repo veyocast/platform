@@ -3,16 +3,18 @@ import {hasVisibleMenuDomFrame,hasVisibleSyncDomFrame} from "../_lib/sync-dom-fr
 import {screenCompositionZoneFrameIdentity} from "../_lib/player-screen-composition";
 import {syncOnzeTrotsCurrentHeader,syncOnzeTrotsCurrentVersion} from '../_lib/sync-player-capabilities';
 import {supportsSyncDomV2,syncDynamicDomV2Version,supportsSyncOnzeTrotsV9,syncOnzeTrotsV9Header,syncOnzeTrotsV9Version,supportsSyncOnzeTrots,syncOnzeTrotsHeader,syncOnzeTrotsVersion,supportsSyncSlideDom,supportsSyncBackgrounds,syncBackgroundsHeader,syncBackgroundsVersion,syncPlayerRendererHeader,syncPlayerRendererVersion,syncEngagePagingHeader,syncEngagePagingVersion,syncDynamicRendererHeader,syncDynamicDomVersion,syncDynamicBinaryVersion} from "../_lib/sync-player-capabilities";
-import {assertSyncDynamicConfigurationContinuity} from '../_lib/sync-player-assets';
+import {assertSyncDynamicEnvelopeContinuity} from '../_lib/sync-player-assets';
 import {sourceDataNeedsBoundary} from '../_lib/player-source-data-boundary';
 import { playerMediaFrameBackgroundStyle } from "../_lib/player-media-frame";
 
 import { playerMediaTraffic } from "../_lib/media-traffic";
 
 import {screenCompositionGeometry,type SyncDomFrameConfirmation,type SyncBinaryFrameConfirmation} from "@veyocast/contracts";
-import {screenCompositionIdentity,screenCompositionDataIdentity} from "../_lib/player-screen-composition";
-import {ScreenCompositionBoundary} from "../_lib/screen-composition-boundary";
+import {screenCompositionIdentity,screenCompositionDataIdentity,playerItemDataIdentity} from "../_lib/player-screen-composition";
+import {ScreenCompositionBoundary,changedCompositionDataBoundaryZones} from "../_lib/screen-composition-boundary";
 import {ScreenCompositionZone} from "./screen-composition-zone";
+import {VerifiedEmptyZone} from "./verified-empty-zone";
+import {isDynamicPlayerItem,playerActivationIdentity} from "../_lib/player-dynamic-activation";
 
 import { publicationTrace, type PublicationTrace } from "../_lib/publication-telemetry";
 
@@ -34,6 +36,7 @@ import React, {
 
 import {
   activateRelease,
+  getEnvelopeCacheableAssets,
   hasSyncDomV2Envelope,
   readCompatibilityRelease,
   garbageCollectPersistedPlayerMedia,
@@ -262,6 +265,12 @@ export function PlayerRuntime() {
   const [sponsorPaused,setSponsorPaused]=useState(false);
   const [durationOverrideMs, setDurationOverrideMs] = useState<number | null>(null);
   const [playbackAttempt, setPlaybackAttempt] = useState(0);
+  const [playbackOccurrence, setPlaybackOccurrence] = useState(0);
+  const mainOccurrenceRef = useRef<string | null>(null);
+  const presentedMainOccurrenceRef = useRef<string | null>(null);
+  mainOccurrenceRef.current = isPlaybackRuntime(runtime)
+    ? playerActivationIdentity(runtime.release.envelope.manifest.releaseId, "main", runtime.activeIndex, playbackOccurrence)
+    : null;
   const [playbackReadyRevision, setPlaybackReadyRevision] = useState(0);
   const publicationTraceRef = useRef<PublicationTrace | null>(null);
   const failedDomTargetsRef=useRef(new Set<string>()),domCommitRef=useRef<{key:string;signal:AbortSignal}|null>(null),domPersistedRef=useRef<string|null>(null);
@@ -280,6 +289,8 @@ export function PlayerRuntime() {
   );
   const runtimeRef = useRef<RuntimeView>(runtime);
   const advancingRef = useRef(false);
+  const advancingZoneRef = useRef(false);
+  const deferredMainBoundaryRef = useRef<string | null>(null);
   const latestTargetRef = useRef(new LatestPlayerTarget());
   const pendingTargetRef = useRef<{ release: HydratedPlayerRelease; token: PlayerTargetToken;dataOnly?:boolean } | null>(null);
   const presentedReleaseIdRef = useRef<string | null>(null);
@@ -296,6 +307,8 @@ export function PlayerRuntime() {
   const sendHeartbeatRef = useRef<(() => void) | null>(null);
   const syncRetryRequestedRef = useRef<string | null>(null);
   const syncRetryAcknowledgedRef = useRef<string | null>(null);
+  const playbackRefreshRef = useRef<(() => void) | null>(null);
+  const handlePlaybackActivation = useCallback(() => playbackRefreshRef.current?.(), []);
   const playbackReadyRef = useRef(false);
   const pairingMachineRef = useRef<PairingMachineSnapshot>(pairingMachine);
   const playbackTimerStateRef = useRef<{
@@ -428,35 +441,62 @@ export function PlayerRuntime() {
     };
   }, [recoveryMenuOpen]);
 
-  const advancePlayback = useCallback(async (itemId: string, recoveryMessage?: string) => {
-    if (advancingRef.current || goalPausedRef.current) return;
+  const advancePlayback = useCallback(async (itemId: string, recoveryMessage?: string, zoneBoundary = false, pageBoundary = false) => {
+    if (goalPausedRef.current) return;
+    if (advancingRef.current) {
+      if (!zoneBoundary && !pageBoundary && advancingZoneRef.current) deferredMainBoundaryRef.current = itemId;
+      return;
+    }
     const currentSnapshot = runtimeRef.current;
     if (!isPlaybackRuntime(currentSnapshot)) return;
     let snapshot:PlaybackRuntime=currentSnapshot;
     const activeItem = snapshot.release.envelope.manifest.items[snapshot.activeIndex];
     if (!activeItem || activeItem.id !== itemId) return;
-    if (applicationReloadPendingRef.current) {
+    if (zoneBoundary) {
+      const candidate = pendingTargetRef.current;
+      const nextItem = candidate?.release.envelope.manifest.items[snapshot.activeIndex];
+      // A zone can accept facts while an unchanged main item keeps its own
+      // clock. Changed main facts still require that main renderer's boundary.
+      if (!candidate?.dataOnly || !nextItem || playerItemDataIdentity(activeItem) !== playerItemDataIdentity(nextItem)) return;
+    }
+    if (!zoneBoundary && applicationReloadPendingRef.current) {
       applicationReloadPendingRef.current = false;
       window.location.reload();
       return;
     }
     advancingRef.current = true;
+    advancingZoneRef.current = zoneBoundary;
     let retryBoundary = false;
+    let acceptedData = false;
+    let heldDataZones:readonly string[]|null = null;
     try {
       const pending = pendingTargetRef.current;
       const deviceToken = readStoredDeviceToken();
       if (pending && deviceToken && pending.token.isCurrent()) {
         if(pending.dataOnly){
-          if(!(await compositionBoundaryRef.current.holdAll(pending.token.signal))||!pending.token.isCurrent()){retryBoundary=true;return;}
+          heldDataZones=changedCompositionDataBoundaryZones(snapshot.release.envelope,pending.release.envelope);
+          const zonesHeld=heldDataZones===null
+            ?await compositionBoundaryRef.current.holdAll(pending.token.signal)
+            :await compositionBoundaryRef.current.holdZones(heldDataZones,pending.token.signal);
+          if(!zonesHeld||!pending.token.isCurrent()){retryBoundary=true;return;}
           try{
             if(!hasSyncDomV2Envelope(pending.release.envelope))await activateRelease({assets:pending.release.assets,deviceToken,envelope:pending.release.envelope,signal:pending.token.signal});
             if(!pending.token.isCurrent()||pendingTargetRef.current!==pending){retryBoundary=true;return;}
             pendingTargetRef.current=null;
+            acceptedData = true;
             snapshot={...snapshot,release:pending.release,pendingRelease:undefined,state:'PLAYING',syncMessage:'Actuele brongegevens gewisseld na de huidige slide; publicatie en volgorde zijn behouden.'};
             runtimeRef.current=snapshot;setRuntime(snapshot);
+            if (zoneBoundary) return;
+            if (pageBoundary) {
+              // Accepted facts restart their renderer clocks within the same
+              // occurrence. A natural page boundary is not a new playlist turn.
+              playbackReadyRef.current = false;
+              setPlaybackAttempt(attempt => attempt + 1);
+              return;
+            }
             // A one-item data loop keeps the mounted renderer and verified fonts.
             // Its semantic identity resets only the page/motion clock.
-            if(snapshot.release.envelope.manifest.items.length===1&&(snapshot.release.envelope.manifest.items[0]?.syncDynamic?.schemaVersion===2||snapshot.release.envelope.manifest.items[0]?.menuDom)){playbackReadyRef.current=false;return;}
+            if(snapshot.release.envelope.manifest.items.length===1&&(snapshot.release.envelope.manifest.items[0]?.syncDynamic?.schemaVersion===2||snapshot.release.envelope.manifest.items[0]?.menuDom)){playbackReadyRef.current=false;setPlaybackAttempt(attempt=>attempt+1);setPlaybackOccurrence(value=>value+1);return;}
           }catch{ /* Current complete content keeps playing; retry at a later boundary. */ }
         }else{
         const order = publicationPlaybackOrder(
@@ -487,6 +527,7 @@ export function PlayerRuntime() {
             pendingTargetRef.current = null;
             playbackReadyRef.current = false;
             setPlaybackAttempt((attempt) => attempt + 1);
+            setPlaybackOccurrence(value => value + 1);
             const next: PlaybackRuntime = { activeIndex: order[0]!, publicationPass: order.slice(1),
               release: pending.release, state: "PLAYING",
               syncMessage: "Publicatie gewisseld na de huidige slide; wacht op zichtbare bevestiging." };
@@ -497,6 +538,9 @@ export function PlayerRuntime() {
         }
         }
       }
+      // A failed or superseded facts candidate cannot turn a zone/page
+      // boundary into the end of the unchanged main playlist occurrence.
+      if (zoneBoundary || pageBoundary) return;
       const pass = snapshot.publicationPass?.filter((index) => {
         const item = snapshot.release.envelope.manifest.items[index];
         return item && isPlayerManifestItemPlayable(item);
@@ -507,13 +551,19 @@ export function PlayerRuntime() {
       if (nextIndex < 0) return;
       playbackReadyRef.current = false;
       setPlaybackAttempt((attempt) => attempt + 1);
+      setPlaybackOccurrence(value => value + 1);
       setRuntime((value) => isPlaybackRuntime(value) && value.release === snapshot.release
         ? { ...value, activeIndex: nextIndex, publicationPass: pass?.length ? pass.slice(1) : undefined,
             syncMessage: recoveryMessage ?? value.syncMessage } : value);
     } finally {
       advancingRef.current = false;
-      compositionBoundaryRef.current.resumeAll();
-      if (retryBoundary) void advancePlayback(itemId, recoveryMessage);
+      advancingZoneRef.current = false;
+      if(heldDataZones===null)compositionBoundaryRef.current.resumeAll(acceptedData);
+      else compositionBoundaryRef.current.resumeZones(heldDataZones,acceptedData);
+      if (retryBoundary) void advancePlayback(itemId, recoveryMessage, zoneBoundary, pageBoundary);
+      const deferredMain = deferredMainBoundaryRef.current;
+      deferredMainBoundaryRef.current = null;
+      if (deferredMain) void advancePlayback(deferredMain);
     }
   }, []);
 
@@ -538,6 +588,7 @@ export function PlayerRuntime() {
       hydratedReleasesRef.current.push(hydratedRelease);
       playbackReadyRef.current = false;
       setPlaybackAttempt((attempt) => attempt + 1);
+      setPlaybackOccurrence(value => value + 1);
       setRuntime({
         activeIndex: resolveInitialPlaybackIndex(hydratedRelease),
         release: hydratedRelease,
@@ -596,12 +647,15 @@ export function PlayerRuntime() {
     try{const result=await fetchPlayerOrigin("/api/player/composition/ack",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({compositionId:composition.published.id,targetRevision:revision}),signal:controller.signal});if(result.ok&&isPlaybackRuntime(runtimeRef.current)&&runtimeRef.current.release.envelope.composition?.published.id===composition.published.id&&runtimeRef.current.release.envelope.target?.revision===revision)compositionAckRef.current=key;}catch{ /* Retry after the next actual-frame or heartbeat check. */ }finally{window.clearTimeout(timeout);compositionAckInFlightRef.current=false;}
   },[]);
   const handleZoneFrame=useCallback((zoneId:"side"|"bottom",releaseId:string)=>{zoneFramesRef.current.set(zoneId,releaseId);void acknowledgeVisibleComposition();},[acknowledgeVisibleComposition]);
-  const handlePlaybackReady = useCallback((itemId: string) => {
+  const handlePlaybackReady = useCallback((itemId: string, occurrenceKey: string, dataIdentity: string) => {
     const currentRuntime = runtimeRef.current;
     if (!isPlaybackRuntime(currentRuntime)) return;
     const activeItem =
       currentRuntime.release.envelope.manifest.items[currentRuntime.activeIndex];
-    if (activeItem?.id !== itemId) return;
+    if (activeItem?.id !== itemId || mainOccurrenceRef.current !== occurrenceKey || playerItemDataIdentity(activeItem) !== dataIdentity) return;
+    // Readiness may reset for fresh facts, but this monotone proof survives
+    // until the actual playlist occurrence changes.
+    presentedMainOccurrenceRef.current = occurrenceKey;
     const binary=activeItem.syncDynamicBinary;
     visibleSourceRef.current=activeItem.menuDom&&activeItem.menuDom.presentation.kind==='dynamic'?{schemaVersion:2,itemId,configurationSnapshotId:activeItem.menuDom.configurationSnapshotId,dataRevision:activeItem.menuDom.dataRevision,contentHash:activeItem.menuDom.contentHash,rendererVersion:activeItem.menuDom.presentation.configuration.rendererVersion}:activeItem.syncDynamic?.schemaVersion===2?{schemaVersion:2,itemId,configurationSnapshotId:activeItem.syncDynamic.configurationSnapshotId,dataRevision:activeItem.syncDynamic.dataRevision,contentHash:activeItem.syncDynamic.contentHash,rendererVersion:activeItem.syncDynamic.presentation.rendererVersion}:binary&&Number.isSafeInteger(binary.dataRevision)&&Number(binary.dataRevision)>0?{schemaVersion:1,transport:'binary',itemId,configurationSnapshotId:binary.configurationSnapshotId,dataRevision:binary.dataRevision!,contentHash:binary.contentHash}:null;
     if (!playbackReadyRef.current) setPlaybackReadyRevision((revision) => revision + 1);
@@ -626,7 +680,15 @@ export function PlayerRuntime() {
   }, [acknowledgeVisibleComposition]);
 
   const handlePlaybackBoundary = useCallback((itemId: string) => {
-    if (pendingTargetRef.current?.token.isCurrent()) void advancePlayback(itemId);
+    if (pendingTargetRef.current?.token.isCurrent()) void advancePlayback(itemId, undefined, false, true);
+  }, [advancePlayback]);
+
+  const handleZoneBoundary = useCallback(() => {
+    const current = runtimeRef.current;
+    if (isPlaybackRuntime(current) && pendingTargetRef.current?.dataOnly) {
+      const active = current.release.envelope.manifest.items[current.activeIndex];
+      if (active) void advancePlayback(active.id, undefined, true);
+    }
   }, [advancePlayback]);
 
   const handlePlaybackEnded = useCallback((itemId: string) => {
@@ -657,7 +719,7 @@ export function PlayerRuntime() {
             const restored=await hydrateCachedRelease(candidate);
             const current=runtimeRef.current;
             if(!isPlaybackRuntime(current)||domTargetKey(current.release.envelope)!==failedKey){revokeHydratedRelease(restored);return;}
-            hydratedReleasesRef.current.push(restored);playbackReadyRef.current=false;setPlaybackAttempt(value=>value+1);
+            hydratedReleasesRef.current.push(restored);playbackReadyRef.current=false;setPlaybackAttempt(value=>value+1);setPlaybackOccurrence(value=>value+1);
             setRuntime({state:'OFFLINE_PLAYING',release:restored,activeIndex:resolveInitialPlaybackIndex(restored),syncMessage:'De laatste correcte uitzending is hersteld; nieuwe brongegevens konden niet veilig worden getoond.'});
             return;
           }catch{ /* Try the preserved compatibility release next. */ }
@@ -689,6 +751,7 @@ export function PlayerRuntime() {
     if (action === "RETRY_ITEM") {
       playbackReadyRef.current = false;
       setPlaybackAttempt((attempt) => attempt + 1);
+      setPlaybackOccurrence(value => value + 1);
       setRuntime((value) =>
         isPlaybackRuntime(value)
           ? { ...value, syncMessage: `Playbackfout ${code}: huidig item wordt één keer opnieuw geprobeerd.` }
@@ -698,6 +761,7 @@ export function PlayerRuntime() {
     }
     if (action === "SKIP_ITEM") {
       setPlaybackAttempt((attempt) => attempt + 1);
+      setPlaybackOccurrence(value => value + 1);
       await advancePlayback(itemId, `Playbackfout ${code}: niet-speelbaar item is overgeslagen.`);
       return;
     }
@@ -1156,10 +1220,12 @@ export function PlayerRuntime() {
     let syncInFlight = false;
     let manifestController: AbortController | null = null;
     let invalidatedDuringFetch = false;
+    let activatedDuringFetch = false;
     let syncTimer: number | undefined;
     let preparingGeneration: number | null = null;
     let manifestEtag: string | null = null;
     let dataGeneration = 0;
+    let observedSourceTarget: { envelope: PlayerManifestEnvelope; token: PlayerTargetToken } | null = null;
 
     if (queryToken) {
       writeStoredDeviceToken(queryToken);
@@ -1289,6 +1355,7 @@ export function PlayerRuntime() {
 
         if (response.ok && isWaitingContentEnvelope(body)) {
           latestTargetRef.current.cancel();
+          observedSourceTarget = null;
           pendingTargetRef.current = null;
           desiredReleaseIdRef.current = null;
           nextSyncBaseDelayMs = waitingContentSyncIntervalMs;
@@ -1328,6 +1395,18 @@ export function PlayerRuntime() {
         if (cancelled || requestController.signal.aborted) return;
 
         const currentRuntime = runtimeRef.current;
+        // Validate metadata before retaining it as a preparing candidate. Both
+        // installed and still-preparing revisions must survive stale 200s.
+        getEnvelopeCacheableAssets(body);
+        try {
+          if (isPlaybackRuntime(currentRuntime)) assertSyncDynamicEnvelopeContinuity(currentRuntime.release.envelope, body);
+          const pending = pendingTargetRef.current;
+          if (pending?.token.isCurrent()) assertSyncDynamicEnvelopeContinuity(pending.release.envelope, body);
+          if (observedSourceTarget?.token.isCurrent()) assertSyncDynamicEnvelopeContinuity(observedSourceTarget.envelope, body);
+        } catch {
+          syncSucceeded = true;
+          return;
+        }
         if(failedDomTargetsRef.current.has(domTargetKey(body))){manifestEtag=receivedEtag;syncSucceeded=true;return;}
         const releaseId = body.manifest.releaseId;
         const targetToken = latestTargetRef.current.observe(
@@ -1335,6 +1414,7 @@ export function PlayerRuntime() {
           body.device.screenId, body.target?.revision
         );
         if (!targetToken) { syncSucceeded = true; return; }
+        observedSourceTarget = { envelope: body, token: targetToken };
         if (body.target && (publicationTraceRef.current?.targetRevision !== body.target.revision || publicationTraceRef.current?.releaseId !== releaseId)) {
           publicationTraceRef.current = publicationTrace(body, targetToken.generation, signalReceivedAtRef.current, targetCommitRef.current);
           boundaryMonotonicRef.current = null;
@@ -1392,8 +1472,13 @@ export function PlayerRuntime() {
                 }
               : value
           );
-          if (!playbackReadyRef.current) {
+          // An ordinary 200 may arrive between renderer readiness and visible
+          // frame confirmation. It is an observation, never a new occurrence.
+          // Actual playback failures retain their bounded recovery controller;
+          // only an explicit operator retry may restart from this response.
+          if (!playbackReadyRef.current && syncReceipt && syncRetryAcknowledgedRef.current !== syncReceipt) {
             setPlaybackAttempt((attempt) => attempt + 1);
+            setPlaybackOccurrence(value => value + 1);
           }
           syncSucceeded = true;
           return;
@@ -1445,8 +1530,9 @@ export function PlayerRuntime() {
         consecutiveSyncFailures = syncSucceeded
           ? 0
           : Math.min(consecutiveSyncFailures + 1, 8);
-        scheduleNextSync(invalidatedDuringFetch ? 0 : nextSyncBaseDelayMs);
+        scheduleNextSync(invalidatedDuringFetch || (activatedDuringFetch && syncSucceeded) ? 0 : nextSyncBaseDelayMs);
         invalidatedDuringFetch = false;
+        activatedDuringFetch = false;
       }
     }
 
@@ -1454,27 +1540,36 @@ export function PlayerRuntime() {
       preparingCountRef.current += 1;
       try {
         const current=runtimeRef.current;
-        if(isPlaybackRuntime(current))assertSyncDynamicConfigurationContinuity(current.release.envelope.manifest,body.manifest);
+        if(isPlaybackRuntime(current))assertSyncDynamicEnvelopeContinuity(current.release.envelope,body);
         const prepared = await preparePendingRelease({ envelope: body, signal: token.signal });
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) return;
         if (!prepared.ok) throw new Error(prepared.error);
         const hydrated = await hydratePreparedRelease({ assets: prepared.assets, envelope: body });
         if(hasSyncDomV2Envelope(body))domCommitRef.current={key:domTargetKey(body),signal:token.signal};
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
-        const active=runtimeRef.current;
-        if(isPlaybackRuntime(active)&&sourceDataNeedsBoundary(active.release.envelope,body)){
+        const needsVisibleBoundary=()=>{
+          const active=runtimeRef.current;
+          return isPlaybackRuntime(active)&&sourceDataNeedsBoundary(active.release.envelope,body,(zoneId,itemId)=>zoneId==='main'
+            ? active.release.envelope.manifest.items[active.activeIndex]?.id===itemId&&mainOccurrenceRef.current!==null&&presentedMainOccurrenceRef.current===mainOccurrenceRef.current
+            : compositionBoundaryRef.current.hasPresentedCurrentOccurrence(zoneId,itemId));
+        };
+        const stageAtBoundary=()=>{
           hydratedReleasesRef.current.push(hydrated);
           pendingTargetRef.current={release:hydrated,token,dataOnly:true};
           setRuntime(value=>isPlaybackRuntime(value)&&value.release.envelope.manifest.releaseId===body.manifest.releaseId?{...value,pendingRelease:hydrated,syncMessage:'Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.'}:value);
-          return;
-        }
+        };
+        if(needsVisibleBoundary()){stageAtBoundary();return;}
         if(!hasSyncDomV2Envelope(body))await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken, envelope: body, signal: token.signal });
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
+        if(needsVisibleBoundary()){stageAtBoundary();return;}
         hydratedReleasesRef.current.push(hydrated);
         setRuntime((value) => isPlaybackRuntime(value) && value.release.envelope.manifest.releaseId === body.manifest.releaseId
           ? { ...value, release: hydrated, syncMessage: "Actuele gegevens bijgewerkt; publicatie en afspeelvolgorde zijn ongewijzigd." } : value);
       } catch {
-        if (token.isCurrent() && generation === dataGeneration) manifestEtag = null;
+        if (token.isCurrent() && generation === dataGeneration) {
+          manifestEtag = null;
+          if (observedSourceTarget?.token.generation === token.generation) observedSourceTarget = null;
+        }
       } finally { preparingCountRef.current -= 1; }
     }
 
@@ -1513,6 +1608,7 @@ export function PlayerRuntime() {
           state: "PLAYING", syncMessage: "Publicatie voorbereid; wacht op zichtbare bevestiging." });
       } catch (error) {
         if (!cancelled && token.isCurrent()) {
+          if (observedSourceTarget?.token.generation === token.generation) observedSourceTarget = null;
           const message = error instanceof Error ? error.message : "";
           preparationErrorRef.current = message === "PLAYER_UPDATE_REQUIRED" ? message
             : /storage|quota/i.test(message) ? "PLAYER_STORAGE_UNAVAILABLE"
@@ -1656,6 +1752,16 @@ export function PlayerRuntime() {
       void syncOnlineManifest();
     }
 
+    function handleDynamicActivation() {
+      // Playback continues immediately from verified local bytes. An occurrence
+      // shares a pending read without aborting it or bypassing failure backoff.
+      if (cancelled || consecutiveSyncFailures > 0) return;
+      if (syncInFlight) { activatedDuringFetch = true; return; }
+      if (syncTimer) window.clearTimeout(syncTimer);
+      void syncOnlineManifest();
+    }
+    playbackRefreshRef.current = handleDynamicActivation;
+
     function handleInvalidation(event: Event) {
       signalReceivedAtRef.current = new Date().toISOString();
       const detail = (event as CustomEvent<{ targetRevision?: unknown; committedAt?: unknown }>).detail;
@@ -1689,6 +1795,7 @@ export function PlayerRuntime() {
 
     return () => {
       cancelled = true;
+      if (playbackRefreshRef.current === handleDynamicActivation) playbackRefreshRef.current = null;
       if (syncTimer) window.clearTimeout(syncTimer);
       manifestController?.abort();
       latestTargetRef.current.cancel();
@@ -1938,6 +2045,7 @@ export function PlayerRuntime() {
       if (nextIndex >= 0 && nextIndex !== playbackRuntime.activeIndex) {
         playbackReadyRef.current = false;
         setPlaybackAttempt((attempt) => attempt + 1);
+        setPlaybackOccurrence(value => value + 1);
         setRuntime((currentRuntime) =>
           isPlaybackRuntime(currentRuntime) &&
           currentRuntime.release.envelope.manifest.releaseId ===
@@ -1979,7 +2087,9 @@ export function PlayerRuntime() {
     // watchdog detects a stall; an unrelated wall timer must not cut it short.
     if (((activeItem.kind === "video"&&!activeItem.sitesStudioPresentation)||activeItem.syncDynamic||activeItem.onlinePlayback?.kind==="youtube") && !durationOverrideMs) return;
 
-    const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackAttempt}${activeItem.menuDom?":"+activeItem.menuDom.contentHash:""}`;
+    // Renderer/data clocks may restart at a page boundary. The occurrence's
+    // outer item deadline survives that redraw and remains owned by playback.
+    const timerKey = `${playbackRuntime.release.envelope.manifest.releaseId}:${activeItem.id}:${playbackOccurrence}`;
     const durationMs = getPlayerItemPlaybackDurationMs(activeItem, durationOverrideMs);
     if (playbackTimerStateRef.current?.key !== timerKey) {
       playbackTimerStateRef.current = {
@@ -2020,7 +2130,7 @@ export function PlayerRuntime() {
     advancePlayback,
     durationOverrideMs,
     handlePlaybackFailure,
-    playbackAttempt,
+    playbackOccurrence,
     playbackReadyRevision,
     playbackScheduleKey,
     screenUnderlayPaused
@@ -2188,6 +2298,8 @@ export function PlayerRuntime() {
   if (isPlaybackRuntime(runtime)) {
     playerView = (
       <PlaybackView
+        onActivation={handlePlaybackActivation}
+        onZoneBoundary={handleZoneBoundary}
         compositionBoundary={compositionBoundaryRef.current}
         onZoneFrame={handleZoneFrame}
         onSponsorPause={setSponsorPaused}
@@ -2201,6 +2313,7 @@ export function PlayerRuntime() {
         onEnded={handlePlaybackEnded}
         onReady={handlePlaybackReady}
         playbackAttempt={playbackAttempt}
+        playbackOccurrence={playbackOccurrence}
         runtime={runtime}
         underlayPaused={screenUnderlayPaused}
         watchdogTimeoutMs={watchdogTimeoutMs}
@@ -2248,6 +2361,8 @@ export function PlayerRuntime() {
 }
 
 function PlaybackView({
+  onActivation,
+  onZoneBoundary,
   compositionBoundary,onZoneFrame,onSponsorPause,goalPaused,
   goal,
   onGoalComplete,onGoalReady,
@@ -2257,10 +2372,13 @@ function PlaybackView({
   onEnded,
   onReady,
   playbackAttempt,
+  playbackOccurrence,
   runtime,
   underlayPaused,
   watchdogTimeoutMs
 }: {
+  onActivation: () => void;
+  onZoneBoundary: () => void;
   compositionBoundary:ScreenCompositionBoundary;onZoneFrame:(zone:"side"|"bottom",releaseId:string)=>void;onSponsorPause:(paused:boolean)=>void;goalPaused:boolean;
   goal: ActiveLedScoresOverlay | null;
   onGoalComplete: (deliveryId: string) => void;
@@ -2269,8 +2387,9 @@ function PlaybackView({
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
   onBoundary?: (itemId: string) => void;
   onEnded: (itemId: string) => void;
-  onReady: (itemId: string) => void;
+  onReady: (itemId: string, occurrenceKey: string, dataIdentity: string) => void;
   playbackAttempt: number;
+  playbackOccurrence: number;
   runtime: PlaybackRuntime;
   underlayPaused: boolean;
   watchdogTimeoutMs: number;
@@ -2285,15 +2404,16 @@ function PlaybackView({
   }
   const activeItem = manifest.items[runtime.activeIndex] ?? manifest.items[0];
 
-  if (!activeItem || (!underlayPaused && !isPlayerManifestItemPlayable(activeItem))) {
+  const mainEmpty=!activeItem||(!underlayPaused&&!isPlayerManifestItemPlayable(activeItem));
+  if (mainEmpty && !runtime.release.envelope.composition) {
     return (
-      <SyncPlayerStatus stage="no-content" landmark="VeyoCast player gereed" screenName={runtime.release.envelope.device.screenName} footer="Wachten op afspeelbare inhoud" />
+      <VerifiedEmptyZone fullscreen identity={`main:${screenCompositionZoneFrameIdentity(runtime.release.envelope)}`} screenName={runtime.release.envelope.device.screenName} paused={underlayPaused} onFrame={()=>{if(activeItem)onReady(activeItem.id,playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence),playerItemDataIdentity(activeItem));}} onBoundary={()=>{if(activeItem)onEnded(activeItem.id);}}/>
     );
   }
 
-  const presentation = resolvePlayerItemPresentation(activeItem);
+  const presentation = activeItem ? resolvePlayerItemPresentation(activeItem) : undefined;
   const activeTheme = themePresentationFromDynamicData(
-    activeItem.dynamicTemplate?.data
+    activeItem?.dynamicTemplate?.data
   );
   return (
     <main className="playback-shell" aria-label="VeyoCast player">
@@ -2301,13 +2421,15 @@ function PlaybackView({
         className="playback-stage"
         aria-label="Release playback"
         style={
-          presentation.backgroundColor
+          presentation?.backgroundColor
             ? { backgroundColor: presentation.backgroundColor }
             : undefined
         }
       >
         <div style={runtime.release.envelope.composition?{position:"absolute",...Object.fromEntries(Object.entries(screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).find(zone=>zone.id==="main")!).filter(([key])=>["left","top","width","height"].includes(key)).map(([key,value])=>[key,`${value}%`]))}:{position:"absolute",inset:0}}>
-        <PlaybackScene onBoundary={onBoundary}
+        {mainEmpty?<VerifiedEmptyZone identity={`main:${screenCompositionZoneFrameIdentity(runtime.release.envelope)}`} screenName={runtime.release.envelope.device.screenName} paused={underlayPaused} onFrame={()=>{if(activeItem)onReady(activeItem.id,playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence),playerItemDataIdentity(activeItem));}} onBoundary={()=>{if(activeItem)onEnded(activeItem.id);}}/>:activeItem?<PlaybackScene onBoundary={onBoundary}
+          activationKey={playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence)}
+          onActivation={onActivation}
           item={activeItem}
           liveMatchStates={liveMatchStates}
           onEnded={onEnded}
@@ -2316,15 +2438,15 @@ function PlaybackView({
           playbackAttempt={playbackAttempt}
           paused={underlayPaused}
           watchdogTimeoutMs={watchdogTimeoutMs}
-        />
+        />:null}
         </div>
-        {runtime.release.envelope.composition&&screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).filter(zone=>zone.id!=="main").map(zone=>{const envelope=runtime.release.envelope.composition!.zones[zone.id as "side"|"bottom"];return envelope?<div key={zone.id} style={{position:"absolute",left:`${zone.left}%`,top:`${zone.top}%`,width:`${zone.width}%`,height:`${zone.height}%`,overflow:"hidden"}}><ScreenCompositionZone key={`${zone.id}:${envelope.manifest.releaseId}`} zoneId={zone.id as "side"|"bottom"} envelope={envelope} paused={underlayPaused} boundary={compositionBoundary} onDomFailure={()=>onFailure(activeItem.id,'SYNC_DOM_ERROR')} onFrame={onZoneFrame} liveMatchStates={liveMatchStates} watchdogTimeoutMs={watchdogTimeoutMs}/></div>:null;})}
+        {runtime.release.envelope.composition&&screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).filter(zone=>zone.id!=="main").map(zone=>{const envelope=runtime.release.envelope.composition!.zones[zone.id as "side"|"bottom"];return envelope?<div key={zone.id} style={{position:"absolute",left:`${zone.left}%`,top:`${zone.top}%`,width:`${zone.width}%`,height:`${zone.height}%`,overflow:"hidden"}}><ScreenCompositionZone key={`${zone.id}:${envelope.manifest.releaseId}`} zoneId={zone.id as "side"|"bottom"} envelope={envelope} paused={underlayPaused} boundary={compositionBoundary} onActivation={onActivation} onBoundary={onZoneBoundary} onDomFailure={()=>{if(activeItem)onFailure(activeItem.id,'SYNC_DOM_ERROR');}} onFrame={onZoneFrame} liveMatchStates={liveMatchStates} watchdogTimeoutMs={watchdogTimeoutMs}/></div>:null;})}
         <SponsorLayer
           onFullscreenVisibility={onSponsorPause} paused={goalPaused}
-          activeItemId={activeItem.id}
+          activeItemId={activeItem?.id??""}
           plan={manifest.sponsorPlan}
           screenId={runtime.release.envelope.device.screenId}
-          showFullscreen={activeItem.id === manifest.items[0]?.id}
+          showFullscreen={!mainEmpty&&activeItem?.id === manifest.items[0]?.id}
           theme={activeTheme}
         />
         <LedScoresExperienceOverlay overlay={goal} theme={activeTheme} onComplete={onGoalComplete} onReady={onGoalReady} />
@@ -2515,6 +2637,8 @@ type PlaybackSceneState = {
 };
 
 export function PlaybackScene({
+  activationKey,
+  onActivation,
   item,
   liveMatchStates,
   onBoundary,
@@ -2525,12 +2649,14 @@ export function PlaybackScene({
   paused,
   watchdogTimeoutMs
 }: {
+  activationKey: string;
+  onActivation: () => void;
   item: PlayerManifestItem;
   liveMatchStates: ReadonlyMap<string, LedScoresMatchState>;
   onBoundary?: (itemId: string) => void;
   onEnded: (itemId: string) => void;
   onFailure: (itemId: string, code: PlaybackFailureCode) => void;
-  onReady: (itemId: string) => void;
+  onReady: (itemId: string, occurrenceKey: string, dataIdentity: string) => void;
   playbackAttempt: number;
   paused: boolean;
   watchdogTimeoutMs: number;
@@ -2551,6 +2677,15 @@ export function PlaybackScene({
     ready: false,
     transition: resolvePlayerItemPresentation(item).transition
   }));
+
+  const activatedRef = useRef<string | null>(null);
+  useEffect(() => {
+    // The requested current scene owns activation. Outgoing transition layers,
+    // preparation and response-driven renders never start another occurrence.
+    if (paused || scene.current.key !== requestedKey || activatedRef.current === activationKey) return;
+    activatedRef.current = activationKey;
+    if (isDynamicPlayerItem(item)) onActivation();
+  }, [activationKey, item, onActivation, paused, requestedKey, scene.current.key]);
 
   useLayoutEffect(() => {
     if (scene.current.key === requestedKey) return;
@@ -2620,11 +2755,11 @@ export function PlaybackScene({
         if(root?.dataset.syncContentHash!==item.syncDynamic.contentHash||!hasVisibleSyncDomFrame(root??null,item.syncDynamic.presentation.rendererVersion)){if(performance.now()-started<5000)second=requestAnimationFrame(report);return;}
       }
       lastVisibleSceneRef.current={item,key:scene.current.key};
-      onReady(scene.current.item.id);
+      onReady(scene.current.item.id,activationKey,playerItemDataIdentity(item));
     };
     const first=requestAnimationFrame(()=>{second=requestAnimationFrame(report);});
     return()=>{cancelAnimationFrame(first);cancelAnimationFrame(second);};
-  },[onReady,scene.current.item.id,scene.current.key,scene.ready,dom?`${dom.contentHash}:${playbackAttempt}`:undefined]);
+  },[onReady,activationKey,scene.current.item.id,scene.current.key,scene.ready,playerItemDataIdentity(item),dom?`${dom.contentHash}:${playbackAttempt}`:undefined]);
 
 
   const currentClassName = scene.ready
@@ -2654,7 +2789,7 @@ export function PlaybackScene({
             liveMatchStates={liveMatchStates}
             onEnded={onEnded}
             onFailure={onFailure}
-            onReady={onReady}
+            onReady={() => undefined}
             passive
             paused={paused}
             watchdogTimeoutMs={watchdogTimeoutMs}
