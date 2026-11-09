@@ -63,3 +63,21 @@ test("the shared chooser route opens directly and legacy media remains contextua
   await expect(page).toHaveURL(/\/dashboard\/media$/);
   await expect(page.getByRole("navigation", { name: "Hoofdnavigatie" }).getByRole("link", { name: "Content", exact: true })).toHaveAttribute("aria-current", "page");
 });
+
+for (const width of [320, 1440]) test(`advanced Studio and original design details remain at their own routes at ${width}px`, async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width, height: 960 });
+  await page.goto("/dashboard/studio?advanced=1&owner=mine&format=landscape&q=Eigen", { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/dashboard\/studio\?advanced=1&owner=mine&format=landscape&q=Eigen$/);
+  await expect(page.getByRole("heading", { name: "Studio", exact: true, level: 1 })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Studio-ontwerpen", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.goto("/dashboard/studio/system-matchday-landscape-hd-v1", { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/dashboard\/studio\/system-matchday-landscape-hd-v1$/);
+  const editor = page.getByLabel("Studio-editor", { exact: true });
+  await expect(editor).toBeVisible();
+  expect((await editor.boundingBox())!.width).toBeLessThanOrEqual(width);
+  if (width === 320) await expect(page.getByRole("heading", { name: "Snel bewerken", exact: true })).toBeVisible();
+  else await expect(editor.locator("canvas").first()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

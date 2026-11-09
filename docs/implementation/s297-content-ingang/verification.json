@@ -153,6 +153,111 @@
     {
       "name": "s297-control-built-demo-browser.log",
       "sha256": "17d333b0eda1157f05f3af3a94a0195e820550e6c01a4444e130629fd31f3c83"
+    },
+    {
+      "name": "s297-content-a2-geometry-closed.log",
+      "sha256": "fe11bcdef91b5716620a16ac12b631a0ca1b361fef37071606f76478f6dbdeb1"
+    },
+    {
+      "name": "s297-source-validator-tests-closed.log",
+      "sha256": "d5dfbf1a72accf5afa399d450474619e4e381e5fa0e6c488ad630ec459f72d5b"
+    },
+    {
+      "name": "s297-responsive-lint-closed.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s297-advanced-detail-regression.log",
+      "sha256": "da01150597c5aabc8ac6b6c937e1e103ba7ad77084041add19fc19a57d4b178a"
     }
-  ]
+  ],
+  "responsiveA2": {
+    "originalCi": {
+      "headSha": "f91e6f007e565a48c5d2097a6b9ced002cbd70f5",
+      "runId": 42617787583,
+      "passed": 54,
+      "failed": 12,
+      "failedCaseIds": [
+        "RESP-0013",
+        "RESP-0014",
+        "RESP-0015",
+        "RESP-0016",
+        "RESP-0017",
+        "RESP-0018",
+        "RESP-0019",
+        "RESP-0020",
+        "RESP-0021",
+        "RESP-0022",
+        "RESP-0023",
+        "RESP-0024"
+      ],
+      "reason": "intentional Content replacement region and correct Studio alias filter; raw geometry preserved"
+    },
+    "localTargeted": {
+      "passed": 12,
+      "seconds": 49.8,
+      "caseIds": [
+        "RESP-0013",
+        "RESP-0014",
+        "RESP-0015",
+        "RESP-0016",
+        "RESP-0017",
+        "RESP-0018",
+        "RESP-0019",
+        "RESP-0020",
+        "RESP-0021",
+        "RESP-0022",
+        "RESP-0023",
+        "RESP-0024"
+      ],
+      "viewports": [
+        360,
+        390,
+        412,
+        768,
+        1024,
+        1440
+      ],
+      "axeRequired": true,
+      "pixelParity": false,
+      "rawReadbackSha256": "343f16e5a33739736c3ac9c9ff8f399d8d466734fb35550cc42ced93d3bece36"
+    },
+    "validatorTestsPassed": 13,
+    "scopedLint": "passed",
+    "unchangedCriteria": "original66 IDs, immutable baseline assets, raw deltas, shell/fonts/overflow/axe/44px remain strict",
+    "full66CandidateCi": "required; targeted12 is not full66 evidence",
+    "intentionalChangedProperties": {
+      "sectionHeader": [
+        "height"
+      ],
+      "sectionHeaderAction": [
+        "y"
+      ],
+      "libraryToolbar": [
+        "y",
+        "height"
+      ],
+      "filterTabs": [
+        "y",
+        "width",
+        "height",
+        "gap"
+      ],
+      "search": [
+        "y"
+      ],
+      "heading0": [
+        "width"
+      ],
+      "heading1": [
+        "y"
+      ]
+    },
+    "newAdvancedDetailCases": {
+      "count": 2,
+      "localStatus": "incomplete_environment",
+      "reason": "Watchpack EMFILE; stopped before assertions; normal CI required",
+      "port3217AfterAttempt": "closed"
+    }
+  }
 }
