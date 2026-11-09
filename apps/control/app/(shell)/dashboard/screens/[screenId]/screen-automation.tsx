@@ -1,3 +1,4 @@
+import { deriveScreenContactStatus } from "@veyocast/domain";
 import type { FleetDevice } from "../data";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
 import {
@@ -16,6 +17,8 @@ type ScreenAutomationProps = {
   capabilities: AutomationCapabilityView;
   device: FleetDevice | null;
   screenId: string;
+  screenStatus: string;
+  now: number;
 };
 
 const activeCommandStates = new Set([
@@ -30,15 +33,16 @@ export function ScreenAutomation({
   canManage,
   capabilities,
   device,
-  screenId
+  screenId,
+  screenStatus,
+  now
 }: ScreenAutomationProps) {
   const formatDate = (value: string) =>
     formatTenantDateTime(value, automation.settings.timezone);
   const latestCommand = automation.commands[0] ?? null;
   const latestEvent = automation.events[0] ?? null;
-  const isOnline = Boolean(
-    device?.lastSeenAt && Date.now() - Date.parse(device.lastSeenAt) <= 120_000
-  );
+  const contact = deriveScreenContactStatus({screenStatus,deviceStatus:device?.status,lastSeenAt:device?.lastSeenAt}, now);
+  const isOnline = contact.reachable && contact.ageMs !== null && contact.ageMs <= 120_000;
   const hasActiveCommand = Boolean(
     latestCommand && activeCommandStates.has(latestCommand.status)
   );
@@ -80,14 +84,14 @@ export function ScreenAutomation({
       />
 
       <details className={styles.supportDisclosure}>
-        <summary><span>Apparaatondersteuning</span><SupportBadge status={isOnline ? "supported" : "untested"} label={isOnline ? "Online" : "Niet recent online"} /></summary>
+        <summary><span>Apparaatondersteuning</span><SupportBadge status={isOnline ? "supported" : "untested"} label={contact.label} /></summary>
       <section className={styles.capabilities} aria-labelledby="capabilities-title">
         <div className={styles.sectionHeading}>
           <div>
             <h2 id="capabilities-title">Apparaatondersteuning</h2>
             <p>Feiten uit de laatst ontvangen Player-heartbeat.</p>
           </div>
-          <SupportBadge status={isOnline ? "supported" : "untested"} label={isOnline ? "Online" : "Niet recent online"} />
+          <SupportBadge status={isOnline ? "supported" : "untested"} label={contact.label} />
         </div>
         <dl className={styles.deviceSummary}>
           <Summary label="Player" value={device?.deviceName || "Niet gekoppeld"} />

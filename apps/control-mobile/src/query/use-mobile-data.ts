@@ -48,7 +48,7 @@ export function useMobileCockpit() {
   });
 }
 
-export function useMobileScreens() {
+export function useMobileScreens(sourceScreenId?: string) {
   const { activeTenant } = useTenant();
   const { session } = useAuth();
   const userId = session?.user.id;
@@ -57,7 +57,7 @@ export function useMobileScreens() {
     queryFn: async () => {
       if (!activeTenant || !userId) throw new Error("Kies eerst een organisatie en bevestig je sessie.");
       try {
-        const data = await mobileApi.screens(activeTenant.id);
+        const data = await mobileApi.screens(activeTenant.id, sourceScreenId);
         await writeTenantCache(activeTenant.id, `screens:${userId}`, data);
         return { data, offline: false, storedAt: null };
       } catch (error) {
@@ -77,7 +77,7 @@ export function useMobileScreens() {
         throw error;
       }
     },
-    queryKey: ["screens", activeTenant?.id, userId]
+    queryKey: ["screens", activeTenant?.id, userId, sourceScreenId ?? null]
   });
 }
 

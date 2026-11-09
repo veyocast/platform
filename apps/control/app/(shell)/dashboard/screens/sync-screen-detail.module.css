@@ -14,3 +14,7 @@
   .root :global(.vc-summary-strip[aria-label="Synchronisatiestatus"] .vc-summary-strip__item:nth-child(n+3)) { border-top:1px solid var(--line); }
 }
 .root :global(a.px-back){text-decoration:none}
+
+.evidence{display:grid;gap:12px;margin:16px 0}.evidence>div{min-width:0}.evidence dt{font-size:14px;color:var(--muted)}.evidence dd{margin:3px 0 0;font-size:15px;overflow-wrap:anywhere;color:var(--vc-text)}
+
+.sourceRows{display:grid;gap:16px}.sourceRows>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.sourceRows span,.sourceRows b{font-size:14px;line-height:1.55;font-weight:400;overflow-wrap:anywhere}.sourceRows b{text-align:right}@media(max-width:650px){.sourceRows>div{grid-template-columns:1fr;gap:8px}.sourceRows b{text-align:left}}

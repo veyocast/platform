@@ -13,7 +13,7 @@ export async function SyncFleet({ tenantId, ...props }: Props) {
       active_release_id: device.activeReleaseId, desired_release_id: device.desiredReleaseId,
       current_sync_detail: device.syncDetail, last_seen_at: device.lastSeenAt,
       last_error_code: device.lastErrorCode, status: device.status
-    } : undefined).confirmedReleaseId;
+    } : undefined, props.now, screen.status).confirmedReleaseId;
     return id ? [id] : [];
   });
   const previews = tenantId ? await loadFrozenReleasePreviews(tenantId, releaseIds) : new Map();
