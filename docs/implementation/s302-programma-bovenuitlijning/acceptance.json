@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-09T21:08:58.881130+00:00",
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "sourceFiles": [
+    {
+      "path": "tests/helpers/s302-programma-top-fixture.ts",
+      "bytes": 7940,
+      "sha256": "77c0c24a704a6e5e933c79b02dcb56acef38ea8a54a85e559070e28364c381a0"
+    },
+    {
+      "path": "tests/player/s302-programma-top-alignment.spec.ts",
+      "bytes": 9449,
+      "sha256": "5fddae54b4d128f9c4174b5efe48eb452b72d785312ea9aec3500c765cbf0c9a"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-view.tsx",
+      "bytes": 36264,
+      "sha256": "d2a5bfd2b316c3ed27533c1aecf86d65aabcd84bda2518f5609bd74cb4b68357"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-matchday-styles.ts",
+      "bytes": 1139,
+      "sha256": "b4291413fff089e9bc246d1399ecf78c8fecb500df4f028af0bffb9c6acf86fa"
+    }
+  ],
+  "oldSourceHashes": {
+    "packages/content-templates/src/sync-onzetrots-view.tsx": "6c724bff805d1208548eb2724c16a9c99acb4a6b789113ffd0ff3efe89439465",
+    "packages/content-templates/src/sync-onzetrots-matchday-styles.ts": "e270f456730c712119c67e6fd29cf7dd5c707cc274cbb95c49489781f6e8e81a"
+  },
+  "oldBundleSha256": "ba3204c296c6b04d290c12ebc566dc7806735f791d291cf909d77638bc9f5eef",
+  "fixedBundleSha256": "cf79d55c6bab92408f294757c170e0c799cbfa51bc3e948129106ea289bb797e",
+  "oldBrowserResult": {
+    "passed": 0,
+    "failed": 8
+  },
+  "fixedBrowserResult": {
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 50.9
+  },
+  "cases": [
+    {
+      "renderer": "sync-onzetrots-v1",
+      "surface": "control-preview",
+      "lastPageCount": 3,
+      "oldFirstVisibleDateY": 486,
+      "fullPageFirstVisibleDateY": 314.3999938964844,
+      "fixedLastPageFirstVisibleDateY": 314.3999938964844,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "62c80869dafeb92207ed35a600bbe2d237bf409043340dc6b024642917f7b507",
+      "fixedLastPagePngSha256": "fdc93b1a550d510f4f92e07dba22e314ab360a3c6057f251a71f8fe987905005",
+      "naturalSwitchElapsedMs": 3380
+    },
+    {
+      "renderer": "sync-onzetrots-v9",
+      "surface": "player-media",
+      "lastPageCount": 3,
+      "oldFirstVisibleDateY": 510.6000061035156,
+      "fullPageFirstVisibleDateY": 351.29998779296875,
+      "fixedLastPageFirstVisibleDateY": 351.29998779296875,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "ff6e7146b2240ded61620f17409e7ef48a7dfb2d772a96f0b17caf33fe127773",
+      "fixedLastPagePngSha256": "10c46932d0ac161662d0bdca117da69c2a910cf5f9fc46e66dab9000b285380c",
+      "naturalSwitchElapsedMs": 3890
+    },
+    {
+      "renderer": "sync-onzetrots-v9",
+      "surface": "player-media",
+      "lastPageCount": 1,
+      "oldFirstVisibleDateY": 510.6000061035156,
+      "fullPageFirstVisibleDateY": 351.29998779296875,
+      "fixedLastPageFirstVisibleDateY": 351.29998779296875,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "ac11a9e6659b71f5a3fb3c3b769b589c4e2119e861f095880c2bc08923641a02",
+      "fixedLastPagePngSha256": "0670c660802023b856a59a4065a432b254fde99a9a2db2a03c3362c4f35ba81e",
+      "naturalSwitchElapsedMs": 3849
+    },
+    {
+      "renderer": "sync-onzetrots-v9",
+      "surface": "control-preview",
+      "lastPageCount": 3,
+      "oldFirstVisibleDateY": 510.6000061035156,
+      "fullPageFirstVisibleDateY": 351.29998779296875,
+      "fixedLastPageFirstVisibleDateY": 351.29998779296875,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "ff6e7146b2240ded61620f17409e7ef48a7dfb2d772a96f0b17caf33fe127773",
+      "fixedLastPagePngSha256": "10c46932d0ac161662d0bdca117da69c2a910cf5f9fc46e66dab9000b285380c",
+      "naturalSwitchElapsedMs": 3463
+    },
+    {
+      "renderer": "sync-onzetrots-v9",
+      "surface": "player-media",
+      "lastPageCount": 2,
+      "oldFirstVisibleDateY": 510.6000061035156,
+      "fullPageFirstVisibleDateY": 351.29998779296875,
+      "fixedLastPageFirstVisibleDateY": 351.29998779296875,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "61c296890ca62d28711d02b3960f2b997c5ffadaa380580b8174451fcc7d82d3",
+      "fixedLastPagePngSha256": "7e5d54c6ec82e470c1a187b303622bdcd99da0c1251b4190fc584c9e632f3408",
+      "naturalSwitchElapsedMs": 3862
+    },
+    {
+      "renderer": "sync-onzetrots-v1",
+      "surface": "player-media",
+      "lastPageCount": 3,
+      "oldFirstVisibleDateY": 486,
+      "fullPageFirstVisibleDateY": 314.3999938964844,
+      "fixedLastPageFirstVisibleDateY": 314.3999938964844,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "62c80869dafeb92207ed35a600bbe2d237bf409043340dc6b024642917f7b507",
+      "fixedLastPagePngSha256": "fdc93b1a550d510f4f92e07dba22e314ab360a3c6057f251a71f8fe987905005",
+      "naturalSwitchElapsedMs": 3865
+    },
+    {
+      "renderer": "sync-onzetrots-v9",
+      "surface": "control-preview",
+      "lastPageCount": 2,
+      "oldFirstVisibleDateY": 510.6000061035156,
+      "fullPageFirstVisibleDateY": 351.29998779296875,
+      "fixedLastPageFirstVisibleDateY": 351.29998779296875,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "61c296890ca62d28711d02b3960f2b997c5ffadaa380580b8174451fcc7d82d3",
+      "fixedLastPagePngSha256": "7e5d54c6ec82e470c1a187b303622bdcd99da0c1251b4190fc584c9e632f3408",
+      "naturalSwitchElapsedMs": 3497
+    },
+    {
+      "renderer": "sync-onzetrots-v9",
+      "surface": "control-preview",
+      "lastPageCount": 1,
+      "oldFirstVisibleDateY": 510.6000061035156,
+      "fullPageFirstVisibleDateY": 351.29998779296875,
+      "fixedLastPageFirstVisibleDateY": 351.29998779296875,
+      "firstVisibleDateDeltaPx": 0.0,
+      "fullPageGeometryUnchanged": true,
+      "fullPagePngUnchanged": true,
+      "fullPagePngSha256": "ac11a9e6659b71f5a3fb3c3b769b589c4e2119e861f095880c2bc08923641a02",
+      "fixedLastPagePngSha256": "0670c660802023b856a59a4065a432b254fde99a9a2db2a03c3362c4f35ba81e",
+      "naturalSwitchElapsedMs": 3420
+    }
+  ],
+  "scopeRegressionCases": [
+    "Both renderers: portrait five rows",
+    "Both renderers: results remain one row, including 0–0",
+    "Both renderers: original three matchday panels",
+    "Both renderers: empty programme message"
+  ],
+  "workspaceGates": {
+    "lint": {
+      "successful": 30,
+      "total": 30,
+      "cached": 23,
+      "durationSeconds": 34.279
+    },
+    "typecheck": {
+      "successful": 30,
+      "total": 30,
+      "cached": 23,
+      "durationSeconds": 66.2
+    },
+    "test": {
+      "successful": 30,
+      "total": 30,
+      "cached": 26,
+      "durationSeconds": 25.616
+    }
+  },
+  "testSetupCorrection": "Initial local unit runs lacked sparse-checkout reference files. Original tracked PNG, reference TSX/manifest and source font were restored byte-for-byte; no test assertions or product source changed for this correction.",
+  "boundary": "Real Control SyncSlidePreview and PlayerRuntime PlaybackMedia to SyncStudioMedia with verified local assets and their natural page clocks. No full Next/Auth/manifest/LKG boot, hosted staging deployment or physical hardware proof."
+}

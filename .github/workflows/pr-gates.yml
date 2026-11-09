@@ -51,6 +51,11 @@ jobs:
       - name: Validate bounded Data API recovery
         run: node --test scripts/recover-postgrest-schema-cache.test.mjs
 
+      - name: Validate bounded native workflow rerequest
+        run: |
+          pnpm exec eslint scripts/recover-stuck-deploy.mjs scripts/recover-stuck-deploy.test.mjs --max-warnings=0
+          node --test scripts/recover-stuck-deploy.test.mjs
+
       - name: Validate scoped database context
         run: node --test scripts/probe-data-api-resources.test.mjs scripts/supabase-capacity-metrics.test.mjs
 
@@ -77,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     # Includes actual binary preparation and every isolated original case.
     # Individual test and encoder deadlines remain unchanged.
-    timeout-minutes: ${{ matrix.group == 'player' && 105 || 45 }}
+    timeout-minutes: ${{ matrix.group == 'player' && 105 || matrix.group == 'control' && 60 || 45 }}
     strategy:
       fail-fast: false
       matrix:
