@@ -160,6 +160,7 @@ export const matchdayDeliverySchema = z.object({
   id: uuid, publicationId: uuid, actionId: uuid.nullable(), actionRevision: revision,
   screenId: uuid, screenName: z.string().max(200), deviceId: uuid.nullable(),
   status: matchdayDeliveryStatusSchema, receivedAt: instant.nullable(), renderedAt: instant.nullable(),
+  confirmedAt: instant.nullable().optional().default(null),
   contentHash: hash.nullable(), confirmedReleaseId: uuid.nullable(), detail: z.string().max(300).nullable()
 }).strict();
 

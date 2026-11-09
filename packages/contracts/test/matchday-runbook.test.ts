@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchdayActionInputSchema, matchdayDraftConfigurationSchema, matchdayMatchSchema } from "../src/matchday-runbook";
+import { matchdayActionInputSchema, matchdayDeliverySchema, matchdayDraftConfigurationSchema, matchdayMatchSchema } from "../src/matchday-runbook";
 
 const uuid = (n: number) => `30000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const context = {sourceId:uuid(1),connectionId:uuid(2),teamId:"own-team",competitionId:"league",poolId:"pool",seasonId:"2026-2027",phaseId:"1",selectionMode:"pinned" as const};
@@ -38,5 +38,19 @@ describe("S300 exact match and bounded draft contract", () => {
     expect(matchdayActionInputSchema.safeParse({...input,screenIds:[]}).success).toBe(false);
     expect(matchdayActionInputSchema.safeParse({...input,providerWrite:true}).success).toBe(false);
     expect(matchdayActionInputSchema.safeParse({...input,price:100}).success).toBe(false);
+  });
+});
+
+describe("S300 release-bound delivery confirmation time", () => {
+  const delivery = () => ({id:uuid(10),publicationId:uuid(11),actionId:null,actionRevision:0,screenId:uuid(12),screenName:"Entree",deviceId:uuid(13),status:"restored",receivedAt:"2026-11-09T11:00:00Z",renderedAt:"2026-11-09T11:01:00Z",contentHash:"a".repeat(64),confirmedReleaseId:uuid(14),detail:null});
+  it("accepts older delivery payloads without inventing their latest confirmation time", () => {
+    expect(matchdayDeliverySchema.parse(delivery()).confirmedAt).toBeNull();
+    expect(matchdayDeliverySchema.parse({...delivery(),confirmedAt:null}).confirmedAt).toBeNull();
+  });
+  it("retains the restored release confirmation independently of the earlier temporary frame", () => {
+    expect(matchdayDeliverySchema.parse({...delivery(),confirmedAt:"2026-11-09T11:05:00Z"})).toMatchObject({confirmedAt:"2026-11-09T11:05:00Z",renderedAt:"2026-11-09T11:01:00Z"});
+  });
+  it("rejects malformed confirmation timestamps", () => {
+    expect(matchdayDeliverySchema.safeParse({...delivery(),confirmedAt:"yesterday"}).success).toBe(false);
   });
 });

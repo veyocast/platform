@@ -566,3 +566,12 @@ Alle normale CI-gates moeten op die uiteindelijke combinatie slagen. De oude
 S29975minPlayerwatchdog brak af bij379afgerond/81onbevestigd; uitsluitend
 het totale jobbudget wordt105min, met20bestaande runnerunits en normale
 workflowvalidatie groen. Geen individuele deadlines/isolation/coveragewijziging.
+
+Laatste S300-review koppelt bevestigde herstelversie aan haar eigen confirmedAt;
+het eerdere tijdelijke frame houdt zijn historische renderedAt. Twee echte SQL-
+tegenproeven rood, verse218migraties/focus154/full154bestanden5308asserties groen.
+De oorspronkelijke responsive Teamfixture mockt alleen de optionele Matchday-
+beschikbaarheid; daadwerkelijke drie browsergevallen en bundel groen. Finale
+foundationlint/typecheck/test opnieuw30/30; definitieve integratie-CI volgt.
+
+S300 exacte veiligheidscontrole: type-only clientimport uit server-only service verplaatst naar puur typecontract. Originele importgraphgate ongewijzigd3/3PASS. Eerdere cached Configresultaten vervallen als bewijs voor deze repositorybrede controle; alle finale foundationtaken met--force,0cachehits,30/30 pergate groen (22,641/21,428/86,159s), Config11/contract222/Control2200/Player755PASS. Definitieve36UIgevallen opnieuwe18RPC-capture groen41,7s.

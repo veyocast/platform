@@ -2,7 +2,7 @@
 
 import { useEffect,useRef,useState } from "react";
 import { useRouter } from "next/navigation";
-import type { MatchdayCommandResult } from "../../../../lib/matchday-service";
+import type { MatchdayCommandResult } from "../../../../lib/matchday-command-contract";
 
 export type ConfirmMatchdayCommand=(title:string,summary:string,command:()=>Promise<MatchdayCommandResult>)=>void;
 type Attempt={title:string;summary:string;actorScope:string;command:()=>Promise<MatchdayCommandResult>};

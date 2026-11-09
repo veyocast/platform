@@ -34,3 +34,13 @@ gestarte, complete=false. Voorbereiding11m09s en casegate62m08s bereikten de
 75minlimiet. Behoud alle oorspronkelijke en nieuwe gevallen, aparte processen,
 worker1, rapportage en individuele test-/encoderdeadlines. Geen coverage-,
 isolatie- of assertionversoepeling en geen workflowsecret-/deploywijziging.
+
+Root autoriseert na concrete integratie-CI-bundelfout tevens de bestaande
+`tests/helpers/control-responsive-fixture.ts`: de oorspronkelijke
+core-responsivemodellen hebben geen optionele Matchday-availabilityread.
+Voeg uitsluitend dezelfde gecontroleerde serverreadmock met null toe, zodat
+Next/cache/OpenTelemetry niet in de browserfixture wordt gebundeld.
+Bestaande geometrie-, auth-, a11y- en oorspronkelijke readmodels blijven gelijk;
+de nieuwe S300-bediening houdt haar afzonderlijke expliciete UI-proeven.
+
+Concrete normale CI-grenscontrole root: use-command importeerde uitsluitend een type uit server-only matchday-service. De bestaande brede importgraphgate wees dit terecht af; lokale Turbocache had de repositorybrede Configtest niet opnieuw uitgevoerd. Root verplaatst de drie resultaattypen naar een clientveilig puur typecontract; service behoudt type-exports, acties en rechten gelijk. Geen scanner-, cache-, veiligheidsassertion- of buildgrensversoepeling. Configtest rechtstreeks en volledige foundation met --force opnieuw verplicht.

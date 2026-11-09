@@ -12,11 +12,11 @@ import { redirect } from "next/navigation";
 
 import { requireControlSession } from "./control-session";
 import { createControlSupabaseClient } from "./supabase/server";
+import type { MatchdayCommandResult, MatchdayFailure } from "./matchday-command-contract";
+
+export type { MatchdayCommandResult, MatchdayFailure, MatchdayReceipt } from "./matchday-command-contract";
 
 type Parser<T> = {safeParse(value:unknown):{success:true;data:T}|{success:false}};
-export type MatchdayFailure = {ok:false;code:string;message:string;recovery:string};
-export type MatchdayReceipt = ReturnType<typeof matchdayCommandReceiptSchema.parse>;
-export type MatchdayCommandResult = {ok:true;receipt:MatchdayReceipt}|MatchdayFailure;
 
 async function context(mutation=false,capability?:Capability,expectedActorScope?:string) {
   const session=await requireControlSession();

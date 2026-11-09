@@ -1,723 +1,514 @@
 {
-  "schemaVersion": 1,
-  "integrationProductSha": "fef32e34",
+  "schemaVersion": 2,
+  "observedAt": "2026-11-09T14:41:34.164427+00:00",
+  "candidateBaseSha": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+  "candidateIncludesUncommittedConfirmationTimeFix": true,
+  "assembly": "/tmp/veyocast-s300-confirmed-at-final",
   "migrations": 218,
   "testFiles": 154,
-  "assertions": 5306,
-  "result": "PASS126s",
+  "assertions": 5308,
+  "result": "PASS120s",
   "allCandidateMigrationBytesMatchFinalTestAssembly": true,
-  "testFilesByteIdentical": 153,
-  "testOnlyWhitespaceDifference": [
-    {
-      "path": "supabase/tests/rls_s299_sponsor_report.sql",
-      "candidateSha256": "be7f435861782f5116ada7d91dd927646be1c35781ce719cab2f723f33695996",
-      "assemblySha256": "45d4780539850050dae333805de9ff06989674a1f749e5606d4855f669bbd2e1",
-      "difference": "The assembly has one additional final LF after the unchanged rollback statement."
-    }
-  ],
+  "testFilesByteIdentical": 154,
   "semanticSqlDifferences": 0,
   "historicalCompatibilityAssertions": 5,
-  "historicalPatchSha256": "acc1ac2235dec8f8de590fd265b98703b0bdfa293f43c19d5f7c595de7b80be1",
+  "supersedes": "Prior 152/5306 proof on migration7de6f7; retained in Git history and database evidence priorRound.",
   "files": {
-    "supabase/migrations/20260821151348_menu_studio_v2.sql": {
-      "candidateSha256": "3cc4d77d835cf1b9f64ba90c4683cd55e18a457d378b40781850506d0ef4b1a5",
-      "assemblySha256": "3cc4d77d835cf1b9f64ba90c4683cd55e18a457d378b40781850506d0ef4b1a5"
-    },
-    "supabase/migrations/20260728640000_sportlink_scheduled_sync.sql": {
-      "candidateSha256": "36711f1e22032e9dce1b586d490558ee61e9b224fc6fa9e602484cfb308c7155",
-      "assemblySha256": "36711f1e22032e9dce1b586d490558ee61e9b224fc6fa9e602484cfb308c7155"
-    },
-    "supabase/migrations/20261011260000_s191_source_sites_persistence.sql": {
-      "candidateSha256": "c032f238c90a072ec816fff2a89dcb567088c18298be335ae131e7c5230d53b9",
-      "assemblySha256": "c032f238c90a072ec816fff2a89dcb567088c18298be335ae131e7c5230d53b9"
-    },
-    "supabase/migrations/20261018123001_sync_binary_storage_fencing.sql": {
-      "candidateSha256": "1b638ec6603cc7b07827e2550727142306b8ddab964a7ff8a996e0e4c0056e34",
-      "assemblySha256": "1b638ec6603cc7b07827e2550727142306b8ddab964a7ff8a996e0e4c0056e34"
-    },
-    "supabase/migrations/20260725190000_publisher_video_duration_guard.sql": {
-      "candidateSha256": "24c0a611e47918cdd9f56ef295423075a92894384941f7be4b49a7aa93553436",
-      "assemblySha256": "24c0a611e47918cdd9f56ef295423075a92894384941f7be4b49a7aa93553436"
-    },
-    "supabase/migrations/20261011340000_s191_placement_configuration_guard.sql": {
-      "candidateSha256": "4c22eb088600f36ccfc648ed3176684dfefcbe0f366080703be5b6d81df88b3d",
-      "assemblySha256": "4c22eb088600f36ccfc648ed3176684dfefcbe0f366080703be5b6d81df88b3d"
-    },
-    "supabase/migrations/20260728520000_android_reinstall_recovery.sql": {
-      "candidateSha256": "b50355bb13c8831f2a5ef25a8aaa2a9a0af31d93a746dce31508fdd4e8f8e165",
-      "assemblySha256": "b50355bb13c8831f2a5ef25a8aaa2a9a0af31d93a746dce31508fdd4e8f8e165"
-    },
-    "supabase/migrations/20261018200500_sync_media_frames.sql": {
-      "candidateSha256": "304429f3ba27dfa8b297aa7ecc41f85c841c938a1206e897aaaf320895d887c5",
-      "assemblySha256": "304429f3ba27dfa8b297aa7ecc41f85c841c938a1206e897aaaf320895d887c5"
-    },
-    "supabase/migrations/20260826231431_product_logo_upload.sql": {
-      "candidateSha256": "46952916a566f935af48242dbec53a56f3ab9b501484cd77d1a3b13066d6754d",
-      "assemblySha256": "46952916a566f935af48242dbec53a56f3ab9b501484cd77d1a3b13066d6754d"
-    },
-    "supabase/migrations/20260830110558_s132_ledscores_realtime_goal_alert.sql": {
-      "candidateSha256": "5d9a738e73d1bc6b00d56c907a3669c19184f1ccff5db70dede71350b0a95f02",
-      "assemblySha256": "5d9a738e73d1bc6b00d56c907a3669c19184f1ccff5db70dede71350b0a95f02"
-    },
-    "supabase/migrations/20260910005613_s162_theme_rollout_planner.sql": {
-      "candidateSha256": "543c5c29e8d4b41a5b785be6848d2221950f54d5046ecdba85400a176fa7db12",
-      "assemblySha256": "543c5c29e8d4b41a5b785be6848d2221950f54d5046ecdba85400a176fa7db12"
-    },
-    "supabase/migrations/20261011200000_s191_provider_completion_latency.sql": {
-      "candidateSha256": "766e0cc2a087dc7742b8ced91853a0d7d65daddd463de6328df57d4e48ebee6c",
-      "assemblySha256": "766e0cc2a087dc7742b8ced91853a0d7d65daddd463de6328df57d4e48ebee6c"
-    },
-    "supabase/migrations/20260720131000_media_workspace_resumable_upload.sql": {
-      "candidateSha256": "c832e583ee22b822f99a883b4d300f8bea1dc4697cee11a4bf941a4284dba612",
-      "assemblySha256": "c832e583ee22b822f99a883b4d300f8bea1dc4697cee11a4bf941a4284dba612"
-    },
-    "supabase/migrations/20260828191103_s128_sportlink_birthdays.sql": {
-      "candidateSha256": "e3690e22b8ee6fa40eaa0716a873fda6eafc0f68ec2185ab7a0e973dd3b3eb56",
-      "assemblySha256": "e3690e22b8ee6fa40eaa0716a873fda6eafc0f68ec2185ab7a0e973dd3b3eb56"
-    },
-    "supabase/migrations/20260803091000_sportlink_slide_selection.sql": {
-      "candidateSha256": "396dbd8f0810365490093d8c3a0d8158c53fd4dee52efc1683cdafa46db4ac5b",
-      "assemblySha256": "396dbd8f0810365490093d8c3a0d8158c53fd4dee52efc1683cdafa46db4ac5b"
-    },
-    "supabase/migrations/20260905204805_s150_visitor_welcome_card_layout.sql": {
-      "candidateSha256": "3272eb748fa274bc05fa5d790726af1a6157f019a936131e2eff7451d3722ecc",
-      "assemblySha256": "3272eb748fa274bc05fa5d790726af1a6157f019a936131e2eff7451d3722ecc"
-    },
-    "supabase/migrations/20260910224436_playlist_delete_dependency_order.sql": {
-      "candidateSha256": "55a12ed3758b8c39e297e25743124f654c068d8e489128bfa1e0a57aa06702f1",
-      "assemblySha256": "55a12ed3758b8c39e297e25743124f654c068d8e489128bfa1e0a57aa06702f1"
-    },
-    "supabase/migrations/20261018094300_sync_dynamic_led_gate.sql": {
-      "candidateSha256": "55f7c41072f6cfad7c20b6990691c27850cbae51d05da26c14fb0c87e772b837",
-      "assemblySha256": "55f7c41072f6cfad7c20b6990691c27850cbae51d05da26c14fb0c87e772b837"
-    },
-    "supabase/migrations/20260725140000_staging_player_demo_playlist.sql": {
-      "candidateSha256": "54b1af0a768ead506af4e56c70f488977cb5270d138c73d6e5238ed01a40756a",
-      "assemblySha256": "54b1af0a768ead506af4e56c70f488977cb5270d138c73d6e5238ed01a40756a"
-    },
-    "supabase/migrations/20260721100000_playlist_studio_concurrency.sql": {
-      "candidateSha256": "56dff1703a0d02405d11c4dbd552a89f7568979cec7f605a29c054951d7bc3e8",
-      "assemblySha256": "56dff1703a0d02405d11c4dbd552a89f7568979cec7f605a29c054951d7bc3e8"
-    },
-    "supabase/migrations/20261011360000_s191_sites_authoring_pause.sql": {
-      "candidateSha256": "9dfe29b58a1503cb2dd747bf683812981c765a071389d2cd9cfa1725040c46bc",
-      "assemblySha256": "9dfe29b58a1503cb2dd747bf683812981c765a071389d2cd9cfa1725040c46bc"
-    },
-    "supabase/migrations/20260808170000_dynamic_latest_auto_release.sql": {
-      "candidateSha256": "06c133319774c3d4eebdef75eb295e0a601f3493ec3d076772b5f47545af6dbb",
-      "assemblySha256": "06c133319774c3d4eebdef75eb295e0a601f3493ec3d076772b5f47545af6dbb"
-    },
-    "supabase/migrations/20260728620000_sportlink_club_dataservice.sql": {
-      "candidateSha256": "c677280628034f5f6e0a64649910f7c49d1e77ee1747c59e13520865d46fa55e",
-      "assemblySha256": "c677280628034f5f6e0a64649910f7c49d1e77ee1747c59e13520865d46fa55e"
-    },
-    "supabase/migrations/20260908224609_s159_royal_theme_scale.sql": {
-      "candidateSha256": "8489bcd05911caf0ecbc55fa7a898ba84b32c245b03ccfeaec2ca3d41858923e",
-      "assemblySha256": "8489bcd05911caf0ecbc55fa7a898ba84b32c245b03ccfeaec2ca3d41858923e"
-    },
-    "supabase/migrations/20260902113201_s144_fieldflow_theme_authoring.sql": {
-      "candidateSha256": "6bfc3b72d60b00375efac119189b7362f92cd3a8e247c918c14dd87c3b437bf1",
-      "assemblySha256": "6bfc3b72d60b00375efac119189b7362f92cd3a8e247c918c14dd87c3b437bf1"
-    },
-    "supabase/migrations/20261024023108_studio_menu_marker_refresh.sql": {
-      "candidateSha256": "fad6cc5790758bab171db083f850841f683500b863a3434ec69a44dede67e8a8",
-      "assemblySha256": "fad6cc5790758bab171db083f850841f683500b863a3434ec69a44dede67e8a8"
-    },
-    "supabase/migrations/20260728530000_pairing_recovery_smoke_cleanup.sql": {
-      "candidateSha256": "7540d4b19bda4fd9d41acd19a3262b119fdb8524e283b518c316fe7b6c457ec5",
-      "assemblySha256": "7540d4b19bda4fd9d41acd19a3262b119fdb8524e283b518c316fe7b6c457ec5"
-    },
-    "supabase/migrations/20261011130000_s190_live_integration_diagnostics.sql": {
-      "candidateSha256": "560ab3f635130cd7c5e4d16b436dc17ffdda5b2743da375cda499634840cc685",
-      "assemblySha256": "560ab3f635130cd7c5e4d16b436dc17ffdda5b2743da375cda499634840cc685"
-    },
-    "supabase/migrations/20261011170000_s191_screen_composition.sql": {
-      "candidateSha256": "11ffafe5467c566a9c9880171b29c4761c67bacdba450ee581c4d4436a45cd0f",
-      "assemblySha256": "11ffafe5467c566a9c9880171b29c4761c67bacdba450ee581c4d4436a45cd0f"
-    },
-    "supabase/migrations/20261018004500_sync_studio_release_playback.sql": {
-      "candidateSha256": "73239d52eb756a9132289b2220373b93e8d308c206dc39765520a00da7e6051a",
-      "assemblySha256": "73239d52eb756a9132289b2220373b93e8d308c206dc39765520a00da7e6051a"
-    },
-    "supabase/migrations/20261018003000_sync_studio_orientation.sql": {
-      "candidateSha256": "1c341f8c28fb33530cb8511ccc1d43f23a246f90840f90bf4337ae383d8594a4",
-      "assemblySha256": "1c341f8c28fb33530cb8511ccc1d43f23a246f90840f90bf4337ae383d8594a4"
-    },
-    "supabase/migrations/20260904212639_s146_sportlink_arrival_groups.sql": {
-      "candidateSha256": "a234cd56014c76f7af0964b9ef2f57a07d85ba89f7a976237a96aa6b800b58e3",
-      "assemblySha256": "a234cd56014c76f7af0964b9ef2f57a07d85ba89f7a976237a96aa6b800b58e3"
-    },
-    "supabase/migrations/20261011320000_s191_screen_onboarding.sql": {
-      "candidateSha256": "433ad4b63b3924f0651c62df4e0059a581acb6eed69203120c63fe64030b3afd",
-      "assemblySha256": "433ad4b63b3924f0651c62df4e0059a581acb6eed69203120c63fe64030b3afd"
-    },
-    "supabase/migrations/20260830214000_s138_birthday_wizard_team_selection.sql": {
-      "candidateSha256": "08a02acc590221be7dfa5a8e0437e92822d3d1b18e82901579151c6d201a94b1",
-      "assemblySha256": "08a02acc590221be7dfa5a8e0437e92822d3d1b18e82901579151c6d201a94b1"
-    },
-    "supabase/migrations/20261018101300_led_player_bootstrap_orientation.sql": {
-      "candidateSha256": "314eba2ce61722dedf4c6dba5e88374534e4e9c76e71b8856e8deadf619a7f6a",
-      "assemblySha256": "314eba2ce61722dedf4c6dba5e88374534e4e9c76e71b8856e8deadf619a7f6a"
-    },
-    "supabase/migrations/20261013040000_s209_provider_logo_refresh.sql": {
-      "candidateSha256": "29e2de0008bb6944a2cabacc94967189af200f31dd84abda0c5bbf97df11f73e",
-      "assemblySha256": "29e2de0008bb6944a2cabacc94967189af200f31dd84abda0c5bbf97df11f73e"
-    },
-    "supabase/migrations/20260719100000_veyocast_rebrand.sql": {
-      "candidateSha256": "aa4572a4a3e9bf2ba7a81cdf4b73de29e526cb60881f83f16b6f5eb8e5854c9e",
-      "assemblySha256": "aa4572a4a3e9bf2ba7a81cdf4b73de29e526cb60881f83f16b6f5eb8e5854c9e"
-    },
-    "supabase/migrations/20260725160000_publisher_groups_scheduling.sql": {
-      "candidateSha256": "ce65b8df85bec7abf743f432038cf4a3b2c509f394d994a10825a28cfbaef651",
-      "assemblySha256": "ce65b8df85bec7abf743f432038cf4a3b2c509f394d994a10825a28cfbaef651"
-    },
-    "supabase/migrations/20261013010000_s206_projector_brand_pass.sql": {
-      "candidateSha256": "14d167088ddc76cd3b0071190ac326d10ea143e24c48d41251d4d59dbca94c78",
-      "assemblySha256": "14d167088ddc76cd3b0071190ac326d10ea143e24c48d41251d4d59dbca94c78"
-    },
-    "supabase/migrations/20260728510000_player_installations_commands_pairing.sql": {
-      "candidateSha256": "e70f3497ab773e13eedb2df8506ca76ba66332ce040c7a8ca5e672e007a129d3",
-      "assemblySha256": "e70f3497ab773e13eedb2df8506ca76ba66332ce040c7a8ca5e672e007a129d3"
-    },
-    "supabase/migrations/20260720120000_platform_lifecycle_team_management.sql": {
-      "candidateSha256": "8ec2c0c462a874ecf275d0ef1be9094bf32306c87e368dd4d900f65464498a67",
-      "assemblySha256": "8ec2c0c462a874ecf275d0ef1be9094bf32306c87e368dd4d900f65464498a67"
-    },
-    "supabase/migrations/20260831195914_s141_ledscores_live_match_experience.sql": {
-      "candidateSha256": "f3096d641bf6923c69b99669564b008cbdf1f23444f5034e30879ff678e5f576",
-      "assemblySha256": "f3096d641bf6923c69b99669564b008cbdf1f23444f5034e30879ff678e5f576"
-    },
-    "supabase/migrations/20260728650000_control_mobile_devices.sql": {
-      "candidateSha256": "d6eb8ea945ec545e0c7df425ff61a300751ddf3ec8e0b102d6a93d91d181d586",
-      "assemblySha256": "d6eb8ea945ec545e0c7df425ff61a300751ddf3ec8e0b102d6a93d91d181d586"
-    },
-    "supabase/migrations/20261018101500_sync_youtube_binding.sql": {
-      "candidateSha256": "8bb772ab06b925f8446f0c8b40302f1fe9f72929c31d7c7e6c00456bcffbb76b",
-      "assemblySha256": "8bb772ab06b925f8446f0c8b40302f1fe9f72929c31d7c7e6c00456bcffbb76b"
+    "supabase/migrations/20260716121500_auth_tenancy_roles_rls.sql": {
+      "candidateSha256": "9b443ba55ebeb07ea609fbcbd845ae11b9863994e4d0e733eac326e8b72227e6",
+      "assemblySha256": "9b443ba55ebeb07ea609fbcbd845ae11b9863994e4d0e733eac326e8b72227e6"
     },
     "supabase/migrations/20260716170000_media_upload_processing.sql": {
       "candidateSha256": "25f3991fafaa3a52e36e8fbae7dafa4bed4fcc518933c88a20725f29577bcf17",
       "assemblySha256": "25f3991fafaa3a52e36e8fbae7dafa4bed4fcc518933c88a20725f29577bcf17"
     },
-    "supabase/migrations/20260907192942_s156_slide_layout_completion.sql": {
-      "candidateSha256": "3c713c45656382954a809c8f80d042a8240d72b4913a4bff3023bbb717a4216c",
-      "assemblySha256": "3c713c45656382954a809c8f80d042a8240d72b4913a4bff3023bbb717a4216c"
-    },
-    "supabase/migrations/20260811180326_dynamic_content_release_dedup.sql": {
-      "candidateSha256": "a35b8bf13ffbbf9ab778698b8c118de0da6971014449c142489f05388afa3013",
-      "assemblySha256": "a35b8bf13ffbbf9ab778698b8c118de0da6971014449c142489f05388afa3013"
-    },
-    "supabase/migrations/20261018002500_studio_retry_progress.sql": {
-      "candidateSha256": "640cd99d5a8435970f8dd930295a616891384c19a2f674ce418997a10686d722",
-      "assemblySha256": "640cd99d5a8435970f8dd930295a616891384c19a2f674ce418997a10686d722"
-    },
-    "supabase/migrations/20260718180000_player_device_lab_runs.sql": {
-      "candidateSha256": "3c4065b95a2da6fa2b069e89fd4262456854ad18033f876a7efcf71ea3f9a2a8",
-      "assemblySha256": "3c4065b95a2da6fa2b069e89fd4262456854ad18033f876a7efcf71ea3f9a2a8"
-    },
-    "supabase/migrations/20260816225430_harden_rls_auto_enable_execute_acl.sql": {
-      "candidateSha256": "0220ec3bf6b54672d18b1f145ffb4c983901c7ca6b7f6f6741abb0d6228f5469",
-      "assemblySha256": "0220ec3bf6b54672d18b1f145ffb4c983901c7ca6b7f6f6741abb0d6228f5469"
-    },
-    "supabase/migrations/20261018162300_sync_engage_result_privacy.sql": {
-      "candidateSha256": "3d98c60c99bdec23d7409ebc5dfbf5c7cac1c5756d2a670b26494011792cd315",
-      "assemblySha256": "3d98c60c99bdec23d7409ebc5dfbf5c7cac1c5756d2a670b26494011792cd315"
-    },
-    "supabase/migrations/20260726110000_tenant_custom_roles.sql": {
-      "candidateSha256": "288b4ba5eecb55d07a1f9a6ac6bdcbb488d3cd19fc10606efc47b05f6dabc649",
-      "assemblySha256": "288b4ba5eecb55d07a1f9a6ac6bdcbb488d3cd19fc10606efc47b05f6dabc649"
-    },
-    "supabase/migrations/20261011190000_s191_sites_publisher_commands.sql": {
-      "candidateSha256": "79a5e67448d6534d08be3e9a0bf5ab9075655df9d1f0c2dad7cfc7fc95501420",
-      "assemblySha256": "79a5e67448d6534d08be3e9a0bf5ab9075655df9d1f0c2dad7cfc7fc95501420"
-    },
-    "supabase/migrations/20260725120000_pairing_session_retention.sql": {
-      "candidateSha256": "13652272ce4bdb484e431159a80996f9ff316d1800c5983427182ff39ae189be",
-      "assemblySha256": "13652272ce4bdb484e431159a80996f9ff316d1800c5983427182ff39ae189be"
-    },
-    "supabase/migrations/20260802091000_tenant_timezone_consistency.sql": {
-      "candidateSha256": "53174eac956e4b9b2db54000c37b341c27d432fdc893cf630304b1b58196f2d2",
-      "assemblySha256": "53174eac956e4b9b2db54000c37b341c27d432fdc893cf630304b1b58196f2d2"
-    },
-    "supabase/migrations/20261015124245_s220_menu_product_editing.sql": {
-      "candidateSha256": "4cefbed5dc49c4b9b66662669898e5c5f415e105dbf490e825d175cce9d37501",
-      "assemblySha256": "4cefbed5dc49c4b9b66662669898e5c5f415e105dbf490e825d175cce9d37501"
-    },
-    "supabase/migrations/20261011210000_s191_publisher_library_and_restore.sql": {
-      "candidateSha256": "9be1dfaf0216ef91dc80dddbd6d284716a08fa921fd423fc92712be177f2b547",
-      "assemblySha256": "9be1dfaf0216ef91dc80dddbd6d284716a08fa921fd423fc92712be177f2b547"
-    },
-    "supabase/migrations/20260831095437_s139_ledscores_feature_rollout_v2.sql": {
-      "candidateSha256": "2f484306c91ca0e1f0e4e2a2a569d1131e3e8b62edc1771e289a02382977997a",
-      "assemblySha256": "2f484306c91ca0e1f0e4e2a2a569d1131e3e8b62edc1771e289a02382977997a"
-    },
-    "supabase/migrations/20261019010000_sync_theme_creation_defaults.sql": {
-      "candidateSha256": "98234c697280ad7378ab160562887e11bb2e4b5dee25b8c05617508bf50814b6",
-      "assemblySha256": "98234c697280ad7378ab160562887e11bb2e4b5dee25b8c05617508bf50814b6"
-    },
-    "supabase/migrations/20260824190000_s123_studio_source_video.sql": {
-      "candidateSha256": "41676da0ee6191fd1d59d134221c7ed99e419af42c890fc67ed377b226534b07",
-      "assemblySha256": "41676da0ee6191fd1d59d134221c7ed99e419af42c890fc67ed377b226534b07"
-    },
-    "supabase/migrations/20260824233000_s123_custom_role_capability_normalization.sql": {
-      "candidateSha256": "f1ba613db97519cbc1d70b236ee65c43944c6f8554fec65de8ca6793d1c1d594",
-      "assemblySha256": "f1ba613db97519cbc1d70b236ee65c43944c6f8554fec65de8ca6793d1c1d594"
-    },
-    "supabase/migrations/20260910183000_playlist_delete_archived_and_unassign.sql": {
-      "candidateSha256": "90f66ae6a80a49a5c5803db5e1a6d7393bdb07052becc0d22fc7e2e249d559a6",
-      "assemblySha256": "90f66ae6a80a49a5c5803db5e1a6d7393bdb07052becc0d22fc7e2e249d559a6"
-    },
-    "supabase/migrations/20260920124732_s186_egress_queue_hint.sql": {
-      "candidateSha256": "881b49a9cadcb525cb29bdcd73653561f71f944e5776ad1beca1b374b63f6f18",
-      "assemblySha256": "881b49a9cadcb525cb29bdcd73653561f71f944e5776ad1beca1b374b63f6f18"
-    },
-    "supabase/migrations/20261025180000_menu_dom_playback.sql": {
-      "candidateSha256": "87f95b9f6c8ffe7f6d6d2936b55829b2d33c8d9fec6aea8f4c732731fd3b3886",
-      "assemblySha256": "87f95b9f6c8ffe7f6d6d2936b55829b2d33c8d9fec6aea8f4c732731fd3b3886"
-    },
-    "supabase/migrations/20261011100000_s190_published_data_refresh_queue.sql": {
-      "candidateSha256": "cf45cf4d7cc3f4e821f957a428c2604612991bc69a546ed9ee35a70947cc9b4f",
-      "assemblySha256": "cf45cf4d7cc3f4e821f957a428c2604612991bc69a546ed9ee35a70947cc9b4f"
-    },
-    "supabase/migrations/20261013080000_s210_database_load_guardrails.sql": {
-      "candidateSha256": "b6cc4746b492c0652f139e8f70807d9223e33d89eb91bf6b6621edc76c591c93",
-      "assemblySha256": "b6cc4746b492c0652f139e8f70807d9223e33d89eb91bf6b6621edc76c591c93"
-    },
-    "supabase/migrations/20260723100000_screen_fleet_onboarding.sql": {
-      "candidateSha256": "fe2b379079e8d8fa4bf07e7aa74058f0a9b9a1df42d24b3da3a0d8cc1f250326",
-      "assemblySha256": "fe2b379079e8d8fa4bf07e7aa74058f0a9b9a1df42d24b3da3a0d8cc1f250326"
-    },
-    "supabase/migrations/20260726100000_editable_tenant_playlist_templates.sql": {
-      "candidateSha256": "a1fc9df2cd69cace42db717cd39903bef3dd22fd324cb46f22817a9ab7017ae6",
-      "assemblySha256": "a1fc9df2cd69cace42db717cd39903bef3dd22fd324cb46f22817a9ab7017ae6"
-    },
-    "supabase/migrations/20260912180627_s178_standing_team_identity.sql": {
-      "candidateSha256": "2bf0edd3240059c3b8380df70a1a181590140f41a10933b71f67169e58b137ec",
-      "assemblySha256": "2bf0edd3240059c3b8380df70a1a181590140f41a10933b71f67169e58b137ec"
-    },
-    "supabase/migrations/20260910220632_sportlink_rss_noop_revision_and_playlist_delete.sql": {
-      "candidateSha256": "05ecfd0d3d00ca0831935430a5cdc71b6614b13d6a1277246acb652e2ec91554",
-      "assemblySha256": "05ecfd0d3d00ca0831935430a5cdc71b6614b13d6a1277246acb652e2ec91554"
-    },
-    "supabase/migrations/20260901013000_s141_ledscores_source_observation_order.sql": {
-      "candidateSha256": "64fad914dcacffaa90b83c07afb4b448f88a643c171694538b65b0dafef8f834",
-      "assemblySha256": "64fad914dcacffaa90b83c07afb4b448f88a643c171694538b65b0dafef8f834"
-    },
-    "supabase/migrations/20260919215758_s185_current_publication.sql": {
-      "candidateSha256": "b9362784a229a5c934c1d9e77d629ed68c08f86fbd03f465acff60c157f4ef99",
-      "assemblySha256": "b9362784a229a5c934c1d9e77d629ed68c08f86fbd03f465acff60c157f4ef99"
-    },
-    "supabase/migrations/20261025153505_sync_dom_playback.sql": {
-      "candidateSha256": "d5b7ba502f109a3ec5cb7e00d79797cdddff2d99bbd3f4065f764d8368887b18",
-      "assemblySha256": "d5b7ba502f109a3ec5cb7e00d79797cdddff2d99bbd3f4065f764d8368887b18"
-    },
-    "supabase/migrations/20261109114134_s298_effective_planning_preview.sql": {
-      "candidateSha256": "f10042bf98195366a92bb679b717a4addaf8b5d30301c7a8f41deb4c6c27bf1e",
-      "assemblySha256": "f10042bf98195366a92bb679b717a4addaf8b5d30301c7a8f41deb4c6c27bf1e"
-    },
-    "supabase/migrations/20261018002000_sync_studio_authoring.sql": {
-      "candidateSha256": "dc844c3cd50281cedd71ae7f1876af37095b4e370bb70650c4c4bee536e713df",
-      "assemblySha256": "dc844c3cd50281cedd71ae7f1876af37095b4e370bb70650c4c4bee536e713df"
-    },
-    "supabase/migrations/20260728400000_screen_automation.sql": {
-      "candidateSha256": "62c6f17edf062ae1a5fc4e5a41c156e05f634fc7d4b4561f111c4a75a628fc76",
-      "assemblySha256": "62c6f17edf062ae1a5fc4e5a41c156e05f634fc7d4b4561f111c4a75a628fc76"
-    },
-    "supabase/migrations/20260906143000_s153_slide_theme_backoffice.sql": {
-      "candidateSha256": "53c9a660547b6180a97a3608ece695df415e4ff51378c8c701af455e0d49a9e7",
-      "assemblySha256": "53c9a660547b6180a97a3608ece695df415e4ff51378c8c701af455e0d49a9e7"
-    },
-    "supabase/migrations/20260802132000_dynamic_slide_playlist_html_library.sql": {
-      "candidateSha256": "850082048da03be6a2bc9ef9636e7a246779d56771b210064693605b5944d302",
-      "assemblySha256": "850082048da03be6a2bc9ef9636e7a246779d56771b210064693605b5944d302"
-    },
-    "supabase/migrations/20261017201455_sync_content_library.sql": {
-      "candidateSha256": "4508786d2c135a1d3399bf619c02fb4c234e3b47bd787d8782884e80b11c2ed1",
-      "assemblySha256": "4508786d2c135a1d3399bf619c02fb4c234e3b47bd787d8782884e80b11c2ed1"
-    },
-    "supabase/migrations/20261011350000_s191_atomic_media_metadata.sql": {
-      "candidateSha256": "8422debafdf91a45d0c2f40af3339cf3d4f14f7f2ddfd8d57c4eff1d1090ef33",
-      "assemblySha256": "8422debafdf91a45d0c2f40af3339cf3d4f14f7f2ddfd8d57c4eff1d1090ef33"
-    },
-    "supabase/migrations/20260725180000_publisher_media_lifecycle.sql": {
-      "candidateSha256": "df74ab11ac56e102687329be4c9ee83e3fb7c6562d4018afeebc7495cdfca04e",
-      "assemblySha256": "df74ab11ac56e102687329be4c9ee83e3fb7c6562d4018afeebc7495cdfca04e"
-    },
-    "supabase/migrations/20261014212516_s218_studio_library_without_render_gate.sql": {
-      "candidateSha256": "58760cdc9c05b30391e7be9ab69bca45d23521b8df58819cf44a75b66167838f",
-      "assemblySha256": "58760cdc9c05b30391e7be9ab69bca45d23521b8df58819cf44a75b66167838f"
-    },
-    "supabase/migrations/20261017195749_sync_marketing_inquiries.sql": {
-      "candidateSha256": "548bc9f6350b6a5cfd03c7d751afdbc347d9bfbab7904ba75020e28f7435ad31",
-      "assemblySha256": "548bc9f6350b6a5cfd03c7d751afdbc347d9bfbab7904ba75020e28f7435ad31"
-    },
-    "supabase/migrations/20261015225516_s223_player_sync_receipts.sql": {
-      "candidateSha256": "d312c6c9a878757fa1438e89059e3cc3c61361e2c85a99cb4ed738685e1a8726",
-      "assemblySha256": "d312c6c9a878757fa1438e89059e3cc3c61361e2c85a99cb4ed738685e1a8726"
-    },
-    "supabase/migrations/20260825174328_s124_vector_pilot_rollout.sql": {
-      "candidateSha256": "f18b30cfb57fe81fdccd52594f387a11e02fa529f80df383da2e48692739811f",
-      "assemblySha256": "f18b30cfb57fe81fdccd52594f387a11e02fa529f80df383da2e48692739811f"
-    },
-    "supabase/migrations/20260811205519_editorial_slide_readability.sql": {
-      "candidateSha256": "d1ca3f6dd9f45371fe89cba71f7b718ed4df2da6358c4c669ccbf221e4b95efb",
-      "assemblySha256": "d1ca3f6dd9f45371fe89cba71f7b718ed4df2da6358c4c669ccbf221e4b95efb"
-    },
-    "supabase/migrations/20260824145414_s123_media_collections_bulk_commands.sql": {
-      "candidateSha256": "d60b4610de07c0265fcae4dfbee26d43a68eeccf8343bd3c3431f7ceb25443a0",
-      "assemblySha256": "d60b4610de07c0265fcae4dfbee26d43a68eeccf8343bd3c3431f7ceb25443a0"
-    },
-    "supabase/migrations/20260728600000_dynamic_slides_mvp.sql": {
-      "candidateSha256": "1d0a26f88206050bac20e5139a8d74b45c96436b85ead5aecd6317ede3194951",
-      "assemblySha256": "1d0a26f88206050bac20e5139a8d74b45c96436b85ead5aecd6317ede3194951"
+    "supabase/migrations/20260716180000_playlist_release_model.sql": {
+      "candidateSha256": "426777804cc3243802e23e755c57f1ff96f293a845123dea538c1dd80bb9024b",
+      "assemblySha256": "426777804cc3243802e23e755c57f1ff96f293a845123dea538c1dd80bb9024b"
     },
     "supabase/migrations/20260717100000_screens_devices_pairing.sql": {
       "candidateSha256": "74928a2d893892d9fb519e76cad2d37a0b2237631976338e3c814fb0b4b7ed13",
       "assemblySha256": "74928a2d893892d9fb519e76cad2d37a0b2237631976338e3c814fb0b4b7ed13"
     },
-    "supabase/migrations/20260722100000_release_center_preflight.sql": {
-      "candidateSha256": "a2e8a30427c0f4ad9104bbf8584cc53afce77aa97e2e5c68273bcbcb4a89ae2a",
-      "assemblySha256": "a2e8a30427c0f4ad9104bbf8584cc53afce77aa97e2e5c68273bcbcb4a89ae2a"
+    "supabase/migrations/20260718120000_live_vertical_slice.sql": {
+      "candidateSha256": "4d54851c2735e5e6723f7fc0d78ff8872bd6c84cdc14ef309cbfa8559a8e3ebb",
+      "assemblySha256": "4d54851c2735e5e6723f7fc0d78ff8872bd6c84cdc14ef309cbfa8559a8e3ebb"
     },
-    "supabase/migrations/20260728300000_support_ticketing.sql": {
-      "candidateSha256": "e0f02c1df517cf35c569722fb02c51b25b64f5cd270c1095314f3f2a191f5081",
-      "assemblySha256": "e0f02c1df517cf35c569722fb02c51b25b64f5cd270c1095314f3f2a191f5081"
+    "supabase/migrations/20260718180000_player_device_lab_runs.sql": {
+      "candidateSha256": "3c4065b95a2da6fa2b069e89fd4262456854ad18033f876a7efcf71ea3f9a2a8",
+      "assemblySha256": "3c4065b95a2da6fa2b069e89fd4262456854ad18033f876a7efcf71ea3f9a2a8"
     },
-    "supabase/migrations/20261011110000_s190_superseded_version_retention.sql": {
-      "candidateSha256": "5bc35b4bce7c608d01f3ea78634814f1a0762f53ea0cecfd5f2c72f9595dc189",
-      "assemblySha256": "5bc35b4bce7c608d01f3ea78634814f1a0762f53ea0cecfd5f2c72f9595dc189"
+    "supabase/migrations/20260718210000_media_worker_daemon.sql": {
+      "candidateSha256": "53d3c2d4accfe0300f869319bf3f2419f0aea2d6920db50ae47a8f0dd66a9bbc",
+      "assemblySha256": "53d3c2d4accfe0300f869319bf3f2419f0aea2d6920db50ae47a8f0dd66a9bbc"
     },
-    "supabase/migrations/20261014050000_s214_sites_v17_authoring.sql": {
-      "candidateSha256": "9d7a4fab457d9a39789cd0aa506efea503231425c9f7018713fc54dc00ba6f23",
-      "assemblySha256": "9d7a4fab457d9a39789cd0aa506efea503231425c9f7018713fc54dc00ba6f23"
+    "supabase/migrations/20260718220000_control_authoring_mvp.sql": {
+      "candidateSha256": "970011864ed72a881924781717523bc63ca5b008ecb47185f26fab0fc4d9dbb7",
+      "assemblySha256": "970011864ed72a881924781717523bc63ca5b008ecb47185f26fab0fc4d9dbb7"
     },
-    "supabase/migrations/20260720130000_media_quarantine_status.sql": {
-      "candidateSha256": "119c3e19cbb1e11df36918e8d636f5693c82f4c6d3390630460394f6e6bf9f29",
-      "assemblySha256": "119c3e19cbb1e11df36918e8d636f5693c82f4c6d3390630460394f6e6bf9f29"
-    },
-    "supabase/migrations/20261018006500_studio_series_prepare_receipt.sql": {
-      "candidateSha256": "1435616df34c77b19a90d18226f73fba2a4c24ee8416076f1013409f5ffd2d60",
-      "assemblySha256": "1435616df34c77b19a90d18226f73fba2a4c24ee8416076f1013409f5ffd2d60"
-    },
-    "supabase/migrations/20260822183756_menu_studio_authoring_ux_hotfix.sql": {
-      "candidateSha256": "7f875b0040c636377f231e1f8badad6a1b916467539a4b1c6de6e56ae2a35f72",
-      "assemblySha256": "7f875b0040c636377f231e1f8badad6a1b916467539a4b1c6de6e56ae2a35f72"
-    },
-    "supabase/migrations/20261011230000_s191_sites_studio_playback.sql": {
-      "candidateSha256": "3e29b2d10ae7d96173d5c1ed18d4d7455ba56f7bed5924624b5e00236c47104d",
-      "assemblySha256": "3e29b2d10ae7d96173d5c1ed18d4d7455ba56f7bed5924624b5e00236c47104d"
-    },
-    "supabase/migrations/20260728630000_sportlink_dynamic_snapshots.sql": {
-      "candidateSha256": "78723761b828a2e03bcf4cf91325a32addbcca8a8907ae45be6995f9b4970e90",
-      "assemblySha256": "78723761b828a2e03bcf4cf91325a32addbcca8a8907ae45be6995f9b4970e90"
-    },
-    "supabase/migrations/20260822221815_s119_unified_sportlink_studio.sql": {
-      "candidateSha256": "5abadc9d8fa30966d834cb8b43f4869daff2d09aa31c9e4bc50cc1063d36cc0a",
-      "assemblySha256": "5abadc9d8fa30966d834cb8b43f4869daff2d09aa31c9e4bc50cc1063d36cc0a"
-    },
-    "supabase/migrations/20260902120358_s144_sportlink_display_and_arrival_assets.sql": {
-      "candidateSha256": "c7148c261ea53c842159ac4af5ff3f21ee067c72b4e5cb9ca54fd21e4f5677d3",
-      "assemblySha256": "c7148c261ea53c842159ac4af5ff3f21ee067c72b4e5cb9ca54fd21e4f5677d3"
-    },
-    "supabase/migrations/20260811213811_sportlink_client_teams_club_logo.sql": {
-      "candidateSha256": "ce0f5600317b10f868f755185450bbecd58f247b7bcaf690e43056a0b9ad1746",
-      "assemblySha256": "ce0f5600317b10f868f755185450bbecd58f247b7bcaf690e43056a0b9ad1746"
-    },
-    "supabase/migrations/20260907134246_s155_welcome_news_layout.sql": {
-      "candidateSha256": "995a951cf9bb1bb61957e0191290e4277ed903181cf1c3309ee70ef7066734e2",
-      "assemblySha256": "995a951cf9bb1bb61957e0191290e4277ed903181cf1c3309ee70ef7066734e2"
-    },
-    "supabase/migrations/20261018103016_sync_published_binary_refresh.sql": {
-      "candidateSha256": "b9ec0327232d2a90d96884c3457cef3ff5aa008cf4cffd329daafeb7c7b60d3d",
-      "assemblySha256": "b9ec0327232d2a90d96884c3457cef3ff5aa008cf4cffd329daafeb7c7b60d3d"
-    },
-    "supabase/migrations/20261018150124_sync_studio_nonretryable_conflicts.sql": {
-      "candidateSha256": "d451a24ac79655d5ec92f4608f90ec2c1601135ef0fc887bc996b25c0fe069bd",
-      "assemblySha256": "d451a24ac79655d5ec92f4608f90ec2c1601135ef0fc887bc996b25c0fe069bd"
-    },
-    "supabase/migrations/20261011270000_s191_planning_commands.sql": {
-      "candidateSha256": "c64085aeddf58a1f4bdad39f449d612fea9918c26763ce32cac7422b887d5b0b",
-      "assemblySha256": "c64085aeddf58a1f4bdad39f449d612fea9918c26763ce32cac7422b887d5b0b"
-    },
-    "supabase/migrations/20260824200000_s123_engage_youtube_integrations.sql": {
-      "candidateSha256": "2018d4962ee6131ac84f4979c526d6e2578dd75ca23b5b2431aa2c16c9a4c790",
-      "assemblySha256": "2018d4962ee6131ac84f4979c526d6e2578dd75ca23b5b2431aa2c16c9a4c790"
-    },
-    "supabase/migrations/20261018004000_studio_manual_retry_budget.sql": {
-      "candidateSha256": "b5bfaaca52edb0822a681e05acff8bef91ee567e2d749b722f6e8359ced0b871",
-      "assemblySha256": "b5bfaaca52edb0822a681e05acff8bef91ee567e2d749b722f6e8359ced0b871"
-    },
-    "supabase/migrations/20260801140000_portrait_media_completion.sql": {
-      "candidateSha256": "b49f4d9159b184ca07ec9e80cd54d1f7b66a658d8a49d8931e375a17f7246668",
-      "assemblySha256": "b49f4d9159b184ca07ec9e80cd54d1f7b66a658d8a49d8931e375a17f7246668"
-    },
-    "supabase/migrations/20261025203330_menu_dom_observation_stability.sql": {
-      "candidateSha256": "a58de26430e54427be5b4ef06e054897826816f47d2853d1cb38da8b4edd2221",
-      "assemblySha256": "a58de26430e54427be5b4ef06e054897826816f47d2853d1cb38da8b4edd2221"
-    },
-    "supabase/migrations/20260821214542_menu_studio_pilot_rollout.sql": {
-      "candidateSha256": "305ee424dc9a1254886ae9cc5f10f703ecd176a46e1a1b524f6938cb2b47dadb",
-      "assemblySha256": "305ee424dc9a1254886ae9cc5f10f703ecd176a46e1a1b524f6938cb2b47dadb"
-    },
-    "supabase/migrations/20261025141139_dom_source_recovery.sql": {
-      "candidateSha256": "c5348f322cb74474e66503e86d57da73a3c1fcbda9bf41dda71c2a295d7c7791",
-      "assemblySha256": "c5348f322cb74474e66503e86d57da73a3c1fcbda9bf41dda71c2a295d7c7791"
-    },
-    "supabase/migrations/20261018007500_sync_dynamic_worker_lease.sql": {
-      "candidateSha256": "0aa7c27105c8d22f7bdaed98961e55c7520607ce0398130412a0e35db5647431",
-      "assemblySha256": "0aa7c27105c8d22f7bdaed98961e55c7520607ce0398130412a0e35db5647431"
-    },
-    "supabase/migrations/20260824230000_s123_billing_entitlements_foundation.sql": {
-      "candidateSha256": "177f398ca0402ab7eea8cdacb577801ba815abe953f0b8bf2a966bc63762e479",
-      "assemblySha256": "177f398ca0402ab7eea8cdacb577801ba815abe953f0b8bf2a966bc63762e479"
-    },
-    "supabase/migrations/20261011120000_s190_worker_queue_hint.sql": {
-      "candidateSha256": "18e57df40308eccec2b2623bf375299b2fc709022d03290282189f776d9e85f9",
-      "assemblySha256": "18e57df40308eccec2b2623bf375299b2fc709022d03290282189f776d9e85f9"
-    },
-    "supabase/migrations/20260926224912_s188_standing_fields.sql": {
-      "candidateSha256": "55b74baea740d7da16079994149d6a51b4dadb9822d3f3995243c95bdda179a4",
-      "assemblySha256": "55b74baea740d7da16079994149d6a51b4dadb9822d3f3995243c95bdda179a4"
-    },
-    "supabase/migrations/20260802130000_tenant_primary_slide_color.sql": {
-      "candidateSha256": "8c063a6012092def8045a8236ded3cb45d6ed18156c23df1f445b20dd55a34ee",
-      "assemblySha256": "8c063a6012092def8045a8236ded3cb45d6ed18156c23df1f445b20dd55a34ee"
-    },
-    "supabase/migrations/20261011310000_s191_engage_commands.sql": {
-      "candidateSha256": "c90e59f5c4796358782da21bede27b29b3f47ac8a5031a197a1367aea8b1f858",
-      "assemblySha256": "c90e59f5c4796358782da21bede27b29b3f47ac8a5031a197a1367aea8b1f858"
+    "supabase/migrations/20260719100000_veyocast_rebrand.sql": {
+      "candidateSha256": "aa4572a4a3e9bf2ba7a81cdf4b73de29e526cb60881f83f16b6f5eb8e5854c9e",
+      "assemblySha256": "aa4572a4a3e9bf2ba7a81cdf4b73de29e526cb60881f83f16b6f5eb8e5854c9e"
     },
     "supabase/migrations/20260719183000_platform_tenant_creation.sql": {
       "candidateSha256": "00b9284a476b5cb1fa7b2812b13e1f4e17fd638bdfc75454263ead81997e20cd",
       "assemblySha256": "00b9284a476b5cb1fa7b2812b13e1f4e17fd638bdfc75454263ead81997e20cd"
     },
-    "supabase/migrations/20260727100000_studio_authoring_rendering.sql": {
-      "candidateSha256": "72d356eab1ba2ead0011bb63ac923ac2a1ae8b7f856e94598526144bc089983c",
-      "assemblySha256": "72d356eab1ba2ead0011bb63ac923ac2a1ae8b7f856e94598526144bc089983c"
+    "supabase/migrations/20260720090000_identity_context_mfa_enforcement.sql": {
+      "candidateSha256": "8c7bf151b49e777c882b05cc40d01caa9760b3c56568ee6954f7ffe242f5afa2",
+      "assemblySha256": "8c7bf151b49e777c882b05cc40d01caa9760b3c56568ee6954f7ffe242f5afa2"
     },
-    "supabase/migrations/20260908134500_s158_match_row_layout.sql": {
-      "candidateSha256": "a845126cc927ec1a6fd1c82559a1eaacdc03b233c16249a51db9fe3d1120b37a",
-      "assemblySha256": "a845126cc927ec1a6fd1c82559a1eaacdc03b233c16249a51db9fe3d1120b37a"
+    "supabase/migrations/20260720120000_platform_lifecycle_team_management.sql": {
+      "candidateSha256": "8ec2c0c462a874ecf275d0ef1be9094bf32306c87e368dd4d900f65464498a67",
+      "assemblySha256": "8ec2c0c462a874ecf275d0ef1be9094bf32306c87e368dd4d900f65464498a67"
     },
-    "supabase/migrations/20260725170000_publisher_guarded_commands.sql": {
-      "candidateSha256": "e9297ccdaee5a0dd51621cd1f298840c0c7996df09db6c8d34055e01f7d7dfd0",
-      "assemblySha256": "e9297ccdaee5a0dd51621cd1f298840c0c7996df09db6c8d34055e01f7d7dfd0"
+    "supabase/migrations/20260720130000_media_quarantine_status.sql": {
+      "candidateSha256": "119c3e19cbb1e11df36918e8d636f5693c82f4c6d3390630460394f6e6bf9f29",
+      "assemblySha256": "119c3e19cbb1e11df36918e8d636f5693c82f4c6d3390630460394f6e6bf9f29"
     },
-    "supabase/migrations/20261012190000_s198_heartbeat_release_lookup.sql": {
-      "candidateSha256": "f603f8995481c23df1dab9288aab6235c3f4b23d277410123b43455ca6ff6112",
-      "assemblySha256": "f603f8995481c23df1dab9288aab6235c3f4b23d277410123b43455ca6ff6112"
+    "supabase/migrations/20260720131000_media_workspace_resumable_upload.sql": {
+      "candidateSha256": "c832e583ee22b822f99a883b4d300f8bea1dc4697cee11a4bf941a4284dba612",
+      "assemblySha256": "c832e583ee22b822f99a883b4d300f8bea1dc4697cee11a4bf941a4284dba612"
     },
-    "supabase/migrations/20261023220334_sync_rss_article_selection.sql": {
-      "candidateSha256": "1434eb19decaeadb66ade4022af3a3bc3a9cf4c08b076bf22b829af8d82abedd",
-      "assemblySha256": "1434eb19decaeadb66ade4022af3a3bc3a9cf4c08b076bf22b829af8d82abedd"
+    "supabase/migrations/20260721100000_playlist_studio_concurrency.sql": {
+      "candidateSha256": "56dff1703a0d02405d11c4dbd552a89f7568979cec7f605a29c054951d7bc3e8",
+      "assemblySha256": "56dff1703a0d02405d11c4dbd552a89f7568979cec7f605a29c054951d7bc3e8"
     },
-    "supabase/migrations/20261011220000_s191_playlist_library.sql": {
-      "candidateSha256": "975ed7b992b3ca8143d62bc6105e302aa6621aad88902335c0925a23f9d1d873",
-      "assemblySha256": "975ed7b992b3ca8143d62bc6105e302aa6621aad88902335c0925a23f9d1d873"
+    "supabase/migrations/20260722100000_release_center_preflight.sql": {
+      "candidateSha256": "a2e8a30427c0f4ad9104bbf8584cc53afce77aa97e2e5c68273bcbcb4a89ae2a",
+      "assemblySha256": "a2e8a30427c0f4ad9104bbf8584cc53afce77aa97e2e5c68273bcbcb4a89ae2a"
     },
-    "supabase/migrations/20261018073738_sync_dynamic_placement_variants.sql": {
-      "candidateSha256": "effbd09996ac077b69812fd16ec30b9bc18f24d02158ef7c13159c7b889f9dc7",
-      "assemblySha256": "effbd09996ac077b69812fd16ec30b9bc18f24d02158ef7c13159c7b889f9dc7"
-    },
-    "supabase/migrations/20260728651000_mobile_playlist_commands.sql": {
-      "candidateSha256": "d9ca203b2600051ee8ef062bb26a5adf109cbc7e069c3cdadc49c0b9ae05bd0d",
-      "assemblySha256": "d9ca203b2600051ee8ef062bb26a5adf109cbc7e069c3cdadc49c0b9ae05bd0d"
-    },
-    "supabase/migrations/20260716121500_auth_tenancy_roles_rls.sql": {
-      "candidateSha256": "9b443ba55ebeb07ea609fbcbd845ae11b9863994e4d0e733eac326e8b72227e6",
-      "assemblySha256": "9b443ba55ebeb07ea609fbcbd845ae11b9863994e4d0e733eac326e8b72227e6"
-    },
-    "supabase/migrations/20261011160000_s191_sites_theme_authoring.sql": {
-      "candidateSha256": "a50121b522c96eb598f8a092a6d5d8401f0eaf234f1e89eaa24e8bc72e0f05da",
-      "assemblySha256": "a50121b522c96eb598f8a092a6d5d8401f0eaf234f1e89eaa24e8bc72e0f05da"
-    },
-    "supabase/migrations/20261018006000_sync_studio_series.sql": {
-      "candidateSha256": "cb623df9c691a9f4a861a85b16c31d009026464e8fd3b02021bece837a129965",
-      "assemblySha256": "cb623df9c691a9f4a861a85b16c31d009026464e8fd3b02021bece837a129965"
-    },
-    "supabase/migrations/20260829125034_s129_home_match_welcome.sql": {
-      "candidateSha256": "014bc98a9ed9d50e8e684650b6f03ecff739c4a8bd91ad575af887715f38b378",
-      "assemblySha256": "014bc98a9ed9d50e8e684650b6f03ecff739c4a8bd91ad575af887715f38b378"
-    },
-    "supabase/migrations/20261018104700_player_target_realtime_columns.sql": {
-      "candidateSha256": "4630fde5a1d97d946d490c279a1b6cdebd920ac01e83c587ae30295bb547256f",
-      "assemblySha256": "4630fde5a1d97d946d490c279a1b6cdebd920ac01e83c587ae30295bb547256f"
-    },
-    "supabase/migrations/20261014115415_s215_menu_widgets_studio_creation.sql": {
-      "candidateSha256": "fb60a3c64441a27843b36c31c46439d44b5f951f1d8ced3e64a53f3dffffb2ae",
-      "assemblySha256": "fb60a3c64441a27843b36c31c46439d44b5f951f1d8ced3e64a53f3dffffb2ae"
-    },
-    "supabase/migrations/20261019020000_sync_approved_backgrounds.sql": {
-      "candidateSha256": "ce2f8bcd74b74affab16ec2c081a06ea776f2882878f4ff76f2bd1fc41175e65",
-      "assemblySha256": "ce2f8bcd74b74affab16ec2c081a06ea776f2882878f4ff76f2bd1fc41175e65"
-    },
-    "supabase/migrations/20261019141413_menu_price_candidates.sql": {
-      "candidateSha256": "88d5b73f61ea1cb2e94eca01c53d37ded4085942e800d3d0b76676a00b5c4596",
-      "assemblySha256": "88d5b73f61ea1cb2e94eca01c53d37ded4085942e800d3d0b76676a00b5c4596"
-    },
-    "supabase/migrations/20260824160000_s123_tenant_onboarding.sql": {
-      "candidateSha256": "2371e432f2b399a7b4062598e868259a7625c62225952f406f01e8b3eb6ad393",
-      "assemblySha256": "2371e432f2b399a7b4062598e868259a7625c62225952f406f01e8b3eb6ad393"
-    },
-    "supabase/migrations/20261011330000_s191_source_connection_commands.sql": {
-      "candidateSha256": "602eebc180c76131e26beca6d88701c57c308f6cef3235cea06029448eeef33a",
-      "assemblySha256": "602eebc180c76131e26beca6d88701c57c308f6cef3235cea06029448eeef33a"
-    },
-    "supabase/migrations/20260821125857_s111_provider_asset_cache_media_origin.sql": {
-      "candidateSha256": "53ff797bf8e69263b14e09aff37f103573328241bd5b25ca797d757785c19c2f",
-      "assemblySha256": "53ff797bf8e69263b14e09aff37f103573328241bd5b25ca797d757785c19c2f"
-    },
-    "supabase/migrations/20261019135521_sync_engage_full_options.sql": {
-      "candidateSha256": "f0b314f1a972671912800ba0542adceebb7590540fb20557ff2d373642461d15",
-      "assemblySha256": "f0b314f1a972671912800ba0542adceebb7590540fb20557ff2d373642461d15"
-    },
-    "supabase/migrations/20260801190000_safe_media_archive.sql": {
-      "candidateSha256": "7483e93ccaab8e9b83f98072fd5b0464e805ef07a483bda4fae7eda25ceb2392",
-      "assemblySha256": "7483e93ccaab8e9b83f98072fd5b0464e805ef07a483bda4fae7eda25ceb2392"
-    },
-    "supabase/migrations/20261109120358_s296_screen_source_status.sql": {
-      "candidateSha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33",
-      "assemblySha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33"
-    },
-    "supabase/migrations/20260802110000_html_dynamic_template_runtime.sql": {
-      "candidateSha256": "eb2040e8e368ed8a85058e603d3f55f716fba4a66518a7f5d77b713c1830241b",
-      "assemblySha256": "eb2040e8e368ed8a85058e603d3f55f716fba4a66518a7f5d77b713c1830241b"
-    },
-    "supabase/migrations/20260728652000_playlist_position_constraint_resolution.sql": {
-      "candidateSha256": "60709e17ff4faccb49411f2374ca4763e9da692d5c56f6e094922396486d6e07",
-      "assemblySha256": "60709e17ff4faccb49411f2374ca4763e9da692d5c56f6e094922396486d6e07"
-    },
-    "supabase/migrations/20260802131000_sportlink_sync_completion_recovery.sql": {
-      "candidateSha256": "5e4df3bb47e5d1dc0d9070a51bad14d97fcb5b42b217c14219be8d2aa762a374",
-      "assemblySha256": "5e4df3bb47e5d1dc0d9070a51bad14d97fcb5b42b217c14219be8d2aa762a374"
-    },
-    "supabase/migrations/20260919224031_s185_publication_operations.sql": {
-      "candidateSha256": "96af6c93ab0a4b4d79785bc2cb08b23998c8c03890055a568f850a0cad4e7add",
-      "assemblySha256": "96af6c93ab0a4b4d79785bc2cb08b23998c8c03890055a568f850a0cad4e7add"
-    },
-    "supabase/migrations/20260813102834_editorial_arena_slide_suite_v2.sql": {
-      "candidateSha256": "ea98cf966db267685723075306c42f07f6efb78d8de8dc02bd61cd65e21e9127",
-      "assemblySha256": "ea98cf966db267685723075306c42f07f6efb78d8de8dc02bd61cd65e21e9127"
-    },
-    "supabase/migrations/20260725100000_screen_deactivation_removal.sql": {
-      "candidateSha256": "e6863cdf1748748e7b8f08e72c2e4ac2c1fe7d3fd39003cfbb76ee3a193f8d14",
-      "assemblySha256": "e6863cdf1748748e7b8f08e72c2e4ac2c1fe7d3fd39003cfbb76ee3a193f8d14"
-    },
-    "supabase/migrations/20260912153412_s177_dynamic_slide_management.sql": {
-      "candidateSha256": "96b0b0770ffa4b45f204d83b737ca80d67527304c37dc6e0e51fe189b5fa6d90",
-      "assemblySha256": "96b0b0770ffa4b45f204d83b737ca80d67527304c37dc6e0e51fe189b5fa6d90"
-    },
-    "supabase/migrations/20260728653000_pairing_recovery_rate_limit.sql": {
-      "candidateSha256": "b42ca9159a7d77e22bdcb25e2ef8e10835ace9336e4aeeb03fa673ad1184bb0a",
-      "assemblySha256": "b42ca9159a7d77e22bdcb25e2ef8e10835ace9336e4aeeb03fa673ad1184bb0a"
-    },
-    "supabase/migrations/20260820130905_s109_theme_engine_v2.sql": {
-      "candidateSha256": "52f901695d0fcb62c3ec1ef60d9d23a84dca4d0a08a82e30d7dcf1b9d615ad5d",
-      "assemblySha256": "52f901695d0fcb62c3ec1ef60d9d23a84dca4d0a08a82e30d7dcf1b9d615ad5d"
-    },
-    "supabase/migrations/20260824170000_s123_venue_twin_foundation.sql": {
-      "candidateSha256": "a122f242f03a96449b4dd61ed8f721cfd83466a51266301e15fdf43b239dde19",
-      "assemblySha256": "a122f242f03a96449b4dd61ed8f721cfd83466a51266301e15fdf43b239dde19"
+    "supabase/migrations/20260723100000_screen_fleet_onboarding.sql": {
+      "candidateSha256": "fe2b379079e8d8fa4bf07e7aa74058f0a9b9a1df42d24b3da3a0d8cc1f250326",
+      "assemblySha256": "fe2b379079e8d8fa4bf07e7aa74058f0a9b9a1df42d24b3da3a0d8cc1f250326"
     },
     "supabase/migrations/20260724100000_playlist_drag_duration.sql": {
       "candidateSha256": "f9cbd91bd7d7bd07fca19b4db5314b9a4e0bda0afbcb3cfe087d937ff0241258",
       "assemblySha256": "f9cbd91bd7d7bd07fca19b4db5314b9a4e0bda0afbcb3cfe087d937ff0241258"
     },
-    "supabase/migrations/20261018003500_studio_render_receipt_recovery.sql": {
-      "candidateSha256": "0fe0def39375a47f2ba28b5df2e4b69beb5a43d292b3068d2095eabad6699993",
-      "assemblySha256": "0fe0def39375a47f2ba28b5df2e4b69beb5a43d292b3068d2095eabad6699993"
+    "supabase/migrations/20260725100000_screen_deactivation_removal.sql": {
+      "candidateSha256": "e6863cdf1748748e7b8f08e72c2e4ac2c1fe7d3fd39003cfbb76ee3a193f8d14",
+      "assemblySha256": "e6863cdf1748748e7b8f08e72c2e4ac2c1fe7d3fd39003cfbb76ee3a193f8d14"
     },
-    "supabase/migrations/20260812232355_editorial_price_list.sql": {
-      "candidateSha256": "8a597912b55a74e4240482584329b9019eae32bf6babb5dea0a9e4b301ff06dd",
-      "assemblySha256": "8a597912b55a74e4240482584329b9019eae32bf6babb5dea0a9e4b301ff06dd"
+    "supabase/migrations/20260725110000_pairing_refresh_recovery.sql": {
+      "candidateSha256": "9dd51ba7ef821456acb8562c4a98db32a463d1d95c448e69cbeccfe2e361b357",
+      "assemblySha256": "9dd51ba7ef821456acb8562c4a98db32a463d1d95c448e69cbeccfe2e361b357"
     },
-    "supabase/migrations/20260822001918_s115_sponsor_hub.sql": {
-      "candidateSha256": "0b5ab3b579ebae320fe35c3e3f748465c2789cce322dffe3706b481b48481510",
-      "assemblySha256": "0b5ab3b579ebae320fe35c3e3f748465c2789cce322dffe3706b481b48481510"
-    },
-    "supabase/migrations/20261018111000_sync_engage_binding.sql": {
-      "candidateSha256": "12a445dab1e8747e08d081e628d8a1117eff404696bc61925b9c1965b5ec0ef2",
-      "assemblySha256": "12a445dab1e8747e08d081e628d8a1117eff404696bc61925b9c1965b5ec0ef2"
-    },
-    "supabase/migrations/20261018005000_sync_studio_library.sql": {
-      "candidateSha256": "819f0436afab64e7ce3336c8704a46212a7ccd0efa111288c0e702644c30c72f",
-      "assemblySha256": "819f0436afab64e7ce3336c8704a46212a7ccd0efa111288c0e702644c30c72f"
-    },
-    "supabase/migrations/20261023215114_sync_club_selection_context.sql": {
-      "candidateSha256": "15131227ec390da00a3a96ad937f2d10801dc27a3d4ad65c327317aa6c689693",
-      "assemblySha256": "15131227ec390da00a3a96ad937f2d10801dc27a3d4ad65c327317aa6c689693"
-    },
-    "supabase/migrations/20261109113947_s299_sponsor_report_totals.sql": {
-      "candidateSha256": "580fd11200ff9429c231fe07ed5661a9b86ed9adfff4992162b7a7b7624ae487",
-      "assemblySha256": "580fd11200ff9429c231fe07ed5661a9b86ed9adfff4992162b7a7b7624ae487"
-    },
-    "supabase/migrations/20260718120000_live_vertical_slice.sql": {
-      "candidateSha256": "4d54851c2735e5e6723f7fc0d78ff8872bd6c84cdc14ef309cbfa8559a8e3ebb",
-      "assemblySha256": "4d54851c2735e5e6723f7fc0d78ff8872bd6c84cdc14ef309cbfa8559a8e3ebb"
-    },
-    "supabase/migrations/20261109122540_s301_sportlink_season_draft_switch.sql": {
-      "candidateSha256": "a8639f153a469916c2fb8b323f5d7d5b77f041933ecfbf9006a99d7d016386c9",
-      "assemblySha256": "a8639f153a469916c2fb8b323f5d7d5b77f041933ecfbf9006a99d7d016386c9"
-    },
-    "supabase/migrations/20260728100000_product_catalog_imports.sql": {
-      "candidateSha256": "fc80d189b90e7152305aefc43c834469dd2c34efb5606e821ab7984dffb34676",
-      "assemblySha256": "fc80d189b90e7152305aefc43c834469dd2c34efb5606e821ab7984dffb34676"
-    },
-    "supabase/migrations/20261018008000_sync_dynamic_complete_artifact.sql": {
-      "candidateSha256": "51202d926c326acd81d046a564146bb2310124561ec1fdf3694ab5c8eac2469f",
-      "assemblySha256": "51202d926c326acd81d046a564146bb2310124561ec1fdf3694ab5c8eac2469f"
-    },
-    "supabase/migrations/20261011300000_s191_sportlink_family_registry.sql": {
-      "candidateSha256": "33e7498f2ee4f274afffbe4d3544793b0d7e657be98477939d7e21b51aca981f",
-      "assemblySha256": "33e7498f2ee4f274afffbe4d3544793b0d7e657be98477939d7e21b51aca981f"
-    },
-    "supabase/migrations/20260728200000_retention_and_deletion_governance.sql": {
-      "candidateSha256": "53b461264f305ad501f5b8433ae12912557c2c413fb1989659140da82cd13e21",
-      "assemblySha256": "53b461264f305ad501f5b8433ae12912557c2c413fb1989659140da82cd13e21"
-    },
-    "supabase/migrations/20261025153504_sync_dom_media_kind.sql": {
-      "candidateSha256": "c2fbc00319279131449192c561770bb05ce73151e58002e9cfe5eacddb434b7a",
-      "assemblySha256": "c2fbc00319279131449192c561770bb05ce73151e58002e9cfe5eacddb434b7a"
-    },
-    "supabase/migrations/20260816204320_harden_security_definer_execute_acl.sql": {
-      "candidateSha256": "812a7b8e8fefb9dfb897e1e51e9a436d4f063f0e8a49331c2d7de8ad6f5a965c",
-      "assemblySha256": "812a7b8e8fefb9dfb897e1e51e9a436d4f063f0e8a49331c2d7de8ad6f5a965c"
-    },
-    "supabase/migrations/20260823190000_s122_dynamic_slide_versions.sql": {
-      "candidateSha256": "6373d49e7a5f1e73059f03edc9b899d4a364ea70fab0c78786b171de83eeb231",
-      "assemblySha256": "6373d49e7a5f1e73059f03edc9b899d4a364ea70fab0c78786b171de83eeb231"
-    },
-    "supabase/migrations/20260725150000_publisher_authoring_foundation.sql": {
-      "candidateSha256": "1b4ff7112d044ab11ae770e4c2b600c31d1f55b8fe79419cfe43bcd5d5ed408f",
-      "assemblySha256": "1b4ff7112d044ab11ae770e4c2b600c31d1f55b8fe79419cfe43bcd5d5ed408f"
-    },
-    "supabase/migrations/20261109130824_s300_matchday_runbook_operations.sql": {
-      "candidateSha256": "7de6f7a9d61700024e5babf9d3da4a826194ab63d58e0187e2c7b68e2801405b",
-      "assemblySha256": "7de6f7a9d61700024e5babf9d3da4a826194ab63d58e0187e2c7b68e2801405b"
-    },
-    "supabase/migrations/20260728654000_player_command_device_audit.sql": {
-      "candidateSha256": "fb680d511d3b69370883afa5b2689b18a15e99b65f0772d0ddec990653eca1ef",
-      "assemblySha256": "fb680d511d3b69370883afa5b2689b18a15e99b65f0772d0ddec990653eca1ef"
-    },
-    "supabase/migrations/20260905185632_s149_tenant_theme_colors.sql": {
-      "candidateSha256": "07705d8378d92b50bc96f68fbd70dfe13f54832a27c65897b3285e9235149e54",
-      "assemblySha256": "07705d8378d92b50bc96f68fbd70dfe13f54832a27c65897b3285e9235149e54"
-    },
-    "supabase/migrations/20261011150000_s191_playlist_batch.sql": {
-      "candidateSha256": "b07e639de8efe5484b3213145a7f35609d5fd51caadd7c3716f3e114d445c1ae",
-      "assemblySha256": "b07e639de8efe5484b3213145a7f35609d5fd51caadd7c3716f3e114d445c1ae"
-    },
-    "supabase/migrations/20261024173000_onzetrots_consistency.sql": {
-      "candidateSha256": "71207364b393c972383cbe064e39af34d94f5fa4302ddc57b6f852d1cd354010",
-      "assemblySha256": "71207364b393c972383cbe064e39af34d94f5fa4302ddc57b6f852d1cd354010"
+    "supabase/migrations/20260725120000_pairing_session_retention.sql": {
+      "candidateSha256": "13652272ce4bdb484e431159a80996f9ff316d1800c5983427182ff39ae189be",
+      "assemblySha256": "13652272ce4bdb484e431159a80996f9ff316d1800c5983427182ff39ae189be"
     },
     "supabase/migrations/20260725130000_playlist_draft_duplication.sql": {
       "candidateSha256": "18b94d53d0384ede9377d75d0f0df1acd83287a98712cf6cfa005a1e41908629",
       "assemblySha256": "18b94d53d0384ede9377d75d0f0df1acd83287a98712cf6cfa005a1e41908629"
     },
-    "supabase/migrations/20260912214500_s180_content_recovery.sql": {
-      "candidateSha256": "9f8e41b0e07ca1a17cba0502652d5b79c32fbb745d102c9db2da07a1294d1d9a",
-      "assemblySha256": "9f8e41b0e07ca1a17cba0502652d5b79c32fbb745d102c9db2da07a1294d1d9a"
+    "supabase/migrations/20260725140000_staging_player_demo_playlist.sql": {
+      "candidateSha256": "54b1af0a768ead506af4e56c70f488977cb5270d138c73d6e5238ed01a40756a",
+      "assemblySha256": "54b1af0a768ead506af4e56c70f488977cb5270d138c73d6e5238ed01a40756a"
+    },
+    "supabase/migrations/20260725150000_publisher_authoring_foundation.sql": {
+      "candidateSha256": "1b4ff7112d044ab11ae770e4c2b600c31d1f55b8fe79419cfe43bcd5d5ed408f",
+      "assemblySha256": "1b4ff7112d044ab11ae770e4c2b600c31d1f55b8fe79419cfe43bcd5d5ed408f"
+    },
+    "supabase/migrations/20260725160000_publisher_groups_scheduling.sql": {
+      "candidateSha256": "ce65b8df85bec7abf743f432038cf4a3b2c509f394d994a10825a28cfbaef651",
+      "assemblySha256": "ce65b8df85bec7abf743f432038cf4a3b2c509f394d994a10825a28cfbaef651"
+    },
+    "supabase/migrations/20260725170000_publisher_guarded_commands.sql": {
+      "candidateSha256": "e9297ccdaee5a0dd51621cd1f298840c0c7996df09db6c8d34055e01f7d7dfd0",
+      "assemblySha256": "e9297ccdaee5a0dd51621cd1f298840c0c7996df09db6c8d34055e01f7d7dfd0"
+    },
+    "supabase/migrations/20260725180000_publisher_media_lifecycle.sql": {
+      "candidateSha256": "df74ab11ac56e102687329be4c9ee83e3fb7c6562d4018afeebc7495cdfca04e",
+      "assemblySha256": "df74ab11ac56e102687329be4c9ee83e3fb7c6562d4018afeebc7495cdfca04e"
+    },
+    "supabase/migrations/20260725190000_publisher_video_duration_guard.sql": {
+      "candidateSha256": "24c0a611e47918cdd9f56ef295423075a92894384941f7be4b49a7aa93553436",
+      "assemblySha256": "24c0a611e47918cdd9f56ef295423075a92894384941f7be4b49a7aa93553436"
+    },
+    "supabase/migrations/20260726100000_editable_tenant_playlist_templates.sql": {
+      "candidateSha256": "a1fc9df2cd69cace42db717cd39903bef3dd22fd324cb46f22817a9ab7017ae6",
+      "assemblySha256": "a1fc9df2cd69cace42db717cd39903bef3dd22fd324cb46f22817a9ab7017ae6"
+    },
+    "supabase/migrations/20260726110000_tenant_custom_roles.sql": {
+      "candidateSha256": "288b4ba5eecb55d07a1f9a6ac6bdcbb488d3cd19fc10606efc47b05f6dabc649",
+      "assemblySha256": "288b4ba5eecb55d07a1f9a6ac6bdcbb488d3cd19fc10606efc47b05f6dabc649"
+    },
+    "supabase/migrations/20260727100000_studio_authoring_rendering.sql": {
+      "candidateSha256": "72d356eab1ba2ead0011bb63ac923ac2a1ae8b7f856e94598526144bc089983c",
+      "assemblySha256": "72d356eab1ba2ead0011bb63ac923ac2a1ae8b7f856e94598526144bc089983c"
+    },
+    "supabase/migrations/20260728100000_product_catalog_imports.sql": {
+      "candidateSha256": "fc80d189b90e7152305aefc43c834469dd2c34efb5606e821ab7984dffb34676",
+      "assemblySha256": "fc80d189b90e7152305aefc43c834469dd2c34efb5606e821ab7984dffb34676"
+    },
+    "supabase/migrations/20260728200000_retention_and_deletion_governance.sql": {
+      "candidateSha256": "53b461264f305ad501f5b8433ae12912557c2c413fb1989659140da82cd13e21",
+      "assemblySha256": "53b461264f305ad501f5b8433ae12912557c2c413fb1989659140da82cd13e21"
+    },
+    "supabase/migrations/20260728300000_support_ticketing.sql": {
+      "candidateSha256": "e0f02c1df517cf35c569722fb02c51b25b64f5cd270c1095314f3f2a191f5081",
+      "assemblySha256": "e0f02c1df517cf35c569722fb02c51b25b64f5cd270c1095314f3f2a191f5081"
+    },
+    "supabase/migrations/20260728400000_screen_automation.sql": {
+      "candidateSha256": "62c6f17edf062ae1a5fc4e5a41c156e05f634fc7d4b4561f111c4a75a628fc76",
+      "assemblySha256": "62c6f17edf062ae1a5fc4e5a41c156e05f634fc7d4b4561f111c4a75a628fc76"
+    },
+    "supabase/migrations/20260728500000_pairing_recovery_foundation.sql": {
+      "candidateSha256": "8267c4682df04729e927dcf9b358ac1259a36563daf51e6db21afd91dadb5b47",
+      "assemblySha256": "8267c4682df04729e927dcf9b358ac1259a36563daf51e6db21afd91dadb5b47"
+    },
+    "supabase/migrations/20260728510000_player_installations_commands_pairing.sql": {
+      "candidateSha256": "e70f3497ab773e13eedb2df8506ca76ba66332ce040c7a8ca5e672e007a129d3",
+      "assemblySha256": "e70f3497ab773e13eedb2df8506ca76ba66332ce040c7a8ca5e672e007a129d3"
+    },
+    "supabase/migrations/20260728520000_android_reinstall_recovery.sql": {
+      "candidateSha256": "b50355bb13c8831f2a5ef25a8aaa2a9a0af31d93a746dce31508fdd4e8f8e165",
+      "assemblySha256": "b50355bb13c8831f2a5ef25a8aaa2a9a0af31d93a746dce31508fdd4e8f8e165"
+    },
+    "supabase/migrations/20260728530000_pairing_recovery_smoke_cleanup.sql": {
+      "candidateSha256": "7540d4b19bda4fd9d41acd19a3262b119fdb8524e283b518c316fe7b6c457ec5",
+      "assemblySha256": "7540d4b19bda4fd9d41acd19a3262b119fdb8524e283b518c316fe7b6c457ec5"
+    },
+    "supabase/migrations/20260728600000_dynamic_slides_mvp.sql": {
+      "candidateSha256": "1d0a26f88206050bac20e5139a8d74b45c96436b85ead5aecd6317ede3194951",
+      "assemblySha256": "1d0a26f88206050bac20e5139a8d74b45c96436b85ead5aecd6317ede3194951"
+    },
+    "supabase/migrations/20260728610000_dynamic_template_commands.sql": {
+      "candidateSha256": "a78cb91f0a7c6429782291f4d2e4418b4c8ee2c15a2634e3bd2d44d7a4452a87",
+      "assemblySha256": "a78cb91f0a7c6429782291f4d2e4418b4c8ee2c15a2634e3bd2d44d7a4452a87"
+    },
+    "supabase/migrations/20260728620000_sportlink_club_dataservice.sql": {
+      "candidateSha256": "c677280628034f5f6e0a64649910f7c49d1e77ee1747c59e13520865d46fa55e",
+      "assemblySha256": "c677280628034f5f6e0a64649910f7c49d1e77ee1747c59e13520865d46fa55e"
+    },
+    "supabase/migrations/20260728630000_sportlink_dynamic_snapshots.sql": {
+      "candidateSha256": "78723761b828a2e03bcf4cf91325a32addbcca8a8907ae45be6995f9b4970e90",
+      "assemblySha256": "78723761b828a2e03bcf4cf91325a32addbcca8a8907ae45be6995f9b4970e90"
+    },
+    "supabase/migrations/20260728640000_sportlink_scheduled_sync.sql": {
+      "candidateSha256": "36711f1e22032e9dce1b586d490558ee61e9b224fc6fa9e602484cfb308c7155",
+      "assemblySha256": "36711f1e22032e9dce1b586d490558ee61e9b224fc6fa9e602484cfb308c7155"
+    },
+    "supabase/migrations/20260728650000_control_mobile_devices.sql": {
+      "candidateSha256": "d6eb8ea945ec545e0c7df425ff61a300751ddf3ec8e0b102d6a93d91d181d586",
+      "assemblySha256": "d6eb8ea945ec545e0c7df425ff61a300751ddf3ec8e0b102d6a93d91d181d586"
+    },
+    "supabase/migrations/20260728651000_mobile_playlist_commands.sql": {
+      "candidateSha256": "d9ca203b2600051ee8ef062bb26a5adf109cbc7e069c3cdadc49c0b9ae05bd0d",
+      "assemblySha256": "d9ca203b2600051ee8ef062bb26a5adf109cbc7e069c3cdadc49c0b9ae05bd0d"
+    },
+    "supabase/migrations/20260728652000_playlist_position_constraint_resolution.sql": {
+      "candidateSha256": "60709e17ff4faccb49411f2374ca4763e9da692d5c56f6e094922396486d6e07",
+      "assemblySha256": "60709e17ff4faccb49411f2374ca4763e9da692d5c56f6e094922396486d6e07"
+    },
+    "supabase/migrations/20260728653000_pairing_recovery_rate_limit.sql": {
+      "candidateSha256": "b42ca9159a7d77e22bdcb25e2ef8e10835ace9336e4aeeb03fa673ad1184bb0a",
+      "assemblySha256": "b42ca9159a7d77e22bdcb25e2ef8e10835ace9336e4aeeb03fa673ad1184bb0a"
+    },
+    "supabase/migrations/20260728654000_player_command_device_audit.sql": {
+      "candidateSha256": "fb680d511d3b69370883afa5b2689b18a15e99b65f0772d0ddec990653eca1ef",
+      "assemblySha256": "fb680d511d3b69370883afa5b2689b18a15e99b65f0772d0ddec990653eca1ef"
+    },
+    "supabase/migrations/20260801140000_portrait_media_completion.sql": {
+      "candidateSha256": "b49f4d9159b184ca07ec9e80cd54d1f7b66a658d8a49d8931e375a17f7246668",
+      "assemblySha256": "b49f4d9159b184ca07ec9e80cd54d1f7b66a658d8a49d8931e375a17f7246668"
+    },
+    "supabase/migrations/20260801190000_safe_media_archive.sql": {
+      "candidateSha256": "7483e93ccaab8e9b83f98072fd5b0464e805ef07a483bda4fae7eda25ceb2392",
+      "assemblySha256": "7483e93ccaab8e9b83f98072fd5b0464e805ef07a483bda4fae7eda25ceb2392"
+    },
+    "supabase/migrations/20260802090000_sportlink_worker_lease_renewal.sql": {
+      "candidateSha256": "beb832e3e583bf9c5a73bc5ab8bda43ffba1fa0015edc4b209fdca2c72a449ed",
+      "assemblySha256": "beb832e3e583bf9c5a73bc5ab8bda43ffba1fa0015edc4b209fdca2c72a449ed"
+    },
+    "supabase/migrations/20260802091000_tenant_timezone_consistency.sql": {
+      "candidateSha256": "53174eac956e4b9b2db54000c37b341c27d432fdc893cf630304b1b58196f2d2",
+      "assemblySha256": "53174eac956e4b9b2db54000c37b341c27d432fdc893cf630304b1b58196f2d2"
+    },
+    "supabase/migrations/20260802110000_html_dynamic_template_runtime.sql": {
+      "candidateSha256": "eb2040e8e368ed8a85058e603d3f55f716fba4a66518a7f5d77b713c1830241b",
+      "assemblySha256": "eb2040e8e368ed8a85058e603d3f55f716fba4a66518a7f5d77b713c1830241b"
+    },
+    "supabase/migrations/20260802120000_rss_portrait_html_template.sql": {
+      "candidateSha256": "d1fa944902f3b48cd365677ff1af9399bd8c0cad5d8e2042677fdcc2094b0858",
+      "assemblySha256": "d1fa944902f3b48cd365677ff1af9399bd8c0cad5d8e2042677fdcc2094b0858"
+    },
+    "supabase/migrations/20260802130000_tenant_primary_slide_color.sql": {
+      "candidateSha256": "8c063a6012092def8045a8236ded3cb45d6ed18156c23df1f445b20dd55a34ee",
+      "assemblySha256": "8c063a6012092def8045a8236ded3cb45d6ed18156c23df1f445b20dd55a34ee"
+    },
+    "supabase/migrations/20260802131000_sportlink_sync_completion_recovery.sql": {
+      "candidateSha256": "5e4df3bb47e5d1dc0d9070a51bad14d97fcb5b42b217c14219be8d2aa762a374",
+      "assemblySha256": "5e4df3bb47e5d1dc0d9070a51bad14d97fcb5b42b217c14219be8d2aa762a374"
+    },
+    "supabase/migrations/20260802132000_dynamic_slide_playlist_html_library.sql": {
+      "candidateSha256": "850082048da03be6a2bc9ef9636e7a246779d56771b210064693605b5944d302",
+      "assemblySha256": "850082048da03be6a2bc9ef9636e7a246779d56771b210064693605b5944d302"
+    },
+    "supabase/migrations/20260803090000_sportlink_team_sync_contexts.sql": {
+      "candidateSha256": "d14df5a1b196f8c2378d65b95c7aca8711a09306f415bf991a70a49adcc6628c",
+      "assemblySha256": "d14df5a1b196f8c2378d65b95c7aca8711a09306f415bf991a70a49adcc6628c"
+    },
+    "supabase/migrations/20260803091000_sportlink_slide_selection.sql": {
+      "candidateSha256": "396dbd8f0810365490093d8c3a0d8158c53fd4dee52efc1683cdafa46db4ac5b",
+      "assemblySha256": "396dbd8f0810365490093d8c3a0d8158c53fd4dee52efc1683cdafa46db4ac5b"
+    },
+    "supabase/migrations/20260803130000_sportlink_standing_seasons_theme.sql": {
+      "candidateSha256": "7c806a6b7345eae4cf57f530889f197e09454ac76228619a4f611a59f8de3139",
+      "assemblySha256": "7c806a6b7345eae4cf57f530889f197e09454ac76228619a4f611a59f8de3139"
+    },
+    "supabase/migrations/20260803140000_editorial_arena_html_theme.sql": {
+      "candidateSha256": "9da6190d4ea18141fd1891df931420014cccd76b2c27a722f37646ca86f2afaa",
+      "assemblySha256": "9da6190d4ea18141fd1891df931420014cccd76b2c27a722f37646ca86f2afaa"
+    },
+    "supabase/migrations/20260808170000_dynamic_latest_auto_release.sql": {
+      "candidateSha256": "06c133319774c3d4eebdef75eb295e0a601f3493ec3d076772b5f47545af6dbb",
+      "assemblySha256": "06c133319774c3d4eebdef75eb295e0a601f3493ec3d076772b5f47545af6dbb"
+    },
+    "supabase/migrations/20260811151159_sportlink_data_aware_slide_preview.sql": {
+      "candidateSha256": "6075a55ec555c63cc2698b9f12fcb77bccd370e9bbdb029e8fa2ab077f61bb9a",
+      "assemblySha256": "6075a55ec555c63cc2698b9f12fcb77bccd370e9bbdb029e8fa2ab077f61bb9a"
+    },
+    "supabase/migrations/20260811180326_dynamic_content_release_dedup.sql": {
+      "candidateSha256": "a35b8bf13ffbbf9ab778698b8c118de0da6971014449c142489f05388afa3013",
+      "assemblySha256": "a35b8bf13ffbbf9ab778698b8c118de0da6971014449c142489f05388afa3013"
+    },
+    "supabase/migrations/20260811205519_editorial_slide_readability.sql": {
+      "candidateSha256": "d1ca3f6dd9f45371fe89cba71f7b718ed4df2da6358c4c669ccbf221e4b95efb",
+      "assemblySha256": "d1ca3f6dd9f45371fe89cba71f7b718ed4df2da6358c4c669ccbf221e4b95efb"
+    },
+    "supabase/migrations/20260811213811_sportlink_client_teams_club_logo.sql": {
+      "candidateSha256": "ce0f5600317b10f868f755185450bbecd58f247b7bcaf690e43056a0b9ad1746",
+      "assemblySha256": "ce0f5600317b10f868f755185450bbecd58f247b7bcaf690e43056a0b9ad1746"
+    },
+    "supabase/migrations/20260811234046_sportlink_standing_team_logos.sql": {
+      "candidateSha256": "6b683d7f65bcfc6e87299737bc141a0c6a5732532ffa7165995273108795bc75",
+      "assemblySha256": "6b683d7f65bcfc6e87299737bc141a0c6a5732532ffa7165995273108795bc75"
+    },
+    "supabase/migrations/20260812232355_editorial_price_list.sql": {
+      "candidateSha256": "8a597912b55a74e4240482584329b9019eae32bf6babb5dea0a9e4b301ff06dd",
+      "assemblySha256": "8a597912b55a74e4240482584329b9019eae32bf6babb5dea0a9e4b301ff06dd"
+    },
+    "supabase/migrations/20260813102834_editorial_arena_slide_suite_v2.sql": {
+      "candidateSha256": "ea98cf966db267685723075306c42f07f6efb78d8de8dc02bd61cd65e21e9127",
+      "assemblySha256": "ea98cf966db267685723075306c42f07f6efb78d8de8dc02bd61cd65e21e9127"
+    },
+    "supabase/migrations/20260813111541_editorial_arena_authoring_completion.sql": {
+      "candidateSha256": "efdc2fbed3f27545eb2710d3679d91c4bd04470b6c6a825e309f2f597751239f",
+      "assemblySha256": "efdc2fbed3f27545eb2710d3679d91c4bd04470b6c6a825e309f2f597751239f"
+    },
+    "supabase/migrations/20260816204320_harden_security_definer_execute_acl.sql": {
+      "candidateSha256": "812a7b8e8fefb9dfb897e1e51e9a436d4f063f0e8a49331c2d7de8ad6f5a965c",
+      "assemblySha256": "812a7b8e8fefb9dfb897e1e51e9a436d4f063f0e8a49331c2d7de8ad6f5a965c"
+    },
+    "supabase/migrations/20260816225430_harden_rls_auto_enable_execute_acl.sql": {
+      "candidateSha256": "0220ec3bf6b54672d18b1f145ffb4c983901c7ca6b7f6f6741abb0d6228f5469",
+      "assemblySha256": "0220ec3bf6b54672d18b1f145ffb4c983901c7ca6b7f6f6741abb0d6228f5469"
+    },
+    "supabase/migrations/20260820130905_s109_theme_engine_v2.sql": {
+      "candidateSha256": "52f901695d0fcb62c3ec1ef60d9d23a84dca4d0a08a82e30d7dcf1b9d615ad5d",
+      "assemblySha256": "52f901695d0fcb62c3ec1ef60d9d23a84dca4d0a08a82e30d7dcf1b9d615ad5d"
+    },
+    "supabase/migrations/20260821125857_s111_provider_asset_cache_media_origin.sql": {
+      "candidateSha256": "53ff797bf8e69263b14e09aff37f103573328241bd5b25ca797d757785c19c2f",
+      "assemblySha256": "53ff797bf8e69263b14e09aff37f103573328241bd5b25ca797d757785c19c2f"
+    },
+    "supabase/migrations/20260821151348_menu_studio_v2.sql": {
+      "candidateSha256": "3cc4d77d835cf1b9f64ba90c4683cd55e18a457d378b40781850506d0ef4b1a5",
+      "assemblySha256": "3cc4d77d835cf1b9f64ba90c4683cd55e18a457d378b40781850506d0ef4b1a5"
+    },
+    "supabase/migrations/20260821214542_menu_studio_pilot_rollout.sql": {
+      "candidateSha256": "305ee424dc9a1254886ae9cc5f10f703ecd176a46e1a1b524f6938cb2b47dadb",
+      "assemblySha256": "305ee424dc9a1254886ae9cc5f10f703ecd176a46e1a1b524f6938cb2b47dadb"
+    },
+    "supabase/migrations/20260822001918_s115_sponsor_hub.sql": {
+      "candidateSha256": "0b5ab3b579ebae320fe35c3e3f748465c2789cce322dffe3706b481b48481510",
+      "assemblySha256": "0b5ab3b579ebae320fe35c3e3f748465c2789cce322dffe3706b481b48481510"
+    },
+    "supabase/migrations/20260822153524_menu_studio_portrait_orientation_hotfix.sql": {
+      "candidateSha256": "68f093711040ba6f1aa982385e90112e112dacbd031fad7269cb6a66d16e91b3",
+      "assemblySha256": "68f093711040ba6f1aa982385e90112e112dacbd031fad7269cb6a66d16e91b3"
+    },
+    "supabase/migrations/20260822183756_menu_studio_authoring_ux_hotfix.sql": {
+      "candidateSha256": "7f875b0040c636377f231e1f8badad6a1b916467539a4b1c6de6e56ae2a35f72",
+      "assemblySha256": "7f875b0040c636377f231e1f8badad6a1b916467539a4b1c6de6e56ae2a35f72"
+    },
+    "supabase/migrations/20260822221815_s119_unified_sportlink_studio.sql": {
+      "candidateSha256": "5abadc9d8fa30966d834cb8b43f4869daff2d09aa31c9e4bc50cc1063d36cc0a",
+      "assemblySha256": "5abadc9d8fa30966d834cb8b43f4869daff2d09aa31c9e4bc50cc1063d36cc0a"
+    },
+    "supabase/migrations/20260823190000_s122_dynamic_slide_versions.sql": {
+      "candidateSha256": "6373d49e7a5f1e73059f03edc9b899d4a364ea70fab0c78786b171de83eeb231",
+      "assemblySha256": "6373d49e7a5f1e73059f03edc9b899d4a364ea70fab0c78786b171de83eeb231"
+    },
+    "supabase/migrations/20260824145414_s123_media_collections_bulk_commands.sql": {
+      "candidateSha256": "d60b4610de07c0265fcae4dfbee26d43a68eeccf8343bd3c3431f7ceb25443a0",
+      "assemblySha256": "d60b4610de07c0265fcae4dfbee26d43a68eeccf8343bd3c3431f7ceb25443a0"
+    },
+    "supabase/migrations/20260824160000_s123_tenant_onboarding.sql": {
+      "candidateSha256": "2371e432f2b399a7b4062598e868259a7625c62225952f406f01e8b3eb6ad393",
+      "assemblySha256": "2371e432f2b399a7b4062598e868259a7625c62225952f406f01e8b3eb6ad393"
+    },
+    "supabase/migrations/20260824170000_s123_venue_twin_foundation.sql": {
+      "candidateSha256": "a122f242f03a96449b4dd61ed8f721cfd83466a51266301e15fdf43b239dde19",
+      "assemblySha256": "a122f242f03a96449b4dd61ed8f721cfd83466a51266301e15fdf43b239dde19"
+    },
+    "supabase/migrations/20260824190000_s123_studio_source_video.sql": {
+      "candidateSha256": "41676da0ee6191fd1d59d134221c7ed99e419af42c890fc67ed377b226534b07",
+      "assemblySha256": "41676da0ee6191fd1d59d134221c7ed99e419af42c890fc67ed377b226534b07"
+    },
+    "supabase/migrations/20260824200000_s123_engage_youtube_integrations.sql": {
+      "candidateSha256": "2018d4962ee6131ac84f4979c526d6e2578dd75ca23b5b2431aa2c16c9a4c790",
+      "assemblySha256": "2018d4962ee6131ac84f4979c526d6e2578dd75ca23b5b2431aa2c16c9a4c790"
+    },
+    "supabase/migrations/20260824210000_s123_mobile_engage_commands.sql": {
+      "candidateSha256": "f359da8d7883de61b74dbff41ff105f40744525dd694216cb4aa787e098bb3a6",
+      "assemblySha256": "f359da8d7883de61b74dbff41ff105f40744525dd694216cb4aa787e098bb3a6"
+    },
+    "supabase/migrations/20260824220000_s123_youtube_immutable_player_binding.sql": {
+      "candidateSha256": "086525274ad87ec0bf1e3e2112b3e06df187310245344ddcc907afe4ae6bd879",
+      "assemblySha256": "086525274ad87ec0bf1e3e2112b3e06df187310245344ddcc907afe4ae6bd879"
+    },
+    "supabase/migrations/20260824223000_s123_engage_player_binding.sql": {
+      "candidateSha256": "f9ac574467d3c493e8b7c94183d81b253f7f3124f09db8ca09fdca7db48dc610",
+      "assemblySha256": "f9ac574467d3c493e8b7c94183d81b253f7f3124f09db8ca09fdca7db48dc610"
+    },
+    "supabase/migrations/20260824230000_s123_billing_entitlements_foundation.sql": {
+      "candidateSha256": "177f398ca0402ab7eea8cdacb577801ba815abe953f0b8bf2a966bc63762e479",
+      "assemblySha256": "177f398ca0402ab7eea8cdacb577801ba815abe953f0b8bf2a966bc63762e479"
+    },
+    "supabase/migrations/20260824233000_s123_custom_role_capability_normalization.sql": {
+      "candidateSha256": "f1ba613db97519cbc1d70b236ee65c43944c6f8554fec65de8ca6793d1c1d594",
+      "assemblySha256": "f1ba613db97519cbc1d70b236ee65c43944c6f8554fec65de8ca6793d1c1d594"
+    },
+    "supabase/migrations/20260825174328_s124_vector_pilot_rollout.sql": {
+      "candidateSha256": "f18b30cfb57fe81fdccd52594f387a11e02fa529f80df383da2e48692739811f",
+      "assemblySha256": "f18b30cfb57fe81fdccd52594f387a11e02fa529f80df383da2e48692739811f"
+    },
+    "supabase/migrations/20260826231431_product_logo_upload.sql": {
+      "candidateSha256": "46952916a566f935af48242dbec53a56f3ab9b501484cd77d1a3b13066d6754d",
+      "assemblySha256": "46952916a566f935af48242dbec53a56f3ab9b501484cd77d1a3b13066d6754d"
+    },
+    "supabase/migrations/20260828191103_s128_sportlink_birthdays.sql": {
+      "candidateSha256": "e3690e22b8ee6fa40eaa0716a873fda6eafc0f68ec2185ab7a0e973dd3b3eb56",
+      "assemblySha256": "e3690e22b8ee6fa40eaa0716a873fda6eafc0f68ec2185ab7a0e973dd3b3eb56"
+    },
+    "supabase/migrations/20260829125034_s129_home_match_welcome.sql": {
+      "candidateSha256": "014bc98a9ed9d50e8e684650b6f03ecff739c4a8bd91ad575af887715f38b378",
+      "assemblySha256": "014bc98a9ed9d50e8e684650b6f03ecff739c4a8bd91ad575af887715f38b378"
+    },
+    "supabase/migrations/20260830103000_s133_sportlink_provider_asset_completion_hotfix.sql": {
+      "candidateSha256": "e3f701b5956a086e1e3b2359918a4604e9fb123a8e87281858e4bff8eeead89c",
+      "assemblySha256": "e3f701b5956a086e1e3b2359918a4604e9fb123a8e87281858e4bff8eeead89c"
+    },
+    "supabase/migrations/20260830110558_s132_ledscores_realtime_goal_alert.sql": {
+      "candidateSha256": "5d9a738e73d1bc6b00d56c907a3669c19184f1ccff5db70dede71350b0a95f02",
+      "assemblySha256": "5d9a738e73d1bc6b00d56c907a3669c19184f1ccff5db70dede71350b0a95f02"
+    },
+    "supabase/migrations/20260830175500_s136_sportlink_arrival_window_units.sql": {
+      "candidateSha256": "b3ad2aff981a70a47cc931dc7e3a634e0c423f9c4ef156d2add4a4a7f3c836cc",
+      "assemblySha256": "b3ad2aff981a70a47cc931dc7e3a634e0c423f9c4ef156d2add4a4a7f3c836cc"
+    },
+    "supabase/migrations/20260830214000_s138_birthday_wizard_team_selection.sql": {
+      "candidateSha256": "08a02acc590221be7dfa5a8e0437e92822d3d1b18e82901579151c6d201a94b1",
+      "assemblySha256": "08a02acc590221be7dfa5a8e0437e92822d3d1b18e82901579151c6d201a94b1"
+    },
+    "supabase/migrations/20260831095437_s139_ledscores_feature_rollout_v2.sql": {
+      "candidateSha256": "2f484306c91ca0e1f0e4e2a2a569d1131e3e8b62edc1771e289a02382977997a",
+      "assemblySha256": "2f484306c91ca0e1f0e4e2a2a569d1131e3e8b62edc1771e289a02382977997a"
+    },
+    "supabase/migrations/20260831195914_s141_ledscores_live_match_experience.sql": {
+      "candidateSha256": "f3096d641bf6923c69b99669564b008cbdf1f23444f5034e30879ff678e5f576",
+      "assemblySha256": "f3096d641bf6923c69b99669564b008cbdf1f23444f5034e30879ff678e5f576"
+    },
+    "supabase/migrations/20260901013000_s141_ledscores_source_observation_order.sql": {
+      "candidateSha256": "64fad914dcacffaa90b83c07afb4b448f88a643c171694538b65b0dafef8f834",
+      "assemblySha256": "64fad914dcacffaa90b83c07afb4b448f88a643c171694538b65b0dafef8f834"
+    },
+    "supabase/migrations/20260901124208_s142_ledscores_canvas_editor.sql": {
+      "candidateSha256": "12264c91f2d0556bb0cca69abd60403ac1ed3c61fcbe2b5ae548fcc1548cf034",
+      "assemblySha256": "12264c91f2d0556bb0cca69abd60403ac1ed3c61fcbe2b5ae548fcc1548cf034"
+    },
+    "supabase/migrations/20260902113201_s144_fieldflow_theme_authoring.sql": {
+      "candidateSha256": "6bfc3b72d60b00375efac119189b7362f92cd3a8e247c918c14dd87c3b437bf1",
+      "assemblySha256": "6bfc3b72d60b00375efac119189b7362f92cd3a8e247c918c14dd87c3b437bf1"
+    },
+    "supabase/migrations/20260902114938_s144_sportlink_dual_team_logos.sql": {
+      "candidateSha256": "b182bb1a3866ccb8caaf515b896b2e32848b5b2d435494f0f15dddcb022e45f1",
+      "assemblySha256": "b182bb1a3866ccb8caaf515b896b2e32848b5b2d435494f0f15dddcb022e45f1"
+    },
+    "supabase/migrations/20260902120358_s144_sportlink_display_and_arrival_assets.sql": {
+      "candidateSha256": "c7148c261ea53c842159ac4af5ff3f21ee067c72b4e5cb9ca54fd21e4f5677d3",
+      "assemblySha256": "c7148c261ea53c842159ac4af5ff3f21ee067c72b4e5cb9ca54fd21e4f5677d3"
+    },
+    "supabase/migrations/20260904190700_s145_supabase_lint_recovery.sql": {
+      "candidateSha256": "e8ddd6389c47584688ec86e83714a69d0df8bb17414f6966c530c4c1947e47ff",
+      "assemblySha256": "e8ddd6389c47584688ec86e83714a69d0df8bb17414f6966c530c4c1947e47ff"
+    },
+    "supabase/migrations/20260904212639_s146_sportlink_arrival_groups.sql": {
+      "candidateSha256": "a234cd56014c76f7af0964b9ef2f57a07d85ba89f7a976237a96aa6b800b58e3",
+      "assemblySha256": "a234cd56014c76f7af0964b9ef2f57a07d85ba89f7a976237a96aa6b800b58e3"
+    },
+    "supabase/migrations/20260905185632_s149_tenant_theme_colors.sql": {
+      "candidateSha256": "07705d8378d92b50bc96f68fbd70dfe13f54832a27c65897b3285e9235149e54",
+      "assemblySha256": "07705d8378d92b50bc96f68fbd70dfe13f54832a27c65897b3285e9235149e54"
+    },
+    "supabase/migrations/20260905204805_s150_visitor_welcome_card_layout.sql": {
+      "candidateSha256": "3272eb748fa274bc05fa5d790726af1a6157f019a936131e2eff7451d3722ecc",
+      "assemblySha256": "3272eb748fa274bc05fa5d790726af1a6157f019a936131e2eff7451d3722ecc"
+    },
+    "supabase/migrations/20260906001334_s152_theme_editor_recovery.sql": {
+      "candidateSha256": "8fcda3f44573b1f4856b5bd305979de2659c8f3ef000f0b3d436d01305207121",
+      "assemblySha256": "8fcda3f44573b1f4856b5bd305979de2659c8f3ef000f0b3d436d01305207121"
+    },
+    "supabase/migrations/20260906143000_s153_slide_theme_backoffice.sql": {
+      "candidateSha256": "53c9a660547b6180a97a3608ece695df415e4ff51378c8c701af455e0d49a9e7",
+      "assemblySha256": "53c9a660547b6180a97a3608ece695df415e4ff51378c8c701af455e0d49a9e7"
+    },
+    "supabase/migrations/20260906230355_s154_club_match_scope.sql": {
+      "candidateSha256": "ab748328de22f3931e6256bff94fd182049d04cb1a198c84a4ce0ba907d16f05",
+      "assemblySha256": "ab748328de22f3931e6256bff94fd182049d04cb1a198c84a4ce0ba907d16f05"
+    },
+    "supabase/migrations/20260907134246_s155_welcome_news_layout.sql": {
+      "candidateSha256": "995a951cf9bb1bb61957e0191290e4277ed903181cf1c3309ee70ef7066734e2",
+      "assemblySha256": "995a951cf9bb1bb61957e0191290e4277ed903181cf1c3309ee70ef7066734e2"
+    },
+    "supabase/migrations/20260907192942_s156_slide_layout_completion.sql": {
+      "candidateSha256": "3c713c45656382954a809c8f80d042a8240d72b4913a4bff3023bbb717a4216c",
+      "assemblySha256": "3c713c45656382954a809c8f80d042a8240d72b4913a4bff3023bbb717a4216c"
+    },
+    "supabase/migrations/20260908134500_s158_match_row_layout.sql": {
+      "candidateSha256": "a845126cc927ec1a6fd1c82559a1eaacdc03b233c16249a51db9fe3d1120b37a",
+      "assemblySha256": "a845126cc927ec1a6fd1c82559a1eaacdc03b233c16249a51db9fe3d1120b37a"
+    },
+    "supabase/migrations/20260908224609_s159_royal_theme_scale.sql": {
+      "candidateSha256": "8489bcd05911caf0ecbc55fa7a898ba84b32c245b03ccfeaec2ca3d41858923e",
+      "assemblySha256": "8489bcd05911caf0ecbc55fa7a898ba84b32c245b03ccfeaec2ca3d41858923e"
+    },
+    "supabase/migrations/20260909174500_s161_royal_current_theme.sql": {
+      "candidateSha256": "e2a199a705c284b00f14f2100326e69979a18deff30144044577ae7527cbf4ad",
+      "assemblySha256": "e2a199a705c284b00f14f2100326e69979a18deff30144044577ae7527cbf4ad"
+    },
+    "supabase/migrations/20260910005613_s162_theme_rollout_planner.sql": {
+      "candidateSha256": "543c5c29e8d4b41a5b785be6848d2221950f54d5046ecdba85400a176fa7db12",
+      "assemblySha256": "543c5c29e8d4b41a5b785be6848d2221950f54d5046ecdba85400a176fa7db12"
+    },
+    "supabase/migrations/20260910183000_playlist_delete_archived_and_unassign.sql": {
+      "candidateSha256": "90f66ae6a80a49a5c5803db5e1a6d7393bdb07052becc0d22fc7e2e249d559a6",
+      "assemblySha256": "90f66ae6a80a49a5c5803db5e1a6d7393bdb07052becc0d22fc7e2e249d559a6"
+    },
+    "supabase/migrations/20260910220632_sportlink_rss_noop_revision_and_playlist_delete.sql": {
+      "candidateSha256": "05ecfd0d3d00ca0831935430a5cdc71b6614b13d6a1277246acb652e2ec91554",
+      "assemblySha256": "05ecfd0d3d00ca0831935430a5cdc71b6614b13d6a1277246acb652e2ec91554"
+    },
+    "supabase/migrations/20260910224436_playlist_delete_dependency_order.sql": {
+      "candidateSha256": "55a12ed3758b8c39e297e25743124f654c068d8e489128bfa1e0a57aa06702f1",
+      "assemblySha256": "55a12ed3758b8c39e297e25743124f654c068d8e489128bfa1e0a57aa06702f1"
+    },
+    "supabase/migrations/20260911154223_s171_birthday_sportlink_logo.sql": {
+      "candidateSha256": "03fbde0c11d2829aa0c61c6bf1e82e81aaca9dd6a5f1837da599f9cc759d8961",
+      "assemblySha256": "03fbde0c11d2829aa0c61c6bf1e82e81aaca9dd6a5f1837da599f9cc759d8961"
     },
     "supabase/migrations/20260912105908_s175_goal_overlay_2.sql": {
       "candidateSha256": "016ea58292af77a9d45187a1bc46d9df7e3bdf25dd3ce4c1c4f3a2015daada31",
@@ -727,785 +518,989 @@
       "candidateSha256": "bdd8325434ea99b1d4c5a2a7b7e7647d9ea0c32f5af95f4dd4c46228c8474923",
       "assemblySha256": "bdd8325434ea99b1d4c5a2a7b7e7647d9ea0c32f5af95f4dd4c46228c8474923"
     },
-    "supabase/migrations/20260813111541_editorial_arena_authoring_completion.sql": {
-      "candidateSha256": "efdc2fbed3f27545eb2710d3679d91c4bd04470b6c6a825e309f2f597751239f",
-      "assemblySha256": "efdc2fbed3f27545eb2710d3679d91c4bd04470b6c6a825e309f2f597751239f"
+    "supabase/migrations/20260912153412_s177_dynamic_slide_management.sql": {
+      "candidateSha256": "96b0b0770ffa4b45f204d83b737ca80d67527304c37dc6e0e51fe189b5fa6d90",
+      "assemblySha256": "96b0b0770ffa4b45f204d83b737ca80d67527304c37dc6e0e51fe189b5fa6d90"
     },
-    "supabase/migrations/20260824223000_s123_engage_player_binding.sql": {
-      "candidateSha256": "f9ac574467d3c493e8b7c94183d81b253f7f3124f09db8ca09fdca7db48dc610",
-      "assemblySha256": "f9ac574467d3c493e8b7c94183d81b253f7f3124f09db8ca09fdca7db48dc610"
+    "supabase/migrations/20260912180627_s178_standing_team_identity.sql": {
+      "candidateSha256": "2bf0edd3240059c3b8380df70a1a181590140f41a10933b71f67169e58b137ec",
+      "assemblySha256": "2bf0edd3240059c3b8380df70a1a181590140f41a10933b71f67169e58b137ec"
     },
-    "supabase/migrations/20261018064315_sync_dynamic_authoring_receipts.sql": {
-      "candidateSha256": "2026d7a5dbf31a1cb3096c41cefcd7318086424f9bf50332b2a8804216a28716",
-      "assemblySha256": "2026d7a5dbf31a1cb3096c41cefcd7318086424f9bf50332b2a8804216a28716"
+    "supabase/migrations/20260912214500_s180_content_recovery.sql": {
+      "candidateSha256": "9f8e41b0e07ca1a17cba0502652d5b79c32fbb745d102c9db2da07a1294d1d9a",
+      "assemblySha256": "9f8e41b0e07ca1a17cba0502652d5b79c32fbb745d102c9db2da07a1294d1d9a"
     },
-    "supabase/migrations/20260728610000_dynamic_template_commands.sql": {
-      "candidateSha256": "a78cb91f0a7c6429782291f4d2e4418b4c8ee2c15a2634e3bd2d44d7a4452a87",
-      "assemblySha256": "a78cb91f0a7c6429782291f4d2e4418b4c8ee2c15a2634e3bd2d44d7a4452a87"
+    "supabase/migrations/20260919215758_s185_current_publication.sql": {
+      "candidateSha256": "b9362784a229a5c934c1d9e77d629ed68c08f86fbd03f465acff60c157f4ef99",
+      "assemblySha256": "b9362784a229a5c934c1d9e77d629ed68c08f86fbd03f465acff60c157f4ef99"
     },
-    "supabase/migrations/20261019000000_sync_media_frame_series.sql": {
-      "candidateSha256": "cb912b87b3ea2dfa467539ad6a4055f1ffbbd6e00b990a5a5d8892ace3734db3",
-      "assemblySha256": "cb912b87b3ea2dfa467539ad6a4055f1ffbbd6e00b990a5a5d8892ace3734db3"
+    "supabase/migrations/20260919224031_s185_publication_operations.sql": {
+      "candidateSha256": "96af6c93ab0a4b4d79785bc2cb08b23998c8c03890055a568f850a0cad4e7add",
+      "assemblySha256": "96af6c93ab0a4b4d79785bc2cb08b23998c8c03890055a568f850a0cad4e7add"
     },
-    "supabase/migrations/20260728500000_pairing_recovery_foundation.sql": {
-      "candidateSha256": "8267c4682df04729e927dcf9b358ac1259a36563daf51e6db21afd91dadb5b47",
-      "assemblySha256": "8267c4682df04729e927dcf9b358ac1259a36563daf51e6db21afd91dadb5b47"
+    "supabase/migrations/20260920124732_s186_egress_queue_hint.sql": {
+      "candidateSha256": "881b49a9cadcb525cb29bdcd73653561f71f944e5776ad1beca1b374b63f6f18",
+      "assemblySha256": "881b49a9cadcb525cb29bdcd73653561f71f944e5776ad1beca1b374b63f6f18"
     },
-    "supabase/migrations/20260718210000_media_worker_daemon.sql": {
-      "candidateSha256": "53d3c2d4accfe0300f869319bf3f2419f0aea2d6920db50ae47a8f0dd66a9bbc",
-      "assemblySha256": "53d3c2d4accfe0300f869319bf3f2419f0aea2d6920db50ae47a8f0dd66a9bbc"
+    "supabase/migrations/20260926224912_s188_standing_fields.sql": {
+      "candidateSha256": "55b74baea740d7da16079994149d6a51b4dadb9822d3f3995243c95bdda179a4",
+      "assemblySha256": "55b74baea740d7da16079994149d6a51b4dadb9822d3f3995243c95bdda179a4"
     },
-    "supabase/migrations/20261018008500_sync_dynamic_canonical_snapshot.sql": {
-      "candidateSha256": "7d47d168d10c7f61f9ff9a62bc9417f2634f70cb46e0030f498e6463ace4451b",
-      "assemblySha256": "7d47d168d10c7f61f9ff9a62bc9417f2634f70cb46e0030f498e6463ace4451b"
+    "supabase/migrations/20261011100000_s190_published_data_refresh_queue.sql": {
+      "candidateSha256": "cf45cf4d7cc3f4e821f957a428c2604612991bc69a546ed9ee35a70947cc9b4f",
+      "assemblySha256": "cf45cf4d7cc3f4e821f957a428c2604612991bc69a546ed9ee35a70947cc9b4f"
     },
-    "supabase/migrations/20260906230355_s154_club_match_scope.sql": {
-      "candidateSha256": "ab748328de22f3931e6256bff94fd182049d04cb1a198c84a4ce0ba907d16f05",
-      "assemblySha256": "ab748328de22f3931e6256bff94fd182049d04cb1a198c84a4ce0ba907d16f05"
+    "supabase/migrations/20261011110000_s190_superseded_version_retention.sql": {
+      "candidateSha256": "5bc35b4bce7c608d01f3ea78634814f1a0762f53ea0cecfd5f2c72f9595dc189",
+      "assemblySha256": "5bc35b4bce7c608d01f3ea78634814f1a0762f53ea0cecfd5f2c72f9595dc189"
     },
-    "supabase/migrations/20260824220000_s123_youtube_immutable_player_binding.sql": {
-      "candidateSha256": "086525274ad87ec0bf1e3e2112b3e06df187310245344ddcc907afe4ae6bd879",
-      "assemblySha256": "086525274ad87ec0bf1e3e2112b3e06df187310245344ddcc907afe4ae6bd879"
+    "supabase/migrations/20261011120000_s190_worker_queue_hint.sql": {
+      "candidateSha256": "18e57df40308eccec2b2623bf375299b2fc709022d03290282189f776d9e85f9",
+      "assemblySha256": "18e57df40308eccec2b2623bf375299b2fc709022d03290282189f776d9e85f9"
     },
-    "supabase/migrations/20260802090000_sportlink_worker_lease_renewal.sql": {
-      "candidateSha256": "beb832e3e583bf9c5a73bc5ab8bda43ffba1fa0015edc4b209fdca2c72a449ed",
-      "assemblySha256": "beb832e3e583bf9c5a73bc5ab8bda43ffba1fa0015edc4b209fdca2c72a449ed"
+    "supabase/migrations/20261011130000_s190_live_integration_diagnostics.sql": {
+      "candidateSha256": "560ab3f635130cd7c5e4d16b436dc17ffdda5b2743da375cda499634840cc685",
+      "assemblySha256": "560ab3f635130cd7c5e4d16b436dc17ffdda5b2743da375cda499634840cc685"
     },
-    "supabase/migrations/20261018005500_sync_studio_metadata_cas.sql": {
-      "candidateSha256": "49be7ce8b927cc027f56f15972af36fa0d3bd35cfc675c319987635bd5c1d3e7",
-      "assemblySha256": "49be7ce8b927cc027f56f15972af36fa0d3bd35cfc675c319987635bd5c1d3e7"
+    "supabase/migrations/20261011150000_s191_playlist_batch.sql": {
+      "candidateSha256": "b07e639de8efe5484b3213145a7f35609d5fd51caadd7c3716f3e114d445c1ae",
+      "assemblySha256": "b07e639de8efe5484b3213145a7f35609d5fd51caadd7c3716f3e114d445c1ae"
     },
-    "supabase/migrations/20260718220000_control_authoring_mvp.sql": {
-      "candidateSha256": "970011864ed72a881924781717523bc63ca5b008ecb47185f26fab0fc4d9dbb7",
-      "assemblySha256": "970011864ed72a881924781717523bc63ca5b008ecb47185f26fab0fc4d9dbb7"
-    },
-    "supabase/migrations/20260911154223_s171_birthday_sportlink_logo.sql": {
-      "candidateSha256": "03fbde0c11d2829aa0c61c6bf1e82e81aaca9dd6a5f1837da599f9cc759d8961",
-      "assemblySha256": "03fbde0c11d2829aa0c61c6bf1e82e81aaca9dd6a5f1837da599f9cc759d8961"
-    },
-    "supabase/migrations/20260725110000_pairing_refresh_recovery.sql": {
-      "candidateSha256": "9dd51ba7ef821456acb8562c4a98db32a463d1d95c448e69cbeccfe2e361b357",
-      "assemblySha256": "9dd51ba7ef821456acb8562c4a98db32a463d1d95c448e69cbeccfe2e361b357"
-    },
-    "supabase/migrations/20260811234046_sportlink_standing_team_logos.sql": {
-      "candidateSha256": "6b683d7f65bcfc6e87299737bc141a0c6a5732532ffa7165995273108795bc75",
-      "assemblySha256": "6b683d7f65bcfc6e87299737bc141a0c6a5732532ffa7165995273108795bc75"
-    },
-    "supabase/migrations/20261109000829_s295_sportlink_observation_scope.sql": {
-      "candidateSha256": "12db2a793a896bd79eb747bd7bdc93e81ad91586427d72f651083db05368f9e7",
-      "assemblySha256": "12db2a793a896bd79eb747bd7bdc93e81ad91586427d72f651083db05368f9e7"
-    },
-    "supabase/migrations/20261011290000_s191_product_commands.sql": {
-      "candidateSha256": "48b024135c13eda0c068d7bbc66728ab54a7a80a183baf10a9057df212b1638e",
-      "assemblySha256": "48b024135c13eda0c068d7bbc66728ab54a7a80a183baf10a9057df212b1638e"
-    },
-    "supabase/migrations/20260803140000_editorial_arena_html_theme.sql": {
-      "candidateSha256": "9da6190d4ea18141fd1891df931420014cccd76b2c27a722f37646ca86f2afaa",
-      "assemblySha256": "9da6190d4ea18141fd1891df931420014cccd76b2c27a722f37646ca86f2afaa"
-    },
-    "supabase/migrations/20260803130000_sportlink_standing_seasons_theme.sql": {
-      "candidateSha256": "7c806a6b7345eae4cf57f530889f197e09454ac76228619a4f611a59f8de3139",
-      "assemblySha256": "7c806a6b7345eae4cf57f530889f197e09454ac76228619a4f611a59f8de3139"
-    },
-    "supabase/migrations/20260904190700_s145_supabase_lint_recovery.sql": {
-      "candidateSha256": "e8ddd6389c47584688ec86e83714a69d0df8bb17414f6966c530c4c1947e47ff",
-      "assemblySha256": "e8ddd6389c47584688ec86e83714a69d0df8bb17414f6966c530c4c1947e47ff"
-    },
-    "supabase/migrations/20260803090000_sportlink_team_sync_contexts.sql": {
-      "candidateSha256": "d14df5a1b196f8c2378d65b95c7aca8711a09306f415bf991a70a49adcc6628c",
-      "assemblySha256": "d14df5a1b196f8c2378d65b95c7aca8711a09306f415bf991a70a49adcc6628c"
-    },
-    "supabase/migrations/20260902114938_s144_sportlink_dual_team_logos.sql": {
-      "candidateSha256": "b182bb1a3866ccb8caaf515b896b2e32848b5b2d435494f0f15dddcb022e45f1",
-      "assemblySha256": "b182bb1a3866ccb8caaf515b896b2e32848b5b2d435494f0f15dddcb022e45f1"
-    },
-    "supabase/migrations/20261022183152_sync_onzetrots_approved_renderer.sql": {
-      "candidateSha256": "bb6dd3f4d8ffe1d1bafba608d429f120c183bef9fe192a9cb36ca3d2dcf8690a",
-      "assemblySha256": "bb6dd3f4d8ffe1d1bafba608d429f120c183bef9fe192a9cb36ca3d2dcf8690a"
-    },
-    "supabase/migrations/20260901124208_s142_ledscores_canvas_editor.sql": {
-      "candidateSha256": "12264c91f2d0556bb0cca69abd60403ac1ed3c61fcbe2b5ae548fcc1548cf034",
-      "assemblySha256": "12264c91f2d0556bb0cca69abd60403ac1ed3c61fcbe2b5ae548fcc1548cf034"
-    },
-    "supabase/migrations/20260811151159_sportlink_data_aware_slide_preview.sql": {
-      "candidateSha256": "6075a55ec555c63cc2698b9f12fcb77bccd370e9bbdb029e8fa2ab077f61bb9a",
-      "assemblySha256": "6075a55ec555c63cc2698b9f12fcb77bccd370e9bbdb029e8fa2ab077f61bb9a"
-    },
-    "supabase/migrations/20261018007000_sync_dynamic_configuration.sql": {
-      "candidateSha256": "034dedb622aa319ad07ee96ab84e30741b198a2084d0919b2adf901c8629de21",
-      "assemblySha256": "034dedb622aa319ad07ee96ab84e30741b198a2084d0919b2adf901c8629de21"
-    },
-    "supabase/migrations/20260720090000_identity_context_mfa_enforcement.sql": {
-      "candidateSha256": "8c7bf151b49e777c882b05cc40d01caa9760b3c56568ee6954f7ffe242f5afa2",
-      "assemblySha256": "8c7bf151b49e777c882b05cc40d01caa9760b3c56568ee6954f7ffe242f5afa2"
-    },
-    "supabase/migrations/20260909174500_s161_royal_current_theme.sql": {
-      "candidateSha256": "e2a199a705c284b00f14f2100326e69979a18deff30144044577ae7527cbf4ad",
-      "assemblySha256": "e2a199a705c284b00f14f2100326e69979a18deff30144044577ae7527cbf4ad"
-    },
-    "supabase/migrations/20260830103000_s133_sportlink_provider_asset_completion_hotfix.sql": {
-      "candidateSha256": "e3f701b5956a086e1e3b2359918a4604e9fb123a8e87281858e4bff8eeead89c",
-      "assemblySha256": "e3f701b5956a086e1e3b2359918a4604e9fb123a8e87281858e4bff8eeead89c"
-    },
-    "supabase/migrations/20260716180000_playlist_release_model.sql": {
-      "candidateSha256": "426777804cc3243802e23e755c57f1ff96f293a845123dea538c1dd80bb9024b",
-      "assemblySha256": "426777804cc3243802e23e755c57f1ff96f293a845123dea538c1dd80bb9024b"
-    },
-    "supabase/migrations/20261011180000_s191_youtube_playlists.sql": {
-      "candidateSha256": "010029ec6613c9d1864d3e5bdc491ff83222a06f7f4487d12b44f51601b1aeaf",
-      "assemblySha256": "010029ec6613c9d1864d3e5bdc491ff83222a06f7f4487d12b44f51601b1aeaf"
+    "supabase/migrations/20261011160000_s191_sites_theme_authoring.sql": {
+      "candidateSha256": "a50121b522c96eb598f8a092a6d5d8401f0eaf234f1e89eaa24e8bc72e0f05da",
+      "assemblySha256": "a50121b522c96eb598f8a092a6d5d8401f0eaf234f1e89eaa24e8bc72e0f05da"
     },
     "supabase/migrations/20261011165000_s191_studio_series.sql": {
       "candidateSha256": "24d8e60cc845e0530e1e3ca1670b1c13f9f40e8155eb8d9c1e3493c934970fcf",
       "assemblySha256": "24d8e60cc845e0530e1e3ca1670b1c13f9f40e8155eb8d9c1e3493c934970fcf"
     },
-    "supabase/migrations/20260906001334_s152_theme_editor_recovery.sql": {
-      "candidateSha256": "8fcda3f44573b1f4856b5bd305979de2659c8f3ef000f0b3d436d01305207121",
-      "assemblySha256": "8fcda3f44573b1f4856b5bd305979de2659c8f3ef000f0b3d436d01305207121"
+    "supabase/migrations/20261011170000_s191_screen_composition.sql": {
+      "candidateSha256": "11ffafe5467c566a9c9880171b29c4761c67bacdba450ee581c4d4436a45cd0f",
+      "assemblySha256": "11ffafe5467c566a9c9880171b29c4761c67bacdba450ee581c4d4436a45cd0f"
     },
-    "supabase/migrations/20260830175500_s136_sportlink_arrival_window_units.sql": {
-      "candidateSha256": "b3ad2aff981a70a47cc931dc7e3a634e0c423f9c4ef156d2add4a4a7f3c836cc",
-      "assemblySha256": "b3ad2aff981a70a47cc931dc7e3a634e0c423f9c4ef156d2add4a4a7f3c836cc"
+    "supabase/migrations/20261011180000_s191_youtube_playlists.sql": {
+      "candidateSha256": "010029ec6613c9d1864d3e5bdc491ff83222a06f7f4487d12b44f51601b1aeaf",
+      "assemblySha256": "010029ec6613c9d1864d3e5bdc491ff83222a06f7f4487d12b44f51601b1aeaf"
     },
-    "supabase/migrations/20261023140732_sync_onzetrots_v9.sql": {
-      "candidateSha256": "4c8be92b9b30dd3c9cfda345f0822687bba817b4c255059af1b0e77005bdf11e",
-      "assemblySha256": "4c8be92b9b30dd3c9cfda345f0822687bba817b4c255059af1b0e77005bdf11e"
+    "supabase/migrations/20261011190000_s191_sites_publisher_commands.sql": {
+      "candidateSha256": "79a5e67448d6534d08be3e9a0bf5ab9075655df9d1f0c2dad7cfc7fc95501420",
+      "assemblySha256": "79a5e67448d6534d08be3e9a0bf5ab9075655df9d1f0c2dad7cfc7fc95501420"
     },
-    "supabase/migrations/20260802120000_rss_portrait_html_template.sql": {
-      "candidateSha256": "d1fa944902f3b48cd365677ff1af9399bd8c0cad5d8e2042677fdcc2094b0858",
-      "assemblySha256": "d1fa944902f3b48cd365677ff1af9399bd8c0cad5d8e2042677fdcc2094b0858"
+    "supabase/migrations/20261011200000_s191_provider_completion_latency.sql": {
+      "candidateSha256": "766e0cc2a087dc7742b8ced91853a0d7d65daddd463de6328df57d4e48ebee6c",
+      "assemblySha256": "766e0cc2a087dc7742b8ced91853a0d7d65daddd463de6328df57d4e48ebee6c"
+    },
+    "supabase/migrations/20261011210000_s191_publisher_library_and_restore.sql": {
+      "candidateSha256": "9be1dfaf0216ef91dc80dddbd6d284716a08fa921fd423fc92712be177f2b547",
+      "assemblySha256": "9be1dfaf0216ef91dc80dddbd6d284716a08fa921fd423fc92712be177f2b547"
+    },
+    "supabase/migrations/20261011220000_s191_playlist_library.sql": {
+      "candidateSha256": "975ed7b992b3ca8143d62bc6105e302aa6621aad88902335c0925a23f9d1d873",
+      "assemblySha256": "975ed7b992b3ca8143d62bc6105e302aa6621aad88902335c0925a23f9d1d873"
+    },
+    "supabase/migrations/20261011230000_s191_sites_studio_playback.sql": {
+      "candidateSha256": "3e29b2d10ae7d96173d5c1ed18d4d7455ba56f7bed5924624b5e00236c47104d",
+      "assemblySha256": "3e29b2d10ae7d96173d5c1ed18d4d7455ba56f7bed5924624b5e00236c47104d"
     },
     "supabase/migrations/20261011240000_s191_led_scene_authoring.sql": {
       "candidateSha256": "9b20fd4490e09e84563237c03faa6f44f385dbb730b3ddefe8ac19aac2466db6",
       "assemblySha256": "9b20fd4490e09e84563237c03faa6f44f385dbb730b3ddefe8ac19aac2466db6"
     },
+    "supabase/migrations/20261011260000_s191_source_sites_persistence.sql": {
+      "candidateSha256": "c032f238c90a072ec816fff2a89dcb567088c18298be335ae131e7c5230d53b9",
+      "assemblySha256": "c032f238c90a072ec816fff2a89dcb567088c18298be335ae131e7c5230d53b9"
+    },
+    "supabase/migrations/20261011270000_s191_planning_commands.sql": {
+      "candidateSha256": "c64085aeddf58a1f4bdad39f449d612fea9918c26763ce32cac7422b887d5b0b",
+      "assemblySha256": "c64085aeddf58a1f4bdad39f449d612fea9918c26763ce32cac7422b887d5b0b"
+    },
+    "supabase/migrations/20261011290000_s191_product_commands.sql": {
+      "candidateSha256": "48b024135c13eda0c068d7bbc66728ab54a7a80a183baf10a9057df212b1638e",
+      "assemblySha256": "48b024135c13eda0c068d7bbc66728ab54a7a80a183baf10a9057df212b1638e"
+    },
+    "supabase/migrations/20261011300000_s191_sportlink_family_registry.sql": {
+      "candidateSha256": "33e7498f2ee4f274afffbe4d3544793b0d7e657be98477939d7e21b51aca981f",
+      "assemblySha256": "33e7498f2ee4f274afffbe4d3544793b0d7e657be98477939d7e21b51aca981f"
+    },
+    "supabase/migrations/20261011310000_s191_engage_commands.sql": {
+      "candidateSha256": "c90e59f5c4796358782da21bede27b29b3f47ac8a5031a197a1367aea8b1f858",
+      "assemblySha256": "c90e59f5c4796358782da21bede27b29b3f47ac8a5031a197a1367aea8b1f858"
+    },
+    "supabase/migrations/20261011320000_s191_screen_onboarding.sql": {
+      "candidateSha256": "433ad4b63b3924f0651c62df4e0059a581acb6eed69203120c63fe64030b3afd",
+      "assemblySha256": "433ad4b63b3924f0651c62df4e0059a581acb6eed69203120c63fe64030b3afd"
+    },
+    "supabase/migrations/20261011330000_s191_source_connection_commands.sql": {
+      "candidateSha256": "602eebc180c76131e26beca6d88701c57c308f6cef3235cea06029448eeef33a",
+      "assemblySha256": "602eebc180c76131e26beca6d88701c57c308f6cef3235cea06029448eeef33a"
+    },
+    "supabase/migrations/20261011340000_s191_placement_configuration_guard.sql": {
+      "candidateSha256": "4c22eb088600f36ccfc648ed3176684dfefcbe0f366080703be5b6d81df88b3d",
+      "assemblySha256": "4c22eb088600f36ccfc648ed3176684dfefcbe0f366080703be5b6d81df88b3d"
+    },
+    "supabase/migrations/20261011350000_s191_atomic_media_metadata.sql": {
+      "candidateSha256": "8422debafdf91a45d0c2f40af3339cf3d4f14f7f2ddfd8d57c4eff1d1090ef33",
+      "assemblySha256": "8422debafdf91a45d0c2f40af3339cf3d4f14f7f2ddfd8d57c4eff1d1090ef33"
+    },
+    "supabase/migrations/20261011360000_s191_sites_authoring_pause.sql": {
+      "candidateSha256": "9dfe29b58a1503cb2dd747bf683812981c765a071389d2cd9cfa1725040c46bc",
+      "assemblySha256": "9dfe29b58a1503cb2dd747bf683812981c765a071389d2cd9cfa1725040c46bc"
+    },
+    "supabase/migrations/20261012190000_s198_heartbeat_release_lookup.sql": {
+      "candidateSha256": "f603f8995481c23df1dab9288aab6235c3f4b23d277410123b43455ca6ff6112",
+      "assemblySha256": "f603f8995481c23df1dab9288aab6235c3f4b23d277410123b43455ca6ff6112"
+    },
+    "supabase/migrations/20261013010000_s206_projector_brand_pass.sql": {
+      "candidateSha256": "14d167088ddc76cd3b0071190ac326d10ea143e24c48d41251d4d59dbca94c78",
+      "assemblySha256": "14d167088ddc76cd3b0071190ac326d10ea143e24c48d41251d4d59dbca94c78"
+    },
+    "supabase/migrations/20261013040000_s209_provider_logo_refresh.sql": {
+      "candidateSha256": "29e2de0008bb6944a2cabacc94967189af200f31dd84abda0c5bbf97df11f73e",
+      "assemblySha256": "29e2de0008bb6944a2cabacc94967189af200f31dd84abda0c5bbf97df11f73e"
+    },
+    "supabase/migrations/20261013080000_s210_database_load_guardrails.sql": {
+      "candidateSha256": "b6cc4746b492c0652f139e8f70807d9223e33d89eb91bf6b6621edc76c591c93",
+      "assemblySha256": "b6cc4746b492c0652f139e8f70807d9223e33d89eb91bf6b6621edc76c591c93"
+    },
+    "supabase/migrations/20261014050000_s214_sites_v17_authoring.sql": {
+      "candidateSha256": "9d7a4fab457d9a39789cd0aa506efea503231425c9f7018713fc54dc00ba6f23",
+      "assemblySha256": "9d7a4fab457d9a39789cd0aa506efea503231425c9f7018713fc54dc00ba6f23"
+    },
+    "supabase/migrations/20261014115415_s215_menu_widgets_studio_creation.sql": {
+      "candidateSha256": "fb60a3c64441a27843b36c31c46439d44b5f951f1d8ced3e64a53f3dffffb2ae",
+      "assemblySha256": "fb60a3c64441a27843b36c31c46439d44b5f951f1d8ced3e64a53f3dffffb2ae"
+    },
+    "supabase/migrations/20261014212516_s218_studio_library_without_render_gate.sql": {
+      "candidateSha256": "58760cdc9c05b30391e7be9ab69bca45d23521b8df58819cf44a75b66167838f",
+      "assemblySha256": "58760cdc9c05b30391e7be9ab69bca45d23521b8df58819cf44a75b66167838f"
+    },
+    "supabase/migrations/20261015124245_s220_menu_product_editing.sql": {
+      "candidateSha256": "4cefbed5dc49c4b9b66662669898e5c5f415e105dbf490e825d175cce9d37501",
+      "assemblySha256": "4cefbed5dc49c4b9b66662669898e5c5f415e105dbf490e825d175cce9d37501"
+    },
+    "supabase/migrations/20261015225516_s223_player_sync_receipts.sql": {
+      "candidateSha256": "d312c6c9a878757fa1438e89059e3cc3c61361e2c85a99cb4ed738685e1a8726",
+      "assemblySha256": "d312c6c9a878757fa1438e89059e3cc3c61361e2c85a99cb4ed738685e1a8726"
+    },
+    "supabase/migrations/20261017195749_sync_marketing_inquiries.sql": {
+      "candidateSha256": "548bc9f6350b6a5cfd03c7d751afdbc347d9bfbab7904ba75020e28f7435ad31",
+      "assemblySha256": "548bc9f6350b6a5cfd03c7d751afdbc347d9bfbab7904ba75020e28f7435ad31"
+    },
+    "supabase/migrations/20261017201455_sync_content_library.sql": {
+      "candidateSha256": "4508786d2c135a1d3399bf619c02fb4c234e3b47bd787d8782884e80b11c2ed1",
+      "assemblySha256": "4508786d2c135a1d3399bf619c02fb4c234e3b47bd787d8782884e80b11c2ed1"
+    },
     "supabase/migrations/20261018001500_sync_product_catalog_paging.sql": {
       "candidateSha256": "d2f039e9d431f1d50e6c502f7b01cdbb98f77758ccc41a0e674ac6066e511606",
       "assemblySha256": "d2f039e9d431f1d50e6c502f7b01cdbb98f77758ccc41a0e674ac6066e511606"
     },
-    "supabase/migrations/20260824210000_s123_mobile_engage_commands.sql": {
-      "candidateSha256": "f359da8d7883de61b74dbff41ff105f40744525dd694216cb4aa787e098bb3a6",
-      "assemblySha256": "f359da8d7883de61b74dbff41ff105f40744525dd694216cb4aa787e098bb3a6"
+    "supabase/migrations/20261018002000_sync_studio_authoring.sql": {
+      "candidateSha256": "dc844c3cd50281cedd71ae7f1876af37095b4e370bb70650c4c4bee536e713df",
+      "assemblySha256": "dc844c3cd50281cedd71ae7f1876af37095b4e370bb70650c4c4bee536e713df"
     },
-    "supabase/migrations/20260822153524_menu_studio_portrait_orientation_hotfix.sql": {
-      "candidateSha256": "68f093711040ba6f1aa982385e90112e112dacbd031fad7269cb6a66d16e91b3",
-      "assemblySha256": "68f093711040ba6f1aa982385e90112e112dacbd031fad7269cb6a66d16e91b3"
+    "supabase/migrations/20261018002500_studio_retry_progress.sql": {
+      "candidateSha256": "640cd99d5a8435970f8dd930295a616891384c19a2f674ce418997a10686d722",
+      "assemblySha256": "640cd99d5a8435970f8dd930295a616891384c19a2f674ce418997a10686d722"
     },
-    "supabase/tests/rls_security_definer_execute_acl.sql": {
-      "candidateSha256": "ed03e2f5c72a76bac0b499e53ca1805138ef828070adcbecc22b7c894519e91e",
-      "assemblySha256": "ed03e2f5c72a76bac0b499e53ca1805138ef828070adcbecc22b7c894519e91e"
+    "supabase/migrations/20261018003000_sync_studio_orientation.sql": {
+      "candidateSha256": "1c341f8c28fb33530cb8511ccc1d43f23a246f90840f90bf4337ae383d8594a4",
+      "assemblySha256": "1c341f8c28fb33530cb8511ccc1d43f23a246f90840f90bf4337ae383d8594a4"
     },
-    "supabase/tests/rls_media_worker_daemon.sql": {
-      "candidateSha256": "320fb3eeec968f7cf368f10a3150c0d9a7c1ae6ee65abca9857eb2e7e158ac37",
-      "assemblySha256": "320fb3eeec968f7cf368f10a3150c0d9a7c1ae6ee65abca9857eb2e7e158ac37"
+    "supabase/migrations/20261018003500_studio_render_receipt_recovery.sql": {
+      "candidateSha256": "0fe0def39375a47f2ba28b5df2e4b69beb5a43d292b3068d2095eabad6699993",
+      "assemblySha256": "0fe0def39375a47f2ba28b5df2e4b69beb5a43d292b3068d2095eabad6699993"
     },
-    "supabase/tests/rls_s299_sponsor_report.sql": {
-      "candidateSha256": "be7f435861782f5116ada7d91dd927646be1c35781ce719cab2f723f33695996",
-      "assemblySha256": "45d4780539850050dae333805de9ff06989674a1f749e5606d4855f669bbd2e1"
+    "supabase/migrations/20261018004000_studio_manual_retry_budget.sql": {
+      "candidateSha256": "b5bfaaca52edb0822a681e05acff8bef91ee567e2d749b722f6e8359ced0b871",
+      "assemblySha256": "b5bfaaca52edb0822a681e05acff8bef91ee567e2d749b722f6e8359ced0b871"
     },
-    "supabase/tests/rls_playlist_draft_duplication.sql": {
-      "candidateSha256": "76db9800152970bb301e248ff84fe3ca86b5b12cb43cb57d6f19b9337df720a1",
-      "assemblySha256": "76db9800152970bb301e248ff84fe3ca86b5b12cb43cb57d6f19b9337df720a1"
+    "supabase/migrations/20261018004500_sync_studio_release_playback.sql": {
+      "candidateSha256": "73239d52eb756a9132289b2220373b93e8d308c206dc39765520a00da7e6051a",
+      "assemblySha256": "73239d52eb756a9132289b2220373b93e8d308c206dc39765520a00da7e6051a"
     },
-    "supabase/tests/rls_screen_automation.sql": {
-      "candidateSha256": "effb94807801c5a50b5b3080b241069ac3f59a0c8c107bbaec3dc0ec2e42cb5d",
-      "assemblySha256": "effb94807801c5a50b5b3080b241069ac3f59a0c8c107bbaec3dc0ec2e42cb5d"
+    "supabase/migrations/20261018005000_sync_studio_library.sql": {
+      "candidateSha256": "819f0436afab64e7ce3336c8704a46212a7ccd0efa111288c0e702644c30c72f",
+      "assemblySha256": "819f0436afab64e7ce3336c8704a46212a7ccd0efa111288c0e702644c30c72f"
     },
-    "supabase/tests/s300_matchday_runbooks.sql": {
-      "candidateSha256": "eb50e6b7836117868a02f5cc4869e1c8a7df63c0d620e8c32c846751f56c462f",
-      "assemblySha256": "eb50e6b7836117868a02f5cc4869e1c8a7df63c0d620e8c32c846751f56c462f"
+    "supabase/migrations/20261018005500_sync_studio_metadata_cas.sql": {
+      "candidateSha256": "49be7ce8b927cc027f56f15972af36fa0d3bd35cfc675c319987635bd5c1d3e7",
+      "assemblySha256": "49be7ce8b927cc027f56f15972af36fa0d3bd35cfc675c319987635bd5c1d3e7"
     },
-    "supabase/tests/s191_sportlink_family_registry.sql": {
-      "candidateSha256": "7773ec3ad0e36e460761af05aed0ae6a0459462eb34c68d1abe22add81b74efa",
-      "assemblySha256": "7773ec3ad0e36e460761af05aed0ae6a0459462eb34c68d1abe22add81b74efa"
+    "supabase/migrations/20261018006000_sync_studio_series.sql": {
+      "candidateSha256": "cb623df9c691a9f4a861a85b16c31d009026464e8fd3b02021bece837a129965",
+      "assemblySha256": "cb623df9c691a9f4a861a85b16c31d009026464e8fd3b02021bece837a129965"
     },
-    "supabase/tests/rls_media_video_upload_finalize.sql": {
-      "candidateSha256": "382ecdf3d6c0e48ccf9fed24c13edb9505025729598ed98ef9f08c0c2912aa80",
-      "assemblySha256": "382ecdf3d6c0e48ccf9fed24c13edb9505025729598ed98ef9f08c0c2912aa80"
+    "supabase/migrations/20261018006500_studio_series_prepare_receipt.sql": {
+      "candidateSha256": "1435616df34c77b19a90d18226f73fba2a4c24ee8416076f1013409f5ffd2d60",
+      "assemblySha256": "1435616df34c77b19a90d18226f73fba2a4c24ee8416076f1013409f5ffd2d60"
     },
-    "supabase/tests/s292_matchday_membership.sql": {
-      "candidateSha256": "f573be7cc35db38646e946766e8209dd2719b51f6209cac590790e502581602c",
-      "assemblySha256": "f573be7cc35db38646e946766e8209dd2719b51f6209cac590790e502581602c"
+    "supabase/migrations/20261018007000_sync_dynamic_configuration.sql": {
+      "candidateSha256": "034dedb622aa319ad07ee96ab84e30741b198a2084d0919b2adf901c8629de21",
+      "assemblySha256": "034dedb622aa319ad07ee96ab84e30741b198a2084d0919b2adf901c8629de21"
     },
-    "supabase/tests/rls_s129_home_match_welcome.sql": {
-      "candidateSha256": "51dcc645d11d1173f1176624dbbf20a8d3ece96ab935a73337da6042326fcef9",
-      "assemblySha256": "51dcc645d11d1173f1176624dbbf20a8d3ece96ab935a73337da6042326fcef9"
+    "supabase/migrations/20261018007500_sync_dynamic_worker_lease.sql": {
+      "candidateSha256": "0aa7c27105c8d22f7bdaed98961e55c7520607ce0398130412a0e35db5647431",
+      "assemblySha256": "0aa7c27105c8d22f7bdaed98961e55c7520607ce0398130412a0e35db5647431"
     },
-    "supabase/tests/rls_s153_slide_theme_backoffice.sql": {
-      "candidateSha256": "0ef6a426a735c5eefa8acd0f1ae1db6fc2eb75e89d984229d0dbf9a45a3b2771",
-      "assemblySha256": "0ef6a426a735c5eefa8acd0f1ae1db6fc2eb75e89d984229d0dbf9a45a3b2771"
+    "supabase/migrations/20261018008000_sync_dynamic_complete_artifact.sql": {
+      "candidateSha256": "51202d926c326acd81d046a564146bb2310124561ec1fdf3694ab5c8eac2469f",
+      "assemblySha256": "51202d926c326acd81d046a564146bb2310124561ec1fdf3694ab5c8eac2469f"
     },
-    "supabase/tests/rss_portrait_template.sql": {
-      "candidateSha256": "3b7a30ec381d82cdee15b87eac3a95a74f7a15f90c8616dc103ef442c30388c6",
-      "assemblySha256": "3b7a30ec381d82cdee15b87eac3a95a74f7a15f90c8616dc103ef442c30388c6"
+    "supabase/migrations/20261018008500_sync_dynamic_canonical_snapshot.sql": {
+      "candidateSha256": "7d47d168d10c7f61f9ff9a62bc9417f2634f70cb46e0030f498e6463ace4451b",
+      "assemblySha256": "7d47d168d10c7f61f9ff9a62bc9417f2634f70cb46e0030f498e6463ace4451b"
     },
-    "supabase/tests/rls_platform_tenant_creation.sql": {
-      "candidateSha256": "c892d1b97928ec0c570c0de1ec7a293bd800fd5010d98b1984dfa7548cbaa941",
-      "assemblySha256": "c892d1b97928ec0c570c0de1ec7a293bd800fd5010d98b1984dfa7548cbaa941"
+    "supabase/migrations/20261018064315_sync_dynamic_authoring_receipts.sql": {
+      "candidateSha256": "2026d7a5dbf31a1cb3096c41cefcd7318086424f9bf50332b2a8804216a28716",
+      "assemblySha256": "2026d7a5dbf31a1cb3096c41cefcd7318086424f9bf50332b2a8804216a28716"
     },
-    "supabase/tests/rls_screen_fleet_onboarding.sql": {
-      "candidateSha256": "4a99c4476cb68bc21c6bdba00c58b9612ac182b087a07b60474a592ac7495b7a",
-      "assemblySha256": "4a99c4476cb68bc21c6bdba00c58b9612ac182b087a07b60474a592ac7495b7a"
+    "supabase/migrations/20261018073738_sync_dynamic_placement_variants.sql": {
+      "candidateSha256": "effbd09996ac077b69812fd16ec30b9bc18f24d02158ef7c13159c7b889f9dc7",
+      "assemblySha256": "effbd09996ac077b69812fd16ec30b9bc18f24d02158ef7c13159c7b889f9dc7"
     },
-    "supabase/tests/s226_sync_studio_authoring.sql": {
-      "candidateSha256": "0ea204208b9b44c148e5ddf4741c1a168e679e655e2d8547bd16c12136556c35",
-      "assemblySha256": "0ea204208b9b44c148e5ddf4741c1a168e679e655e2d8547bd16c12136556c35"
+    "supabase/migrations/20261018094300_sync_dynamic_led_gate.sql": {
+      "candidateSha256": "55f7c41072f6cfad7c20b6990691c27850cbae51d05da26c14fb0c87e772b837",
+      "assemblySha256": "55f7c41072f6cfad7c20b6990691c27850cbae51d05da26c14fb0c87e772b837"
     },
-    "supabase/tests/s191_engage_commands.sql": {
-      "candidateSha256": "d959716729ffdb89783043e1bfcb00ab903f6c2fddf182af8371514a030c0aad",
-      "assemblySha256": "d959716729ffdb89783043e1bfcb00ab903f6c2fddf182af8371514a030c0aad"
+    "supabase/migrations/20261018101300_led_player_bootstrap_orientation.sql": {
+      "candidateSha256": "314eba2ce61722dedf4c6dba5e88374534e4e9c76e71b8856e8deadf619a7f6a",
+      "assemblySha256": "314eba2ce61722dedf4c6dba5e88374534e4e9c76e71b8856e8deadf619a7f6a"
     },
-    "supabase/tests/rls_tenancy_roles.sql": {
-      "candidateSha256": "ed5009932cc2cf0fa24cbf5b652a5f929bc84641901dc78193037722a7e60c53",
-      "assemblySha256": "ed5009932cc2cf0fa24cbf5b652a5f929bc84641901dc78193037722a7e60c53"
+    "supabase/migrations/20261018101500_sync_youtube_binding.sql": {
+      "candidateSha256": "8bb772ab06b925f8446f0c8b40302f1fe9f72929c31d7c7e6c00456bcffbb76b",
+      "assemblySha256": "8bb772ab06b925f8446f0c8b40302f1fe9f72929c31d7c7e6c00456bcffbb76b"
     },
-    "supabase/tests/s226_marketing_inquiries.sql": {
-      "candidateSha256": "a8bfcb94920f1836912ec0d464114b150ce0f2e9b3a3db562e637e201597b04b",
-      "assemblySha256": "a8bfcb94920f1836912ec0d464114b150ce0f2e9b3a3db562e637e201597b04b"
+    "supabase/migrations/20261018103016_sync_published_binary_refresh.sql": {
+      "candidateSha256": "b9ec0327232d2a90d96884c3457cef3ff5aa008cf4cffd329daafeb7c7b60d3d",
+      "assemblySha256": "b9ec0327232d2a90d96884c3457cef3ff5aa008cf4cffd329daafeb7c7b60d3d"
     },
-    "supabase/tests/rls_product_catalog_imports.sql": {
-      "candidateSha256": "3c41a361efe3d3e7c0b04fb2eb47fd18434344aa28b921aef3845d73f232eae1",
-      "assemblySha256": "3c41a361efe3d3e7c0b04fb2eb47fd18434344aa28b921aef3845d73f232eae1"
+    "supabase/migrations/20261018104700_player_target_realtime_columns.sql": {
+      "candidateSha256": "4630fde5a1d97d946d490c279a1b6cdebd920ac01e83c587ae30295bb547256f",
+      "assemblySha256": "4630fde5a1d97d946d490c279a1b6cdebd920ac01e83c587ae30295bb547256f"
     },
-    "supabase/tests/s288_rss_selection.sql": {
-      "candidateSha256": "69fe9f6e89d7633b1c219b59e0805a9271196288917702830bf84ca6b7656673",
-      "assemblySha256": "69fe9f6e89d7633b1c219b59e0805a9271196288917702830bf84ca6b7656673"
+    "supabase/migrations/20261018111000_sync_engage_binding.sql": {
+      "candidateSha256": "12a445dab1e8747e08d081e628d8a1117eff404696bc61925b9c1965b5ec0ef2",
+      "assemblySha256": "12a445dab1e8747e08d081e628d8a1117eff404696bc61925b9c1965b5ec0ef2"
     },
-    "supabase/tests/rls_staging_player_demo_playlist.sql": {
-      "candidateSha256": "0636739f525426f5bbfb4b49b42ab060be11f409bee40eae8ed2977553ded524",
-      "assemblySha256": "0636739f525426f5bbfb4b49b42ab060be11f409bee40eae8ed2977553ded524"
+    "supabase/migrations/20261018123001_sync_binary_storage_fencing.sql": {
+      "candidateSha256": "1b638ec6603cc7b07827e2550727142306b8ddab964a7ff8a996e0e4c0056e34",
+      "assemblySha256": "1b638ec6603cc7b07827e2550727142306b8ddab964a7ff8a996e0e4c0056e34"
     },
-    "supabase/tests/rls_menu_studio_v2.sql": {
-      "candidateSha256": "853631d78ef6973fae06f450163fe2e0ab97b8fbce56ab6d1ecf8f9536eae081",
-      "assemblySha256": "853631d78ef6973fae06f450163fe2e0ab97b8fbce56ab6d1ecf8f9536eae081"
+    "supabase/migrations/20261018150124_sync_studio_nonretryable_conflicts.sql": {
+      "candidateSha256": "d451a24ac79655d5ec92f4608f90ec2c1601135ef0fc887bc996b25c0fe069bd",
+      "assemblySha256": "d451a24ac79655d5ec92f4608f90ec2c1601135ef0fc887bc996b25c0fe069bd"
     },
-    "supabase/tests/s226_nonretryable_conflicts.sql": {
-      "candidateSha256": "ff51510a0544c730ec58c4211341d358d004e7bbf9d26e4642bf52597d3eb175",
-      "assemblySha256": "ff51510a0544c730ec58c4211341d358d004e7bbf9d26e4642bf52597d3eb175"
+    "supabase/migrations/20261018162300_sync_engage_result_privacy.sql": {
+      "candidateSha256": "3d98c60c99bdec23d7409ebc5dfbf5c7cac1c5756d2a670b26494011792cd315",
+      "assemblySha256": "3d98c60c99bdec23d7409ebc5dfbf5c7cac1c5756d2a670b26494011792cd315"
     },
-    "supabase/tests/rls_s296_screen_source_status.sql": {
-      "candidateSha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62",
-      "assemblySha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62"
+    "supabase/migrations/20261018200500_sync_media_frames.sql": {
+      "candidateSha256": "304429f3ba27dfa8b297aa7ecc41f85c841c938a1206e897aaaf320895d887c5",
+      "assemblySha256": "304429f3ba27dfa8b297aa7ecc41f85c841c938a1206e897aaaf320895d887c5"
     },
-    "supabase/tests/s262_sync_engage_full_options.sql": {
-      "candidateSha256": "c78222d48547afb15ac0996e0a049fe66f2d00342fc6b22da02b5feb9b58286e",
-      "assemblySha256": "c78222d48547afb15ac0996e0a049fe66f2d00342fc6b22da02b5feb9b58286e"
+    "supabase/migrations/20261019000000_sync_media_frame_series.sql": {
+      "candidateSha256": "cb912b87b3ea2dfa467539ad6a4055f1ffbbd6e00b990a5a5d8892ace3734db3",
+      "assemblySha256": "cb912b87b3ea2dfa467539ad6a4055f1ffbbd6e00b990a5a5d8892ace3734db3"
     },
-    "supabase/tests/rls_media_upload_storage.sql": {
-      "candidateSha256": "55fd691a972ff1453e005acabe7826a3744d32bceffb70fa3bf48b05a716c62c",
-      "assemblySha256": "55fd691a972ff1453e005acabe7826a3744d32bceffb70fa3bf48b05a716c62c"
+    "supabase/migrations/20261019010000_sync_theme_creation_defaults.sql": {
+      "candidateSha256": "98234c697280ad7378ab160562887e11bb2e4b5dee25b8c05617508bf50814b6",
+      "assemblySha256": "98234c697280ad7378ab160562887e11bb2e4b5dee25b8c05617508bf50814b6"
     },
-    "supabase/tests/rls_player_installations_commands.sql": {
-      "candidateSha256": "5e2878e46bddd4c17487b785a30b4f266d5e66cf779b87ab6ec739a87cdb7e68",
-      "assemblySha256": "5e2878e46bddd4c17487b785a30b4f266d5e66cf779b87ab6ec739a87cdb7e68"
+    "supabase/migrations/20261019020000_sync_approved_backgrounds.sql": {
+      "candidateSha256": "ce2f8bcd74b74affab16ec2c081a06ea776f2882878f4ff76f2bd1fc41175e65",
+      "assemblySha256": "ce2f8bcd74b74affab16ec2c081a06ea776f2882878f4ff76f2bd1fc41175e65"
     },
-    "supabase/tests/s191_provider_completion_latency.sql": {
-      "candidateSha256": "f4ba9223bea10c38118290055e7ff01694e066a1db693b2e3eb7fb176a83c798",
-      "assemblySha256": "f4ba9223bea10c38118290055e7ff01694e066a1db693b2e3eb7fb176a83c798"
+    "supabase/migrations/20261019135521_sync_engage_full_options.sql": {
+      "candidateSha256": "f0b314f1a972671912800ba0542adceebb7590540fb20557ff2d373642461d15",
+      "assemblySha256": "f0b314f1a972671912800ba0542adceebb7590540fb20557ff2d373642461d15"
     },
-    "supabase/tests/rls_s177_dynamic_slide_management.sql": {
-      "candidateSha256": "c4805b61c3e893068c662aa0228dcde2e5cd5fbbb1aea98de2568f98c58991fe",
-      "assemblySha256": "c4805b61c3e893068c662aa0228dcde2e5cd5fbbb1aea98de2568f98c58991fe"
+    "supabase/migrations/20261019141413_menu_price_candidates.sql": {
+      "candidateSha256": "88d5b73f61ea1cb2e94eca01c53d37ded4085942e800d3d0b76676a00b5c4596",
+      "assemblySha256": "88d5b73f61ea1cb2e94eca01c53d37ded4085942e800d3d0b76676a00b5c4596"
+    },
+    "supabase/migrations/20261022183152_sync_onzetrots_approved_renderer.sql": {
+      "candidateSha256": "bb6dd3f4d8ffe1d1bafba608d429f120c183bef9fe192a9cb36ca3d2dcf8690a",
+      "assemblySha256": "bb6dd3f4d8ffe1d1bafba608d429f120c183bef9fe192a9cb36ca3d2dcf8690a"
+    },
+    "supabase/migrations/20261023140732_sync_onzetrots_v9.sql": {
+      "candidateSha256": "4c8be92b9b30dd3c9cfda345f0822687bba817b4c255059af1b0e77005bdf11e",
+      "assemblySha256": "4c8be92b9b30dd3c9cfda345f0822687bba817b4c255059af1b0e77005bdf11e"
+    },
+    "supabase/migrations/20261023215114_sync_club_selection_context.sql": {
+      "candidateSha256": "15131227ec390da00a3a96ad937f2d10801dc27a3d4ad65c327317aa6c689693",
+      "assemblySha256": "15131227ec390da00a3a96ad937f2d10801dc27a3d4ad65c327317aa6c689693"
+    },
+    "supabase/migrations/20261023220334_sync_rss_article_selection.sql": {
+      "candidateSha256": "1434eb19decaeadb66ade4022af3a3bc3a9cf4c08b076bf22b829af8d82abedd",
+      "assemblySha256": "1434eb19decaeadb66ade4022af3a3bc3a9cf4c08b076bf22b829af8d82abedd"
+    },
+    "supabase/migrations/20261024023108_studio_menu_marker_refresh.sql": {
+      "candidateSha256": "fad6cc5790758bab171db083f850841f683500b863a3434ec69a44dede67e8a8",
+      "assemblySha256": "fad6cc5790758bab171db083f850841f683500b863a3434ec69a44dede67e8a8"
+    },
+    "supabase/migrations/20261024173000_onzetrots_consistency.sql": {
+      "candidateSha256": "71207364b393c972383cbe064e39af34d94f5fa4302ddc57b6f852d1cd354010",
+      "assemblySha256": "71207364b393c972383cbe064e39af34d94f5fa4302ddc57b6f852d1cd354010"
+    },
+    "supabase/migrations/20261025141139_dom_source_recovery.sql": {
+      "candidateSha256": "c5348f322cb74474e66503e86d57da73a3c1fcbda9bf41dda71c2a295d7c7791",
+      "assemblySha256": "c5348f322cb74474e66503e86d57da73a3c1fcbda9bf41dda71c2a295d7c7791"
+    },
+    "supabase/migrations/20261025153504_sync_dom_media_kind.sql": {
+      "candidateSha256": "c2fbc00319279131449192c561770bb05ce73151e58002e9cfe5eacddb434b7a",
+      "assemblySha256": "c2fbc00319279131449192c561770bb05ce73151e58002e9cfe5eacddb434b7a"
+    },
+    "supabase/migrations/20261025153505_sync_dom_playback.sql": {
+      "candidateSha256": "d5b7ba502f109a3ec5cb7e00d79797cdddff2d99bbd3f4065f764d8368887b18",
+      "assemblySha256": "d5b7ba502f109a3ec5cb7e00d79797cdddff2d99bbd3f4065f764d8368887b18"
+    },
+    "supabase/migrations/20261025180000_menu_dom_playback.sql": {
+      "candidateSha256": "87f95b9f6c8ffe7f6d6d2936b55829b2d33c8d9fec6aea8f4c732731fd3b3886",
+      "assemblySha256": "87f95b9f6c8ffe7f6d6d2936b55829b2d33c8d9fec6aea8f4c732731fd3b3886"
+    },
+    "supabase/migrations/20261025203330_menu_dom_observation_stability.sql": {
+      "candidateSha256": "a58de26430e54427be5b4ef06e054897826816f47d2853d1cb38da8b4edd2221",
+      "assemblySha256": "a58de26430e54427be5b4ef06e054897826816f47d2853d1cb38da8b4edd2221"
+    },
+    "supabase/migrations/20261109000829_s295_sportlink_observation_scope.sql": {
+      "candidateSha256": "12db2a793a896bd79eb747bd7bdc93e81ad91586427d72f651083db05368f9e7",
+      "assemblySha256": "12db2a793a896bd79eb747bd7bdc93e81ad91586427d72f651083db05368f9e7"
+    },
+    "supabase/migrations/20261109113947_s299_sponsor_report_totals.sql": {
+      "candidateSha256": "580fd11200ff9429c231fe07ed5661a9b86ed9adfff4992162b7a7b7624ae487",
+      "assemblySha256": "580fd11200ff9429c231fe07ed5661a9b86ed9adfff4992162b7a7b7624ae487"
+    },
+    "supabase/migrations/20261109114134_s298_effective_planning_preview.sql": {
+      "candidateSha256": "f10042bf98195366a92bb679b717a4addaf8b5d30301c7a8f41deb4c6c27bf1e",
+      "assemblySha256": "f10042bf98195366a92bb679b717a4addaf8b5d30301c7a8f41deb4c6c27bf1e"
+    },
+    "supabase/migrations/20261109120358_s296_screen_source_status.sql": {
+      "candidateSha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33",
+      "assemblySha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33"
+    },
+    "supabase/migrations/20261109122540_s301_sportlink_season_draft_switch.sql": {
+      "candidateSha256": "a8639f153a469916c2fb8b323f5d7d5b77f041933ecfbf9006a99d7d016386c9",
+      "assemblySha256": "a8639f153a469916c2fb8b323f5d7d5b77f041933ecfbf9006a99d7d016386c9"
+    },
+    "supabase/migrations/20261109130824_s300_matchday_runbook_operations.sql": {
+      "candidateSha256": "469bc9c75c125dae256f59b7a7fdf366be010681e87f549a1aa6d680ac90b190",
+      "assemblySha256": "469bc9c75c125dae256f59b7a7fdf366be010681e87f549a1aa6d680ac90b190"
     },
     "supabase/tests/rls_android_reinstall_recovery.sql": {
       "candidateSha256": "dd7f5ffda8428806549b417147d45f429c2d994883913ac4faec91b9fb5444fc",
       "assemblySha256": "dd7f5ffda8428806549b417147d45f429c2d994883913ac4faec91b9fb5444fc"
     },
-    "supabase/tests/s215_menu_widgets.sql": {
-      "candidateSha256": "bf24f3d150f03c6f0be7091d387afa4de3cb376a5aaa7cac0eaf8058243b92c9",
-      "assemblySha256": "bf24f3d150f03c6f0be7091d387afa4de3cb376a5aaa7cac0eaf8058243b92c9"
-    },
-    "supabase/tests/s226_content_library.sql": {
-      "candidateSha256": "410e4a441c43ce9c0b8605cd7d910cfccea23ef864ca45a8ce4035d95ec5cbe1",
-      "assemblySha256": "410e4a441c43ce9c0b8605cd7d910cfccea23ef864ca45a8ce4035d95ec5cbe1"
-    },
-    "supabase/tests/s292_rss_contract.sql": {
-      "candidateSha256": "3802eeacea91ef222166a08d0d5c92856a63f89e712a62e1366d5bce694354f6",
-      "assemblySha256": "3802eeacea91ef222166a08d0d5c92856a63f89e712a62e1366d5bce694354f6"
-    },
-    "supabase/tests/rls_s159_royal_theme_scale.sql": {
-      "candidateSha256": "ac2f7cd70f60e8aac6a6839b2769d1ad2a37227e80626c35f7ab18cb94659e10",
-      "assemblySha256": "ac2f7cd70f60e8aac6a6839b2769d1ad2a37227e80626c35f7ab18cb94659e10"
-    },
-    "supabase/tests/rls_s133_sportlink_sync_completion.sql": {
-      "candidateSha256": "e03e1cd71e53b60f0a613d0a2891df755a15102730e0556f9d1d488257f104ff",
-      "assemblySha256": "e03e1cd71e53b60f0a613d0a2891df755a15102730e0556f9d1d488257f104ff"
-    },
-    "supabase/tests/rls_publisher_groups_scheduling.sql": {
-      "candidateSha256": "ec6447b1e358ea77b6c66363e60a3f9945752996dd6233d227d2d698f7bf5328",
-      "assemblySha256": "ec6447b1e358ea77b6c66363e60a3f9945752996dd6233d227d2d698f7bf5328"
-    },
-    "supabase/tests/s223_sync_receipts.sql": {
-      "candidateSha256": "4069af645f3b98ef7801b3f490c3065334bd8636f748907437336b7ddb4444da",
-      "assemblySha256": "4069af645f3b98ef7801b3f490c3065334bd8636f748907437336b7ddb4444da"
-    },
-    "supabase/tests/s191_sites_authoring_pause.sql": {
-      "candidateSha256": "5cd36b9b9c53fbc0dd875bc56e6f8031b83e2931afc96b85d2318ca773eae2bd",
-      "assemblySha256": "5cd36b9b9c53fbc0dd875bc56e6f8031b83e2931afc96b85d2318ca773eae2bd"
-    },
-    "supabase/tests/rls_theme_engine_v2.sql": {
-      "candidateSha256": "31dfb4caba0e30b50b1168b95d74f93cdcf1013f4bebefc790988c9c98457cad",
-      "assemblySha256": "31dfb4caba0e30b50b1168b95d74f93cdcf1013f4bebefc790988c9c98457cad"
-    },
-    "supabase/tests/rls_s154_club_match_scope.sql": {
-      "candidateSha256": "6e97ca2b37e5ab1ac7bdf2f931dc91d24197a0e117bf66463d2a336a8ba1046e",
-      "assemblySha256": "6e97ca2b37e5ab1ac7bdf2f931dc91d24197a0e117bf66463d2a336a8ba1046e"
-    },
-    "supabase/tests/rls_s136_sportlink_arrival_window.sql": {
-      "candidateSha256": "bc90ceed9e4981e80f621838f9a5d7fafab4c630e629968ced82bcc66d6b1385",
-      "assemblySha256": "bc90ceed9e4981e80f621838f9a5d7fafab4c630e629968ced82bcc66d6b1385"
-    },
-    "supabase/tests/s226_sync_studio_playback.sql": {
-      "candidateSha256": "232820cbe3f69792ed3915d651da5cebb93fd3c08b5ee6b0ead3d764d22b129b",
-      "assemblySha256": "232820cbe3f69792ed3915d651da5cebb93fd3c08b5ee6b0ead3d764d22b129b"
-    },
-    "supabase/tests/rls_identity_context_mfa.sql": {
-      "candidateSha256": "a5028ffb41cfaba987a281b5af1b711eea639a112545340223eddae6b4b272f2",
-      "assemblySha256": "a5028ffb41cfaba987a281b5af1b711eea639a112545340223eddae6b4b272f2"
-    },
-    "supabase/tests/s292_menu_dom_contract.sql": {
-      "candidateSha256": "826dc3f96f33029191bdd2b9c2467e7977dcbc536b84442057ac2cf72da75387",
-      "assemblySha256": "826dc3f96f33029191bdd2b9c2467e7977dcbc536b84442057ac2cf72da75387"
-    },
-    "supabase/tests/s226_sync_published_binary.sql": {
-      "candidateSha256": "82601ab4d4c3a5b9e303d2ade6ef8ea6493658c869f868747d03fbbb18c8a80d",
-      "assemblySha256": "82601ab4d4c3a5b9e303d2ade6ef8ea6493658c869f868747d03fbbb18c8a80d"
-    },
-    "supabase/tests/s226_sync_studio_library.sql": {
-      "candidateSha256": "b5a98ebdc83ff43fb99b1bbe127622acbcd28d6b6766df4331af67d9fe5cecb0",
-      "assemblySha256": "b5a98ebdc83ff43fb99b1bbe127622acbcd28d6b6766df4331af67d9fe5cecb0"
-    },
-    "supabase/tests/s226_sync_dynamic_authoring.sql": {
-      "candidateSha256": "c3712bc744562ff0a2e99e73086626ca3e2e50f4abe9182966295de3fd1690b4",
-      "assemblySha256": "c3712bc744562ff0a2e99e73086626ca3e2e50f4abe9182966295de3fd1690b4"
-    },
-    "supabase/tests/s226_sync_studio_metadata.sql": {
-      "candidateSha256": "2ad577b69ff0c0f7e772e8adc0e5131f6a977509611d5b2a6d7440c642f21b90",
-      "assemblySha256": "2ad577b69ff0c0f7e772e8adc0e5131f6a977509611d5b2a6d7440c642f21b90"
-    },
-    "supabase/tests/rls_s123_tenant_onboarding.sql": {
-      "candidateSha256": "90d877168984b7ecd437f137899490960780f54060e47f447e97f7f2a0e53aa0",
-      "assemblySha256": "90d877168984b7ecd437f137899490960780f54060e47f447e97f7f2a0e53aa0"
-    },
-    "supabase/tests/rls_pairing_recovery_rate_limit.sql": {
-      "candidateSha256": "ae9fa5051a680bcf3eebdad3507bc2e93ae5e1346000ff2d55502f6449d73c92",
-      "assemblySha256": "ae9fa5051a680bcf3eebdad3507bc2e93ae5e1346000ff2d55502f6449d73c92"
-    },
-    "supabase/tests/rls_s161_royal_current_theme.sql": {
-      "candidateSha256": "299b20730fae27ec346fd279d7ebb1618346fc5d63a7f430c74710f81ac6d2ad",
-      "assemblySha256": "299b20730fae27ec346fd279d7ebb1618346fc5d63a7f430c74710f81ac6d2ad"
-    },
-    "supabase/tests/rls_sync_approved_backgrounds.sql": {
-      "candidateSha256": "7eac2128b0dcb3b2c4c94c7b445da4952a730c220983de0c36b784e53acbbccc",
-      "assemblySha256": "7eac2128b0dcb3b2c4c94c7b445da4952a730c220983de0c36b784e53acbbccc"
-    },
-    "supabase/tests/rls_s155_welcome_news_layout.sql": {
-      "candidateSha256": "225466a51319870942ff8282bba913b1369dbab28bf47cbff586a8ffbf151de2",
-      "assemblySha256": "225466a51319870942ff8282bba913b1369dbab28bf47cbff586a8ffbf151de2"
-    },
-    "supabase/tests/s190_live_integration_diagnostics.sql": {
-      "candidateSha256": "3bc5e1bc6b419d7986705c89065fe0619f1f42e515593a07c1c309f313c8d52f",
-      "assemblySha256": "3bc5e1bc6b419d7986705c89065fe0619f1f42e515593a07c1c309f313c8d52f"
-    },
-    "supabase/tests/s226_sync_dynamic_snapshot.sql": {
-      "candidateSha256": "b45abd2a721e3c862f7f2f5960348a3594720e8767c774a2aff7514446f15c56",
-      "assemblySha256": "b45abd2a721e3c862f7f2f5960348a3594720e8767c774a2aff7514446f15c56"
-    },
-    "supabase/tests/s295_sportlink_observation_scope.sql": {
-      "candidateSha256": "8e4f68503c6854b4d9e3884e40a70cc75964ed2a50ab3f3e3150e7eaa0760bf2",
-      "assemblySha256": "8e4f68503c6854b4d9e3884e40a70cc75964ed2a50ab3f3e3150e7eaa0760bf2"
-    },
-    "supabase/tests/rls_playlist_drag_duration.sql": {
-      "candidateSha256": "c95cc4744f0e7b98bad6b520777ae4a8862e77fa953caeae7e6277df150d0d08",
-      "assemblySha256": "c95cc4744f0e7b98bad6b520777ae4a8862e77fa953caeae7e6277df150d0d08"
-    },
-    "supabase/tests/rls_s123_venue_twin.sql": {
-      "candidateSha256": "ee988c539246c7637c2e4a2659bc4f524f0263226c7ecca01df41b8a1481c2a8",
-      "assemblySha256": "ee988c539246c7637c2e4a2659bc4f524f0263226c7ecca01df41b8a1481c2a8"
-    },
-    "supabase/tests/s301_sportlink_season_switch.sql": {
-      "candidateSha256": "f4f3e9f0dc948d47ff9d413c721cabed9ce44f6a2593e800cb5ebf135aff1cd4",
-      "assemblySha256": "f4f3e9f0dc948d47ff9d413c721cabed9ce44f6a2593e800cb5ebf135aff1cd4"
-    },
-    "supabase/tests/rls_s123_media_collections.sql": {
-      "candidateSha256": "b0c10fce76c1f0f14f3fa67aab8c6f29bb58925446279eb71ac951eadc07339d",
-      "assemblySha256": "b0c10fce76c1f0f14f3fa67aab8c6f29bb58925446279eb71ac951eadc07339d"
-    },
-    "supabase/tests/rls_s188_standing_fields.sql": {
-      "candidateSha256": "04638aa2f01a356a7b26a531a2228904514a65a202d1c44544cbe1540c9251ff",
-      "assemblySha256": "04638aa2f01a356a7b26a531a2228904514a65a202d1c44544cbe1540c9251ff"
-    },
-    "supabase/tests/s295_published_sportlink_chain.sql": {
-      "candidateSha256": "341d740b5d0023e42292fe7f190766d778e14765746a4cf7249957b51813810a",
-      "assemblySha256": "341d740b5d0023e42292fe7f190766d778e14765746a4cf7249957b51813810a"
-    },
-    "supabase/tests/rls_publisher_scheduling_runtime.sql": {
-      "candidateSha256": "ef42e84947e750124d73297e7f7d66172711cd60b46e9684c24c36f342d12215",
-      "assemblySha256": "ef42e84947e750124d73297e7f7d66172711cd60b46e9684c24c36f342d12215"
-    },
-    "supabase/tests/rls_publisher_media_lifecycle.sql": {
-      "candidateSha256": "211b7c3dd472473d184cd0e5a71b9b66678c1aff036217314a00fc936f2986bf",
-      "assemblySha256": "211b7c3dd472473d184cd0e5a71b9b66678c1aff036217314a00fc936f2986bf"
-    },
-    "supabase/tests/rls_playlist_studio_concurrency.sql": {
-      "candidateSha256": "faad6c0e02714eaac339f5df5db212c0d82986795aee525df3514c053f30f1ab",
-      "assemblySha256": "faad6c0e02714eaac339f5df5db212c0d82986795aee525df3514c053f30f1ab"
-    },
-    "supabase/tests/s218_studio_library.sql": {
-      "candidateSha256": "aa7590b1c8b805067eb5e678baa614179079107f1772c76928f17842aa98d19a",
-      "assemblySha256": "aa7590b1c8b805067eb5e678baa614179079107f1772c76928f17842aa98d19a"
-    },
-    "supabase/tests/s226_sync_dynamic_variants.sql": {
-      "candidateSha256": "fbf2b473008a700332159d2231d63b3b7de235ea8f8808034ee40fa7afc5b29a",
-      "assemblySha256": "fbf2b473008a700332159d2231d63b3b7de235ea8f8808034ee40fa7afc5b29a"
-    },
-    "supabase/tests/rls_player_device_lab_runs.sql": {
-      "candidateSha256": "b515b87a7d0b56f0a1c45392f51b5122a333457498ec602d4de44a3ee45ee784",
-      "assemblySha256": "b515b87a7d0b56f0a1c45392f51b5122a333457498ec602d4de44a3ee45ee784"
-    },
-    "supabase/tests/rls_pairing_recovery_smoke_cleanup.sql": {
-      "candidateSha256": "bc6ab7482ca8f4fcc18b71fbf5286edc8445c74e66e0a6119d5c6dd1c19e5fe0",
-      "assemblySha256": "bc6ab7482ca8f4fcc18b71fbf5286edc8445c74e66e0a6119d5c6dd1c19e5fe0"
-    },
-    "supabase/tests/rls_editable_tenant_templates.sql": {
-      "candidateSha256": "48e334c9f6f07e88d37bed5a43bb14fea7497b9198b44fa12c4d424aa6a7bc05",
-      "assemblySha256": "48e334c9f6f07e88d37bed5a43bb14fea7497b9198b44fa12c4d424aa6a7bc05"
-    },
-    "supabase/tests/rls_platform_lifecycle_team.sql": {
-      "candidateSha256": "b5991dd25da1ffb70e3c505c9730df383d822163704ce8f0e1eb0a1b3d5d8178",
-      "assemblySha256": "b5991dd25da1ffb70e3c505c9730df383d822163704ce8f0e1eb0a1b3d5d8178"
-    },
-    "supabase/tests/s286_onzetrots_v9.sql": {
-      "candidateSha256": "cc816288441ebaf9cf96d23e5ec9a7cd1132bf44925d5af396fbd69a6d7bc94e",
-      "assemblySha256": "cc816288441ebaf9cf96d23e5ec9a7cd1132bf44925d5af396fbd69a6d7bc94e"
-    },
-    "supabase/tests/s293_menu_dom_observation_stability.sql": {
-      "candidateSha256": "74d44a34feca74ea3587fb001cf5694285496736372e4220688ccb95243be982",
-      "assemblySha256": "74d44a34feca74ea3587fb001cf5694285496736372e4220688ccb95243be982"
-    },
-    "supabase/tests/s191_studio_series.sql": {
-      "candidateSha256": "bf1b052a6be2b957e366b2f4fa81ffb5ee160b2f0c76556944b3da7bb179a646",
-      "assemblySha256": "bf1b052a6be2b957e366b2f4fa81ffb5ee160b2f0c76556944b3da7bb179a646"
-    },
-    "supabase/tests/s191_led_scene_authoring.sql": {
-      "candidateSha256": "79c8c56d3a5f9e5e744c45d94cd6d31486d2fec28dc00d47067251dfa4f98abd",
-      "assemblySha256": "79c8c56d3a5f9e5e744c45d94cd6d31486d2fec28dc00d47067251dfa4f98abd"
-    },
-    "supabase/tests/rls_sponsor_hub.sql": {
-      "candidateSha256": "c92880aea2ed0e871745798bd5c75e4c77ae648f8fff2db911e5919bbd4d48e7",
-      "assemblySha256": "c92880aea2ed0e871745798bd5c75e4c77ae648f8fff2db911e5919bbd4d48e7"
-    },
-    "supabase/tests/s220_menu_product_editing.sql": {
-      "candidateSha256": "01a0976d4ebad160beba8d539937d999920e992bf212acb62ac28f77a237b4cb",
-      "assemblySha256": "01a0976d4ebad160beba8d539937d999920e992bf212acb62ac28f77a237b4cb"
-    },
-    "supabase/tests/rls_publisher_release_restore.sql": {
-      "candidateSha256": "ea8beda279af586412f8d55dcdeec77eb6f48a1ad72447ff41fc4b21a4cd7bf8",
-      "assemblySha256": "ea8beda279af586412f8d55dcdeec77eb6f48a1ad72447ff41fc4b21a4cd7bf8"
-    },
-    "supabase/tests/s226_sync_dynamic_worker.sql": {
-      "candidateSha256": "b2e68db9cd681ec2038d11dc3bcbd78263ed22df75c090fb192ebcfa23d53a0a",
-      "assemblySha256": "b2e68db9cd681ec2038d11dc3bcbd78263ed22df75c090fb192ebcfa23d53a0a"
-    },
-    "supabase/tests/rls_product_logos.sql": {
-      "candidateSha256": "f10abff0040bde4ddec6baad121bb843e6e18dd49de8530e85596606e8be2c0e",
-      "assemblySha256": "f10abff0040bde4ddec6baad121bb843e6e18dd49de8530e85596606e8be2c0e"
-    },
-    "supabase/tests/s214_sites_v17_authoring.sql": {
-      "candidateSha256": "0b38e8077040a2e7b7c518195a7cf1e2cd6f910a4db2ba1de9b9b0e39c6a5a6a",
-      "assemblySha256": "0b38e8077040a2e7b7c518195a7cf1e2cd6f910a4db2ba1de9b9b0e39c6a5a6a"
-    },
-    "supabase/tests/rls_s123_billing_entitlements.sql": {
-      "candidateSha256": "527ba9142da3d400fcd61c94374f284dc4abe0cd4eba69bb546e97e4b0d72d9b",
-      "assemblySha256": "527ba9142da3d400fcd61c94374f284dc4abe0cd4eba69bb546e97e4b0d72d9b"
-    },
-    "supabase/tests/rls_s150_welcome_card_layout.sql": {
-      "candidateSha256": "d53f675139851eb81bcac50f66f2d9ed381d2d8116907952c13e54a5c90bf794",
-      "assemblySha256": "d53f675139851eb81bcac50f66f2d9ed381d2d8116907952c13e54a5c90bf794"
-    },
-    "supabase/tests/s226_sync_dynamic_configuration.sql": {
-      "candidateSha256": "7a37baec7bd23dbe979de0ec10dcefb25a83e94959487b3c18f4b14bb659ec3c",
-      "assemblySha256": "7a37baec7bd23dbe979de0ec10dcefb25a83e94959487b3c18f4b14bb659ec3c"
-    },
-    "supabase/tests/rls_s124_vector_pilot_rollout.sql": {
-      "candidateSha256": "503cf3ca2ef0ff5db7ad53676585b50d7a9a5e6eece884ded8202853f2cac4e1",
-      "assemblySha256": "503cf3ca2ef0ff5db7ad53676585b50d7a9a5e6eece884ded8202853f2cac4e1"
-    },
-    "supabase/tests/rls_studio_authoring_rendering.sql": {
-      "candidateSha256": "7fca61f5cd07d78d026924d496e7f5cf20832e12f3b506bdbfef52b3b7f4a360",
-      "assemblySha256": "7fca61f5cd07d78d026924d496e7f5cf20832e12f3b506bdbfef52b3b7f4a360"
-    },
-    "supabase/tests/s226_sync_studio_series.sql": {
-      "candidateSha256": "7ef408727d5bc796547767fe914d5f7ac874fc290b85ffc0f510b0a8e8fe1dcd",
-      "assemblySha256": "7ef408727d5bc796547767fe914d5f7ac874fc290b85ffc0f510b0a8e8fe1dcd"
-    },
-    "supabase/tests/rls_publisher_guarded_commands.sql": {
-      "candidateSha256": "1418af35befdd72ffbefa84a9bcf646e02d5854a959ed6f122776e33ba479ae1",
-      "assemblySha256": "1418af35befdd72ffbefa84a9bcf646e02d5854a959ed6f122776e33ba479ae1"
-    },
-    "supabase/tests/s206_projector_brand_pass.sql": {
-      "candidateSha256": "53e162796305cf362de09b788d2e49d5ab3addbef582f8e27cda08104a65d27d",
-      "assemblySha256": "53e162796305cf362de09b788d2e49d5ab3addbef582f8e27cda08104a65d27d"
-    },
-    "supabase/tests/s290_approved_menu_style.sql": {
-      "candidateSha256": "7311d296335e9525b1d3e12f6052717f5f5e9e945ffb7cc215614f04269dd785",
-      "assemblySha256": "7311d296335e9525b1d3e12f6052717f5f5e9e945ffb7cc215614f04269dd785"
-    },
-    "supabase/tests/rls_publisher_video_duration_guard.sql": {
-      "candidateSha256": "43e91929e3d1cf0b36f1688828ab09ee394132e09388b289dbb730617c9a4f19",
-      "assemblySha256": "43e91929e3d1cf0b36f1688828ab09ee394132e09388b289dbb730617c9a4f19"
-    },
-    "supabase/tests/s191_atomic_media_metadata.sql": {
-      "candidateSha256": "0f9732a139715a31145adda0d205e25322e62e15be00cbcacc085dd78ae93db4",
-      "assemblySha256": "0f9732a139715a31145adda0d205e25322e62e15be00cbcacc085dd78ae93db4"
-    },
-    "supabase/tests/rls_support_ticketing.sql": {
-      "candidateSha256": "63a1d1bca110f334285670ef84016a0679f21c2e7c3e2af094fc073f26259a70",
-      "assemblySha256": "63a1d1bca110f334285670ef84016a0679f21c2e7c3e2af094fc073f26259a70"
-    },
-    "supabase/tests/rls_publisher_authoring_foundation.sql": {
-      "candidateSha256": "8a034b621d1d2654d2f66f0500c7d9ee65b281415c146488daccf7a84a718991",
-      "assemblySha256": "8a034b621d1d2654d2f66f0500c7d9ee65b281415c146488daccf7a84a718991"
-    },
-    "supabase/tests/rls_live_vertical_slice.sql": {
-      "candidateSha256": "02db6ddc3b6f431aa9be384766b0342f37cd895f7074a677d044c8f4349a2571",
-      "assemblySha256": "02db6ddc3b6f431aa9be384766b0342f37cd895f7074a677d044c8f4349a2571"
-    },
-    "supabase/tests/s191_screen_onboarding.sql": {
-      "candidateSha256": "ecb96467efc13c60e7c699cee49606e0789075e7bcddcb1429c2f827247e55a2",
-      "assemblySha256": "ecb96467efc13c60e7c699cee49606e0789075e7bcddcb1429c2f827247e55a2"
-    },
-    "supabase/tests/rls_s122_theme_default.sql": {
-      "candidateSha256": "bce64fcb5e272b8981ed562cfb65ae61822c47f75e44f5300321f38e68d75ca7",
-      "assemblySha256": "bce64fcb5e272b8981ed562cfb65ae61822c47f75e44f5300321f38e68d75ca7"
-    },
-    "supabase/tests/rls_s141_ledscores_live_match_experience.sql": {
-      "candidateSha256": "9e91b38a9028fe116a1cc884b02f24395d09d6a55e0ddefd21e1918a803c448e",
-      "assemblySha256": "9e91b38a9028fe116a1cc884b02f24395d09d6a55e0ddefd21e1918a803c448e"
-    },
-    "supabase/tests/rls_menu_studio_pilot_rollout.sql": {
-      "candidateSha256": "4abf3478e0ee213a93c6376f58f2ecf090ae0d115b20bb9a40c2a7787f786854",
-      "assemblySha256": "4abf3478e0ee213a93c6376f58f2ecf090ae0d115b20bb9a40c2a7787f786854"
-    },
-    "supabase/tests/rls_retention_deletion.sql": {
-      "candidateSha256": "515c1016b7a757d18e292c73ac2c654f245c3bd0a7b2ce11b7961b5396ee19a3",
-      "assemblySha256": "515c1016b7a757d18e292c73ac2c654f245c3bd0a7b2ce11b7961b5396ee19a3"
-    },
-    "supabase/tests/rls_screens_devices_pairing.sql": {
-      "candidateSha256": "0a9b8c8e6c65b53976c1499f293ecbf6a7285588292506d0f21858a1b75f9237",
-      "assemblySha256": "0a9b8c8e6c65b53976c1499f293ecbf6a7285588292506d0f21858a1b75f9237"
-    },
-    "supabase/tests/rls_s176_match_kickoff.sql": {
-      "candidateSha256": "ff9f154a21e5f27471ef245362446ff600f1517e1c59504a87a0ba61cc4cb4d2",
-      "assemblySha256": "ff9f154a21e5f27471ef245362446ff600f1517e1c59504a87a0ba61cc4cb4d2"
-    },
-    "supabase/tests/rls_sportlink.sql": {
-      "candidateSha256": "6749ed009beb5d9c682cae55bb49965667954cd92b71882658f353622bedbaad",
-      "assemblySha256": "6749ed009beb5d9c682cae55bb49965667954cd92b71882658f353622bedbaad"
-    },
-    "supabase/tests/rls_release_center_preflight.sql": {
-      "candidateSha256": "aeb66afed86b7bf3ed749549626e260717afc6ef555e6456accb602239f41e8b",
-      "assemblySha256": "aeb66afed86b7bf3ed749549626e260717afc6ef555e6456accb602239f41e8b"
-    },
-    "supabase/tests/s215_studio_series_receipts.sql": {
-      "candidateSha256": "1060b5a4d1e162f6b7aade9da49b7b20ad10d85bdd92e9e088bc75805a11a74a",
-      "assemblySha256": "1060b5a4d1e162f6b7aade9da49b7b20ad10d85bdd92e9e088bc75805a11a74a"
-    },
-    "supabase/tests/s191_product_commands.sql": {
-      "candidateSha256": "8afeb6c6e5ebd89d0bf16fc1ad24844bf93f2320937b531478a52d88c8509852",
-      "assemblySha256": "8afeb6c6e5ebd89d0bf16fc1ad24844bf93f2320937b531478a52d88c8509852"
+    "supabase/tests/rls_control_authoring_mvp.sql": {
+      "candidateSha256": "e9d47ae8f03a649b01edb72070eb08509d3189b922353b2efeb3c1f724cc828a",
+      "assemblySha256": "e9d47ae8f03a649b01edb72070eb08509d3189b922353b2efeb3c1f724cc828a"
     },
     "supabase/tests/rls_control_mobile.sql": {
       "candidateSha256": "b99bc323544449829079be8bfb543f5406b358a453ed41fe04dc766318503d1c",
       "assemblySha256": "b99bc323544449829079be8bfb543f5406b358a453ed41fe04dc766318503d1c"
     },
-    "supabase/tests/s191_source_sites_persistence.sql": {
-      "candidateSha256": "1743a38ab243fa70c7a3f0e4c31ce37f77cc4a94c376eae5e6e085d7de4f55b1",
-      "assemblySha256": "1743a38ab243fa70c7a3f0e4c31ce37f77cc4a94c376eae5e6e085d7de4f55b1"
-    },
-    "supabase/tests/s191_playlist_rich_series.sql": {
-      "candidateSha256": "bc1b9575d40695a7d914aa467303bc3c57118290b7fb8747acd68ccbf91a1caf",
-      "assemblySha256": "bc1b9575d40695a7d914aa467303bc3c57118290b7fb8747acd68ccbf91a1caf"
-    },
-    "supabase/tests/rls_s175_goal_overlay.sql": {
-      "candidateSha256": "6bbc0c9ca2cb02143d2545ab21595f2090a9e62e6fed9398368efbc940f8aa50",
-      "assemblySha256": "6bbc0c9ca2cb02143d2545ab21595f2090a9e62e6fed9398368efbc940f8aa50"
-    },
-    "supabase/tests/rls_publisher_item_productivity.sql": {
-      "candidateSha256": "ed25f0f007ab733e56e72ff72a5509c948d34dc4362ac9c494c855c4b53053fe",
-      "assemblySha256": "ed25f0f007ab733e56e72ff72a5509c948d34dc4362ac9c494c855c4b53053fe"
-    },
-    "supabase/tests/s292_dom_protocol.sql": {
-      "candidateSha256": "781a999c7d0b338ea0e754f1cedcb45614fe9a4ef3d3c0e715a768967760694a",
-      "assemblySha256": "781a999c7d0b338ea0e754f1cedcb45614fe9a4ef3d3c0e715a768967760694a"
-    },
-    "supabase/tests/rls_ledscores_realtime.sql": {
-      "candidateSha256": "922bbcd6fa3eae4fecbbfe720fb49b7e438effff33243fa5303c8c44e69e425e",
-      "assemblySha256": "922bbcd6fa3eae4fecbbfe720fb49b7e438effff33243fa5303c8c44e69e425e"
-    },
-    "supabase/tests/s227_engage_result_privacy.sql": {
-      "candidateSha256": "1e02395a3145e1031a0c48ccf846a99b57bbeab5eafe410766b14688ee9855c6",
-      "assemblySha256": "1e02395a3145e1031a0c48ccf846a99b57bbeab5eafe410766b14688ee9855c6"
-    },
-    "supabase/tests/rls_sportlink_birthdays.sql": {
-      "candidateSha256": "7a6b08305f353415a4419f6d3f00cf3265f9fa2c4dfa51ba93217987ea639e77",
-      "assemblySha256": "7a6b08305f353415a4419f6d3f00cf3265f9fa2c4dfa51ba93217987ea639e77"
-    },
-    "supabase/tests/rls_pairing_recovery.sql": {
-      "candidateSha256": "35ccfefe4e66c4024c5350ec8d9bca72d8f3a4f2a92b339750b027fe9b948c73",
-      "assemblySha256": "35ccfefe4e66c4024c5350ec8d9bca72d8f3a4f2a92b339750b027fe9b948c73"
-    },
-    "supabase/tests/s287_sync_source_authoring.sql": {
-      "candidateSha256": "7632bacca987a343458ce9b27522a6352d6c6895b6149fe513a094b260726a6c",
-      "assemblySha256": "7632bacca987a343458ce9b27522a6352d6c6895b6149fe513a094b260726a6c"
-    },
-    "supabase/tests/rls_media_resumable_upload.sql": {
-      "candidateSha256": "87f1f731965c56dd1fa7a429af79a14817fd2043be142f9bfa82e099a1e83fff",
-      "assemblySha256": "87f1f731965c56dd1fa7a429af79a14817fd2043be142f9bfa82e099a1e83fff"
-    },
-    "supabase/tests/rls_screen_deactivation_removal.sql": {
-      "candidateSha256": "5ca42d490c532410bef9be26995f85c80d38081f1ffe813bdad4744a1dc564b4",
-      "assemblySha256": "5ca42d490c532410bef9be26995f85c80d38081f1ffe813bdad4744a1dc564b4"
-    },
-    "supabase/tests/s285_onzetrots.sql": {
-      "candidateSha256": "7c5c6e53bc9d925b033e27519dea52e9a4b4fb6cfbee9ad3691afe0bbcb456c6",
-      "assemblySha256": "7c5c6e53bc9d925b033e27519dea52e9a4b4fb6cfbee9ad3691afe0bbcb456c6"
-    },
-    "supabase/tests/s261_menu_price_candidates.sql": {
-      "candidateSha256": "1060e05cd0a631c40bba5387518d06714eb5a1b771eaf7602d2d028ca57aaa3c",
-      "assemblySha256": "1060e05cd0a631c40bba5387518d06714eb5a1b771eaf7602d2d028ca57aaa3c"
-    },
-    "supabase/tests/rls_control_authoring_mvp.sql": {
-      "candidateSha256": "e9d47ae8f03a649b01edb72070eb08509d3189b922353b2efeb3c1f724cc828a",
-      "assemblySha256": "e9d47ae8f03a649b01edb72070eb08509d3189b922353b2efeb3c1f724cc828a"
-    },
-    "supabase/tests/s226_sync_youtube.sql": {
-      "candidateSha256": "fa50ef01cbea9009acefe6977a1c3dc771701b423871c3b76af4ff6b6c06d884",
-      "assemblySha256": "fa50ef01cbea9009acefe6977a1c3dc771701b423871c3b76af4ff6b6c06d884"
-    },
-    "supabase/tests/s231_media_frames.sql": {
-      "candidateSha256": "d9e30d7322741ece60266a5f05c728da3bd084f91841dc214316e9a61d11db47",
-      "assemblySha256": "d9e30d7322741ece60266a5f05c728da3bd084f91841dc214316e9a61d11db47"
-    },
-    "supabase/tests/s191_sites_theme_authoring.sql": {
-      "candidateSha256": "6c0a069369b0a622f0cb8c3bdb718db9b8b155c0ba38f6027802499582357f17",
-      "assemblySha256": "6c0a069369b0a622f0cb8c3bdb718db9b8b155c0ba38f6027802499582357f17"
-    },
-    "supabase/tests/s191_publisher_commands.sql": {
-      "candidateSha256": "150b610f5ca8cf6faf457a70613be20443e1f1ed48468063b137323f374fda58",
-      "assemblySha256": "150b610f5ca8cf6faf457a70613be20443e1f1ed48468063b137323f374fda58"
-    },
     "supabase/tests/rls_dynamic_slide_versions.sql": {
       "candidateSha256": "f9cd58e1e1af75b8ec23cba854b4d0e3282f6d6bdf45158f3a20274306276f92",
       "assemblySha256": "f9cd58e1e1af75b8ec23cba854b4d0e3282f6d6bdf45158f3a20274306276f92"
-    },
-    "supabase/tests/s298_effective_planning.sql": {
-      "candidateSha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b",
-      "assemblySha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b"
-    },
-    "supabase/tests/s190_superseded_version_retention.sql": {
-      "candidateSha256": "bd4936fc4d538bbd999cc657bbbc7d5f089b0891bcceb685f2682323064921b2",
-      "assemblySha256": "bd4936fc4d538bbd999cc657bbbc7d5f089b0891bcceb685f2682323064921b2"
-    },
-    "supabase/tests/rls_s235_sync_theme_creation_defaults.sql": {
-      "candidateSha256": "ff0864d2b3d47ee7058b572b3ae2a4884f18847d5e8420839a202b80ef1e3e25",
-      "assemblySha256": "ff0864d2b3d47ee7058b572b3ae2a4884f18847d5e8420839a202b80ef1e3e25"
-    },
-    "supabase/tests/rls_playlist_release_model.sql": {
-      "candidateSha256": "5b4d652327c8e20f893bf95eae3829adee263dde98ce8c6aa343629a9c05a0e4",
-      "assemblySha256": "5b4d652327c8e20f893bf95eae3829adee263dde98ce8c6aa343629a9c05a0e4"
-    },
-    "supabase/tests/rls_sync_media_frame_series.sql": {
-      "candidateSha256": "425655bcd2a4a57960b0d2e9e0d6e360f3bc8fad110342287c276923a587796e",
-      "assemblySha256": "425655bcd2a4a57960b0d2e9e0d6e360f3bc8fad110342287c276923a587796e"
-    },
-    "supabase/tests/rls_s142_ledscores_canvas_editor.sql": {
-      "candidateSha256": "17434f180b17437f9b93ef629d3a37339874465163d8cdf24b7b1c8b46e76ef1",
-      "assemblySha256": "17434f180b17437f9b93ef629d3a37339874465163d8cdf24b7b1c8b46e76ef1"
-    },
-    "supabase/tests/rls_s180_content_recovery.sql": {
-      "candidateSha256": "3197b807bf6bc398060d50453dd54b487f35240a8ccdc46fcadcc60144222859",
-      "assemblySha256": "3197b807bf6bc398060d50453dd54b487f35240a8ccdc46fcadcc60144222859"
-    },
-    "supabase/tests/rls_publisher_screen_bulk.sql": {
-      "candidateSha256": "bd59e26b46d96f8d4edeb45ba64de4cb7b876cc8719467fd7248de64c5ee3ff5",
-      "assemblySha256": "bd59e26b46d96f8d4edeb45ba64de4cb7b876cc8719467fd7248de64c5ee3ff5"
-    },
-    "supabase/tests/s226_product_catalog_paging.sql": {
-      "candidateSha256": "a964bfa52dcfa509678b743b6e0bdf93fe023d3a46735b62fa93d3e13cfc695c",
-      "assemblySha256": "a964bfa52dcfa509678b743b6e0bdf93fe023d3a46735b62fa93d3e13cfc695c"
-    },
-    "supabase/tests/rls_ledscores_feature_rollout.sql": {
-      "candidateSha256": "7729d3a39403a2401886b374aaa24f5fddc5a047f9e71783804fcf5c69e8d3ee",
-      "assemblySha256": "7729d3a39403a2401886b374aaa24f5fddc5a047f9e71783804fcf5c69e8d3ee"
-    },
-    "supabase/tests/s209_provider_logo_refresh.sql": {
-      "candidateSha256": "d4eb5fe442cb1ae519b4bec9ba09a7ffd4c2af5eb8d596586b568564b428152d",
-      "assemblySha256": "d4eb5fe442cb1ae519b4bec9ba09a7ffd4c2af5eb8d596586b568564b428152d"
-    },
-    "supabase/tests/rls_s123_engage_youtube.sql": {
-      "candidateSha256": "6cd74b096281104165f244bd22df400e27752c4f431ddf9fe64bd94c9bd9634c",
-      "assemblySha256": "6cd74b096281104165f244bd22df400e27752c4f431ddf9fe64bd94c9bd9634c"
-    },
-    "supabase/tests/s291_onzetrots_consistency.sql": {
-      "candidateSha256": "17f6a24599ae1b29aa62b4977bd409767b1a4c132a0c06ed2ce41d6e50b31286",
-      "assemblySha256": "17f6a24599ae1b29aa62b4977bd409767b1a4c132a0c06ed2ce41d6e50b31286"
-    },
-    "supabase/tests/rls_media_extended_formats.sql": {
-      "candidateSha256": "63cfc1179aef46ce2cac1aedcac347b18a9f1c85dc7273bca7bf85aeef32e4f0",
-      "assemblySha256": "63cfc1179aef46ce2cac1aedcac347b18a9f1c85dc7273bca7bf85aeef32e4f0"
     },
     "supabase/tests/rls_dynamic_slides.sql": {
       "candidateSha256": "ebf0742e23715ab5b74d30d12b6b4fb28cea3077a25fde081fea6bcaed7a1eb8",
       "assemblySha256": "ebf0742e23715ab5b74d30d12b6b4fb28cea3077a25fde081fea6bcaed7a1eb8"
     },
+    "supabase/tests/rls_editable_tenant_templates.sql": {
+      "candidateSha256": "48e334c9f6f07e88d37bed5a43bb14fea7497b9198b44fa12c4d424aa6a7bc05",
+      "assemblySha256": "48e334c9f6f07e88d37bed5a43bb14fea7497b9198b44fa12c4d424aa6a7bc05"
+    },
+    "supabase/tests/rls_identity_context_mfa.sql": {
+      "candidateSha256": "a5028ffb41cfaba987a281b5af1b711eea639a112545340223eddae6b4b272f2",
+      "assemblySha256": "a5028ffb41cfaba987a281b5af1b711eea639a112545340223eddae6b4b272f2"
+    },
+    "supabase/tests/rls_ledscores_feature_rollout.sql": {
+      "candidateSha256": "7729d3a39403a2401886b374aaa24f5fddc5a047f9e71783804fcf5c69e8d3ee",
+      "assemblySha256": "7729d3a39403a2401886b374aaa24f5fddc5a047f9e71783804fcf5c69e8d3ee"
+    },
+    "supabase/tests/rls_ledscores_realtime.sql": {
+      "candidateSha256": "922bbcd6fa3eae4fecbbfe720fb49b7e438effff33243fa5303c8c44e69e425e",
+      "assemblySha256": "922bbcd6fa3eae4fecbbfe720fb49b7e438effff33243fa5303c8c44e69e425e"
+    },
+    "supabase/tests/rls_live_vertical_slice.sql": {
+      "candidateSha256": "02db6ddc3b6f431aa9be384766b0342f37cd895f7074a677d044c8f4349a2571",
+      "assemblySha256": "02db6ddc3b6f431aa9be384766b0342f37cd895f7074a677d044c8f4349a2571"
+    },
+    "supabase/tests/rls_media_extended_formats.sql": {
+      "candidateSha256": "63cfc1179aef46ce2cac1aedcac347b18a9f1c85dc7273bca7bf85aeef32e4f0",
+      "assemblySha256": "63cfc1179aef46ce2cac1aedcac347b18a9f1c85dc7273bca7bf85aeef32e4f0"
+    },
+    "supabase/tests/rls_media_resumable_upload.sql": {
+      "candidateSha256": "87f1f731965c56dd1fa7a429af79a14817fd2043be142f9bfa82e099a1e83fff",
+      "assemblySha256": "87f1f731965c56dd1fa7a429af79a14817fd2043be142f9bfa82e099a1e83fff"
+    },
+    "supabase/tests/rls_media_upload_storage.sql": {
+      "candidateSha256": "55fd691a972ff1453e005acabe7826a3744d32bceffb70fa3bf48b05a716c62c",
+      "assemblySha256": "55fd691a972ff1453e005acabe7826a3744d32bceffb70fa3bf48b05a716c62c"
+    },
+    "supabase/tests/rls_media_video_upload_finalize.sql": {
+      "candidateSha256": "382ecdf3d6c0e48ccf9fed24c13edb9505025729598ed98ef9f08c0c2912aa80",
+      "assemblySha256": "382ecdf3d6c0e48ccf9fed24c13edb9505025729598ed98ef9f08c0c2912aa80"
+    },
+    "supabase/tests/rls_media_worker_daemon.sql": {
+      "candidateSha256": "320fb3eeec968f7cf368f10a3150c0d9a7c1ae6ee65abca9857eb2e7e158ac37",
+      "assemblySha256": "320fb3eeec968f7cf368f10a3150c0d9a7c1ae6ee65abca9857eb2e7e158ac37"
+    },
+    "supabase/tests/rls_menu_studio_pilot_rollout.sql": {
+      "candidateSha256": "4abf3478e0ee213a93c6376f58f2ecf090ae0d115b20bb9a40c2a7787f786854",
+      "assemblySha256": "4abf3478e0ee213a93c6376f58f2ecf090ae0d115b20bb9a40c2a7787f786854"
+    },
+    "supabase/tests/rls_menu_studio_v2.sql": {
+      "candidateSha256": "853631d78ef6973fae06f450163fe2e0ab97b8fbce56ab6d1ecf8f9536eae081",
+      "assemblySha256": "853631d78ef6973fae06f450163fe2e0ab97b8fbce56ab6d1ecf8f9536eae081"
+    },
+    "supabase/tests/rls_pairing_recovery.sql": {
+      "candidateSha256": "35ccfefe4e66c4024c5350ec8d9bca72d8f3a4f2a92b339750b027fe9b948c73",
+      "assemblySha256": "35ccfefe4e66c4024c5350ec8d9bca72d8f3a4f2a92b339750b027fe9b948c73"
+    },
+    "supabase/tests/rls_pairing_recovery_rate_limit.sql": {
+      "candidateSha256": "ae9fa5051a680bcf3eebdad3507bc2e93ae5e1346000ff2d55502f6449d73c92",
+      "assemblySha256": "ae9fa5051a680bcf3eebdad3507bc2e93ae5e1346000ff2d55502f6449d73c92"
+    },
+    "supabase/tests/rls_pairing_recovery_smoke_cleanup.sql": {
+      "candidateSha256": "bc6ab7482ca8f4fcc18b71fbf5286edc8445c74e66e0a6119d5c6dd1c19e5fe0",
+      "assemblySha256": "bc6ab7482ca8f4fcc18b71fbf5286edc8445c74e66e0a6119d5c6dd1c19e5fe0"
+    },
+    "supabase/tests/rls_platform_lifecycle_team.sql": {
+      "candidateSha256": "b5991dd25da1ffb70e3c505c9730df383d822163704ce8f0e1eb0a1b3d5d8178",
+      "assemblySha256": "b5991dd25da1ffb70e3c505c9730df383d822163704ce8f0e1eb0a1b3d5d8178"
+    },
+    "supabase/tests/rls_platform_tenant_creation.sql": {
+      "candidateSha256": "c892d1b97928ec0c570c0de1ec7a293bd800fd5010d98b1984dfa7548cbaa941",
+      "assemblySha256": "c892d1b97928ec0c570c0de1ec7a293bd800fd5010d98b1984dfa7548cbaa941"
+    },
+    "supabase/tests/rls_player_device_lab_runs.sql": {
+      "candidateSha256": "b515b87a7d0b56f0a1c45392f51b5122a333457498ec602d4de44a3ee45ee784",
+      "assemblySha256": "b515b87a7d0b56f0a1c45392f51b5122a333457498ec602d4de44a3ee45ee784"
+    },
+    "supabase/tests/rls_player_installations_commands.sql": {
+      "candidateSha256": "5e2878e46bddd4c17487b785a30b4f266d5e66cf779b87ab6ec739a87cdb7e68",
+      "assemblySha256": "5e2878e46bddd4c17487b785a30b4f266d5e66cf779b87ab6ec739a87cdb7e68"
+    },
+    "supabase/tests/rls_playlist_draft_duplication.sql": {
+      "candidateSha256": "76db9800152970bb301e248ff84fe3ca86b5b12cb43cb57d6f19b9337df720a1",
+      "assemblySha256": "76db9800152970bb301e248ff84fe3ca86b5b12cb43cb57d6f19b9337df720a1"
+    },
+    "supabase/tests/rls_playlist_drag_duration.sql": {
+      "candidateSha256": "c95cc4744f0e7b98bad6b520777ae4a8862e77fa953caeae7e6277df150d0d08",
+      "assemblySha256": "c95cc4744f0e7b98bad6b520777ae4a8862e77fa953caeae7e6277df150d0d08"
+    },
+    "supabase/tests/rls_playlist_release_model.sql": {
+      "candidateSha256": "5b4d652327c8e20f893bf95eae3829adee263dde98ce8c6aa343629a9c05a0e4",
+      "assemblySha256": "5b4d652327c8e20f893bf95eae3829adee263dde98ce8c6aa343629a9c05a0e4"
+    },
+    "supabase/tests/rls_playlist_studio_concurrency.sql": {
+      "candidateSha256": "faad6c0e02714eaac339f5df5db212c0d82986795aee525df3514c053f30f1ab",
+      "assemblySha256": "faad6c0e02714eaac339f5df5db212c0d82986795aee525df3514c053f30f1ab"
+    },
+    "supabase/tests/rls_product_catalog_imports.sql": {
+      "candidateSha256": "3c41a361efe3d3e7c0b04fb2eb47fd18434344aa28b921aef3845d73f232eae1",
+      "assemblySha256": "3c41a361efe3d3e7c0b04fb2eb47fd18434344aa28b921aef3845d73f232eae1"
+    },
+    "supabase/tests/rls_product_logos.sql": {
+      "candidateSha256": "f10abff0040bde4ddec6baad121bb843e6e18dd49de8530e85596606e8be2c0e",
+      "assemblySha256": "f10abff0040bde4ddec6baad121bb843e6e18dd49de8530e85596606e8be2c0e"
+    },
+    "supabase/tests/rls_provider_asset_cache.sql": {
+      "candidateSha256": "0055e746b5d9d39fce4637f2f2b92b14d649f3aa3ed2369202222e8fc1b55c2c",
+      "assemblySha256": "0055e746b5d9d39fce4637f2f2b92b14d649f3aa3ed2369202222e8fc1b55c2c"
+    },
+    "supabase/tests/rls_publisher_authoring_foundation.sql": {
+      "candidateSha256": "8a034b621d1d2654d2f66f0500c7d9ee65b281415c146488daccf7a84a718991",
+      "assemblySha256": "8a034b621d1d2654d2f66f0500c7d9ee65b281415c146488daccf7a84a718991"
+    },
+    "supabase/tests/rls_publisher_groups_scheduling.sql": {
+      "candidateSha256": "ec6447b1e358ea77b6c66363e60a3f9945752996dd6233d227d2d698f7bf5328",
+      "assemblySha256": "ec6447b1e358ea77b6c66363e60a3f9945752996dd6233d227d2d698f7bf5328"
+    },
+    "supabase/tests/rls_publisher_guarded_commands.sql": {
+      "candidateSha256": "1418af35befdd72ffbefa84a9bcf646e02d5854a959ed6f122776e33ba479ae1",
+      "assemblySha256": "1418af35befdd72ffbefa84a9bcf646e02d5854a959ed6f122776e33ba479ae1"
+    },
+    "supabase/tests/rls_publisher_item_productivity.sql": {
+      "candidateSha256": "ed25f0f007ab733e56e72ff72a5509c948d34dc4362ac9c494c855c4b53053fe",
+      "assemblySha256": "ed25f0f007ab733e56e72ff72a5509c948d34dc4362ac9c494c855c4b53053fe"
+    },
+    "supabase/tests/rls_publisher_media_lifecycle.sql": {
+      "candidateSha256": "211b7c3dd472473d184cd0e5a71b9b66678c1aff036217314a00fc936f2986bf",
+      "assemblySha256": "211b7c3dd472473d184cd0e5a71b9b66678c1aff036217314a00fc936f2986bf"
+    },
+    "supabase/tests/rls_publisher_release_restore.sql": {
+      "candidateSha256": "ea8beda279af586412f8d55dcdeec77eb6f48a1ad72447ff41fc4b21a4cd7bf8",
+      "assemblySha256": "ea8beda279af586412f8d55dcdeec77eb6f48a1ad72447ff41fc4b21a4cd7bf8"
+    },
+    "supabase/tests/rls_publisher_scheduling_runtime.sql": {
+      "candidateSha256": "ef42e84947e750124d73297e7f7d66172711cd60b46e9684c24c36f342d12215",
+      "assemblySha256": "ef42e84947e750124d73297e7f7d66172711cd60b46e9684c24c36f342d12215"
+    },
+    "supabase/tests/rls_publisher_screen_bulk.sql": {
+      "candidateSha256": "bd59e26b46d96f8d4edeb45ba64de4cb7b876cc8719467fd7248de64c5ee3ff5",
+      "assemblySha256": "bd59e26b46d96f8d4edeb45ba64de4cb7b876cc8719467fd7248de64c5ee3ff5"
+    },
+    "supabase/tests/rls_publisher_video_duration_guard.sql": {
+      "candidateSha256": "43e91929e3d1cf0b36f1688828ab09ee394132e09388b289dbb730617c9a4f19",
+      "assemblySha256": "43e91929e3d1cf0b36f1688828ab09ee394132e09388b289dbb730617c9a4f19"
+    },
+    "supabase/tests/rls_release_center_preflight.sql": {
+      "candidateSha256": "aeb66afed86b7bf3ed749549626e260717afc6ef555e6456accb602239f41e8b",
+      "assemblySha256": "aeb66afed86b7bf3ed749549626e260717afc6ef555e6456accb602239f41e8b"
+    },
+    "supabase/tests/rls_retention_deletion.sql": {
+      "candidateSha256": "515c1016b7a757d18e292c73ac2c654f245c3bd0a7b2ce11b7961b5396ee19a3",
+      "assemblySha256": "515c1016b7a757d18e292c73ac2c654f245c3bd0a7b2ce11b7961b5396ee19a3"
+    },
+    "supabase/tests/rls_s122_theme_default.sql": {
+      "candidateSha256": "bce64fcb5e272b8981ed562cfb65ae61822c47f75e44f5300321f38e68d75ca7",
+      "assemblySha256": "bce64fcb5e272b8981ed562cfb65ae61822c47f75e44f5300321f38e68d75ca7"
+    },
+    "supabase/tests/rls_s123_billing_entitlements.sql": {
+      "candidateSha256": "527ba9142da3d400fcd61c94374f284dc4abe0cd4eba69bb546e97e4b0d72d9b",
+      "assemblySha256": "527ba9142da3d400fcd61c94374f284dc4abe0cd4eba69bb546e97e4b0d72d9b"
+    },
+    "supabase/tests/rls_s123_engage_youtube.sql": {
+      "candidateSha256": "6cd74b096281104165f244bd22df400e27752c4f431ddf9fe64bd94c9bd9634c",
+      "assemblySha256": "6cd74b096281104165f244bd22df400e27752c4f431ddf9fe64bd94c9bd9634c"
+    },
+    "supabase/tests/rls_s123_media_collections.sql": {
+      "candidateSha256": "b0c10fce76c1f0f14f3fa67aab8c6f29bb58925446279eb71ac951eadc07339d",
+      "assemblySha256": "b0c10fce76c1f0f14f3fa67aab8c6f29bb58925446279eb71ac951eadc07339d"
+    },
+    "supabase/tests/rls_s123_tenant_onboarding.sql": {
+      "candidateSha256": "90d877168984b7ecd437f137899490960780f54060e47f447e97f7f2a0e53aa0",
+      "assemblySha256": "90d877168984b7ecd437f137899490960780f54060e47f447e97f7f2a0e53aa0"
+    },
+    "supabase/tests/rls_s123_venue_twin.sql": {
+      "candidateSha256": "ee988c539246c7637c2e4a2659bc4f524f0263226c7ecca01df41b8a1481c2a8",
+      "assemblySha256": "ee988c539246c7637c2e4a2659bc4f524f0263226c7ecca01df41b8a1481c2a8"
+    },
+    "supabase/tests/rls_s124_vector_pilot_rollout.sql": {
+      "candidateSha256": "503cf3ca2ef0ff5db7ad53676585b50d7a9a5e6eece884ded8202853f2cac4e1",
+      "assemblySha256": "503cf3ca2ef0ff5db7ad53676585b50d7a9a5e6eece884ded8202853f2cac4e1"
+    },
+    "supabase/tests/rls_s129_home_match_welcome.sql": {
+      "candidateSha256": "51dcc645d11d1173f1176624dbbf20a8d3ece96ab935a73337da6042326fcef9",
+      "assemblySha256": "51dcc645d11d1173f1176624dbbf20a8d3ece96ab935a73337da6042326fcef9"
+    },
+    "supabase/tests/rls_s133_sportlink_sync_completion.sql": {
+      "candidateSha256": "e03e1cd71e53b60f0a613d0a2891df755a15102730e0556f9d1d488257f104ff",
+      "assemblySha256": "e03e1cd71e53b60f0a613d0a2891df755a15102730e0556f9d1d488257f104ff"
+    },
+    "supabase/tests/rls_s136_sportlink_arrival_window.sql": {
+      "candidateSha256": "bc90ceed9e4981e80f621838f9a5d7fafab4c630e629968ced82bcc66d6b1385",
+      "assemblySha256": "bc90ceed9e4981e80f621838f9a5d7fafab4c630e629968ced82bcc66d6b1385"
+    },
+    "supabase/tests/rls_s141_ledscores_live_match_experience.sql": {
+      "candidateSha256": "9e91b38a9028fe116a1cc884b02f24395d09d6a55e0ddefd21e1918a803c448e",
+      "assemblySha256": "9e91b38a9028fe116a1cc884b02f24395d09d6a55e0ddefd21e1918a803c448e"
+    },
+    "supabase/tests/rls_s142_ledscores_canvas_editor.sql": {
+      "candidateSha256": "17434f180b17437f9b93ef629d3a37339874465163d8cdf24b7b1c8b46e76ef1",
+      "assemblySha256": "17434f180b17437f9b93ef629d3a37339874465163d8cdf24b7b1c8b46e76ef1"
+    },
     "supabase/tests/rls_s145_supabase_lint_recovery.sql": {
       "candidateSha256": "09d3670fecb9dbc9385019c63c2fe81142983eb6652fb8861b80bd985ea01e69",
       "assemblySha256": "09d3670fecb9dbc9385019c63c2fe81142983eb6652fb8861b80bd985ea01e69"
-    },
-    "supabase/tests/rls_s158_match_row_layout.sql": {
-      "candidateSha256": "1da8f3a249397e6db8d4ad14fdb7f7b4ba753999ea2c1355f65164bf89de97e5",
-      "assemblySha256": "1da8f3a249397e6db8d4ad14fdb7f7b4ba753999ea2c1355f65164bf89de97e5"
-    },
-    "supabase/tests/rls_s162_theme_rollout_planner.sql": {
-      "candidateSha256": "0b7dd423984f84343c8f7d5371e4fb10314b15a2e3412a92350ebc9af0d9be24",
-      "assemblySha256": "0b7dd423984f84343c8f7d5371e4fb10314b15a2e3412a92350ebc9af0d9be24"
-    },
-    "supabase/tests/s226_sync_dynamic_complete.sql": {
-      "candidateSha256": "8284e6e3baf9b59dd0aa1e4181f47d28d1c88169cb91344e11dbe8dbf5732385",
-      "assemblySha256": "8284e6e3baf9b59dd0aa1e4181f47d28d1c88169cb91344e11dbe8dbf5732385"
-    },
-    "supabase/tests/s191_sites_studio_playback.sql": {
-      "candidateSha256": "b41f541b3fe1655e53a18dd5752b0843fa7b534af5c0857ac388e652a253e7cc",
-      "assemblySha256": "b41f541b3fe1655e53a18dd5752b0843fa7b534af5c0857ac388e652a253e7cc"
-    },
-    "supabase/tests/s191_source_connection_commands.sql": {
-      "candidateSha256": "37a68a190e08597ba9f785534c41f10f051649418d39a11e73e1c448c34d331d",
-      "assemblySha256": "37a68a190e08597ba9f785534c41f10f051649418d39a11e73e1c448c34d331d"
     },
     "supabase/tests/rls_s149_tenant_theme_colors.sql": {
       "candidateSha256": "049f142574cf89ca89bdc07bb3d67dc01240423aa57a70e2d2393e0ae5a50dfe",
       "assemblySha256": "049f142574cf89ca89bdc07bb3d67dc01240423aa57a70e2d2393e0ae5a50dfe"
     },
-    "supabase/tests/s226_sync_engage.sql": {
-      "candidateSha256": "7e223c86265f1c38e5b598ca170e1abc46084d791e88d416a44c0ef24b8e413c",
-      "assemblySha256": "7e223c86265f1c38e5b598ca170e1abc46084d791e88d416a44c0ef24b8e413c"
+    "supabase/tests/rls_s150_welcome_card_layout.sql": {
+      "candidateSha256": "d53f675139851eb81bcac50f66f2d9ed381d2d8116907952c13e54a5c90bf794",
+      "assemblySha256": "d53f675139851eb81bcac50f66f2d9ed381d2d8116907952c13e54a5c90bf794"
     },
-    "supabase/tests/rls_tenant_custom_roles.sql": {
-      "candidateSha256": "a853c61db011fb3969254f9393fc2435dc7c6ebc5912cceeea2303b6df93a210",
-      "assemblySha256": "a853c61db011fb3969254f9393fc2435dc7c6ebc5912cceeea2303b6df93a210"
+    "supabase/tests/rls_s153_slide_theme_backoffice.sql": {
+      "candidateSha256": "0ef6a426a735c5eefa8acd0f1ae1db6fc2eb75e89d984229d0dbf9a45a3b2771",
+      "assemblySha256": "0ef6a426a735c5eefa8acd0f1ae1db6fc2eb75e89d984229d0dbf9a45a3b2771"
     },
-    "supabase/tests/s226_sync_dynamic_led.sql": {
-      "candidateSha256": "93849577efc3998ddfbf064c2fea447d6c34bcd6aeaf8a30b89f626ff57f7490",
-      "assemblySha256": "93849577efc3998ddfbf064c2fea447d6c34bcd6aeaf8a30b89f626ff57f7490"
+    "supabase/tests/rls_s154_club_match_scope.sql": {
+      "candidateSha256": "6e97ca2b37e5ab1ac7bdf2f931dc91d24197a0e117bf66463d2a336a8ba1046e",
+      "assemblySha256": "6e97ca2b37e5ab1ac7bdf2f931dc91d24197a0e117bf66463d2a336a8ba1046e"
+    },
+    "supabase/tests/rls_s155_welcome_news_layout.sql": {
+      "candidateSha256": "225466a51319870942ff8282bba913b1369dbab28bf47cbff586a8ffbf151de2",
+      "assemblySha256": "225466a51319870942ff8282bba913b1369dbab28bf47cbff586a8ffbf151de2"
+    },
+    "supabase/tests/rls_s158_match_row_layout.sql": {
+      "candidateSha256": "1da8f3a249397e6db8d4ad14fdb7f7b4ba753999ea2c1355f65164bf89de97e5",
+      "assemblySha256": "1da8f3a249397e6db8d4ad14fdb7f7b4ba753999ea2c1355f65164bf89de97e5"
+    },
+    "supabase/tests/rls_s159_royal_theme_scale.sql": {
+      "candidateSha256": "ac2f7cd70f60e8aac6a6839b2769d1ad2a37227e80626c35f7ab18cb94659e10",
+      "assemblySha256": "ac2f7cd70f60e8aac6a6839b2769d1ad2a37227e80626c35f7ab18cb94659e10"
+    },
+    "supabase/tests/rls_s161_royal_current_theme.sql": {
+      "candidateSha256": "299b20730fae27ec346fd279d7ebb1618346fc5d63a7f430c74710f81ac6d2ad",
+      "assemblySha256": "299b20730fae27ec346fd279d7ebb1618346fc5d63a7f430c74710f81ac6d2ad"
+    },
+    "supabase/tests/rls_s162_theme_rollout_planner.sql": {
+      "candidateSha256": "0b7dd423984f84343c8f7d5371e4fb10314b15a2e3412a92350ebc9af0d9be24",
+      "assemblySha256": "0b7dd423984f84343c8f7d5371e4fb10314b15a2e3412a92350ebc9af0d9be24"
+    },
+    "supabase/tests/rls_s175_goal_overlay.sql": {
+      "candidateSha256": "6bbc0c9ca2cb02143d2545ab21595f2090a9e62e6fed9398368efbc940f8aa50",
+      "assemblySha256": "6bbc0c9ca2cb02143d2545ab21595f2090a9e62e6fed9398368efbc940f8aa50"
+    },
+    "supabase/tests/rls_s176_match_kickoff.sql": {
+      "candidateSha256": "ff9f154a21e5f27471ef245362446ff600f1517e1c59504a87a0ba61cc4cb4d2",
+      "assemblySha256": "ff9f154a21e5f27471ef245362446ff600f1517e1c59504a87a0ba61cc4cb4d2"
+    },
+    "supabase/tests/rls_s177_dynamic_slide_management.sql": {
+      "candidateSha256": "c4805b61c3e893068c662aa0228dcde2e5cd5fbbb1aea98de2568f98c58991fe",
+      "assemblySha256": "c4805b61c3e893068c662aa0228dcde2e5cd5fbbb1aea98de2568f98c58991fe"
     },
     "supabase/tests/rls_s178_standing_team_identity.sql": {
       "candidateSha256": "2916b224ca339f662bc73e18117a3f578d1ba4139dae8472106f3f83f10164b7",
       "assemblySha256": "2916b224ca339f662bc73e18117a3f578d1ba4139dae8472106f3f83f10164b7"
     },
-    "supabase/tests/rls_provider_asset_cache.sql": {
-      "candidateSha256": "0055e746b5d9d39fce4637f2f2b92b14d649f3aa3ed2369202222e8fc1b55c2c",
-      "assemblySha256": "0055e746b5d9d39fce4637f2f2b92b14d649f3aa3ed2369202222e8fc1b55c2c"
+    "supabase/tests/rls_s180_content_recovery.sql": {
+      "candidateSha256": "3197b807bf6bc398060d50453dd54b487f35240a8ccdc46fcadcc60144222859",
+      "assemblySha256": "3197b807bf6bc398060d50453dd54b487f35240a8ccdc46fcadcc60144222859"
+    },
+    "supabase/tests/rls_s188_standing_fields.sql": {
+      "candidateSha256": "04638aa2f01a356a7b26a531a2228904514a65a202d1c44544cbe1540c9251ff",
+      "assemblySha256": "04638aa2f01a356a7b26a531a2228904514a65a202d1c44544cbe1540c9251ff"
+    },
+    "supabase/tests/rls_s235_sync_theme_creation_defaults.sql": {
+      "candidateSha256": "ff0864d2b3d47ee7058b572b3ae2a4884f18847d5e8420839a202b80ef1e3e25",
+      "assemblySha256": "ff0864d2b3d47ee7058b572b3ae2a4884f18847d5e8420839a202b80ef1e3e25"
+    },
+    "supabase/tests/rls_s296_screen_source_status.sql": {
+      "candidateSha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62",
+      "assemblySha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62"
+    },
+    "supabase/tests/rls_s299_sponsor_report.sql": {
+      "candidateSha256": "be7f435861782f5116ada7d91dd927646be1c35781ce719cab2f723f33695996",
+      "assemblySha256": "be7f435861782f5116ada7d91dd927646be1c35781ce719cab2f723f33695996"
+    },
+    "supabase/tests/rls_screen_automation.sql": {
+      "candidateSha256": "effb94807801c5a50b5b3080b241069ac3f59a0c8c107bbaec3dc0ec2e42cb5d",
+      "assemblySha256": "effb94807801c5a50b5b3080b241069ac3f59a0c8c107bbaec3dc0ec2e42cb5d"
+    },
+    "supabase/tests/rls_screen_deactivation_removal.sql": {
+      "candidateSha256": "5ca42d490c532410bef9be26995f85c80d38081f1ffe813bdad4744a1dc564b4",
+      "assemblySha256": "5ca42d490c532410bef9be26995f85c80d38081f1ffe813bdad4744a1dc564b4"
+    },
+    "supabase/tests/rls_screen_fleet_onboarding.sql": {
+      "candidateSha256": "4a99c4476cb68bc21c6bdba00c58b9612ac182b087a07b60474a592ac7495b7a",
+      "assemblySha256": "4a99c4476cb68bc21c6bdba00c58b9612ac182b087a07b60474a592ac7495b7a"
+    },
+    "supabase/tests/rls_screens_devices_pairing.sql": {
+      "candidateSha256": "0a9b8c8e6c65b53976c1499f293ecbf6a7285588292506d0f21858a1b75f9237",
+      "assemblySha256": "0a9b8c8e6c65b53976c1499f293ecbf6a7285588292506d0f21858a1b75f9237"
+    },
+    "supabase/tests/rls_security_definer_execute_acl.sql": {
+      "candidateSha256": "ed03e2f5c72a76bac0b499e53ca1805138ef828070adcbecc22b7c894519e91e",
+      "assemblySha256": "ed03e2f5c72a76bac0b499e53ca1805138ef828070adcbecc22b7c894519e91e"
+    },
+    "supabase/tests/rls_sponsor_hub.sql": {
+      "candidateSha256": "c92880aea2ed0e871745798bd5c75e4c77ae648f8fff2db911e5919bbd4d48e7",
+      "assemblySha256": "c92880aea2ed0e871745798bd5c75e4c77ae648f8fff2db911e5919bbd4d48e7"
+    },
+    "supabase/tests/rls_sportlink.sql": {
+      "candidateSha256": "6749ed009beb5d9c682cae55bb49965667954cd92b71882658f353622bedbaad",
+      "assemblySha256": "6749ed009beb5d9c682cae55bb49965667954cd92b71882658f353622bedbaad"
+    },
+    "supabase/tests/rls_sportlink_birthdays.sql": {
+      "candidateSha256": "7a6b08305f353415a4419f6d3f00cf3265f9fa2c4dfa51ba93217987ea639e77",
+      "assemblySha256": "7a6b08305f353415a4419f6d3f00cf3265f9fa2c4dfa51ba93217987ea639e77"
+    },
+    "supabase/tests/rls_staging_player_demo_playlist.sql": {
+      "candidateSha256": "0636739f525426f5bbfb4b49b42ab060be11f409bee40eae8ed2977553ded524",
+      "assemblySha256": "0636739f525426f5bbfb4b49b42ab060be11f409bee40eae8ed2977553ded524"
+    },
+    "supabase/tests/rls_studio_authoring_rendering.sql": {
+      "candidateSha256": "7fca61f5cd07d78d026924d496e7f5cf20832e12f3b506bdbfef52b3b7f4a360",
+      "assemblySha256": "7fca61f5cd07d78d026924d496e7f5cf20832e12f3b506bdbfef52b3b7f4a360"
+    },
+    "supabase/tests/rls_support_ticketing.sql": {
+      "candidateSha256": "63a1d1bca110f334285670ef84016a0679f21c2e7c3e2af094fc073f26259a70",
+      "assemblySha256": "63a1d1bca110f334285670ef84016a0679f21c2e7c3e2af094fc073f26259a70"
+    },
+    "supabase/tests/rls_sync_approved_backgrounds.sql": {
+      "candidateSha256": "7eac2128b0dcb3b2c4c94c7b445da4952a730c220983de0c36b784e53acbbccc",
+      "assemblySha256": "7eac2128b0dcb3b2c4c94c7b445da4952a730c220983de0c36b784e53acbbccc"
+    },
+    "supabase/tests/rls_sync_media_frame_series.sql": {
+      "candidateSha256": "425655bcd2a4a57960b0d2e9e0d6e360f3bc8fad110342287c276923a587796e",
+      "assemblySha256": "425655bcd2a4a57960b0d2e9e0d6e360f3bc8fad110342287c276923a587796e"
+    },
+    "supabase/tests/rls_tenancy_roles.sql": {
+      "candidateSha256": "ed5009932cc2cf0fa24cbf5b652a5f929bc84641901dc78193037722a7e60c53",
+      "assemblySha256": "ed5009932cc2cf0fa24cbf5b652a5f929bc84641901dc78193037722a7e60c53"
+    },
+    "supabase/tests/rls_tenant_custom_roles.sql": {
+      "candidateSha256": "a853c61db011fb3969254f9393fc2435dc7c6ebc5912cceeea2303b6df93a210",
+      "assemblySha256": "a853c61db011fb3969254f9393fc2435dc7c6ebc5912cceeea2303b6df93a210"
+    },
+    "supabase/tests/rls_theme_engine_v2.sql": {
+      "candidateSha256": "31dfb4caba0e30b50b1168b95d74f93cdcf1013f4bebefc790988c9c98457cad",
+      "assemblySha256": "31dfb4caba0e30b50b1168b95d74f93cdcf1013f4bebefc790988c9c98457cad"
+    },
+    "supabase/tests/rss_portrait_template.sql": {
+      "candidateSha256": "3b7a30ec381d82cdee15b87eac3a95a74f7a15f90c8616dc103ef442c30388c6",
+      "assemblySha256": "3b7a30ec381d82cdee15b87eac3a95a74f7a15f90c8616dc103ef442c30388c6"
+    },
+    "supabase/tests/s190_live_integration_diagnostics.sql": {
+      "candidateSha256": "3bc5e1bc6b419d7986705c89065fe0619f1f42e515593a07c1c309f313c8d52f",
+      "assemblySha256": "3bc5e1bc6b419d7986705c89065fe0619f1f42e515593a07c1c309f313c8d52f"
+    },
+    "supabase/tests/s190_superseded_version_retention.sql": {
+      "candidateSha256": "bd4936fc4d538bbd999cc657bbbc7d5f089b0891bcceb685f2682323064921b2",
+      "assemblySha256": "bd4936fc4d538bbd999cc657bbbc7d5f089b0891bcceb685f2682323064921b2"
+    },
+    "supabase/tests/s191_atomic_media_metadata.sql": {
+      "candidateSha256": "0f9732a139715a31145adda0d205e25322e62e15be00cbcacc085dd78ae93db4",
+      "assemblySha256": "0f9732a139715a31145adda0d205e25322e62e15be00cbcacc085dd78ae93db4"
+    },
+    "supabase/tests/s191_engage_commands.sql": {
+      "candidateSha256": "d959716729ffdb89783043e1bfcb00ab903f6c2fddf182af8371514a030c0aad",
+      "assemblySha256": "d959716729ffdb89783043e1bfcb00ab903f6c2fddf182af8371514a030c0aad"
+    },
+    "supabase/tests/s191_led_scene_authoring.sql": {
+      "candidateSha256": "79c8c56d3a5f9e5e744c45d94cd6d31486d2fec28dc00d47067251dfa4f98abd",
+      "assemblySha256": "79c8c56d3a5f9e5e744c45d94cd6d31486d2fec28dc00d47067251dfa4f98abd"
+    },
+    "supabase/tests/s191_playlist_rich_series.sql": {
+      "candidateSha256": "bc1b9575d40695a7d914aa467303bc3c57118290b7fb8747acd68ccbf91a1caf",
+      "assemblySha256": "bc1b9575d40695a7d914aa467303bc3c57118290b7fb8747acd68ccbf91a1caf"
+    },
+    "supabase/tests/s191_product_commands.sql": {
+      "candidateSha256": "8afeb6c6e5ebd89d0bf16fc1ad24844bf93f2320937b531478a52d88c8509852",
+      "assemblySha256": "8afeb6c6e5ebd89d0bf16fc1ad24844bf93f2320937b531478a52d88c8509852"
+    },
+    "supabase/tests/s191_provider_completion_latency.sql": {
+      "candidateSha256": "f4ba9223bea10c38118290055e7ff01694e066a1db693b2e3eb7fb176a83c798",
+      "assemblySha256": "f4ba9223bea10c38118290055e7ff01694e066a1db693b2e3eb7fb176a83c798"
+    },
+    "supabase/tests/s191_publisher_commands.sql": {
+      "candidateSha256": "150b610f5ca8cf6faf457a70613be20443e1f1ed48468063b137323f374fda58",
+      "assemblySha256": "150b610f5ca8cf6faf457a70613be20443e1f1ed48468063b137323f374fda58"
+    },
+    "supabase/tests/s191_screen_onboarding.sql": {
+      "candidateSha256": "ecb96467efc13c60e7c699cee49606e0789075e7bcddcb1429c2f827247e55a2",
+      "assemblySha256": "ecb96467efc13c60e7c699cee49606e0789075e7bcddcb1429c2f827247e55a2"
+    },
+    "supabase/tests/s191_sites_authoring_pause.sql": {
+      "candidateSha256": "5cd36b9b9c53fbc0dd875bc56e6f8031b83e2931afc96b85d2318ca773eae2bd",
+      "assemblySha256": "5cd36b9b9c53fbc0dd875bc56e6f8031b83e2931afc96b85d2318ca773eae2bd"
+    },
+    "supabase/tests/s191_sites_studio_playback.sql": {
+      "candidateSha256": "b41f541b3fe1655e53a18dd5752b0843fa7b534af5c0857ac388e652a253e7cc",
+      "assemblySha256": "b41f541b3fe1655e53a18dd5752b0843fa7b534af5c0857ac388e652a253e7cc"
+    },
+    "supabase/tests/s191_sites_theme_authoring.sql": {
+      "candidateSha256": "6c0a069369b0a622f0cb8c3bdb718db9b8b155c0ba38f6027802499582357f17",
+      "assemblySha256": "6c0a069369b0a622f0cb8c3bdb718db9b8b155c0ba38f6027802499582357f17"
+    },
+    "supabase/tests/s191_source_connection_commands.sql": {
+      "candidateSha256": "37a68a190e08597ba9f785534c41f10f051649418d39a11e73e1c448c34d331d",
+      "assemblySha256": "37a68a190e08597ba9f785534c41f10f051649418d39a11e73e1c448c34d331d"
+    },
+    "supabase/tests/s191_source_sites_persistence.sql": {
+      "candidateSha256": "1743a38ab243fa70c7a3f0e4c31ce37f77cc4a94c376eae5e6e085d7de4f55b1",
+      "assemblySha256": "1743a38ab243fa70c7a3f0e4c31ce37f77cc4a94c376eae5e6e085d7de4f55b1"
+    },
+    "supabase/tests/s191_sportlink_family_registry.sql": {
+      "candidateSha256": "7773ec3ad0e36e460761af05aed0ae6a0459462eb34c68d1abe22add81b74efa",
+      "assemblySha256": "7773ec3ad0e36e460761af05aed0ae6a0459462eb34c68d1abe22add81b74efa"
+    },
+    "supabase/tests/s191_studio_series.sql": {
+      "candidateSha256": "bf1b052a6be2b957e366b2f4fa81ffb5ee160b2f0c76556944b3da7bb179a646",
+      "assemblySha256": "bf1b052a6be2b957e366b2f4fa81ffb5ee160b2f0c76556944b3da7bb179a646"
+    },
+    "supabase/tests/s206_projector_brand_pass.sql": {
+      "candidateSha256": "53e162796305cf362de09b788d2e49d5ab3addbef582f8e27cda08104a65d27d",
+      "assemblySha256": "53e162796305cf362de09b788d2e49d5ab3addbef582f8e27cda08104a65d27d"
+    },
+    "supabase/tests/s209_provider_logo_refresh.sql": {
+      "candidateSha256": "d4eb5fe442cb1ae519b4bec9ba09a7ffd4c2af5eb8d596586b568564b428152d",
+      "assemblySha256": "d4eb5fe442cb1ae519b4bec9ba09a7ffd4c2af5eb8d596586b568564b428152d"
+    },
+    "supabase/tests/s214_sites_v17_authoring.sql": {
+      "candidateSha256": "0b38e8077040a2e7b7c518195a7cf1e2cd6f910a4db2ba1de9b9b0e39c6a5a6a",
+      "assemblySha256": "0b38e8077040a2e7b7c518195a7cf1e2cd6f910a4db2ba1de9b9b0e39c6a5a6a"
+    },
+    "supabase/tests/s215_menu_widgets.sql": {
+      "candidateSha256": "bf24f3d150f03c6f0be7091d387afa4de3cb376a5aaa7cac0eaf8058243b92c9",
+      "assemblySha256": "bf24f3d150f03c6f0be7091d387afa4de3cb376a5aaa7cac0eaf8058243b92c9"
+    },
+    "supabase/tests/s215_studio_series_receipts.sql": {
+      "candidateSha256": "1060b5a4d1e162f6b7aade9da49b7b20ad10d85bdd92e9e088bc75805a11a74a",
+      "assemblySha256": "1060b5a4d1e162f6b7aade9da49b7b20ad10d85bdd92e9e088bc75805a11a74a"
+    },
+    "supabase/tests/s218_studio_library.sql": {
+      "candidateSha256": "aa7590b1c8b805067eb5e678baa614179079107f1772c76928f17842aa98d19a",
+      "assemblySha256": "aa7590b1c8b805067eb5e678baa614179079107f1772c76928f17842aa98d19a"
+    },
+    "supabase/tests/s220_menu_product_editing.sql": {
+      "candidateSha256": "01a0976d4ebad160beba8d539937d999920e992bf212acb62ac28f77a237b4cb",
+      "assemblySha256": "01a0976d4ebad160beba8d539937d999920e992bf212acb62ac28f77a237b4cb"
+    },
+    "supabase/tests/s223_sync_receipts.sql": {
+      "candidateSha256": "4069af645f3b98ef7801b3f490c3065334bd8636f748907437336b7ddb4444da",
+      "assemblySha256": "4069af645f3b98ef7801b3f490c3065334bd8636f748907437336b7ddb4444da"
+    },
+    "supabase/tests/s226_content_library.sql": {
+      "candidateSha256": "410e4a441c43ce9c0b8605cd7d910cfccea23ef864ca45a8ce4035d95ec5cbe1",
+      "assemblySha256": "410e4a441c43ce9c0b8605cd7d910cfccea23ef864ca45a8ce4035d95ec5cbe1"
+    },
+    "supabase/tests/s226_marketing_inquiries.sql": {
+      "candidateSha256": "a8bfcb94920f1836912ec0d464114b150ce0f2e9b3a3db562e637e201597b04b",
+      "assemblySha256": "a8bfcb94920f1836912ec0d464114b150ce0f2e9b3a3db562e637e201597b04b"
+    },
+    "supabase/tests/s226_nonretryable_conflicts.sql": {
+      "candidateSha256": "ff51510a0544c730ec58c4211341d358d004e7bbf9d26e4642bf52597d3eb175",
+      "assemblySha256": "ff51510a0544c730ec58c4211341d358d004e7bbf9d26e4642bf52597d3eb175"
+    },
+    "supabase/tests/s226_product_catalog_paging.sql": {
+      "candidateSha256": "a964bfa52dcfa509678b743b6e0bdf93fe023d3a46735b62fa93d3e13cfc695c",
+      "assemblySha256": "a964bfa52dcfa509678b743b6e0bdf93fe023d3a46735b62fa93d3e13cfc695c"
+    },
+    "supabase/tests/s226_sync_dynamic_authoring.sql": {
+      "candidateSha256": "c3712bc744562ff0a2e99e73086626ca3e2e50f4abe9182966295de3fd1690b4",
+      "assemblySha256": "c3712bc744562ff0a2e99e73086626ca3e2e50f4abe9182966295de3fd1690b4"
+    },
+    "supabase/tests/s226_sync_dynamic_complete.sql": {
+      "candidateSha256": "8284e6e3baf9b59dd0aa1e4181f47d28d1c88169cb91344e11dbe8dbf5732385",
+      "assemblySha256": "8284e6e3baf9b59dd0aa1e4181f47d28d1c88169cb91344e11dbe8dbf5732385"
+    },
+    "supabase/tests/s226_sync_dynamic_configuration.sql": {
+      "candidateSha256": "7a37baec7bd23dbe979de0ec10dcefb25a83e94959487b3c18f4b14bb659ec3c",
+      "assemblySha256": "7a37baec7bd23dbe979de0ec10dcefb25a83e94959487b3c18f4b14bb659ec3c"
+    },
+    "supabase/tests/s226_sync_dynamic_led.sql": {
+      "candidateSha256": "93849577efc3998ddfbf064c2fea447d6c34bcd6aeaf8a30b89f626ff57f7490",
+      "assemblySha256": "93849577efc3998ddfbf064c2fea447d6c34bcd6aeaf8a30b89f626ff57f7490"
+    },
+    "supabase/tests/s226_sync_dynamic_snapshot.sql": {
+      "candidateSha256": "b45abd2a721e3c862f7f2f5960348a3594720e8767c774a2aff7514446f15c56",
+      "assemblySha256": "b45abd2a721e3c862f7f2f5960348a3594720e8767c774a2aff7514446f15c56"
+    },
+    "supabase/tests/s226_sync_dynamic_variants.sql": {
+      "candidateSha256": "fbf2b473008a700332159d2231d63b3b7de235ea8f8808034ee40fa7afc5b29a",
+      "assemblySha256": "fbf2b473008a700332159d2231d63b3b7de235ea8f8808034ee40fa7afc5b29a"
+    },
+    "supabase/tests/s226_sync_dynamic_worker.sql": {
+      "candidateSha256": "b2e68db9cd681ec2038d11dc3bcbd78263ed22df75c090fb192ebcfa23d53a0a",
+      "assemblySha256": "b2e68db9cd681ec2038d11dc3bcbd78263ed22df75c090fb192ebcfa23d53a0a"
+    },
+    "supabase/tests/s226_sync_engage.sql": {
+      "candidateSha256": "7e223c86265f1c38e5b598ca170e1abc46084d791e88d416a44c0ef24b8e413c",
+      "assemblySha256": "7e223c86265f1c38e5b598ca170e1abc46084d791e88d416a44c0ef24b8e413c"
+    },
+    "supabase/tests/s226_sync_published_binary.sql": {
+      "candidateSha256": "82601ab4d4c3a5b9e303d2ade6ef8ea6493658c869f868747d03fbbb18c8a80d",
+      "assemblySha256": "82601ab4d4c3a5b9e303d2ade6ef8ea6493658c869f868747d03fbbb18c8a80d"
+    },
+    "supabase/tests/s226_sync_studio_authoring.sql": {
+      "candidateSha256": "0ea204208b9b44c148e5ddf4741c1a168e679e655e2d8547bd16c12136556c35",
+      "assemblySha256": "0ea204208b9b44c148e5ddf4741c1a168e679e655e2d8547bd16c12136556c35"
+    },
+    "supabase/tests/s226_sync_studio_library.sql": {
+      "candidateSha256": "b5a98ebdc83ff43fb99b1bbe127622acbcd28d6b6766df4331af67d9fe5cecb0",
+      "assemblySha256": "b5a98ebdc83ff43fb99b1bbe127622acbcd28d6b6766df4331af67d9fe5cecb0"
+    },
+    "supabase/tests/s226_sync_studio_metadata.sql": {
+      "candidateSha256": "2ad577b69ff0c0f7e772e8adc0e5131f6a977509611d5b2a6d7440c642f21b90",
+      "assemblySha256": "2ad577b69ff0c0f7e772e8adc0e5131f6a977509611d5b2a6d7440c642f21b90"
+    },
+    "supabase/tests/s226_sync_studio_playback.sql": {
+      "candidateSha256": "232820cbe3f69792ed3915d651da5cebb93fd3c08b5ee6b0ead3d764d22b129b",
+      "assemblySha256": "232820cbe3f69792ed3915d651da5cebb93fd3c08b5ee6b0ead3d764d22b129b"
+    },
+    "supabase/tests/s226_sync_studio_series.sql": {
+      "candidateSha256": "7ef408727d5bc796547767fe914d5f7ac874fc290b85ffc0f510b0a8e8fe1dcd",
+      "assemblySha256": "7ef408727d5bc796547767fe914d5f7ac874fc290b85ffc0f510b0a8e8fe1dcd"
+    },
+    "supabase/tests/s226_sync_youtube.sql": {
+      "candidateSha256": "fa50ef01cbea9009acefe6977a1c3dc771701b423871c3b76af4ff6b6c06d884",
+      "assemblySha256": "fa50ef01cbea9009acefe6977a1c3dc771701b423871c3b76af4ff6b6c06d884"
+    },
+    "supabase/tests/s227_engage_result_privacy.sql": {
+      "candidateSha256": "1e02395a3145e1031a0c48ccf846a99b57bbeab5eafe410766b14688ee9855c6",
+      "assemblySha256": "1e02395a3145e1031a0c48ccf846a99b57bbeab5eafe410766b14688ee9855c6"
+    },
+    "supabase/tests/s231_media_frames.sql": {
+      "candidateSha256": "d9e30d7322741ece60266a5f05c728da3bd084f91841dc214316e9a61d11db47",
+      "assemblySha256": "d9e30d7322741ece60266a5f05c728da3bd084f91841dc214316e9a61d11db47"
+    },
+    "supabase/tests/s261_menu_price_candidates.sql": {
+      "candidateSha256": "1060e05cd0a631c40bba5387518d06714eb5a1b771eaf7602d2d028ca57aaa3c",
+      "assemblySha256": "1060e05cd0a631c40bba5387518d06714eb5a1b771eaf7602d2d028ca57aaa3c"
+    },
+    "supabase/tests/s262_sync_engage_full_options.sql": {
+      "candidateSha256": "c78222d48547afb15ac0996e0a049fe66f2d00342fc6b22da02b5feb9b58286e",
+      "assemblySha256": "c78222d48547afb15ac0996e0a049fe66f2d00342fc6b22da02b5feb9b58286e"
+    },
+    "supabase/tests/s285_onzetrots.sql": {
+      "candidateSha256": "7c5c6e53bc9d925b033e27519dea52e9a4b4fb6cfbee9ad3691afe0bbcb456c6",
+      "assemblySha256": "7c5c6e53bc9d925b033e27519dea52e9a4b4fb6cfbee9ad3691afe0bbcb456c6"
+    },
+    "supabase/tests/s286_onzetrots_v9.sql": {
+      "candidateSha256": "cc816288441ebaf9cf96d23e5ec9a7cd1132bf44925d5af396fbd69a6d7bc94e",
+      "assemblySha256": "cc816288441ebaf9cf96d23e5ec9a7cd1132bf44925d5af396fbd69a6d7bc94e"
+    },
+    "supabase/tests/s287_sync_source_authoring.sql": {
+      "candidateSha256": "7632bacca987a343458ce9b27522a6352d6c6895b6149fe513a094b260726a6c",
+      "assemblySha256": "7632bacca987a343458ce9b27522a6352d6c6895b6149fe513a094b260726a6c"
+    },
+    "supabase/tests/s288_rss_selection.sql": {
+      "candidateSha256": "69fe9f6e89d7633b1c219b59e0805a9271196288917702830bf84ca6b7656673",
+      "assemblySha256": "69fe9f6e89d7633b1c219b59e0805a9271196288917702830bf84ca6b7656673"
+    },
+    "supabase/tests/s290_approved_menu_style.sql": {
+      "candidateSha256": "7311d296335e9525b1d3e12f6052717f5f5e9e945ffb7cc215614f04269dd785",
+      "assemblySha256": "7311d296335e9525b1d3e12f6052717f5f5e9e945ffb7cc215614f04269dd785"
+    },
+    "supabase/tests/s291_onzetrots_consistency.sql": {
+      "candidateSha256": "17f6a24599ae1b29aa62b4977bd409767b1a4c132a0c06ed2ce41d6e50b31286",
+      "assemblySha256": "17f6a24599ae1b29aa62b4977bd409767b1a4c132a0c06ed2ce41d6e50b31286"
+    },
+    "supabase/tests/s292_dom_protocol.sql": {
+      "candidateSha256": "781a999c7d0b338ea0e754f1cedcb45614fe9a4ef3d3c0e715a768967760694a",
+      "assemblySha256": "781a999c7d0b338ea0e754f1cedcb45614fe9a4ef3d3c0e715a768967760694a"
+    },
+    "supabase/tests/s292_matchday_membership.sql": {
+      "candidateSha256": "f573be7cc35db38646e946766e8209dd2719b51f6209cac590790e502581602c",
+      "assemblySha256": "f573be7cc35db38646e946766e8209dd2719b51f6209cac590790e502581602c"
+    },
+    "supabase/tests/s292_menu_dom_contract.sql": {
+      "candidateSha256": "826dc3f96f33029191bdd2b9c2467e7977dcbc536b84442057ac2cf72da75387",
+      "assemblySha256": "826dc3f96f33029191bdd2b9c2467e7977dcbc536b84442057ac2cf72da75387"
+    },
+    "supabase/tests/s292_rss_contract.sql": {
+      "candidateSha256": "3802eeacea91ef222166a08d0d5c92856a63f89e712a62e1366d5bce694354f6",
+      "assemblySha256": "3802eeacea91ef222166a08d0d5c92856a63f89e712a62e1366d5bce694354f6"
+    },
+    "supabase/tests/s293_menu_dom_observation_stability.sql": {
+      "candidateSha256": "74d44a34feca74ea3587fb001cf5694285496736372e4220688ccb95243be982",
+      "assemblySha256": "74d44a34feca74ea3587fb001cf5694285496736372e4220688ccb95243be982"
+    },
+    "supabase/tests/s295_published_sportlink_chain.sql": {
+      "candidateSha256": "341d740b5d0023e42292fe7f190766d778e14765746a4cf7249957b51813810a",
+      "assemblySha256": "341d740b5d0023e42292fe7f190766d778e14765746a4cf7249957b51813810a"
+    },
+    "supabase/tests/s295_sportlink_observation_scope.sql": {
+      "candidateSha256": "8e4f68503c6854b4d9e3884e40a70cc75964ed2a50ab3f3e3150e7eaa0760bf2",
+      "assemblySha256": "8e4f68503c6854b4d9e3884e40a70cc75964ed2a50ab3f3e3150e7eaa0760bf2"
+    },
+    "supabase/tests/s298_effective_planning.sql": {
+      "candidateSha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b",
+      "assemblySha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b"
+    },
+    "supabase/tests/s300_matchday_runbooks.sql": {
+      "candidateSha256": "bdf1263cddf75b36f13620835b98085d4a1a18ccb0c3696e4fcf44d02ceffd27",
+      "assemblySha256": "bdf1263cddf75b36f13620835b98085d4a1a18ccb0c3696e4fcf44d02ceffd27"
+    },
+    "supabase/tests/s301_sportlink_season_switch.sql": {
+      "candidateSha256": "f4f3e9f0dc948d47ff9d413c721cabed9ce44f6a2593e800cb5ebf135aff1cd4",
+      "assemblySha256": "f4f3e9f0dc948d47ff9d413c721cabed9ce44f6a2593e800cb5ebf135aff1cd4"
     }
   }
 }

@@ -973,7 +973,9 @@ declare actor uuid;full_read boolean;can_edit boolean;can_publish boolean;can_ma
       when schedule.id is not null and(not schedule.enabled or schedule.ends_at<=private.matchday_now_s300_v1())then'restoring'
       when delivery.action_id is not null and(action.ends_at<=private.matchday_now_s300_v1()or lifecycle.status<>'active')then'restoring'
       else delivery.status end,'receivedAt',delivery.received_at,'renderedAt',delivery.rendered_at,'contentHash',delivery.content_hash,
-     'confirmedReleaseId',delivery.confirmed_release_id,'detail',delivery.detail)value
+     'confirmedReleaseId',delivery.confirmed_release_id,
+     'confirmedAt',case when delivery.confirmed_release_id is null then null when delivery.restored_at is not null then delivery.restored_at else delivery.rendered_at end,
+     'detail',delivery.detail)value
     from public.matchday_deliveries delivery join public.matchday_publication_targets target on target.tenant_id=delivery.tenant_id and target.id=delivery.target_id
     left join public.matchday_actions action on action.tenant_id=delivery.tenant_id and action.id=delivery.action_id
     left join public.matchday_action_lifecycle lifecycle on lifecycle.tenant_id=action.tenant_id and lifecycle.action_id=action.id

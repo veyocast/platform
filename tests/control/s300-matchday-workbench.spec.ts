@@ -227,3 +227,31 @@ for(const scenario of["known-version","unknown-version","no-screen-right","deleg
  if(mayLink)expect((await links.evaluateAll(elements=>elements.map(element=>element.getAttribute("href")))).sort()).toEqual(publication.targets.map(target=>`/dashboard/screens/${target.screenId}`).sort());
  expect(commands).toEqual([]);expect(errors).toEqual([]);
 });
+
+for(const temporaryVisible of[true,false])test(`WDG-12 restored release keeps its own confirmation time after ${temporaryVisible?"a visible":"an unshown"} temporary release`,async({page})=>{
+ const data=matchdayFixture(),delivery=data.selected!.deliveries[0]!,restoredRelease={...data.options.releases[0]!,id:id(83),label:"Gewone planning B",version:7};
+ data.options.releases.push(restoredRelease);
+ delivery.status=temporaryVisible?"rendered":"prepared";delivery.renderedAt=temporaryVisible?"2026-11-09T11:00:00Z":null;delivery.confirmedReleaseId=temporaryVisible?id(30):null;
+ delivery.confirmedAt=temporaryVisible?"2026-11-09T11:00:00Z":null;
+ const{errors}=await mountMatchday(page,data);
+ const card=page.locator('section[aria-labelledby="matchday-delivery-title"]').getByRole("article").filter({has:page.getByRole("heading",{name:"Entree",exact:true})});
+ if(temporaryVisible){await expect(card).toContainText("Bevestigde publicatie: Gewone entree · versie 1");await expect(card.getByText(/^Bevestigd op:/)).toContainText("12:00");}
+ else await expect(card).toContainText("Bevestigde publicatie: Weergave onbekend");
+ const restored=structuredClone(data),after=restored.selected!.deliveries[0]!;after.status="restored";after.confirmedReleaseId=restoredRelease.id;after.confirmedAt="2026-11-09T11:05:00Z";
+ await page.evaluate(workspace=>(globalThis as unknown as{updateMatchdayWorkspace:(workspace:unknown)=>void}).updateMatchdayWorkspace(workspace),restored);
+ await expect(card).toContainText("Planning hervat");await expect(card).toContainText("Bevestigde publicatie: Gewone planning B · versie 7");
+ const confirmation=card.getByText(/^Bevestigd op:/);await expect(confirmation).toContainText("12:05");await expect(confirmation).not.toContainText("12:00");
+ if(temporaryVisible){await expect(card.getByText(/^Eerder tijdelijk frame:/)).toBeHidden();await card.getByText("Afleverdetails",{exact:true}).click();await expect(card.getByText(/^Eerder tijdelijk frame:/)).toContainText("12:00");}
+ else await expect(card.getByText(/^Eerder tijdelijk frame:/)).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+for(const status of["rendered","restored"]as const)test(`WDG-12 a legacy ${status} delivery only reuses frame time for the rendered release`,async({page})=>{
+ const data=matchdayFixture(),delivery=data.selected!.deliveries[0]!;
+ delivery.status=status;delivery.renderedAt="2026-11-09T11:00:00Z";delete(delivery as Partial<typeof delivery>).confirmedAt;
+ const{errors}=await mountMatchday(page,data);
+ const card=page.locator('section[aria-labelledby="matchday-delivery-title"]').getByRole("article").filter({has:page.getByRole("heading",{name:"Entree",exact:true})});
+ if(status==="rendered"){await expect(card.getByText(/^Bevestigd op:/)).toContainText("12:00");await expect(card.getByText(/^Eerder tijdelijk frame:/)).toHaveCount(0);}
+ else{await expect(card.getByText("Bevestigd op: Onbekend",{exact:true})).toBeVisible();await card.getByText("Afleverdetails",{exact:true}).click();await expect(card.getByText(/^Eerder tijdelijk frame:/)).toContainText("12:00");}
+ expect(errors).toEqual([]);
+});

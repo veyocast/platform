@@ -64,6 +64,8 @@ export function compileResponsive({chosenSync=false}:{chosenSync?:boolean}={}) {
   .replace("path==='/dashboard'?{visualState:'healthy'}:{}","Object.fromEntries([...new URLSearchParams(location.search)].filter(([key])=>key!=='path'))")
   :respEntry;
  const mockModules:Record<string,string>={
+  // Original core fixtures carry no optional Matchday availability model.
+  '/lib/matchday-service':"export async function loadMatchdayAvailability(){return null};",
   '/lib/control-session':"export async function requireControlSession(){return window.__respSession};export const requireTenantControlSession=requireControlSession;",
   '/lib/control-overview':"export async function loadTenantOverview(){return window.__respModels.overview};export async function loadTenantTeam(){return window.__respModels.team};export async function loadTenantAuditEvents(){return{error:false,events:[],page:1,pageCount:1,timezoneName:'Europe/Amsterdam',total:0}};",
   '/dashboard/planning/data':"export async function loadContentSchedules(){return window.__respModels.planning};",

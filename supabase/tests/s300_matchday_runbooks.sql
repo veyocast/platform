@@ -287,7 +287,13 @@ select is(public.end_matchday_action_s300_v1(pg_temp.tenant(),(select value from
 reset role;
 select set_config('request.jwt.claim.role','service_role',true);
 select throws_ok($$select public.ack_player_matchday_action_s300_v1(repeat('d',64),pg_temp.action_ack('rendered'))$$,'40001',null,'a terminated overlay cannot be newly acknowledged as current rendered');
-select is(public.ack_player_matchday_action_s300_v1(repeat('d',64),pg_temp.action_ack('restored'))->>'accepted','true','restored overlay is independently acknowledged after the explicit end');
+select is(public.ack_player_matchday_action_s300_v1(repeat('d',64),pg_temp.action_ack('restored')||jsonb_build_object('activeReleaseId',(select value from facts where key='ordinary')))->>'accepted','true','restored overlay is independently acknowledged after the explicit end');
+select is((select jsonb_build_object('releaseId',value->'confirmedReleaseId','confirmedAt',value->'confirmedAt','renderedAt',value->'renderedAt')
+ from jsonb_array_elements(public.get_matchday_workspace_s300_v1(pg_temp.tenant(),'e3000000-0000-4000-8000-000000000020')#>'{selected,deliveries}')value
+ where value->>'id'=(select value#>>'{actions,0,deliveryId}'from facts where key='device-actions')),
+ (select jsonb_build_object('releaseId',(select value from facts where key='ordinary'),'confirmedAt',restored_at,'renderedAt',rendered_at)
+ from public.matchday_deliveries where id=(select(value#>>'{actions,0,deliveryId}')::uuid from facts where key='device-actions')),
+ 'restored overlay B is projected with its own restoration time while the historical A frame time remains separate');
 select is(public.ack_player_matchday_action_s300_v1(repeat('d',64),pg_temp.action_ack('received'))->>'accepted','true','late transport receipt is retained without reversing completed restoration');
 select is(public.ack_player_matchday_action_s300_v1(repeat('d',64),pg_temp.action_ack('prepared'))->>'accepted','true','late preparation receipt is retained without reversing completed restoration');
 select is((select status from public.matchday_deliveries where id=(select(value#>>'{actions,0,deliveryId}')::uuid from facts where key='device-actions')),'restored','restored delivery status remains monotone under reordered acknowledgements');
@@ -327,6 +333,12 @@ with stamp as(select private.matchday_now_s300_v1()at_time)update public.player_
  from stamp where id='e3000000-0000-4000-8000-000000000011';
 select is((select status from public.matchday_deliveries where schedule_id=(select(value#>>'{matchday_window,window_id}')::uuid from facts where key='bootstrap')),'restored','the earlier fully offered offline fallback is recognized after later planning changes');
 select matches((select detail from public.matchday_deliveries where schedule_id=(select(value#>>'{matchday_window,window_id}')::uuid from facts where key='bootstrap')),'^Eerder aangeboden','historical fallback receipt explicitly avoids claiming the current ordinary winner was restored');
+select is((select jsonb_build_object('releaseId',value->'confirmedReleaseId','confirmedAt',value->'confirmedAt','renderedAt',value->'renderedAt')
+ from jsonb_array_elements(public.get_matchday_workspace_s300_v1(pg_temp.tenant(),'e3000000-0000-4000-8000-000000000020')#>'{selected,deliveries}')value
+ where value->>'id'=(select id::text from public.matchday_deliveries where schedule_id=(select(value#>>'{matchday_window,window_id}')::uuid from facts where key='bootstrap'))),
+ (select jsonb_build_object('releaseId',(select value from facts where key='ordinary'),'confirmedAt',restored_at,'renderedAt',rendered_at)
+ from public.matchday_deliveries where schedule_id=(select(value#>>'{matchday_window,window_id}')::uuid from facts where key='bootstrap')),
+ 'restored window B is projected with its fresh restoration time rather than the earlier temporal A frame time');
 with stamp as(select private.matchday_now_s300_v1()at_time)update public.player_devices set last_seen_at=stamp.at_time,
  current_sync_detail=jsonb_build_object('matchdayWindow',pg_temp.window_report('received',(select(value#>>'{}')::uuid from facts where key='role'),stamp.at_time))
  from stamp where id='e3000000-0000-4000-8000-000000000011';

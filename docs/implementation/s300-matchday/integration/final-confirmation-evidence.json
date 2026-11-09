@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "candidateBaseSha": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+  "sourceChanges": [
+    "Restored release receives its own confirmedAt from restored_at; historical renderedAt retained.",
+    "Legacy rendered payload may use renderedAt; legacy restored payload without confirmedAt displays unknown.",
+    "Controlled responsive fixture mocks optional matchday availability to null; original Team fixture can bundle without server telemetry.",
+    "Client command result types moved to a pure type contract; no client graph traverses server-only session helpers. Server module preserves its prior type exports."
+  ],
+  "regressionEvidence": {
+    "sqlRed": {
+      "failures": 2,
+      "otherAssertionsPassed": 152,
+      "cases": [
+        71,
+        91
+      ]
+    },
+    "focusedContracts": {
+      "passed": 10
+    },
+    "focusedBrowser": {
+      "passed": 8,
+      "seconds": 6.9
+    },
+    "wholeMatchdayBrowserBeforeNewRpcCapture": {
+      "passed": 36,
+      "seconds": 41.5
+    },
+    "originalResponsiveTeamBrowser": {
+      "passed": 3,
+      "seconds": 8.2
+    },
+    "newRpcStrictSchema": {
+      "capturedPayloads": 18,
+      "result": "PASS"
+    },
+    "wholeMatchdayBrowserWithFinalRpcCapture": {
+      "passed": 36,
+      "seconds": 41.7
+    },
+    "restoredWorkspaceStrictSchema": {
+      "capturedPayloads": 2,
+      "result": "PASS",
+      "restoredRowsAcrossExports": 3
+    }
+  },
+  "logSha256": {
+    "/tmp/s330-confirmation-final-lint.log": "d4432736048c57acd7d3430909974c2cac45ebd1a0dc1cd5cc3de9d5c602078e",
+    "/tmp/s330-confirmation-final-typecheck.log": "9e45b7429638cdd315b349b136c9becabd9f942b09c62925c66613f85647bfc9",
+    "/tmp/s330-confirmation-final-test.log": "f259231a4c3ac41c5f9e4c81e8161786b25983ea5fb7bb756dcf6c51c19665e3",
+    "/tmp/s300-confirmation-time-before.log": "4d807a66bdf01328560846d1107e4ab1892c554b7519e8d114f08cfad90b1e13",
+    "/tmp/s300-confirmation-time-after-final.log": "82ae090b85533a947fab719271d89d53f47fd4e36710bdd62fe51b313ec00b3a",
+    "/tmp/s300-confirmation-time-contracts.log": "f45c76f82d7b7421b86493c2328c83f70988767d5ee6e553f35b2dd96ab323cc",
+    "/tmp/s330-control-responsive-bundle-fixed.log": "c0c1273d4261e8e21c6fed7293f9c165bdd66ccd3a759b9bccab7dbc093292a2",
+    "/tmp/s330-control-responsive-fixture-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/s330-control-responsive-team-fixed.log": "30a5231ef7cebb2c622fa491471530a3f98e818d35df70c4850d01c2a5af3237",
+    "/tmp/s330-matchday-all36-after-confirmation.log": "ed1ef13413b306714bfa5c891670184f4b4a59bbe5e7834d89fb942b2a198451",
+    "/tmp/s330-final-rpc-contract-parse.log": "59ea6a4fa26226e9a678930b077e2ae70ccf91d5a6812aa43cf782691a373744",
+    "/tmp/s330-matchday-final36-actual-rpc.log": "6b970fc3f642c026f48045aaa5252435cc8da21b0c53e2020f0179e77f2125ca",
+    "/tmp/s330-final-restored-rpc-parse.json": "e86c05933ed34c9684047c99c5e63b916569364594c1f130c280b56e94cd5a8b",
+    "/tmp/s300-confirmed-at-red.log": "70578066a80d064fdad5edb7b3b322b33db0518958c287402a9be58323ff37ca",
+    "/tmp/s330-uncached-final-lint.log": "cead91e67125b83d34a829812a835bcb3f4c5fbb36788bba0ee655999e5bc622",
+    "/tmp/s330-uncached-final-typecheck.log": "793ce710c54a0ed4d72c2b8f2c77642ce19b991ccc85e86d241143227af46721",
+    "/tmp/s330-uncached-final-test.log": "cce51bcbea6ab2a3c89b2572d85e8f07d7760788a4d66a709757826f54a35b98",
+    "/tmp/s330-service-boundary-local-force.log": "02fb85bf604ac9d653766f30d343c1b918b684407ac8cdda7897f6bc045c7bf0",
+    "/tmp/s330-service-boundary-after.log": "32a5b32954186fa006e289d7611cbf06a3be21e7942db2a3fb93eadb80ae0db2"
+  },
+  "scope": "Local proof. Final exact-head CI/build, hosted staging acceptance and production promotion remain required.",
+  "serviceBoundary": {
+    "ciRun": 42635174468,
+    "job": 129221349147,
+    "beforeClientGraphViolations": 5,
+    "localDirectBefore": "FAIL same five paths",
+    "localDirectAfter": {
+      "tests": 3,
+      "passed": 3
+    },
+    "scannerChanged": false,
+    "actionOrPermissionChanged": false,
+    "cacheLimit": "Prior cached Config package result did not re-scan changed Control sources; final gates below use --force for every task."
+  },
+  "priorCachedFoundation": {
+    "lint": {
+      "passed": 30,
+      "seconds": 22.245
+    },
+    "typecheck": {
+      "passed": 30,
+      "seconds": 15.029
+    },
+    "test": {
+      "passed": 30,
+      "seconds": 59.1,
+      "command": "pnpm test --concurrency=1",
+      "caseDeadlinesUnchanged": true,
+      "counts": {
+        "@veyocast/testkit": "29 passed (29)",
+        "@veyocast/contracts": "222 passed (222)",
+        "@veyocast/tokens": "7 passed (7)",
+        "@veyocast/observability": "6 passed (6)",
+        "@veyocast/config": "11 passed (11)",
+        "@veyocast/domain": "101 passed (101)",
+        "@veyocast/integrations": "230 passed (230)",
+        "@veyocast/content-templates": "292 passed (292)",
+        "@veyocast/ui": "19 passed (19)",
+        "@veyocast/mobile-design-system": "3 passed (3)",
+        "@veyocast/studio": "40 passed (40)",
+        "@veyocast/player": "755 passed (755)",
+        "@veyocast/database": "8 passed (8)",
+        "@veyocast/auth": "10 passed (10)",
+        "@veyocast/media-worker": "436 passed | 343 skipped (779)",
+        "@veyocast/marketing": "20 passed (20)",
+        "@veyocast/control": "2200 passed | 34 skipped (2234)",
+        "@veyocast/control-mobile": "62 passed (62)"
+      }
+    }
+  },
+  "foundation": {
+    "lint": {
+      "passed": 30,
+      "seconds": 22.641,
+      "cacheHits": 0,
+      "command": "pnpm lint --force"
+    },
+    "typecheck": {
+      "passed": 30,
+      "seconds": 21.428,
+      "cacheHits": 0,
+      "command": "pnpm typecheck --force"
+    },
+    "test": {
+      "passed": 30,
+      "seconds": 86.159,
+      "cacheHits": 0,
+      "command": "pnpm test --force --concurrency=1",
+      "individualDeadlinesChanged": false,
+      "counts": {
+        "@veyocast/config": "11 passed (11)",
+        "@veyocast/contracts": "222 passed (222)",
+        "@veyocast/tokens": "7 passed (7)",
+        "@veyocast/testkit": "29 passed (29)",
+        "@veyocast/observability": "6 passed (6)",
+        "@veyocast/ui": "19 passed (19)",
+        "@veyocast/mobile-design-system": "3 passed (3)",
+        "@veyocast/domain": "101 passed (101)",
+        "@veyocast/integrations": "230 passed (230)",
+        "@veyocast/content-templates": "292 passed (292)",
+        "@veyocast/player": "755 passed (755)",
+        "@veyocast/studio": "40 passed (40)",
+        "@veyocast/auth": "10 passed (10)",
+        "@veyocast/database": "8 passed (8)",
+        "@veyocast/media-worker": "436 passed | 343 skipped (779)",
+        "@veyocast/marketing": "20 passed (20)",
+        "@veyocast/control": "2200 passed | 34 skipped (2234)",
+        "@veyocast/control-mobile": "62 passed (62)"
+      }
+    }
+  }
+}
