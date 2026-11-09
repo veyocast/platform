@@ -139,7 +139,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
 
   return (
     <div className={planningStyles.planningPage}>
-      <div><PageHeader description="Bepaal waar en wanneer content zichtbaar wordt." eyebrow="VeyoCast FieldFlow" title="Planning"/></div>
+      <div><PageHeader description="Bepaal waar en wanneer content zichtbaar wordt." eyebrow="VeyoCast FieldFlow" title="Planning"/><Button asChild variant="secondary"><Link href="/dashboard/planning/effectief">Nu, Hierna en Waarom per scherm</Link></Button></div>
 
       {query.fout ? <p className="notice notice--critical" role="alert"><strong>Planning niet opgeslagen.</strong> {query.fout}</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
@@ -237,7 +237,7 @@ function PlanningInsights({currentTime,management,schedules,timeZone}:{currentTi
   <section className={planningStyles.insightCard}><header><div><p>Automatisering</p><h2>Slimme planning</h2></div><span>{enabled.filter(schedule=>schedule.scheduleKind!=="once").length} actief</span></header>
    {management(<div className={planningStyles.insightRow}><span className={planningStyles.automationIcon}><Repeat2 aria-hidden="true" size={22}/></span><div><strong>Je club in het juiste ritme</strong><p>Terugkerende momenten houden je schermen automatisch actueel.</p></div><DialogTrigger asChild><button type="button" aria-label="Terugkerende momenten beheren"><ChevronRight aria-hidden="true" size={20}/></button></DialogTrigger></div>)}
   </section>
-  <section className={planningStyles.insightCard}><header><div><p>Hierna</p><h2>Volgende publicatie</h2></div><Clock3 aria-hidden="true" size={19}/></header>
+  <section className={planningStyles.insightCard}><header><div><p>Agenda</p><h2>Volgend kalendermoment</h2></div><Clock3 aria-hidden="true" size={19}/></header>
    <div className={planningStyles.insightRow}><span className={planningStyles.automationIcon}><Layers3 aria-hidden="true" size={22}/></span><div><strong>{next?.occurrence.name??"Nog geen moment gepland"}</strong><p>{next?`${formatScheduleWindow(next.occurrence.startsAt,next.occurrence.endsAt,timeZone)} · ${next.schedule.targetName}`:"Plan het eerste moment voor je schermen."}</p></div></div><Link className={planningStyles.insightLink} href="/dashboard/studio">Bekijk content in Studio <ArrowRight aria-hidden="true" size={16}/></Link>
   </section>
  </div>;

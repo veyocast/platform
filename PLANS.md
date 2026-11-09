@@ -1,8 +1,10 @@
 # VeyoCast MVP Plan
 
-S301: uitvoering van fase D uit de overdracht van 9 november 2026: seizoensinventaris, gecontroleerde mappings en alleen conceptwijzigingen via bestaande authoring- en CAS-contracten. Geen wijziging van bestaande Duindorp-planningen.
-
-S296 brengt één gedeelde contactstatus met afzonderlijk publicatie- en bronbewijs naar Control en mobiele clients. De uitvoering volgt de overdracht van 9 november 2026; normale staging- en productiepromotie zijn expliciet gevraagd.
+S296–S301 voeren de overdracht van 9 november 2026 uit: gedeelde schermstatus,
+één Content-ingang, uitlegbare effectieve planning, volledige sponsortotalen,
+een optionele Wedstrijddagwerkplek en gecontroleerde seizoenswissel. De gebruiker
+heeft daarna staging én productie gevraagd. Ownership, afhankelijkheden,
+acceptatie en herstel staan in `docs/s296-s301-overdracht-2026-11-09.md`.
 
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
@@ -538,3 +540,8 @@ releaseverificatie. Netwerkafhankelijke video verdringt de vorige lokaal
 werkende release niet; zie `docs/s228-lg-native-media.md`.
 
 S296 CI-herstel door root: expliciete ownership voor de drie bestaande STATE-fixtures en de lokale Source-wizardfooter-CSS; scherm-/publicatiewaarheid en bestaande touchhoogte blijven leidend.40 betrokken browsercases en alle30 foundationtaken groen; normale finale CI opnieuw vereist.
+
+S298 aanvullende CI sluit een ontbrekende kandidaatbarrière in de bestaande
+LG-test en dezelfde lokaal bewezen wizardtouchhoogte als S296. Vier gerichte
+Playergevallen groen; precieze nieuwe bron-SHA en normale CI blijven de
+releasegrens. Zie het eigen CI-barrièrebewijs.
