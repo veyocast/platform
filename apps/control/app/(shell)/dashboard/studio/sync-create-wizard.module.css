@@ -28,3 +28,6 @@
 .wizard .fields :global(.field)>span,
 .wizard .fields :global(.field)>small,
 .wizard .fields :global(.vc-property-hint){font-size:14px;line-height:1.6}
+
+/* Keep the wizard footer at the intended touch height above shell overrides. */
+.wizard .panel .actions button,.wizard .panel .actions a{min-height:var(--vc-component-height-button-touch)}

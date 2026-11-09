@@ -534,3 +534,5 @@ S228 herstelt de op de fysieke LG bewezen weigering van beide lokale
 videotransporten met een begrensde native HTTP-herpoging na volledige
 releaseverificatie. Netwerkafhankelijke video verdringt de vorige lokaal
 werkende release niet; zie `docs/s228-lg-native-media.md`.
+
+S296 CI-herstel door root: expliciete ownership voor de drie bestaande STATE-fixtures en de lokale Source-wizardfooter-CSS; scherm-/publicatiewaarheid en bestaande touchhoogte blijven leidend.40 betrokken browsercases en alle30 foundationtaken groen; normale finale CI opnieuw vereist.
