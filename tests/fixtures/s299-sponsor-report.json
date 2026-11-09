@@ -1,0 +1,685 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-11-09T10:00:00+00:00",
+  "timezone": "Europe/Amsterdam",
+  "period": {
+    "fromDate": "2026-11-01",
+    "untilDate": "2026-11-10",
+    "from": "2026-10-31T23:00:00+00:00",
+    "until": "2026-11-09T23:00:00+00:00"
+  },
+  "filters": {
+    "campaignId": null,
+    "screenId": null
+  },
+  "totals": {
+    "acceptedEvents": "5501",
+    "playedMs": "5509251"
+  },
+  "coverage": {
+    "firstEventAt": "2026-11-01T12:00:00+00:00",
+    "lastEventAt": "2026-11-09T09:59:00+00:00",
+    "lastReceivedAt": "2026-11-09T09:59:30+00:00",
+    "status": "unconfirmed",
+    "automaticRetentionDays": null,
+    "acceptedLateWindowDays": 30,
+    "gaps": []
+  },
+  "groups": [
+    {
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "acceptedEvents": "3000",
+      "playedMs": "3000000"
+    },
+    {
+      "campaignId": "29900000-0000-4000-8000-000000000002",
+      "campaignName": "=SOM(1;2) \"Club\"\nZuid",
+      "screenId": "29900000-0000-4000-8000-000000000004",
+      "screenName": "@Entree; oud",
+      "screenDeleted": true,
+      "acceptedEvents": "2501",
+      "playedMs": "2509251"
+    }
+  ],
+  "details": [
+    {
+      "eventId": "29900000-0000-4000-8000-000000000100",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:59:00+00:00",
+      "receivedAt": "2026-11-09T09:59:30+00:00",
+      "playedMs": 1000
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000101",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:58:00+00:00",
+      "receivedAt": "2026-11-09T09:58:30+00:00",
+      "playedMs": 1001
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000102",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:57:00+00:00",
+      "receivedAt": "2026-11-09T09:57:30+00:00",
+      "playedMs": 1002
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000103",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:56:00+00:00",
+      "receivedAt": "2026-11-09T09:56:30+00:00",
+      "playedMs": 1003
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000104",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:55:00+00:00",
+      "receivedAt": "2026-11-09T09:55:30+00:00",
+      "playedMs": 1004
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000105",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:54:00+00:00",
+      "receivedAt": "2026-11-09T09:54:30+00:00",
+      "playedMs": 1005
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000106",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:53:00+00:00",
+      "receivedAt": "2026-11-09T09:53:30+00:00",
+      "playedMs": 1006
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000107",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:52:00+00:00",
+      "receivedAt": "2026-11-09T09:52:30+00:00",
+      "playedMs": 1007
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000108",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:51:00+00:00",
+      "receivedAt": "2026-11-09T09:51:30+00:00",
+      "playedMs": 1008
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000109",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:50:00+00:00",
+      "receivedAt": "2026-11-09T09:50:30+00:00",
+      "playedMs": 1009
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000110",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:49:00+00:00",
+      "receivedAt": "2026-11-09T09:49:30+00:00",
+      "playedMs": 1010
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000111",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:48:00+00:00",
+      "receivedAt": "2026-11-09T09:48:30+00:00",
+      "playedMs": 1011
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000112",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:47:00+00:00",
+      "receivedAt": "2026-11-09T09:47:30+00:00",
+      "playedMs": 1012
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000113",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:46:00+00:00",
+      "receivedAt": "2026-11-09T09:46:30+00:00",
+      "playedMs": 1013
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000114",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:45:00+00:00",
+      "receivedAt": "2026-11-09T09:45:30+00:00",
+      "playedMs": 1014
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000115",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:44:00+00:00",
+      "receivedAt": "2026-11-09T09:44:30+00:00",
+      "playedMs": 1015
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000116",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:43:00+00:00",
+      "receivedAt": "2026-11-09T09:43:30+00:00",
+      "playedMs": 1016
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000117",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:42:00+00:00",
+      "receivedAt": "2026-11-09T09:42:30+00:00",
+      "playedMs": 1017
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000118",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:41:00+00:00",
+      "receivedAt": "2026-11-09T09:41:30+00:00",
+      "playedMs": 1018
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000119",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:40:00+00:00",
+      "receivedAt": "2026-11-09T09:40:30+00:00",
+      "playedMs": 1019
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000120",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:39:00+00:00",
+      "receivedAt": "2026-11-09T09:39:30+00:00",
+      "playedMs": 1020
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000121",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:38:00+00:00",
+      "receivedAt": "2026-11-09T09:38:30+00:00",
+      "playedMs": 1021
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000122",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:37:00+00:00",
+      "receivedAt": "2026-11-09T09:37:30+00:00",
+      "playedMs": 1022
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000123",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:36:00+00:00",
+      "receivedAt": "2026-11-09T09:36:30+00:00",
+      "playedMs": 1023
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000124",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:35:00+00:00",
+      "receivedAt": "2026-11-09T09:35:30+00:00",
+      "playedMs": 1024
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000125",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:34:00+00:00",
+      "receivedAt": "2026-11-09T09:34:30+00:00",
+      "playedMs": 1025
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000126",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:33:00+00:00",
+      "receivedAt": "2026-11-09T09:33:30+00:00",
+      "playedMs": 1026
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000127",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:32:00+00:00",
+      "receivedAt": "2026-11-09T09:32:30+00:00",
+      "playedMs": 1027
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000128",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:31:00+00:00",
+      "receivedAt": "2026-11-09T09:31:30+00:00",
+      "playedMs": 1028
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000129",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:30:00+00:00",
+      "receivedAt": "2026-11-09T09:30:30+00:00",
+      "playedMs": 1029
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000130",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:29:00+00:00",
+      "receivedAt": "2026-11-09T09:29:30+00:00",
+      "playedMs": 1030
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000131",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:28:00+00:00",
+      "receivedAt": "2026-11-09T09:28:30+00:00",
+      "playedMs": 1031
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000132",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:27:00+00:00",
+      "receivedAt": "2026-11-09T09:27:30+00:00",
+      "playedMs": 1032
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000133",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:26:00+00:00",
+      "receivedAt": "2026-11-09T09:26:30+00:00",
+      "playedMs": 1033
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000134",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:25:00+00:00",
+      "receivedAt": "2026-11-09T09:25:30+00:00",
+      "playedMs": 1034
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000135",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:24:00+00:00",
+      "receivedAt": "2026-11-09T09:24:30+00:00",
+      "playedMs": 1035
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000136",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:23:00+00:00",
+      "receivedAt": "2026-11-09T09:23:30+00:00",
+      "playedMs": 1036
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000137",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:22:00+00:00",
+      "receivedAt": "2026-11-09T09:22:30+00:00",
+      "playedMs": 1037
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000138",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:21:00+00:00",
+      "receivedAt": "2026-11-09T09:21:30+00:00",
+      "playedMs": 1038
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000139",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:20:00+00:00",
+      "receivedAt": "2026-11-09T09:20:30+00:00",
+      "playedMs": 1039
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000140",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:19:00+00:00",
+      "receivedAt": "2026-11-09T09:19:30+00:00",
+      "playedMs": 1040
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000141",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:18:00+00:00",
+      "receivedAt": "2026-11-09T09:18:30+00:00",
+      "playedMs": 1041
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000142",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:17:00+00:00",
+      "receivedAt": "2026-11-09T09:17:30+00:00",
+      "playedMs": 1042
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000143",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:16:00+00:00",
+      "receivedAt": "2026-11-09T09:16:30+00:00",
+      "playedMs": 1043
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000144",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:15:00+00:00",
+      "receivedAt": "2026-11-09T09:15:30+00:00",
+      "playedMs": 1044
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000145",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:14:00+00:00",
+      "receivedAt": "2026-11-09T09:14:30+00:00",
+      "playedMs": 1045
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000146",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:13:00+00:00",
+      "receivedAt": "2026-11-09T09:13:30+00:00",
+      "playedMs": 1046
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000147",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:12:00+00:00",
+      "receivedAt": "2026-11-09T09:12:30+00:00",
+      "playedMs": 1047
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000148",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 1,
+      "happenedAt": "2026-11-09T09:11:00+00:00",
+      "receivedAt": "2026-11-09T09:11:30+00:00",
+      "playedMs": 1048
+    },
+    {
+      "eventId": "29900000-0000-4000-8000-000000000149",
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "screenId": "29900000-0000-4000-8000-000000000003",
+      "screenName": "Kantine",
+      "screenDeleted": false,
+      "planVersion": 2,
+      "happenedAt": "2026-11-09T09:10:00+00:00",
+      "receivedAt": "2026-11-09T09:10:30+00:00",
+      "playedMs": 1049
+    }
+  ],
+  "hasMore": true,
+  "goals": [
+    {
+      "campaignId": "29900000-0000-4000-8000-000000000001",
+      "campaignName": "Eigen campagne",
+      "targetPlays": "6000"
+    }
+  ],
+  "filterOptions": {
+    "campaigns": [
+      {
+        "id": "29900000-0000-4000-8000-000000000001",
+        "name": "Eigen campagne"
+      },
+      {
+        "id": "29900000-0000-4000-8000-000000000002",
+        "name": "Tweede campagne"
+      }
+    ],
+    "screens": [
+      {
+        "id": "29900000-0000-4000-8000-000000000003",
+        "name": "Kantine",
+        "deleted": false
+      },
+      {
+        "id": "29900000-0000-4000-8000-000000000004",
+        "name": "Entree oud",
+        "deleted": true
+      }
+    ]
+  },
+  "qrScans": null,
+  "completedPlays": null,
+  "historicalScreenGroupsAvailable": false
+}

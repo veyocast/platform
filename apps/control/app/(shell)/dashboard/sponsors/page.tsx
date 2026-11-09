@@ -7,18 +7,22 @@ import { parseSponsorCrmFilter, type SponsorCrmParams } from "./sponsor-crm";
 import { loadSponsorCrm } from "./sponsor-crm-data";
 import { SponsorCrmOverview } from "./sponsor-crm-overview";
 import { SyncSponsorWorkspace } from "./sync-sponsor-workspace";
+import { formatSponsorCount, parseSponsorReportFilter, type SponsorReportParams } from "./sponsor-report";
+import { loadSponsorReport } from "./sponsor-report-data";
+import { SponsorReportView } from "./sponsor-report-view";
 import styles from "./sponsor-hub.module.css";
 
 const positionLabels: Record<string, string> = { corner: "Hoekpositie", footer: "Voetregel", fullscreen: "Volledig scherm", match_ball_sponsor: "Wedstrijdbalsponsor", match_sponsor: "Wedstrijdsponsor", presented_by: "Mede mogelijk gemaakt door" };
 const statusLabels: Record<string,string> = { approved: "Goedgekeurd", draft: "Concept", ended: "Beëindigd", paused: "Gepauzeerd", published: "Gepubliceerd", rejected: "Afgewezen", submitted: "Ter goedkeuring" };
-export default async function SponsorHubPage({ searchParams }: { searchParams: Promise<SponsorCrmParams & { fout?: string; succes?: string }> }) {
+export default async function SponsorHubPage({ searchParams }: { searchParams: Promise<SponsorCrmParams & SponsorReportParams & { fout?: string; succes?: string }> }) {
  const session = await requireTenantControlSession("tenant.sponsor.read");
  const params = await searchParams, crmFilter = parseSponsorCrmFilter(params);
- const [data, crmData] = await Promise.all([loadSponsorHub(session.tenantId ?? ""), session.isLive ? loadSponsorCrm(session.tenantId ?? "", crmFilter) : Promise.resolve({ error:false,opportunities:[],opportunityCount:0,tasks:[],taskCount:0 })]);
+ const reportFilter = parseSponsorReportFilter(params,session.timezoneName);
+ const canReport = session.isLive && hasCapability(session.capabilities,"tenant.sponsor.report");
+ const [data, crmData, reportData] = await Promise.all([loadSponsorHub(session.tenantId ?? ""), session.isLive ? loadSponsorCrm(session.tenantId ?? "", crmFilter) : Promise.resolve({ error:false,opportunities:[],opportunityCount:0,tasks:[],taskCount:0 }), canReport && !reportFilter.invalid ? loadSponsorReport(session.tenantId ?? "",reportFilter.filter) : Promise.resolve({report:null,error:true})]);
  const canWrite = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities,"tenant.sponsor.write");
  const canApprove = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities,"tenant.sponsor.approve");
  const canPublish = session.isLive && session.tenantStatus === "active" && !data.error && hasCapability(session.capabilities,"tenant.sponsor.publish");
- const totalPlayedMs = data.events.reduce((sum,event)=>sum+Number(event.played_ms),0);
  const primaryCampaigns = data.campaigns.map(campaign=>({id:campaign.id,sponsorId:campaign.sponsor_id,name:campaign.name,partner:data.sponsors.find(sponsor=>sponsor.id===campaign.sponsor_id)?.name??"Sponsor",status:campaign.status,endsAt:campaign.ends_at,startsAt:campaign.starts_at,weight:Number(campaign.weight),positions:[...new Set(data.creatives.filter(creative=>creative.campaign_id===campaign.id).map(creative=>positionLabels[creative.position_key]??creative.position_key))],previewUrl:data.creatives.find(creative=>creative.campaign_id===campaign.id&&creative.preview_url)?.preview_url??null}));
   const creationForm=data.sponsors.length?<form action={createCampaign} className={styles.form}><div className={styles.formGrid}>
         <label className={styles.field}><span>Sponsor</span><select name="sponsorId" required>{data.sponsors.map((sponsor) => <option value={sponsor.id} key={sponsor.id}>{sponsor.name}</option>)}</select></label>
@@ -49,11 +53,11 @@ export default async function SponsorHubPage({ searchParams }: { searchParams: P
   <section><h2>Beschikbare posities</h2><ul className={styles.list}>{data.positions.map(position=><li key={position.id}><span><strong>{position.name}</strong><small>{position.mode==="fixed"?"Contextgebonden":"Gewogen rotatie"}</small></span><StatusPill label={position.enabled?"Actief":"Uit"} tone={position.enabled?"success":"neutral"}/></li>)}</ul>{!data.positions.length?<><p>Er zijn nog geen sponsorposities ingesteld.</p>{canWrite?<form action={initializeSponsorHub}><Button type="submit" variant="secondary">Posities initialiseren</Button></form>:null}</>:null}</section>
  </div>;
  const reports=<div className={styles.stack}>
-  <section><h2>Door apparaten gemelde vertoningen</h2><p>Technische afspeelregistratie van de laatste 30 dagen; geen meting van publiek of bereik.</p><dl className={styles.summary}><dt>Geaccepteerde events</dt><dd>{data.error?"Niet beschikbaar":data.events.length}</dd><dt>Aangetoonde speeltijd</dt><dd>{data.error?"Niet beschikbaar":`${Math.round(totalPlayedMs/60000)} min`}</dd></dl><div className={styles.tableScroll}><table className="sync-data-table"><thead><tr><th>Campagne</th><th>Afgespeelde duur</th><th>Tijd</th></tr></thead><tbody>{data.events.slice(0,50).map(event=><tr key={event.event_id}><td>{data.campaigns.find(campaign=>campaign.id===event.campaign_id)?.name??"Campagne niet beschikbaar"}</td><td>{Math.round(Number(event.played_ms)/1000)} sec</td><td>{formatDateTime(event.happened_at)}</td></tr>)}</tbody></table></div>{!data.events.length?<p>Nog geen afspeelbeurten gemeld.</p>:data.events.length>50?<p>De laatste 50 van {data.events.length} geladen afspeelbeurten staan hierboven.</p>:null}</section>
+  <SponsorReportView report={reportData.report} filter={reportFilter.filter} canReport={canReport} canWrite={canWrite} invalid={reportFilter.invalid}/>
   <section id="activiteit"><h2>Activiteit</h2><ul className={styles.list}>{data.audit.slice(0,8).map(event=><li key={event.id}><span><strong>{actionLabel(event.action)}</strong><small>{formatDateTime(event.created_at)}</small></span></li>)}</ul>{!data.audit.length?<p>Nog geen sponsoractiviteit.</p>:null}</section>
  </div>;
  return <div className={styles.shell}>{params.succes?<p className={styles.banner} role="status">De sponsorwijziging is bevestigd.</p>:null}{params.fout?<p className={styles.banner} role="alert">Opslaan is niet gelukt. De eerdere publicatie blijft behouden. Controleer je rechten, verplichte velden, materiaal en goedkeuring voordat je opnieuw probeert.</p>:null}
-  <SyncSponsorWorkspace key={`${session.tenantId}:${session.userId}`} campaigns={primaryCampaigns} partners={data.sponsors} canWrite={canWrite} unavailable={data.error} playCount={data.events.length} initialCrm={params.crm==="1"} creationForm={creationForm} sponsorForm={sponsorForm} materialForms={materialForms} placementForm={placementForm} settings={settings} reports={reports} crm={<SponsorCrmOverview data={crmData} filter={crmFilter}/>} actionsByCampaign={actionsByCampaign}/>
+  <SyncSponsorWorkspace key={`${session.tenantId}:${session.userId}`} campaigns={primaryCampaigns} partners={data.sponsors} canWrite={canWrite} unavailable={data.error} playCount={reportData.report?formatSponsorCount(reportData.report.totals.acceptedEvents):null} playCountHint="gekozen rapportperiode" initialReport={params.report==="1"} initialCrm={params.crm==="1"} creationForm={creationForm} sponsorForm={sponsorForm} materialForms={materialForms} placementForm={placementForm} settings={settings} reports={reports} crm={<SponsorCrmOverview data={crmData} filter={crmFilter}/>} actionsByCampaign={actionsByCampaign}/>
  </div>;
 }
 function formatDateTime(value:string){return new Intl.DateTimeFormat("nl-NL",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Amsterdam"}).format(new Date(value));}
