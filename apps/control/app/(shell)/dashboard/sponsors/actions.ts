@@ -5,8 +5,26 @@ import { redirect } from "next/navigation";
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
+import { parseSponsorReportFilter, sponsorReportQuery } from "./sponsor-report";
 
 const hubPath = "/dashboard/sponsors";
+
+export async function setSponsorReportGoal(formData: FormData) {
+  const session = await requireTenantCapability("tenant.sponsor.write");
+  const parsed = parseSponsorReportFilter(Object.fromEntries(["reportCampaign", "reportScreen", "reportFrom", "reportUntil"].map(key => [key, String(formData.get(key) ?? "")])), session.timezoneName);
+  const target = String(formData.get("targetPlays") ?? "").trim();
+  if (!session.tenantId || session.tenantStatus !== "active" || parsed.invalid || !parsed.filter.campaignId
+    || (target !== "" && (!/^\d{1,16}$/u.test(target) || BigInt(target) > 9007199254740991n))) fail("afspraak");
+  const client = await createControlSupabaseClient();
+  if (!client) fail("configuratie");
+  const { error } = await client.rpc("set_sponsor_report_goal_v1", {
+    p_tenant_id: session.tenantId, p_campaign_id: parsed.filter.campaignId,
+    p_from_date: parsed.filter.fromDate, p_until_date: parsed.filter.untilDate, p_target_plays: target || null
+  });
+  if (error) fail("afspraak");
+  revalidatePath(hubPath);
+  redirect(`${hubPath}?${sponsorReportQuery(parsed.filter)}&succes=afspraak#rapporten`);
+}
 
 export async function initializeSponsorHub() {
   const { tenantId } = await requireTenantCapability("tenant.sponsor.write");

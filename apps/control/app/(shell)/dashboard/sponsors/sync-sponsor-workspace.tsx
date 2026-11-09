@@ -16,7 +16,9 @@ export type SyncSponsorWorkspaceProps = {
   partners: Partner[];
   canWrite: boolean;
   unavailable: boolean;
-  playCount: number;
+  playCount: number | string | null;
+  playCountHint?: string;
+  initialReport?: boolean;
   initialCrm: boolean;
   creationForm: ReactNode;
   sponsorForm: ReactNode;
@@ -30,7 +32,7 @@ export type SyncSponsorWorkspaceProps = {
 
 /** One Source workspace; all guarded server forms remain their real actions. */
 export function SyncSponsorWorkspace(props: SyncSponsorWorkspaceProps) {
-  const [tab, setTab] = useState<Tab>(props.initialCrm ? "Pipeline & taken" : "Campagnes");
+  const [tab, setTab] = useState<Tab>(props.initialReport ? "Afspeelregistratie" : props.initialCrm ? "Pipeline & taken" : "Campagnes");
   const [operation, setOperation] = useState<Operation | null>(null);
   const [campaign, setCampaign] = useState<SitesSponsorCampaign | null>(null);
   const [partner, setPartner] = useState<Partner | null>(null);
@@ -94,7 +96,7 @@ export function SyncSponsorWorkspace(props: SyncSponsorWorkspaceProps) {
       <button className="icon-button" type="button" aria-label="Publicatie en posities" onClick={event => show("settings", event.currentTarget)}><Settings size={18} /></button>
     </div></header>
     {props.unavailable ? <p className="notice notice--critical" role="alert">Sponsorbeheer kon niet volledig worden geladen. Bestaande campagnes blijven behouden. Vernieuw de pagina voordat je wijzigingen maakt.</p> : null}
-    <div className="grid-3">{[{ label: "Clubpartners", value: props.partners.length, Icon: Handshake }, { label: "Actieve campagnes", value: active, Icon: Radio }, { label: "Gemelde afspeelbeurten", value: props.playCount, Icon: BarChart3 }].map(({ label, value, Icon }) => <div className="card ad-metric" key={label}><span className="ad-square"><Icon size={18} /></span><span className="muted">{label}</span><strong>{props.unavailable ? "—" : value}</strong>{label === "Gemelde afspeelbeurten" ? <small>Technische registratie, geen publieksbereik · laatste 30 dagen</small> : null}</div>)}</div>
+    <div className="grid-3">{[{ label: "Clubpartners", value: props.partners.length, Icon: Handshake }, { label: "Actieve campagnes", value: active, Icon: Radio }, { label: "Gemelde afspeelbeurten", value: props.playCount, Icon: BarChart3 }].map(({ label, value, Icon }) => <div className="card ad-metric" key={label}><span className="ad-square"><Icon size={18} /></span><span className="muted">{label}</span><strong>{props.unavailable || value === null ? "—" : value}</strong>{label === "Gemelde afspeelbeurten" ? <small>Technische registratie, geen publieksbereik · {props.playCountHint ?? "laatste 30 dagen"}</small> : null}</div>)}</div>
     <div className={`ad-tabs ${styles.tabs}`} role="tablist" aria-label="Sponsoronderdelen">{tabs.map((value, index) => <button type="button" role="tab" key={value} id={`${id}-tab-${index}`} aria-controls={`${id}-panel-${index}`} aria-selected={tab === value} tabIndex={tab === value ? 0 : -1} ref={node => { tabRefs.current[index] = node; }} onClick={() => setTab(value)} onKeyDown={event => {
       const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : null;
       if (next !== null) { event.preventDefault(); setTab(tabs[next]!); tabRefs.current[next]?.focus(); }
