@@ -15,6 +15,33 @@ function inlineRuntime(html: string) {
 }
 
 describe("Royal Current Static LG", () => {
+  it("leaves the first pageshow to boot and revalidates a restored page, online recovery and visibility", () => {
+    const source = inlineRuntime(renderLgLegacyHtml());
+    const events = source.slice(source.lastIndexOf('window.addEventListener("online"'), source.lastIndexOf('window.addEventListener("offline"'));
+    const handlers: Record<string, (event?: { persisted?: boolean }) => void> = {};
+    let checks = 0;
+    const context = {
+      runtime: { offline: true },
+      window: { addEventListener: (name: string, handler: typeof handlers[string]) => { handlers[name] = handler; } },
+      document: { visibilityState: "hidden", addEventListener: (name: string, handler: typeof handlers[string]) => { handlers[name] = handler; } },
+      restartGoalRealtime: () => undefined,
+      invalidateManifest: () => { checks++; }
+    };
+    new Script(events).runInNewContext(context);
+    handlers.pageshow!({ persisted: false });
+    expect(checks).toBe(0);
+    handlers.pageshow!({ persisted: true });
+    expect(checks).toBe(1);
+    handlers.online!();
+    expect(context.runtime.offline).toBe(false);
+    expect(checks).toBe(2);
+    handlers.visibilitychange!();
+    expect(checks).toBe(2);
+    context.document.visibilityState = "visible";
+    handlers.visibilitychange!();
+    expect(checks).toBe(3);
+  });
+
   it("restores only the verified eligible assets of a pre-revision mixed cache while fresh and revisioned empty releases remain complete", () => {
     const source = inlineRuntime(renderLgLegacyHtml());
     const assets = source.slice(source.indexOf("function cacheAsset("), source.indexOf("function sha256Hex("));

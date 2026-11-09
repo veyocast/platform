@@ -70,6 +70,22 @@ for (const width of [320, 1440]) test(`advanced Studio and original design detai
   await page.goto("/dashboard/studio?advanced=1&owner=mine&format=landscape&q=Eigen", { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/dashboard\/studio\?advanced=1&owner=mine&format=landscape&q=Eigen$/);
   await expect(page.getByRole("heading", { name: "Studio", exact: true, level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Geen passende ontwerpen", exact: true })).toBeVisible();
+  const query = page.getByRole("searchbox", { name: "Zoeken in Studio-ontwerpen", exact: true });
+  await expect(query).toHaveValue("Eigen");
+  await expect(page.getByRole("combobox", { name: "Eigenaar", exact: true })).toHaveValue("mine");
+  await expect(page.getByRole("combobox", { name: "Formaat", exact: true })).toHaveValue("landscape");
+  await query.fill("Wedstrijd van de dag");
+  await page.getByRole("button", { name: "Filters toepassen", exact: true }).click();
+  for (const [key, value] of Object.entries({ advanced: "1", owner: "mine", format: "landscape", q: "Wedstrijd van de dag" }))
+    expect(new URL(page.url()).searchParams.get(key)).toBe(value);
+  const designs = page.getByRole("region", { name: "Studio-ontwerpen", exact: true });
+  await expect(designs).toBeVisible();
+  await expect(designs.getByRole("link", { name: "Wedstrijd van de dag openen", exact: true })).toHaveAttribute("href", "/dashboard/studio/system-matchday-landscape-hd-v1");
+  const clear = page.getByRole("link", { name: "Filters wissen", exact: true });
+  await expect(clear).toHaveAttribute("href", "/dashboard/studio?advanced=1");
+  await clear.click();
+  await expect(page).toHaveURL(/\/dashboard\/studio\?advanced=1$/);
   await expect(page.getByRole("region", { name: "Studio-ontwerpen", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.goto("/dashboard/studio/system-matchday-landscape-hd-v1", { waitUntil: "domcontentloaded" });

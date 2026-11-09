@@ -11097,7 +11097,11 @@ export function renderLgLegacyHtml() {
       restartGoalRealtime();
       invalidateManifest();
     });
-    window.addEventListener("pageshow", invalidateManifest);
+    window.addEventListener("pageshow", function (event) {
+      // Boot owns the initial document read. Its first pageshow can arrive
+      // while that request is still waiting for its first response and ETag.
+      if (event.persisted) invalidateManifest();
+    });
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState !== "hidden") invalidateManifest();
     });

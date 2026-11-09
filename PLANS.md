@@ -534,3 +534,5 @@ S228 herstelt de op de fysieke LG bewezen weigering van beide lokale
 videotransporten met een begrensde native HTTP-herpoging na volledige
 releaseverificatie. Netwerkafhankelijke video verdringt de vorige lokaal
 werkende release niet; zie `docs/s228-lg-native-media.md`.
+
+S297 brede-CI-vervolg behoudt de geavanceerde Studio bij filters wissen, sluit dertien concrete Control-regressies en een echte LG-pageshowrace. Laatste lokale34Controlgevallen en2LGgevallen groen, alle30foundationtaken groen; normale exacte-head-CI en hosted acceptatie blijven vereist.

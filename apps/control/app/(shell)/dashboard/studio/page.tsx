@@ -257,7 +257,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
               </Button>
             </div>
           }
-          clearHref="/dashboard/studio"
+          clearHref="/dashboard/studio?advanced=1"
           defaultOpen={filterCount(filter) > 0}
           primary={
             <input

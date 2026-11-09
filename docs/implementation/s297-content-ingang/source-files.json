@@ -88,7 +88,7 @@
     },
     {
       "path": "apps/control/app/(shell)/dashboard/studio/page.tsx",
-      "sha256": "8e79b7f157607536217b43df3b0840130e3196a9756a15a36efc553925a46b1c"
+      "sha256": "a2cc17dbb2c5d2b3a37e1c732d3febe2a7a64d7072819322c5e1fa82499f18f1"
     },
     {
       "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard-actions.test.ts",
@@ -107,6 +107,10 @@
       "sha256": "9fe85a300b93b6f18e072e94cf99536866cd0d8222968b2780a4913793b3c7a3"
     },
     {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard.module.css",
+      "sha256": "d4a22326b4acf69e3666387692a13f77bef56900110a98ab49859252bac3ffd2"
+    },
+    {
       "path": "apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog.module.css",
       "sha256": "0bddc2fdb6dee9fea18b86caf4a106149fbf7c8b14a7227b80f2da8111f00f1f"
     },
@@ -117,6 +121,14 @@
     {
       "path": "apps/control/app/(shell)/dashboard/sync-overview.tsx",
       "sha256": "631ad23799c34e0eb5b2c87cdd88a79a496ecb6caf0b00d6e4aa747dc2457aca"
+    },
+    {
+      "path": "apps/player/app/_lib/lg-legacy-page.test.ts",
+      "sha256": "56d274b0dd245241894f35b55bfa174748396385133bb2048f64a1ac7169792d"
+    },
+    {
+      "path": "apps/player/app/_lib/lg-legacy-page.ts",
+      "sha256": "55f09695663e39af1e870b818fb9982927008f3f0e982c874fd9bb0b6b67c0ab"
     },
     {
       "path": "scripts/s297-content-comparison.d.mts",
@@ -136,7 +148,19 @@
     },
     {
       "path": "tests/control/s297-content-entry.spec.ts",
-      "sha256": "8b1f839043d807c9eace12aceaa5905daf99104ffec156585a8f6a5f33d350e1"
+      "sha256": "bc83ed4dd9f549960b21ff07365e3bfa58e9438b38b95237b46bcdcfe690bf1d"
+    },
+    {
+      "path": "tests/control/sites-shell-workflows.spec.ts",
+      "sha256": "0ed80a033c31ec0648327c2fb8973f423537e6c9bde26858642631b2f7dbaa65"
+    },
+    {
+      "path": "tests/control/sync-management-dialog.spec.ts",
+      "sha256": "41a637d04c161abc4d0218fb6859a2d0965cfac2359c5ebcb1618f4bb8ceb6b2"
+    },
+    {
+      "path": "tests/control/sync-platform-mobile-layout.spec.ts",
+      "sha256": "44a87feee32b453c6a236f74b4bff33265f5de6baa65818cc9037aade2fd33c3"
     },
     {
       "path": "tests/control/sync-source-geometry-comparison.spec.ts",
@@ -155,8 +179,16 @@
       "sha256": "407aa8ceeeb3e73c6c72025ffea92f4562908d8296664d6ff07a80248ddf4597"
     },
     {
+      "path": "tests/e2e/dynamic-content-recovery.spec.ts",
+      "sha256": "427b8502dea48c086425f7e749201de1f43067f1c52159f00f106aa129fbcb1b"
+    },
+    {
       "path": "tests/e2e/studio.spec.ts",
       "sha256": "fe1511372722849df23f46790335d6bd6a10f773fd449dd17bcc673152dcd94c"
+    },
+    {
+      "path": "tests/player/lg-legacy-player.spec.ts",
+      "sha256": "14dd947f65071e49876c06f01bb939ba9a818a98c86eb9748d655a9afd878ace"
     }
   ]
 }

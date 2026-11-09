@@ -38,12 +38,12 @@ async function mount(page: Page, custom = false) {
     if (!["GET", "HEAD"].includes(route.request().method())) writes.push(route.request().method());
     return route.fulfill({ json: { ok: true, data: { results: [], notifications: [], unreadCount: 0 } } });
   });
-  await page.route(`${origin}/__management*`, route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beheer · VeyoCast</title><style>${css}\n${bundle.css}</style></head><body><div id="root"></div><script>globalThis.fixtureItems=${JSON.stringify(ownerItems.map(item => ({ href: item.href, label: item.label, active: item.href === "/dashboard/media" })))};${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>` }));
+  await page.route(`${origin}/__management*`, route => route.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beheer · VeyoCast</title><style>${css}\n${bundle.css}</style></head><body><div id="root"></div><script>globalThis.fixtureItems=${JSON.stringify(ownerItems.map(item => ({ href: item.href, label: item.label, active: item.href === "/dashboard/sources" })))};${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>` }));
   await page.goto(`${origin}/__management?mode=${custom ? "custom" : "owner"}`);
   const trigger = page.getByRole("button", { name: "Beheer", exact: true });
-  await trigger.click();
+  if (!custom) await trigger.click();
   const dialog = page.getByRole("dialog", { name: "Beheer je werkplek", exact: true });
-  await expect(dialog).toBeVisible();
+  if (!custom) await expect(dialog).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   return { dialog, trigger, errors, writes };
 }
@@ -63,7 +63,7 @@ for (const viewport of [{ width: 390, height: 640 }, { width: 1440, height: 900 
     await expect(fixture.dialog.locator("header h2")).toHaveCSS("font-weight", "750");
     expect(await fixture.dialog.locator(".management-grid").evaluate(element => getComputedStyle(element).gridTemplateColumns.split(" ").length)).toBe(viewport.width === 390 ? 2 : 3);
     await expect(cards.locator('[aria-hidden="true"]').first()).toHaveAttribute("width", "24");
-    await expect(cards.filter({ hasText: "Media" })).toHaveAttribute("aria-current", "page");
+    await expect(cards.filter({ hasText: "Bronnen" })).toHaveAttribute("aria-current", "page");
     const boxes = await cards.evaluateAll(elements => elements.map(element => { const r = element.getBoundingClientRect(); return { title: element.textContent, width: r.width, height: r.height, unclipped: element.scrollWidth <= element.clientWidth && element.scrollHeight <= element.clientHeight }; }));
     for (const box of boxes) { expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44); expect(box.unclipped, box.title!).toBe(true); }
     await info.attach("actual-management-geometry", { body: JSON.stringify(boxes, null, 2), contentType: "application/json" });
@@ -91,14 +91,16 @@ test("management card preserves the real href and both close callbacks", async (
   expect(fixture.errors).toEqual([]); expect(fixture.writes).toEqual([]);
 });
 
-test("actual shell exposes only Media for a custom role without any eight-core capabilities", async ({ page }) => {
+test("actual shell exposes only Content for a media-only role without management capabilities", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const fixture = await mount(page, true);
-  const links = fixture.dialog.getByRole("link");
+  const links = page.getByRole("navigation", { name: "Hoofdnavigatie", exact: true }).getByRole("link");
   await expect(links).toHaveCount(1);
-  await expect(links).toHaveAccessibleName("Media");
-  await expect(links).toHaveAttribute("href", "/dashboard/media");
-  await expect(fixture.dialog.getByRole("link", { name: /Bronnen|Abonnement|Team|Instellingen|Platform/ })).toHaveCount(0);
+  await expect(links).toHaveAccessibleName("Content");
+  await expect(links).toHaveAttribute("href", "/dashboard/content");
+  await expect(links).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("button", { name: "Beheer", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Bronnen|Abonnement|Team|Instellingen|Platform/ })).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Beheer", exact: true })).toHaveCount(0);
   expect(fixture.errors).toEqual([]); expect(fixture.writes).toEqual([]);
 });
