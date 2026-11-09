@@ -3,6 +3,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { parseCaseInventory, validateCaseInventory } from "./sites-case-inventory.mjs";
 
+import { isS297ContentRoute, isS297ControlChange, isS297HeadingChange, verifyS297ContentChange } from "./s297-content-comparison.mjs";
 // This is the chosen Sync workplace cohort. Historical screen-renderer gates
 // retain their original Source revision and strict frame comparison verifier.
 export function verifySyncComparison(report, rows) {
@@ -10,15 +11,19 @@ export function verifySyncComparison(report, rows) {
   const criteria = ["noHorizontalOverflow", "assetsLoaded", "shellAndControlGeometry", "activeNavigation", "sourceHeadingOrder", "sourceSectionGeometry", "mobileTouchTargets", "browserErrors", "accessibility"];
   const fail = message => { throw new Error(`Incomplete chosen Sync comparison: ${message}`); };
   if (expected.length !== 66 || report.schemaVersion !== 1 || report.sourceRevision !== "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a"
-    || report.sourceFilesUnchanged !== true || report.assertionVersion !== "s226-sync-responsive-v4"
+    || report.sourceFilesUnchanged !== true || report.assertionVersion !== "s297-sync-responsive-v5"
     || !/^[a-f0-9]{64}$/u.test(report.comparisonFingerprint ?? "")) fail("source/cohort identity");
   if (!Array.isArray(report.results) || report.results.length !== 66 || new Set(report.results.map(row => row.caseId)).size !== 66) fail("all 66 original IDs required");
   for (const original of expected) {
     const row = report.results.find(row => row.caseId === original.case_id);
+    const changedContent = isS297ContentRoute(original.reference_route);
     if (!row || row.status !== "PASS" || row.viewport !== original.viewport || row.originalRoute !== original.reference_route
       || criteria.some(key => row.criteria?.[key] !== true) || Object.values(row.criteria ?? {}).some(value => value !== true)
       || !Array.isArray(row.unmet) || row.unmet.length || !Array.isArray(row.errors) || row.errors.length
-      || !Array.isArray(row.differences) || row.differences.length || !Array.isArray(row.headingDifferences) || row.headingDifferences.length
+      || !Array.isArray(row.differences) || !Array.isArray(row.headingDifferences)
+      || (changedContent ? row.criteria?.contentA2Acceptance !== true || !verifyS297ContentChange(row.intentionalChange, original.reference_route)
+        || row.differences.some(difference => !isS297ControlChange(difference)) || row.headingDifferences.some(difference => !isS297HeadingChange(difference))
+        : row.differences.length || row.headingDifferences.length || row.intentionalChange != null)
       || !Array.isArray(row.accessibility?.source) || !Array.isArray(row.accessibility?.current) || row.accessibility.current.length) fail(original.case_id);
     if (!row.source || !row.current || row.source.overflow !== 0 || row.current.overflow !== 0
       || !Array.isArray(row.current.images) || row.current.images.some(image => image.loaded !== true)

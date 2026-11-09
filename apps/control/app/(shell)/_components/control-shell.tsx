@@ -1,4 +1,5 @@
 "use client";
+import { isContentRoute } from "../dashboard/content/content-library";
 
 import { hasCapability } from "@veyocast/auth";
 import {
@@ -800,6 +801,7 @@ function MobileBottomNav({
 }
 
 function isActive(pathname: string, item: ControlNavigationItem) {
+  if (item.href === "/dashboard/content") return isContentRoute(pathname);
   if (item.href === "/dashboard/products") return pathname === item.href || pathname.startsWith("/dashboard/integrations/twelve-products") || pathname.startsWith("/dashboard/sources/twelve/");
   if (item.href === "/dashboard/sources" && pathname.startsWith("/dashboard/sources/twelve/")) return false;
   if(item.href==="/dashboard/slides"&&pathname.startsWith("/dashboard/slides/menu-studio"))return false;

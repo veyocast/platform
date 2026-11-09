@@ -41,3 +41,7 @@ export * from "./sync-theme-creation-defaults";
 export * from "./menu-dom-playback";
 
 export * from "./matchday-runbook";
+
+export * from "./sportlink-season-switch";
+
+export * from "./effective-planning";

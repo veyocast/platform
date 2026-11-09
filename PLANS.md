@@ -1,7 +1,10 @@
 # VeyoCast MVP Plan
 
-S300: uitvoering van fase C uit de overdracht van 9 november 2026: optioneel wedstrijddagdraaiboek en begrensde mobiele acties, met bestaande publicatie-, TTL- en offlinecontracten. Geen wijziging van bestaande Duindorp-planningen.
-
+S296–S301 voeren de overdracht van 9 november 2026 uit: gedeelde schermstatus,
+één Content-ingang, uitlegbare effectieve planning, volledige sponsortotalen,
+een optionele Wedstrijddagwerkplek en gecontroleerde seizoenswissel. De gebruiker
+heeft daarna staging én productie gevraagd. Ownership, afhankelijkheden,
+acceptatie en herstel staan in `docs/s296-s301-overdracht-2026-11-09.md`.
 
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
@@ -546,3 +549,14 @@ Turbo-concurrency1 zijn groen; de eerdere parallelle starvationfouten blijven be
 Gewone integratiemerges nemen de gereviewde S296/S297/S298/S301ouders en S299
 mee; de uiteindelijke combinatie moet alle normale CI-gates en hosted acceptatie
 doorlopen vóór de aangevraagde productiepromotie. Migraties blijven oplopend.
+
+S296 CI-herstel door root: expliciete ownership voor de drie bestaande STATE-fixtures en de lokale Source-wizardfooter-CSS; scherm-/publicatiewaarheid en bestaande touchhoogte blijven leidend.40 betrokken browsercases en alle30 foundationtaken groen; normale finale CI opnieuw vereist.
+
+S298 aanvullende CI sluit een ontbrekende kandidaatbarrière in de bestaande
+LG-test en dezelfde lokaal bewezen wizardtouchhoogte als S296. Vier gerichte
+Playergevallen groen; precieze nieuwe bron-SHA en normale CI blijven de
+releasegrens. Zie het eigen CI-barrièrebewijs.
+
+S301 integreert de gereviewde S296/S298-vervolgbronnen. De concrete normale Player-CI-inconsistentie gebruikt nu dezelfde echte origintracker bij alle complete playbackcommits;18 gerichte verbindingstests en30foundationtaken groen, nieuwe volledigeCI volgt.
+
+S297 brede-CI-vervolg behoudt de geavanceerde Studio bij filters wissen, sluit dertien concrete Control-regressies en een echte LG-pageshowrace. Laatste lokale34Controlgevallen en2LGgevallen groen, alle30foundationtaken groen; normale exacte-head-CI en hosted acceptatie blijven vereist.

@@ -29,13 +29,13 @@ describe("deriveScreenHealth", () => {
     }, now).kind).toBe("offline");
   });
 
-  it("shows syncing only while the Player is recently confirmed", () => {
+  it("keeps contact online while a different publication is pending", () => {
     expect(deriveScreenHealth({
       activeReleaseId: "release-a",
       desiredReleaseId: "release-b",
       deviceStatus: "paired",
       lastSeenAt: new Date(now.getTime() - 30_000).toISOString(),
       screenStatus: "active"
-    }, now).kind).toBe("syncing");
+    }, now).kind).toBe("online");
   });
 });

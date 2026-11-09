@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       await Promise.all([
         context.supabase
           .from("screens")
-          .select("id, name, status, created_at")
+          .select("id, name, status, created_at, assigned_release_id")
           .eq("tenant_id", tenant.id)
           .is("deleted_at", null),
         context.supabase
@@ -95,8 +95,8 @@ export async function GET(request: Request) {
         });
         continue;
       }
-      const proof = syncPlaybackEvidence(device, now.getTime());
-      if (proof.contact === "online" && device.desired_release_id && !proof.desiredConfirmed) {
+      const proof = syncPlaybackEvidence(device, now.getTime(), screen.status, screen.assigned_release_id);
+      if (proof.contact === "online" && proof.desiredReleaseId && !proof.desiredConfirmed) {
         signals.push({ actionHref: `/screens/${screen.id}`, actionLabel: "Synchronisatie bekijken",
           id: `publication-pending:${screen.id}`, message: "De gewenste publicatie is nog niet met een zichtbaar frame bevestigd.",
           occurredAt: device.last_seen_at ?? screen.created_at, title: screen.name, tone: "warning" });
@@ -105,8 +105,8 @@ export async function GET(request: Request) {
         signals.push({
           actionHref: `/screens/${screen.id}`,
           actionLabel: "Scherm bekijken",
-          id: `screen-offline:${screen.id}`,
-          message: "Recent contact is niet bevestigd. Een geldige lokale release blijft beschikbaar. Controleer de verbinding en de apparaatklok.",
+          id: `screen-${proof.health.kind}:${screen.id}`,
+          message: proof.health.explanation,
           occurredAt: device.last_seen_at ?? screen.created_at,
           title: screen.name,
           tone: "warning"
@@ -126,8 +126,8 @@ export async function GET(request: Request) {
         title: asset.title,
         tone: "critical" as const
       }));
-    const screensOnline = activeScreens.filter(screen => syncPlaybackEvidence(devices.get(screen.id), now.getTime()).contact === "online").length;
-    const screensAttention = activeScreens.filter(screen => syncPlaybackEvidence(devices.get(screen.id), now.getTime()).needsAttention).length;
+    const screensOnline = activeScreens.filter(screen => syncPlaybackEvidence(devices.get(screen.id), now.getTime(), screen.status, screen.assigned_release_id).contact === "online").length;
+    const screensAttention = activeScreens.filter(screen => syncPlaybackEvidence(devices.get(screen.id), now.getTime(), screen.status, screen.assigned_release_id).needsAttention).length;
 
     return mobileData(
       {

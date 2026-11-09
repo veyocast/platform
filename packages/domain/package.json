@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./screen-contact-status": {
+      "types": "./src/screen-contact-status.ts",
+      "default": "./src/screen-contact-status.ts"
     }
   },
   "scripts": {

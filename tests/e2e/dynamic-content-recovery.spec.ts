@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { contentCreateTasks, contentTaskScopes } from "../../apps/control/app/(shell)/dashboard/studio/content-create-catalog";
+import { syncContentFamilies } from "../../packages/contracts/src/sync-content-families";
 
 test("onderscheidt opgeslagen bronnen van een nog niet verbonden provider", async ({page}) => {
   await page.goto("/dashboard/data-sources", {waitUntil: "networkidle"});
@@ -22,10 +24,22 @@ test("stuurt de oude slideflow door naar de Unified Studio", async ({ page }) =>
   for (const name of ["Alles", "Sport", "Kantine", "Club", "Media", "Vrij"]) {
     await expect(picker.locator(".vc-modal-family-tabs").getByRole("button", {name, exact: true})).toBeVisible();
   }
-  await expect(picker.locator(".vc-template-card")).toHaveCount(36);
+  // The six provider scopes remain canonical families but now follow the
+  // single Programma/Uitslagen task instead of duplicating the first grid.
+  expect(syncContentFamilies).toHaveLength(36);
+  expect(contentCreateTasks.map(task => task.id)).toEqual([
+    "fixtures", "results", "period-standings", "cancellations", "dressing-rooms", "officials", "team-info", "activities", "training", "volunteers", "visitors", "matchday",
+    "standings", "team-arrivals", "welcome", "referees", "changing-rooms", "next-match", "birthdays", "lineup", "scoreboard", "goal", "menu", "engage", "rss", "sponsors", "agenda", "club-story", "youtube", "free"
+  ]);
+  expect(contentTaskScopes("fixtures").map(scope => scope.family)).toEqual(["club-program", "team-program", "pool-program"]);
+  expect(contentTaskScopes("results").map(scope => scope.family)).toEqual(["club-results", "team-results", "pool-results"]);
+  await expect(picker.locator(".vc-template-card")).toHaveCount(contentCreateTasks.length);
+  await expect(picker.locator(".vc-template-card > span > strong")).toHaveText(contentCreateTasks.map(task => task.name));
+  await expect(picker.getByRole("button", { name: /^Programma / })).toHaveCount(1);
+  await expect(picker.getByRole("button", { name: /^Uitslagen / })).toHaveCount(1);
   // NoDB has no authenticated writer. The genuine Source choices stay visible
   // while every write is denied; authenticated creation is a separate gate.
-  await expect(picker.locator(".vc-template-card:disabled")).toHaveCount(36);
+  await expect(picker.locator(".vc-template-card:disabled")).toHaveCount(contentCreateTasks.length);
   for (const name of [/^Programma /, /^Kantinemenu /, /^Nieuws & RSS /, /^Verjaardagen /, /^YouTube /, /^Vrij ontwerp /]) {
     await expect(picker.getByRole("button", {name})).toBeVisible();
   }

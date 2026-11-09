@@ -1,0 +1,101 @@
+{
+  "browser-live": {
+    "firstFrameByRevision": {
+      "2": {
+        "at": "2026-11-09T12:25:01.717Z",
+        "revision": 2,
+        "contentHash": "fe94730a7296028b88b0932c658fe1f6f33d9fab8292afa478f634ec3a528cba",
+        "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8",
+        "itemId": "34874739-989c-4af4-af9a-a549a4a64fd0",
+        "rendererVersion": "sync-onzetrots-v9"
+      },
+      "3": {
+        "at": "2026-11-09T12:25:43.672Z",
+        "revision": 3,
+        "contentHash": "22bff0f90598f195ee37630a1f748b5dbe1695eb153c3aa38cfcab1b15d5e2a5",
+        "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8",
+        "itemId": "34874739-989c-4af4-af9a-a549a4a64fd0",
+        "rendererVersion": "sync-onzetrots-v9"
+      },
+      "4": {
+        "at": "2026-11-09T12:27:07.705Z",
+        "revision": 4,
+        "contentHash": "c2bfd0b8d9e12f3d110f4e21e0cc2d78304f33578effb208c0951a8fe0fd3f61",
+        "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8",
+        "itemId": "34874739-989c-4af4-af9a-a549a4a64fd0",
+        "rendererVersion": "sync-onzetrots-v9"
+      },
+      "5": {
+        "at": "2026-11-09T12:28:31.735Z",
+        "revision": 5,
+        "contentHash": "6f561a8d2453ac9d8dc9ad7bc0ac0f3efc1d8dd1d01d379f9294b8120e2cba29",
+        "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8",
+        "itemId": "34874739-989c-4af4-af9a-a549a4a64fd0",
+        "rendererVersion": "sync-onzetrots-v9"
+      },
+      "6": {
+        "at": "2026-11-09T12:39:01.983Z",
+        "revision": 6,
+        "contentHash": "8119413874efe678a9797cced06c65d37b6228592d631070dc8d443d05731e76",
+        "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8",
+        "itemId": "34874739-989c-4af4-af9a-a549a4a64fd0",
+        "rendererVersion": "sync-onzetrots-v9"
+      }
+    },
+    "requestCounts": {
+      "200": 6,
+      "304": 106
+    },
+    "errors": []
+  },
+  "browser-portrait": {
+    "firstFrameByRevision": {
+      "2": {
+        "at": "2026-11-09T12:28:56.002Z",
+        "revision": 2,
+        "contentHash": "7122a8f3f572f65422686a6015c4569dc65e31dd92203bc6bd9988cf797a284c",
+        "snapshotId": "4c140111-e697-4d12-9f67-6b901e862cd2",
+        "itemId": "56ab864b-9f87-45dc-85a6-13dd19f7a567",
+        "rendererVersion": "sync-onzetrots-v9"
+      },
+      "3": {
+        "at": "2026-11-09T12:38:41.328Z",
+        "revision": 3,
+        "contentHash": "25ba497e4e6ca3b7b59036b0bffee95fba6c8f5ffeb645fd70fb2a926f57e38e",
+        "snapshotId": "4c140111-e697-4d12-9f67-6b901e862cd2",
+        "itemId": "56ab864b-9f87-45dc-85a6-13dd19f7a567",
+        "rendererVersion": "sync-onzetrots-v9"
+      }
+    },
+    "requestCounts": {
+      "200": 4,
+      "304": 85
+    },
+    "errors": []
+  },
+  "browser-menu": {
+    "firstFrameByRevision": {
+      "1": {
+        "at": "2026-11-09T12:34:17.100Z",
+        "revision": 1,
+        "contentHash": "49ff20af36a92900f14f5b232e8be63f86b93597fec67d3f6b475ecec3536551",
+        "snapshotId": "ef92f9e3-47b3-4c2a-acdc-f2eab75e5de8",
+        "itemId": "fc0d71b9-9fbb-455b-af34-72973bb7845c",
+        "rendererVersion": "sync-onzetrots-v9"
+      },
+      "2": {
+        "at": "2026-11-09T12:36:07.293Z",
+        "revision": 2,
+        "contentHash": "d99a9ead5b9ae1601fce64113cda6541d40a11dee941c988f0f64bbb51101776",
+        "snapshotId": "ef92f9e3-47b3-4c2a-acdc-f2eab75e5de8",
+        "itemId": "fc0d71b9-9fbb-455b-af34-72973bb7845c",
+        "rendererVersion": "sync-onzetrots-v9"
+      }
+    },
+    "requestCounts": {
+      "200": 2,
+      "304": 83
+    },
+    "errors": []
+  }
+}

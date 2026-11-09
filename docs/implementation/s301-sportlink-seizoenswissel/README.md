@@ -1,0 +1,73 @@
+# S301 — Sportlink-seizoenswissel
+
+Basis `da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6`; fase D / SEI-01–12 uit de overdracht van 9 november. De bestaande Sportlink-bronwerkplek en gekoppelde ontwerpdetailpagina verwijzen naar `/dashboard/sources/sportlink/season-switch`. De oudere `/dashboard/data-sources/sportlink/season-switch`-route houdt dezelfde implementatie. De werkplek wijzigt alleen expliciet bevestigde conceptkoppelingen en publiceert niets.
+
+## Broncontext en toegang
+
+De pagineerbare inventaris gebruikt de actieve sessie, tenant en bestaande `tenant.data_source.read`-rechten. De server leest uitsluitend minimale toegankelijke Sportlink-verbindingen; gepauzeerde en foutieve verbindingen blijven zichtbaar met hun foutstatus. Meerdere verbindingen vragen een expliciete keuze. Doelseizoenen komen uit de genormaliseerde broncontexten, zonder kalenderjaar- of naamheuristiek. Alle GET-filters en cursors blijven gebonden aan bron, seizoen, objecttype, status en zoektekst.
+
+De bestaande resolver valideert tenant, bron/verbinding, canonieke teamcode, competitie, poule, seizoen en fase. Dezelfde teamidentiteit is uitsluitend een voorstel wanneer bekende competitie-/discipline-/niveaukwalificaties dat onderbouwen. Beker, overlappende seizoenen, gelijke namen en onbekende kwalificaties vereisen een expliciete keuze. Nieuwe teamcodes worden nooit op naam gekoppeld. Brede alle-team/context-selecties zonder expliciete context blijven bewust ongewijzigd. Bij meervoudige selectie moet iedere oorspronkelijke teambinding exact één mapping krijgen. Volgorde, modus en thuis/uit blijven behouden; `sourceTeamSelection` krijgt dezelfde voorrang als de bestaande renderer.
+
+De inventaris begrenst pagina’s op50 objecten, teamcontexten op500 per object, kandidaten op50 per teambinding en500 totaal per object. Afkapping en ontbrekende afhankelijkheidskennis zijn zichtbaar; er is geen stilzwijgend volledig- of automatischvoorstel. Bekende verwijzingen naar playlists, immutable publicaties, huidige/toekomstige/terugkerende planningen en compositiezones blijven afzonderlijk herkenbaar. Maximaal100 directe verwijzingen worden geleverd. Ingebedde reeksen of onbekende integraties blijven uitdrukkelijk onbekend.
+
+Een doelpublicatie, standaardpublicatie en eerder gemeld historisch Playerframe zijn verschillende toestanden. Alleen het bestaande S296-contract voor gekoppeld device, exact release-ID, valide first-frame-tijd en last-seen kan een schermversie onderbouwen. Een historisch frame bevestigt niet wat nu zichtbaar is. Observatiegegevens tellen mee in de inventaris, maar veranderen de private CAS-impacthash niet bij een gewone heartbeat. Betekenisvolle publicatie-, planning-, scherm- en zonewijzigingen doen dat wel.
+
+## Preview, conceptopdracht en herstel
+
+Standaard staat niets aangevinkt. Een gekozen context geeft eerst een read-only controle van de oude en nieuwe canonieke identiteit, basisversie/revisie, oude bindinghash, actuele broncontext en impact. De oorspronkelijke `preview_dynamic_slide_v1` en bestaande Player-payload-/assetprojectie leveren het schermvoorbeeld; hun oorspronkelijke schrijfrecht blijft vereist. Lezers kunnen de identiteit en impact zien maar krijgen geen extra preview- of schrijfrecht. Een geldig leeg voorbeeld wordt onderscheiden van een geblokkeerde of technisch onbeschikbare preview. Er worden geen provider-, render- of publicatiejobs gestart.
+
+Na afzonderlijke bevestiging verstuurt de browser maximaal25 per-resourceopdrachten. De exacte invoer en nonce worden vóór de eerste write opgeslagen in een tenant-/actorgebonden sessiejournaal. Opslagfalen of een onleesbaar vorig journaal blokkeert nieuwe opdrachten. Een verloren antwoord herhaalt dezelfde invoer en nonce; een actorwissel kan het vorige journaal niet gebruiken. Elke rij krijgt zijn eigen ontvangstbewijs, conflict of nog-onbevestigd antwoord.
+
+De SQL-writer controleert de actieve tenant en bestaande ontwerp-/playlist- en bronrechten. De bestaande receiptketen beslist over exact replay vóór de mutable CAS. Dezelfde nonce met andere inhoud is een conflict. Onder locks worden basisversie, conceptrevisie, volledige bron-/bindingsidentiteit en betekenisvolle impact opnieuw gecontroleerd. Alleen bindingsvelden worden serverzijdig gereconstrueerd; de oorspronkelijke canonieke authoringwriter bewaart naam, layout, huisstijl, duur, thuis/uit en overige instellingen. Gepubliceerde snapshots, releases, live datarevision/hash en device data_key blijven ongewijzigd totdat de normale publicatieworkflow wordt gebruikt.
+
+Een ontvangstbewijs beschrijft de oorspronkelijke opdrachtuitkomst en is geen claim over de huidige versie. De gebruiker opent daarna het oorspronkelijke concept of de bestaande playlistpreflight. Herstel verwijst naar een exact eerder vastgelegd `/dashboard/publications/{releaseId}` met bestaande reassign-/restorebevestiging, of naar de oorspronkelijke ontwerpversiegeschiedenis. Er wordt geen generieke planninglink als automatisch herstel voorgesteld.
+
+S300-runbooks hebben een expliciete private adapterseam. Deze migratie meldt die integratie nog als niet beschikbaar; de daaropvolgende S300-migratie implementeert haar. Alleen bewerkbare runbookconcepten mogen later wisselen. Als geselecteerde exacte wedstrijden niet volledig passen, is expliciet wissen van alle geselecteerde wedstrijden inclusief hoofdwedstrijd nodig; daarna kiest de gebruiker opnieuw exacte wedstrijden. Actieve en historische runbooks blijven bevroren. Deze S301-PR claimt geen voltooide S300-integratie.
+
+## Lokale verificatie en grenzen
+
+`verification.json` en `database-proof.json` leggen de bron-/loghashes en werkelijk uitgevoerde gates vast. De verse geconsolideerde databaseketen bevat S296, S298, S299 en S301:217 migraties,153 testbestanden en5.154 assertions groen; de90 S301-assertions, public/private SQLlint en security-advisors zijn groen. De migratie gebruikt de S296-framehelper en moet na die dependency worden geïntegreerd; siblingmigraties worden niet in deze wijziging gedupliceerd.
+
+De rollback-only databaseproef is als `tests/fixtures/s301-season-rpc.json` vastgelegd. Alle zes echte RPC-envelopes passen door de strikte DTO’s: inventaris, preview, opdracht, applied, replay en conflict. Eén browsercase toont deze inventaris en exacte context met het geldige lege canonieke previewantwoord in de echte werkplekcomponent. Het browsertransport is daarbij gecontroleerd; dit is geen live browser-naar-gehoste-databaseproef. De overige browsercases gebruiken duidelijk gelabelde synthetische fixtures voor selectie, beker/competitie, uitsluitend bevestigde writes, verloren antwoord, conflicten, quota, rechten, filters, dubbele bevestiging en actorisolatie. Mobiel320 en desktop1440 zijn met toetsenbord, overflowcontrole en axe getoetst.
+
+| Eis | Verzameld lokaal bewijs en resterende grens |
+|---|---|
+| SEI-01 | Canonieke inventaris, paginering/filters, dezelfde resource gebundeld, meerdere playlists/zones, directe en toekomstige/terugkerende planning, gecontroleerd historisch framebewijs; onbekende ingebedde afhankelijkheden blijven onbekend |
+| SEI-02/03 | Twee overlappende seizoenen, beker/competitie, gelijknamige andere teamcodes, oude verplaatste wedstrijd, verkeerde fase/poule, ontbrekende bron en brede selectie in SQL; UI vraagt expliciete context |
+| SEI-04/05 | Read-only canonical preview zonder jobs/writes; exacte context/hash/CAS en alleen bevestigde per-resourceconceptwrites; de nieuwe selectie mag geldig leeg zijn |
+| SEI-06/07 | Bestaande canonieke save/fork, layout/duur/huisstijl/homeaway/bronselectie behouden; oorspronkelijke publicatiebytes/PDD/hash/devicekey blijven vast |
+| SEI-08/09 | Twee tenants/rollen, private ACL, actorwissel, nonce mismatch, replay vóór CAS, verloren antwoord, quota en afzonderlijke gedeeltelijke uitkomsten |
+| SEI-10 | Exacte bestaande publicatieherstelroute en versiegeschiedenis; geen automatische herstel- of publicatieactie |
+| SEI-11/12 |320/1440px, toetsenbord en axe; sourcehealth en onbekend/afgekapt zichtbaar. S300-adapter nog uitdrukkelijk unavailable totdat de volgende migratie integreert |
+| INT-09/10 | Hosted kandidaat met bestaande ontwerpen/publicaties en fysieke Player blijft release-integratiebewijs; niet vervangen door lokale fixtures |
+
+Er zijn geen productiegegevens, bestaande planningen, providercredentials of providerrequests gebruikt. De genormaliseerde Sportlink-contexten en device/frame-telemetrie in de SQLproef zijn gecontroleerde lokale testdata. Er is geen Android-/LG-/fysiek-schermbewijs of nieuwe providerobservatie geclaimd. De bestaande policy en bronworker blijven de enige bronobservatieroute. Root voert de onafhankelijke integratiereview, dependencyvolgorde en normale releaseworkflow uit.
+
+De definitieve lokale foundation heeft30/30 lint en30/30 typecheck. De eerste parallelle testloop had zes timingfouten in ongewijzigde login-/raster-/renderertests; de volledige Control-suite is daarna met twee workers opnieuw groen:184 bestanden,2.085 tests en34 bestaande expliciete skips (38,31s), naast de29 overige groene workspacetaken. Browserbewijs sluit13 unieke gevallen als unie:12 groen in de volledige run en één `page.goto`-loadtimeout in de quotafake, daarna exact datzelfde geval groen in2,6s met dezelfde productbron/assertions/timeout. Browser-TSC en gerichte lint zijn groen. De echte Control-productiebuild was groen vóór de laatste uitsluitend Nederlandse impactlabels; die laatste tekst is door de definitieve types/lint/tests gedekt en wordt door normale CI opnieuw gebouwd.
+
+De definitieve S296-dependency `2e8dda5526f1d94cb3d5b40be1fa700fffd7cc2c` is met een gewone merge geïntegreerd op productbron `325443476b5ecb7cab042bb8667d944fcd7f8793`. Alleen de centrale plan-/ledgerconflicten zijn door root samengevoegd. Lint/typecheck/test slagen op deze combinatie elk30/30; Control2.093 PASS en34 bestaande skips. De PR start gestapeld op de S296-branch en krijgt na die integratie main als basis. De normale CI en de vastgelegde migratievolgorde blijven verplicht; er zijn geen siblingmigraties gekopieerd of gedeelde branches herschreven.
+
+## Gecombineerde CI en verbindingsbewijs
+
+Deze branch integreert de gewone S296- en S298-vervolgcommits via merges,
+zonder rebase of force-push. De bestaande Player-CI vond daarna een
+reproduceerbare inconsistentie: een voltooide conditionele manifestcontrole
+gevolgd door een mislukte heartbeat liet de compacte indicator offline en de
+verborgen playbackdiagnose online staan. De Player gebruikt nu bij echte
+verbindingsfouten dezelfde bestaande origintracker, ook wanneer asynchrone
+voorbereiding later eindigt. Alleen complete speelbare inhoud krijgt de
+offlinestatus; playback, deadlines, pairing en verificatie worden niet herstart.
+Een positief event herstelt de status pas via de bestaande manifestcontrole.
+
+De oude bron is met de precieze requestvolgorde rood bewezen. De kandidaat
+slaagt18/18(zes gevallen ieder driemaal,16,0s) op de afzonderlijk gebouwde
+S300-Player `afx4WTMdRokUAATS7ARkh`; de gemeenschappelijke guard is gelijk.
+Dit vervangt geen eigen S301-build of volledige CI. Vier bestaande cases
+zijn ongewijzigd; twee nieuwe bewaken de echte heartbeatfout, herstel via304
+en geen incomplete activatie tijdens initialisatie. Lint/typecheck/test van
+de gecombineerde S301-bron zijn elk30/30 groen(22,521/31,392/38,551s).
+De oorspronkelijke rode trace en bron-/loghashes staan in het aanvullende bewijs.
+
+Na de gewone S297-integratiemerge zijn lint/typecheck/test van de volledige
+S296/S297/S298/S301-combinatie opnieuw elk30/30 groen(9,02/18,851/21,253s).
+Alle oorspronkelijke deelbewijzen en expliciete hardware-/hostedgrenzen blijven behouden.

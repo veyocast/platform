@@ -1,0 +1,9 @@
+# S296 — Eén schermstatus, afzonderlijk publicatie- en bronbewijs
+
+Basis: main `da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6` na S295, Nov9-overdracht SCR-01..04. Branch/worktree `veyocast/s296-schermstatus` / `veyocast-s296-status`.
+
+Gedeelde pure afleiding: geldig contact <5min Online, [5,30)min Status verouderd, >=30min Offline; ongeldig/toekomstig Onbekend. Uitgeschakeld, Onderhoud en Niet gekoppeld gaan voor. Geen impliciete kloktolerantie. Publicatieopdracht, ontvangst/download, daadwerkelijk eerste-framebewijs en bronrevisie blijven afzonderlijk. Historisch geldig beeldbewijs blijft met tijdstip staan bij contactverlies of latere fout.
+
+Ownership: Control screen-health/sync-playback helpers, control-operations/overzichtstatus, schermkaarten/filter/gezondheid/detail en gerichte dataloaders; mobile v1 screens/cockpit plus native Vandaag/Schermen/detail; geïsoleerde domain screen-contact-status+export; uitsluitend optionele mobile-control statusEvidence-contractvelden en tests; eigen tests/prompt/docs/evidence. Geen shell/navigation behalve de statusconsumers; S297 bezit uitsluitend Content maken-href op gedeelde Overviewfile. Root bezit globale plannen/ledger, migraties en uitrol. Geen deps/workflows/SW/Playerruntimewijzigingen. De default mobiele v1-response blijft exact oude shape; extra evidence alleen op statusEvidence=1 voor nieuwe clients, oude caches blijven leesbaar.
+
+Test betekenisvolle grensmatrix, managementvoorrang, invalid/future tijd, opdracht/download/frame/contactverlies, bronvertraging onafhankelijk van contact, tenant/capability+strict-v1-compat. Capture echte gewijzigde routes op320px en desktop, toetsenbord/aXe. Normale lint/typecheck/test/build en toepasselijke UI-gates. Geen productie- of planningsmutaties. Root reviewt/merget en gebruikt normale exact-SHA staging/productionflow onder reeds gegeven vrijgave.

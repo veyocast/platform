@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "scope": "S301 SQL-only local isolated proof",
+  "base": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "database": {
+    "host": "127.0.0.1",
+    "port": 64432,
+    "assembly": "/tmp/veyocast-s296-s298-s299-s301-final",
+    "freshMigrations": 217
+  },
+  "inputs": [
+    {
+      "file": "/home/codex/repos/veyocast-s296-status/supabase/migrations/20261109120358_s296_screen_source_status.sql",
+      "sha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33"
+    },
+    {
+      "file": "/home/codex/repos/veyocast-s296-status/supabase/tests/rls_s296_screen_source_status.sql",
+      "sha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62"
+    },
+    {
+      "file": "/home/codex/repos/veyocast-s298-planning/supabase/migrations/20261109114134_s298_effective_planning_preview.sql",
+      "sha256": "f10042bf98195366a92bb679b717a4addaf8b5d30301c7a8f41deb4c6c27bf1e"
+    },
+    {
+      "file": "/home/codex/repos/veyocast-s298-planning/supabase/tests/s298_effective_planning.sql",
+      "sha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b"
+    },
+    {
+      "file": "/home/codex/repos/veyocast-s299-sponsors/supabase/migrations/20261109113947_s299_sponsor_report_totals.sql",
+      "sha256": "580fd11200ff9429c231fe07ed5661a9b86ed9adfff4992162b7a7b7624ae487"
+    },
+    {
+      "file": "/home/codex/repos/veyocast-s301-season/supabase/migrations/20261109122540_s301_sportlink_season_draft_switch.sql",
+      "sha256": "a8639f153a469916c2fb8b323f5d7d5b77f041933ecfbf9006a99d7d016386c9"
+    },
+    {
+      "file": "/home/codex/repos/veyocast-s301-season/supabase/tests/s301_sportlink_season_switch.sql",
+      "sha256": "95efa2dabf39edfcb48cb8c04f23d20da115465c4c084d51e9348d87369f7f32"
+    }
+  ],
+  "results": {
+    "full": {
+      "files": 153,
+      "assertions": 5154,
+      "wallclockSeconds": 124,
+      "result": "PASS"
+    },
+    "focused": {
+      "files": 1,
+      "assertions": 90,
+      "wallclockSeconds": 8,
+      "result": "PASS"
+    },
+    "lint": {
+      "schemas": [
+        "public",
+        "private"
+      ],
+      "errors": 0
+    },
+    "securityAdvisors": {
+      "errors": 0
+    }
+  },
+  "actualRpcCapture": {
+    "path": "/tmp/s301-actual-rpc.json",
+    "sha256": "935e95fea360a55b59c6d71a40eed10bb66be60018caa25c50dfc44aeedb8cad",
+    "fixtureTransaction": "rolled back",
+    "strictDtos": 6,
+    "strictResult": "PASS"
+  },
+  "logs": {
+    "freshReset": {
+      "path": "/tmp/s296-s298-s299-s301-final-reset.log",
+      "sha256": "4fdc7e3d7a5dc638648cf150fd19bf1af748dceca16a4d4d5650def35050a495"
+    },
+    "fullDatabase": {
+      "path": "/tmp/s296-s298-s299-s301-final-rls.log",
+      "sha256": "cd35233bb97a206a37a0bdd60580869a5aaaf183b1159c42537aba07488630db"
+    },
+    "lint": {
+      "path": "/tmp/s296-s298-s299-s301-final-db-lint.log",
+      "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+    },
+    "security": {
+      "path": "/tmp/s296-s298-s299-s301-final-db-advisors.log",
+      "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+    },
+    "focused": {
+      "path": "/tmp/s301-focused-historic-frame.log",
+      "sha256": "20c3bedec22aff37c8a84b8dfc8d87db9a58d509b3ceb6a2f3cc45c4f6bca8f5"
+    },
+    "actualRpcCapture": {
+      "path": "/tmp/s301-capture.log",
+      "sha256": "9b33a5ade03a2b55a786699d6a5f0fdc16f7dae8765d644236976eefc336fa2f"
+    },
+    "actualDtoValidation": {
+      "path": "/tmp/s301-actual-rpc-validation-final.log",
+      "sha256": "43c60d7291d5fc82288e419814cec0492d9c844c6e1f33b8a5e77473ba63fde1"
+    }
+  },
+  "limits": [
+    "Synthetic local normalized Sportlink contexts; no live provider observation.",
+    "Image fallback fixture bytes are unit metadata; no physical render claim.",
+    "Frame evidence cases use deliberately controlled paired-device telemetry; no Android/LG/hardware verification.",
+    "S300 runbook adapters explicitly unavailable until its following migration.",
+    "Known direct dependencies bounded100; embedded unknown dependencies remain unknown."
+  ],
+  "assertedBehavior": [
+    "Exact source/context candidates; no name/date inference; valid -1 team identity.",
+    "Read/preview no authoring/queue/publication side effects.",
+    "New/current draft canonical CAS+receipt replay; exact published old bytes/PDD revision/hash/device data_key preserved.",
+    "Private review hash detects semantic publication/schedule/screen/zone edits; excludes labels/source observation/frame times.",
+    "Exact valid screen frame evidence and historical observation refs; wrong/future/missing frame rejected.",
+    "2tenant actor rights, private ACL, strict args and bounded cursor."
+  ]
+}

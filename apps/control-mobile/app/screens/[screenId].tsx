@@ -36,9 +36,11 @@ type Command =
   | "RECOVER_PAIRING"
   | "RELOAD_PLAYER";
 
+import { mobileScreenStatus } from "../../src/screens/screen-status";
+
 export default function ScreenDetailScreen() {
   const params = useLocalSearchParams<{ screenId: string }>();
-  const screens = useMobileScreens();
+  const screens = useMobileScreens(params.screenId);
   const { activeTenant } = useTenant();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<Command | null>(null);
@@ -133,7 +135,7 @@ export default function ScreenDetailScreen() {
     );
   }
 
-  const status = statusPresentation[screen.status];
+  const status = mobileScreenStatus(screen);
   return (
     <AppShell>
       <ScreenScrollView>
@@ -152,20 +154,24 @@ export default function ScreenDetailScreen() {
             <Metadata
               label="Laatste contact"
               value={
-                screen.lastSeenAt
+                status.lastSeenAt
                   ? new Intl.DateTimeFormat("nl-NL", {
                       dateStyle: "short",
                       timeStyle: "short"
-                    }).format(new Date(screen.lastSeenAt))
+                    }).format(new Date(status.lastSeenAt!))
                   : "Nog niet gemeld"
               }
             />
             <Metadata
-              label="Actieve release"
-              value={screen.activeReleaseLabel ?? "Niet toegewezen"}
+              label="Laatst bevestigde publicatie"
+              value={screen.activeReleaseLabel ?? "Nog niet bevestigd"}
             />
+            <Metadata label="Beeld bevestigd op" value={status.confirmedAt ? new Date(status.confirmedAt).toLocaleString("nl-NL") : "Onbekend"} />
+            <Metadata label="Gewenste publicatie" value={status.desiredReleaseLabel ?? "Onbekend"} />
+            <Metadata label="Gemelde bronrevisie" value={status.reportedSourceRevision === null ? "Onbekend" : String(status.reportedSourceRevision)} />
           </View>
         </SurfaceCard>
+        <SurfaceCard><AppText variant="cardTitle">Bronactualiteit</AppText>{status.sources.length ? status.sources.map(row=><View key={`${row.snapshotId}:${row.datasetKey}`} style={styles.metadata}><AppText>{row.sourceName} · {row.datasetKey === "competitions" ? "Officiële stand" : row.datasetKey === "matches" ? "Programma en uitslagen" : "Brongegevens"}</AppText><AppText muted>Laatste geslaagde broncontrole: {row.lastSuccessAt ? new Date(row.lastSuccessAt).toLocaleString("nl-NL") : "Onbekend"}</AppText><AppText muted>Beschikbare gegevensrevisie: {row.dataRevision ?? "Onbekend"}</AppText>{row.lastErrorCode ? <AppText>Laatste bronpoging mislukt. Geldige lokale inhoud blijft beschikbaar.</AppText> : null}</View>) : <AppText muted>Bronactualiteit onbekend. Dit zegt niets over het Playercontact.</AppText>}</SurfaceCard>
         {screen.lastErrorCode ? (
           <InlineAlert
             description="Open herstel alleen wanneer retry of lokale diagnose het probleem niet oplost."
@@ -253,14 +259,6 @@ function commandLabel(command: Command) {
     RELOAD_PLAYER: "Player opnieuw laden"
   }[command];
 }
-
-const statusPresentation = {
-  attention: { label: "Aandacht", tone: "critical" },
-  offline: { label: "Offline", tone: "warning" },
-  online: { label: "Online", tone: "success" },
-  pairing: { label: "Te koppelen", tone: "info" },
-  unknown: { label: "Onbekend", tone: "neutral" }
-} as const;
 
 const styles = StyleSheet.create({
   copy: { flex: 1, gap: mobileSpacing.micro },

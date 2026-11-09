@@ -4,7 +4,8 @@ import {
   mobilePairingClaimRequestSchema,
   mobilePlaylistMutationRequestSchema,
   mobilePlaylistPublishRequestSchema,
-  mobilePlayerCommandRequestSchema
+  mobilePlayerCommandRequestSchema,
+  mobileScreenSummarySchema
 } from "../src/mobile-control";
 
 describe("mobile Control contracts", () => {
@@ -92,4 +93,16 @@ describe("mobile Control contracts", () => {
       }).success
     ).toBe(false);
   });
+});
+
+
+it("SCR-02 preserves strict old screen responses and decodes opted-in evidence without exposing extra fields",()=>{
+ const old={id:"29600000-0000-4000-8000-000000000001",name:"Kantine",location:null,appVersion:null,lastErrorCode:null,lastSeenAt:null,activeReleaseLabel:null,status:"unknown"};
+ const strictOld=mobileScreenSummarySchema.omit({statusEvidence:true});
+ expect(strictOld.parse(old)).toEqual(old);
+ expect(mobileScreenSummarySchema.parse(old)).toEqual(old);
+ const next={...old,statusEvidence:{screenStatus:"active",deviceStatus:"paired",kind:"stale",publicationKind:"unconfirmed",desiredReleaseLabel:null,desiredPublishedAt:null,confirmedAt:null,reportedSourceRevision:null,reportedSourceAt:null}};
+ expect(mobileScreenSummarySchema.safeParse(next).success).toBe(true);
+ expect(strictOld.safeParse(next).success).toBe(false);
+ expect(mobileScreenSummarySchema.safeParse({...next,statusEvidence:{...next.statusEvidence,deviceToken:"forbidden"}}).success).toBe(false);
 });

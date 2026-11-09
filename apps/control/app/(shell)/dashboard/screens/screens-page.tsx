@@ -27,6 +27,7 @@ import { Button, StatusPill } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../lib/tenant-time";
+import { screenPlaybackEvidence } from "./sync-screen-detail-model";
 import { deriveScreenHealth } from "../../../../lib/screen-health";
 import { PageHeader } from "../../_components/shell-primitives";
 import {
@@ -89,7 +90,8 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     data.devices.filter((device) => device.status === "paired").map((device) => [device.screenId, device])
   );
   const releaseById = new Map(data.releases.map((release) => [release.id, release]));
-  const statuses = data.screens.map((screen) => screenStatus(screen, devicesByScreen.get(screen.id)));
+  const now = Date.now();
+  const statuses = data.screens.map((screen) => screenStatus(screen, devicesByScreen.get(screen.id), now));
   const normalizedQuery = query.q?.trim().toLocaleLowerCase("nl-NL") ?? "";
   const platformFilter = reportedScreenPlatforms([...devicesByScreen.values()]).includes(query.platform ?? "") ? query.platform! : "";
   const requestedStatus = query.sync === "pending" ? "syncing" : query.status;
@@ -104,16 +106,16 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
     : null;
   const matchingScreens = data.screens.filter((screen) => {
       const device = devicesByScreen.get(screen.id);
-      const status = screenStatus(screen, device);
+      const status = screenStatus(screen, device, now);
       return (!selectedMemberIds || selectedMemberIds.has(screen.id)) &&
         (!platformFilter || device?.platform === platformFilter) &&
-        (statusFilter === "all" || status.kind === statusFilter) &&
+        (statusFilter === "all" || (statusFilter === "syncing" ? screenPlaybackEvidence(device ?? null, now, screen.status, screen.assignedReleaseId).publicationKind === "syncing" : status.kind === statusFilter)) &&
         (!normalizedQuery || [screen.name, screen.location, device?.deviceName].some((value) => value?.toLocaleLowerCase("nl-NL").includes(normalizedQuery)));
     });
   const filteredScreens = visualReference ? matchingScreens : matchingScreens.sort((left, right) => {
       const priorityDifference =
-        screenPriority(screenStatus(left, devicesByScreen.get(left.id)).kind) -
-        screenPriority(screenStatus(right, devicesByScreen.get(right.id)).kind);
+        screenPriority(screenStatus(left, devicesByScreen.get(left.id), now).kind) -
+        screenPriority(screenStatus(right, devicesByScreen.get(right.id), now).kind);
       return priorityDifference || left.name.localeCompare(right.name, "nl-NL");
     });
   const view = query.view === "venue" || query.view === "health" || query.view === "cards"
@@ -124,13 +126,8 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   const canPublish = session.isLive && session.tenantStatus === "active" &&
     hasCapability(session.capabilities, "tenant.playlist.publish");
   const canUseReferenceActions = canManage || visualReference;
-  const onlineCount = statuses.filter((status) => status.kind === "online" || status.kind === "syncing").length;
-  const activeCount = data.screens.filter((screen) => {
-    const device = devicesByScreen.get(screen.id);
-    const status = screenStatus(screen, device);
-    return Boolean(device?.activeReleaseId) &&
-      (status.kind === "online" || status.kind === "syncing");
-  }).length;
+  const onlineCount = statuses.filter((status) => status.kind === "online").length;
+  const activeCount = data.screens.filter(screen => screenPlaybackEvidence(devicesByScreen.get(screen.id) ?? null, now, screen.status, screen.assignedReleaseId).desiredConfirmed).length;
   const currentGroupName = selectedGroup
     ? data.groups.find((group) => group.id === selectedGroup)?.name ?? "Alle schermen"
     : "Alle schermen";
@@ -160,9 +157,9 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
   if (view === "overview" && !visualReference) return <>
     {query.fout ? <p className="notice notice--critical" role="alert">Actie mislukt. {query.fout}</p> : null}
     {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}
-    <SyncFleet tenantId={session.tenantId} data={data} screens={filteredScreens} devices={devicesByScreen} query={query.q ?? ""} status={statusFilter} group={selectedGroup} platform={platformFilter}
+    <SyncFleet timeZone={session.timezoneName} now={now} tenantId={session.tenantId} data={data} screens={filteredScreens} devices={devicesByScreen} query={query.q ?? ""} status={statusFilter} group={selectedGroup} platform={platformFilter}
       setup={<ScreenSetupDialog disabled={!canManage || data.screens.length >= data.limit} groups={data.groups} releases={data.assignableReleases} previews={compositionData.playlists} settings={data.settings} triggerLabel="Scherm koppelen" />}
-      advanced={<><div className="row"><ScreenCompositionEditor canPublish={canManage && canPublish} data={compositionData} groups={data.groups} initialTarget={selectedGroup ? `group:${selectedGroup}` : "all"} screens={data.screens.filter(screen => screen.status === "active")} /><Link className="btn btn-secondary" href="/dashboard/screens/groups">Schermgroepen beheren</Link><Link className="btn btn-secondary" href="/dashboard/screens?view=health">Gezondheid</Link></div><ScreenBulkForm addToGroupAction={addBulkScreensToGroup} assignReleaseAction={assignBulkScreenRelease} canPublish={canPublish} groups={data.groups} idempotencyKey={randomUUID()} playlists={playlistOptions(data.assignableReleases)} syncAction={requestBulkScreenSyncRetry}><CompactFleetTable canManage={canManage} data={data} devicesByScreen={devicesByScreen} releaseById={releaseById} screens={filteredScreens} visualReference={false} /></ScreenBulkForm></>}
+      advanced={<><div className="row"><ScreenCompositionEditor canPublish={canManage && canPublish} data={compositionData} groups={data.groups} initialTarget={selectedGroup ? `group:${selectedGroup}` : "all"} screens={data.screens.filter(screen => screen.status === "active")} /><Link className="btn btn-secondary" href="/dashboard/screens/groups">Schermgroepen beheren</Link><Link className="btn btn-secondary" href="/dashboard/screens?view=health">Gezondheid</Link></div><ScreenBulkForm addToGroupAction={addBulkScreensToGroup} assignReleaseAction={assignBulkScreenRelease} canPublish={canPublish} groups={data.groups} idempotencyKey={randomUUID()} playlists={playlistOptions(data.assignableReleases)} syncAction={requestBulkScreenSyncRetry}><CompactFleetTable now={now} canManage={canManage} data={data} devicesByScreen={devicesByScreen} releaseById={releaseById} screens={filteredScreens} visualReference={false} /></ScreenBulkForm></>}
     />
   </>;
 
@@ -187,9 +184,9 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
           value={data.error ? "—" : onlineCount}
         />
         <FleetMetric
-          detail="tonen actuele content"
+          detail="recent contact en gewenst beeld bevestigd"
           icon={<Play aria-hidden="true" />}
-          label="Nu actief"
+          label="Beeld bevestigd"
           tone="blue"
           value={data.error ? "—" : activeCount}
         />
@@ -275,8 +272,8 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
               const memberStatuses = group.memberIds
                 .map((id) => data.screens.find((screen) => screen.id === id))
                 .filter((screen): screen is FleetScreen => Boolean(screen))
-                .map((screen) => screenStatus(screen, devicesByScreen.get(screen.id)));
-              const healthy = memberStatuses.length > 0 && memberStatuses.every((status) => status.kind === "online" || status.kind === "syncing");
+                .map((screen) => screenStatus(screen, devicesByScreen.get(screen.id), now));
+              const healthy = memberStatuses.length > 0 && memberStatuses.every((status) => status.kind === "online");
               return (
                 <Link
                   className={styles.mapGroup}
@@ -298,7 +295,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
 
       {compositionData.error ? <p className="notice notice--warning" role="status">{compositionData.error}</p> : null}
       {view === "venue" ? <div className={styles.specializedView}><VenueView canManage={canManage} data={data} /></div> : null}
-      {view === "health" ? <div className={styles.specializedView}><HealthView data={data} /></div> : null}
+      {view === "health" ? <div className={styles.specializedView}><HealthView now={now} data={data} /></div> : null}
       {view === "cards" ? (
         <div className={styles.specializedView}>
           <ScreenBulkForm
@@ -311,6 +308,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             syncAction={requestBulkScreenSyncRetry}
           >
             <FleetCards
+              now={now}
               canManage={canManage}
               data={data}
               devicesByScreen={devicesByScreen}
@@ -357,6 +355,7 @@ export default async function ScreensPage({ searchParams }: ScreensPageProps) {
             syncAction={requestBulkScreenSyncRetry}
           >
             <CompactFleetTable
+              now={now}
               canManage={canManage}
               data={data}
               devicesByScreen={devicesByScreen}
@@ -394,6 +393,7 @@ function FleetMetric({
 }
 
 function CompactFleetTable({
+  now,
   canManage,
   data,
   devicesByScreen,
@@ -401,6 +401,7 @@ function CompactFleetTable({
   screens,
   visualReference
 }: {
+  now: number;
   canManage: boolean;
   data: ScreenFleetData;
   devicesByScreen: Map<string, FleetDevice>;
@@ -421,8 +422,8 @@ function CompactFleetTable({
         <thead><tr><th scope="col">Scherm</th><th scope="col">Groep</th><th scope="col">Status</th><th scope="col">Content</th><th scope="col"><span className="sr-only">Actie</span></th></tr></thead>
         <tbody>{screens.map((screen, index) => {
           const device = devicesByScreen.get(screen.id);
-          const status = screenStatus(screen, device);
-          const releaseId = device?.activeReleaseId;
+          const status = screenStatus(screen, device, now);
+          const releaseId = screenPlaybackEvidence(device ?? null, now, screen.status, screen.assignedReleaseId).confirmedReleaseId;
           const release = releaseId ? releaseById.get(releaseId) : undefined;
           const group = data.groups.find((item) =>
             item.memberIds.includes(screen.id) && item.name === screen.location
@@ -449,7 +450,7 @@ function CompactFleetTable({
                 </span>
               </td>
               <td data-label="Groep">{group?.name ?? "Niet ingedeeld"}</td>
-              <td data-label="Status"><StatusPill label={release && status.kind === "online" ? "Nu actief" : status.label} tone={status.tone} /></td>
+              <td data-label="Status"><StatusPill label={status.label} tone={status.tone} /></td>
               <td data-label="Content">{release?.playlistName ?? "Geen actieve content"}</td>
               <td data-label="Actie"><Link aria-label={`Bekijk scherm ${screen.name}`} className={styles.rowAction} href={`/dashboard/screens/${screen.id}`}><MoreHorizontal aria-hidden="true" /></Link></td>
             </tr>
@@ -461,12 +462,14 @@ function CompactFleetTable({
 }
 
 function FleetCards({
+  now,
   canManage,
   data,
   devicesByScreen,
   releaseById,
   screens
 }: {
+  now: number;
   canManage: boolean;
   data: ScreenFleetData;
   devicesByScreen: Map<string, FleetDevice>;
@@ -478,8 +481,8 @@ function FleetCards({
     <div className={styles.screenGrid}>
       {screens.map((screen) => {
         const device = devicesByScreen.get(screen.id);
-        const status = screenStatus(screen, device);
-        const releaseId = device?.activeReleaseId;
+        const status = screenStatus(screen, device, now);
+        const releaseId = screenPlaybackEvidence(device ?? null, now, screen.status, screen.assignedReleaseId).confirmedReleaseId;
         const release = releaseId ? releaseById.get(releaseId) : undefined;
         return (
           <article className={styles.screenCard} data-status={status.kind} key={screen.id}>
@@ -499,7 +502,7 @@ function FleetCards({
               <dl className={styles.screenMeta}>
                 <div><dt>Content</dt><dd>{release?.playlistName ?? "Niet toegewezen"}</dd></div>
                 <div><dt>Publicatie</dt><dd>{releaseDisplay(release)}</dd></div>
-                <div><dt>Synchronisatie</dt><dd>{syncLabel(device, releaseById)}</dd></div>
+                <div><dt>Synchronisatie</dt><dd>{syncLabel(device, releaseById, now, screen)}</dd></div>
                 <div><dt>Automatisering</dt><dd>{data.automation[screen.id]?.label ?? "Handmatig"}</dd></div>
               </dl>
             </div>
@@ -517,14 +520,14 @@ function playlistOptions(releases: FleetRelease[]) {
   ])).values()].sort((left, right) => left.label.localeCompare(right.label, "nl"));
 }
 
-function screenStatus(screen: FleetScreen, device?: FleetDevice) {
+function screenStatus(screen: FleetScreen, device?: FleetDevice, now = Date.now()) {
   return deriveScreenHealth({
     activeReleaseId: device?.activeReleaseId,
     desiredReleaseId: device?.desiredReleaseId,
     deviceStatus: device?.status,
     lastSeenAt: device?.lastSeenAt,
     screenStatus: screen.status
-  });
+  }, new Date(now));
 }
 
 function mapPosition(name: string, index: number) {
@@ -538,9 +541,10 @@ function mapPosition(name: string, index: number) {
   return referencePosition ?? mapPositions[index] ?? mapPositions[0];
 }
 
-function syncLabel(device: FleetDevice | undefined, releaseById: Map<string, FleetRelease>) {
+function syncLabel(device: FleetDevice | undefined, releaseById: Map<string, FleetRelease>, now: number, screen: FleetScreen) {
   if (!device) return "Wacht op koppeling";
-  if (!device.lastSeenAt || Date.now() - Date.parse(device.lastSeenAt) > 120_000) return "Offline — actuele opdracht ophalen bij reconnect";
+  const proof = screenPlaybackEvidence(device, now, screen.status, screen.assignedReleaseId);
+  if (!proof.health.reachable) return `${proof.health.label} — laatste publicatie blijft als historie beschikbaar`;
   if (device.lastErrorCode) return `Geblokkeerd — playerfout ${device.lastErrorCode}; open diagnose voor herstel`;
   const preparationError = device.syncDetail?.preparationError;
   if (typeof preparationError === "string") {
@@ -553,10 +557,10 @@ function syncLabel(device: FleetDevice | undefined, releaseById: Map<string, Fle
   if (device.syncRetryRequestedAt) return "Synchronisatie aangevraagd";
   if (device.syncPhase === "downloading" || device.syncPhase === "verifying") return "Nieuwe inhoud wordt voorbereid";
   if (device.syncPhase === "switch_pending") return "Klaar — wisselt na huidige slide";
-  if (device.desiredReleaseId && device.desiredReleaseId !== device.activeReleaseId) return "Gepubliceerd — wacht op ontvangst";
+  if (proof.desiredReleaseId && proof.desiredReleaseId !== device.activeReleaseId) return "Gepubliceerd — wacht op ontvangst";
   const trace = device.syncDetail?.publicationTrace as Record<string, unknown> | undefined;
-  if (device.activeReleaseId && trace?.firstFrameAt && trace.releaseId === device.activeReleaseId) {
-    const revision = releaseById.get(device.activeReleaseId)?.version;
+  if (proof.confirmedReleaseId && trace?.firstFrameAt) {
+    const revision = releaseById.get(proof.confirmedReleaseId!)?.version;
     return revision ? `Actief — publicatie ${revision} zichtbaar bevestigd` : "Actief — publicatie zichtbaar bevestigd";
   }
   if (device.activeReleaseId) return "Playerupdate nodig voor zichtbare bevestiging";

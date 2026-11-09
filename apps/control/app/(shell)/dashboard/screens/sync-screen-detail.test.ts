@@ -21,7 +21,7 @@ test("only a matching real first-frame trace confirms a publication; offline kee
   assert.equal(screenPlaybackEvidence(traced, now).desiredConfirmed, true);
   assert.equal(screenPlaybackEvidence({ ...traced, lastSeenAt: "2026-10-19T11:40:00Z", syncDetail: { publicationTrace: { releaseId: "active-release", firstFrameAt: "2026-10-19T11:39:00Z" } } }, now).confirmedReleaseId, "active-release");
   assert.equal(screenPlaybackEvidence({ ...traced, lastSeenAt: "2026-10-19T11:40:00Z" }, now).desiredConfirmed, false);
-  assert.equal(screenPlaybackEvidence({ ...traced, lastErrorCode: "MEDIA_FAILED" }, now).confirmedReleaseId, null);
+  assert.equal(screenPlaybackEvidence({ ...traced, lastErrorCode: "MEDIA_FAILED" }, now).confirmedReleaseId, "active-release");
   assert.equal(screenPlaybackEvidence({ ...traced, desiredReleaseId: "next-release" }, now).desiredConfirmed, false);
 });
 

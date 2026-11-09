@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "files": [
+    {
+      "path": "apps/control/app/(shell)/dashboard/data-sources/sportlink/season-switch/page.tsx",
+      "sha256": "e3351bdc24221f5513b6bd191034d421542c2825e30b86f4b45209701cce08be"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/data-sources/sportlink/source-workspace.server.tsx",
+      "sha256": "bd0320704a419acc6484251d261dd13900ed055589e5d1b75589f1df63445456"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/slides/[slideId]/page.tsx",
+      "sha256": "9db01afc93ca5b5f0c1a5cb877bf9e47acbc2a14c458b0874cad5924e808edba"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/page.test.tsx",
+      "sha256": "9b47ebab675dbe05d6df455430d6aac75854ab32e03d5f1d40ed2ee5223d1203"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/page.tsx",
+      "sha256": "e4fc71f3e0c513bf0b2ce9b1549ebfc32b2535d519ba064bbcb630dbefe7e25b"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-actions.test.ts",
+      "sha256": "65df1a8e08360ca8c80e0090fc9092142e13971d36cbebf33e61263189e3e58c"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-actions.ts",
+      "sha256": "63550af4bb03f11fe0fe094acad7aef0338c32f187a2a41b3157e1decf5b59e9"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-data.server.test.ts",
+      "sha256": "2b5f6995fd4d316f45b3fb65020e7be87e4fedbd0cfac9c33f12a8fb2239b8a7"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-data.server.ts",
+      "sha256": "b56a5c9fce0e4a366e8f0cf18a597626c58b68760261a9c9c0b045c1a2af8cf4"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-filters.tsx",
+      "sha256": "13f881fdc1f7cc6ffad59b2c1b0b311014916ff695c71056b321f0bcc2d96c01"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-state.test.ts",
+      "sha256": "d3b8a92b4f56cbb691e3996439851b3cf4c1f05adb1b1ea2f4d26c3f3b2cf27a"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-state.ts",
+      "sha256": "6075dee68ff3ebcd285bc99819a6712fb46ac0503642e644c5c96fac00ed3122"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch-workspace.tsx",
+      "sha256": "ab64c99cc6ac4f9bfe045c19379b24db6d199f0866efa04ebdec6b05ff26598c"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sources/sportlink/season-switch/season-switch.module.css",
+      "sha256": "6155d9aec98e19c331778d29754e1f93929c4da5dd6cedc089a64da94604c5d7"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256": "6698d458f67e345a8dce641e1a8a6fd80ab0066952a3d5d0a0241b2ada3653bd"
+    },
+    {
+      "path": "packages/contracts/src/sportlink-season-switch.ts",
+      "sha256": "e3a132d6bfc14b1b402799b0ee9444242ff150fa79ec1ff2acee09fa9a3034c2"
+    },
+    {
+      "path": "packages/contracts/test/sportlink-season-switch.test.ts",
+      "sha256": "0a29e031dac236dc64fb90b8fc7c4c9660682da9ca70f58849602891f7869786"
+    },
+    {
+      "path": "supabase/migrations/20261109122540_s301_sportlink_season_draft_switch.sql",
+      "sha256": "a8639f153a469916c2fb8b323f5d7d5b77f041933ecfbf9006a99d7d016386c9"
+    },
+    {
+      "path": "supabase/tests/s301_sportlink_season_switch.sql",
+      "sha256": "95efa2dabf39edfcb48cb8c04f23d20da115465c4c084d51e9348d87369f7f32"
+    },
+    {
+      "path": "tests/control/s301-season-switch.spec.ts",
+      "sha256": "ab335ea68be3bc17fec8a9120cd36e54393a9ed3222edf1280fd95bc2c6688e7"
+    },
+    {
+      "path": "tests/fixtures/s301-season-rpc.json",
+      "sha256": "935e95fea360a55b59c6d71a40eed10bb66be60018caa25c50dfc44aeedb8cad"
+    },
+    {
+      "path": "tests/helpers/s301-season-fixtures.ts",
+      "sha256": "2e8e1efd43b7d23a9d89e8061c65fa65348da4972a5ad631df7e52fefb7accce"
+    }
+  ]
+}

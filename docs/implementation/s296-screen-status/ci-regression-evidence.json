@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-09T13:51:03.671084+00:00",
+  "priorHead": "2e8dda5526f1d94cb3d5b40be1fa700fffd7cc2c",
+  "failedCi": "https://github.com/veyocast/platform/actions/runs/42621228412/job/129173756082",
+  "failures": {
+    "screenStates": [
+      "STATE-0034",
+      "STATE-0039",
+      "STATE-0044"
+    ],
+    "sourceWizard": "1440px intended footer touch height lost to shell specificity; reported43.99993896484375px"
+  },
+  "repair": {
+    "screenFixture": "Screen assigned release42 is authoritative for pending/preparing; last confirmed release41 has explicit prior matching frame; Online contact stays separate; offline history label follows public contract. Original STATE IDs and assertions about no new visible confirmation retained.",
+    "footer": "Local wizard/panel/actions specificity restores existing touch-height token; no global CSS, reference baseline or test threshold changed."
+  },
+  "focused": {
+    "passed": 5,
+    "failed": 0,
+    "seconds": 15.3
+  },
+  "fullAffectedSpecs": {
+    "passed": 40,
+    "failed": 0,
+    "retries": 0,
+    "skipped": 0,
+    "reportedDuration": "1.5m"
+  },
+  "workspace": {
+    "lint": {
+      "successful": 30,
+      "total": 30,
+      "seconds": 9.242
+    },
+    "typecheck": {
+      "successful": 30,
+      "total": 30,
+      "seconds": 28.132
+    },
+    "test": {
+      "successful": 30,
+      "total": 30,
+      "seconds": 14.768,
+      "controlPassed": 2075,
+      "controlExistingSkips": 34
+    }
+  },
+  "sourceFiles": {
+    "apps/control/app/(shell)/dashboard/studio/sync-create-wizard.module.css": "d4a22326b4acf69e3666387692a13f77bef56900110a98ab49859252bac3ffd2",
+    "tests/control/sites-media-screens-states.spec.ts": "2b6494af018e9f1003d1c33ce85d6dc1c50a08505a2469c80aafa4e7a13e4d63"
+  },
+  "logs": {
+    "/tmp/s296-control-ci-final-failed.log": {
+      "sha256": "0c60f8f3f38d350b8d461ab2afbc4bbb2208e33dc313dfb5c928fcf866041433",
+      "bytes": 367919
+    },
+    "/tmp/s296-control-ci-regressions-fixed.log": {
+      "sha256": "22ad7b2753590aa44a0597af55c37984279f33f98627d82db552fcf7cf6c48f1",
+      "bytes": 909
+    },
+    "/tmp/s296-control-ci-regressions-full.log": {
+      "sha256": "be2518172345067e50cec50b8cdef4479cf8a06df140fec28a1aeacb0e7b034c",
+      "bytes": 6031
+    },
+    "/tmp/s296-ci-repair-lint.log": {
+      "sha256": "613f89d379e33f27344374c26c61abd01a514f060d1c2f43717b1bc91aede4cf",
+      "bytes": 4590
+    },
+    "/tmp/s296-ci-repair-typecheck.log": {
+      "sha256": "54e7f6fa4247a9ccdcd2ec76a0c3b79fe8e0c4d544ac6bfef27a545e5b049f08",
+      "bytes": 4562
+    },
+    "/tmp/s296-ci-repair-test.log": {
+      "sha256": "987ccc4fe2bd06382f7a9f23d89cc81547a19e6324da75d83a35d4bd59542255",
+      "bytes": 65428
+    }
+  },
+  "claims": {
+    "actualProductionComponents": true,
+    "controlledTransport": true,
+    "hostedAcceptance": false,
+    "physicalDevices": false,
+    "finalCiStillRequired": true
+  }
+}

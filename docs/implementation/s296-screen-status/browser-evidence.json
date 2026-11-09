@@ -1,0 +1,464 @@
+{
+  "schemaVersion": 1,
+  "task": "S296",
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "branch": "veyocast/s296-schermstatus",
+  "fixtureClock": "2026-11-09T12:00:00.000Z",
+  "clockToleranceMs": 0,
+  "browser": {
+    "profile": "Playwright Chromium, actual Control route/components/CSS with controlled session/server reads",
+    "report": "/tmp/s296-six-widths-status-report.json",
+    "reportSha256": "fe920410f6b1753d9931c043b9c3f7981e31adb0cc21422663a4672f63ae6a63",
+    "stats": {
+      "startTime": "2026-11-09T12:55:27.809Z",
+      "duration": 61573.873,
+      "expected": 15,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "id": "b1365cbb0c0e01d4d77a-f3d63802842bfcc555cd",
+        "title": "SCR-01 299999ms: overview, card, filter, health and detail agree",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 7,
+        "status": "passed",
+        "durationMs": 4943,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-ae414adb7914d75235a7",
+        "title": "SCR-01 300000ms: overview, card, filter, health and detail agree",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 7,
+        "status": "passed",
+        "durationMs": 4827,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-3208dd412a57ffaec041",
+        "title": "SCR-01 300001ms: overview, card, filter, health and detail agree",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 7,
+        "status": "passed",
+        "durationMs": 4753,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-42d0ea30b5a56648f37a",
+        "title": "SCR-01 1799999ms: overview, card, filter, health and detail agree",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 7,
+        "status": "passed",
+        "durationMs": 4820,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-29d70a61e23096de664e",
+        "title": "SCR-01 1800000ms: overview, card, filter, health and detail agree",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 7,
+        "status": "passed",
+        "durationMs": 4699,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-66f2eda88e757741e43b",
+        "title": "SCR-01 1800001ms: overview, card, filter, health and detail agree",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 7,
+        "status": "passed",
+        "durationMs": 4732,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-fd12c47b78d66f87b6c2",
+        "title": "SCR-02 disabled/false/missing preserves management priority",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 25,
+        "status": "passed",
+        "durationMs": 2493,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-70a6a9cce6438a6af2fe",
+        "title": "SCR-02 maintenance/false/missing preserves management priority",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 25,
+        "status": "passed",
+        "durationMs": 2554,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-b53f5839a06f5dd443ec",
+        "title": "SCR-02 active/false/missing preserves management priority",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 25,
+        "status": "passed",
+        "durationMs": 2395,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-e4f298d6b85714607b52",
+        "title": "SCR-02 active/true/missing preserves management priority",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 25,
+        "status": "passed",
+        "durationMs": 2475,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-8351d17912b86b496866",
+        "title": "SCR-02 active/true/2026-11-09T12:00:00.001Z preserves management priority",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 25,
+        "status": "passed",
+        "durationMs": 2524,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-3a2d1a93a3ef09bb6335",
+        "title": "SCR-03 assignment and download do not confirm a frame; contact loss preserves dated evidence",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 35,
+        "status": "passed",
+        "durationMs": 3119,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-ecf96f79ceb16d96faad",
+        "title": "SCR-04 separate source evidence and saved preview are readable at 320px",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 48,
+        "status": "passed",
+        "durationMs": 5322,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-8d586da0b958b2055db9",
+        "title": "SCR-04 separate source evidence and saved preview are readable at 1440px",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 48,
+        "status": "passed",
+        "durationMs": 5621,
+        "retries": 0
+      },
+      {
+        "id": "b1365cbb0c0e01d4d77a-6918768852746871eb85",
+        "title": "SCR-03 authoritative screen assignment and explicit removal ignore stale device desire",
+        "file": "control/s296-screen-status.spec.ts",
+        "line": 73,
+        "status": "passed",
+        "durationMs": 4530,
+        "retries": 0
+      }
+    ],
+    "checks": [
+      "exact 5/30 minute boundaries on five surfaces",
+      "management priority and invalid/future contact",
+      "assignment/download/frame/offline history",
+      "canonical screen assignment including explicit null",
+      "independent source and Player revision",
+      "320px/1440px overflow",
+      "keyboard back-navigation",
+      "two WCAG2A/AA/2.1AA axe checks"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-320.png",
+      "sha256": "130559e93eb1e7ed0d29add35afcebe6a92e24b4dbc07c245fd7b2666558a958",
+      "bytes": 217087
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-detail-320.png",
+      "sha256": "fc217dc56dac7cb1b9887e981276cea75fec471ef30d57344b505639af84a0e5",
+      "bytes": 110032
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-fleet-320.png",
+      "sha256": "a55b1cefb03bd376b47de0192eb8dcd0d75ec198c6ef80e83d7635022417a956",
+      "bytes": 127408
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-overview-320.png",
+      "sha256": "efdb222f488778b0c50974f31fa1f1b25fcc949b3dae9656eeab777383d468b5",
+      "bytes": 92709
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-1440.png",
+      "sha256": "557c86b022cc57a83405c8f5ba4c7e9d05480be0f06ac844eef2c220ad61d877",
+      "bytes": 228144
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-detail-1440.png",
+      "sha256": "ccb3131e499102ec33cc8dd8d98a04bab793a5285d1082a070a2733b9377ece2",
+      "bytes": 124353
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-fleet-1440.png",
+      "sha256": "50ef13b1cc6946fa0593602d9bbe64666de951b7c08b27894adbad4e43943400",
+      "bytes": 173540
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/screen-status-overview-1440.png",
+      "sha256": "3b3c16a31449be24547e6f06120d5f878c4f22ddeb88203bd0fb70e529000a84",
+      "bytes": 108880
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "apps/control-mobile/app/(tabs)/schermen.tsx",
+      "sha256": "4f9cb6f7040d13531be968fb92afa1f34c816a119a93f48a55be23aa4c2afee5"
+    },
+    {
+      "path": "apps/control-mobile/app/(tabs)/vandaag.tsx",
+      "sha256": "0d8d87022cd3bd52ecee136a3bacc5fb19951620cb0bc799a2a94d517aabc3ba"
+    },
+    {
+      "path": "apps/control-mobile/app/screens/[screenId].tsx",
+      "sha256": "bb55880026209435a2d9cb55a83777fa12387ad2371a9ee01af735e96c7f6951"
+    },
+    {
+      "path": "apps/control-mobile/src/api/mobile-api.ts",
+      "sha256": "35abc812137c9a4ccff593a3cb7076c6480feb93eb2ecd72715414e65fce621b"
+    },
+    {
+      "path": "apps/control-mobile/src/query/use-mobile-data.ts",
+      "sha256": "11f95d8c0da113ac5c3d9561a304aef0bfc3ada3d61617e93359c95f5cd93c83"
+    },
+    {
+      "path": "apps/control-mobile/src/screens/screen-status.test.ts",
+      "sha256": "32c3eedfce6f63bb4fd95b2bc9f7bf8ae656c040219e6e8af0d4ce3aaa760a12"
+    },
+    {
+      "path": "apps/control-mobile/src/screens/screen-status.ts",
+      "sha256": "9713cebc8d9b5c65b27a0e19f2a7130b3420b007e8bce5d249c39b9740f24c6b"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/[screenId]/page.tsx",
+      "sha256": "3a0aa649ea41152025d31a85aa2ffd911d0500ab4242261ebf4393a5f57437b3"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/[screenId]/screen-automation.tsx",
+      "sha256": "73f5c2ededb612fbb7691fa46b9f716e81ff86a3e317a769b14fbec2b9828adb"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/health-view.tsx",
+      "sha256": "a9b6033d954e4dbcbc350f92174dacb24ac22e7c9dda47f0dbebf0590204a387"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/screen-source-status.tsx",
+      "sha256": "d51079a9d853957ba2ddbf807fd397abc62f7713a2c1e79f126eb764bcab188b"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/screens-page.tsx",
+      "sha256": "a818e35c5e336a9188dfe6b2abdf7195ef4405ab4deb063d5a181bd295019fff"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/sync-fleet-view.tsx",
+      "sha256": "4d61367b5aba555bbd2537400c306265a547efe1df6f000abb087a162011ebfd"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/sync-fleet.tsx",
+      "sha256": "1b18ba13072b6359f74981d201853927e62cc0d76f8e3a28f32dc527f4b469e9"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/sync-screen-detail-model.ts",
+      "sha256": "390f4c7bf9f1b8d94e69ae2d25211e10c31085659df16f0bb4c12db2f9d52e5e"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/sync-screen-detail.module.css",
+      "sha256": "765f98706ccd93f9d3f4a591e9bc209895dfe94d0c30abd7cf77dd94dbcf1867"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/sync-screen-detail.test.ts",
+      "sha256": "901563914589cfbb28cf2d8cfd9374008b2200b83049bc9d4726ece6c20a5d38"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/screens/sync-screen-detail.tsx",
+      "sha256": "432781a0e7e79cba45e19da8d3233f85ced0593e7d8d9c691ba5500b82086daa"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sync-overview.tsx",
+      "sha256": "69d4e7f09b549be29d1ada1123d20414124689c611d909ffb0022933cc987c78"
+    },
+    {
+      "path": "apps/control/app/api/mobile/v1/cockpit/route.ts",
+      "sha256": "5b26fe0f5cea91baac1808b2062adfb79db613f78adc51ed900aa903deb37cac"
+    },
+    {
+      "path": "apps/control/app/api/mobile/v1/screens/route.test.ts",
+      "sha256": "37e231cd3688199e76edf460ae6d36db92e3b2fbc9672318ccb9dcb91874cd86"
+    },
+    {
+      "path": "apps/control/app/api/mobile/v1/screens/route.ts",
+      "sha256": "587ae9cdf8c82df51bca0abf731036f0b93dcba881fe56e1d28243ac47a178cc"
+    },
+    {
+      "path": "apps/control/lib/control-operations.ts",
+      "sha256": "d0335e48cb220914e8e39852f6da6234d34b441a1fada4e0d765267ddf976a58"
+    },
+    {
+      "path": "apps/control/lib/screen-health.test.ts",
+      "sha256": "146cd1ad3dacc34e2e62757b66b447b17a624b45fc4b1857b9209364d60853c8"
+    },
+    {
+      "path": "apps/control/lib/screen-health.ts",
+      "sha256": "e53e577c141530151f728b80e02d9e9648fab2464a826c36ddd7816b3fac0e90"
+    },
+    {
+      "path": "apps/control/lib/screen-source-evidence.test.ts",
+      "sha256": "fcbe37c7eff3d16abdedfdc2b7b5f436eeee0c8bad317ae93b703a3e25417487"
+    },
+    {
+      "path": "apps/control/lib/screen-source-evidence.ts",
+      "sha256": "60df7aa645232335f84cd79a1caf13e531cf77847b03d623288034c8562b40eb"
+    },
+    {
+      "path": "apps/control/lib/sync-playback-evidence.test.ts",
+      "sha256": "1fd30a6b676f5c8a694ff961dcf507a11e4d72c01d25361b838a3ef4211cafa6"
+    },
+    {
+      "path": "apps/control/lib/sync-playback-evidence.ts",
+      "sha256": "d81ec49018a30d09a9bc6ccac8d173fcb317c37c42c2cafbbb332bbd96805842"
+    },
+    {
+      "path": "packages/contracts/src/mobile-control.ts",
+      "sha256": "d8789579831abd5477198df2961086f9e8a6df9c1615340a1b6d1512fc1e45a9"
+    },
+    {
+      "path": "packages/contracts/test/mobile-control.test.ts",
+      "sha256": "4e6b4460dde6304c0eeaddaedcd2bf73b9cc1888ece256479ca8458d78beea82"
+    },
+    {
+      "path": "packages/domain/package.json",
+      "sha256": "8555e93323b7716f2222d20df008074c5a4f1968819ea602205abbca825c7b6a"
+    },
+    {
+      "path": "packages/domain/src/index.ts",
+      "sha256": "d87b07ea44e46222119d28c8a63e23089c4e5136d7582f12eaf1c7c586d9eeb0"
+    },
+    {
+      "path": "packages/domain/src/screen-contact-status.ts",
+      "sha256": "c3c9fa8d836067a6a4a974ae63d710528fb58c58d515df2baddd84168aee9bde"
+    },
+    {
+      "path": "packages/domain/test/screen-contact-status.test.ts",
+      "sha256": "b951aa1e7f1f184e392d399ca82074a1d317ec00f932c6ce7f438e91fa01de57"
+    },
+    {
+      "path": "tests/control/s296-screen-status.spec.ts",
+      "sha256": "25c9b69d95c138c05e7e8895a3677ba04631e772e0ce93420c94dbc7574b3dec"
+    },
+    {
+      "path": "tests/helpers/screen-status-fixture.ts",
+      "sha256": "df083205c438c313a55463ee19626d0c0dcb256123ebfb12163676a5c0505d84"
+    }
+  ],
+  "gates": [
+    {
+      "command": "pnpm lint",
+      "successfulTasks": 30,
+      "log": "/tmp/s296-frozen-lint.log"
+    },
+    {
+      "command": "pnpm typecheck",
+      "successfulTasks": 30,
+      "log": "/tmp/s296-frozen-typecheck.log"
+    },
+    {
+      "command": "pnpm test",
+      "successfulTasks": 30,
+      "log": "/tmp/s296-frozen-test.log",
+      "relevantUnits": {
+        "control": {
+          "passed": 2075,
+          "skipped": 34
+        },
+        "native": {
+          "passed": 62
+        },
+        "domain": {
+          "passed": 89
+        },
+        "contracts": {
+          "passed": 208
+        }
+      }
+    },
+    {
+      "command": "pnpm --filter @veyocast/control build",
+      "result": "passed, intermediate source before last canonical-target/timestamp call-site changes",
+      "buildId": "SNwDiOodpa__0AwhGXuVD",
+      "log": "/tmp/s296-control-build.log",
+      "guards": [
+        "protected Control routes stay dynamic",
+        "client bundles secret-free"
+      ]
+    },
+    {
+      "command": "pnpm exec eslint tests/control/s296-screen-status.spec.ts tests/helpers/screen-status-fixture.ts --max-warnings=0",
+      "log": "/tmp/s296-browser-source-lint.log",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @veyocast/control exec eslint 'app/(shell)/dashboard/sync-overview.tsx'",
+      "log": "/tmp/s296-geometry-eslint.log",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @veyocast/control exec eslint 'app/(shell)/dashboard/sync-overview.tsx'",
+      "log": "/tmp/s296-six-widths-eslint.log",
+      "result": "passed"
+    }
+  ],
+  "preservedEarlierRuns": [
+    {
+      "report": "/tmp/s296-release-browser.log",
+      "passed": 12,
+      "failed": 2,
+      "cause": "default navigation load waiting during concurrent foundation; DOM-content-ready plus actual visible assertions used afterward"
+    },
+    {
+      "report": "/tmp/s296-frozen-browser-report.json",
+      "passed": 14,
+      "failed": 1,
+      "cause": "SCR-03 fixture changed only device desire; corrected to set real canonical screen assignment; assertions unchanged"
+    },
+    {
+      "report": "/tmp/s296-final-browser-report.json",
+      "passed": 15,
+      "failed": 0,
+      "scope": "Pre-responsive-copy-repair SCR matrix; exact final source repeated below."
+    },
+    {
+      "report": "/tmp/s296-geometry-status-report.json",
+      "passed": 15,
+      "failed": 0,
+      "scope": "First mobile-copy repair SCR matrix; all-six-width final source repeated below."
+    }
+  ],
+  "limits": [
+    "No physical Android/native device evidence",
+    "Controlled browser reads do not prove live Auth, Supabase or production access",
+    "Metadata RPC and RLS are integrated and verified separately by database writer/root",
+    "Exact integrated production build and Expo export follow root/CI integration gates",
+    "No production data, screen schedules or Player runtime changed"
+  ],
+  "testedWorkingTreeParent": "3e496a059027564d18ae7225228e5715a03d12d7",
+  "responsiveRegression": {
+    "evidence": "docs/implementation/s296-screen-status/responsive-regression-evidence.json",
+    "sha256": "ba8c8a0c0f67b0d5af08db06627412fc7716ca4dc328251fe5685c4ce20e3446",
+    "passed": 6,
+    "caseIds": [
+      "RESP-0001",
+      "RESP-0002",
+      "RESP-0003",
+      "RESP-0004",
+      "RESP-0005",
+      "RESP-0006"
+    ]
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "environment": "staging",
+  "softwareSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "projectId": "jibbtdicrptsyftobavq",
+  "tenantId": "29590000-0000-4000-9000-000000000001",
+  "realHostedWebplayer": true,
+  "realDeployedWorker": true,
+  "normalizedProviderFixture": true,
+  "directProviderRequests": 0,
+  "productionFixtureWrites": 0,
+  "providerPolicyEnabled": false,
+  "deployRun": "https://github.com/veyocast/platform/actions/runs/42610413960",
+  "stagingProbe": "https://github.com/veyocast/platform/actions/runs/42617321321",
+  "productionReadonlyProbe": "https://github.com/veyocast/platform/actions/runs/42618161387",
+  "steps": [
+    {
+      "key": "stageCanarySetupResult",
+      "result": [
+        {
+          "evidence": {
+            "facts": {
+              "source": "31edf680-6cb2-4ccc-abcc-ffb0e843ea3e",
+              "authoring": {
+                "jobId": "0b85b50b-ab56-40de-a923-c78e7af23c0d",
+                "status": "rendering",
+                "changed": true,
+                "slideId": "015c2d21-a917-4f26-9224-1dc2324ee5e6",
+                "versionId": "55d1ce69-23a8-47e2-96e9-0629bc91bc07",
+                "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8"
+              },
+              "connection": "70458de9-7ab3-4244-b001-6a5e1e04c358",
+              "matchesRun": "5cd86dfa-973e-4555-8e6e-144acef63355",
+              "standingsRun": "dd064edd-db11-44bf-bb4a-75b606d80511"
+            },
+            "screen": "29590000-0000-4000-9000-000000000004",
+            "tenant": "29590000-0000-4000-9000-000000000001",
+            "policiesEnabled": 0
+          }
+        }
+      ]
+    },
+    {
+      "key": "stageCanaryStandingsUpdate",
+      "result": [
+        {
+          "evidence": {
+            "label": "standings-only",
+            "published": {
+              "hash": "22bff0f90598f195ee37630a1f748b5dbe1695eb153c3aa38cfcab1b15d5e2a5",
+              "revision": 1,
+              "checkedAt": "2026-11-09T12:22:47.482375+00:00"
+            },
+            "observedAt": "2026-11-09T12:24:11.554611+00:00",
+            "successfulSync": {
+              "id": "144f795b-108c-4498-ab69-e195f87f7736",
+              "status": "succeeded",
+              "finishedAt": "2026-11-09T12:24:11.462915+00:00"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "stageCanaryStandingsCorrection",
+      "result": [
+        {
+          "evidence": {
+            "label": "standings-only-correction",
+            "runId": "f9f586b3-a91d-49b9-a59e-7a0f8c6f6193",
+            "observedAt": "2026-11-09T12:25:15.130881+00:00",
+            "successfulSyncAt": "2026-11-09T12:25:15.029645+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "key": "stageCanaryResultAdded",
+      "result": [
+        {
+          "evidence": {
+            "label": "new-zero-pool-result",
+            "runId": "dc806e0d-c05d-4a0e-b261-bafc6a0c22a2",
+            "observedAt": "2026-11-09T12:26:45.415942+00:00",
+            "successfulSyncAt": "2026-11-09T12:26:45.327322+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "key": "stageCanaryScoreCorrected",
+      "result": [
+        {
+          "evidence": {
+            "label": "corrected-pool-score",
+            "runId": "bde834dd-6a53-406c-89ab-c23cdebffdc2",
+            "observedAt": "2026-11-09T12:28:03.145798+00:00",
+            "successfulSyncAt": "2026-11-09T12:28:03.022725+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "key": "stageCanaryDetailsProgram",
+      "result": [
+        {
+          "evidence": {
+            "runs": [
+              {
+                "id": "d20c125d-0791-460c-a6eb-b79cd8b82287",
+                "kind": "match_details-0",
+                "status": "succeeded",
+                "finishedAt": "2026-11-09T12:31:05.330474+00:00"
+              },
+              {
+                "id": "e5a01de0-ec22-4f63-9f77-3a2991826d4d",
+                "kind": "match_details-1",
+                "status": "succeeded",
+                "finishedAt": "2026-11-09T12:31:05.330474+00:00"
+              },
+              {
+                "id": "b80d47b5-cbae-4d45-b06e-e0105b094bb8",
+                "kind": "match_details-2",
+                "status": "succeeded",
+                "finishedAt": "2026-11-09T12:31:05.330474+00:00"
+              },
+              {
+                "id": "8309d2ef-5d8d-40ab-bd07-2d3320a131fa",
+                "kind": "matches-3",
+                "status": "succeeded",
+                "finishedAt": "2026-11-09T12:31:05.330474+00:00"
+              }
+            ],
+            "label": "three-details-then-program",
+            "matches": [
+              {
+                "code": "2959001",
+                "active": true,
+                "status": "finished",
+                "missing": 0,
+                "awayScore": 1,
+                "homeScore": 3
+              },
+              {
+                "code": "2959002",
+                "active": true,
+                "status": "finished",
+                "missing": 0,
+                "awayScore": 0,
+                "homeScore": 2
+              },
+              {
+                "code": "2959003",
+                "active": true,
+                "status": "scheduled",
+                "missing": 0,
+                "awayScore": null,
+                "homeScore": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "key": "stageCanaryTwoScreenStandings",
+      "result": [
+        {
+          "evidence": {
+            "label": "standings-only-two-screens",
+            "runId": "22cff42d-f022-4c8d-9742-3447d1ad69be",
+            "observedAt": "2026-11-09T12:38:10.897469+00:00",
+            "successfulSyncAt": "2026-11-09T12:38:10.482033+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "key": "stageCanaryTwoScreenBindingsFinal",
+      "result": [
+        {
+          "evidence": {
+            "bindings": [
+              {
+                "hash": "25ba497e4e6ca3b7b59036b0bffee95fba6c8f5ffeb645fd70fb2a926f57e38e",
+                "revision": 3,
+                "changedAt": "2026-11-09T12:38:17.413384+00:00",
+                "checkedAt": "2026-11-09T12:38:17.413383+00:00",
+                "snapshotId": "4c140111-e697-4d12-9f67-6b901e862cd2"
+              },
+              {
+                "hash": "8119413874efe678a9797cced06c65d37b6228592d631070dc8d443d05731e76",
+                "revision": 6,
+                "changedAt": "2026-11-09T12:38:19.373702+00:00",
+                "checkedAt": "2026-11-09T12:38:19.373701+00:00",
+                "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8"
+              }
+            ],
+            "observedAt": "2026-11-09T12:39:39.089997+00:00"
+          }
+        }
+      ]
+    }
+  ]
+}

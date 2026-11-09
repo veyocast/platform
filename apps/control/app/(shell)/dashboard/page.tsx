@@ -56,7 +56,7 @@ export default async function DashboardPage({
 
   return (
     <SyncOverview
-      canCreateStudio={session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.studio.create")}
+      canCreateStudio={session.tenantStatus === "active" && (hasCapability(session.capabilities, "tenant.studio.create") || hasCapability(session.capabilities, "tenant.dynamic_slide.write"))}
       canManageScreens={session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.screen.manage")}
       data={data}
       canOpenMatchday={matchday?.canOpen===true}

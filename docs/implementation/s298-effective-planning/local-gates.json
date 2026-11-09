@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "workspace": {
+    "lint": "30/30 PASS",
+    "typecheck": "30/30 PASS",
+    "test": "30/30 PASS",
+    "controlTests": 2076,
+    "existingControlSkips": 34
+  },
+  "browser": {
+    "passed": 25,
+    "retry": 0,
+    "seconds": 44.5,
+    "controlledReadTransport": true,
+    "actualHostedControlAuth": false
+  },
+  "database": {
+    "freshCombinedReset": true,
+    "files": 152,
+    "assertions": 5064,
+    "focusedS298": 39,
+    "seconds": 121,
+    "sqlLintErrors": 0,
+    "securityAdvisorErrors": 0
+  },
+  "logs": [
+    {
+      "path": "/tmp/s298-workspace-lint-final.log",
+      "sha256": "1d87f86974cd39718fe1f5c27a2fb056ab435bd388259465cc710dfcd09a0f05"
+    },
+    {
+      "path": "/tmp/s298-workspace-typecheck-final.log",
+      "sha256": "231c1c873d7e2ab87b6946a36ff077b6c17f5defb32106f11932ac3581a5a7f1"
+    },
+    {
+      "path": "/tmp/s298-workspace-test.log",
+      "sha256": "3d669342a7abb349fb6ed3d4f3dc6c6798ca378e2588a0df0a9639cb57d5ec01"
+    },
+    {
+      "path": "/tmp/s298-browser-integrated-second.log",
+      "sha256": "c18871dee227edeae2c3ce437ca996d28b5ad9875aafbd0600dabe06c0eb472c"
+    },
+    {
+      "path": "/tmp/s298-data-unit.log",
+      "sha256": "98888bbba363410287476173cdab123d0ff1260a8a0bcf383544af8aa23e982f"
+    },
+    {
+      "path": "/tmp/s296-s298-s299-final-rls.log",
+      "sha256": "8b746afe4dd44015278fa60d21eac0a4e0be35f2e382a8a662a97cf3bfd59817"
+    },
+    {
+      "path": "/tmp/s296-s298-s299-final-db-lint.log",
+      "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+    },
+    {
+      "path": "/tmp/s296-s298-s299-final-db-advisors.log",
+      "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+    },
+    {
+      "path": "/tmp/s298-staging-probe-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/s298-probes-eslint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/s298-layout-workspace-lint.log",
+      "sha256": "1735d71e1fd115d03c0ee27b98466da658aefe733d1c7c291e24f3a82be010f1"
+    },
+    {
+      "path": "/tmp/s298-layout-workspace-typecheck.log",
+      "sha256": "ecc9fec9e43474dfdec1eb23bfc02764c91590a34c0182fad31193fb3d93b314"
+    },
+    {
+      "path": "/tmp/s298-layout-workspace-test.log",
+      "sha256": "7066dbb3932d3eef5d90acfec7072fbbe1374506caa443f9c759c8d6ab36d926"
+    },
+    {
+      "path": "/tmp/s298-layout-browser.log",
+      "sha256": "8684547d73af05431bccd3ab190c7c4c6e41b4a4ad8a6e69177cb6551dffbe42"
+    },
+    {
+      "path": "/tmp/s298-layout-browser-focused-retry.log",
+      "sha256": "a4268885f55775fdbd92dceb5726eea50e87d2360df3dde534e57b27e5be44a8"
+    },
+    {
+      "path": "/tmp/s298-responsive-fixed.log",
+      "sha256": "63a7d5e24dffbada0d7857619ceee894766b7ccd4a4941815d55e43a2dc29c07"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/effectief/page.tsx",
+      "sha256": "68b1d04d9f2a99331fc6491a27586faf237c06149a71adb861ff5f45ce2a4408"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/effective-planning-actions.ts",
+      "sha256": "235531028941baab9f6f20f1240027cc12d25df8110cf642fe232e5826b31ceb"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/effective-planning-data.server.ts",
+      "sha256": "b75e2b87f6ca994ed7640b89c10b8ae06fd79c244674e1ee1a4537df68526851"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/effective-planning-data.test.ts",
+      "sha256": "444e6c2607bfdcc0d99744ae497ff20474b5acaba934fff537cfe0bf082ddee7"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/effective-planning-view.tsx",
+      "sha256": "ea3ced9899904f9d6b33dfd9fdd9961ff20d3f212ea452e0288f49bab94a37cc"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/effective-planning.module.css",
+      "sha256": "4ae912888757b1c566c683e2873dfba10c5b47b338a8dcd34c4c87ba82cbcd01"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/effective-planning.ts",
+      "sha256": "1baa6f2f73158bc29fb64c7c2be51abaa3493193082d2f9cc42f394e93e75ac1"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/page.tsx",
+      "sha256": "0bd42ff7412eb352dd64bc9eed89422e7d910799c5048b0bf4602d2994ea7d8b"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/planning-dialogs.tsx",
+      "sha256": "a797a8dee2ce75d08eb3f6c8caa04e1642fa6726e3528bb48d15bafb3d5f4ffb"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/publication-planning-preview.tsx",
+      "sha256": "f54f5aeef231d4b3a7052fd84468fe3ab5f67d0a37e55429ad2929e41c796022"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/schedule-outcome-preview.tsx",
+      "sha256": "8bcedcf75da973c916da8c5e36e34c5996ea9b5510e0eb512036c723fc4fc1d2"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/playlists/[playlistId]/publish/publish-journey.tsx",
+      "sha256": "d9f6cfeec1f256bcd828cc6e12d5f5710305a5f4b1e43331af55b9e5239c5906"
+    },
+    {
+      "path": "packages/contracts/src/effective-planning.ts",
+      "sha256": "ac80bb5284e8a69d18501a1ccba49b3e88c35ac2b56a394f21da806cccfb1d25"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256": "0200723c993165365a718b6681caac608b87bbdb844fba48fa121ecb0feaced4"
+    },
+    {
+      "path": "scripts/probe-staging-canary-player.mts",
+      "sha256": "ea256612234172f80c5d78412662d618f93edc62075356a494a12f4e3901e49e"
+    },
+    {
+      "path": "scripts/verify-s298-effective-planning.mjs",
+      "sha256": "630e38a61dd4b30ee1f1b5bbb479bd8dee0a656fde0cb9912928d2c33578d573"
+    },
+    {
+      "path": "supabase/migrations/20261109114134_s298_effective_planning_preview.sql",
+      "sha256": "f10042bf98195366a92bb679b717a4addaf8b5d30301c7a8f41deb4c6c27bf1e"
+    },
+    {
+      "path": "supabase/tests/s298_effective_planning.sql",
+      "sha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b"
+    },
+    {
+      "path": "tests/control/s298-effective-planning.spec.ts",
+      "sha256": "3decbeb945d02f28ee5ab823c2b33de727e230365e8dbbe4b84fa66390b2127a"
+    },
+    {
+      "path": "tests/control/sites-screens-planning-workflows.spec.ts",
+      "sha256": "6ae4e29d38907e799d3e2c35ee3021b39d25132e5d85c7a1ff41cb3a600c6dc0"
+    },
+    {
+      "path": "tests/fixtures/s298-effective-planning.json",
+      "sha256": "374a308f68b7e3b74857f23dffb0a22f38713b1f51f0e6474fcf554dcb723115"
+    },
+    {
+      "path": "tests/helpers/effective-planning-fixture.ts",
+      "sha256": "cdf678f3f858ed22caa11e416f9dc7b9c4a9500ec6784f3dee38ed98d93e9149"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/sync-planning.tsx",
+      "sha256": "74e01e00c351b231ac933cbf70463cbd5d24b638f34040613358929c4e740d77"
+    }
+  ],
+  "layoutRegression": {
+    "evidence": "responsive-regression-evidence.json",
+    "responsiveCases": 6,
+    "browserCasesCovered": 25,
+    "focusedBrowserRetries": 1,
+    "finalBuild": "CI required after the certified initial build"
+  }
+}
