@@ -67,3 +67,7 @@ zijn ongewijzigd; twee nieuwe bewaken de echte heartbeatfout, herstel via304
 en geen incomplete activatie tijdens initialisatie. Lint/typecheck/test van
 de gecombineerde S301-bron zijn elk30/30 groen(22,521/31,392/38,551s).
 De oorspronkelijke rode trace en bron-/loghashes staan in het aanvullende bewijs.
+
+Na de gewone S297-integratiemerge zijn lint/typecheck/test van de volledige
+S296/S297/S298/S301-combinatie opnieuw elk30/30 groen(9,02/18,851/21,253s).
+Alle oorspronkelijke deelbewijzen en expliciete hardware-/hostedgrenzen blijven behouden.

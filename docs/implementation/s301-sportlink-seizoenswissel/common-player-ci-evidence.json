@@ -25,6 +25,19 @@
     "/tmp/s300-connectivity-ordered-green-report.json": "6422de7d986a15a6d27dee0946517f9339b42a6f8ea86d9f0c4a88a8fbaf7bb1",
     "/tmp/s301-common-final-lint.log": "9329c218e1a07b53026bad63d4d7af327d6810d4fb6c1181e25411c489f1c97b",
     "/tmp/s301-common-final-typecheck.log": "140960cb04c9dc1803956c31b31bbb313094645fa2da53c31b83d497791e2b82",
-    "/tmp/s301-common-final-test.log": "c7516fa9521341615be0461ff63b8aa058fd3c28a973b4af7d9e9f93193fd7fe"
+    "/tmp/s301-common-final-test.log": "c7516fa9521341615be0461ff63b8aa058fd3c28a973b4af7d9e9f93193fd7fe",
+    "/tmp/s301-integrated-final-lint.log": "1739f9409abeaffa9182afbf1b3285e8769effc64fa59a67daf4d15db339bbd5",
+    "/tmp/s301-integrated-final-typecheck.log": "4386929a5976329214cc5c2ca1c766ef468b1cca20275ac2ac38039abe63c6e6",
+    "/tmp/s301-integrated-final-test.log": "8ad925fe3ac31a5b595648c3d2b1448b7c8bd9ec2f2d046f45ec03f8296389db"
+  },
+  "integratedParents": {
+    "S296": "c9445d233fd043ebff4bd6801d29aa77374579f4",
+    "S298": "a8989ec26c69395ceb2c1ac60198f7c507b7ed03",
+    "S297": "f33791d42a976af520b0074b80ce97b2bb02f12b"
+  },
+  "finalIntegratedWorkspaceGates": {
+    "lint": "30/30PASS9.02s",
+    "typecheck": "30/30PASS18.851s",
+    "test": "30/30PASS21.253s"
   }
 }
