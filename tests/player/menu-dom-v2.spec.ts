@@ -6,7 +6,7 @@ import type{ClaimedDynamicRenderJob}from'../../apps/media-worker/src/dynamic-ren
 import type{PlayerManifestEnvelope}from'../../apps/player/app/_lib/player-manifest';
 import system from'../../packages/content-templates/src/sites-system-assets.json';
 const origin=`http://127.0.0.1:${process.env.PLAYER_PORT??3106}`;
-async function setup(page:Page,orientation:'landscape'|'portrait'='landscape',mode:'light'|'dark'='light',split=false){
+async function setup(page:Page,orientation:'landscape'|'portrait'='landscape',mode:'light'|'dark'='light',split=false,activationProbe=false){
  const baseline=await(await page.request.get(origin+'/api/player/manifest?deviceToken=demo-online')).json()as PlayerManifestEnvelope;
  const fixture=menuDomFixture('twelve_excel',orientation,mode),data={syncPlaybackProtocol:2,menuDocument:fixture.document,sitesConfiguration:fixture.design,brand:{clubName:'Eigen testclub'}};
  const job:ClaimedDynamicRenderJob={jobId:id(20),tenantId:id(1),snapshotId:id(21),templateVersionId:id(22),templateSlug:'price-list-widget',snapshotHash:'a'.repeat(64),slideVersionId:id(23),leaseToken:id(24),outputMediaAssetId:id(25),slideName:'Onze kantine',orientation,markup:'unused',css:'',manifest:{engine:'veyocast-safe-template-v1',schemaVersion:1,canvas:{width:orientation==='portrait'?1080:1920,height:orientation==='portrait'?1920:1080},slideType:'price_list',allowedFields:[],maxCollectionItems:100},snapshotData:data};
@@ -19,7 +19,8 @@ async function setup(page:Page,orientation:'landscape'|'portrait'='landscape',mo
   return body;
  };
  let envelope=create(),offline=false,downloads=0,requests=0;const failures:string[]=[],frames:number[]=[],headers:string[]=[],mediaRequests:string[]=[];
- await page.addInitScript(()=>{localStorage.setItem('veyocast.player.deviceToken','a'.repeat(48));localStorage.setItem('veyocast.player.installationCredential','i'.repeat(48));});
+ if(activationProbe){await page.goto(origin);await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener('controllerchange',()=>resolve(),{once:true}));});}
+ await page.addInitScript(({activationProbe,production})=>{localStorage.setItem('veyocast.player.deviceToken','a'.repeat(48));localStorage.setItem('veyocast.player.installationCredential','i'.repeat(48));if(activationProbe&&production){const schedule=window.setTimeout.bind(window);window.setTimeout=((handler:TimerHandler,delay?:number,...args:unknown[])=>schedule(handler,delay!==undefined&&delay>=8000&&delay<=8750?60000:delay,...args))as typeof window.setTimeout;}},{activationProbe,production:process.env.PLAYWRIGHT_PRODUCTION_SERVERS==='1'});
  page.on('request',request=>{if(/\.(mp4|png)(?:\?|$)/.test(request.url()))mediaRequests.push(new URL(request.url()).pathname);});
  await page.route('**/api/player/installation',route=>offline?route.abort():route.fulfill({json:{ok:true,bound:true,installationCredential:'i'.repeat(48)}}));
  await page.route('**/api/player/realtime',route=>route.fulfill({status:204}));
@@ -27,10 +28,25 @@ async function setup(page:Page,orientation:'landscape'|'portrait'='landscape',mo
  await page.route('**/api/player/heartbeat',route=>{const body=route.request().postDataJSON();if(body.lastPlaybackError?.code)failures.push(body.lastPlaybackError.code);if(body.sourceDataConfirmation?.rendererVersion==='sites-v17')frames.push(body.sourceDataConfirmation.dataRevision);return route.fulfill({json:{ok:true}});});
  await page.route('**/menu-dom.json',route=>{downloads++;return route.fulfill({body:descriptor,contentType:prepared.menuDom.mimeType});});
  await page.setViewportSize(orientation==='portrait'?{width:1080,height:1920}:{width:1920,height:1080});
- await page.goto(origin+'/?syncMs=10000');
+ await page.goto(origin+'/?syncMs='+(activationProbe?'60000':'10000'));
  const panel=page.locator('[data-player-handoff="first-frame-ready"] .vm-products-fit').last();await expect(panel).toBeVisible({timeout:30000});await expect.poll(()=>frames.includes(1),{timeout:15000}).toBe(true);
  return{create,panel,failures,frames,headers,mediaRequests,get downloads(){return downloads;},get requests(){return requests;},set(value:PlayerManifestEnvelope){envelope=value;},setOffline(){offline=true;}};
 }
+test('one-item multipage Menu facts accepted at the first page boundary do not start another activation check',async({page})=>{
+ test.setTimeout(45000);const state=await setup(page,'landscape','light',false,true),startedAt=Date.now();
+ const next=state.create(2),content=next.manifest.items[0]!.menuDom!;expect(content.presentation.kind==='dynamic'&&content.presentation.content.menuPages?.length).toBe(2);expect(content.durationMs).toBe(12000);
+ state.set(next);await page.evaluate(()=>window.dispatchEvent(new Event('online')));
+ await expect(page.getByText('Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.',{exact:true})).toHaveCount(1);
+ const observed=state.requests;
+ await expect.poll(()=>state.frames.includes(2),{timeout:9000}).toBe(true);
+ await expect(state.panel.locator('.vm-product')).toContainText('€ 3,75');
+ await page.waitForTimeout(250);expect(state.requests).toBe(observed);
+ // Renderer clocks can restart, but the original 12 s item deadline remains.
+ // The next actual item loop still checks despite the unchanged slide ID.
+ await expect.poll(()=>state.requests,{timeout:8500}).toBeGreaterThan(observed);
+ expect(state.requests-observed).toBe(1);
+ expect(Date.now()-startedAt).toBeLessThan(13500);
+});
 for(const orientation of ['landscape','portrait']as const)for(const mode of ['light','dark']as const)test(`actual Twelve MenuDocument widgets are DOM-ready ${orientation}/${mode} and survive offline reboot`,async({page,context},info)=>{
  const state=await setup(page,orientation,mode);expect(state.headers).toContain('sync-dynamic-v2');
  await expect(state.panel.locator('.vm-product strong')).toHaveText('Clubkoffie');await expect(state.panel.locator('.vm-product')).toContainText('€ 2,50');await expect(state.panel).toContainText('Koffiedeal');
@@ -52,4 +68,14 @@ test('a mixed-clock Menu composition waits for its side zone and retains both ve
  test.setTimeout(60000);const state=await setup(page,'landscape','light',true);state.set(state.create(2));await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect(page.getByText('Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.',{exact:true})).toHaveCount(1);
  await expect.poll(()=>page.evaluate(()=>new Promise<number>((resolve,reject)=>{const open=indexedDB.open('veyocast-player-cache-v1');open.onerror=()=>reject(open.error);open.onsuccess=()=>{const db=open.result,get=db.transaction('activeReleases').objectStore('activeReleases').get('a'.repeat(48));get.onsuccess=()=>{db.close();resolve(get.result?.envelope?.composition?.zones?.side?.manifest?.items[0]?.menuDom?.dataRevision??0);};};})),{timeout:30000}).toBe(2);
  await expect(page.locator('[data-menu-content-hash="'+ '2'.repeat(64)+'"] .vm-product')).toHaveCount(2);expect(state.downloads).toBe(1);state.setOffline();await context.setOffline(true);try{await page.reload();await expect(page.locator('[data-menu-content-hash="'+ '2'.repeat(64)+'"] .vm-product')).toHaveCount(2,{timeout:30000});}finally{await context.setOffline(false);}
+});
+test('a stale side-zone Menu revision cannot roll back its verified frame inside an unchanged main publication',async({page})=>{
+ test.setTimeout(45000);await page.clock.install();const state=await setup(page,'landscape','light',true);await page.clock.pauseAt(new Date(Date.now()+100));
+ const next=state.create(1);next.composition!.zones.side=state.create(2).composition!.zones.side;state.set(next);await page.evaluate(()=>window.dispatchEvent(new Event('online')));
+ await expect(page.getByText('Nieuwe brongegevens volledig gecontroleerd; wisselen na de huidige slide.',{exact:true})).toHaveCount(1);
+ await page.clock.fastForward(21000);await page.clock.runFor(1000);
+ const fresh=page.locator('[data-player-handoff="first-frame-ready"] [data-menu-content-hash="'+ '2'.repeat(64)+'"]');await expect(fresh).toBeVisible();
+ state.set(state.create(1));const requests=state.requests;await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect.poll(()=>state.requests).toBeGreaterThan(requests);
+ await page.clock.fastForward(21000);await page.clock.runFor(1000);await expect(fresh).toBeVisible();
+ await expect(page.locator('[data-player-handoff="first-frame-ready"] [data-menu-content-hash="'+ '1'.repeat(64)+'"]')).toHaveCount(1);
 });

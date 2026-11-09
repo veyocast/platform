@@ -26,7 +26,7 @@ export function resolvePlayerRuntimeTiming(
         searchParams,
         "syncMs",
         250,
-        defaultManifestSyncIntervalMs
+        120_000
       ) ?? defaultManifestSyncIntervalMs,
     watchdogTimeoutMs:
       readBoundedNumber(searchParams, "watchdogMs", 250, 60_000) ??

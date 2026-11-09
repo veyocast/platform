@@ -518,7 +518,7 @@ describe("Sportlink sync worker", () => {
     const ownTeam = { teamcode: 10, teamnaam: "Testclub 1", poulecode: 701 };
     const client = (fetchImpl: typeof fetch) => new SportlinkClient("test-client", { fetchImpl, maxAttempts: 1 });
 
-    it("fetches own and other results over 90 days and completes forms without creating selectable opponents", async () => {
+    it("fetches own and other results over an explicit thirteen-week window and completes forms without creating selectable opponents", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2026-10-10T12:00:00Z"));
       const requests: string[] = [];
@@ -530,7 +530,8 @@ describe("Sportlink sync worker", () => {
         ]);
         if (url.pathname === "/pouleuitslagen") {
           expect(url.searchParams.get("poulecode")).toBe("701");
-          expect(url.searchParams.get("aantaldagen")).toBe("90");
+          expect(url.searchParams.get("aantaldagen")).toBe("92");
+          expect(url.searchParams.get("weekoffset")).toBe("-13");
           const own = url.searchParams.get("eigenwedstrijden") === "JA";
           requests.push(url.searchParams.get("eigenwedstrijden")!);
           return Response.json([
@@ -583,7 +584,7 @@ describe("Sportlink sync worker", () => {
       expect(fetchImpl).toHaveBeenCalledTimes(5);
     });
 
-    it.each([4012, 5001])("rejects an incomplete observation on a genuine provider failure (%s)", async (code) => {
+    it.each([4012])("rejects connection authentication failures during optional form enrichment (%s)", async (code) => {
       const fetchImpl = vi.fn(async (input: string | URL | Request) => {
         const url = new URL(input instanceof Request ? input.url : input);
         if (url.pathname === "/teams") return Response.json([ownTeam]);
@@ -1051,7 +1052,8 @@ describe("Sportlink sync worker", () => {
       }
       if (url.pathname === "/poule-programma" || url.pathname === "/pouleuitslagen") {
         poolRequests.push(`${url.pathname}:${url.searchParams.get("eigenwedstrijden")}`);
-        expect(url.searchParams.get("aantaldagen")).toBe("14");
+        expect(url.searchParams.get("aantaldagen")).toBe(url.pathname === "/pouleuitslagen" ? "15" : "14");
+        expect(url.searchParams.get("weekoffset")).toBe(url.pathname === "/pouleuitslagen" ? "-2" : "0");
         const own = url.searchParams.get("eigenwedstrijden") === "JA";
         if (url.pathname === "/poule-programma") {
           return Response.json([own ? {

@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {motion} from 'motion/react';
-import {isSyncOnzeTrotsPresentation,syncSlidePageCount,syncSlideTransition,syncSlideAssets,syncSlideMinimumDurationMs,type SyncSlidePresentation} from '@veyocast/contracts';
+import {isSyncOnzeTrotsPresentation,syncSlideInternalMotion,syncSlidePageCount,syncSlideTransition,syncSlideAssets,syncSlideMinimumDurationMs,type SyncSlidePresentation} from '@veyocast/contracts';
 import {SyncSlideStaticView,measureSyncOnzeTrotsV9Layout,measureSyncOnzeTrotsLayout,projectSyncOnzeTrotsMotion,applySyncOnzeTrotsMotion,advanceSyncOnzeTrotsTime} from '@veyocast/content-templates/sync-slide-static-view';
 import type {SyncStudioLibraryMember} from './model';
 
@@ -29,6 +29,7 @@ export function SyncSlidePreview({presentation,assetUrls,durationSeconds,id,acti
   const images=[...element.querySelectorAll('img')];
   images.forEach(image=>image.addEventListener('load',refreshLayout));
   const loopMs=Math.max(syncSlideMinimumDurationMs(presentation),durationSeconds*1000),perPage=loopMs/pages;
+  const scrollDuration=syncSlideInternalMotion(presentation).fitAvailableDuration?perPage:undefined;
   let previous:number|null=null,animation=0;
   const frame=(now:number)=>{
    const running=active&&!document.hidden&&!reduced.matches;
@@ -39,7 +40,7 @@ export function SyncSlidePreview({presentation,assetUrls,durationSeconds,id,acti
    setPage(before=>before===currentPage?before:currentPage);
    const internal=active||elapsed.current>0?Math.max(0,local-currentPage*perPage):presentation.family==='goal'?1200:presentation.rendererVersion==='sync-onzetrots-v9'&&presentation.family==='rss'?1000:0;
    const scene=presentation.rendererVersion==='sync-onzetrots-v9'?{panelCount,mode:presentation.visual.mode,paused:!active,introFinished:introFinished.current,entranceAllowed:presentation.style.motion!=='geen'}:undefined;
-   const projected=projectSyncOnzeTrotsMotion(internal,layouts,presentation.visual.scrollSpeed,reduced.matches,scene);
+   const projected=projectSyncOnzeTrotsMotion(internal,layouts,presentation.visual.scrollSpeed,reduced.matches,scene,scrollDuration);
    if(projected.entrance)introFinished.current=projected.entrance.finished;
    applySyncOnzeTrotsMotion(projected,element);
    if(active)animation=requestAnimationFrame(frame);

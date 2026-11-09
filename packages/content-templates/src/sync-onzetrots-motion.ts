@@ -5,10 +5,21 @@ export const syncOnzeTrotsScrollSpeeds={slow:19,normal:30,fast:48} as const;
 const finite=(value:number)=>Number.isFinite(value)?value:0;
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
 
-/** Logical pixels, with the same 2.5-second hold at both ends in every runtime. */
-export function syncOnzeTrotsRankScrollAt(elapsedMs:number,range:number,speed:keyof typeof syncOnzeTrotsScrollSpeeds='normal'){
+/** Logical pixels with 2.5-second end holds by default. An explicitly shorter
+ * published page fits the same path and end holds into its immutable duration. */
+export function syncOnzeTrotsRankScrollAt(elapsedMs:number,range:number,speed:keyof typeof syncOnzeTrotsScrollSpeeds='normal',durationMs?:number){
  const maximum=Math.max(0,finite(range));if(maximum===0)return 0;
- const velocity=syncOnzeTrotsScrollSpeeds[speed],travel=maximum/velocity,hold=2.5;
+ let velocity:number=syncOnzeTrotsScrollSpeeds[speed],hold=2.5;
+ const available=durationMs!==undefined&&Number.isFinite(durationMs)&&durationMs>0?durationMs/1000:null;
+ if(available!==null&&2*maximum/velocity+2*hold>available){
+  const travel=maximum/velocity;
+  // New pool cards can reduce a published slide's measured rank viewport.
+  // Keep its duration and configured speed whenever possible; otherwise fit
+  // both directions and bounded end holds into exactly that same page.
+  if(2*travel<available)hold=(available-2*travel)/2;
+  else {hold=Math.min(2.5,available/6);velocity=maximum/(available/2-hold);}
+ }
+ const travel=maximum/velocity;
  const phase=(Math.max(0,finite(elapsedMs))/1000)%(2*travel+2*hold);
  if(phase<hold)return 0;
  if(phase<hold+travel)return clamp((phase-hold)*velocity,0,maximum);
@@ -48,10 +59,10 @@ export function measureSyncOnzeTrotsLayout(root:ParentNode=document):SyncOnzeTro
  });
 }
 
-export function projectSyncOnzeTrotsMotion(elapsedMs:number,layouts:readonly SyncOnzeTrotsRankLayout[],speed:keyof typeof syncOnzeTrotsScrollSpeeds='normal',reducedMotion=false,scene?:SyncOnzeTrotsV9Scene):SyncOnzeTrotsMotionFrame{
+export function projectSyncOnzeTrotsMotion(elapsedMs:number,layouts:readonly SyncOnzeTrotsRankLayout[],speed:keyof typeof syncOnzeTrotsScrollSpeeds='normal',reducedMotion=false,scene?:SyncOnzeTrotsV9Scene,durationMs?:number):SyncOnzeTrotsMotionFrame{
  const time=reducedMotion?0:Math.max(0,finite(elapsedMs));
  return {elapsedMs:time,reducedMotion,...(scene?{entrance:projectSyncOnzeTrotsV9Entrance(elapsedMs,scene,reducedMotion)}:{}),ranks:layouts.map(layout=>{
-  const scrollTop=syncOnzeTrotsRankScrollAt(time,layout.range,speed);
+  const scrollTop=syncOnzeTrotsRankScrollAt(time,layout.range,speed,durationMs);
   return {scrollTop,progress:layout.range>0?scrollTop/layout.range:0};
  })};
 }

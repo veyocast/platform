@@ -341,7 +341,7 @@ export async function createSyncSlideCapture({
       rankLayouts=isSyncOnzeTrotsPresentation(input)?await page.evaluate(measureSyncOnzeTrotsLayout,undefined):[];
       if(isSyncOnzeTrotsPresentation(input)&&internalMotion.enabled){
         const speed={slow:19,normal:30,fast:48}[input.visual.scrollSpeed];
-        if(rankLayouts.some(layout=>layout.range>0&&5000+2000*layout.range/speed>pageMs))throw new SitesDomCaptureError('document_load');
+        if(!internalMotion.fitAvailableDuration&&rankLayouts.some(layout=>layout.range>0&&5000+2000*layout.range/speed>pageMs))throw new SitesDomCaptureError('document_load');
       }
       // Only a genuinely static scene can reuse its settled raster. Internal
       // motion is projected for every requested PNG/RGBA frame below.
@@ -352,7 +352,7 @@ export async function createSyncSlideCapture({
       let standingsFrame: ReturnType<typeof projectSyncOnzeTrotsMotion> | undefined;
       if(isSyncOnzeTrotsPresentation(input)){
         const scene=input.rendererVersion==='sync-onzetrots-v9'?{panelCount:v9PanelCount,mode:input.visual.mode,paused:sceneState.paused??false,introFinished:sceneState.introFinished??false,entranceAllowed:input.style.motion!=='geen'}:undefined;
-        const frame=projectSyncOnzeTrotsMotion(internalTime,rankLayouts,input.visual.scrollSpeed,sceneState.reducedMotion??false,scene);
+        const frame=projectSyncOnzeTrotsMotion(internalTime,rankLayouts,input.visual.scrollSpeed,sceneState.reducedMotion??false,scene,internalMotion.fitAvailableDuration?pageMs:undefined);
         standingsFrame = frame;
         await page.evaluate(applySyncOnzeTrotsMotion,frame);
         if(staticRssAssets&&frame.entrance?.finished&&rankLayouts.every(layout=>layout.range===0)){

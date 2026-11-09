@@ -4,6 +4,8 @@ import {
   type dynamicTemplateSlideTypes,
   type PlayerDynamicTemplatePayload
 } from "@veyocast/contracts";
+import { createHash } from "node:crypto";
+import { playerDynamicDataSchema } from "./player-manifest";
 
 export type DynamicSnapshotPayloadRow = {
   id: string;
@@ -23,6 +25,27 @@ export type DynamicTemplatePayloadRow = {
   slide_type: (typeof dynamicTemplateSlideTypes)[number];
   slug: string;
 };
+
+/** Frozen publication identity and live source facts have independent clocks.
+ * Access URLs and provider observation times never enter this metadata. */
+export function buildDynamicTemplateDataMetadata({ snapshot, configuration, live }: {
+  snapshot: DynamicSnapshotPayloadRow & { dynamic_slide_version_id: string };
+  configuration: unknown;
+  live?: { data_revision: unknown; content_hash: unknown };
+}) {
+  return playerDynamicDataSchema.parse({
+    schemaVersion: 1,
+    configurationSnapshotId: snapshot.id,
+    snapshotId: snapshot.id,
+    templateVersionId: snapshot.template_version_id,
+    configurationHash: createHash("sha256").update(JSON.stringify([
+      "legacy-dynamic-v1", snapshot.id, snapshot.dynamic_slide_version_id,
+      snapshot.template_version_id, configuration
+    ])).digest("hex"),
+    contentHash: live ? live.content_hash : snapshot.source_revision_hash,
+    dataRevision: live ? live.data_revision : 1
+  });
+}
 
 export function buildDynamicTemplatePayloadMap({
   snapshots,

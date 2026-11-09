@@ -127,7 +127,43 @@ function completionFailureCode(result: Awaited<ReturnType<RpcClient["rpc"]>>) {
   return "SPORTLINK_SYNC_COMPLETE_RPC_FAILED";
 }
 
+type SportlinkSourceObservation = {
+  articleKey: string;
+  correlationId: string;
+  observedAt: string;
+  durationMs: number;
+  recordCount: number;
+  normalizedCount: number;
+  complete: boolean;
+  poolExternalId?: string;
+};
+
+export type SportlinkMatchObservation = {
+  schemaVersion: 1;
+  kind: "full" | "details";
+  checkedAt: string;
+  sourceObservations?: SportlinkSourceObservation[];
+  scopes: Array<{
+    scope: "club" | "pool";
+    poolExternalId?: string;
+    competitionExternalId?: string;
+    season?: string;
+    phase?: string;
+    fromDate: string;
+    throughDate: string;
+    complete: boolean;
+    resultsComplete?: boolean;
+    programComplete?: boolean;
+    programFromDate?: string;
+    programThroughDate?: string;
+    resultExternalIds: string[];
+    programExternalIds: string[];
+  }>;
+};
+
 type NormalizedSportlinkBatch = {
+  sourceObservations?: SportlinkSourceObservation[];
+  matchObservation?: SportlinkMatchObservation;
   activities: SportActivity[];
   birthdayFetchedAt: string | null;
   birthdays: Array<Record<string, unknown>>;
@@ -334,11 +370,12 @@ export class SupabaseSportlinkSyncBackend {
         p_team_members: batch.teamMembers,
         p_worker_id: workerId
       })
-      : this.client.rpc("complete_sportlink_sync_v4", {
+      : this.client.rpc(batch.matchObservation ? "complete_sportlink_sync_v5" : "complete_sportlink_sync_v4", {
       p_activities: batch.activities,
       p_club: batch.club ?? {},
       p_club_logo: batch.clubLogo && persistedLogos.has(batch.clubLogo) ? toMediaPayload(batch.clubLogo) : {},
       p_matches: batch.matches,
+      ...(batch.matchObservation ? { p_match_observation: batch.matchObservation } : {}),
       p_run_id: job.runId,
       p_standings: standings,
       p_team_logos: batch.teamLogos.filter((artifact) => persistedLogos.has(artifact)).map(toMediaPayload),
@@ -358,6 +395,18 @@ export class SupabaseSportlinkSyncBackend {
         "SPORTLINK_SYNC_COMPLETE_INVALID_RESULT",
         "Sportlink gaf een onbruikbare synchronisatie-uitkomst terug. De bestaande gegevens blijven behouden; controleer de synchronisatiediagnose."
       );
+    }
+    const observations = batch.matchObservation?.sourceObservations ?? batch.sourceObservations ?? [];
+    if (observations.length) {
+      try {
+        const logger = createStructuredLogger({
+          correlationId: job.runId, environment: process.env.VEYOCAST_ENVIRONMENT ?? "development",
+          revision: process.env.DEPLOYMENT_SHA ?? "development", service: "media-worker"
+        });
+        for (const observation of observations) logger.debug("sportlink.sync.completed", {
+          outcome: "source_observation", datasetGroup: job.datasetGroup, ...observation
+        });
+      } catch { /* Safe diagnostics cannot turn committed ingest into failure. */ }
     }
     // The committed source revision queues published-data refresh, including
     // clock-based windows. No fallible rendering RPC follows successful ingest.
@@ -615,59 +664,15 @@ export async function fetchSportlinkDataset(
   }
 
   if (datasetGroup === "matches") {
-    const [program, results, cancellations, teams, pools] = await Promise.all([
-      client.fetchArticle("programma", { aantaldagen: 42, aantalregels: 100 }),
-      client.fetchArticle("uitslagen", { aantaldagen: 14, aantalregels: 100 }),
-      client.fetchArticle("afgelastingen", { aantaldagen: 42, aantalregels: 100 }),
-      client.fetchArticle("teams"),
-      client.fetchArticle("poulelijst")
-    ]);
-    const poolMatches: SportMatch[] = [];
-    for (const context of collectSportlinkPoolContexts(teams.payload, pools.payload)) {
-      for (const request of [
-        { article: "poule-programma" as const, mode: "program" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "NEE" as const } },
-        { article: "poule-programma" as const, mode: "program" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "JA" as const } },
-        { article: "pouleuitslagen" as const, mode: "results" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "NEE" as const } },
-        { article: "pouleuitslagen" as const, mode: "results" as const, args: { poulecode: context.poolExternalId, aantaldagen: 14, eigenwedstrijden: "JA" as const } }
-      ]) {
-        try {
-          const response = await client.fetchArticle(request.article, request.args);
-          poolMatches.push(...enrichSportlinkPoolMatches(
-            mapSportlinkMatches(response.payload, request.mode), context
-          ));
-        } catch (error) {
-          if (error instanceof SportlinkClientError && [
-            "SPORTLINK_CONDITION_ERROR", "SPORTLINK_SCOPE_INSUFFICIENT"
-          ].includes(error.code)) continue;
-          throw error;
-        }
-      }
-    }
-    const ownProgram = enrichSportlinkOwnMatchesWithPoolContexts(
-      mapSportlinkMatches(program.payload, "program"),
-      teams.payload,
-      pools.payload
-    );
-    const ownResults = enrichSportlinkOwnMatchesWithPoolContexts(
-      mapSportlinkMatches(results.payload, "results"),
-      teams.payload,
-      pools.payload
-    );
-    batch.matches = dedupeSportlinkMatches([
-      ...poolMatches,
-      ...ownProgram,
-      ...ownResults,
-      ...mapSportlinkMatches(cancellations.payload, "cancellations")
-    ]);
-    batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches, signal);
-    return batch;
+    return fetchSportlinkMatches(client, job, batch, signal);
   }
 
   if (datasetGroup === "match_details") {
+    batch.matchObservation = { schemaVersion: 1, kind: "details", checkedAt: new Date().toISOString(), scopes: [] };
     // Details are an independent producer. Resolve the same official pool IDs
     // as the ordinary matches sync before its upsert can replace those records.
     const [program,teams,pools] = await Promise.all([
-      client.fetchArticle("programma", { aantaldagen:42, aantalregels:100 }),
+      client.fetchArticle("programma", { aantaldagen: 42, aantalregels: 500, weekoffset: 0, sorteervolgorde: "datum" }),
       client.fetchArticle("teams"), client.fetchArticle("poulelijst"),
     ]);
     const baseMatches = enrichSportlinkOwnMatchesWithPoolContexts(
@@ -719,6 +724,7 @@ export async function fetchSportlinkDataset(
     const result = await fetchStandings(client, job, signal);
     batch.standings = result.standings;
     batch.teamLogos = result.teamLogos;
+    batch.sourceObservations = result.sourceObservations;
     return batch;
   }
 
@@ -726,6 +732,200 @@ export async function fetchSportlinkDataset(
     "SPORTLINK_DATASET_DISABLED",
     "Deze Sportlink-dataset is niet geactiveerd."
   );
+}
+
+// Provider defaults differ between club and pool results. Start fourteen local
+// days ago and request fifteen days so today's published scores are included.
+// Selection/window limits remain in the published projector, after filtering.
+const resultRequestArguments = {
+  aantaldagen: 15, weekoffset: -2, sorteervolgorde: "datum-omgekeerd"
+} as const;
+const programRequestArguments = {
+  aantaldagen: 42, weekoffset: 0, sorteervolgorde: "datum"
+} as const;
+
+type MatchFeedObservation = {
+  matches: SportMatch[]; complete: boolean; error?: unknown;
+  sourceObservations?: SportlinkMatchObservation["sourceObservations"];
+};
+type MatchFeedRequest = Parameters<SportlinkClient["fetchArticle"]>;
+
+function providerRows(payload: unknown): unknown[] | null {
+  if (Array.isArray(payload)) return payload;
+  if (!isRecord(payload)) return null;
+  for (const key of ["data", "items", "result", "records"]) {
+    if (Array.isArray(payload[key])) return payload[key];
+  }
+  return Object.keys(payload).length ? [payload] : null;
+}
+
+async function observeMatchFeed(
+  client: SportlinkClient,
+  article: MatchFeedRequest[0],
+  args: Record<string, unknown>,
+  mode: "program" | "results" | "cancellations",
+  context?: ReturnType<typeof collectSportlinkPoolContexts>[number]
+): Promise<MatchFeedObservation> {
+  try {
+    const response = await client.fetchArticle(article, args);
+    const rows = providerRows(response.payload);
+    const mapped = mapSportlinkMatches(response.payload, mode);
+    // The official results articles document suppression as no result. A row
+    // without a parseable score is not proof of withdrawal: preserve its last
+    // valid score and make this observation partial while other rows proceed.
+    const normalized = mode === "results" ? mapped.filter((match) =>
+      match.status === "cancelled" || (
+        match.homeTeam.score !== null && Number.isFinite(match.homeTeam.score) &&
+        match.awayTeam.score !== null && Number.isFinite(match.awayTeam.score)
+      )
+    ) : mapped;
+    if (!rows || (rows.length > 0 && normalized.length === 0)) {
+      throw new SportlinkWorkerError(
+        "SPORTLINK_MATCH_NORMALIZATION_EMPTY",
+        "Sportlink leverde geen veilig verwerkbare wedstrijdselectie. De bestaande gegevens blijven behouden."
+      );
+    }
+    const conflictingIds = new Set(context ? rows.filter((row) => isRecord(row) && (
+      (scalar(row.poulecode) !== null && scalar(row.poulecode) !== context.poolExternalId) ||
+      (scalar(row.seizoen) !== null && context.competition?.season && scalar(row.seizoen) !== context.competition.season)
+    )).map((row) => scalar((row as Record<string, unknown>).wedstrijdcode)) : []);
+    const scoped = context ? normalized.filter((match) =>
+      !conflictingIds.has(match.externalId) &&
+      (!match.pool?.externalId || !/^\d+$/.test(match.pool.externalId) || match.pool.externalId === context.poolExternalId) &&
+      (["period", "season", "type"] as const).every((key) =>
+        !match.competition?.[key] || !context.competition?.[key] || match.competition[key] === context.competition[key]
+      )
+    ) : normalized;
+    const complete = scoped.length === rows.length && (typeof args.aantalregels !== "number" || rows.length < args.aantalregels);
+    return {
+      matches: context ? enrichSportlinkPoolMatches(scoped, context) : scoped, complete,
+      sourceObservations: [{ articleKey: response.articleKey, correlationId: response.correlationId,
+        observedAt: new Date().toISOString(), durationMs: response.durationMs, recordCount: rows.length, normalizedCount: scoped.length, complete,
+        ...(context ? { poolExternalId: context.poolExternalId } : {}) }]
+    };
+  } catch (error) {
+    // Authentication/configuration failures apply to the connection. Temporary
+    // feed failures apply only to their observed scope and cannot clear it.
+    if (error instanceof SportlinkClientError && [
+      "SPORTLINK_CLIENT_ID_INVALID", "SPORTLINK_TOKEN_INVALID", "SPORTLINK_ARGUMENT_INVALID",
+      "SPORTLINK_REQUIRED_ARGUMENT_MISSING", "SPORTLINK_ARTICLE_NOT_ALLOWED"
+    ].includes(error.code)) throw error;
+    return { matches: [], complete: false, error };
+  }
+}
+
+async function observeClubMatchFeed(
+  client: SportlinkClient,
+  article: "programma" | "uitslagen",
+  args: Record<string, unknown>,
+  teamsPayload: unknown
+): Promise<MatchFeedObservation> {
+  const mode = article === "uitslagen" ? "results" : "program";
+  const observation = await observeMatchFeed(client, article, { ...args, aantalregels: 500 }, mode);
+  if ((observation.sourceObservations?.[0]?.recordCount ?? 0) < 500 || observation.error) return observation;
+  // The documented club limit is 500. A full page cannot establish absence.
+  // A bounded split over the exact own-team catalogue recovers busy clubs when
+  // the provider supplies both required team identifiers.
+  const teams = mapSportlinkTeams(teamsPayload);
+  const teamRows = providerRows(teamsPayload);
+  if (!teamRows || teamRows.some((row) => !isRecord(row) || !scalar(row.teamnaam) || (!scalar(row.teamcode) && !scalar(row.lokaleteamcode))) ||
+    !teams.length || teams.length > maximumSportlinkClubPools || teams.some((team) => !team.localExternalId || !/^(?:-1|\d+)$/.test(team.localExternalId))) {
+    return { ...observation, complete: false };
+  }
+  const split: MatchFeedObservation[] = [];
+  for (const team of teams) {
+    split.push(await observeMatchFeed(client, article, {
+      ...args, aantalregels: 500, teamcode: team.externalId, lokaleteamcode: team.localExternalId
+    }, mode));
+  }
+  return {
+    matches: dedupeSportlinkMatches([...observation.matches, ...split.flatMap((part) => part.matches)]),
+    complete: split.every((part) => part.complete),
+    sourceObservations: [observation, ...split].flatMap((part) => part.sourceObservations ?? [])
+  };
+}
+
+function localObservationDay(now: Date, timezone: string, offset = 0) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit", month: "2-digit", year: "numeric", timeZone: timezone
+  }).formatToParts(now);
+  const part = (type: string) => parts.find((value) => value.type === type)?.value;
+  const localDay = new Date(`${part("year")}-${part("month")}-${part("day")}T12:00:00.000Z`);
+  localDay.setUTCDate(localDay.getUTCDate() + offset);
+  return localDay.toISOString().slice(0, 10);
+}
+
+async function fetchSportlinkMatches(
+  client: SportlinkClient,
+  job: ClaimedSportlinkSync,
+  batch: NormalizedSportlinkBatch,
+  signal?: AbortSignal
+) {
+  const checkedAt = new Date();
+  const [teams, pools] = await Promise.all([client.fetchArticle("teams"), client.fetchArticle("poulelijst")]);
+  const contexts = collectSportlinkPoolContexts(teams.payload, pools.payload);
+  const [program, results, cancellations] = await Promise.all([
+    observeClubMatchFeed(client, "programma", programRequestArguments, teams.payload),
+    observeClubMatchFeed(client, "uitslagen", resultRequestArguments, teams.payload),
+    observeMatchFeed(client, "afgelastingen", { ...programRequestArguments, aantalregels: 500 }, "cancellations")
+  ]);
+  const fromDate = localObservationDay(checkedAt, job.timezone, -14);
+  const throughDate = localObservationDay(checkedAt, job.timezone);
+  const scopes: SportlinkMatchObservation["scopes"] = [{
+    scope: "club", fromDate, throughDate, complete: program.complete && results.complete,
+    resultsComplete: results.complete, programComplete: program.complete,
+    programFromDate: throughDate, programThroughDate: localObservationDay(checkedAt, job.timezone, 41),
+    resultExternalIds: results.matches.map((match) => match.externalId),
+    programExternalIds: program.matches.map((match) => match.externalId)
+  }];
+  const allObservations = [program, results];
+  const poolMatches: SportMatch[] = [];
+  for (const context of contexts) {
+    assertOperationActive(signal);
+    const observations: MatchFeedObservation[] = [];
+    for (const eigenwedstrijden of ["NEE", "JA"] as const) {
+      observations.push(await observeMatchFeed(client, "poule-programma", {
+        poulecode: context.poolExternalId, aantaldagen: 14, weekoffset: 0, eigenwedstrijden
+      }, "program", context));
+    }
+    for (const eigenwedstrijden of ["NEE", "JA"] as const) {
+      observations.push(await observeMatchFeed(client, "pouleuitslagen", {
+        ...resultRequestArguments, poulecode: context.poolExternalId, eigenwedstrijden
+      }, "results", context));
+    }
+    poolMatches.push(...observations.flatMap((observation) => observation.matches));
+    allObservations.push(...observations);
+    scopes.push({
+      scope: "pool", poolExternalId: context.poolExternalId,
+      ...(context.competition?.externalId ? { competitionExternalId: context.competition.externalId } : {}),
+      ...(context.competition?.season ? { season: context.competition.season } : {}),
+      ...(context.competition?.period ? { phase: context.competition.period } : {}),
+      fromDate, throughDate, complete: observations.every((observation) => observation.complete),
+      programComplete: observations.slice(0, 2).every((observation) => observation.complete),
+      resultsComplete: observations.slice(2).every((observation) => observation.complete),
+      programFromDate: throughDate, programThroughDate: localObservationDay(checkedAt, job.timezone, 13),
+      programExternalIds: [...new Set(observations.slice(0, 2).flatMap((observation) => observation.matches.map((match) => match.externalId)))],
+      resultExternalIds: [...new Set(observations.slice(2).flatMap((observation) => observation.matches.map((match) => match.externalId)))]
+    });
+  }
+  if (allObservations.every((observation) => observation.error)) throw allObservations[0]!.error;
+  // A run crossing local midnight has observed two different offset origins.
+  // Keep its valid rows; defer absence reconciliation to one consistent day.
+  if (localObservationDay(new Date(), job.timezone) !== throughDate) {
+    for (const scope of scopes) {
+      scope.complete = false; scope.resultsComplete = false; scope.programComplete = false;
+    }
+  }
+  batch.matchObservation = { schemaVersion: 1, kind: "full", checkedAt: checkedAt.toISOString(), scopes,
+    sourceObservations: [...allObservations, cancellations].flatMap((observation) => observation.sourceObservations ?? []) };
+  batch.matches = dedupeSportlinkMatches([
+    ...poolMatches,
+    ...enrichSportlinkOwnMatchesWithPoolContexts(program.matches, teams.payload, pools.payload),
+    ...enrichSportlinkOwnMatchesWithPoolContexts(results.matches, teams.payload, pools.payload),
+    ...cancellations.matches
+  ]);
+  batch.teamLogos = await fetchMatchTeamLogos(job, batch.matches, signal);
+  return batch;
 }
 
 async function fetchSportlinkBirthdays(
@@ -983,6 +1183,8 @@ async function fetchStandings(
 
   const ownTeams = mapSportlinkTeams(teams.payload);
   const standings: SportStanding[] = [];
+  const sourceObservations: SportlinkSourceObservation[] = [];
+  const failures: unknown[] = [];
   for (const context of contexts) {
     try {
       const response = await client.fetchArticle("poulestand", {
@@ -996,12 +1198,22 @@ async function fetchStandings(
         context.competition,
         ownTeams
       );
+      const standingRows = providerRows(response.payload);
+      if (!standingRows || standingRows.length !== standing.rows.length) {
+        throw new SportlinkWorkerError("SPORTLINK_STANDING_NORMALIZATION_INVALID",
+          "De officiële Sportlink-stand kon niet volledig worden verwerkt. De bestaande stand blijft behouden.");
+      }
+      sourceObservations.push({ articleKey: response.articleKey, correlationId: response.correlationId,
+        observedAt: new Date().toISOString(), durationMs: response.durationMs, recordCount: standingRows.length,
+        normalizedCount: standing.rows.length, complete: true, poolExternalId: context.poolExternalId });
       const results: SportMatch[] = [];
       if (standing.rows.some((row) => row.form.length === 0)) {
         for (const eigenwedstrijden of ["NEE", "JA"] as const) {
           try {
             const response = await client.fetchArticle("pouleuitslagen", {
-              aantaldagen: 90,
+              aantaldagen: 92,
+              weekoffset: -13,
+              sorteervolgorde: "datum-omgekeerd",
               eigenwedstrijden,
               poulecode: context.poolExternalId
             });
@@ -1017,7 +1229,9 @@ async function fetchStandings(
             if (error instanceof SportlinkClientError && [
               "SPORTLINK_CONDITION_ERROR", "SPORTLINK_SCOPE_INSUFFICIENT"
             ].includes(error.code)) continue;
-            throw error;
+            if (error instanceof SportlinkClientError && ["SPORTLINK_CLIENT_ID_INVALID", "SPORTLINK_TOKEN_INVALID"].includes(error.code)) throw error;
+            // Form is optional enrichment. Fresh official positions/points must
+            // still reach publication when this independent results feed fails.
           }
         }
       }
@@ -1029,11 +1243,13 @@ async function fetchStandings(
       ) {
         continue;
       }
-      throw error;
+      if (error instanceof SportlinkClientError && ["SPORTLINK_CLIENT_ID_INVALID", "SPORTLINK_TOKEN_INVALID"].includes(error.code)) throw error;
+      failures.push(error);
     }
   }
+  if (failures.length && !standings.length) throw failures[0];
   return {
-    standings,
+    standings, sourceObservations,
     teamLogos: await fetchStandingTeamLogos(job, standings, signal)
   };
 }
@@ -1254,7 +1470,9 @@ export function enrichSportlinkOwnMatchesWithPoolContexts(
   return matches.map((match) => {
     if (match.pool?.externalId) {
       const explicitContext = contexts.get(match.pool.externalId);
-      if (explicitContext) return enrichSportlinkPoolMatches([match], explicitContext)[0]!;
+      if (explicitContext && (["period", "season", "type"] as const).every((key) =>
+        !match.competition?.[key] || !explicitContext.competition?.[key] || match.competition[key] === explicitContext.competition[key]
+      )) return enrichSportlinkPoolMatches([match], explicitContext)[0]!;
       if (/^\d+$/.test(match.pool.externalId)) return match;
     }
     const poolIds = new Set([match.homeTeam.externalId, match.awayTeam.externalId]
@@ -1280,10 +1498,14 @@ export function dedupeSportlinkMatches(matches: SportMatch[]) {
       existing ? mergeSportlinkMatch(existing, match) : match
     );
   }
-  return [...unique.values()];
+  return [...unique.values()].sort((left, right) =>
+    Date.parse(left.startsAt) - Date.parse(right.startsAt) || left.externalId.localeCompare(right.externalId)
+  );
 }
 
 function mergeSportlinkMatch(existing: SportMatch, incoming: SportMatch): SportMatch {
+  const authoritativeContext = incoming.pool && /^\d+$/.test(incoming.pool.externalId) ? incoming
+    : existing.pool && /^\d+$/.test(existing.pool.externalId) ? existing : null;
   return {
     ...existing,
     ...incoming,
@@ -1292,9 +1514,9 @@ function mergeSportlinkMatch(existing: SportMatch, incoming: SportMatch): SportM
       ...incoming.awayTeam,
       externalId: incoming.awayTeam.externalId ?? existing.awayTeam.externalId,
       logoUrl: incoming.awayTeam.logoUrl ?? existing.awayTeam.logoUrl,
-      score: incoming.awayTeam.score ?? existing.awayTeam.score
+      score: incoming.status === "finished" ? incoming.awayTeam.score : incoming.awayTeam.score ?? existing.awayTeam.score
     },
-    competition: mergeOptionalRecord(existing.competition, incoming.competition),
+    competition: authoritativeContext?.competition ?? mergeOptionalRecord(existing.competition, incoming.competition),
     dressingRooms: mergeOptionalFields(
       existing.dressingRooms,
       incoming.dressingRooms
@@ -1304,8 +1526,12 @@ function mergeSportlinkMatch(existing: SportMatch, incoming: SportMatch): SportM
       ...incoming.homeTeam,
       externalId: incoming.homeTeam.externalId ?? existing.homeTeam.externalId,
       logoUrl: incoming.homeTeam.logoUrl ?? existing.homeTeam.logoUrl,
-      score: incoming.homeTeam.score ?? existing.homeTeam.score
+      score: incoming.status === "finished" ? incoming.homeTeam.score : incoming.homeTeam.score ?? existing.homeTeam.score
     },
+    // A later Programma/detail row may enrich a played match, never demote its
+    // published result. Explicit cancellations and official result corrections win.
+    status: incoming.status === "scheduled" && existing.status === "finished"
+      ? "finished" : incoming.status,
     isHomeMatch: existing.isHomeMatch || incoming.isHomeMatch,
     officials: incoming.officials.length ? incoming.officials : existing.officials,
     pool: mergeOptionalRecord(existing.pool, incoming.pool),
@@ -1340,9 +1566,9 @@ export function enrichSportlinkPoolMatches(
 ) {
   return matches.map((match): SportMatch => ({
     ...match,
-    competition: match.competition && context.competition
-      ? mergeOptionalRecord(context.competition, match.competition)
-      : match.competition ?? context.competition,
+    competition: context.competition
+      ? { ...mergeOptionalRecord(context.competition, match.competition)!, externalId: context.competition.externalId }
+      : match.competition,
     pool: {
       competitionExternalId:
         context.competition?.externalId ?? match.pool?.competitionExternalId ?? null,

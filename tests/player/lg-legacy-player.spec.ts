@@ -3868,6 +3868,59 @@ function legacyCanvasLineupSse({
   }) + "\n\n";
 }
 
+test("LG restores an older mixed offline cache whose skipped unversioned empty item never stored its fallback asset", async ({ page }, info) => {
+  await page.route("**/api/player/**", route => route.abort("failed"));
+  await page.goto(`${playerURL}/healthz`);
+  const envelope = cachedImageEnvelope("old-cache-visible-image");
+  const image = envelope.manifest.items[0]!;
+  image.source.url = "https://expired.invalid/verified-image.svg";
+  const empty = { ...image, id: "old-cache-empty-results", source: { ...image.source,
+    url: "https://expired.invalid/never-cached-empty-fallback.svg", checksumSha256: legacySecondImageChecksum, bytes: legacySecondImageBytes },
+    dynamicTemplate: { schemaVersion: 1, snapshotId: "29500000-0000-4000-8000-000000000020", templateVersionId: "29500000-0000-4000-8000-000000000021",
+      snapshotHash: "b".repeat(64), templateSlug: "editorial-arena-uitslagen-light-landscape", orientation: "landscape", slideType: "sport_results",
+      data: { type: "sport_results", sport: { items: [] } }, assets: {} } };
+  envelope.manifest.items.unshift(empty);
+  await page.evaluate(async ({ envelope, token, credential, svg, checksum }) => {
+    localStorage.setItem("veyocast.player.deviceToken", token);
+    localStorage.setItem("veyocast.player.installationCredential", credential);
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = indexedDB.open("veyocast-player-cache-v1", 2);
+      open.onupgradeneeded = () => {
+        for (const name of ["activeReleases", "previousReleases"]) if (!open.result.objectStoreNames.contains(name)) open.result.createObjectStore(name, { keyPath: "deviceToken" });
+      };
+      open.onsuccess = () => resolve(open.result); open.onerror = () => reject(open.error);
+    });
+    const visible = envelope.manifest.items[1]!;
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("activeReleases", "readwrite");
+      tx.objectStore("activeReleases").put({ deviceToken: token, activatedAt: new Date().toISOString(), envelope,
+        assets: [{ bytes: visible.source.bytes, cacheKey: `/__veyocast-player-cache/${checksum}`, checksumSha256: checksum,
+          itemId: visible.id, kind: "media", mimeType: visible.source.mimeType, url: visible.source.url }] });
+      tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+    const cache = await caches.open("veyocast-player-assets-v1");
+    await cache.put(`/__veyocast-player-cache/${checksum}`, new Response(svg, { headers: { "Content-Type": "image/svg+xml", "Content-Length": String(new Blob([svg]).size) } }));
+  }, { envelope, token: deviceToken, credential: installationCredential, svg: legacyImageSvg, checksum: legacyImageChecksum });
+  const externalRequests: string[] = [];
+  await page.route("https://expired.invalid/**", route => { externalRequests.push(route.request().url()); return route.abort("failed"); });
+  await page.goto(`${playerURL}/lg/legacy`);
+  const frame = page.locator("#media-root > img.visible:not(.retiring)");
+  await expect(frame).toBeVisible();
+  await expect.poll(() => frame.evaluate(image => Boolean((image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  await expect(page.locator("#offline")).toHaveClass("visible");
+  await expect(page.locator("#status")).toBeHidden();
+  expect(externalRequests).toEqual([]);
+  const retained = await page.evaluate(token => new Promise<{ releaseId: string; assets: string[] }>((resolve, reject) => {
+    const open = indexedDB.open("veyocast-player-cache-v1", 2);
+    open.onsuccess = () => { const db = open.result, request = db.transaction("activeReleases").objectStore("activeReleases").get(token);
+      request.onsuccess = () => { const value = request.result; db.close(); resolve({ releaseId: value.envelope.manifest.releaseId, assets: value.assets.map((asset: { itemId: string }) => asset.itemId) }); }; request.onerror = () => reject(request.error); };
+    open.onerror = () => reject(open.error);
+  }), deviceToken);
+  expect(retained).toEqual({ releaseId: envelope.manifest.releaseId, assets: ["old-cache-visible-image"] });
+  await page.screenshot({ path: info.outputPath("older-mixed-offline-cache-frame.png") });
+});
+
 test("LG Legacy Player herstelt een reeds geverifieerde last-known-good release", async ({
   page
 }) => {

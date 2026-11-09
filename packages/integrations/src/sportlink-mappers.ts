@@ -133,7 +133,7 @@ export function mapSportlinkMatches(
       officials: splitPeople(value.scheidsrechters ?? value.scheidsrechter, "Scheidsrechter"),
       pool: mapMatchPool(value, competition?.externalId ?? null),
       startsAt,
-      status: cancelled ? "cancelled" : mode === "results" ? "finished" : "scheduled",
+      status: cancelled ? "cancelled" : mode === "results" || scores ? "finished" : "scheduled",
       venue: {
         city: nullable(value.plaats),
         field: nullable(value.veld),
@@ -349,13 +349,14 @@ function mapTeamCompetition(
 
 function mapMatchCompetition(value: Record<string, unknown>) {
   const context = competitionContext(value);
-  if (!context) return null;
+  const season = nullable(value.seizoen);
+  if (!context && !season) return null;
   return {
-    externalId: context.externalId,
-    name: context.name,
-    period: context.period,
-    season: nullable(value.seizoen),
-    type: context.type
+    externalId: context?.externalId ?? stableId("competition-context", `season|${season}`),
+    name: context?.name ?? "Competitie",
+    period: context?.period ?? null,
+    season,
+    type: context?.type ?? null
   };
 }
 
@@ -364,14 +365,15 @@ function mapMatchPool(
   competitionExternalId: string | null
 ) {
   const name = nullable(value.poule ?? value.klassepoule);
-  if (!name) return null;
+  const externalId = nullable(value.poulecode);
+  if (!name && !externalId) return null;
   return {
     competitionExternalId,
-    externalId: nullable(value.poulecode) ?? stableId(
+    externalId: externalId ?? stableId(
       "pool-context",
       `${competitionExternalId ?? ""}|${name}`
     ),
-    name
+    name: name ?? "Competitiestand"
   };
 }
 
@@ -452,7 +454,8 @@ function dateTime(primary: unknown, date: unknown, time: unknown) {
     if (local) {
       return amsterdamWallClockToIso(
         `${local[1]}-${local[2]}-${local[3]}`,
-        `${local[4] ?? "00"}:${local[5] ?? "00"}`
+        local[4] ? `${local[4]}:${local[5]}`
+          : string(time)?.match(/\d{1,2}:\d{2}/)?.[0] ?? "00:00"
       );
     }
   }

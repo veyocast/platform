@@ -15,6 +15,82 @@ function inlineRuntime(html: string) {
 }
 
 describe("Royal Current Static LG", () => {
+  it("restores only the verified eligible assets of a pre-revision mixed cache while fresh and revisioned empty releases remain complete", () => {
+    const source = inlineRuntime(renderLgLegacyHtml());
+    const assets = source.slice(source.indexOf("function cacheAsset("), source.indexOf("function sha256Hex("));
+    const selection = source.slice(source.indexOf("function releaseAssetItems("), source.indexOf("function legacyDynamicTemplateHasRenderableContent("));
+    const validate = source.slice(source.indexOf("function validateCachedRelease("), source.indexOf("function readReleaseStore("));
+    const image = { id: "visible", kind: "image", source: { url: "/visible.svg", bytes: 12, checksumSha256: "a".repeat(64), mimeType: "image/svg+xml" } };
+    const empty = { ...image, id: "old-empty", eligible: false, source: { ...image.source, url: "/empty.svg", checksumSha256: "b".repeat(64) }, dynamicTemplate: { schemaVersion: 1, data: { sport: { items: [] } }, assets: {} } };
+    const envelope = { manifest: { schemaVersion: 1, items: [empty, image] } };
+    const stored = { ...image.source, cacheKey: "/cache/" + image.source.checksumSha256, itemId: image.id, kind: "media" };
+    const makeContext = (input: unknown, storedAssets: unknown[]) => {
+      let result: boolean | undefined;
+      const context = { input, storedAssets, CONFIG: { cachePathPrefix: "/cache/", sitesSystemAssets: [] },
+        isManifestEnvelope: () => true, lgCompositionZones: (value: { children?: unknown[] }) => value.children ?? [],
+        lgSyncBinaryValid: () => true, lgDynamicDataValid: () => true, validMediaFrameBackground: () => true,
+        templateRecord: (value: unknown) => value && typeof value === "object" ? value : null,
+        legacyDynamicTemplateHasRenderableContent: (item: { eligible?: boolean }) => item.eligible !== false,
+        openAssetCache: (cb: (error: null, cache: object) => void) => cb(null, {}),
+        inspectCachedAssets: (_cache: unknown, expected: unknown[], cb: (error: null, missing: unknown[]) => void) => cb(null, expected.every(value => storedAssets.some(stored => JSON.stringify(stored) === JSON.stringify(value))) ? [] : ["missing"]),
+        done: (valid: boolean) => { result = valid; }
+      };
+      new Script(assets + selection + validate + ";validateCachedRelease({envelope:input,assets:storedAssets},done);").runInNewContext(context);
+      return { result, fresh: new Script(assets + selection + ";releaseAssets(input);").runInNewContext(context) as unknown[] };
+    };
+    // These entries are the exact normalized metadata written by the old app.
+    const normalized = { bytes: stored.bytes, cacheKey: stored.cacheKey, checksumSha256: stored.checksumSha256, itemId: stored.itemId, kind: stored.kind, mimeType: stored.mimeType, url: stored.url };
+    expect(makeContext(envelope, [normalized])).toMatchObject({ result: true, fresh: [{ itemId: "old-empty" }, { itemId: "visible" }] });
+    expect(makeContext({ manifest: { schemaVersion: 1, items: [{ ...empty, dynamicData: { dataRevision: 5 } }, image] } }, [normalized]).result).toBe(false);
+    expect(makeContext({ manifest: { schemaVersion: 1, items: [{ ...empty, dynamicTemplate: { ...empty.dynamicTemplate, data: { snapshot: { dataRevision: 5 } } } }, image] } }, [normalized]).result).toBe(false);
+    expect(makeContext({ manifest: { schemaVersion: 1, items: [empty] } }, []).result).toBe(false);
+    expect(makeContext(envelope, [{ ...normalized, bytes: 13 }]).result).toBe(false);
+    const composed = { manifest: { schemaVersion: 1, items: [image] }, children: [{ id: "side", envelope }] };
+    expect(makeContext(composed, [normalized]).result).toBe(true);
+    expect(makeContext({ ...composed, children: [{ id: "side", envelope: { manifest: { schemaVersion: 1, items: [{ ...empty, dynamicData: { dataRevision: 5 } }, image] } } }] }, [normalized]).result).toBe(false);
+  });
+
+  it("verifies the immutable assets of an empty dynamic item while preserving playback eligibility", () => {
+    const source = inlineRuntime(renderLgLegacyHtml());
+    const body = source.slice(source.indexOf("function releaseAssetItems("), source.indexOf("function legacyDynamicTemplateHasRenderableContent("));
+    const empty = { id: "empty", kind: "image", source: { url: "/empty.png" }, eligible: false };
+    const image = { id: "image", kind: "image", source: { url: "/image.png" }, eligible: true };
+    const context = { input: { manifest: { items: [empty, image, { ...image, id: "disabled", enabled: false }] } }, legacyDynamicTemplateHasRenderableContent: (item: { eligible: boolean }) => item.eligible };
+    expect(new Script(body + ";releaseAssetItems(input).map(function(item){return item.id;});").runInNewContext(context)).toEqual(["empty", "image"]);
+    expect(new Script(body + ";playableItems(input).map(function(item){return item.id;});").runInNewContext(context)).toEqual(["image"]);
+  });
+
+  it("clears a prepared empty release only after successful persistence and reports its actual waiting frame", () => {
+    const source = inlineRuntime(renderLgLegacyHtml());
+    const activate = source.slice(source.indexOf("function activatePendingRelease("), source.indexOf("function nextItem("));
+    const play = source.slice(source.indexOf("function playCurrent("), source.indexOf("function playLegacyVerifiedFallback("));
+    for (const failure of [true, false]) {
+      const old = { manifest: { releaseId: "old", items: [{ id: "old-item" }] } }, fresh = { manifest: { releaseId: "fresh", items: [] } };
+      const calls: string[] = [], frames: Array<() => void> = [];
+      let complete!: (error: string | null) => void;
+      const runtime = { envelope: old, pendingRelease: { generation: 2, envelope: fresh, assets: ["verified"] }, targetGeneration: 2, activationInFlight: false, playbackGeneration: 5, currentElement: { old: true }, currentItem: old.manifest.items[0], activeIndex: 0, publicationTrace: null, offline: false, presentedEmptyIdentity: null };
+      const context = { runtime, legacyIsCompositionZone: false, window: { requestAnimationFrame: (fn: () => void) => frames.push(fn) }, publicationOrder: () => [], persistRelease: (_envelope: unknown, _assets: unknown, cb: typeof complete) => { calls.push("persist"); complete = cb; }, playableItems: (envelope: typeof old) => envelope.manifest.items, setState: (value: string) => calls.push(value), log: () => undefined, releaseIdOf: (envelope: typeof old) => envelope.manifest.releaseId, clearMedia: () => { calls.push("clear"); runtime.currentElement = null as unknown as typeof runtime.currentElement; runtime.playbackGeneration++; }, showDefaultWaiting: () => calls.push("waiting"), emptyFrameIdentity: () => "verified-empty-fresh", hasVisibleEmptyFrame: () => true, mediaReady: () => calls.push("frame"), activated: (ok: boolean) => { calls.push(ok ? "accepted" : "rejected"); if (ok) new Script("playCurrent();").runInNewContext(context); } };
+      new Script(activate + play + ";activatePendingRelease(activated);").runInNewContext(context);
+      expect(calls).toEqual(["persist"]); expect(runtime.currentElement).toEqual({ old: true });
+      complete(failure ? "LEGACY_RELEASE_PERSIST_FAILED" : null);
+      if (failure) { expect(runtime.envelope).toBe(old); expect(runtime.currentElement).toEqual({ old: true }); expect(calls).not.toContain("clear"); }
+      else { expect(runtime.envelope).toBe(fresh); expect(calls).toContain("waiting"); expect(calls).not.toContain("frame"); frames.shift()!(); frames.shift()!(); expect(calls.at(-1)).toBe("frame"); expect(runtime.presentedEmptyIdentity).toBe("verified-empty-fresh"); }
+    }
+  });
+
+  it("retains a verified empty dataset as the previous LKG when fresh content follows it", () => {
+    const source = inlineRuntime(renderLgLegacyHtml());
+    const persist = source.slice(source.indexOf("function persistRelease("), source.indexOf("function garbageCollectCachedMedia("));
+    const current = { envelope: { manifest: { releaseId: "same", identity: "empty5" } } };
+    const fresh = { manifest: { releaseId: "same", identity: "fresh6" } };
+    const previous: unknown[] = [], active: unknown[] = [], request = { result: current, onsuccess: () => undefined };
+    const transaction = { objectStore: (name: string) => name === "active" ? { get: () => request, put: (value: unknown) => active.push(value) } : { put: (value: unknown) => previous.push(value) }, abort: () => undefined };
+    const context = { fresh, runtime: { targetGeneration: 1, deviceToken: "device-only", currentElement: null, presentedEmptyIdentity: "empty5", preparingGeneration: 1 }, CONFIG: { activeReleaseStore: "active", previousReleaseStore: "previous" }, openPlayerDatabase: (cb: (error: null, database: unknown) => void) => cb(null, { transaction: () => transaction, close: () => undefined }), releaseIdOf: () => "same", lgCompositionIdentity: () => "full", lgEnvelopeDataIdentity: (envelope: typeof fresh) => envelope.manifest.identity, emptyFrameIdentity: (envelope: typeof fresh) => envelope.manifest.identity, done: () => undefined };
+    new Script(persist + ";persistRelease(fresh,[],done);").runInNewContext(context);
+    request.onsuccess(); expect(previous).toEqual([current]); expect(active).toHaveLength(1);
+    expect(active[0]).toMatchObject({ deviceToken: "device-only", envelope: fresh });
+  });
+
   it("keeps the generic OnzeTrots LG projection and playback valid ECMAScript 5", () => {
     const acorn=createRequire(import.meta.url)('next/dist/compiled/acorn') as {parse:(source:string,options:{ecmaVersion:number})=>unknown};
     const source=inlineRuntime(renderLgLegacyHtml());

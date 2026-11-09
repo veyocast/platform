@@ -1267,6 +1267,7 @@ export function renderLgLegacyHtml() {
       manifestEtag: null,
       manifestRequest: null,
       invalidatedDuringFetch: false,
+      activatedDuringFetch: false,
       heartbeatInFlight: false,
       heartbeatPending: false,
       publicationTrace: null,
@@ -4711,6 +4712,9 @@ export function renderLgLegacyHtml() {
         ? envelope.manifest.releaseId
         : null;
     }
+    function emptyFrameIdentity(envelope) {
+      return releaseIdOf(envelope) + ":" + lgCompositionIdentity(envelope) + ":" + lgEnvelopeDataIdentity(envelope);
+    }
     function releaseEtag(releaseId) {
       return '"release-' + releaseId + '"';
     }
@@ -4737,11 +4741,33 @@ export function renderLgLegacyHtml() {
         url: source.url
       };
     }
-    function releaseAssets(envelope) {
+    function legacyCachedAssetMayBeAbsent(item) {
+      if (!item || !item.dynamicTemplate || item.dynamicData || item.menuDom ||
+        item.syncDynamic || item.syncDynamicBinary || item.sitesPresentation ||
+        item.syncStudioPresentation || item.onlinePlayback ||
+        legacyDynamicTemplateHasRenderableContent(item)) return false;
+      // Old cached payloads have no revision binding. Be conservative about
+      // any revision marker in their free-form snapshot data as well.
+      var pending = [item.dynamicTemplate];
+      var visited = 0;
+      while (pending.length) {
+        var value = pending.pop();
+        if (!value || typeof value !== "object") continue;
+        visited += 1;
+        if (visited > 1000 || Object.prototype.hasOwnProperty.call(value, "dataRevision")) return false;
+        for (var key in value) {
+          if (Object.prototype.hasOwnProperty.call(value, key) && value[key] && typeof value[key] === "object") pending.push(value[key]);
+        }
+      }
+      return true;
+    }
+    function releaseAssets(envelope, historicalCachedEligibility) {
       if (!envelope || !envelope.manifest || envelope.manifest.schemaVersion !== 1) return null;
       var zones = lgCompositionZones(envelope);
       if (zones === null) return null;
-      var items = playableItems(envelope);
+      // Eligibility controls playback, not verification of an authoritative
+      // empty dynamic projection and its immutable recovery assets.
+      var items = releaseAssetItems(envelope);
       var assets = [];
       var index;
       var item;
@@ -4750,7 +4776,8 @@ export function renderLgLegacyHtml() {
       var assetId;
       for (index = 0; index < items.length; index += 1) {
         item = items[index];
-        if (!lgSyncBinaryValid(item) || item.kind === "composition") return null;
+        if (historicalCachedEligibility && legacyCachedAssetMayBeAbsent(item)) continue;
+        if (!lgSyncBinaryValid(item) || !lgDynamicDataValid(item) || item.kind === "composition") return null;
         if (!validMediaFrameBackground(item.mediaFrameBackground, item.mediaFrameBackgroundAssets, CONFIG.mediaFrameClubmuurAsset) || item.mediaFrameBackground && (item.dynamicTemplate || item.sitesPresentation || item.syncStudioPresentation || item.syncDynamic || item.onlinePlayback)) return null;
         asset = cacheAsset(item, "media", item.source);
         if (!asset) return null;
@@ -4798,7 +4825,7 @@ export function renderLgLegacyHtml() {
       } else if (items.some(function (entry) { return Boolean(entry.sitesPresentation); })) return null;
       for (index = 0; index < zones.length; index += 1) {
         if (zones[index].id === "main") continue;
-        var childAssets = releaseAssets(zones[index].envelope);
+        var childAssets = releaseAssets(zones[index].envelope, historicalCachedEligibility);
         if (!childAssets || !childAssets.length) return null;
         assets = assets.concat(childAssets);
       }
@@ -5306,6 +5333,7 @@ export function renderLgLegacyHtml() {
         return;
       }
       runtime.invalidatedDuringFetch = false;
+      runtime.activatedDuringFetch = false;
       headers = {
         Authorization: "Bearer " + runtime.deviceToken,
         "Cache-Control": "no-store",
@@ -5381,9 +5409,10 @@ export function renderLgLegacyHtml() {
             return;
           }
           if (!transport && status >= 200 && status < 300 && isManifestEnvelope(body)) {
-            if (!lgSyncBinaryContinuity(runtime.envelope,body) || !lgSyncBinaryContinuity(runtime.syncBinaryTarget,body)) { runtime.manifestEtag=null; scheduleManifestSync(CONFIG.manifestIntervalMs); return; }
-            if (releaseAssets(body)) runtime.syncBinaryTarget=body;
+            if (!releaseAssets(body)) { scheduleManifestSync(CONFIG.manifestIntervalMs); return; }
+            if (!lgSyncBinaryContinuity(runtime.envelope,body) || !lgSyncBinaryContinuity(runtime.syncBinaryTarget,body)) { scheduleManifestSync(CONFIG.manifestIntervalMs); return; }
             if (!observeTarget(body)) { scheduleManifestSync(CONFIG.manifestIntervalMs); return; }
+            runtime.syncBinaryTarget=body;
             runtime.manifestEtag = manifestEtag || null;
             clearTemporaryPairing();
             runtime.syncFailures = 0;
@@ -5450,7 +5479,7 @@ export function renderLgLegacyHtml() {
               if (runtime.publicationTrace && runtime.publicationTrace.releaseId === releaseIdOf(body)) runtime.publicationTrace.assetsReadyAt = new Date().toISOString();
               if (syncReceipt && runtime.syncRetryRequestedAt === syncReceipt) runtime.syncRetryAcknowledgedAt = syncReceipt;
               runtime.forceManifestRefresh = Boolean(runtime.syncRetryRequestedAt && runtime.syncRetryRequestedAt !== runtime.syncRetryAcknowledgedAt);
-              if (releaseIdOf(runtime.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(body) && !lgSyncBinaryDataChanged(runtime.envelope,body)) {
+              if (releaseIdOf(runtime.envelope) === releaseIdOf(body) && lgCompositionIdentity(runtime.envelope) === lgCompositionIdentity(body) && !liveDataChanged(body)) {
                 runtime.pendingRelease = null;
                 refreshSameReleaseMediaAccess(body);
                 runtime.itemFailures = {};
@@ -5505,6 +5534,7 @@ export function renderLgLegacyHtml() {
             scheduleManifestSync(3000);
             return;
           }
+          runtime.activatedDuringFetch = false;
           restoreLastKnownGood(function (restored) {
             if (!restored) {
               scheduleBoot(
@@ -5513,7 +5543,9 @@ export function renderLgLegacyHtml() {
                 null
               );
             } else {
-              scheduleManifestSync(retryDelay(runtime.syncFailures, null));
+              var failedRetryDelay = retryDelay(runtime.syncFailures, retryAfter);
+              runtime.syncFailures = Math.min(runtime.syncFailures + 1, 8);
+              scheduleManifestSync(failedRetryDelay);
             }
           });
         }
@@ -5530,10 +5562,26 @@ export function renderLgLegacyHtml() {
       }
       scheduleManifestSync(0);
     }
+    function requestDynamicManifestCheck() {
+      // Zone occurrences share their parent device's authorized read. Keep an
+      // in-flight request alive and retain failure/provider retry backoff.
+      if (!runtime.identityReady || runtime.syncFailures > 0) return;
+      if (runtime.syncInFlight) { runtime.activatedDuringFetch = true; return; }
+      scheduleManifestSync(0);
+    }
+    function dynamicPlaybackActivated() {
+      var item = runtime.currentItem;
+      if (!item || runtime.dynamicActivationGeneration === runtime.playbackGeneration ||
+          !(item.dynamicTemplate || item.sitesPresentation || item.syncDynamicBinary || item.onlinePlayback)) return;
+      runtime.dynamicActivationGeneration = runtime.playbackGeneration;
+      if (legacyIsCompositionZone) {
+        if (legacyZoneCallbacks && legacyZoneCallbacks.activated) legacyZoneCallbacks.activated();
+      } else requestDynamicManifestCheck();
+    }
     function scheduleManifestSync(delay) {
       // Consume invalidation only when the read starts. A finishing preparation
       // must not replace an already requested immediate read with an 8 s timer.
-      if (runtime.invalidatedDuringFetch) delay = 0;
+      if (runtime.invalidatedDuringFetch || runtime.activatedDuringFetch && runtime.syncFailures === 0) delay = 0;
       window.clearTimeout(runtime.retryTimer);
       runtime.retryTimer = window.setTimeout(syncManifest, delay + (delay > 0 ? Math.random() * Math.min(750, delay * .1) : 0));
     }
@@ -5587,9 +5635,19 @@ export function renderLgLegacyHtml() {
       assets = releaseAssets(cached.envelope);
       uniqueAssets = assets && uniqueReleaseAssets(assets);
       var storedAssets = uniqueReleaseAssets(cached.assets);
-      if (!uniqueAssets || !storedAssets || uniqueAssets.length !== storedAssets.length || uniqueAssets.some(function (expected) {
-        return !storedAssets.some(function (stored) { return stored.cacheKey === expected.cacheKey && stored.bytes === expected.bytes && stored.checksumSha256 === expected.checksumSha256 && (stored.mimeType === undefined || stored.mimeType === expected.mimeType); });
-      })) { callback(false); return; }
+      function matchesStored(expectedAssets) {
+        return expectedAssets && storedAssets && expectedAssets.length === storedAssets.length && !expectedAssets.some(function (expected) {
+          return !storedAssets.some(function (stored) { return stored.cacheKey === expected.cacheKey && stored.bytes === expected.bytes && stored.checksumSha256 === expected.checksumSha256 && (stored.mimeType === undefined || stored.mimeType === expected.mimeType); });
+        });
+      }
+      // Validate the entire envelope first. Only an older cached mixed release
+      // may omit assets that its historical eligibility filter never stored.
+      // Fresh preparation and every revision-bound empty item stay complete.
+      if (uniqueAssets && storedAssets && !matchesStored(uniqueAssets)) {
+        var historicalAssets = releaseAssets(cached.envelope, true);
+        uniqueAssets = historicalAssets && uniqueReleaseAssets(historicalAssets);
+      }
+      if (!matchesStored(uniqueAssets)) { callback(false); return; }
       if (!uniqueAssets || !uniqueAssets.length) {
         callback(false);
         return;
@@ -5732,9 +5790,9 @@ export function renderLgLegacyHtml() {
           if (
             current && !current.requiresNativeNetworkVideo &&
             releaseIdOf(current.envelope) !== runtime.networkVideoReleaseId &&
-            (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope) || lgSyncBinaryDataChanged(current.envelope,envelope)) &&
-            (lgSyncBinaryDataChanged(current.envelope,envelope) ? runtime.currentElement && runtime.currentElement.lgSourceDataIdentity === lgEnvelopeDataIdentity(current.envelope) :
-              runtime.currentElement && runtime.currentElement.lgReleaseIdentity === releaseIdOf(current.envelope) + ":" + lgCompositionIdentity(current.envelope) ||
+            (releaseIdOf(current.envelope) !== releaseIdOf(envelope) || lgCompositionIdentity(current.envelope) !== lgCompositionIdentity(envelope) || lgEnvelopeDataIdentity(current.envelope) !== lgEnvelopeDataIdentity(envelope)) &&
+            (lgEnvelopeDataIdentity(current.envelope) !== lgEnvelopeDataIdentity(envelope) ? runtime.currentElement && runtime.currentElement.lgSourceDataIdentity === lgEnvelopeDataIdentity(current.envelope) || runtime.presentedEmptyIdentity === emptyFrameIdentity(current.envelope) :
+              runtime.currentElement && runtime.currentElement.lgReleaseIdentity === releaseIdOf(current.envelope) + ":" + lgCompositionIdentity(current.envelope) || runtime.presentedEmptyIdentity === emptyFrameIdentity(current.envelope) ||
               lgCompositionIdentity(current.envelope) === "full" &&
                 (releaseIdOf(current.envelope) === runtime.presentedReleaseId ||
                   envelope.device && releaseIdOf(current.envelope) === envelope.device.activeReleaseId))
@@ -5899,6 +5957,14 @@ export function renderLgLegacyHtml() {
         callback(true);
       });
     }
+    function releaseAssetItems(envelope) {
+      var items = envelope && envelope.manifest && envelope.manifest.items;
+      if (!Array.isArray(items)) return [];
+      return items.filter(function (item) {
+        return item && item.enabled !== false && (item.kind === "image" || item.kind === "video") &&
+          item.source && typeof item.source.url === "string";
+      });
+    }
     function playableItems(envelope) {
       var items = envelope && envelope.manifest && envelope.manifest.items;
       if (!Array.isArray(items)) return [];
@@ -6006,19 +6072,12 @@ export function renderLgLegacyHtml() {
       return true;
     }
     function startRelease(envelope, source) {
-      var items = playableItems(envelope);
-      if (!items.length) {
-        showDefaultWaiting(envelope);
-        setState("READY");
-        return;
-      }
       if (!runtime.desiredPlaybackReleaseKnown) {
         runtime.desiredPlaybackReleaseId = envelope.device && envelope.device.desiredReleaseId || releaseIdOf(envelope);
         runtime.desiredPlaybackReleaseKnown = true;
       }
       runtime.envelope = envelope;
       runtime.releaseSource = source;
-      runtime.activeIndex = runtime.activeIndex % items.length;
       runtime.itemFailures = {};
       runtime.pendingRelease = null;
       runtime.syncPhase = "active";
@@ -6354,11 +6413,58 @@ export function renderLgLegacyHtml() {
       }
       resolveNext();
     }
+    function hasVisibleEmptyFrame() {
+      var root = byId("default-waiting"), heading = byId("default-waiting-title");
+      if (!root || root.hidden || !heading || !String(heading.textContent || "").trim()) return false;
+      var bounds = root.getBoundingClientRect(), text = heading.getBoundingClientRect();
+      if (bounds.width <= 0 || bounds.height <= 0 || text.width <= 0 || text.height <= 0 || text.right <= bounds.left || text.left >= bounds.right || text.bottom <= bounds.top || text.top >= bounds.bottom) return false;
+      for (var element = heading; element; element = element.parentElement) {
+        var style = window.getComputedStyle(element);
+        if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) === 0) return false;
+      }
+      return true;
+    }
     function playCurrent() {
       var items = playableItems(runtime.envelope);
       var item;
       var generation;
-      if (!items.length) return;
+      runtime.presentedEmptyIdentity = null;
+      if (!items.length) {
+        runtime.currentItem = null;
+        runtime.activeIndex = 0;
+        if (!legacyIsCompositionZone && runtime.envelope.composition) {
+          hideDefaultWaiting();
+          runtime.playbackGeneration += 1;
+          generation = runtime.playbackGeneration;
+          clearPlaybackTimers(); cancelPendingMedia(); silenceCurrentMediaEvents();
+          lgCompositionStart(runtime.envelope, generation);
+          return;
+        }
+        clearMedia();
+        generation = runtime.playbackGeneration;
+        showDefaultWaiting(runtime.envelope);
+        setState("READY");
+        var reportEmptyFrame = function () {
+          if (generation !== runtime.playbackGeneration || runtime.currentItem || playableItems(runtime.envelope).length) return;
+          if (!hasVisibleEmptyFrame()) { window.requestAnimationFrame(reportEmptyFrame); return; }
+          runtime.presentedReleaseId = releaseIdOf(runtime.envelope);
+          runtime.presentedEmptyIdentity = emptyFrameIdentity(runtime.envelope);
+          runtime.sourceDataConfirmation = null;
+          mediaReady();
+          if (legacyIsCompositionZone) {
+            var delay = 4000;
+            var scheduleEmptyBoundary = function () {
+              if (generation !== runtime.playbackGeneration) return;
+              scheduleTemplateAdvance(function () {
+                if (!lgZoneBoundary(scheduleEmptyBoundary)) scheduleEmptyBoundary();
+              }, delay);
+            };
+            scheduleEmptyBoundary();
+          }
+        };
+        window.requestAnimationFrame(function () { window.requestAnimationFrame(reportEmptyFrame); });
+        return;
+      }
       hideDefaultWaiting();
       runtime.activeIndex = runtime.activeIndex % items.length;
       item = items[runtime.activeIndex];
@@ -6438,8 +6544,10 @@ export function renderLgLegacyHtml() {
       if (legacyIsCompositionZone) {
         byId("status").hidden = true;
         if (legacyZoneCallbacks) legacyZoneCallbacks.ready(runtime.currentItem, runtime.activeIndex);
+        dynamicPlaybackActivated();
         return;
       }
+      dynamicPlaybackActivated();
       lgCompositionAck();
       if (runtime.currentItem && runtime.currentItem.id) {
         delete runtime.itemFailures[runtime.currentItem.id];
@@ -10541,7 +10649,6 @@ export function renderLgLegacyHtml() {
         return;
       }
       var order = publicationOrder(pending.envelope);
-      if (!order.length) { callback(false); return; }
       if (runtime.publicationTrace && runtime.publicationTrace.releaseId === releaseIdOf(pending.envelope)) {
         runtime.publicationTrace.boundaryAt = new Date().toISOString(); runtime.boundaryMonotonic = monotonicNow();
       }
@@ -10563,8 +10670,8 @@ export function renderLgLegacyHtml() {
           }
           runtime.envelope = pending.envelope;
           runtime.pendingRelease = null;
-          runtime.activeIndex = playableItems(runtime.envelope).findIndex(function (item) { return item.id === order[0]; });
-          runtime.publicationPass = order.slice(1);
+          runtime.activeIndex = order.length ? playableItems(runtime.envelope).findIndex(function (item) { return item.id === order[0]; }) : 0;
+          runtime.publicationPass = order.length ? order.slice(1) : null;
           runtime.itemFailures = {};
           runtime.releaseSource = "cache";
           runtime.syncPhase = "active";
@@ -10577,9 +10684,10 @@ export function renderLgLegacyHtml() {
         }
       );
     }
-    function nextItem() {
-      if (lgZoneBoundary()) return;
+    function nextItem(skipZoneBoundary) {
+      if (skipZoneBoundary !== true && lgZoneBoundary()) return;
       if (runtime.goalPauseApplied) return;
+      if (!legacyIsCompositionZone && lgCompositionApplyPendingData()) return;
       if (runtime.applicationReloadPending) {
         runtime.applicationReloadPending = false;
         window.location.reload();
@@ -10590,8 +10698,7 @@ export function renderLgLegacyHtml() {
       clearPlaybackTimers();
       cancelPendingMedia();
       silenceCurrentMediaEvents();
-      if (!items.length) return;
-      nextIndex = (runtime.activeIndex + 1) % items.length;
+      nextIndex = items.length ? (runtime.activeIndex + 1) % items.length : 0;
       if (runtime.publicationPass) {
         var nextPriorityId;
         var priorityIndex = -1;
@@ -10611,6 +10718,7 @@ export function renderLgLegacyHtml() {
         });
         return;
       }
+      if (!items.length) return;
       if (Object.keys(runtime.itemFailures).length >= items.length) {
         showStatus(
           "Playback herstelt",

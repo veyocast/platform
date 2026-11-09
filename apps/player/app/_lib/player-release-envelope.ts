@@ -33,11 +33,13 @@ import {
 import type {
   PlayerManifestEnvelope,
   PlayerManifestItem,
+  PlayerDynamicData,
   PlayerManifestPresentationDefaults,
   PlayerManifestTransition
 } from "./player-manifest";
 import {
   buildDynamicTemplatePayloadMap,
+  buildDynamicTemplateDataMetadata,
   type DynamicTemplatePayloadRow,
   type DynamicTemplatePayloadVersionRow
 } from "./player-dynamic-template-payload";
@@ -159,6 +161,7 @@ export async function loadPlayerReleaseEnvelope({
   if (releaseItems.length === 0) throw new Error("release has no items");
   const presentationDefaults = readPresentationDefaults(release.manifest_json);
   const configurationHashes = new Map<string, string>();
+  const dynamicData = new Map<string, PlayerDynamicData>();
   const menuDomSnapshots=new Map<string,{snapshot:SyncDynamicSnapshotRow;checked:NonNullable<ReturnType<typeof readMenuDomArtifact>>;dataRevision:number}>();
   const syncDynamicSnapshots=new Map<string,ReturnType<typeof readSyncDynamicReleaseSnapshot>>();
   const dynamicTemplates = await loadDynamicTemplatePayloads(
@@ -166,7 +169,7 @@ export async function loadPlayerReleaseEnvelope({
     releaseItems,
     tenantId,
     configurationHashes,
-    syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,menuDomSnapshots,
+    syncDynamicMode,syncDynamicSnapshots,enableSyncBackgrounds,menuDomSnapshots,dynamicData,
   );
   const menuPresentations=new Map<string,MenuDomPlayback>(),menuBinaries=new Map<string,NonNullable<ReturnType<typeof readMenuBinaryArtifact>>['artifact']>();
   for(const [id,value]of menuDomSnapshots){
@@ -182,7 +185,10 @@ export async function loadPlayerReleaseEnvelope({
     const ids=[...menuDomSnapshots.values()].map(value=>value.snapshot.id),result=await admin.rpc('get_sync_binary_playback_v1',{p_tenant_id:tenantId,p_snapshot_ids:ids});
     if(result.error||!Array.isArray(result.data)||result.data.length>ids.length)throw Error('MENU_BINARY_UNAVAILABLE');
     for(const [id,value]of menuDomSnapshots){const rows=result.data.filter((row:Record<string,unknown>)=>row?.snapshotId===value.snapshot.id);if(rows.length!==1)throw Error('SYNC_DYNAMIC_BINARY_PREPARING');const row=rows[0] as {artifact:unknown;dataRevision:unknown;contentHash:unknown};const binary=readMenuBinaryArtifact(value.snapshot.snapshot_data_json,row.artifact);
-      if(!binary||!Number.isSafeInteger(row.dataRevision)||Number(row.dataRevision)<1||typeof row.contentHash!=='string'||!/^[a-f0-9]{64}$/.test(row.contentHash)||!new RegExp('^tenants/'+tenantId+'/assets/[a-f0-9-]{36}/sync-dynamic/[a-f0-9-]{36}-'+binary.artifact.checksumSha256+'[.]png$').test(binary.artifact.storagePath))throw Error('MENU_BINARY_INVALID');menuBinaries.set(id,binary.artifact);
+      if(!binary||!Number.isSafeInteger(row.dataRevision)||Number(row.dataRevision)<1||typeof row.contentHash!=='string'||!/^[a-f0-9]{64}$/.test(row.contentHash)||!new RegExp('^tenants/'+tenantId+'/assets/[a-f0-9-]{36}/sync-dynamic/[a-f0-9-]{36}-'+binary.artifact.checksumSha256+'[.]png$').test(binary.artifact.storagePath))throw Error('MENU_BINARY_INVALID');
+      const facts=dynamicData.get(id);
+      if(!facts||facts.dataRevision!==row.dataRevision||facts.contentHash!==row.contentHash)throw Error('SYNC_DYNAMIC_BINARY_PREPARING');
+      menuBinaries.set(id,binary.artifact);
     }
   }
   const binaryArtifacts=new Map<string,ReturnType<typeof readSyncPublishedBinaryArtifact>['artifact']>();
@@ -252,7 +258,7 @@ export async function loadPlayerReleaseEnvelope({
         ...(syncDynamicSnapshots.has(item.id)&&syncDynamicMode?(dynamicDomIds.has(item.id)?{syncDynamic:syncDynamicPlaybackSchema.parse({...syncDynamicSnapshots.get(item.id)!.metadata,presentation:syncDynamicSnapshots.get(item.id)!.presentation,liveMatch:syncDynamicSnapshots.get(item.id)!.liveMatch,assets:Object.fromEntries(syncSlideAssets(syncDynamicSnapshots.get(item.id)!.presentation).flatMap(ref=>ref.kind==='tenant'?[[ref.mediaAssetId,studioAssets.get(ref.mediaAssetId)!]]:[]))})}:{syncDynamicBinary:syncDynamicBinaryPlaybackSchema.parse(syncDynamicSnapshots.get(item.id)!.metadata)}):{}),
         ...(menuPresentations.has(item.id)?{menuDom:menuPresentations.get(item.id)}:{}),
         ...(dynamicTemplates.get(item.id)&&!menuPresentations.has(item.id)
-          ? { dynamicTemplate: dynamicTemplates.get(item.id) }
+          ? { dynamicTemplate: dynamicTemplates.get(item.id), ...(dynamicData.has(item.id) ? { dynamicData: dynamicData.get(item.id) } : {}) }
           : {}),
         ...(item.engage_public_id && item.engage_title && item.engage_question&&(!item.sync_studio_presentation_json||syncPresentations.has(item.id))
           ? {
@@ -445,6 +451,7 @@ async function loadDynamicTemplatePayloads(
   syncDynamicSnapshots:Map<string,ReturnType<typeof readSyncDynamicReleaseSnapshot>>,
   enableSyncBackgrounds:boolean,
   menuDomSnapshots:Map<string,{snapshot:SyncDynamicSnapshotRow;checked:NonNullable<ReturnType<typeof readMenuDomArtifact>>;dataRevision:number}>,
+  dynamicData:Map<string,PlayerDynamicData>,
 ) {
   const snapshotIds = [
     ...new Set(
@@ -486,6 +493,14 @@ async function loadDynamicTemplatePayloads(
     .select("snapshot_id,content_hash,data_json,data_revision,changed_at,last_error_code")
     .eq("tenant_id", tenantId).in("snapshot_id", liveIds) : null;
   const liveById = new Map((liveResult?.data ?? []).map((data) => [data.snapshot_id, data]));
+  if(liveResult?.error&&releaseItems.some(item=>item.live_data_enabled&&item.dynamic_snapshot_id&&legacyIds.has(item.dynamic_snapshot_id)))throw Error('DYNAMIC_DATA_UNAVAILABLE');
+  for(const item of releaseItems){
+    const snapshot=legacySnapshots.find(value=>value.id===item.dynamic_snapshot_id);
+    if(!snapshot)continue;
+    const live=item.live_data_enabled?liveById.get(snapshot.id):undefined;
+    if(item.live_data_enabled&&!live)throw Error('DYNAMIC_DATA_UNAVAILABLE');
+    dynamicData.set(item.id,buildDynamicTemplateDataMetadata({snapshot,configuration:configurationHashes.get(item.id),live}));
+  }
   if(liveResult?.error&&menuDomSnapshots.size)throw Error('MENU_DOM_DATA_UNAVAILABLE');
   for(const value of menuDomSnapshots.values()){const live=liveById.get(value.snapshot.id);if(live){if(!Number.isSafeInteger(Number(live.data_revision))||Number(live.data_revision)<1)throw Error('MENU_DOM_DATA_INVALID');value.dataRevision=Number(live.data_revision);}}
   if(liveResult?.error&&(syncDynamicMode==='dom'||syncDynamicMode==='dom-v2')&&syncDynamicSnapshots.size)throw Error('SYNC_DYNAMIC_DATA_UNAVAILABLE');
@@ -530,15 +545,16 @@ async function loadDynamicTemplatePayloads(
     templates,
     versions
   });
-  const mediaIdsBySnapshot = new Map(
-    snapshots.map((snapshot) => [
-      snapshot.id,
-      collectDynamicSnapshotMediaAssetIds(snapshot.snapshot_data_json)
-    ])
+  const frozenPayloads = buildDynamicTemplatePayloadMap({ snapshots: legacySnapshots, templates, versions });
+  const mediaIdsByItem = new Map(
+    releaseItems.flatMap(item => {
+      const snapshot = (item.live_data_enabled ? snapshots : legacySnapshots).find(value => value.id === item.dynamic_snapshot_id);
+      return snapshot ? [[item.id, collectDynamicSnapshotMediaAssetIds(snapshot.snapshot_data_json)] as const] : [];
+    })
   );
-  for(const item of releaseItems){const config=sitesDynamicConfigurationSchema.safeParse(item.sites_configuration_json);if(item.dynamic_snapshot_id&&config.success&&config.data.background?.kind==="tenant"){const ids=mediaIdsBySnapshot.get(item.dynamic_snapshot_id)??[];ids.push(config.data.background.mediaAssetId);mediaIdsBySnapshot.set(item.dynamic_snapshot_id,ids);}}
+  for(const item of releaseItems){const config=sitesDynamicConfigurationSchema.safeParse(item.sites_configuration_json);if(item.dynamic_snapshot_id&&config.success&&config.data.background?.kind==="tenant"){const ids=mediaIdsByItem.get(item.id)??[];ids.push(config.data.background.mediaAssetId);mediaIdsByItem.set(item.id,ids);}}
   const mediaAssetIds = [
-    ...new Set([...mediaIdsBySnapshot.values()].flat().concat(sourceWork.flatMap(work=>{
+    ...new Set([...mediaIdsByItem.values()].flat().concat(sourceWork.flatMap(work=>{
       const cfg=syncDynamicConfigurationSchema.safeParse(work.snapshot.snapshot_data_json.syncConfiguration);
       return cfg.success&&isRecord(work.live.data_json)?syncDynamicProjectionAssetIds(work.live.data_json,cfg.data):[];
     })))
@@ -558,12 +574,12 @@ async function loadDynamicTemplatePayloads(
   }
   for (const item of releaseItems) {
     if (!item.dynamic_snapshot_id) continue;
-    const basePayload = payloads.get(item.dynamic_snapshot_id);
+    const basePayload = (item.live_data_enabled ? payloads : frozenPayloads).get(item.dynamic_snapshot_id);
     const override=sitesDynamicConfigurationSchema.safeParse(item.sites_configuration_json);
     const payload=basePayload&&override.success?{...basePayload,data:{...basePayload.data,sitesConfiguration:override.data}}:basePayload;
     if (!payload) continue;
     const assets = Object.fromEntries(
-      (mediaIdsBySnapshot.get(item.dynamic_snapshot_id) ?? []).flatMap(
+      (mediaIdsByItem.get(item.id) ?? []).flatMap(
         (assetId) => {
           const asset = assetsById.get(assetId);
           return asset ? [[assetId, asset]] : [];

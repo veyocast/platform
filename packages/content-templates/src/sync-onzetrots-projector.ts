@@ -31,7 +31,9 @@ export function enrichSyncOnzeTrotsProjection(payload:PlayerDynamicTemplatePaylo
   const key=id(item.id);if(!key)throw new SyncCanonicalIdentityError('Canonical standing identity unavailable');
   const form=Array.isArray(item.form)?item.form:typeof item.form==='string'?item.form.split(/[\s,;|/-]+/u):[];
   const normalizedForm:Record<string,'W'|'GL'|'V'>={w:'W',win:'W',winst:'W',gewonnen:'W',g:'GL',gl:'GL',draw:'GL',gelijk:'GL',v:'V',l:'V',loss:'V',verlies:'V',verloren:'V'};
-  return {id:key,teamId:id(item.teamId),clubId:id(item.clubId),teamName:text(item.teamName),logo:asset(item.logoMediaAssetId),position:integer(item.position),played:integer(item.played),won:integer(item.won),drawn:integer(item.drawn),lost:integer(item.lost),goalDifference:integer(item.goalDifference,true),points:integer(item.points,true),form:form.flatMap(result=>{const value=typeof result==='string'?normalizedForm[result.toLowerCase()]:undefined;return value?[value]:[];})};
+  const goalsFor=integer(item.goalsFor),goalsAgainst=integer(item.goalsAgainst);
+  const goalDifference=integer(item.goalDifference,true)??(goalsFor!==null&&goalsAgainst!==null?goalsFor-goalsAgainst:null);
+  return {id:key,teamId:id(item.teamId),clubId:id(item.clubId),teamName:text(item.teamName),logo:asset(item.logoMediaAssetId),position:integer(item.position),played:integer(item.played),won:integer(item.won),drawn:integer(item.drawn),lost:integer(item.lost),goalDifference,points:integer(item.points,true),form:form.flatMap(result=>{const value=typeof result==='string'?normalizedForm[result.toLowerCase()]:undefined;return value?[value]:[];})};
  })});
  const rich:SyncOnzeTrotsRich={};
  if(scope)rich.teamSelection={ownClubId:scope.ownClubId,ownTeamIds:scope.ownTeamIds,primaryTeamId:scope.context?.teamId??null};
@@ -58,10 +60,30 @@ export function enrichSyncOnzeTrotsProjection(payload:PlayerDynamicTemplatePaylo
   for(const part of [parts[0]!,parts[2]!])for(const item of items(part.items)){
    if(item.homeTeamId!==context.teamId&&item.awayTeamId!==context.teamId)throw new SyncCanonicalIdentityError('Matchday item does not belong to selected team');
   }
+  // Pool results are an additive block. Old published payloads retain the
+  // exact own-team behavior; new blocks must prove the same resolved identity
+  // and connection for every item before they can join the results panel.
+  const pool=record(composite.poolResults),poolItems=items(pool.items);
+  if(composite.poolResults!==undefined){
+   if(!equal(record(pool.context))||pool.sourceConnectionId!==scope.sourceConnectionId)throw new SyncCanonicalIdentityError('Mixed matchday pool scope');
+   for(const item of poolItems){
+    if(item.tenantId!==scope.tenantId||item.sourceConnectionId!==scope.sourceConnectionId
+     ||item.competitionId!==context.competitionId||item.poolId!==context.poolId||item.seasonId!==context.seasonId
+     ||item.phaseId!==pool.phaseId)throw new SyncCanonicalIdentityError('Unverified matchday pool result');
+   }
+  }
   const time=(item:Fixture)=>item.kickoffAt?Date.parse(item.kickoffAt):NaN;
   const identity=(a:Fixture,b:Fixture)=>a.id<b.id?-1:a.id>b.id?1:0;
+  const completed=(values:RecordValue[])=>values.map(fixture).filter(item=>item.status==='finished'&&time(item)<=now.valueOf()&&item.homeScore!==null&&item.awayScore!==null).sort((a,b)=>time(b)-time(a)||identity(a,b));
+  const ownResults=completed(items(parts[0]!.items)),poolResults=completed(poolItems).filter(item=>item.home.teamId!==context.teamId&&item.away.teamId!==context.teamId),seen=new Set<string>();
+  const mergedResults:Fixture[]=[];
+  // The current panel has three places: reserve the first for the newest own
+  // result, then admit the newest other pool matches before older own results.
+  for(const item of [ownResults[0],...poolResults,...ownResults.slice(1)]){
+   if(item&&!seen.has(item.id)){seen.add(item.id);mergedResults.push(item);}
+  }
   rich.matchday={context,
-   results:items(parts[0]!.items).map(fixture).filter(item=>item.status==='finished'&&time(item)<=now.valueOf()&&item.homeScore!==null&&item.awayScore!==null).sort((a,b)=>time(b)-time(a)||identity(a,b)),
+   results:mergedResults,
    standings:standing(items(parts[1]!.items),scope.context.teamId),
    fixtures:items(parts[2]!.items).map(fixture).filter(item=>item.status==='scheduled'&&time(item)>now.valueOf()).sort((a,b)=>time(a)-time(b)||identity(a,b))};
  }
