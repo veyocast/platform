@@ -1,0 +1,59 @@
+{
+  "test": "tests/player/dynamic-activation-refresh.spec.ts",
+  "runtimeOrigin": "http://127.0.0.1:3186",
+  "runtimeBuildId": "n-eMHKsi9jQzSsKbmzHEp",
+  "scope": "S298 test source against separately built S300 runtime; not an exact S298 build certificate",
+  "results": {
+    "passed": 4,
+    "seconds": 35.7
+  },
+  "evidence": {
+    "/tmp/s298-player-ci-final-failed.log": "68a1b72a2c430f57ccdba56daf5dc83b93682c4148dcbc2f8a67d127fd34e6f3",
+    "/tmp/s298-player-case68/trace.zip": "826fbe349bfc391d122cf796e0eba2df71ab007ca6cf5fcffbfa666cc4b3f642",
+    "/tmp/s298-lg-stale-barrier-repaired-report.json": "2d7889959656aee39979dce74cb652ea187f838e029ea42746fde17e9bea2ce0",
+    "/tmp/s298-lg-stale-barrier-repaired.log": "8088e74eeb5848072389591fa5808adf9ea18dd9809052a664f722c52f3f2222",
+    "/tmp/s298-control-ci-final-failed.log": "d3e55fe98f6ecca129a197fbf37b373eb668c1cbe699abb4e6637162472061a9",
+    "/tmp/s298-ci-barrier-lint.log": "7b1f0230a5216bcae3211f961e82e58bfc6bb10a9d870942053aab434728fb0c",
+    "/tmp/s298-ci-barrier-typecheck.log": "29e452c02556c4f4bddbf30f468bff43d986555311d6fce5c342ef5e23c23f32",
+    "/tmp/s298-ci-barrier-test.log": "160e19bb7490fd99a150d44429a83bf3b96e75670ad322adaa34768295d66d4e",
+    "/tmp/s298-ci-barrier-final-lint.log": "bc5db2994ebfce6b1562702889a018fc6f1a25f22e50fc7fd4909e458129de6d",
+    "/tmp/s298-ci-barrier-final-typecheck.log": "647add09c17810bf24c74045b02be67c4faa43c31705aed41d30d937d06a699d",
+    "/tmp/s298-ci-barrier-final-test.log": "edfa030e2e8853b048319a80ebe1dcae5e2e088ebfa27b97e75672b2b34b4d48"
+  },
+  "source": {
+    "S298": {
+      "lgLegacyPageSha256": "2f61ad25fccae4de3791a0a041f8ebb8c65f799daa95480406a8b8ee5b4b326f",
+      "syncManifestAndInvalidationSha256": "1c8052445f83276b332e388db3d3d1503054f86c7701f55ebbd1f66d82b63b04"
+    },
+    "S300": {
+      "lgLegacyPageSha256": "2f61ad25fccae4de3791a0a041f8ebb8c65f799daa95480406a8b8ee5b4b326f",
+      "syncManifestAndInvalidationSha256": "1c8052445f83276b332e388db3d3d1503054f86c7701f55ebbd1f66d82b63b04"
+    },
+    "testSha256": "de5510de5b77c6a60d3f8033df082bdea33c54800cbc0f42e61196a4dbbe6797"
+  },
+  "additionalControlFinding": {
+    "runId": "42623568967",
+    "jobId": "129181681085",
+    "failedCases": 1,
+    "case": "tests/e2e/studio.spec.ts:10",
+    "observedHeight": 43.99993896484375,
+    "requiredHeight": 44,
+    "fix": "Restore the existing 48px touch-height token specifically on wizard footer controls; byte-identical to S296 reviewed correction. No threshold or test assertion changed.",
+    "proofBoundary": "S296 actual component regression suite 40 PASS; exact S298 Next E2E rerun remains normal CI."
+  },
+  "minimumWorkspaceGates": {
+    "lint": "30/30 PASS; 30 cached,62ms",
+    "typecheck": "30/30 PASS;30 cached,52ms",
+    "test": "30/30 PASS;29 cached,3.862s",
+    "note": "These gates precede the final equivalent wizard CSS application; final run recorded below separately."
+  },
+  "finalWorkspaceGates": {
+    "lint": "30/30 PASS;29cached,8.66s",
+    "typecheck": "30/30 PASS;29cached,3.339s",
+    "test": "30/30 PASS;28cached,15.389s"
+  },
+  "finalSources": {
+    "apps/control/app/(shell)/dashboard/studio/sync-create-wizard.module.css": "d4a22326b4acf69e3666387692a13f77bef56900110a98ab49859252bac3ffd2",
+    "tests/player/dynamic-activation-refresh.spec.ts": "de5510de5b77c6a60d3f8033df082bdea33c54800cbc0f42e61196a4dbbe6797"
+  }
+}

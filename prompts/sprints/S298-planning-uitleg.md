@@ -31,3 +31,11 @@ Root is tevens integratie-/uitrolowner van de gehele opdracht: de afzonderlijke
 horen bij die operationele scope. Alleen de expliciete staginghost en een aparte
 interne fixturetenant; normale authoring-, worker- en publicatiecommando's.
 Geen providercredentials, devicetokens, signed URLs of raw payloads in bewijs.
+
+Root autoriseert na concrete brede CI-analyse uitsluitend de bestaande
+`tests/player/dynamic-activation-refresh.spec.ts` voor één ontbrekende
+`await staged()` vóór de correctiegrens en de bestaande lokale
+`sync-create-wizard.module.css` voor herstel van haar bedoelde48pxtouchhoogte.
+Geen productie-Playergedrag, timeout,44pxgrens, globale shell of tokens wijzigen.
+Bewaar eerdere rode bewijzen en onderscheid de gerichte cross-branch-runtimeproef
+van de eigen normale CI/build.

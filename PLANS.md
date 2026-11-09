@@ -538,3 +538,8 @@ S228 herstelt de op de fysieke LG bewezen weigering van beide lokale
 videotransporten met een begrensde native HTTP-herpoging na volledige
 releaseverificatie. Netwerkafhankelijke video verdringt de vorige lokaal
 werkende release niet; zie `docs/s228-lg-native-media.md`.
+
+S298 aanvullende CI sluit een ontbrekende kandidaatbarrière in de bestaande
+LG-test en dezelfde lokaal bewezen wizardtouchhoogte als S296. Vier gerichte
+Playergevallen groen; precieze nieuwe bron-SHA en normale CI blijven de
+releasegrens. Zie het eigen CI-barrièrebewijs.

@@ -109,3 +109,29 @@ S300. Een terugrol van de toepassing kan de additieve read-RPC laten bestaan;
 immutable publicaties blijven leesbaar. Bij een resolverprobleem volgt een
 gerichte forwardmigratie of de bestaande exact geverifieerde vorige runtime,
 zonder historische publicaties of assignments terug te schrijven.
+
+## Aanvullende normale CI-bevindingen
+
+De Player-gate van run42623568967 stopte in het bestaande statische LG-geval
+voor een achterhaalde200-respons. De trace toont dat de testcase de volgende
+5,5s-grens al doorging terwijl de nieuwe respons nog werd afgeleverd. De
+runtime behield terecht de oude geverifieerde revisie. De testcase wacht nu
+via haar bestaande `staged()`-barrière op de werkelijk voorbereide kandidaat.
+Alle bestaande revisie-, zichtbaarheid-, conditionele aanvraag- en
+timeoutasserties blijven behouden. Vier gerichte browser-/LG- en
+backoffgevallen slagen in35,7s tegen de afzonderlijk gebouwde S300-Player
+`n-eMHKsi9jQzSsKbmzHEp`. De betreffende LG-runtime- en
+manifestinvalidatiebron zijn bytegelijk aan S298; dit is uitdrukkelijk geen
+nieuw S298-buildcertificaat.
+
+Dezelfde brede Control-gate vond één footerknop van43,99993896484375px.
+De lokale wizardregel geeft haar bestaande touchhoogtetoken van48px nu
+voldoende CSS-specificiteit boven de shellregel. De correctie is bytegelijk
+aan de onafhankelijk in S296 met40 browsergevallen geverifieerde regel.
+De44pxacceptatie en alle assertions zijn behouden. De precieze S298
+Next-journey moet opnieuw door de normale CI lopen. Oude fouten, bron-,
+trace- en loghashes staan in `ci-barrier-evidence.json`.
+
+Na beide correcties zijn de normale workspacegates opnieuw groen: lint30/30
+(8,66s), typecheck30/30(3,339s), tests30/30(15,389s). Cachegebruik en
+exacte loghashes staan in het bewijs.
