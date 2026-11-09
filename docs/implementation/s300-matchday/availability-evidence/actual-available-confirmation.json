@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "captureFile": "/tmp/s300-availability-actual-workspace.json",
+  "captureSha256": "83f83ca4e612d8487542f93fa29f2f3c9e37669e96039c6e358b850521f1024b",
+  "dtoStrictParse": "PASS",
+  "provenance": "Normal authenticated member RPC in fresh isolated local219 database; transaction rolled back; normalized synthetic fixtures",
+  "actualActions": [
+    {
+      "id": "472af430-7e01-4daa-a0f3-79a3fbb02d74",
+      "kind": "available",
+      "revision": 2
+    }
+  ],
+  "actualDeliveryRows": [
+    {
+      "id": "abb7db11-74f0-45bf-978d-ab3b7c0e21d2",
+      "actionId": "472af430-7e01-4daa-a0f3-79a3fbb02d74",
+      "actionRevision": 2,
+      "screenId": "e3000000-0000-4000-8000-000000000008",
+      "deviceId": "e3000000-0000-4000-8000-000000000012",
+      "status": "restored",
+      "confirmedReleaseId": "e3000000-0000-4000-8000-000000000066",
+      "confirmedAt": "2026-11-09T15:44:09.843843+00:00",
+      "renderedAt": null
+    }
+  ],
+  "serverFrameScope": "Exact offered predecessor restoration validated by existing heartbeat/window trigger; no physical hardware or hosted claim"
+}
