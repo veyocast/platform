@@ -1,0 +1,36 @@
+name: Rerequest fixed stuck deploy check suite
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+concurrency:
+  group: recover-stuck-deploy-42669988139
+  cancel-in-progress: false
+
+jobs:
+  rerequest:
+    if: github.repository == 'veyocast/platform' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted main revision
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+      - name: Validate incident guards without network access
+        run: node --test scripts/recover-stuck-deploy.test.mjs
+      - name: Request native rerequest of the fixed unstarted deployment suite
+        run: node scripts/recover-stuck-deploy.mjs --execute
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RECOVER_STUCK_DEPLOY: ROOT_NATIVE_REREQUEST
