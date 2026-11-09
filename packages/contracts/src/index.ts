@@ -39,3 +39,5 @@ export * from "./sync-background-catalog";
 export * from "./sync-theme-creation-defaults";
 
 export * from "./menu-dom-playback";
+
+export * from "./sportlink-season-switch";

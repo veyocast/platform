@@ -1,0 +1,1021 @@
+{
+  "replay": {
+    "links": {
+      "edit": "/dashboard/slides/fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19/edit",
+      "publish": null,
+      "restore": "/dashboard/publications/e3010000-0000-4000-8000-000000000006"
+    },
+    "reason": null,
+    "status": "applied",
+    "receiptId": "10ee4a96-c845-4355-a70a-e9d37e21e54d",
+    "requestId": "10dcb816-7cab-4dbf-a4f3-4a9444c78dbd",
+    "resourceId": "fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19",
+    "newRevision": 3,
+    "resourceKind": "dynamic_slide",
+    "correlationId": "e3010000-0000-4000-8000-000000000099",
+    "schemaVersion": 1,
+    "draftVersionId": "49c52125-30e5-422d-b1ed-3a1df921a0dc",
+    "previousRevision": 0,
+    "previousVersionId": "644aae20-18ff-407d-a279-597d0334e5d9"
+  },
+  "applied": {
+    "links": {
+      "edit": "/dashboard/slides/fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19/edit",
+      "publish": null,
+      "restore": "/dashboard/publications/e3010000-0000-4000-8000-000000000006"
+    },
+    "reason": null,
+    "status": "applied",
+    "receiptId": "10ee4a96-c845-4355-a70a-e9d37e21e54d",
+    "requestId": "10dcb816-7cab-4dbf-a4f3-4a9444c78dbd",
+    "resourceId": "fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19",
+    "newRevision": 3,
+    "resourceKind": "dynamic_slide",
+    "correlationId": "e3010000-0000-4000-8000-000000000099",
+    "schemaVersion": 1,
+    "draftVersionId": "49c52125-30e5-422d-b1ed-3a1df921a0dc",
+    "previousRevision": 0,
+    "previousVersionId": "644aae20-18ff-407d-a279-597d0334e5d9"
+  },
+  "command": {
+    "requestId": "10dcb816-7cab-4dbf-a4f3-4a9444c78dbd",
+    "resourceId": "fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19",
+    "contextHash": "15e564392fa7a7b638f6c96865ee8d805aa3c47ae46c9fc18e76b4b0eb2d6935",
+    "newSelection": {
+      "mappings": [
+        {
+          "context": {
+            "poolId": "801",
+            "phaseId": "new-phase",
+            "seasonId": "2026",
+            "competitionId": "new-league",
+            "providerTeamId": "own-team",
+            "competitionSelectionMode": "pinned"
+          },
+          "fromProviderTeamId": "own-team"
+        }
+      ]
+    },
+    "resourceKind": "dynamic_slide",
+    "correlationId": "e3010000-0000-4000-8000-000000000099",
+    "basisVersionId": "644aae20-18ff-407d-a279-597d0334e5d9",
+    "oldBindingHash": "4ac5e707e9d2a54b9b6d47be412be67b4c9daabd709c813852d8997052862f23",
+    "expectedRevision": 0,
+    "clearSelectedMatches": false
+  },
+  "preview": {
+    "links": {
+      "edit": "/dashboard/slides/fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19/edit",
+      "publish": null,
+      "restore": "/dashboard/publications/e3010000-0000-4000-8000-000000000006"
+    },
+    "impact": {
+      "unknown": true,
+      "truncated": false,
+      "knownCount": 7,
+      "references": [
+        {
+          "id": "e3010000-0000-4000-8000-000000000004",
+          "href": "/dashboard/playlists/e3010000-0000-4000-8000-000000000004",
+          "kind": "publication",
+          "name": "Season playlist A",
+          "state": "draft_playlist",
+          "confirmedVersionId": null
+        },
+        {
+          "id": "e3010000-0000-4000-8000-000000000005",
+          "href": "/dashboard/playlists/e3010000-0000-4000-8000-000000000005",
+          "kind": "publication",
+          "name": "Season playlist B",
+          "state": "draft_playlist",
+          "confirmedVersionId": null
+        },
+        {
+          "id": "e3010000-0000-4000-8000-000000000006",
+          "href": "/dashboard/publications/e3010000-0000-4000-8000-000000000006",
+          "kind": "publication",
+          "name": "Season playlist A \u00b7 v1",
+          "state": "immutable_release",
+          "confirmedVersionId": null
+        },
+        {
+          "id": "fa53a1ad-f7d4-44a4-9215-4f670931e6d0",
+          "href": "/dashboard/planning",
+          "kind": "schedule",
+          "name": "Future recurring source",
+          "state": "recurring_schedule",
+          "confirmedVersionId": null
+        },
+        {
+          "id": "e3010000-0000-4000-8000-000000000007",
+          "href": "/dashboard/screens/e3010000-0000-4000-8000-000000000007",
+          "kind": "screen",
+          "name": "Season screen",
+          "state": "desired_publication",
+          "confirmedVersionId": null
+        },
+        {
+          "id": "e3010000-0000-4000-8000-000000000008:main",
+          "href": "/dashboard/screens/e3010000-0000-4000-8000-000000000007",
+          "kind": "zone",
+          "name": "Season screen \u00b7 main",
+          "state": "configured_zone",
+          "confirmedVersionId": null
+        },
+        {
+          "id": "e3010000-0000-4000-8000-000000000008:side",
+          "href": "/dashboard/screens/e3010000-0000-4000-8000-000000000007",
+          "kind": "zone",
+          "name": "Season screen \u00b7 side",
+          "state": "configured_zone",
+          "confirmedVersionId": null
+        }
+      ]
+    },
+    "preview": {
+      "data": {
+        "data": {
+          "type": "sport_match_of_the_day",
+          "brand": {
+            "clubName": "Source recovery A",
+            "primaryColor": "#FF5C20",
+            "secondaryColor": "#111111"
+          },
+          "sport": {
+            "items": [],
+            "title": "Matchday",
+            "matchday": {
+              "context": {
+                "poolId": "801",
+                "teamId": "own-team",
+                "seasonId": "2026",
+                "tenantId": "10000000-0000-4000-8000-000000000301",
+                "revisions": [
+                  {
+                    "dataset": "results",
+                    "revision": 0
+                  },
+                  {
+                    "dataset": "standings",
+                    "revision": 0
+                  },
+                  {
+                    "dataset": "fixtures",
+                    "revision": 0
+                  }
+                ],
+                "competitionId": "new-league"
+              },
+              "results": {
+                "items": [],
+                "context": {
+                  "poolId": "801",
+                  "teamId": "own-team",
+                  "seasonId": "2026",
+                  "tenantId": "10000000-0000-4000-8000-000000000301",
+                  "competitionId": "new-league"
+                }
+              },
+              "fixtures": {
+                "items": [],
+                "context": {
+                  "poolId": "801",
+                  "teamId": "own-team",
+                  "seasonId": "2026",
+                  "tenantId": "10000000-0000-4000-8000-000000000301",
+                  "competitionId": "new-league"
+                }
+              },
+              "standings": {
+                "items": [],
+                "context": {
+                  "poolId": "801",
+                  "teamId": "own-team",
+                  "seasonId": "2026",
+                  "tenantId": "10000000-0000-4000-8000-000000000301",
+                  "competitionId": "new-league"
+                }
+              },
+              "poolResults": {
+                "items": [],
+                "context": {
+                  "poolId": "801",
+                  "teamId": "own-team",
+                  "seasonId": "2026",
+                  "tenantId": "10000000-0000-4000-8000-000000000301",
+                  "competitionId": "new-league"
+                },
+                "phaseId": "new-phase",
+                "sourceConnectionId": "bccc1a87-0032-4e7d-a5a6-8ee99a302b8c"
+              }
+            },
+            "expiresAt": null,
+            "generatedAt": "2026-11-09T13:04:30.507739+00:00",
+            "displayConfig": {
+              "columns": "one",
+              "showLogo": true,
+              "showField": true,
+              "showReferee": false,
+              "showHomeAway": true,
+              "showDressingRoom": false
+            },
+            "emptyStateCode": "NO_ITEMS_IN_PERIOD",
+            "selectedTeamCount": 1,
+            "teamSelectionMode": "selected"
+          },
+          "editorial": {
+            "theme": {
+              "dark": {
+                "row": "#11161C",
+                "text": "#F7F3EB",
+                "panel": "#14181D",
+                "qrInk": "#111315",
+                "accent": "#FF5C20",
+                "border": "rgba(250, 250, 247, 0.15)",
+                "canvas": "#090B0E",
+                "danger": "#FF716B",
+                "shadow": "rgba(0, 0, 0, 0.34)",
+                "divider": "rgba(250, 250, 247, 0.14)",
+                "neutral": "#8D9095",
+                "success": "#46D18C",
+                "surface": "#0D1116",
+                "warning": "#FFAD66",
+                "qrSurface": "#F3F0E9",
+                "textFaint": "rgba(247, 243, 235, 0.48)",
+                "textMuted": "#B9B5AD",
+                "accentSoft": "rgba(255, 110, 55, 0.18)",
+                "borderSoft": "rgba(250, 250, 247, 0.09)",
+                "rowSelected": "#F3F0E9",
+                "textOnAccent": "#111315",
+                "surfaceRaised": "#171C22",
+                "textOnSelected": "#111315",
+                "imageOverlayEnd": "rgba(6, 8, 10, 0.12)",
+                "imageOverlayMid": "rgba(6, 8, 10, 0.76)",
+                "imageOverlayStart": "rgba(6, 8, 10, 0.98)"
+              },
+              "mode": "light",
+              "light": {
+                "row": "#FBF9F4",
+                "text": "#111315",
+                "panel": "#E8E4DC",
+                "qrInk": "#111315",
+                "accent": "#FF5C20",
+                "border": "rgba(17, 19, 21, 0.12)",
+                "canvas": "#D7D2C8",
+                "danger": "#D55656",
+                "shadow": "rgba(66, 55, 41, 0.14)",
+                "divider": "rgba(17, 19, 21, 0.12)",
+                "neutral": "#A9A399",
+                "success": "#31A574",
+                "surface": "#F3F0E9",
+                "warning": "#C99431",
+                "qrSurface": "#F3F0E9",
+                "textFaint": "rgba(17, 19, 21, 0.47)",
+                "textMuted": "#68665F",
+                "accentSoft": "rgba(236, 98, 44, 0.14)",
+                "borderSoft": "rgba(17, 19, 21, 0.075)",
+                "rowSelected": "#141619",
+                "textOnAccent": "#FFFAF2",
+                "surfaceRaised": "#FBF9F4",
+                "textOnSelected": "#F7F3EB",
+                "imageOverlayEnd": "rgba(6, 8, 10, 0.08)",
+                "imageOverlayMid": "rgba(6, 8, 10, 0.72)",
+                "imageOverlayStart": "rgba(6, 8, 10, 0.96)"
+              }
+            },
+            "newsVariant": "hero_split",
+            "schemaVersion": 2,
+            "pricePhotoMode": "show"
+          },
+          "syncScope": {
+            "context": {
+              "poolId": "801",
+              "teamId": "own-team",
+              "seasonId": "2026",
+              "competitionId": "new-league"
+            },
+            "sourceId": "cc68ac24-a2a2-4992-b466-290656d6c3e9",
+            "tenantId": "10000000-0000-4000-8000-000000000301",
+            "ownClubId": "own-club",
+            "ownTeamIds": [
+              "own-team"
+            ],
+            "schemaVersion": 1,
+            "sourceConnectionId": "bccc1a87-0032-4e7d-a5a6-8ee99a302b8c"
+          },
+          "generatedAt": "2026-11-09T13:04:30.507739+00:00",
+          "syncConfiguration": {
+            "kind": "dynamic",
+            "seed": {
+              "body": "",
+              "club": {
+                "name": "Eigen club",
+                "tagline": ""
+              },
+              "name": "Onze wedstrijddag",
+              "news": [],
+              "rows": [],
+              "state": "ready",
+              "style": {
+                "font": "Brush",
+                "scale": 100,
+                "accent": "#1763ed",
+                "motion": "rustig",
+                "showLogo": true,
+                "alignment": "left",
+                "background": "clubmuur",
+                "safeMargin": 5,
+                "showFooter": true,
+                "fontChanged": true,
+                "backgroundPosition": "center"
+              },
+              "theme": "onzetrots-tv",
+              "title": "WEDSTRIJDDAG",
+              "family": "matchday",
+              "footer": "",
+              "lineup": [],
+              "visual": {
+                "mode": "light",
+                "scrollSpeed": "normal",
+                "panelOpacity": 94,
+                "schemaVersion": 1
+              },
+              "subline": "",
+              "category": "",
+              "headline": "",
+              "subtitle": "",
+              "topLabel": "CLUB TV",
+              "authoring": {
+                "headerTexts": {},
+                "schemaVersion": 1,
+                "visualRevision": "onzetrots-20261024",
+                "headerSubtitles": {},
+                "welcomeScalePercent": 150
+              },
+              "footerRight": "",
+              "orientation": "landscape",
+              "rowsPerPage": 6,
+              "imageCaption": "",
+              "ownRowIndexes": [],
+              "schemaVersion": 1,
+              "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+              "rendererVersion": "sync-onzetrots-v9"
+            },
+            "slideType": "sport_match_of_the_day",
+            "schemaVersion": 1,
+            "secondsPerPage": 5,
+            "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+            "rendererVersion": "sync-onzetrots-v9"
+          },
+          "themePresentation": {
+            "selection": {
+              "ref": {
+                "id": "fieldflow",
+                "catalog": "v2",
+                "version": "1.0.0"
+              },
+              "accent": "#2459ED",
+              "support": null,
+              "modePolicy": {
+                "kind": "fixed",
+                "mode": "light"
+              },
+              "categoryOverrides": []
+            },
+            "appearance": {
+              "palette": {
+                "primary": "#2459ED",
+                "version": 1,
+                "secondary": null,
+                "background": "club"
+              },
+              "surfaces": {
+                "clubLogoBackground": "#FFFFFF",
+                "homeLogoBackground": "#FFFFFF"
+              },
+              "typography": {
+                "baseScale": 1,
+                "sportScale": 1,
+                "bodyFontRef": "vc-roboto-v1",
+                "displayFontRef": "vc-roboto-v1"
+              },
+              "motionEnabled": true,
+              "schemaVersion": 2,
+              "designRevision": "royal-current-v8"
+            },
+            "resolvedMode": {
+              "mode": "light",
+              "policy": {
+                "kind": "fixed",
+                "mode": "light"
+              },
+              "timezone": "Europe/Amsterdam",
+              "resolvedAt": "2026-11-09T13:04:33.511Z"
+            },
+            "catalogVersion": "1.0.0",
+            "snapshotVersion": 2,
+            "settingsRevision": 0
+          },
+          "syncPlaybackProtocol": 2,
+          "_veyocastThemeRuntime": {
+            "version": 2
+          }
+        },
+        "source": {
+          "id": "cc68ac24-a2a2-4992-b466-290656d6c3e9",
+          "revision": 0,
+          "lastErrorCode": null,
+          "providerStatus": "ready",
+          "lastSuccessfulSyncAt": null
+        },
+        "previewId": "0d0177a8-40ef-4312-8d6a-1bf975107a74",
+        "slideType": "sport_match_of_the_day",
+        "orientation": "landscape",
+        "templateSlug": "editorial-arena-sites-match-of-the-day-landscape",
+        "templateVersionId": "15c77fdb-d00c-4a9e-9c8c-f8b4249a6a5c"
+      },
+      "state": "empty",
+      "message": "De bronidentiteit is geldig; deze selectie bevat momenteel geen zichtbare records. Bestaande publicatiegates blijven gelden."
+    },
+    "reasons": [],
+    "canApply": true,
+    "resourceId": "fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19",
+    "contextHash": "15e564392fa7a7b638f6c96865ee8d805aa3c47ae46c9fc18e76b4b0eb2d6935",
+    "newSelection": {
+      "mappings": [
+        {
+          "context": {
+            "poolId": "801",
+            "phaseId": "new-phase",
+            "seasonId": "2026",
+            "competitionId": "new-league",
+            "providerTeamId": "own-team",
+            "competitionSelectionMode": "pinned"
+          },
+          "fromProviderTeamId": "own-team"
+        }
+      ]
+    },
+    "oldSelection": {
+      "mappings": [
+        {
+          "context": {
+            "poolId": "701",
+            "phaseId": "old-phase",
+            "seasonId": "2025",
+            "competitionId": "old-league",
+            "providerTeamId": "own-team",
+            "competitionSelectionMode": "pinned"
+          },
+          "fromProviderTeamId": "own-team"
+        }
+      ]
+    },
+    "resourceKind": "dynamic_slide",
+    "schemaVersion": 1,
+    "basisVersionId": "644aae20-18ff-407d-a279-597d0334e5d9",
+    "oldBindingHash": "4ac5e707e9d2a54b9b6d47be412be67b4c9daabd709c813852d8997052862f23",
+    "expectedRevision": 0,
+    "clearsSelectedMatches": false
+  },
+  "conflict": {
+    "links": {
+      "edit": "/dashboard/slides/fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19/edit",
+      "publish": null,
+      "restore": "/dashboard/publications/e3010000-0000-4000-8000-000000000006"
+    },
+    "reason": "Het concept, de oorspronkelijke versie of de selectie is sinds de controle gewijzigd.",
+    "status": "conflict",
+    "receiptId": "ae85c14d-5a47-4ad2-ab51-d71214820494",
+    "requestId": "577d6954-59d4-47b6-8cbd-01f65c618306",
+    "resourceId": "fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19",
+    "newRevision": null,
+    "resourceKind": "dynamic_slide",
+    "correlationId": "e3010000-0000-4000-8000-000000000099",
+    "schemaVersion": 1,
+    "draftVersionId": null,
+    "previousRevision": 0,
+    "previousVersionId": "644aae20-18ff-407d-a279-597d0334e5d9"
+  },
+  "inventory": {
+    "rows": [
+      {
+        "name": "Multi",
+        "links": {
+          "edit": "/dashboard/slides/72f5da83-548a-4c3d-912e-8e38b4f20449/edit",
+          "publish": null,
+          "restore": null
+        },
+        "state": "available",
+        "impact": {
+          "unknown": true,
+          "truncated": false,
+          "knownCount": 0,
+          "references": []
+        },
+        "reason": "Dezelfde stabiele teamidentiteit heeft \u00e9\u00e9n aantoonbaar passende context. Bevestig het voorstel expliciet.",
+        "bindings": [
+          {
+            "candidates": [
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "same_team_identity",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "1aacca53b8246276bd544bdcd77f8b56e9badcc2052efa7f2ea78acb06fceae3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "-1",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2cb3c4983e51f48c1faa1af394657ddd19e2fb04694c4076a9e2c2582e2488c3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team-2",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2d98a0213992f1cfd1bc85f236cc42bebaf1fd0893ef0bc8c309329c4ffaabf2",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              }
+            ],
+            "candidateCount": 3,
+            "currentContext": {
+              "poolId": "701",
+              "phaseId": "old-phase",
+              "seasonId": "2025",
+              "competitionId": "old-league",
+              "providerTeamId": "own-team",
+              "competitionSelectionMode": "pinned"
+            },
+            "fromProviderTeamId": "own-team",
+            "candidatesTruncated": false
+          },
+          {
+            "candidates": [
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "same_team_identity",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team-2",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2d98a0213992f1cfd1bc85f236cc42bebaf1fd0893ef0bc8c309329c4ffaabf2",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "-1",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2cb3c4983e51f48c1faa1af394657ddd19e2fb04694c4076a9e2c2582e2488c3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "1aacca53b8246276bd544bdcd77f8b56e9badcc2052efa7f2ea78acb06fceae3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              }
+            ],
+            "candidateCount": 3,
+            "currentContext": {
+              "poolId": "701",
+              "phaseId": "old-phase",
+              "seasonId": "2025",
+              "competitionId": "old-league",
+              "providerTeamId": "own-team-2",
+              "competitionSelectionMode": "pinned"
+            },
+            "fromProviderTeamId": "own-team-2",
+            "candidatesTruncated": false
+          }
+        ],
+        "canUpdate": true,
+        "resourceId": "72f5da83-548a-4c3d-912e-8e38b4f20449",
+        "contextHash": "036b74db7b06477f3d2e8cfbdbc8a1b3b2c7c4881324917f0af7248c19f488dc",
+        "resourceKind": "dynamic_slide",
+        "basisVersionId": "71a5065b-8d5f-4f04-9d1a-292eff90db26",
+        "draftVersionId": "71a5065b-8d5f-4f04-9d1a-292eff90db26",
+        "oldBindingHash": "d60c1e488659f8e7c279d773f25378a65125ac0c1f1b5166f171ea3642bb1272",
+        "expectedRevision": 2
+      },
+      {
+        "name": "Legacy",
+        "links": {
+          "edit": "/dashboard/slides/ce3ae887-c57b-4131-81b7-037e2730a4c9/edit",
+          "publish": null,
+          "restore": null
+        },
+        "state": "available",
+        "impact": {
+          "unknown": true,
+          "truncated": false,
+          "knownCount": 0,
+          "references": []
+        },
+        "reason": "Dezelfde stabiele teamidentiteit heeft \u00e9\u00e9n aantoonbaar passende context. Bevestig het voorstel expliciet.",
+        "bindings": [
+          {
+            "candidates": [
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "same_team_identity",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "1aacca53b8246276bd544bdcd77f8b56e9badcc2052efa7f2ea78acb06fceae3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "-1",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2cb3c4983e51f48c1faa1af394657ddd19e2fb04694c4076a9e2c2582e2488c3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team-2",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2d98a0213992f1cfd1bc85f236cc42bebaf1fd0893ef0bc8c309329c4ffaabf2",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              }
+            ],
+            "candidateCount": 3,
+            "currentContext": {
+              "poolId": "701",
+              "phaseId": "old-phase",
+              "seasonId": "2025",
+              "competitionId": "old-league",
+              "providerTeamId": "own-team",
+              "competitionSelectionMode": "pinned"
+            },
+            "fromProviderTeamId": "own-team",
+            "candidatesTruncated": false
+          }
+        ],
+        "canUpdate": true,
+        "resourceId": "ce3ae887-c57b-4131-81b7-037e2730a4c9",
+        "contextHash": "036b74db7b06477f3d2e8cfbdbc8a1b3b2c7c4881324917f0af7248c19f488dc",
+        "resourceKind": "dynamic_slide",
+        "basisVersionId": "ff095766-bdf1-4cbe-a86e-e5cc94a2727e",
+        "draftVersionId": null,
+        "oldBindingHash": "4295b3711104c0d38de936d5a11d4bcde6803bb43333f728d98b85a2562cadfc",
+        "expectedRevision": 0
+      },
+      {
+        "name": "Matchday",
+        "links": {
+          "edit": "/dashboard/slides/fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19/edit",
+          "publish": null,
+          "restore": "/dashboard/publications/e3010000-0000-4000-8000-000000000006"
+        },
+        "state": "available",
+        "impact": {
+          "unknown": true,
+          "truncated": false,
+          "knownCount": 7,
+          "references": [
+            {
+              "id": "e3010000-0000-4000-8000-000000000004",
+              "href": "/dashboard/playlists/e3010000-0000-4000-8000-000000000004",
+              "kind": "publication",
+              "name": "Season playlist A",
+              "state": "draft_playlist",
+              "confirmedVersionId": null
+            },
+            {
+              "id": "e3010000-0000-4000-8000-000000000005",
+              "href": "/dashboard/playlists/e3010000-0000-4000-8000-000000000005",
+              "kind": "publication",
+              "name": "Season playlist B",
+              "state": "draft_playlist",
+              "confirmedVersionId": null
+            },
+            {
+              "id": "e3010000-0000-4000-8000-000000000006",
+              "href": "/dashboard/publications/e3010000-0000-4000-8000-000000000006",
+              "kind": "publication",
+              "name": "Season playlist A \u00b7 v1",
+              "state": "immutable_release",
+              "confirmedVersionId": null
+            },
+            {
+              "id": "fa53a1ad-f7d4-44a4-9215-4f670931e6d0",
+              "href": "/dashboard/planning",
+              "kind": "schedule",
+              "name": "Future recurring source",
+              "state": "recurring_schedule",
+              "confirmedVersionId": null
+            },
+            {
+              "id": "e3010000-0000-4000-8000-000000000007",
+              "href": "/dashboard/screens/e3010000-0000-4000-8000-000000000007",
+              "kind": "screen",
+              "name": "Season screen",
+              "state": "desired_publication",
+              "confirmedVersionId": null
+            },
+            {
+              "id": "e3010000-0000-4000-8000-000000000008:main",
+              "href": "/dashboard/screens/e3010000-0000-4000-8000-000000000007",
+              "kind": "zone",
+              "name": "Season screen \u00b7 main",
+              "state": "configured_zone",
+              "confirmedVersionId": null
+            },
+            {
+              "id": "e3010000-0000-4000-8000-000000000008:side",
+              "href": "/dashboard/screens/e3010000-0000-4000-8000-000000000007",
+              "kind": "zone",
+              "name": "Season screen \u00b7 side",
+              "state": "configured_zone",
+              "confirmedVersionId": null
+            }
+          ]
+        },
+        "reason": "Dezelfde stabiele teamidentiteit heeft \u00e9\u00e9n aantoonbaar passende context. Bevestig het voorstel expliciet.",
+        "bindings": [
+          {
+            "candidates": [
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "same_team_identity",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "1aacca53b8246276bd544bdcd77f8b56e9badcc2052efa7f2ea78acb06fceae3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "-1",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2cb3c4983e51f48c1faa1af394657ddd19e2fb04694c4076a9e2c2582e2488c3",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              },
+              {
+                "label": "Same visible name \u00b7 League \u00b7 new-phase \u00b7 New pool \u00b7 2026",
+                "reason": "explicit_choice",
+                "context": {
+                  "poolId": "801",
+                  "phaseId": "new-phase",
+                  "seasonId": "2026",
+                  "competitionId": "new-league",
+                  "providerTeamId": "own-team-2",
+                  "competitionSelectionMode": "pinned"
+                },
+                "poolName": "New pool",
+                "teamName": "Same visible name",
+                "phaseName": "new-phase",
+                "candidateId": "2d98a0213992f1cfd1bc85f236cc42bebaf1fd0893ef0bc8c309329c4ffaabf2",
+                "qualifications": {
+                  "level": "2",
+                  "discipline": "field",
+                  "competitionType": "league"
+                },
+                "competitionName": "League"
+              }
+            ],
+            "candidateCount": 3,
+            "currentContext": {
+              "poolId": "701",
+              "phaseId": "old-phase",
+              "seasonId": "2025",
+              "competitionId": "old-league",
+              "providerTeamId": "own-team",
+              "competitionSelectionMode": "pinned"
+            },
+            "fromProviderTeamId": "own-team",
+            "candidatesTruncated": false
+          }
+        ],
+        "canUpdate": true,
+        "resourceId": "fc1eacb6-4881-422c-b0ed-3f2bbd9ddd19",
+        "contextHash": "15e564392fa7a7b638f6c96865ee8d805aa3c47ae46c9fc18e76b4b0eb2d6935",
+        "resourceKind": "dynamic_slide",
+        "basisVersionId": "644aae20-18ff-407d-a279-597d0334e5d9",
+        "draftVersionId": null,
+        "oldBindingHash": "4ac5e707e9d2a54b9b6d47be412be67b4c9daabd709c813852d8997052862f23",
+        "expectedRevision": 0
+      },
+      {
+        "name": "Broad",
+        "links": {
+          "edit": "/dashboard/slides/e8d16214-8880-45e8-851c-124b976c4d9e/edit",
+          "publish": null,
+          "restore": null
+        },
+        "state": "broad_unchanged",
+        "impact": {
+          "unknown": true,
+          "truncated": false,
+          "knownCount": 0,
+          "references": []
+        },
+        "reason": "Deze bewuste selectie van alle teams en contexten heeft geen expliciete seizoenskoppeling.",
+        "bindings": [],
+        "canUpdate": false,
+        "resourceId": "e8d16214-8880-45e8-851c-124b976c4d9e",
+        "contextHash": "036b74db7b06477f3d2e8cfbdbc8a1b3b2c7c4881324917f0af7248c19f488dc",
+        "resourceKind": "dynamic_slide",
+        "basisVersionId": "50c48883-181a-4b10-9f49-09e8a2613112",
+        "draftVersionId": null,
+        "oldBindingHash": "5ed8ff624e1286e7facdb9b411a8ccc852963b4418962ee5401e1d082cbc4689",
+        "expectedRevision": 0
+      }
+    ],
+    "seasons": [
+      {
+        "id": "2025",
+        "label": "2025"
+      },
+      {
+        "id": "2026",
+        "label": "2026"
+      }
+    ],
+    "connection": {
+      "id": "bccc1a87-0032-4e7d-a5a6-8ee99a302b8c",
+      "name": "Source A",
+      "sourceId": "cc68ac24-a2a2-4992-b466-290656d6c3e9",
+      "timeZone": "Europe/Amsterdam"
+    },
+    "nextCursor": null,
+    "totalCount": 4,
+    "integration": {
+      "matchdayRunbooks": "unavailable"
+    },
+    "sourceHealth": {
+      "state": "ready",
+      "reasons": [
+        "Wedstrijddag-draaiboekintegratie is nog niet beschikbaar; de inventaris is daarvoor niet volledig."
+      ],
+      "coverageKnown": false,
+      "observedThrough": "2026-11-17T13:04:30.507739+00:00",
+      "matchesLastSuccessAt": "2026-11-09T13:04:30.507739+00:00",
+      "competitionsLastSuccessAt": "2026-11-09T13:04:30.507739+00:00"
+    },
+    "schemaVersion": 1,
+    "targetSeasonId": "2026"
+  }
+}

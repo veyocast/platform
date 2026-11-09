@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "task": "S301",
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "dependency": "S296 framehelper; root integrates exact final dependency before push/PR; no sibling migration duplication",
+  "scope": "local isolated SQL/RPC + real controlled Control component/browser; no hosted candidate or hardware claim",
+  "gates": {
+    "workspaceLint": {
+      "tasksPassed": 30,
+      "tasksTotal": 30
+    },
+    "workspaceTypecheck": {
+      "tasksPassed": 30,
+      "tasksTotal": 30
+    },
+    "workspaceTest": {
+      "initialFullRun": {
+        "tasksPassed": 29,
+        "tasksTotal": 30,
+        "controlFailures": 6,
+        "reason": "unchanged login/raster/renderer timing under parallel host load"
+      },
+      "finalFullControl": {
+        "filesPassed": 184,
+        "testsPassed": 2085,
+        "explicitExistingSkipped": 34,
+        "seconds": 38.31,
+        "workers": 2,
+        "assertionsOrTimeoutsChanged": false
+      },
+      "remainingWorkspaceTasksPassed": 29
+    },
+    "browserStrictTypes": "passed",
+    "browserScopedLint": "passed",
+    "productionControlBuild": {
+      "buildId": "6KeQDXzkqK5_aLBTNyqMn",
+      "buildLogSha256": "075367283460c70f6d02047e5f1a8cbf232eca658dd89e84d0c99ab324750edd",
+      "buildManifestSha256": "27686b6607e0660459abd98af2bfc45715ae564cf2be9e1fb7963d3e57f90a70",
+      "scope": "S301 source before final impact-state label translation; no hosted deployment",
+      "outputRetired": true
+    },
+    "gitDiffCheck": "passed"
+  },
+  "browsers": {
+    "plannedUniqueCases": 13,
+    "fullRun": {
+      "passed": 12,
+      "failed": 1,
+      "seconds": 96,
+      "failure": "page.goto waiting for load on quota fixture; DOM rendered; no product assertion failure"
+    },
+    "actualRpcCase": "passed: exact captured inventory/selection/empty canonical preview rendered; controlled transport, no write",
+    "viewports": [
+      320,
+      1440
+    ],
+    "axe": "passed both viewports",
+    "keyboard": "passed league/cup explicit selection",
+    "exactQuotaRepair": {
+      "passed": 1,
+      "seconds": 2.6,
+      "sameProductSource": true,
+      "sameAssertionsAndTimeout": true
+    },
+    "uniqueCasesClosed": 13
+  },
+  "database": {
+    "proof": "database-proof.json",
+    "migrations": 217,
+    "filesPassed": 153,
+    "assertionsPassed": 5154,
+    "seconds": 124,
+    "focusedAssertionsPassed": 90,
+    "lintErrors": 0,
+    "securityErrors": 0,
+    "actualRpcCapture": {
+      "fixture": "tests/fixtures/s301-season-rpc.json",
+      "sha256": "935e95fea360a55b59c6d71a40eed10bb66be60018caa25c50dfc44aeedb8cad",
+      "strictDtosPassed": 6,
+      "transaction": "rolled back"
+    }
+  },
+  "limits": [
+    "INT09/10 hosted candidate acceptance remains root release workflow",
+    "No real Sportlink provider observations or requests",
+    "S300 runbook adapter unavailable until its following migration",
+    "Embedded dependency knowledge and truncated pages remain explicit unknown",
+    "Controlled synthetic device/frame telemetry, no physical Android/LG/hardware verification"
+  ],
+  "screenshots": [
+    {
+      "path": "screenshots/season-switch-1440.png",
+      "sha256": "85ef9eea26ef3909fb8723e3655a2c823855a1fe24308786039a34128efc6948",
+      "environment": "real Control component/CSS, controlled action/navigation fixture"
+    },
+    {
+      "path": "screenshots/season-switch-320.png",
+      "sha256": "b838389ef9e4212d182499f3515a541c42650a9d92a62af67e19a3b1c88f7312",
+      "environment": "real Control component/CSS, controlled action/navigation fixture"
+    }
+  ],
+  "logCertificates": [
+    {
+      "name": "s301-workspace-lint-closed.log",
+      "sha256": "52048b80f2dbfc3beebb0a4386afa2ebeb6c96066df458334d980577bb697c0a"
+    },
+    {
+      "name": "s301-workspace-types-closed.log",
+      "sha256": "ac85c02780033b0e82f430e0d0cfab75c40e4b0064cb6e87b085e5dfdac9e196"
+    },
+    {
+      "name": "s301-workspace-tests-closed.log",
+      "sha256": "9237584904ccbb4ceede4427cfdd95bb4715a53dc7778a1af605c3c62af7bb1c"
+    },
+    {
+      "name": "s301-control-tests-bounded-final.log",
+      "sha256": "fa09edca33b083d0b42a7d4b58fa84cdd7e6148d53d999fe665eb3c0c9b860c5"
+    },
+    {
+      "name": "s301-browser-closed.log",
+      "sha256": "f20eb6655a531a3879b89f464b8687f802a297515ecb0848fe8da0a47cba5101"
+    },
+    {
+      "name": "s301-browser-types-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s301-browser-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s301-control-build.log",
+      "sha256": "075367283460c70f6d02047e5f1a8cbf232eca658dd89e84d0c99ab324750edd"
+    },
+    {
+      "name": "s301-actual-rpc-validation-final.log",
+      "sha256": "43c60d7291d5fc82288e419814cec0492d9c844c6e1f33b8a5e77473ba63fde1"
+    },
+    {
+      "name": "s301-browser-quota-repair-final.log",
+      "sha256": "30b7550112ab07fbc67c6ff3558f3ef70d4ab6ae1bba77bdcb276c65b842c056"
+    }
+  ]
+}

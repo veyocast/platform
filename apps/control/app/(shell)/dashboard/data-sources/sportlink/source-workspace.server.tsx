@@ -67,6 +67,11 @@ export function SportlinkSourceWorkspace({ data, canManage, timezoneName, params
     ]} />}
     {connection ? <section className="workspace-section">
       <div className={styles.card}><div className={styles.cardBody}>
+        <h2>Seizoenswissel</h2>
+        <p>Controleer bestaande team-, competitie- en poulekoppelingen en hun gebruik. Alleen expliciet gekozen concepten worden bijgewerkt; publicaties blijven behouden.</p>
+        <Button asChild variant="secondary"><Link href={`/dashboard/sources/sportlink/season-switch?connectionId=${connection.id}`}>Koppelingen en impact controleren</Link></Button>
+      </div></div>
+      <div className={styles.card}><div className={styles.cardBody}>
         <div className={styles.cardTop}><Database aria-hidden="true" />
           <StatusPill label={connectionHealth.kind === "ready" ? "Actief" : connectionHealth.label}
             tone={connectionHealth.tone} /></div>

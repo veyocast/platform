@@ -1,5 +1,8 @@
 # VeyoCast MVP Plan
 
+S301: uitvoering van fase D uit de overdracht van 9 november 2026: seizoensinventaris, gecontroleerde mappings en alleen conceptwijzigingen via bestaande authoring- en CAS-contracten. Geen wijziging van bestaande Duindorp-planningen.
+
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en
