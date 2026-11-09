@@ -45,8 +45,8 @@ test("renders the Sync shell with role-aware navigation", async ({ page }) => {
   await page.setViewportSize({height: 900, width: 1024});
   await page.getByLabel("Control navigatie").getByRole("button", {name: "Beheer", exact: true}).click();
   const management = page.getByRole("dialog", {name: "Beheer je werkplek", exact: true});
-  await expect(management.getByRole("link", {name: "Media", exact: true})).toHaveAttribute("href", "/dashboard/media");
-  await expect(management.getByRole("link", {name: "Menu Studio", exact: true})).toHaveAttribute("href", "/dashboard/slides/menu-studio");
+  await expect(management.getByRole("link", {name: "Media", exact: true})).toHaveCount(0);
+  await expect(management.getByRole("link", {name: "Menu Studio", exact: true})).toHaveCount(0);
   await expect(management.getByRole("link", {name: "Publicaties", exact: true})).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(management).not.toBeVisible();
@@ -74,7 +74,8 @@ test("renders the Sync shell with role-aware navigation", async ({ page }) => {
 
   await follow(page, () => nav.getByRole("link", {name: "Content", exact: true}), /\/dashboard\/content$/);
   await expect(page.getByRole("heading", {exact: true, level: 1, name: "Contentbibliotheek"})).toBeVisible();
-  await openFromCommand(page, "Media", /\/dashboard\/media$/);
+  await follow(page, () => page.getByRole("link", {name: "Mappen, tags en mediaverwerking", exact: true}), /\/dashboard\/media$/);
+  await expect(nav.getByRole("link", { name: "Content", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("heading", {exact: true, level: 1, name: "Media"})).toBeVisible();
   await page.getByText("Upload- en verwerkingsregels", {exact: true}).click();
   await expect(page.getByText("Private bucket: tenant-media")).toBeVisible();

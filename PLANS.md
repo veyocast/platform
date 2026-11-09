@@ -547,3 +547,5 @@ Playergevallen groen; precieze nieuwe bron-SHA en normale CI blijven de
 releasegrens. Zie het eigen CI-barrièrebewijs.
 
 S301 integreert de gereviewde S296/S298-vervolgbronnen. De concrete normale Player-CI-inconsistentie gebruikt nu dezelfde echte origintracker bij alle complete playbackcommits;18 gerichte verbindingstests en30foundationtaken groen, nieuwe volledigeCI volgt.
+
+S297 brede-CI-vervolg behoudt de geavanceerde Studio bij filters wissen, sluit dertien concrete Control-regressies en een echte LG-pageshowrace. Laatste lokale34Controlgevallen en2LGgevallen groen, alle30foundationtaken groen; normale exacte-head-CI en hosted acceptatie blijven vereist.

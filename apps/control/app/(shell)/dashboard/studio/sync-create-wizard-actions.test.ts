@@ -4,6 +4,7 @@ import { syncDynamicConfigurationSchema, type SyncDynamicRequest } from "@veyoca
 
 const mocks = vi.hoisted(() => ({ session: vi.fn(), client: vi.fn(), manual: vi.fn(), dynamic: vi.fn(), preview: vi.fn(), options: vi.fn() }));
 vi.mock("../../../../lib/control-session", () => ({ requireTenantControlSession: mocks.session }));
+vi.mock("../content/content-access.server", () => ({ requireContentSession: mocks.session }));
 vi.mock("../../../../lib/supabase/server", () => ({ createControlSupabaseClient: mocks.client }));
 vi.mock("./sync-studio-actions", () => ({ createSyncStudioProjectAction: mocks.manual }));
 vi.mock("../slides/sync-dynamic-actions", () => ({ mutateSyncDynamicAuthoringAction: mocks.dynamic, previewSyncDynamicAuthoringAction: mocks.preview }));

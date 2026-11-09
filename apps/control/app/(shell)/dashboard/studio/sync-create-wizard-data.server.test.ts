@@ -4,6 +4,7 @@ import type { SyncContentFamily } from "@veyocast/contracts";
 const mocks = vi.hoisted(() => ({ session: vi.fn(), client: vi.fn(), media: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("../../../../lib/control-session", () => ({ requireTenantControlSession: mocks.session }));
+vi.mock("../content/content-access.server", () => ({ requireContentSession: mocks.session }));
 vi.mock("../../../../lib/supabase/server", () => ({ createControlSupabaseClient: mocks.client }));
 vi.mock("./data", () => ({ loadStudioMediaAssets: mocks.media }));
 import { loadSyncCreateWizardData } from "./sync-create-wizard-data.server";

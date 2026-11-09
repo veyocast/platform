@@ -1048,6 +1048,51 @@ test("LG Legacy Player gebruikt een statische shell en lokale afbeelding", async
   expect(requestedUrls.some((url) => url.includes("/_next/"))).toBe(false);
 });
 
+test("LG boot keeps a delayed first manifest in flight through initial pageshow and revalidates BFCache recovery", async ({ page }) => {
+  let firstStarted!: () => void, releaseFirst!: () => void, releaseFonts!: () => void;
+  const firstManifest = new Promise<void>(resolve => { firstStarted = resolve; });
+  const manifestGate = new Promise<void>(resolve => { releaseFirst = resolve; });
+  const fontGate = new Promise<void>(resolve => { releaseFonts = resolve; });
+  const etags: Array<string | undefined> = [];
+  await mockLegacyApis(page);
+  await page.route("**/fonts/**", async route => { await fontGate; await route.continue(); });
+  await page.route("**/api/player/manifest*", async route => {
+    etags.push(route.request().headers()["if-none-match"]);
+    if (etags.length === 1) { firstStarted(); await manifestGate; }
+    await route.fallback();
+  });
+  await page.addInitScript(({ credential, token }) => {
+    localStorage.setItem("veyocast.player.deviceToken", token);
+    localStorage.setItem("veyocast.player.installationCredential", credential);
+    window.addEventListener("pageshow", event => {
+      document.documentElement.dataset.initialLgPageshow = String(event.persisted);
+    });
+  }, { credential: installationCredential, token: deviceToken });
+  try {
+    await page.goto(`${playerURL}/lg/legacy`, { waitUntil: "domcontentloaded" });
+    await firstManifest;
+    releaseFonts();
+    await expect(page.locator("html")).toHaveAttribute("data-initial-lg-pageshow", "false");
+    // The real initial pageshow must leave boot's outstanding authorized read
+    // intact; no ETag exists until that first complete response is accepted.
+    await page.waitForTimeout(100);
+    expect(etags).toEqual([undefined]);
+    releaseFirst();
+    const image = page.locator("#media-root > img");
+    await expect(image).toBeVisible();
+    expect(etags).toEqual([undefined]);
+    await image.evaluate(element => element.setAttribute("data-playback-instance", "kept"));
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+    await expect.poll(() => etags.length).toBe(2);
+    expect(etags[1]).toBe('"release-release-legacy"');
+    await expect(image).toHaveAttribute("data-playback-instance", "kept");
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await expect.poll(() => etags.length).toBe(3);
+    expect(etags[2]).toBe('"release-release-legacy"');
+    await expect(image).toHaveAttribute("data-playback-instance", "kept");
+  } finally { releaseFirst(); releaseFonts(); }
+});
+
 test("LG Legacy Player toont een Goal Alert en bevestigt de weergave per scherm", async ({
   page
 }) => {
