@@ -155,3 +155,9 @@ Herstel is een applicatierollback via de normale immutable releaseflow. De
 metadataread is read-only en kan zonder contentrewrite aanwezig blijven. Root
 voert onafhankelijke review, CI, exacte staging-/productiepromotie en readback
 uit onder de reeds gegeven gebruikersvrijgave; deze branch deployt niets.
+
+## Brede CI-herstelcontrole
+
+De Controlgate op `2e8dda5526f1d94cb3d5b40be1fa700fffd7cc2c` vond drie oudere STATE-fixtures en één wizardhoogte. De fixtures koppelden de gewenste nieuwe publicatie alleen aan het device, terwijl het scherm expliciet de oude versie aanwees. Ze leveren nu de echte nieuwe schermtoewijzing en een passend gedateerd frame van de vorige versie. Contact Online, voorbereiding en historisch offlinebewijs worden afzonderlijk gecontroleerd; er wordt geen nieuwe zichtbare bevestiging verondersteld. De oorspronkelijke STATE-ID’s blijven behouden.
+
+De wizardfooter had al een bedoelde48px-regel, maar de beheershell won met haar44px-regel. De eigen selector gebruikt nu het bestaande touch-heighttoken met voldoende specificiteit. Globale CSS, referenties, assertions en grenswaarden zijn niet verruimd. Beide smalle/brede wizardcases en de drie schermgevallen slagen; de volledige twee betrokken specs slagen40/40 zonder retries/skips. Daarna slagen lint/typecheck/test ieder30/30; Control2.075 PASS en34 bestaande skips. Zie [CI-herstelbewijs](implementation/s296-screen-status/ci-regression-evidence.json). De finale normale CI bouwt de gewijzigde bron opnieuw; dit aanvullende bewijs is geen hosted of fysiek apparaatbewijs.
