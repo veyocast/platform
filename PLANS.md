@@ -1,5 +1,7 @@
 # VeyoCast MVP Plan
 
+S299 levert volledige geautoriseerde sponsortotalen en veilige exports, onafhankelijk van de lengte van het detailoverzicht. Bestaande events en campagnes blijven behouden; normale staging- en productiepromotie zijn expliciet gevraagd.
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en

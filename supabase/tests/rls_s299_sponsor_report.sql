@@ -235,4 +235,3 @@ select is((public.get_sponsor_report_v1('10000000-0000-4000-8000-000000001151',c
 
 select * from finish();
 rollback;
-

@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 1,
+  "status": "LOCAL_GATES_PASS_CI_AND_HOSTED_PENDING",
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "testedSourceCommit": "609ec6fa755e8f50520babc4f73ac9a28029a606",
+  "scope": "S299 complete sponsor reporting; consolidated isolated SQL also includes frozen S296 and S298 migrations",
+  "foundation": {
+    "lint": {
+      "passed": 30,
+      "total": 30,
+      "seconds": 10.255
+    },
+    "typecheck": {
+      "passed": 30,
+      "total": 30,
+      "seconds": 4.273
+    },
+    "test": {
+      "passed": 30,
+      "total": 30,
+      "seconds": 20.046,
+      "controlTestsPassed": 2119,
+      "controlExistingSkipped": 34
+    }
+  },
+  "units": {
+    "sponsor": 63,
+    "contracts": 207,
+    "scopedLintErrors": 0,
+    "scopedTypeErrors": 0
+  },
+  "database": {
+    "host": "127.0.0.1",
+    "port": 64432,
+    "freshReset": true,
+    "testFiles": 152,
+    "assertions": 5064,
+    "seconds": 121,
+    "result": "PASS",
+    "focused": {
+      "S296": 31,
+      "S298": 39,
+      "S299": 57
+    },
+    "lintErrorCount": 0,
+    "securityAdvisorErrorCount": 0,
+    "isolatedConfig": "/tmp/veyocast-s296-s298-s299-final/supabase/config.toml",
+    "network": "supabase_network_veyocast-s291",
+    "migrationInputs": [
+      {
+        "file": "/home/codex/repos/veyocast-s296-status/supabase/migrations/20261109120358_s296_screen_source_status.sql",
+        "sha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33"
+      },
+      {
+        "file": "/home/codex/repos/veyocast-s296-status/supabase/tests/rls_s296_screen_source_status.sql",
+        "sha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62"
+      },
+      {
+        "file": "/home/codex/repos/veyocast-s298-planning/supabase/migrations/20261109114134_s298_effective_planning_preview.sql",
+        "sha256": "f10042bf98195366a92bb679b717a4addaf8b5d30301c7a8f41deb4c6c27bf1e"
+      },
+      {
+        "file": "/home/codex/repos/veyocast-s298-planning/supabase/tests/s298_effective_planning.sql",
+        "sha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b"
+      },
+      {
+        "file": "/home/codex/repos/veyocast-s299-sponsors/supabase/migrations/20261109113947_s299_sponsor_report_totals.sql",
+        "sha256": "580fd11200ff9429c231fe07ed5661a9b86ed9adfff4992162b7a7b7624ae487"
+      }
+    ],
+    "reproduce": [
+      "Create an isolated Supabase workdir by copying supabase/config.toml and assembling the exact base plus S296/S298/S299 migration and test files into its supabase/migrations and supabase/tests; use the existing isolated project_id and database port64432 only.",
+      "pnpm exec supabase --workdir /tmp/veyocast-s296-s298-s299-final --network-id supabase_network_veyocast-s291 db reset",
+      "PGPASSWORD=postgres psql -h 127.0.0.1 -p 64432 -U postgres -d postgres -v ON_ERROR_STOP=1 -c 'create extension if not exists pgtap with schema extensions'",
+      "docker run --rm --network host -e PGPASSWORD=postgres -v /tmp/veyocast-s296-s298-s299-final:/repo:ro public.ecr.aws/supabase/pg_prove:3.36 pg_prove --host 127.0.0.1 --port 64432 --username postgres --dbname postgres --ext .sql --recurse /repo/supabase/tests",
+      "pnpm exec supabase --workdir /tmp/veyocast-s296-s298-s299-final --network-id supabase_network_veyocast-s291 db lint --local --schema public,private --level error --fail-on error",
+      "pnpm exec supabase --workdir /tmp/veyocast-s296-s298-s299-final --network-id supabase_network_veyocast-s291 db advisors --local --type security --level error --fail-on error"
+    ]
+  },
+  "browser": {
+    "passed": 15,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "seconds": 42.016681,
+    "workers": 1,
+    "viewports": [
+      390,
+      1440
+    ],
+    "axeViolations": 0,
+    "transport": "controlled HTTP; real page/loader/contract/view/CSS; captured real rollback-database RPC answers; session and other Hub reads controlled",
+    "command": "PLAYWRIGHT_APPS=control PLAYWRIGHT_EXTERNAL_SERVERS=1 PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/s299-browser-linked-final-report.json pnpm exec playwright test tests/control/s299-sponsor-report.spec.ts tests/control/sync-sponsor-workspace.spec.ts --project=chromium --workers=1 --reporter=line,json --output=/tmp/s299-browser-linked-final-artifacts"
+  },
+  "actualDatabaseReport": {
+    "acceptedEvents": "5501",
+    "playedMs": "5509251",
+    "asOf": "2026-11-09T12:14:39.833499+00:00",
+    "csvSha256": "1a7f868c4fd90a066f912df57dcce905bca96ba3c75532b348723a8d61ae34d5",
+    "fixtureSha256": "7e233864be5a1c917e29465c2f04f3a7cc2e1f1d056549d8f847ef801a0e0f3b",
+    "sourceProof": "database-proof.json"
+  },
+  "screenshots": {
+    "s299-report-390.png": "08340b3b161b6b3af3250347844571a7a2ffb5f5e7fac9b3427f501e0932f904",
+    "s299-report-1440.png": "127d878ae3b905b9dbfa0fd204b8661f985359cae8ad7f04f4990bd80a0b236b"
+  },
+  "sourceAndTestSha256": {
+    "apps/control/app/(shell)/dashboard/sponsors/actions.ts": "cd94c2edf1ed4437f97ef7732e96deb11673d8b03a16cf1da911df059fe88a7f",
+    "apps/control/app/(shell)/dashboard/sponsors/data.ts": "ab29acfcfdcf11f8fa72a8f916cd504f55a2ff6bae4cba739808e0addaf56127",
+    "apps/control/app/(shell)/dashboard/sponsors/page.tsx": "16b9a96baaa597ed0053be9ac0e8537384ab8b04e75a2eb259663a678e4ef618",
+    "apps/control/app/(shell)/dashboard/sponsors/sponsor-hub.module.css": "4193608edac064b260a636fc868d0d7acbd8356ec2876273a070541b26d8bd2c",
+    "apps/control/app/(shell)/dashboard/sponsors/sponsor-report-actions.test.ts": "fa4ccb08658341520cd371b3c6d04df0a33f2c16fddac890ed0d2ade29a4d365",
+    "apps/control/app/(shell)/dashboard/sponsors/sponsor-report-data.test.ts": "63968c5ee350519f0b3cad87653927f0a248009d54672149f446a1a5a1968e97",
+    "apps/control/app/(shell)/dashboard/sponsors/sponsor-report-data.ts": "c51b5bea756e9ce759fcbc37f678149afe38e0b3a43520feaf64e8ad9d281b67",
+    "apps/control/app/(shell)/dashboard/sponsors/sponsor-report-view.tsx": "deba4f211edeb12276e41be823a167502c4b285f8983a8affb9ba2e7aa6e30c8",
+    "apps/control/app/(shell)/dashboard/sponsors/sponsor-report.test.ts": "b31e87319b718f59ca58b19a450d517d93b5cc34d38852747e7128a2cf401194",
+    "apps/control/app/(shell)/dashboard/sponsors/sponsor-report.ts": "7467cac7e0d78c2295a8b8f27dba734d3e9f027db90d78dd83fd1514924ded87",
+    "apps/control/app/(shell)/dashboard/sponsors/sync-sponsor-workspace.tsx": "a5c26e3ca5818aa2d6a4fbee506f27ebe6af8e4fe462d0936ccead1ca4d04a25",
+    "apps/control/app/api/sponsors/report/export/route.test.ts": "a7a5fbdd3eeead95428ea7012128b56472cf1dc9dbe358926c53166f6ba71469",
+    "apps/control/app/api/sponsors/report/export/route.ts": "73ea24410a35f5e71e1f8a3a47f5e3b46a2e305caa5219edef33f66bbb686cb0",
+    "docs/implementation/s299-sponsor-report/probe.mts": "e37f69acc65aa9e0978ec8e9acf59f2c1acb696fad64042d669c8b29a1cb9d91",
+    "packages/contracts/src/sponsor.ts": "562bc18864463eaab657757053b55ae474004c3d30f4e360e85f1a5c931d9ccf",
+    "prompts/sprints/S299-sponsorrapportage.md": "5dde4387f040b98c419d8faa149c05a01bdd5f6953843181f75b7f44a822f871",
+    "supabase/migrations/20261109113947_s299_sponsor_report_totals.sql": "580fd11200ff9429c231fe07ed5661a9b86ed9adfff4992162b7a7b7624ae487",
+    "supabase/tests/rls_s299_sponsor_report.sql": "45d4780539850050dae333805de9ff06989674a1f749e5606d4855f669bbd2e1",
+    "tests/control/s299-sponsor-report.spec.ts": "ad639db2f7d46c1f6eab3f81571be9a3254d5937961f0657164f603d54500039",
+    "tests/control/sync-sponsor-workspace.spec.ts": "d45d1453dc94191f3e19862629440560b04971985ea8ea1b70d5ecd521857bc2",
+    "tests/fixtures/s299-sponsor-report-source.json": "7e233864be5a1c917e29465c2f04f3a7cc2e1f1d056549d8f847ef801a0e0f3b",
+    "tests/fixtures/s299-sponsor-report.json": "554ebac8cb7e3439962efbf200da48c2b030711c0b287fc8853b2530a3ea8e98"
+  },
+  "localLogs": {
+    "reset": {
+      "path": "/tmp/s296-s298-s299-final-reset.log",
+      "sha256": "519f170f31348f796b55054ad02ad2f992d7bbc174006df45d15181d3e8b1cf6"
+    },
+    "pgtapBootstrap": {
+      "path": "/tmp/s296-s298-s299-final-pgtap-bootstrap.log",
+      "sha256": "a61b04e63cc9b9d6e42c085b9ae0f9c64878921ba41e60b4cdf4656345f593e6"
+    },
+    "rls": {
+      "path": "/tmp/s296-s298-s299-final-rls.log",
+      "sha256": "8b746afe4dd44015278fa60d21eac0a4e0be35f2e382a8a662a97cf3bfd59817"
+    },
+    "dbLint": {
+      "path": "/tmp/s296-s298-s299-final-db-lint.log",
+      "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+    },
+    "dbSecurityAdvisors": {
+      "path": "/tmp/s296-s298-s299-final-db-advisors.log",
+      "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+    },
+    "workspaceLint": {
+      "path": "/tmp/s299-workspace-lint-final.log",
+      "sha256": "f48c0d70b2de8f860d6c6f122699dc028d1606a214b60939618faf92fd02f0ce"
+    },
+    "workspaceTypecheck": {
+      "path": "/tmp/s299-workspace-typecheck-final.log",
+      "sha256": "83e96ccea5c0b51b247abf2d1e496e1a509004e88c6bd6e990ddb4f00e452196"
+    },
+    "workspaceTest": {
+      "path": "/tmp/s299-workspace-test-final.log",
+      "sha256": "7603405effe3e5270659cecd6ff6933b086cf1c95670bc8b9f75b253967ed8ee"
+    },
+    "sponsorUnits": {
+      "path": "/tmp/s299-sponsor-units-permissions.log",
+      "sha256": "4845b15340b6069f28fd78f5d8e918ac6f4cbeca445868accfc59f6c07089e8f"
+    },
+    "contracts": {
+      "path": "/tmp/s299-contracts-tests.log",
+      "sha256": "55028d56b502d9afd69fd7cb8e46042c20fa333d7969f7b9573e143aa216f2a1"
+    },
+    "scopedLint": {
+      "path": "/tmp/s299-scoped-eslint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scopedTypecheck": {
+      "path": "/tmp/s299-scoped-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "browser": {
+      "path": "/tmp/s299-browser-linked-final.log",
+      "sha256": "0185fa94dd3d607878846cc6f7cccbad5a1986181b71651cd634a43ce93b8fba"
+    },
+    "browserJson": {
+      "path": "/tmp/s299-browser-linked-final-report.json",
+      "sha256": "5150dc3129f95b72999a7ecb636cc88e1cb760ca3b69aa1055efd7e8414b94b2"
+    },
+    "actualDatabaseProbe": {
+      "path": "/tmp/s299-database-probe-final.log",
+      "sha256": "194489337dd3d672df858b1703b04bdc324530f71f2dcbe88ff4408b19390aa6"
+    },
+    "initialBrowserFixtureFailure": {
+      "path": "/tmp/s299-browser.log",
+      "sha256": "138b4541d159cff2f1bb0bf9c3d8fa70d72ddc325fcea3cfcfb3cbeed483d2f5"
+    },
+    "initialPgTapBootstrapFailure": {
+      "path": "/tmp/s299-full-rls.log",
+      "sha256": "8e75d8933139d04f44bf3681326e34ebd3a242f60896d4c8d1bc03f090cec374"
+    },
+    "focusedAfterWhitespace": {
+      "path": "/tmp/s299-focused-final-whitespace.log",
+      "sha256": "2680401fa8f77f9eb55ab0ffc1bf8529befad37acb02cfda1e1ab24de96fdbcb"
+    }
+  },
+  "initialFailures": [
+    {
+      "kind": "fixture",
+      "result": "14 PASS / 1 FAIL",
+      "cause": "Same controlled fixture URL was reused after role change; navigating through about:blank reloads it. Product assertions and deadlines unchanged.",
+      "log": "/tmp/s299-browser.log"
+    },
+    {
+      "kind": "database-harness",
+      "cause": "Three old SQL files expected a persistent pgTAP extension. Fresh final reset explicitly bootstraps it; no product assertion failure was hidden.",
+      "log": "/tmp/s299-full-rls.log"
+    }
+  ],
+  "remaining": [
+    "Normal CI build and broad browser gates",
+    "Hosted staging and production promotion/readback by root",
+    "No physical device telemetry completeness established",
+    "No QR measurement source or historical screen-group membership",
+    "Receipt cutoff does not freeze mutable campaign/screen names or explicit goals"
+  ],
+  "tools": {
+    "node": "24.18.0",
+    "pnpm": "11.5.2",
+    "supabaseCli": "2.109.1",
+    "pgProveImage": "public.ecr.aws/supabase/pg_prove:3.36"
+  },
+  "secrets": "No provider credentials, auth tokens or real device/customer telemetry in committed evidence; postgres/postgres is the isolated local test database only.",
+  "postValidationChanges": [
+    {
+      "file": "supabase/tests/rls_s299_sponsor_report.sql",
+      "change": "Remove one extra empty EOF line only; all SQL statements/assertions unchanged. Focused57 assertions rerun PASS.",
+      "sha256": "be7f435861782f5116ada7d91dd927646be1c35781ce719cab2f723f33695996"
+    }
+  ]
+}
