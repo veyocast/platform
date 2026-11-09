@@ -8,6 +8,7 @@ import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { loadSyncSportlinkOptions } from "../slides/sync-sportlink-data";
 import { mutateSyncDynamicAuthoringAction, previewSyncDynamicAuthoringAction } from "../slides/sync-dynamic-actions";
 import type { SyncDynamicRequest } from "../slides/sync-dynamic-command";
+import { requireContentSession } from "../content/content-access.server";
 import { createSyncStudioProjectAction } from "./sync-studio-actions";
 import type { SyncCreateWizardCommand, SyncCreateWizardResult } from "./sync-create-wizard-types";
 
@@ -15,7 +16,7 @@ const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const denied = "Je account, vereniging of rechten zijn gewijzigd. Je invoer is behouden; open de wizard opnieuw binnen het juiste account.";
 
 export async function createSyncDesignWizardAction(input: SyncCreateWizardCommand, expectedActorScope: string): Promise<SyncCreateWizardResult> {
-  const session = await requireTenantControlSession();
+  const session = await requireContentSession(true);
   if (!session.isLive || !session.tenantId || !session.userId || session.tenantStatus !== "active" || expectedActorScope !== `${session.tenantId}:${session.userId}`) return { ok: false, rejected: true, error: denied };
   if (!input || typeof input !== "object" || Array.isArray(input)) return { ok: false, rejected: true, error: "De oorspronkelijke opdracht is niet geldig. Je invoer blijft behouden; controleer de wizard." };
   let writerStarted = false;

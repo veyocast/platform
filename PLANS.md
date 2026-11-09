@@ -1,5 +1,7 @@
 # VeyoCast MVP Plan
 
+S297 maakt Content de gedeelde ingang voor bibliotheek en sjabloonkiezer, met behoud van specialistische editors, bestaande IDs en oude detailroutes. De overdracht van 9 november 2026 autoriseert de normale staging- en productiepromotie.
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en

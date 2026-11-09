@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "task": "S297",
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "scope": "local Control routes/components and production build; no hosted candidate or physical Player claim",
+  "gates": {
+    "workspaceLint": {
+      "tasksPassed": 30,
+      "tasksTotal": 30
+    },
+    "workspaceTypecheck": {
+      "tasksPassed": 30,
+      "tasksTotal": 30
+    },
+    "workspaceTest": {
+      "tasksPassed": 30,
+      "tasksTotal": 30,
+      "controlFilesPassed": 185,
+      "controlTestsPassed": 2100,
+      "controlTestsExplicitSkipped": 34
+    },
+    "productionControlBuild": {
+      "status": "passed",
+      "authBoundary": "passed",
+      "clientSecretGuard": "passed",
+      "buildId": "z3Tjx-zNY3qp5PZWRm5wa",
+      "buildLogSha256": "f55a463dfee3c7159135aef980753be89d3aabd6ae7e841c236d8e154fdcf205",
+      "buildManifestSha256": "050698844441d1726e2c3995b724984701ba4196d31ec25612e3c970d1faf7dd",
+      "generatedOutputRemovedAfterProof": true
+    },
+    "gitDiffCheck": "passed"
+  },
+  "browsers": {
+    "uniqueRelevantCasesPassed": 55,
+    "chooser": {
+      "passed": 21,
+      "seconds": 50.0,
+      "transport": "controlled real component/Radix/CSS; no provider or persistence claim"
+    },
+    "existingWizard": {
+      "passed": 22,
+      "source": "all 22 passed in initial 40-case run; five initial chooser failures subsequently repaired in final 21-case chooser run"
+    },
+    "actualNextRoutes": {
+      "passed": 12,
+      "runs": [
+        {
+          "passed": 10,
+          "harnessFailures": 2
+        },
+        {
+          "passed": 2,
+          "seconds": 37.1,
+          "selection": "exact two earlier failures, same relevant product source"
+        }
+      ],
+      "environment": "local development demo, no tenant records or mutation permission"
+    },
+    "broadA11y": {
+      "planned": 27,
+      "passedBeforeStop": 8,
+      "complete": false,
+      "reason": "development server memory restarts; CI broad gate remains required"
+    },
+    "normalTurbopackHarness": {
+      "complete": false,
+      "reason": "host inotify max_user_instances 128, visible instances 125; raising only child FD soft limit did not resolve; no sysctl/unrelated process changes"
+    },
+    "productionRouteHarness": {
+      "complete": false,
+      "reason": "production mode without Supabase correctly fails closed at login; local route demo requires development mode"
+    },
+    "builtDemoBroadAttempt": {
+      "complete": false,
+      "reason": "stopped by root after 8 completed cases; no 45-case PASS claim; built assets with explicit development-only demo environment"
+    }
+  },
+  "database": {
+    "migrationChanged": false,
+    "existingRlsGate": "supabase/tests/s226_content_library.sql",
+    "literalSearchReadOnlyCheck": "isolated PostgreSQL exact regex matches intended literal star/punctuation only: t|f|f; no data writes"
+  },
+  "hostedAcceptance": {
+    "INT-01": "pending release workflow",
+    "INT-02": "pending release workflow",
+    "productionDataChanged": false,
+    "providerRequests": 0,
+    "hardwareAcceptanceClaimed": false
+  },
+  "screenshots": [
+    {
+      "path": "screenshots/content-1280.png",
+      "sha256": "941f0620b9a0596c0c02788b8dd193733a560e83588838aa31c4de93bf226a82",
+      "environment": "actual local demo shell"
+    },
+    {
+      "path": "screenshots/content-320.png",
+      "sha256": "c86038311f3e2a9c948357325ef52621ed7de0e76de4acda420af89d71193f09",
+      "environment": "actual local demo shell"
+    },
+    {
+      "path": "screenshots/content-768.png",
+      "sha256": "17f36f8322911142fb44984ffde8a2ead6e51b0e2ebbfd33e7342232c876e296",
+      "environment": "actual local demo shell"
+    },
+    {
+      "path": "screenshots/shared-chooser-desktop.png",
+      "sha256": "df4361e96a2ff2583399ac9aaac41d3bf83c36699e6c1f9126153e985dbc60dd",
+      "environment": "actual local demo shell"
+    }
+  ],
+  "logCertificates": [
+    {
+      "name": "s297-workspace-lint-final.log",
+      "sha256": "c505c43a7cb7439e003238cc2e4d56e88206db421743e05cd88f35ece23df18a"
+    },
+    {
+      "name": "s297-workspace-typecheck-final.log",
+      "sha256": "31c72ffe4bf605c4e847fb61cf5df6e2404939913f10c47542bf36acba9f4c28"
+    },
+    {
+      "name": "s297-workspace-tests-final.log",
+      "sha256": "bf9c6dee76fa7bff1eadbc4beff5c9725b4ed1eea7166ff2da87fb1ec3107a6e"
+    },
+    {
+      "name": "s297-browser-picker.log",
+      "sha256": "62ab766c3b40505255f16b7ed504b475eb59b302917d6e00279e9614feffa309"
+    },
+    {
+      "name": "s297-browser-picker-rights-final.log",
+      "sha256": "dd6b19902365d253eb670757c8ab447e4f2b025b863f3079212509153e7c5757"
+    },
+    {
+      "name": "s297-browser-entry-shell-frozen.log",
+      "sha256": "7f98f0f4cb8f236e2b49e1a77dba9c882ab57f31182b2f955a1ecb883f190d48"
+    },
+    {
+      "name": "s297-browser-route-repairs-final.log",
+      "sha256": "159ee051d70c12200ae8bd09ed9b0809756ec707745ed2242385e93441ce29a9"
+    },
+    {
+      "name": "s297-browser-a11y-final.log",
+      "sha256": "32b6c3bcbb5ea801686f6dd6c69f673192e6cf71bc9d9dab20e9a7c04a7d9a43"
+    },
+    {
+      "name": "s297-control-build.log",
+      "sha256": "f55a463dfee3c7159135aef980753be89d3aabd6ae7e841c236d8e154fdcf205"
+    },
+    {
+      "name": "s297-control-production-browser.log",
+      "sha256": "e58f2b059779494a54db3cad1303ced382f2115cd99a545a300b4b41460e2287"
+    },
+    {
+      "name": "s297-control-built-demo-browser.log",
+      "sha256": "17d333b0eda1157f05f3af3a94a0195e820550e6c01a4444e130629fd31f3c83"
+    }
+  ]
+}

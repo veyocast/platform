@@ -10,6 +10,13 @@ import {
 } from "./control-navigation";
 
 describe("control navigation", () => {
+  it.each(["tenant.media.read", "tenant.studio.read", "tenant.dynamic_slide.read", "tenant.studio.create", "tenant.dynamic_slide.write"] as const)("offers one Content entry for %s without overview.read", capability => {
+    const links = getNavigationForRoles([capability]).map(item => item.href);
+    expect(links).toContain("/dashboard/content");
+    expect(links).not.toContain("/dashboard");
+    expect(links.filter(path => ["/dashboard/studio", "/dashboard/media", "/dashboard/slides", "/dashboard/slides/menu-studio"].includes(path))).toEqual([]);
+  });
+
   it("keeps platform links out of tenant-only navigation", () => {
     const links = getNavigationForRoles(["tenant_admin"]).map(
       (item) => item.href
@@ -18,13 +25,9 @@ describe("control navigation", () => {
     expect(links).toStrictEqual([
       "/dashboard",
       "/dashboard/content",
-      "/dashboard/studio",
-      "/dashboard/slides/menu-studio",
       "/dashboard/sponsors",
       "/dashboard/engage",
-      "/dashboard/media",
       "/dashboard/playlists",
-      "/dashboard/slides",
       "/dashboard/themes",
       "/dashboard/screens",
       "/dashboard/planning",
@@ -70,11 +73,7 @@ describe("control navigation", () => {
     expect(groups.flatMap((group) => group.items).filter((item) => item.scope === "tenant").map((item) => item.href)).toStrictEqual([
       "/dashboard",
       "/dashboard/content",
-      "/dashboard/studio",
-      "/dashboard/slides/menu-studio",
-      "/dashboard/media",
       "/dashboard/playlists",
-      "/dashboard/slides",
       "/dashboard/themes",
       "/dashboard/playlist-templates",
       "/dashboard/screens",
@@ -199,7 +198,6 @@ describe("control navigation", () => {
     expect(links).toStrictEqual([
       "/dashboard",
       "/dashboard/content",
-      "/dashboard/media",
       "/dashboard/screens"
     ]);
   });

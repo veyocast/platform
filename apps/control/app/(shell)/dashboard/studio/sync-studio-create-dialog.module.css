@@ -115,3 +115,9 @@
     font-size: 17px;
   }
 }
+
+.scopes { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.scopes h2, .scopes p { width: 100%; margin: 0; }
+.scopes h2 { font-size: 18px; margin-block-start: 8px; }
+.scopes p { color: var(--muted); line-height: 1.65; }
+.scopes button { min-height: 44px; }

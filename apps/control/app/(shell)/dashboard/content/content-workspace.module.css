@@ -16,3 +16,25 @@
   left: 11px;
   pointer-events: none;
 }
+
+.filters.filters.filters {
+  flex-wrap: wrap;
+  min-width: 0;
+  height: auto;
+  white-space: normal;
+  overflow: visible;
+  gap: 4px 18px;
+}
+.filters.filters.filters a { font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; }
+.context, .pagination { font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin-block: 12px; }
+.context a, .pagination a { display: inline-flex; align-items: center; min-height: 44px; }
+.context a[aria-current="page"] { color: var(--text); font-weight: 700; text-decoration: underline; text-underline-offset: 5px; }
+.liveSport { margin-block-start: 24px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.liveSport h2 { font-size: 18px; }
+.liveSport ul { padding-inline-start: 20px; }
+.liveSport a { display: inline-flex; min-height: 44px; align-items: center; }
+@media (max-width: 760px) {
+  .filters.filters.filters { width: 100%; }
+  .filters.filters.filters a { flex-grow: 1; justify-content: center; padding-inline: 10px; }
+  .context { gap: 4px 12px; }
+}

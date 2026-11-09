@@ -1,98 +1,32 @@
 import { hasCapability } from "@veyocast/auth";
 import { Loader2, Search, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
-import { requireTenantControlSession } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { getSupabasePublicConfig } from "../../../../lib/supabase/config";
 import { MediaUploadDialog } from "../media/media-overlays";
 import { SyncStudioCreateDialog } from "../studio/sync-studio-create-dialog";
 import { ContentWorkspace } from "./content-workspace";
-import { contentLibraryColumns, mapContentLibraryRows } from "./content-data.server";
 
-const filters = [
-  ["all", "Alles"],
-  ["slides", "Ontwerpen"],
-  ["media", "Foto’s & video’s"],
-  ["attention", "In bewerking"],
-  ["archive", "Archief"],
-] as const;
-export default async function ContentLibrary({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const session = await requireTenantControlSession();
+import { requireContentSession } from "./content-access.server";
+import { contentFilters, contentStatuses, contentLibraryHref, parseContentLibraryQuery } from "./content-library";
+import { loadContentLibrary } from "./content-library-data.server";
+import { loadContentLiveSport } from "./content-live-data.server";
+import styles from "./content-workspace.module.css";
+
+export default async function ContentLibrary({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const session = await requireContentSession();
   const params = await searchParams;
-  const query =
-    typeof params.q === "string" ? params.q.trim().slice(0, 120) : "";
-  const filter =
-    typeof params.filter === "string" &&
-    filters.some(([id]) => id === params.filter)
-      ? params.filter
-      : "all";
-  const page = Math.min(
-      100000,
-      Math.max(1, Math.floor(Number(params.page)) || 1),
-    ),
-    size = 48;
-  const client =
-    session.isLive && session.tenantId
-      ? await createControlSupabaseClient()
-      : null;
-  let request = client
-    ?.from("sync_content_library_v1")
-    .select(
-      contentLibraryColumns,
-      { count: "exact" },
-    )
-    .eq("tenant_id", session.tenantId!)
-    .eq("archived", filter === "archive");
-  if (query)
-    request = request?.ilike("title", `%${query.replace(/[\\%_]/g, "\\$&")}%`);
-  if (filter === "media") request = request?.eq("kind", "media");
-  if (filter === "slides") request = request?.neq("kind", "media");
-  if (filter === "attention")
-    request = request?.in("status", [
-      "draft",
-      "uploading",
-      "processing",
-      "rendering",
-      "error",
-      "validation_failed",
-      "quarantined",
-    ]);
-  const [result, live, ready, processing] = await Promise.all([
-    request
-      ? request
-          .order("updated_at", { ascending: false })
-          .order("content_key")
-          .range((page - 1) * size, page * size - 1)
-      : null,
-    client
-      ?.from("sync_content_library_v1")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", session.tenantId!)
-      .eq("archived", false),
-    client
-      ?.from("sync_content_library_v1")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", session.tenantId!)
-      .eq("archived", false)
-      .in("status", ["ready", "published"]),
-    client
-      ?.from("sync_content_library_v1")
-      .select("id", { count: "exact", head: true })
-      .eq("tenant_id", session.tenantId!)
-      .eq("archived", false)
-      .in("status", ["uploading", "processing", "rendering"]),
+  const state = parseContentLibraryQuery(params);
+  const { query, filter, page, size } = state;
+  const client = session.isLive && session.tenantId ? await createControlSupabaseClient() : null;
+  const [library, liveSport] = await Promise.all([
+    loadContentLibrary(client, session.tenantId, session.capabilities, state),
+    loadContentLiveSport(client, session.tenantId, session.capabilities, query, state.status === "archive"),
   ]);
-  const failed =
-    !result ||
-    Boolean(result.error || live?.error || ready?.error || processing?.error);
-  const rows = result?.data ?? [];
-  const items = await mapContentLibraryRows(client, session.tenantId!, rows);
-  const href = (target: number, nextFilter = filter) =>
-    `/dashboard/content?${new URLSearchParams({ q: query, filter: nextFilter, page: String(target) })}`;
+  const { failed, items, count, total, ready, processing } = library;
+  const href = (target: number) => contentLibraryHref(state, { page: target });
+  const canCreateManual = session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.studio.create");
+  const canCreateConnected = session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.dynamic_slide.write");
   const canCreate =
     (hasCapability(session.capabilities, "tenant.studio.create") || hasCapability(session.capabilities, "tenant.dynamic_slide.write")) &&
     session.tenantStatus === "active";
@@ -107,38 +41,37 @@ export default async function ContentLibrary({
           <div className="eyebrow">JE CREATIEVE THUISBASIS</div>
           <h1>Contentbibliotheek</h1>
           <p>
-            Al je ontwerpen, beelden en video&apos;s. Op één plek, klaar voor je
-            schermen.
+            Ontwerpen, automatische slides, menu’s en media voor je schermen.
           </p>
         </div>
         <div className="row">
           {canUpload && (
             <Link
               className="btn btn-secondary"
-              href="/dashboard/content?upload=1"
+              href={`${href(page)}&upload=1`}
             >
               <Upload size={18} strokeWidth={1.7}/>
               Media uploaden
             </Link>
           )}
           {canCreate && (
-            <SyncStudioCreateDialog tenantId={session.tenantId} tenantName={session.tenant} actorScope={`${session.tenantId}:${session.userId}`} canCreate={canCreate && session.isLive}/>
+            <SyncStudioCreateDialog tenantId={session.tenantId} tenantName={session.tenant} actorScope={`${session.tenantId}:${session.userId}`} canCreate={canCreate && session.isLive} canCreateManual={canCreateManual} canCreateConnected={canCreateConnected} liveSportAvailable={liveSport.available}/>
           )}
         </div>
       </header>
       <div className="vc-library-stats">
         <span>
-          <strong>{failed ? "—" : (live?.count ?? 0)}</strong> items in je
+          <strong>{failed ? "—" : total}</strong> items in je
           bibliotheek
         </span>
         <span>
           <i className="green-dot" />
-          {failed ? "—" : (ready?.count ?? 0)} gereed voor gebruik
+          {failed ? "—" : ready} gereed voor gebruik
         </span>
-        {!failed && (processing?.count ?? 0) > 0 && (
+        {!failed && processing > 0 && (
           <span>
             <Loader2 size={14} className="vc-spin" />
-            {processing!.count} in verwerking
+            {processing} in verwerking
           </span>
         )}
         <span className="vc-library-stats-end">
@@ -156,10 +89,17 @@ export default async function ContentLibrary({
           <Link href={href(page)}>Opnieuw proberen</Link>
         </div>
       )}
+      <nav className={styles.context} aria-label="Contentstatus">{contentStatuses.map(([id, label]) => <Link key={id} href={contentLibraryHref(state, { status: id, page: 1 })} aria-current={state.status === id ? "page" : undefined}>{label}</Link>)}</nav>
+      <nav className={styles.context} aria-label="Content beheren">
+        {hasCapability(session.capabilities, "tenant.media.read") && ["all", "media"].includes(filter) && <Link href="/dashboard/media">Mappen, tags en mediaverwerking</Link>}
+        {hasCapability(session.capabilities, "tenant.studio.read") && ["all", "designs", "series", "slides"].includes(filter) && <Link href="/dashboard/studio?advanced=1">Ontwerpbeheer en exports</Link>}
+        {hasCapability(session.capabilities, "tenant.dynamic_slide.read") && ["all", "automatic", "menus", "slides"].includes(filter) && <Link href="/dashboard/slides">Slideversies en verwerking</Link>}
+        {hasCapability(session.capabilities, "tenant.product.read") && filter === "menus" && <Link href="/dashboard/products">Producten beheren</Link>}
+      </nav>
       <ContentWorkspace
-        key={`${query}:${filter}:${page}`}
+        key={`${query}:${filter}:${state.status}:${page}`}
         items={failed ? [] : items}
-        canCreate={!failed && canCreate}
+        canCreate={!failed && session.isLive && canCreate}
         canAdd={
           !failed &&
           session.isLive &&
@@ -172,22 +112,24 @@ export default async function ContentLibrary({
         canDuplicateStudio={canCreate && session.isLive && (hasCapability(session.capabilities, "tenant.studio.edit_own") || hasCapability(session.capabilities, "tenant.studio.edit_all"))}
         query={query}
         filter={filter}
+        status={state.status}
+        pageSize={size}
       >
-        <nav className="vc-filter-tabs" aria-label="Contentfilter">
-          {filters.map(([id, label]) => (
+        <nav className={`vc-filter-tabs ${styles.filters}`} aria-label="Contenttype">
+          {contentFilters.map(([id, label]) => (
             <Link
               key={id}
-              href={href(1, id)}
+              href={contentLibraryHref(state, { filter: id, page: 1 })}
               className={filter === id ? "active" : undefined}
               aria-current={filter === id ? "page" : undefined}
             >
               {label}
-              {id === "all" && <span>{failed ? "—" : (live?.count ?? 0)}</span>}
+              {id === "all" && <span>{failed ? "—" : total}</span>}
             </Link>
           ))}
         </nav>
       </ContentWorkspace>
-      {!failed && rows.length === 0 && (
+      {!failed && items.length === 0 && (
         <div className="vc-content-empty">
           <Search size={28} aria-hidden="true"/>
           <h2 className="vc-content-empty__title">Geen content gevonden</h2>
@@ -197,17 +139,19 @@ export default async function ContentLibrary({
           </Link>
         </div>
       )}
-      {!failed && (result?.count ?? 0) > size && (
-        <nav aria-label="Pagina’s in de contentbibliotheek" className="row">
+      {!failed && (count > size || page > 1) && (
+        <nav aria-label="Pagina’s in de contentbibliotheek" className={styles.pagination}>
           {page > 1 && <Link href={href(page - 1)}>Vorige</Link>}
           <span>
-            Pagina {page} van {Math.ceil((result?.count ?? 0) / size)}
+            Pagina {page} van {Math.max(1, Math.ceil(count / size))}
           </span>
-          {page * size < (result?.count ?? 0) && (
+          {page * size < count && (
             <Link href={href(page + 1)}>Volgende</Link>
           )}
         </nav>
       )}
+      {filter === "menus" && canCreateConnected && <p><Link className="btn btn-secondary" href="/dashboard/slides/menu-studio/new">Nieuw menu</Link></p>}
+      {liveSport.available && state.status === "active" && ["all", "automatic", "slides"].includes(filter) && <section className={styles.liveSport} aria-labelledby="content-live-sport"><h2 id="content-live-sport">Live sport en doelpuntenoverlays</h2><p>Deze ontwerpen behouden hun eigen live-editor, versies en schermkeuze.</p>{liveSport.failed ? <p role="alert">De overlays konden niet worden geladen. Er is niets gewijzigd; vernieuw de pagina.</p> : liveSport.items.length ? <ul>{liveSport.items.map(item => <li key={item.id}><Link href={item.href}>{item.name}</Link></li>)}</ul> : <p>Geen overlays gevonden voor deze selectie.</p>}<Link href="/dashboard/studio/led-scores">{liveSport.more ? "Alle overlays en live sport beheren" : "Live sport beheren"}</Link></section>}
       <MediaUploadDialog
         anonKey={publicConfig?.anonKey ?? ""}
         canUpload={session.isLive && canUpload && Boolean(publicConfig)}

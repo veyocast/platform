@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "files": [
+    {
+      "path": "apps/control/app/(shell)/_components/control-shell.tsx",
+      "sha256": "0b081cee02891cec9287bd1d94e66abc4d94acdc12c6331599938a291581c942"
+    },
+    {
+      "path": "apps/control/app/(shell)/_lib/control-navigation.test.ts",
+      "sha256": "f492f529f093b4f5afd2cc4ea0592daca2bbaf6c9752109732138b6d8c47570b"
+    },
+    {
+      "path": "apps/control/app/(shell)/_lib/control-navigation.ts",
+      "sha256": "34b9fc08791c32e68f28405d98b8f0c796505c31b1eb3b0822f296440efe7e75"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-access.server.test.ts",
+      "sha256": "3b38ccb85f626f2a2f16680fce2098f43a438e094d8571faa26a1452bffbf74c"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-access.server.ts",
+      "sha256": "c16a9e74b6eebceefca1072cbc15f5df741cc3f0fc6eadfe3a7ee38bb2f3b7b7"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-library-data.server.test.ts",
+      "sha256": "9a44059e910d782bf8b0b6014144e3121d939fc611d520a17da07fee8927607f"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-library-data.server.ts",
+      "sha256": "8691ac78bdab297fc82dad50a451ca82d1128dbae731cfcf973e9d3ee3c548f2"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-library.test.ts",
+      "sha256": "d6e3c92b98b3c575508dd90282ecc1da2f747f156f61b60c6c48838bc756f22e"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-library.ts",
+      "sha256": "b8e7c3f8eef2d24ca3fcf00bdc020c5833ec33f98d8df27a7393032005f8384b"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-live-data.server.test.ts",
+      "sha256": "d3c28a697fa5b2d01029415fd005f094dc8f4346e43b3800927ea130364f80f5"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-live-data.server.ts",
+      "sha256": "a4cd82cd9dffb6b9df1507301fc2b984add60625cc539f9e86e67a8bac710cc0"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-overview-link.test.tsx",
+      "sha256": "3ec8dbd1d3676dbcc1e020fbea21cb48b19b9cf0cc279c0eb0af099f67e961c1"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-workspace.module.css",
+      "sha256": "2c3542218a5e5fbc3195443a67a115e7dd73318d251750a41a357dbfd227471f"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/content-workspace.tsx",
+      "sha256": "0e9008d20cd8ab13bb2146115cb973224e230b648e68418c3ccc9d9a27e80416"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/content/page.tsx",
+      "sha256": "7e612d42a78fd6e6a0c63e2f5d4ae8d0547115515ec4291114fcb7124a3ff676"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/page.tsx",
+      "sha256": "3dfd181d4c4a487e665cbd1af072735b21a70d711654ab250ce27aefabc196a2"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/playlists/_components/sites/playlist-media-picker.tsx",
+      "sha256": "57434f55914bcb676fd6a0556938b528bd7a4c5d614f927c2d51145afe6b9d46"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/playlists/_components/sites/sites-playlist-workspace.tsx",
+      "sha256": "e11860f2c0af1d9fdc2c4a0bfa4186d13a5235bd59a6463bd5005c2ccfdc1ca6"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/slides/menu-studio/page.tsx",
+      "sha256": "9403f1a4b7aa530e45ff7bededabf59c6e0bcf077c2e9d8fdfa9fc5e92d407b4"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/content-create-catalog.ts",
+      "sha256": "de63599d59f5537861c31ae09b6e4c25f14aecc8e1d3291d3c34dfb67577aa5c"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/new/page.tsx",
+      "sha256": "9595fc42daac1e216f68f0cf8cfc383add561f56027e707932c218ab1ef887d7"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/page.tsx",
+      "sha256": "8e79b7f157607536217b43df3b0840130e3196a9756a15a36efc553925a46b1c"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard-actions.test.ts",
+      "sha256": "15e3e79affaf3d258c689c2f5c6e0ecce88bc10b8fec06f543ea944bdbfb30e2"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard-actions.ts",
+      "sha256": "bb1fe12aaec2d3d1f96c7e5c26746f328c19567d72975270aaaea53c4d0abed7"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard-data.server.test.ts",
+      "sha256": "c3c3435535bb6ca7449080c1b29dda2be3eec4162d4d08f90544f3571f9ce551"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard-data.server.ts",
+      "sha256": "9fe85a300b93b6f18e072e94cf99536866cd0d8222968b2780a4913793b3c7a3"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog.module.css",
+      "sha256": "0bddc2fdb6dee9fea18b86caf4a106149fbf7c8b14a7227b80f2da8111f00f1f"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog.tsx",
+      "sha256": "37fd24f679b8ae8a819d6e3eb903a5c5000d099e16ff449b7c91d63b84de2e7f"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/sync-overview.tsx",
+      "sha256": "631ad23799c34e0eb5b2c87cdd88a79a496ecb6caf0b00d6e4aa747dc2457aca"
+    },
+    {
+      "path": "tests/control/s297-content-entry.spec.ts",
+      "sha256": "181fd78a374896345e7b8a83c3784323a538a57d189bfcb2f7e8aa7efeebbd8f"
+    },
+    {
+      "path": "tests/control/sync-template-picker-layout.spec.ts",
+      "sha256": "0f03be6ea4d1203a94a00e55a64d46479caf6855e64904b4b486d323c99d5d63"
+    },
+    {
+      "path": "tests/e2e/control-mobile-scroll.spec.ts",
+      "sha256": "07b78a02929b5bda77953cbee03da02cd777d6e1a11110d275af5e6776c3bff5"
+    },
+    {
+      "path": "tests/e2e/control-shell.spec.ts",
+      "sha256": "407aa8ceeeb3e73c6c72025ffea92f4562908d8296664d6ff07a80248ddf4597"
+    },
+    {
+      "path": "tests/e2e/studio.spec.ts",
+      "sha256": "fe1511372722849df23f46790335d6bd6a10f773fd449dd17bcc673152dcd94c"
+    }
+  ]
+}
