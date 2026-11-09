@@ -1,0 +1,413 @@
+{
+  "schemaVersion": 1,
+  "task": "S300",
+  "sourceHeadBeforeRootIntegration": "598cf5fba4f96d37ef7d37e996c6c1365799793d",
+  "scope": "actual React components, Radix controls and CSS with controlled HTTP action/Next/session boundary; actual isolated DB/RPC output is parsed unchanged and supplied to that UI. No actual Next SSR/Auth, live RLS, hosted mutation or physical Player claim.",
+  "browser": "Playwright Chromium, one worker",
+  "finalLatestUnion": {
+    "passed": 32,
+    "failed": 0,
+    "skipped": 0,
+    "didNotRun": 0,
+    "cases": [
+      {
+        "id": "2af073576bf77adc104a-b8ae2ef677c35add8520",
+        "title": "WDG-01 exact matches keep two matches for one team and another park team distinct",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 10,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-74755d744b79bb166bf7",
+        "title": "WDG-02 overlapping physical screens require an explicit role decision",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 12,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-9a98d8854dce08494721",
+        "title": "WDG-03 published targets and versions do not mutate when draft options change",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 14,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-29fb7c7af1053ab5d8e3",
+        "title": "WDG-05 HTTP acceptance keeps per-player frame evidence separate",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 16,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-0aa56cda2fc20d7b5460",
+        "title": "WDG-06 a lost response retries the identical actor-bound nonce and freezes other mutations",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 18,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-d88a60e90108e13619b4",
+        "title": "WDG-06 a conflicting operator sees the conflict before another confirmation",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 20,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-e33e1586c335d5d46c9a",
+        "title": "WDG-10 sold-out controls bind the exact frozen menu placement without a catalogue write",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 22,
+        "status": "passed",
+        "report": "s300-control-final-sold-out-repair-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-77e864d050d403a5ba5a",
+        "title": "WDG-11 an actor change drops an unresolved old-actor retry",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 24,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-9a3594eee9e4387d223b",
+        "title": "WDG-11 a delegated volunteer has no global publication or configuration controls",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 26,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-e67735f4e03f68834a84",
+        "title": "WDG-13 disabling the workbench preserves access to ordinary planning and blocks actions",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 28,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-b99ad1a1e3e0bd910d6f",
+        "title": "offline mobile operation retains read evidence and blocks mutations",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 30,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-3bfecb2389201c3a2bc3",
+        "title": "WDG-14 operation and configuration remain readable at 320px",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 32,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-5ceed5de73ba69ecef15",
+        "title": "WDG-14 operation and configuration remain readable at 1440px",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 32,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-bf4202723c5b2f44fcec",
+        "title": "WDG-02 publication preflight blocks unsupported expiry and shows the existing planning winner",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 35,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-3176646772900224a5ee",
+        "title": "WDG-01 exact preflight and all three frozen targets precede a separate publication confirmation",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 49,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-bef31d728305da18b8e6",
+        "title": "WDG-04 main phase requires every frozen target explicitly",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 62,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-6dc029136c13dccc61d8",
+        "title": "WDG-04 main postponed requires every frozen target explicitly",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 62,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-a664c8bc14a9ce0a8e46",
+        "title": "WDG-04 main cancelled requires every frozen target explicitly",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 62,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-8c64a527c91e6902e3f8",
+        "title": "WDG-11 a partial volunteer grant cannot promote a main phase to other frozen targets",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 76,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-42483f9306e87330213c",
+        "title": "WDG-06 closing uses mutable lifecycle CAS 0, independent of immutable version",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 88,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-16f44baec796d6b1a78e",
+        "title": "WDG-06 closing uses mutable lifecycle CAS 7, independent of immutable version",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 88,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-858ee56d09560d2f8ca9",
+        "title": "WDG-07 ending an action waits for distinct restoration evidence and does not resurrect it",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 99,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-d819dce70ec1348aa8fc",
+        "title": "WDG-12 absent newer source options retain frozen match identity and explicit unknown observations",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 118,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-f6a81bee445f4b4a581c",
+        "title": "WDG-11 delegated workspace labels its restricted scope without unrelated match or target metadata",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 130,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-4b02cf8bb4c73def7d86",
+        "title": "actual isolated RPC publication renders exact frozen matches and queued targets without a frame claim",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 147,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-03955b87485249b74bd1",
+        "title": "actual isolated RPC preflight keeps its exact saved draft basis and requires separate publication confirmation",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 169,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-51a6c2569ab2ad68d8e3",
+        "title": "actual isolated delegated RPC exposes only granted exact objects and keeps global metadata links absent",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 183,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-e05f5367fa36de0cff76",
+        "title": "WDG-13 an explicitly closed runbook is closed before its original end time",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 198,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-6287bccd5e2d8656f8f2",
+        "title": "WDG-12 delivery evidence known-version preserves version and screen-read boundaries",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 207,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-b6aa5b560aae0c9545e1",
+        "title": "WDG-12 delivery evidence unknown-version preserves version and screen-read boundaries",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 207,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-fa2789259f9224087cf0",
+        "title": "WDG-12 delivery evidence no-screen-right preserves version and screen-read boundaries",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 207,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      },
+      {
+        "id": "2af073576bf77adc104a-aa3e635fe67e923bcd5a",
+        "title": "WDG-12 delivery evidence delegated-screen-right preserves version and screen-read boundaries",
+        "file": "control/s300-matchday-workbench.spec.ts",
+        "line": 207,
+        "status": "passed",
+        "report": "s300-control-final-32-report.json"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "report": "s300-control-final-32-report.json",
+      "sha256": "585146abb054e839c7cd69ec8fb411992d855226e9c5cc122c9ea9fa680f20a2",
+      "stats": {
+        "startTime": "2026-11-09T14:14:40.339Z",
+        "duration": 106784.397,
+        "expected": 31,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "s300-control-final-sold-out-repair-report.json",
+      "sha256": "0e3638d9be2a039f31b0b7291f7c9aff500c28983a40b45bb04d601a549a95fd",
+      "stats": {
+        "startTime": "2026-11-09T14:17:26.222Z",
+        "duration": 2645.376,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "originalFailure": {
+    "case": "WDG-10 sold-out controls bind the exact frozen menu placement without a catalogue write",
+    "result": "pre-assertion navigation timeout retained",
+    "trace": "HTTP200 fulfilled in201ms; page.goto completion delayed55.3s, then existing30s deadline reported at subsequent fonts.evaluate; no font request or pageerror recorded",
+    "causeLimit": "host starvation is a hypothesis; trace proves the navigation stall, not its environmental cause",
+    "repair": "exact unchanged case, original30s budget, passed2.645s; no assertions, timeout, product or harness changes",
+    "traceSha256": "7e4eb93436c5ad28031c8d0b426936075b72763a3d59c920b0fb0900fa754f7d"
+  },
+  "rpcCapture": {
+    "path": "tests/fixtures/s300-matchday-rpc.json",
+    "sha256": "1e88f5fc7b5fa04e12f1002a114531c11fa0ecd38f69b8885346fd071d878680",
+    "source": "/tmp/s300-actual-rpc-final.json under final218-migration isolated database, rolled back",
+    "strictObjects": 18,
+    "schemaObjectKeys": [
+      "ended",
+      "saved",
+      "action",
+      "feature",
+      "ack-input",
+      "end-input",
+      "preflight",
+      "published",
+      "workspace",
+      "save-input",
+      "ack-receipt",
+      "action-input",
+      "publish-input",
+      "device-actions",
+      "action-conflict",
+      "delegated-workspace",
+      "workspace-after-action",
+      "workspace-before-publish"
+    ],
+    "correlatedPreflight": "workspace-before-publish revision1 equals preflight revision1; published workspace revision2 is a distinct later observation",
+    "uiCases": 3,
+    "credentialLikeKeys": [],
+    "providerRawData": false,
+    "providerRequests": 0,
+    "immutableRecordsOrProductionDataChanged": false
+  },
+  "databaseGate": {
+    "proof": "docs/evidence/s300-matchday-database.json",
+    "sha256": "f2e7116aa6cdf897fff72566750d9c3cc2e25316c7d245c1cebaa183a0dc9c14",
+    "files": 154,
+    "assertions": 5306,
+    "seconds": 126,
+    "freshMigrations": 218,
+    "lintErrors": 0,
+    "securityErrors": 0,
+    "verifiedBy": "database_matchday; this harness makes no database requests"
+  },
+  "scopedChecks": {
+    "strictDto": "18/18 passed",
+    "browserTypecheck": "passed",
+    "browserLint": "passed",
+    "diffCheck": "passed for owned test/fixture/API/evidence paths; parent integration files may be in a separate in-progress merge",
+    "apiTests": 57,
+    "apiUnitSeconds": 1.05
+  },
+  "screenshots": [
+    {
+      "path": "matchday-configuration-1440.png",
+      "sha256": "9e17bcb06cb86a7c513b54c32fc4bbcfc3d7884a33c357fd2604651569f0ac80",
+      "scope": "controlled component fixture, synthetic observed statuses; no hosted/physical evidence",
+      "visuallyInspected": true
+    },
+    {
+      "path": "matchday-operation-1440.png",
+      "sha256": "1422f6c4ec0db7455bb3e477e02538f85a7361ac77a3e1d7be24ff06e9eb88b5",
+      "scope": "controlled component fixture, synthetic observed statuses; no hosted/physical evidence",
+      "visuallyInspected": true
+    },
+    {
+      "path": "matchday-configuration-320.png",
+      "sha256": "cde1366f127220e61893b94efa54b696440f95c4d765aca87409aeaa19df08e5",
+      "scope": "controlled component fixture, synthetic observed statuses; no hosted/physical evidence",
+      "visuallyInspected": true
+    },
+    {
+      "path": "matchday-operation-320.png",
+      "sha256": "bb4d42e3585271a58222e36be8956c5a6f6cf4d96c094979713019d072457a8e",
+      "scope": "controlled component fixture, synthetic observed statuses; no hosted/physical evidence",
+      "visuallyInspected": true
+    }
+  ],
+  "sensitiveOutputs": {
+    "credentialsLogged": false,
+    "HAROrAuthStateCommitted": false,
+    "rawProviderDataCommitted": false
+  },
+  "logs": [
+    {
+      "name": "s300-control-final-32.log",
+      "sha256": "2a0bc27f3703bdec83718e47c5c75300382dc7e1cad7aa99f2eff0b3d2f0b19d"
+    },
+    {
+      "name": "s300-control-final-sold-out-repair.log",
+      "sha256": "1637420f36f50a6f0f2c79c52d4f269b4a38ea520f8913e5bbddbb38d486694b"
+    },
+    {
+      "name": "s300-control-final-32-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s300-control-final-32-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s300-actual-rpc-final-strict.log",
+      "sha256": "fcc302b44160d0338c006e1a8f4739e9e7d0bab7b26fe29c77c69b2beeb2a600"
+    },
+    {
+      "name": "s300-matchday-route-tests-stream-final.log",
+      "sha256": "f0e0856c8a7235addc63b4c0631a880629bc4f4cd1bd0af04a67743609478bd8"
+    }
+  ]
+}
