@@ -64,6 +64,30 @@
     {
       "path": "/tmp/s298-probes-eslint-final.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/s298-layout-workspace-lint.log",
+      "sha256": "1735d71e1fd115d03c0ee27b98466da658aefe733d1c7c291e24f3a82be010f1"
+    },
+    {
+      "path": "/tmp/s298-layout-workspace-typecheck.log",
+      "sha256": "ecc9fec9e43474dfdec1eb23bfc02764c91590a34c0182fad31193fb3d93b314"
+    },
+    {
+      "path": "/tmp/s298-layout-workspace-test.log",
+      "sha256": "7066dbb3932d3eef5d90acfec7072fbbe1374506caa443f9c759c8d6ab36d926"
+    },
+    {
+      "path": "/tmp/s298-layout-browser.log",
+      "sha256": "8684547d73af05431bccd3ab190c7c4c6e41b4a4ad8a6e69177cb6551dffbe42"
+    },
+    {
+      "path": "/tmp/s298-layout-browser-focused-retry.log",
+      "sha256": "a4268885f55775fdbd92dceb5726eea50e87d2360df3dde534e57b27e5be44a8"
+    },
+    {
+      "path": "/tmp/s298-responsive-fixed.log",
+      "sha256": "63a7d5e24dffbada0d7857619ceee894766b7ccd4a4941815d55e43a2dc29c07"
     }
   ],
   "sources": [
@@ -97,7 +121,7 @@
     },
     {
       "path": "apps/control/app/(shell)/dashboard/planning/page.tsx",
-      "sha256": "d3a7c3a53d866807301a8d63eeee5e492b31b85fe0ba88f2e68d16aaf66df097"
+      "sha256": "0bd42ff7412eb352dd64bc9eed89422e7d910799c5048b0bf4602d2994ea7d8b"
     },
     {
       "path": "apps/control/app/(shell)/dashboard/planning/planning-dialogs.tsx",
@@ -154,6 +178,17 @@
     {
       "path": "tests/helpers/effective-planning-fixture.ts",
       "sha256": "cdf678f3f858ed22caa11e416f9dc7b9c4a9500ec6784f3dee38ed98d93e9149"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/planning/sync-planning.tsx",
+      "sha256": "74e01e00c351b231ac933cbf70463cbd5d24b638f34040613358929c4e740d77"
     }
-  ]
+  ],
+  "layoutRegression": {
+    "evidence": "responsive-regression-evidence.json",
+    "responsiveCases": 6,
+    "browserCasesCovered": 25,
+    "focusedBrowserRetries": 1,
+    "finalBuild": "CI required after the certified initial build"
+  }
 }

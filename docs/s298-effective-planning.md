@@ -82,6 +82,21 @@ De onafhankelijke SQL-review bevestigde de actieve voorgangers, rangschikking,
 write-/lockvolgorde, begrenzing, tenantcontrole en DST-overgangen. Normale CI,
 review en staging-/productiepromotie blijven aan de uiteindelijke SHA gebonden.
 
+De eerste normale CI op `cd820254` vond zes echte responsieve regressies: de
+nieuwe link boven de kalender verplaatste de kalender en vervolgdelen met
+41,09–47,09 px. De link staat nu in het bestaande laatste hulpblok. Alle zes
+oorspronkelijke Planninggevallen (360, 390, 412, 768, 1024 en 1440 px) slagen
+in 32,5 s met nul geometrieverschillen en nul axe-violations. Referentie, CSS,
+assertions en toleranties zijn niet gewijzigd. De oorspronkelijke rode en de
+nieuwe groene metingen staan in `responsive-regression-evidence.json`.
+
+Na deze correctie slagen workspace lint/typecheck/test opnieuw elk 30/30.
+De herhaalde browserbatch gaf 24 PASS en één bestaande compositiewizard die
+tijdens parallelle workspace-tests de deadline bereikte. Een begrensde herhaling
+van uitsluitend die ongewijzigde case slaagt in 3,6 s; beide logs blijven bewaard.
+De eerdere productiebuild hoort bij zijn eigen broncertificaat. De definitieve
+linkplaatsing wordt opnieuw gebouwd en getest door de normale CI.
+
 ## Integratie en herstel
 
 Het extra operationele bewijs van S295 staat onder
