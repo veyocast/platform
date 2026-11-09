@@ -92,4 +92,3 @@ AssertionError: expected [ …(2) ] to not include '/home/codex/repos/veyocast-s
       Tests  4 failed | 2 passed (6)
    Start at  17:11:23
    Duration  1.10s (transform 405ms, setup 0ms, collect 721ms, tests 116ms, environment 0ms, prepare 61ms)
-

@@ -51,15 +51,21 @@
   "logs": {
     "route-boundary-red": {
       "file": "route-boundary-red.txt",
-      "sha256": "243e84ff3c4014e59272c22b71e2a7f392861bf152fe4526e7f385c9d75e5650"
+      "sha256": "cbb6a2c496dfcc6d28138c3d0a648880d2c61244b35b2fbd804f321076281eae",
+      "rawLogSha256": "243e84ff3c4014e59272c22b71e2a7f392861bf152fe4526e7f385c9d75e5650",
+      "normalization": "remove trailing blank lines only; original raw log retained in /tmp"
     },
     "route-boundary-green": {
       "file": "route-boundary-green.txt",
-      "sha256": "b56c4820f46994c82fb7c7c9bfc115b4c985b965df1ca20555754265d671e690"
+      "sha256": "3f21fc3b15e3023983c9fdaebb4338aea28949b0efd43ca21d6a1072a9f5b1b8",
+      "rawLogSha256": "b56c4820f46994c82fb7c7c9bfc115b4c985b965df1ca20555754265d671e690",
+      "normalization": "remove trailing blank lines only; original raw log retained in /tmp"
     },
     "route-service-final": {
       "file": "route-service-final.txt",
-      "sha256": "76ef5e5213c6f90e21ebd90b668f84f7926187c2c33818316daf6519e5e5e840"
+      "sha256": "b74b31d811c4ab5eeb3f5415008a3fdbc7392214e6757bde07d5e2a2fc731571",
+      "rawLogSha256": "76ef5e5213c6f90e21ebd90b668f84f7926187c2c33818316daf6519e5e5e840",
+      "normalization": "remove trailing blank lines only; original raw log retained in /tmp"
     }
   },
   "independentReview": "PASS; available_receipt; no findings",
