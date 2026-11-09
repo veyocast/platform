@@ -7,11 +7,11 @@
   "clockToleranceMs": 0,
   "browser": {
     "profile": "Playwright Chromium, actual Control route/components/CSS with controlled session/server reads",
-    "report": "/tmp/s296-final-browser-report.json",
-    "reportSha256": "7d8e03759c80f99444e3ca43c8ca72e2678b2d00efae473f592cd1cde1457330",
+    "report": "/tmp/s296-geometry-status-report.json",
+    "reportSha256": "f9f0b980ddb8dceb5ac919b6676b12989f1fdb75b95b5f7a077e22865d1693c0",
     "stats": {
-      "startTime": "2026-11-09T12:10:57.819Z",
-      "duration": 60231.023,
+      "startTime": "2026-11-09T12:39:09.309Z",
+      "duration": 63960.6,
       "expected": 15,
       "skipped": 0,
       "unexpected": 0,
@@ -24,7 +24,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 7,
         "status": "passed",
-        "durationMs": 4842,
+        "durationMs": 5114,
         "retries": 0
       },
       {
@@ -33,7 +33,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 7,
         "status": "passed",
-        "durationMs": 4767,
+        "durationMs": 4964,
         "retries": 0
       },
       {
@@ -42,7 +42,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 7,
         "status": "passed",
-        "durationMs": 4780,
+        "durationMs": 5074,
         "retries": 0
       },
       {
@@ -51,7 +51,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 7,
         "status": "passed",
-        "durationMs": 4649,
+        "durationMs": 5159,
         "retries": 0
       },
       {
@@ -60,7 +60,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 7,
         "status": "passed",
-        "durationMs": 4754,
+        "durationMs": 5373,
         "retries": 0
       },
       {
@@ -69,7 +69,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 7,
         "status": "passed",
-        "durationMs": 4642,
+        "durationMs": 4825,
         "retries": 0
       },
       {
@@ -78,7 +78,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 25,
         "status": "passed",
-        "durationMs": 2440,
+        "durationMs": 2578,
         "retries": 0
       },
       {
@@ -87,7 +87,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 25,
         "status": "passed",
-        "durationMs": 2422,
+        "durationMs": 2498,
         "retries": 0
       },
       {
@@ -96,7 +96,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 25,
         "status": "passed",
-        "durationMs": 2425,
+        "durationMs": 2509,
         "retries": 0
       },
       {
@@ -105,7 +105,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 25,
         "status": "passed",
-        "durationMs": 2473,
+        "durationMs": 2530,
         "retries": 0
       },
       {
@@ -114,7 +114,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 25,
         "status": "passed",
-        "durationMs": 2459,
+        "durationMs": 2676,
         "retries": 0
       },
       {
@@ -123,7 +123,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 35,
         "status": "passed",
-        "durationMs": 3131,
+        "durationMs": 3251,
         "retries": 0
       },
       {
@@ -132,7 +132,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 48,
         "status": "passed",
-        "durationMs": 5269,
+        "durationMs": 5720,
         "retries": 0
       },
       {
@@ -141,7 +141,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 48,
         "status": "passed",
-        "durationMs": 5506,
+        "durationMs": 5686,
         "retries": 0
       },
       {
@@ -150,7 +150,7 @@
         "file": "control/s296-screen-status.spec.ts",
         "line": 73,
         "status": "passed",
-        "durationMs": 3990,
+        "durationMs": 4144,
         "retries": 0
       }
     ],
@@ -183,8 +183,8 @@
     },
     {
       "path": "docs/implementation/s296-screen-status/screen-status-overview-320.png",
-      "sha256": "fdfdbe685a8b27b8d20bdc3a55c467a3e59113cdc81391a132801c5c9c42d176",
-      "bytes": 92520
+      "sha256": "86d142c079b3a1384ed87bd0b7e8bcc078d6fd4e462f26a16dc27d76557142e8",
+      "bytes": 92298
     },
     {
       "path": "docs/implementation/s296-screen-status/screen-status-1440.png",
@@ -203,8 +203,8 @@
     },
     {
       "path": "docs/implementation/s296-screen-status/screen-status-overview-1440.png",
-      "sha256": "3eae9752985f993b3002e1bee0e4f67ed772140606f98a56a6dcac3481a4165f",
-      "bytes": 108882
+      "sha256": "a78fbbd3013d7b02b7450f3682c66ce1a49193fd7619c6e23c2297259651fc8b",
+      "bytes": 108860
     }
   ],
   "sourceFiles": [
@@ -282,7 +282,7 @@
     },
     {
       "path": "apps/control/app/(shell)/dashboard/sync-overview.tsx",
-      "sha256": "a62dc3145df32150194179a07f450bcb75d75d11e25b8c188a53ae53a3452682"
+      "sha256": "b17560b4266c2591223941ddfcf731a11876aee8db0a7fb8c2f39895e01e196c"
     },
     {
       "path": "apps/control/app/api/mobile/v1/cockpit/route.ts",
@@ -402,6 +402,11 @@
       "command": "pnpm exec eslint tests/control/s296-screen-status.spec.ts tests/helpers/screen-status-fixture.ts --max-warnings=0",
       "log": "/tmp/s296-browser-source-lint.log",
       "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @veyocast/control exec eslint 'app/(shell)/dashboard/sync-overview.tsx'",
+      "log": "/tmp/s296-geometry-eslint.log",
+      "result": "passed"
     }
   ],
   "preservedEarlierRuns": [
@@ -416,6 +421,12 @@
       "passed": 14,
       "failed": 1,
       "cause": "SCR-03 fixture changed only device desire; corrected to set real canonical screen assignment; assertions unchanged"
+    },
+    {
+      "report": "/tmp/s296-final-browser-report.json",
+      "passed": 15,
+      "failed": 0,
+      "scope": "Pre-responsive-copy-repair SCR matrix; exact final source repeated below."
     }
   ],
   "limits": [
@@ -424,5 +435,17 @@
     "Metadata RPC and RLS are integrated and verified separately by database writer/root",
     "Exact integrated production build and Expo export follow root/CI integration gates",
     "No production data, screen schedules or Player runtime changed"
-  ]
+  ],
+  "testedWorkingTreeParent": "a8643e961cee7ad8a7d9ee94ac10c5392d1222ec",
+  "responsiveRegression": {
+    "evidence": "docs/implementation/s296-screen-status/responsive-regression-evidence.json",
+    "sha256": "a89d33f6fbf77f3f94be08a64228aa365b0a90b279b5bab415344fccc85099ae",
+    "passed": 4,
+    "caseIds": [
+      "RESP-0001",
+      "RESP-0002",
+      "RESP-0003",
+      "RESP-0006"
+    ]
+  }
 }

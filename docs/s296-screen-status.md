@@ -99,7 +99,8 @@ of hardwareverbinding. SCR-01 loopt op 299999/300000/300001 en
 1799999/1800000/1800001ms over vijf oppervlakken en telling/filter. SCR-02 bewaakt
 beheerprioriteit en ontbrekende/toekomstige tijd. SCR-03 volgt opdracht,
 download, geldig frame en later offline. SCR-04 toont bereikbaar contact met
-achterlopende bronrevisie. De finale browserrun slaagde 15/15 in 60,2 seconden,
+achterlopende bronrevisie. De finale browserrun na de mobiele toelichtingscorrectie
+slaagde 15/15 in 64,0 seconden,
 met acht visueel gecontroleerde screenshots. 320px en 1440px controleren
 overflow, toetsenbordbediening en aXe.
 
@@ -112,12 +113,30 @@ bewaakt juist een verouderde device-desire en expliciete verwijdering. De eerste
 domeintest stond in src en is naar de normale testmap verplaatst. Er is geen assertion, individuele timeout of productie-
 compatibiliteitsgrens versoepeld om die fouten weg te nemen.
 
-De definitieve bron heeft `pnpm lint`, `pnpm typecheck` en `pnpm test` ieder
+De eerste PR-CI vond vervolgens een concrete mobiele geometrieafwijking:
+RESP-0002 (390×844) en RESP-0003 (412×915) faalden, de overige 64 gevallen
+slaagden. De nieuwe toelichting onder `Publicatie bevestigd` sloeg om naar twee
+regels en schoof volgende onderdelen exact 12 pixels omlaag. Dezelfde twee
+fouten zijn lokaal op de ongewijzigde PR-bron gereproduceerd. Alleen de redundante
+toelichting is ingekort tot `Recent contact · gewenst beeld`; hoofdlabel en
+statusafleiding blijven gelijk. CSS, immutable referentie, fixtures, individuele
+timeouts en geometriecriteria zijn niet aangepast. De herhaling op 360, 390,
+412 en 1440 pixels slaagde 4/4 in 18,4 seconden, met nul verschillen in de
+bestaande geometrie-/kopvergelijking en zonder toegankelijkheidsfouten. De
+volledige SCR-browsermatrix is daarna opnieuw uitgevoerd. Voor-/nabeelden,
+oorspronkelijke CI-artifactbinding en individuele criteria staan in het
+[regressiebewijs](implementation/s296-screen-status/responsive-regression-evidence.json).
+Alle normale CI-checks blijven vereist voor merge.
+
+De bron vóór deze toelichtingscorrectie heeft `pnpm lint`, `pnpm typecheck` en `pnpm test` ieder
 30/30 succesvol doorlopen. De Control-suite telt 2075 geslaagde proeven en 34
 bestaande opt-in-skips; native 62, domain 89 en contracts 208. De Control-
 productiebuild, authgrens en client-secretcontrole slaagden vóór de laatste
 kleine canonical-target/timestamp-callsitecorrectie. De exacte geïntegreerde
-productiebuild en Android-export volgen via root/CI na de SQL-integratie.
+productiebuild en Android-export volgen via root/CI na de SQL-integratie. De
+tekstcorrectie heeft aanvullend gerichte ESLint en de hierboven vermelde vier
+geometrie- en vijftien statusgevallen succesvol doorlopen; de brede checks op
+de nieuwe commit volgen via de normale CI.
 Native fysieke bediening is niet verzameld; er wordt geen hardwarebewijs
 geclaimd. Browsergevallen, screenshots en checksums staan in
 [de bewijsindex](implementation/s296-screen-status/browser-evidence.json). De

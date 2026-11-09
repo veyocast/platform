@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "task": "S296",
+  "testedWorkingTreeParent": "a8643e961cee7ad8a7d9ee94ac10c5392d1222ec",
+  "productionChange": {
+    "path": "apps/control/app/(shell)/dashboard/sync-overview.tsx",
+    "sha256": "b17560b4266c2591223941ddfcf731a11876aee8db0a7fb8c2f39895e01e196c",
+    "label": "Publicatie bevestigd",
+    "before": "Recent contact en gewenst beeld bevestigd",
+    "after": "Recent contact \u00b7 gewenst beeld",
+    "cause": "KPI note wraps to two lines at 390px/412px; adds 12px to its row and all following sections."
+  },
+  "originalCi": {
+    "runId": 42616853443,
+    "jobId": 129158958165,
+    "commit": "c180915a17fbf6dd424499ac3a13b517af4cbc35",
+    "artifactId": 13673152105,
+    "artifactName": "sites-source-ui-c180915a17fbf6dd424499ac3a13b517af4cbc35",
+    "artifactUrl": "https://github.com/veyocast/platform/actions/runs/42616853443/artifacts/13673152105",
+    "failedCases": [
+      "RESP-0002",
+      "RESP-0003"
+    ],
+    "otherPassedCases": 64
+  },
+  "runs": [
+    {
+      "phase": "before",
+      "report": "/tmp/s296-geometry-red-report.json",
+      "reportSha256": "d69a4c961f650009ea53909b99b2152d171f80b5fee011c3b84fae12d4fff633",
+      "readback": "/tmp/s296-geometry-red/case-readback.json",
+      "readbackSha256": "213aa6cf3814d4bf079c3476adb57968c2a50ab179da217274c4adf3815442e3",
+      "comparisonFingerprint": "12da31f66350dea60fdf4b1be8b0b5cd007facd331b4c9c19a3249466f612b14",
+      "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+      "stats": {
+        "startTime": "2026-11-09T12:38:15.431Z",
+        "duration": 14885.382,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "caseId": "RESP-0002",
+          "viewport": "390x844",
+          "status": "PARTIAL",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": false,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": false,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [
+            "shellAndControlGeometry",
+            "sourceSectionGeometry"
+          ],
+          "differences": [
+            {
+              "selector": ".ov-screen-rows .empty",
+              "index": 0,
+              "property": "y",
+              "source": 1221.046875,
+              "current": 1233.046875
+            },
+            {
+              "selector": ".ov-screen-rows .empty .btn",
+              "index": 0,
+              "property": "y",
+              "source": 1377.578125,
+              "current": 1389.578125
+            }
+          ],
+          "headingDifferences": [
+            {
+              "index": 1,
+              "text": "Een mooie dagvoor jouw club.",
+              "property": "y",
+              "source": 562.21875,
+              "current": 574.21875
+            },
+            {
+              "index": 2,
+              "text": "Vraagt je aandacht",
+              "property": "y",
+              "source": 939.71875,
+              "current": 951.71875
+            },
+            {
+              "index": 3,
+              "text": "Jouw schermen",
+              "property": "y",
+              "source": 1152.25,
+              "current": 1164.25
+            },
+            {
+              "index": 4,
+              "text": "Je eerste scherm wacht op je",
+              "property": "y",
+              "source": 1313.046875,
+              "current": 1325.046875
+            },
+            {
+              "index": 5,
+              "text": "Op de planning",
+              "property": "y",
+              "source": 1529.859375,
+              "current": 1541.859375
+            },
+            {
+              "index": 6,
+              "text": "Zojuist gebeurd",
+              "property": "y",
+              "source": 1695.046875,
+              "current": 1707.046875
+            }
+          ]
+        },
+        {
+          "caseId": "RESP-0003",
+          "viewport": "412x915",
+          "status": "PARTIAL",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": false,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": false,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [
+            "shellAndControlGeometry",
+            "sourceSectionGeometry"
+          ],
+          "differences": [
+            {
+              "selector": ".ov-screen-rows .empty",
+              "index": 0,
+              "property": "y",
+              "source": 1221.046875,
+              "current": 1233.046875
+            },
+            {
+              "selector": ".ov-screen-rows .empty .btn",
+              "index": 0,
+              "property": "y",
+              "source": 1377.578125,
+              "current": 1389.578125
+            }
+          ],
+          "headingDifferences": [
+            {
+              "index": 1,
+              "text": "Een mooie dagvoor jouw club.",
+              "property": "y",
+              "source": 562.21875,
+              "current": 574.21875
+            },
+            {
+              "index": 2,
+              "text": "Vraagt je aandacht",
+              "property": "y",
+              "source": 939.71875,
+              "current": 951.71875
+            },
+            {
+              "index": 3,
+              "text": "Jouw schermen",
+              "property": "y",
+              "source": 1152.25,
+              "current": 1164.25
+            },
+            {
+              "index": 4,
+              "text": "Je eerste scherm wacht op je",
+              "property": "y",
+              "source": 1313.046875,
+              "current": 1325.046875
+            },
+            {
+              "index": 5,
+              "text": "Op de planning",
+              "property": "y",
+              "source": 1529.859375,
+              "current": 1541.859375
+            },
+            {
+              "index": 6,
+              "text": "Zojuist gebeurd",
+              "property": "y",
+              "source": 1674.65625,
+              "current": 1686.65625
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "report": "/tmp/s296-geometry-fixed-report.json",
+      "reportSha256": "27d6d1e187a4375a46e23589a9a6e77b2943421e617670202a375ac500399463",
+      "readback": "/tmp/s296-geometry-fixed/case-readback.json",
+      "readbackSha256": "78297b475e472c22c5b1a1d5682942f44803eb9332a025ab7f445554e2511d53",
+      "comparisonFingerprint": "4a7300c4232a209431bb18cecbd97b94dd133fdb9bb272c1eff2ea108b476ddf",
+      "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+      "stats": {
+        "startTime": "2026-11-09T12:38:44.854Z",
+        "duration": 18392.318,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "caseId": "RESP-0001",
+          "viewport": "360x800",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0002",
+          "viewport": "390x844",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0003",
+          "viewport": "412x915",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0006",
+          "viewport": "1440x900",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-390-before.png",
+      "sha256": "2bf095ab9242021fc7aecdddc335da5ea4269c027b6d9cfabcd66bbdb34ef7fd",
+      "bytes": 56905
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-390-after.png",
+      "sha256": "937eeedd366055ca57756852b879a14963fb528c0d8e3cfc7801a2758b19da8c",
+      "bytes": 56876
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-412-before.png",
+      "sha256": "874f60247cab407030758a0ed325cd0df7261bf62dd4f963cb94cb4a9e080b0e",
+      "bytes": 66662
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-412-after.png",
+      "sha256": "3885dd7c63604828fdfabce9f75ad6eda1d4a4cfa956af9153555b49b8a0ad21",
+      "bytes": 67746
+    }
+  ],
+  "unchanged": [
+    "geometry assertions and 0.1px tolerance",
+    "Source files and reference runtime",
+    "all CSS and production layout",
+    "Publicatie bevestigd label and derived confirmation semantics",
+    "per-case timeouts and test fixtures"
+  ],
+  "scope": "Actual Control JSX/CSS against the local immutable chosen Sync reference; controlled empty authorized read model, no live production reads."
+}
