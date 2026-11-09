@@ -100,7 +100,7 @@ of hardwareverbinding. SCR-01 loopt op 299999/300000/300001 en
 beheerprioriteit en ontbrekende/toekomstige tijd. SCR-03 volgt opdracht,
 download, geldig frame en later offline. SCR-04 toont bereikbaar contact met
 achterlopende bronrevisie. De finale browserrun na de mobiele toelichtingscorrectie
-slaagde 15/15 in 64,0 seconden,
+slaagde 15/15 in 61,6 seconden,
 met acht visueel gecontroleerde screenshots. 320px en 1440px controleren
 overflow, toetsenbordbediening en aXe.
 
@@ -113,18 +113,26 @@ bewaakt juist een verouderde device-desire en expliciete verwijdering. De eerste
 domeintest stond in src en is naar de normale testmap verplaatst. Er is geen assertion, individuele timeout of productie-
 compatibiliteitsgrens versoepeld om die fouten weg te nemen.
 
-De eerste PR-CI vond vervolgens een concrete mobiele geometrieafwijking:
-RESP-0002 (390×844) en RESP-0003 (412×915) faalden, de overige 64 gevallen
-slaagden. De nieuwe toelichting onder `Publicatie bevestigd` sloeg om naar twee
-regels en schoof volgende onderdelen exact 12 pixels omlaag. Dezelfde twee
-fouten zijn lokaal op de ongewijzigde PR-bron gereproduceerd. Alleen de redundante
-toelichting is ingekort tot `Recent contact · gewenst beeld`; hoofdlabel en
-statusafleiding blijven gelijk. CSS, immutable referentie, fixtures, individuele
-timeouts en geometriecriteria zijn niet aangepast. De herhaling op 360, 390,
-412 en 1440 pixels slaagde 4/4 in 18,4 seconden, met nul verschillen in de
-bestaande geometrie-/kopvergelijking en zonder toegankelijkheidsfouten. De
-volledige SCR-browsermatrix is daarna opnieuw uitgevoerd. Voor-/nabeelden,
-oorspronkelijke CI-artifactbinding en individuele criteria staan in het
+De eerste PR-CI vond een concrete mobiele geometrieafwijking: RESP-0002
+(390×844) en RESP-0003 (412×915) faalden, de overige 64 gevallen slaagden. De
+toelichting onder `Publicatie bevestigd` sloeg om naar twee regels en schoof
+volgende onderdelen exact 12 pixels omlaag. Lokaal zijn dezelfde fouten
+gereproduceerd. De eerste verkorting naar `Recent contact · gewenst beeld`
+slaagde op de vier gecontroleerde breedtes 360, 390, 412 en 1440 pixels.
+
+De volledige CI op die eerste reparatie vond vervolgens de twee niet lokaal
+herhaalde tabletgevallen RESP-0004/0005 (768×1024 en 1024×768): de kortere tekst
+maakte hun KPI-rij juist één regel, 13,9375 pixels, lager. Ook die fout is op
+de ongewijzigde commit lokaal gereproduceerd. Een tekstmeting op alle zes
+breedtes verklaart de verschillende regelafbreking. De uiteindelijke tekst
+`Recent contact · gewenste publicatie` behoudt zowel de juiste betekenis als
+de rijhoogte op alle zes oorspronkelijke formaten. De volledige
+overzichtsherhaling slaagde 6/6 in 29,4 seconden: nul verschillen in de
+bestaande geometrie-/kopvergelijking en zonder toegankelijkheidsfouten.
+Hoofdlabel en statusafleiding blijven gelijk. CSS, immutable referentie,
+fixtures, individuele timeouts en geometriecriteria zijn niet aangepast.
+De volledige SCR-browsermatrix is opnieuw uitgevoerd. Voor-/nabeelden, beide
+oorspronkelijke CI-artifactbindingen en individuele criteria staan in het
 [regressiebewijs](implementation/s296-screen-status/responsive-regression-evidence.json).
 Alle normale CI-checks blijven vereist voor merge.
 
@@ -134,7 +142,7 @@ bestaande opt-in-skips; native 62, domain 89 en contracts 208. De Control-
 productiebuild, authgrens en client-secretcontrole slaagden vóór de laatste
 kleine canonical-target/timestamp-callsitecorrectie. De exacte geïntegreerde
 productiebuild en Android-export volgen via root/CI na de SQL-integratie. De
-tekstcorrectie heeft aanvullend gerichte ESLint en de hierboven vermelde vier
+tekstcorrectie heeft aanvullend gerichte ESLint en de hierboven vermelde zes
 geometrie- en vijftien statusgevallen succesvol doorlopen; de brede checks op
 de nieuwe commit volgen via de normale CI.
 Native fysieke bediening is niet verzameld; er wordt geen hardwarebewijs

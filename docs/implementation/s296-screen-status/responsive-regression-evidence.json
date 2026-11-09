@@ -1,14 +1,16 @@
 {
   "schemaVersion": 1,
   "task": "S296",
-  "testedWorkingTreeParent": "a8643e961cee7ad8a7d9ee94ac10c5392d1222ec",
+  "testedWorkingTreeParent": "3e496a059027564d18ae7225228e5715a03d12d7",
   "productionChange": {
     "path": "apps/control/app/(shell)/dashboard/sync-overview.tsx",
-    "sha256": "b17560b4266c2591223941ddfcf731a11876aee8db0a7fb8c2f39895e01e196c",
+    "sha256": "69d4e7f09b549be29d1ada1123d20414124689c611d909ffb0022933cc987c78",
     "label": "Publicatie bevestigd",
     "before": "Recent contact en gewenst beeld bevestigd",
-    "after": "Recent contact \u00b7 gewenst beeld",
-    "cause": "KPI note wraps to two lines at 390px/412px; adds 12px to its row and all following sections."
+    "after": "Recent contact \u00b7 gewenste publicatie",
+    "cause": "KPI note wraps to two lines at 390px/412px; adds 12px to its row and all following sections.",
+    "firstRepair": "Recent contact \u00b7 gewenst beeld",
+    "tabletCause": "First repair shortened the tablet note from three/two lines to two/one lines (768px/1024px), reducing its row and every following section by 13.9375px."
   },
   "originalCi": {
     "runId": 42616853443,
@@ -25,7 +27,7 @@
   },
   "runs": [
     {
-      "phase": "before",
+      "phase": "first-before",
       "report": "/tmp/s296-geometry-red-report.json",
       "reportSha256": "d69a4c961f650009ea53909b99b2152d171f80b5fee011c3b84fae12d4fff633",
       "readback": "/tmp/s296-geometry-red/case-readback.json",
@@ -204,7 +206,7 @@
       ]
     },
     {
-      "phase": "after",
+      "phase": "first-after",
       "report": "/tmp/s296-geometry-fixed-report.json",
       "reportSha256": "27d6d1e187a4375a46e23589a9a6e77b2943421e617670202a375ac500399463",
       "readback": "/tmp/s296-geometry-fixed/case-readback.json",
@@ -297,6 +299,318 @@
           "headingDifferences": []
         }
       ]
+    },
+    {
+      "phase": "tablet-before",
+      "report": "/tmp/s296-tablet-red-report.json",
+      "reportSha256": "6af1ee0ee9aafa286f91eaf11d4866293596d02749fdb0e4985ebb6b13b35447",
+      "readback": "/tmp/s296-tablet-red/case-readback.json",
+      "readbackSha256": "9038a7ab50bdb7d981d02888fe49267e3cac8f49213ce87ca3f7fb8a63827126",
+      "comparisonFingerprint": "4a7300c4232a209431bb18cecbd97b94dd133fdb9bb272c1eff2ea108b476ddf",
+      "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+      "stats": {
+        "startTime": "2026-11-09T12:54:18.484Z",
+        "duration": 15108.975,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "caseId": "RESP-0004",
+          "viewport": "768x1024",
+          "status": "PARTIAL",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": false,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": false,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [
+            "shellAndControlGeometry",
+            "sourceSectionGeometry"
+          ],
+          "differences": [
+            {
+              "selector": ".ov-screen-rows .empty",
+              "index": 0,
+              "property": "y",
+              "source": 1148.125,
+              "current": 1134.1875
+            },
+            {
+              "selector": ".ov-screen-rows .empty .btn",
+              "index": 0,
+              "property": "y",
+              "source": 1304.65625,
+              "current": 1290.71875
+            }
+          ],
+          "headingDifferences": [
+            {
+              "index": 1,
+              "text": "Een mooie dagvoor jouw club.",
+              "property": "y",
+              "source": 475.90625,
+              "current": 461.96875
+            },
+            {
+              "index": 2,
+              "text": "Vraagt je aandacht",
+              "property": "y",
+              "source": 813.28125,
+              "current": 799.34375
+            },
+            {
+              "index": 3,
+              "text": "Jouw schermen",
+              "property": "y",
+              "source": 1084.4375,
+              "current": 1070.5
+            },
+            {
+              "index": 4,
+              "text": "Je eerste scherm wacht op je",
+              "property": "y",
+              "source": 1240.125,
+              "current": 1226.1875
+            },
+            {
+              "index": 5,
+              "text": "Op de planning",
+              "property": "y",
+              "source": 1458.296875,
+              "current": 1444.359375
+            },
+            {
+              "index": 6,
+              "text": "Zojuist gebeurd",
+              "property": "y",
+              "source": 1458.296875,
+              "current": 1444.359375
+            }
+          ]
+        },
+        {
+          "caseId": "RESP-0005",
+          "viewport": "1024x768",
+          "status": "PARTIAL",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": false,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": false,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [
+            "shellAndControlGeometry",
+            "sourceSectionGeometry"
+          ],
+          "differences": [
+            {
+              "selector": ".ov-screen-rows .empty",
+              "index": 0,
+              "property": "y",
+              "source": 799.390625,
+              "current": 785.453125
+            },
+            {
+              "selector": ".ov-screen-rows .empty .btn",
+              "index": 0,
+              "property": "y",
+              "source": 955.921875,
+              "current": 941.984375
+            }
+          ],
+          "headingDifferences": [
+            {
+              "index": 1,
+              "text": "Een mooie dagvoor jouw club.",
+              "property": "y",
+              "source": 439.203125,
+              "current": 425.265625
+            },
+            {
+              "index": 2,
+              "text": "Vraagt je aandacht",
+              "property": "y",
+              "source": 423.703125,
+              "current": 409.765625
+            },
+            {
+              "index": 3,
+              "text": "Jouw schermen",
+              "property": "y",
+              "source": 735.703125,
+              "current": 721.765625
+            },
+            {
+              "index": 4,
+              "text": "Je eerste scherm wacht op je",
+              "property": "y",
+              "source": 891.390625,
+              "current": 877.453125
+            },
+            {
+              "index": 5,
+              "text": "Op de planning",
+              "property": "y",
+              "source": 736.65625,
+              "current": 722.71875
+            },
+            {
+              "index": 6,
+              "text": "Zojuist gebeurd",
+              "property": "y",
+              "source": 908.484375,
+              "current": 894.546875
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "final-after",
+      "report": "/tmp/s296-six-widths-fixed-report.json",
+      "reportSha256": "5cc3bb72a0ba0f207b8d79214f5dace5dca05d7b7d4eb42a5ae513802e4387a1",
+      "readback": "/tmp/s296-six-widths-fixed/case-readback.json",
+      "readbackSha256": "551cce59db3931b4e671dcb63b5370e001e40b86230d7bb4af45e76f2343b224",
+      "comparisonFingerprint": "4e70250a9fe96b89838364553e1b1a858e65b060521fb9b6494df9ea6fd2f2e0",
+      "sourceRevision": "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a",
+      "stats": {
+        "startTime": "2026-11-09T12:54:51.902Z",
+        "duration": 29405.034,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "caseId": "RESP-0001",
+          "viewport": "360x800",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0002",
+          "viewport": "390x844",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0003",
+          "viewport": "412x915",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0004",
+          "viewport": "768x1024",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0005",
+          "viewport": "1024x768",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        },
+        {
+          "caseId": "RESP-0006",
+          "viewport": "1440x900",
+          "status": "PASS",
+          "criteria": {
+            "noHorizontalOverflow": true,
+            "assetsLoaded": true,
+            "shellAndControlGeometry": true,
+            "activeNavigation": true,
+            "sourceHeadingOrder": true,
+            "sourceSectionGeometry": true,
+            "mobileTouchTargets": true,
+            "browserErrors": true,
+            "accessibility": true
+          },
+          "unmet": [],
+          "differences": [],
+          "headingDifferences": []
+        }
+      ]
     }
   ],
   "artifacts": [
@@ -306,7 +620,7 @@
       "bytes": 56905
     },
     {
-      "path": "docs/implementation/s296-screen-status/responsive-390-after.png",
+      "path": "docs/implementation/s296-screen-status/responsive-390-first-repair.png",
       "sha256": "937eeedd366055ca57756852b879a14963fb528c0d8e3cfc7801a2758b19da8c",
       "bytes": 56876
     },
@@ -316,9 +630,39 @@
       "bytes": 66662
     },
     {
-      "path": "docs/implementation/s296-screen-status/responsive-412-after.png",
+      "path": "docs/implementation/s296-screen-status/responsive-412-first-repair.png",
       "sha256": "3885dd7c63604828fdfabce9f75ad6eda1d4a4cfa956af9153555b49b8a0ad21",
       "bytes": 67746
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-390-after.png",
+      "sha256": "3ab59b0b34e26d4de7d6def51a1ad56dcba7f0a3ffae402dd11d0fb0d6691bbf",
+      "bytes": 57086
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-412-after.png",
+      "sha256": "af7fa101c77db2801e2aaf10df490fa7bcff21a8cd495bb70453071e71f4b5f4",
+      "bytes": 67965
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-768-before.png",
+      "sha256": "ddee85a9753c704cbb486790aef3bfe1d170fa857a132c957968eb846d674c6f",
+      "bytes": 106929
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-768-after.png",
+      "sha256": "d6f676a8465560da8cd706bca3b375f4d8f3a571852d0f4ec599e580c7f272da",
+      "bytes": 106932
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-1024-before.png",
+      "sha256": "be5d6d5c0db2d19c0fa33e930ac91a81dd85e3b3e2bbbf2c34d6a15f420601b4",
+      "bytes": 111672
+    },
+    {
+      "path": "docs/implementation/s296-screen-status/responsive-1024-after.png",
+      "sha256": "3447fc4d3dade8402016eaa018c0bbbd8a4e21a0c01ce7ccf90afb788211a9e5",
+      "bytes": 109690
     }
   ],
   "unchanged": [
@@ -328,5 +672,219 @@
     "Publicatie bevestigd label and derived confirmation semantics",
     "per-case timeouts and test fixtures"
   ],
-  "scope": "Actual Control JSX/CSS against the local immutable chosen Sync reference; controlled empty authorized read model, no live production reads."
+  "scope": "Actual Control JSX/CSS against the local immutable chosen Sync reference; controlled empty authorized read model, no live production reads.",
+  "secondCi": {
+    "runId": 42619062964,
+    "jobId": 129166448974,
+    "commit": "03598eca6d1ba2b98bdb313a4fdb9ac31c653cdb",
+    "artifactId": 13676090110,
+    "artifactName": "sites-source-ui-03598eca6d1ba2b98bdb313a4fdb9ac31c653cdb",
+    "artifactUrl": "https://github.com/veyocast/platform/actions/runs/42619062964/artifacts/13676090110",
+    "failedCases": [
+      "RESP-0004",
+      "RESP-0005"
+    ],
+    "otherPassedCases": 64
+  },
+  "lineMeasurements": [
+    {
+      "width": 360,
+      "copy": "Recent contact \u00b7 gewenst beeld",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 126,
+      "height": 12,
+      "lines": 1,
+      "rowHeight": 241.78125
+    },
+    {
+      "width": 360,
+      "copy": "Recent contact \u00b7 gewenste publicatie",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 126,
+      "height": 24,
+      "lines": 2,
+      "rowHeight": 241.78125
+    },
+    {
+      "width": 360,
+      "copy": "Bereikbaar en gewenste versie actief",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 126,
+      "height": 24,
+      "lines": 2,
+      "rowHeight": 241.78125
+    },
+    {
+      "width": 390,
+      "copy": "Recent contact \u00b7 gewenst beeld",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 141,
+      "height": 12,
+      "lines": 1,
+      "rowHeight": 229.78125
+    },
+    {
+      "width": 390,
+      "copy": "Recent contact \u00b7 gewenste publicatie",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 141,
+      "height": 12,
+      "lines": 1,
+      "rowHeight": 229.78125
+    },
+    {
+      "width": 390,
+      "copy": "Bereikbaar en gewenste versie actief",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 141,
+      "height": 12,
+      "lines": 1,
+      "rowHeight": 229.78125
+    },
+    {
+      "width": 412,
+      "copy": "Recent contact \u00b7 gewenst beeld",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 152,
+      "height": 12,
+      "lines": 1,
+      "rowHeight": 229.78125
+    },
+    {
+      "width": 412,
+      "copy": "Recent contact \u00b7 gewenste publicatie",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 152,
+      "height": 12,
+      "lines": 1,
+      "rowHeight": 229.78125
+    },
+    {
+      "width": 412,
+      "copy": "Bereikbaar en gewenste versie actief",
+      "font": "8px / 12px Manrope, Inter, sans-serif",
+      "fontSize": "8px",
+      "lineHeight": "12px",
+      "noteWidth": 152,
+      "height": 12,
+      "lines": 1,
+      "rowHeight": 229.78125
+    },
+    {
+      "width": 768,
+      "copy": "Recent contact \u00b7 gewenst beeld",
+      "font": "9px / 13.95px Manrope, Inter, sans-serif",
+      "fontSize": "9px",
+      "lineHeight": "13.95px",
+      "noteWidth": 81.75,
+      "height": 27.875,
+      "lines": 1.9982078853046596,
+      "rowHeight": 152.46875
+    },
+    {
+      "width": 768,
+      "copy": "Recent contact \u00b7 gewenste publicatie",
+      "font": "9px / 13.95px Manrope, Inter, sans-serif",
+      "fontSize": "9px",
+      "lineHeight": "13.95px",
+      "noteWidth": 81.75,
+      "height": 41.8125,
+      "lines": 2.9973118279569895,
+      "rowHeight": 166.40625
+    },
+    {
+      "width": 768,
+      "copy": "Bereikbaar en gewenste versie actief",
+      "font": "9px / 13.95px Manrope, Inter, sans-serif",
+      "fontSize": "9px",
+      "lineHeight": "13.95px",
+      "noteWidth": 81.75,
+      "height": 41.8125,
+      "lines": 2.9973118279569895,
+      "rowHeight": 166.40625
+    },
+    {
+      "width": 1024,
+      "copy": "Recent contact \u00b7 gewenst beeld",
+      "font": "9px / 13.95px Manrope, Inter, sans-serif",
+      "fontSize": "9px",
+      "lineHeight": "13.95px",
+      "noteWidth": 145.75,
+      "height": 13.9375,
+      "lines": 0.9991039426523298,
+      "rowHeight": 123.03125
+    },
+    {
+      "width": 1024,
+      "copy": "Recent contact \u00b7 gewenste publicatie",
+      "font": "9px / 13.95px Manrope, Inter, sans-serif",
+      "fontSize": "9px",
+      "lineHeight": "13.95px",
+      "noteWidth": 145.75,
+      "height": 27.875,
+      "lines": 1.9982078853046596,
+      "rowHeight": 136.96875
+    },
+    {
+      "width": 1024,
+      "copy": "Bereikbaar en gewenste versie actief",
+      "font": "9px / 13.95px Manrope, Inter, sans-serif",
+      "fontSize": "9px",
+      "lineHeight": "13.95px",
+      "noteWidth": 145.75,
+      "height": 27.875,
+      "lines": 1.9982078853046596,
+      "rowHeight": 136.96875
+    },
+    {
+      "width": 1440,
+      "copy": "Recent contact \u00b7 gewenst beeld",
+      "font": "10px / 15.5px Manrope, Inter, sans-serif",
+      "fontSize": "10px",
+      "lineHeight": "15.5px",
+      "noteWidth": 227,
+      "height": 15.5,
+      "lines": 1,
+      "rowHeight": 131.6875
+    },
+    {
+      "width": 1440,
+      "copy": "Recent contact \u00b7 gewenste publicatie",
+      "font": "10px / 15.5px Manrope, Inter, sans-serif",
+      "fontSize": "10px",
+      "lineHeight": "15.5px",
+      "noteWidth": 227,
+      "height": 15.5,
+      "lines": 1,
+      "rowHeight": 131.6875
+    },
+    {
+      "width": 1440,
+      "copy": "Bereikbaar en gewenste versie actief",
+      "font": "10px / 15.5px Manrope, Inter, sans-serif",
+      "fontSize": "10px",
+      "lineHeight": "15.5px",
+      "noteWidth": 227,
+      "height": 15.5,
+      "lines": 1,
+      "rowHeight": 131.6875
+    }
+  ],
+  "lineMeasurementScope": "Read-only DOM text substitution in the actual production bundle with loaded canonical fonts; no fixture, stylesheet or baseline modifications."
 }

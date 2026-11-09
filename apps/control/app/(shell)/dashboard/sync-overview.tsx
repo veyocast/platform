@@ -51,7 +51,7 @@ export async function SyncOverview({ canCreateStudio, canManageScreens, data, sc
     {planningError ? <p className="notice notice--critical" role="alert">De dagplanning kon niet worden geladen. <Link href="/dashboard/planning">Open Planning om opnieuw te proberen.</Link></p> : null}
     <section className="ov-metrics" aria-label="Belangrijkste cijfers">
       <Metric icon={<Monitor size={18} />} label="Schermen bereikbaar" value={data.availability.screens && data.availability.devices ? <>{operations.onlineScreenCount}<em> / {data.screens.length}</em></> : "—"} note={`${rows.filter(row => !row.evidence.health.reachable).length} zonder bevestigd recent contact`} />
-      <Metric icon={<CheckCircle2 size={18} />} label="Publicatie bevestigd" value={data.availability.devices ? confirmed : "—"} note="Recent contact · gewenst beeld" />
+      <Metric icon={<CheckCircle2 size={18} />} label="Publicatie bevestigd" value={data.availability.devices ? confirmed : "—"} note="Recent contact · gewenste publicatie" />
       <Metric icon={<Layers size={18} />} label="Conceptplaylists" value={data.availability.playlists ? concept : "—"} note="Nog niet gepubliceerd" />
       <Metric icon={<Plug size={18} />} label="Bronnen actueel" value={data.availability.integrations ? <>{sources.filter(source => source.healthy).length}<em> / {sources.length}</em></> : "—"} note="Volgens laatste bronstatus" />
     </section>
