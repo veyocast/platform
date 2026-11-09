@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "readOnly": true,
+  "productionSoftwareSha": "282bcec3e986207b5b01ea186325297b2b974b11",
+  "slides": [
+    {
+      "slideId": "a39233c9-6b7c-4b26-a47e-bf6834b35042",
+      "changedAt": "2026-11-08T23:03:26.803067+00:00",
+      "checkedAt": "2026-11-09T12:05:15.273583+00:00",
+      "slideType": "sport_match_of_the_day",
+      "snapshotId": "241a626a-9b88-4195-b8bf-73409b5290a0",
+      "contentHash": "24cef34e1f329de67de83ecb724d2476377c9320be56efec37d22949351a13cd",
+      "dataRevision": 6,
+      "renderedMime": "application/vnd.veyocast.sync-dom+json",
+      "configuration": {
+        "title": "Duindorp SV ZA1",
+        "context": {
+          "poolId": null,
+          "phaseId": null,
+          "seasonId": null,
+          "competitionId": null,
+          "providerTeamId": "218380",
+          "competitionSelectionMode": "auto_current"
+        },
+        "maxItems": 200,
+        "schemaVersion": 1,
+        "teamSelection": {
+          "mode": "selected",
+          "teamContexts": [
+            {
+              "poolId": null,
+              "phaseId": null,
+              "seasonId": null,
+              "competitionId": null,
+              "providerTeamId": "218380",
+              "competitionSelectionMode": "auto_current"
+            }
+          ]
+        },
+        "syncPlaybackProtocol": 2
+      },
+      "slideVersionId": "41cd9c38-3e3a-4372-8716-08b18c4c9ec7",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "rendererVersion": "sync-onzetrots-v9",
+      "snapshotSourceHash": "43f5215ed66a5e99bea0a4c4e4427a847b9f77ed445aafa9259884ec68cf5988",
+      "publicationBindings": [
+        {
+          "version": 2,
+          "releaseId": "acfda604-0db6-4c51-8724-3b9db6202a57",
+          "publishedAt": "2026-11-07T14:45:14.103831+00:00",
+          "liveDataEnabled": true
+        }
+      ],
+      "resolvedMatchdayContext": {
+        "poolId": "826233",
+        "teamId": "218380",
+        "seasonId": null,
+        "tenantId": "b25addaf-f558-40ee-8569-ec979c4218ba",
+        "revisions": [
+          {
+            "dataset": "results",
+            "revision": 1794059916063
+          },
+          {
+            "dataset": "standings",
+            "revision": 1793978076659
+          },
+          {
+            "dataset": "fixtures",
+            "revision": 1794059916063
+          }
+        ],
+        "competitionId": "89578cd804224102bbc4210cf1eea97ec87ec203dd1ab5f4b2d8792f8b501322"
+      }
+    },
+    {
+      "slideId": "7b7f1162-79cb-413b-9c6f-3138d2fab928",
+      "changedAt": "2026-11-09T08:47:06.9606+00:00",
+      "checkedAt": "2026-11-09T12:05:16.226168+00:00",
+      "slideType": "sport_results",
+      "snapshotId": "a3c1ff9a-237a-47b9-862e-aa7b038415d6",
+      "contentHash": "9083682bcd45c387f0808e47719a3fe11087edf0c0f5817d51cd2de0d251e415",
+      "dataRevision": 6,
+      "renderedMime": "application/vnd.veyocast.sync-dom+json",
+      "configuration": {
+        "title": "ZO SPEELDEN WE",
+        "maxItems": 200,
+        "blueprintKey": "sportlink.club_results_previous_7_days",
+        "schemaVersion": 1,
+        "teamSelection": {
+          "mode": "all",
+          "teamContexts": [],
+          "matchLocation": "both"
+        },
+        "syncPlaybackProtocol": 2
+      },
+      "slideVersionId": "df744db7-1cd8-412c-87da-0c377b4e1741",
+      "sourceRevision": "5ba52a657d6d16ad103ba2fb43b8db18aa83715a",
+      "rendererVersion": "sync-onzetrots-v9",
+      "snapshotSourceHash": "c1acde9b854d7a8e630647db7711659d1b65fdeac23f4c9ce435f5828c784657",
+      "publicationBindings": [
+        {
+          "version": 2,
+          "releaseId": "acfda604-0db6-4c51-8724-3b9db6202a57",
+          "publishedAt": "2026-11-07T14:45:14.103831+00:00",
+          "liveDataEnabled": true
+        }
+      ],
+      "resolvedMatchdayContext": null
+    }
+  ]
+}

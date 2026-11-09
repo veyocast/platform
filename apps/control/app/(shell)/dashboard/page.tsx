@@ -1,5 +1,6 @@
 import { hasCapability } from "@veyocast/auth";
 import { requireTenantControlSession } from "../../../lib/control-session";
+import { loadMatchdayAvailability } from "../../../lib/matchday-service";
 import { loadTenantOverview } from "../../../lib/control-overview";
 import { loadContentSchedules } from "./planning/data";
 import type { ContentScheduleListItem } from "./planning/planning-types";
@@ -47,16 +48,18 @@ export default async function DashboardPage({
     );
   }
 
-  const [data, planning] = await Promise.all([
+  const [data, planning, matchday] = await Promise.all([
     loadTenantOverview(session.tenantId!),
-    loadContentSchedules(session.tenantId!)
+    loadContentSchedules(session.tenantId!),
+    loadMatchdayAvailability()
   ]);
 
   return (
     <SyncOverview
-      canCreateStudio={session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.studio.create")}
+      canCreateStudio={session.tenantStatus === "active" && (hasCapability(session.capabilities, "tenant.studio.create") || hasCapability(session.capabilities, "tenant.dynamic_slide.write"))}
       canManageScreens={session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.screen.manage")}
       data={data}
+      canOpenMatchday={matchday?.canOpen===true}
       planningError={planning.error}
       schedules={planning.schedules}
       tenant={session.tenant}

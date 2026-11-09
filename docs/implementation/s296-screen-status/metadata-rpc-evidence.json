@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "task": "S296",
+  "writer": "database_matchday, serialized SQL ownership",
+  "scope": "Metadata-only screen source RPC; no dataset payload or credentials",
+  "files": [
+    {
+      "path": "supabase/migrations/20261109120358_s296_screen_source_status.sql",
+      "sha256": "fa921db4c1ffae537b3e9c52943f1df9a5714987212ac8becdf1cc9f94e7fe33"
+    },
+    {
+      "path": "supabase/tests/rls_s296_screen_source_status.sql",
+      "sha256": "392224f264462abf78c191d2a8b26fea4a88b9cc774f53202205ec939106ec62"
+    }
+  ],
+  "verification": {
+    "isolatedDatabase": "local test database on64432, database writer controlled",
+    "targetedPgTap": {
+      "passed": 31,
+      "failed": 0,
+      "durationSeconds": 3,
+      "scope": "exact desired/confirmed release and composition zones; independent Sportlink datasets; cross-tenant/capability/anonymous denial; invalid/future frame; stale device desire; frozen binding; no writes"
+    },
+    "databaseLint": {
+      "schemas": [
+        "public",
+        "private"
+      ],
+      "issues": 0
+    },
+    "securityAdvisors": {
+      "issues": 0
+    },
+    "logs": [
+      {
+        "path": "/tmp/s296-source-rpc-ddl-final.log",
+        "sha256": "3865f9ef32f49e4b7f643acad28348b08f52af1b4225608e49609cda4c16ec96"
+      },
+      {
+        "path": "/tmp/s296-source-rpc-tests-final.log",
+        "sha256": "485f7acfd9f9d3ac9512d7f28d67c051904a60fe3bd47d4f790a90c426d3bcbb"
+      },
+      {
+        "path": "/tmp/s296-s299-db-lint-final.log",
+        "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+      },
+      {
+        "path": "/tmp/s296-s299-db-advisors-final.log",
+        "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+      }
+    ],
+    "consolidatedFreshReset": {
+      "includedChanges": [
+        "S296",
+        "S298",
+        "S299"
+      ],
+      "sqlFiles": 152,
+      "assertions": 5064,
+      "passed": true,
+      "durationSeconds": 121,
+      "logs": [
+        {
+          "path": "/tmp/s296-s298-s299-final-reset.log",
+          "sha256": "519f170f31348f796b55054ad02ad2f992d7bbc174006df45d15181d3e8b1cf6"
+        },
+        {
+          "path": "/tmp/s296-s298-s299-final-rls.log",
+          "sha256": "8b746afe4dd44015278fa60d21eac0a4e0be35f2e382a8a662a97cf3bfd59817"
+        },
+        {
+          "path": "/tmp/s296-s298-s299-final-db-lint.log",
+          "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+        },
+        {
+          "path": "/tmp/s296-s298-s299-final-db-advisors.log",
+          "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+        },
+        {
+          "path": "/tmp/s296-s298-s299-final-inputs.json",
+          "sha256": "87c9d475d155a95e1e8a977faa644e790a03804e618dbd1afd740e11dd07149f"
+        }
+      ]
+    }
+  },
+  "limits": [
+    "Exact integrated production build remains a normal root/CI gate",
+    "No production query or data/schedule mutation"
+  ]
+}

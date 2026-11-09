@@ -9,6 +9,7 @@ import { Ban, CheckCheck, MapPin, Monitor, Search, Wrench } from "lucide-react";
 
 import { publishPlaylistGuided } from "../../actions";
 import { PlaylistPreview, type PlaylistPreviewItem } from "../../playlist-preview";
+import { PublicationPlanningPreview } from "../../../planning/publication-planning-preview";
 import styles from "./publish-journey.module.css";
 
 const steps = [
@@ -270,6 +271,7 @@ export function PublishJourney({
           </section>
         ) : null}
 
+        {currentStep.id === "preflight" ? <PublicationPlanningPreview screenIds={selectedIds} playlistId={playlist.id}/> : null}
         {currentStep.id === "preflight" ? (
           <section aria-labelledby="publish-preflight-title" className="workspace-section"><div className="workspace-section__header"><div><h2 className="workspace-section__title" id="publish-preflight-title">Preflight per scherm</h2><p className="work-panel__meta">Capability, manifestcompatibiliteit, actuele telemetry, opslag en dynamische paginaduur worden per doel beoordeeld. Onbekend blijft onbekend.</p></div><StatusPill label={hasBlocked ? "Geblokkeerd" : hasRisk ? "Bevestiging nodig" : "Alle doelen gereed"} tone={hasBlocked ? "critical" : hasRisk ? "warning" : "success"} /></div>{birthdayTimingChecks.length ? <BirthdayTimingPreflight checks={birthdayTimingChecks} playlistId={playlist.id} /> : null}<PreflightTable states={selectedStates} /></section>
         ) : null}

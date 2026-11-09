@@ -19,7 +19,8 @@ export function hasVisibleEmptyZoneFrame(root: HTMLElement | null): boolean {
 
 /** An empty dataset is a visible idle state, never a fictitious item turn.
  * Its small loop supplies a natural boundary for subsequently verified facts. */
-export function VerifiedEmptyZone({ identity, screenName, paused, onFrame, onBoundary, fullscreen = false }: {
+export function VerifiedEmptyZone({ canPresent, identity, screenName, paused, onFrame, onBoundary, fullscreen = false }: {
+  canPresent?:()=>boolean;
   identity: string;
   screenName: string;
   paused: boolean;
@@ -28,6 +29,8 @@ export function VerifiedEmptyZone({ identity, screenName, paused, onFrame, onBou
   fullscreen?: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null);
+  const allowed=useRef(canPresent);allowed.current=canPresent;
+  const proven=useRef<string|null>(null);
   const callbacks = useRef({ onFrame, onBoundary });
   callbacks.current = { onFrame, onBoundary };
   const requested = useRef({ identity, paused });
@@ -38,8 +41,9 @@ export function VerifiedEmptyZone({ identity, screenName, paused, onFrame, onBou
     let disposed = false, first = 0, second = 0;
     const report = () => {
       if (disposed || requested.current.identity !== identity || requested.current.paused) return;
+      if(allowed.current?.()===false&&proven.current!==identity)return;
       if (!hasVisibleEmptyZoneFrame(root.current)) { second = requestAnimationFrame(report); return; }
-      setVisibleIdentity(identity);
+      proven.current=identity;setVisibleIdentity(identity);
       callbacks.current.onFrame();
     };
     void Promise.resolve(document.fonts?.ready).then(() => {
@@ -54,7 +58,7 @@ export function VerifiedEmptyZone({ identity, screenName, paused, onFrame, onBou
     }, 4_000);
     return () => window.clearInterval(timer);
   }, [identity, paused, visibleIdentity]);
-  return <div ref={root} className={styles.root} data-player-empty-zone={identity} data-player-handoff={visibleIdentity === identity ? "first-frame-ready" : "waiting-for-first-frame"}>
+  return <div ref={root} style={canPresent?.()===false&&proven.current!==identity?{display:"none"}:undefined} className={styles.root} data-player-empty-zone={identity} data-player-handoff={visibleIdentity === identity ? "first-frame-ready" : "waiting-for-first-frame"}>
     <SyncPlayerStatus embedded={!fullscreen} stage="no-content" landmark={fullscreen ? "VeyoCast player gereed" : "Contentzone gereed"} title={fullscreen ? undefined : "Geen gegevens"} detail={fullscreen ? undefined : "Er zijn nog geen gegevens beschikbaar."} screenName={screenName} footer="Wachten op afspeelbare inhoud" />
   </div>;
 }

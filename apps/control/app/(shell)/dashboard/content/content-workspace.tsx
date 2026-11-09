@@ -34,6 +34,7 @@ import { ContentMediaArchiveAction, ContentMediaRestoreAction, ContentStudioActi
 import { MediaFrameCardActions } from "./media-frames/media-frame-archive-actions";
 import { MediaFrameCardPreview } from "./media-frames/media-frame-card-preview";
 import styles from "./content-workspace.module.css";
+import { contentTypeLabel } from "./content-library";
 
 const labels: Record<string, string> = {
   ready: "Gereed",
@@ -55,6 +56,8 @@ export function ContentWorkspace({
   children,
   query,
   filter,
+  status = "active",
+  pageSize = 48,
   actionScope,
   canArchiveMedia = false,
   canArchiveStudio = false,
@@ -66,6 +69,8 @@ export function ContentWorkspace({
   children: React.ReactNode;
   query: string;
   filter: string;
+  status?: string;
+  pageSize?: number;
   actionScope?: string;
   canArchiveMedia?: boolean;
   canArchiveStudio?: boolean;
@@ -91,6 +96,8 @@ export function ContentWorkspace({
         <form className="vc-library-search" action="/dashboard/content">
           <Search size={17} />
           <input type="hidden" name="filter" value={filter} />
+          <input type="hidden" name="status" value={status} />
+          <input type="hidden" name="pageSize" value={pageSize} />
           <input
             name="q"
             aria-label="Zoek content"
@@ -189,13 +196,7 @@ export function ContentWorkspace({
                 ) : (
                   <Layers3 size={12} />
                 )}{" "}
-                {item.kind === "media"
-                  ? item.family === "video"
-                    ? "Video"
-                    : "Afbeelding"
-                  : item.kind === "series"
-                    ? "Reeks"
-                    : "Ontwerp"}
+                {contentTypeLabel(item.kind, item.family)}
               </span>
               {!item.archived && ["processing", "rendering", "uploading"].includes(
                 item.status,
@@ -239,7 +240,7 @@ export function ContentWorkspace({
                   {item.kind === "media" && !item.mediaFrameId && item.archived && canArchiveMedia && item.restoreKey && <ContentMediaRestoreAction assetId={item.id} title={item.title} nonce={item.restoreKey} />}
                   {item.kind === "studio" && actionScope && Number.isSafeInteger(item.revision) && <ContentStudioActions key={`${actionScope}:${item.id}`} projectId={item.id} title={item.title} revision={item.revision!} archived={item.archived} canArchive={canArchiveStudio} canDuplicate={canDuplicateStudio} scope={actionScope} />}
                   <Link href={item.href} className="vc-edit-link">
-                    Bewerken <ArrowRight size={13} />
+                    Openen <ArrowRight size={13} />
                   </Link>
                 </div>
               </div>

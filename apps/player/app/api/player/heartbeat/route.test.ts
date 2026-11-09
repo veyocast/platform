@@ -120,6 +120,18 @@ describe("player heartbeat API", () => {
     expect(rpc).toHaveBeenNthCalledWith(1,'record_player_heartbeat_v3',expect.objectContaining({p_capabilities:expect.objectContaining({manifestSchemaVersions:[1]}),p_sync_detail:expect.objectContaining({sourceDataConfirmation:null})}));
   });
 
+  it("keeps temporary-window receipt phases distinct and only accepts the explicit strict capability",async()=>{
+    const id=(n:number)=>`30000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
+    const proof={schemaVersion:1,publicationId:id(1),targetId:id(2),windowId:id(3),contentHash:"a".repeat(64),releaseId:id(4),phase:"prepared",reportedAt:"2026-11-09T12:00:00Z",compositionId:null,compositionRevision:null,compositionHash:null};
+    for(const [capability,value,expected] of [["matchday-expiry-v1",proof,proof],[undefined,proof,undefined],["matchday-expiry-v1",{...proof,providerToken:"forbidden"},undefined]]as const){
+      rpc.mockReset();rpc.mockResolvedValueOnce({data:"heartbeat",error:null}).mockResolvedValueOnce({data:null,error:null});
+      expect((await heartbeat({runtimeState:"PLAYING",syncPhase:"active",matchdayExpiryProtocol:capability,matchdayWindow:value})).status).toBe(200);
+      const args=rpc.mock.calls[0]![1];expect(args.p_sync_detail.matchdayWindow).toEqual(expected);
+      expect(args.p_capabilities.matchdayExpiry).toBe(capability);
+      expect(JSON.stringify(args)).not.toContain("forbidden");
+    }
+  });
+
 });
 
 function heartbeat(body: {
@@ -129,6 +141,8 @@ function heartbeat(body: {
   videoProbe?: unknown;
   sourceDomProtocol?:unknown;
   sourceDataConfirmation?:unknown;
+  matchdayWindow?:unknown;
+  matchdayExpiryProtocol?:unknown;
 }) {
   return POST(
     new Request("https://player.veyocast.nl/api/player/heartbeat", {

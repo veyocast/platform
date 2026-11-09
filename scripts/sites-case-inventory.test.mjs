@@ -59,13 +59,21 @@ test("rejects claimed PASS with a failed criterion, missing case or obsolete ass
   }
 });
 
+function contentA2Proof(route) {
+  const filter = route === "#/dashboard/media" ? "media" : "designs";
+  const metrics = { height: 44, width: 160, fontSize: 14, clientWidth: 160, scrollWidth: 160, clientHeight: 44, scrollHeight: 44 };
+  const types = ["Alles", "Media", "Ontwerpen", "Automatische slides", "Menu’s", "Reeksen"].map((label, index) => ({ ...metrics, label, href: `/dashboard/content?filter=${["all", "media", "designs", "automatic", "menus", "series"][index]}&status=active&page=1` }));
+  const statuses = ["Actief", "In bewerking", "Archief"].map((label, index) => ({ ...metrics, label, href: `/dashboard/content?filter=${filter}&status=${["active", "attention", "archive"][index]}&page=1` }));
+  return { contract: "S297_CONTENT_A2", pixelParity: false, filter, controls: { types, statuses, context: [{ ...metrics, label: "Context", href: filter === "media" ? "/dashboard/media" : "/dashboard/studio?advanced=1" }] }, search: { filter, status: "active", pageSize: "48" }, accessibility: true, noHorizontalOverflow: true };
+}
 function chosenSyncReport() {
   return {
     schemaVersion: 1, sourceRevision: "8b1fdf1f8637dda23d48ecdaf08e0e5978e2707a", sourceFilesUnchanged: true,
-    assertionVersion: "s226-sync-responsive-v4", comparisonFingerprint: "a".repeat(64),
+    assertionVersion: "s297-sync-responsive-v5", comparisonFingerprint: "a".repeat(64),
     results: parseCaseInventory(original).filter(row => row.case_id.startsWith("RESP-")).map(row => ({
       caseId: row.case_id, viewport: row.viewport, originalRoute: row.reference_route, status: "PASS",
-      criteria: Object.fromEntries(["noHorizontalOverflow", "assetsLoaded", "shellAndControlGeometry", "activeNavigation", "sourceHeadingOrder", "sourceSectionGeometry", "mobileTouchTargets", "browserErrors", "accessibility"].map(key => [key, true])),
+      criteria: { ...Object.fromEntries(["noHorizontalOverflow", "assetsLoaded", "shellAndControlGeometry", "activeNavigation", "sourceHeadingOrder", "sourceSectionGeometry", "mobileTouchTargets", "browserErrors", "accessibility"].map(key => [key, true])), ...(["#/dashboard/media", "#/dashboard/studio"].includes(row.reference_route) ? { contentA2Acceptance: true } : {}) },
+      intentionalChange: ["#/dashboard/media", "#/dashboard/studio"].includes(row.reference_route) ? contentA2Proof(row.reference_route) : null,
       unmet: [], errors: [], differences: [], headingDifferences: [], accessibility: { source: [], current: [] },
       source: { overflow: 0 }, current: { overflow: 0, images: [{ loaded: true }], mobileTargets: [{ width: 44, height: 44 }] },
       sourceContentAvailable: row.reference_route !== "#/dashboard/settings", scope: "Settings content parity is N_A",
@@ -122,4 +130,39 @@ test("rejects default capture evidence used to claim additional menu/background 
     report.comparisons[0].variation = wrong;
     assert.throws(() => verifyComparisonReadbacks(group, report, rows), /strict exact frame/u);
   }
+});
+
+test("S297 changed Content accepts only its explicit replacement region while preserving raw differences", () => {
+  const report = chosenSyncReport();
+  const content = report.results.find(row => row.originalRoute === "#/dashboard/studio");
+  content.differences = [{ selector: ".vc-library-toolbar", property: "y", source: 295, current: 419 }];
+  content.headingDifferences = [{ index: 1, property: "y", source: 719, current: 843 }];
+  assert.doesNotThrow(() => verifySyncComparison(report, parseCaseInventory(original)));
+  assert.equal(content.differences.length, 1);
+  assert.equal(content.intentionalChange.pixelParity, false);
+});
+test("S297 replacement cannot hide missing controls, smaller targets, bad URLs or unrelated geometry", () => {
+  for (const mutate of [
+    row => { delete row.intentionalChange; },
+    row => { row.intentionalChange.pixelParity = true; },
+    row => { row.intentionalChange.controls.types.pop(); },
+    row => { row.intentionalChange.controls.statuses[0].width = 35; },
+    row => { row.intentionalChange.controls.types[0].fontSize = 12; },
+    row => { row.intentionalChange.controls.types[0].scrollWidth = 300; },
+    row => { row.intentionalChange.controls.context[0].href = "/dashboard/content"; },
+    row => { row.intentionalChange.controls.statuses[0].href = "/dashboard/content?filter=menus&status=active&page=1"; },
+    row => { row.intentionalChange.controls.types[0].href = "https://other.example/dashboard/content?filter=all&status=active&page=1"; },
+    row => { row.intentionalChange.controls.statuses[0].href = "//other.example/dashboard/content?filter=designs&status=active&page=1"; },
+    row => { row.intentionalChange.filter = "all"; },
+    row => { row.criteria.contentA2Acceptance = false; },
+    row => { row.differences = [{ selector: ".nav-panel", property: "width", source: 228, current: 250 }]; },
+    row => { row.headingDifferences = [{ index: 0, property: "fontSize", source: "36px", current: "32px" }]; }
+  ]) {
+    const report = chosenSyncReport();
+    mutate(report.results.find(row => row.originalRoute === "#/dashboard/studio"));
+    assert.throws(() => verifySyncComparison(report, parseCaseInventory(original)), /Incomplete chosen Sync comparison/u);
+  }
+  const report = chosenSyncReport();
+  report.results[0].intentionalChange = contentA2Proof("#/dashboard/media");
+  assert.throws(() => verifySyncComparison(report, parseCaseInventory(original)), /Incomplete chosen Sync comparison/u);
 });

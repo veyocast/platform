@@ -7,6 +7,8 @@ import { ArrowRight, Radio, ShieldCheck } from "lucide-react";
 
 import { requireTenantControlSession } from "../../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../../lib/tenant-time";
+import { ScreenSourceStatus } from "../screen-source-status";
+import { createControlSupabaseClient } from "../../../../../lib/supabase/server";
 import { currentPlayerHeartbeats, screenPlaybackEvidence, syncScreenTab } from "../sync-screen-detail-model";
 import { loadFrozenReleasePreviews } from "../../../../../lib/release-preview.server";
 import { PageHeader, StatusPill } from "../../../_components/shell-primitives";
@@ -41,19 +43,22 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
   const compositionData = activeTab === "layout" || activeTab === "overview" ? await loadCompositionWorkspace(session.tenantId, session.isLive, session.tenant) : null;
   const automation = activeTab === "hours" && session.isLive && session.tenantId ? await loadScreenAutomation(session.tenantId, screenId) : null;
   const canManage = Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.screen.manage"));
-  const evidence = screenPlaybackEvidence(pairedDevice);
+  const sourceSession = activeTab === "health" && session.tenantId ? await createControlSupabaseClient() : null;
+  const sourceMetadata = sourceSession && session.tenantId ? await Promise.resolve(sourceSession.rpc("get_screen_source_status_s296_v1", {p_tenant_id:session.tenantId,p_screen_id:screen.id})).catch(() => ({data:null,error:true})) : null;
+  const now = Date.now();
+  const evidence = screenPlaybackEvidence(pairedDevice, now, screen.status, screen.assignedReleaseId);
   const previews = session.tenantId && evidence.confirmedReleaseId ? await loadFrozenReleasePreviews(session.tenantId, [evidence.confirmedReleaseId]) : new Map();
   const configuration = compositionData?.drafts.find(draft => draft.screenId === screen.id)?.configuration;
   const notices = <>{query.fout ? <p className="notice notice--critical" role="alert"><strong>Actie niet uitgevoerd.</strong> {query.fout}</p> : null}{query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}{data.error ? <p className="notice notice--critical" role="alert"><strong>Schermdetails onvolledig.</strong> {data.error}</p> : null}</>;
   return <SyncScreenDetail key={`${screen.id}:${query.tab ?? "overview"}:${query.fout ?? ""}:${query.succes ?? ""}`}
-    screen={screen} device={pairedDevice} releases={data.releases} groupLabel={data.groups.filter(group => group.selected).map(group => group.name).join(", ")}
+    now={now} timeZone={session.timezoneName} screen={screen} device={pairedDevice} releases={data.releases} groupLabel={data.groups.filter(group => group.selected).map(group => group.name).join(", ")}
     preview={evidence.confirmedReleaseId ? previews.get(evidence.confirmedReleaseId) : undefined} activeTab={activeTab} legacyTab={query.tab} canManage={canManage} canAssign={Boolean(session.isLive && session.tenantStatus === "active" && hasCapability(session.capabilities, "tenant.playlist.publish"))} notices={notices}
-    overview={<OverviewTab device={pairedDevice} latestHeartbeat={currentHeartbeats[0] ?? null} releases={data.releases} schedules={data.schedules} screen={screen} venueContext={data.venueContext} />}
+    overview={<OverviewTab now={now} device={pairedDevice} latestHeartbeat={currentHeartbeats[0] ?? null} releases={data.releases} schedules={data.schedules} screen={screen} venueContext={data.venueContext} />}
     content={<ContentTab releases={data.releases} screen={screen} />}
     planning={<PlanningTab automationEnabled={data.automation.enabled} schedules={data.schedules} screen={screen} />}
     layout={compositionData ? <div className={styles.editorForm}><div><h2>Maak ruimte voor ieder verhaal</h2><p>Elke zone krijgt een eigen playlist. Samen vormen ze één veilige schermpublicatie.</p></div>{compositionData.error ? <p className="notice notice--critical" role="alert">{compositionData.error}</p> : null}{configuration ? <CompositionPreview configuration={configuration} content={Object.fromEntries(configuration.zones.map(zone => [zone.id, `playlist:${zone.playlistId}`]))} playlists={compositionData.playlists} /> : null}<div className={styles.formActions}><ScreenCompositionEditor canPublish={canManage && hasCapability(session.capabilities, "tenant.playlist.publish")} data={compositionData} groups={[]} initialTarget={screen.id} screens={[screen]} /></div></div> : null}
-    hours={automation ? <ScreenAutomation automation={automation} canManage={canManage} capabilities={automationCapabilityView(pairedDevice?.platform ?? null, pairedDevice?.appVersion ?? null, pairedDevice?.capabilities ?? {})} device={pairedDevice} screenId={screen.id} /> : <p className="notice" role="status">Bedrijfstijden zijn niet beschikbaar voor deze datasessie.</p>}
-    health={<><SyncTab canManage={canManage} device={pairedDevice} heartbeats={currentHeartbeats} releases={data.releases} screenId={screen.id} syncEvents={data.syncEvents} /><PlayerTab canManage={canManage} commands={data.playerCommands} devices={data.devices} screenId={screen.id} screenName={screen.name} /></>}
+    hours={automation ? <ScreenAutomation now={now} screenStatus={screen.status} automation={automation} canManage={canManage} capabilities={automationCapabilityView(pairedDevice?.platform ?? null, pairedDevice?.appVersion ?? null, pairedDevice?.capabilities ?? {})} device={pairedDevice} screenId={screen.id} /> : <p className="notice" role="status">Bedrijfstijden zijn niet beschikbaar voor deze datasessie.</p>}
+    health={<><ScreenSourceStatus timeZone={session.timezoneName} metadata={sourceMetadata?.error ? null : sourceMetadata?.data} reported={evidence.reportedSource} now={now} /><SyncTab canManage={canManage} device={pairedDevice} heartbeats={currentHeartbeats} releases={data.releases} screenId={screen.id} syncEvents={data.syncEvents} /><PlayerTab canManage={canManage} commands={data.playerCommands} devices={data.devices} screenId={screen.id} screenName={screen.name} /></>}
     deviceContent={<DeviceProfile device={pairedDevice} screenId={screen.id} />}
     player={<PlayerTab canManage={canManage} commands={data.playerCommands} devices={data.devices} screenId={screen.id} screenName={screen.name} />}
     settings={<SettingsTab canManage={canManage} groups={data.groups} screen={screen} />}
@@ -64,24 +69,25 @@ export default async function ScreenDetailPage({ params, searchParams }: ScreenD
 
 function OverviewTab({
   device,
-  latestHeartbeat,
+  now,
   releases,
   schedules,
   screen,
   venueContext
 }: {
   device: FleetDevice | null;
+  now: number;
   latestHeartbeat: { createdAt: string; runtimeState: string } | null;
   releases: FleetRelease[];
   schedules: ScreenSchedule[];
   screen: NonNullable<Awaited<ReturnType<typeof loadScreenDetail>>["screen"]>;
   venueContext: Awaited<ReturnType<typeof loadScreenDetail>>["venueContext"];
 }) {
-  const evidence = screenPlaybackEvidence(device);
+  const evidence = screenPlaybackEvidence(device, now, screen.status, screen.assignedReleaseId);
   const confirmed = releases.find(release => release.id === evidence.confirmedReleaseId);
   const assigned = releases.find(release => release.id === screen.assignedReleaseId);
   const nextSchedule = schedules.filter(schedule => schedule.enabled && Date.parse(schedule.startsAt) > Date.now()).sort((left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt))[0];
-  return <div className="grid-2"><div><h2>Wat speelt er?</h2><div className="px-info-list"><div><span>Laatst bevestigde playlist</span><b>{confirmed?.playlistName ?? "Nog niet bevestigd"}</b></div><div><span>Klaargezette playlist</span><b>{assigned?.playlistName ?? "Nog niet toegewezen"}</b></div><div><span>Schermformaat</span><b>{orientationLabel(screen.orientation)} · {resolutionLabel(screen)}</b></div><div><span>Laatste contact</span><b>{latestHeartbeat ? relativeDate(latestHeartbeat.createdAt) : "Nog nooit"}</b></div><div><span>Toewijzing</span><b>{assignmentExplanation(screen, schedules)}</b></div><div><span>Eerstvolgende planning</span><b>{nextSchedule ? `${nextSchedule.name} · ${formatDate(nextSchedule.startsAt)}` : "Geen aankomende planning"}</b></div><div><span>Venue Twin</span><b>{venueContext ? `${venueContext.venue.name} · ${venueContext.zone?.name ?? "Geen zone"}` : "Nog niet ruimtelijk geplaatst"}</b></div></div><Link className="btn btn-ghost" href="/dashboard/screens?view=venue">Venue Twin openen</Link></div><div className="px-notice"><Radio size={24} aria-hidden="true" /><h2>Eén publicatie. Een duidelijke status.</h2><p>Opslaan wijzigt een concept. Publiceren zet een nieuwe versie klaar. Pas een zichtbaar bevestigd beeld maakt deze versie actief.</p><div className="px-mini-progress"><span>Gepubliceerd</span><i /><span>Voorbereid</span><i /><span>In beeld</span></div><Link className="btn btn-ghost" href={`/dashboard/screens/${screen.id}?tab=health`}>Bekijk synchronisatie <ArrowRight size={15} aria-hidden="true" /></Link></div></div>;
+  return <div className="grid-2"><div><h2>Wat speelt er?</h2><div className="px-info-list"><div><span>Laatst bevestigde playlist</span><b>{confirmed?.playlistName ?? "Nog niet bevestigd"}</b></div><div><span>Klaargezette playlist</span><b>{assigned?.playlistName ?? "Nog niet toegewezen"}</b></div><div><span>Schermformaat</span><b>{orientationLabel(screen.orientation)} · {resolutionLabel(screen)}</b></div><div><span>Laatste contact</span><b>{evidence.health.lastSeenAt ? relativeDate(evidence.health.lastSeenAt) : "Geen geldig contacttijdstip"}</b></div><div><span>Toewijzing</span><b>{assignmentExplanation(screen, schedules)}</b></div><div><span>Eerstvolgende planning</span><b>{nextSchedule ? `${nextSchedule.name} · ${formatDate(nextSchedule.startsAt)}` : "Geen aankomende planning"}</b></div><div><span>Venue Twin</span><b>{venueContext ? `${venueContext.venue.name} · ${venueContext.zone?.name ?? "Geen zone"}` : "Nog niet ruimtelijk geplaatst"}</b></div></div><Link className="btn btn-ghost" href="/dashboard/screens?view=venue">Venue Twin openen</Link></div><div className="px-notice"><Radio size={24} aria-hidden="true" /><h2>Eén publicatie. Een duidelijke status.</h2><p>Opslaan wijzigt een concept. Publiceren zet een nieuwe versie klaar. Pas een zichtbaar bevestigd beeld maakt deze versie actief.</p><div className="px-mini-progress"><span>Gepubliceerd</span><i /><span>Voorbereid</span><i /><span>In beeld</span></div><Link className="btn btn-ghost" href={`/dashboard/screens/${screen.id}?tab=health`}>Bekijk synchronisatie <ArrowRight size={15} aria-hidden="true" /></Link></div></div>;
 }
 
 function DeviceProfile({ device, screenId }: { device: FleetDevice | null; screenId: string }) {

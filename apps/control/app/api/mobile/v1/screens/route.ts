@@ -1,4 +1,4 @@
-import { mobileCreateScreenRequestSchema } from "@veyocast/contracts";
+import { mobileCreateScreenRequestSchema, mobileScreenSourceEvidenceSchema } from "@veyocast/contracts";
 
 import {
   getMobileRequestContext,
@@ -39,20 +39,28 @@ export async function GET(request: Request) {
         .filter((id): id is string => Boolean(id));
     }))];
     const releases = new Map<string, string>();
+    const publishedAt = new Map<string, string>();
     for (let offset = 0; offset < referenceIds.length; offset += 100) {
       const result = await context.supabase.from("playlist_releases")
-        .select("id,version,playlist:playlists(name)").eq("tenant_id", tenant.id)
+        .select("id,version,published_at,playlist:playlists(name)").eq("tenant_id", tenant.id)
         .in("id", referenceIds.slice(offset, offset + 100));
       if (result.error) throw new Error("release read unavailable");
       for (const release of result.data ?? []) {
         const playlist = Array.isArray(release.playlist) ? release.playlist[0] : release.playlist;
+        publishedAt.set(release.id, release.published_at);
         releases.set(release.id, `${playlist?.name ?? "Playlist"} · versie ${release.version}`);
       }
     }
     const now = Date.now();
+    const includeEvidence = new URL(request.url).searchParams.get("statusEvidence") === "1";
+    const sourceScreenId = includeEvidence ? new URL(request.url).searchParams.get("sourceEvidenceFor") : null;
+    const sourceScreen = screens.find(screen => screen.id === sourceScreenId);
+    // At most one authorized screen metadata read; ordinary lists and old clients never fan out.
+    const sourceRead = sourceScreen ? await Promise.resolve(context.supabase.rpc("get_screen_source_status_s296_v1", {p_tenant_id:tenant.id,p_screen_id:sourceScreen.id})).catch(() => ({data:null,error:true})) : null;
+    const sourceRows = !sourceRead?.error ? mobileScreenSourceEvidenceSchema.array().max(200).safeParse(sourceRead?.data).data : undefined;
     const items = screens.map(screen => {
       const device = devices.get(screen.id);
-      const proof = syncPlaybackEvidence(device, now);
+      const proof = syncPlaybackEvidence(device, now, screen.status, screen.assigned_release_id);
       return {
         activeReleaseLabel: proof.confirmedReleaseId ? releases.get(proof.confirmedReleaseId) ?? null : null,
         appVersion: device?.app_version ?? null,
@@ -61,7 +69,16 @@ export async function GET(request: Request) {
         lastSeenAt: device?.last_seen_at ?? null,
         location: screen.location,
         name: screen.name,
-        status: mapScreenStatus(screen.status, device, now)
+        status: proof.health.kind === "unpaired" ? "pairing" : device?.last_error_code || ["disabled", "maintenance"].includes(proof.health.kind) ? "attention" : proof.health.kind === "stale" ? "unknown" : proof.health.kind,
+        ...(includeEvidence ? { statusEvidence: {
+          screenStatus: screen.status, deviceStatus: device?.status ?? null, kind: proof.health.kind,
+          publicationKind: proof.publicationKind,
+          desiredReleaseLabel: proof.desiredReleaseId ? releases.get(proof.desiredReleaseId) ?? null : null,
+          desiredPublishedAt: proof.desiredReleaseId ? publishedAt.get(proof.desiredReleaseId) ?? null : null,
+          confirmedAt: proof.confirmedAt, reportedSourceRevision: proof.reportedSource?.dataRevision ?? null,
+          reportedSourceAt: proof.reportedSourceAt,
+          ...(sourceScreenId === screen.id ? {sources:sourceRows ?? []} : {})
+        } } : {})
       };
     });
 
@@ -120,29 +137,4 @@ export async function POST(request: Request) {
   } catch (error) {
     return mobileContextFailure(error);
   }
-}
-
-function mapScreenStatus(
-  status: string,
-  device:
-    | {
-        last_error_code: string | null;
-        last_seen_at: string | null;
-        status: string;
-      }
-    | undefined,
-  now: number
-) {
-  if (!device) return "pairing" as const;
-  if (device.last_error_code) return "attention" as const;
-  const lastSeen = device.last_seen_at
-    ? Date.parse(device.last_seen_at)
-    : Number.NaN;
-  if (!Number.isFinite(lastSeen) || lastSeen > now || now - lastSeen >= 5 * 60_000) {
-    return "offline" as const;
-  }
-  if (status === "active" && device.status === "paired") {
-    return "online" as const;
-  }
-  return "unknown" as const;
 }

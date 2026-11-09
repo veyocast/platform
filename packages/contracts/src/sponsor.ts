@@ -79,3 +79,34 @@ export type PlayerSponsorCreative = z.infer<typeof playerSponsorCreativeSchema>;
 export type SponsorContext = z.infer<typeof sponsorContextSchema>;
 export type SponsorPlayEvent = z.infer<typeof sponsorPlayEventSchema>;
 export type SponsorPositionKey = z.infer<typeof sponsorPositionKeySchema>;
+
+const reportCount = z.string().regex(/^(0|[1-9][0-9]*)$/u);
+const reportTimestamp = z.string().datetime({ offset: true });
+const reportOption = z.object({ id: z.string().uuid(), name: z.string() });
+/** Accepted technical plays; no audience, completion or QR inference. */
+export const sponsorReportSchema = z.object({
+  schemaVersion: z.literal(1),
+  asOf: reportTimestamp,
+  timezone: z.string().min(1),
+  period: z.object({ fromDate: z.string(), untilDate: z.string(), from: reportTimestamp, until: reportTimestamp }),
+  filters: z.object({ campaignId: z.string().uuid().nullable(), screenId: z.string().uuid().nullable() }),
+  totals: z.object({ acceptedEvents: reportCount, playedMs: reportCount }),
+  coverage: z.object({
+    firstEventAt: reportTimestamp.nullable(), lastEventAt: reportTimestamp.nullable(), lastReceivedAt: reportTimestamp.nullable(),
+    status: z.enum(["unconfirmed", "partial"]), automaticRetentionDays: z.null(), acceptedLateWindowDays: z.literal(30),
+    gaps: z.array(z.object({ from: reportTimestamp, until: reportTimestamp, reason: z.enum(["registration_gap", "retention"]) }))
+  }),
+  groups: z.array(z.object({
+    campaignId: z.string().uuid(), campaignName: z.string(), screenId: z.string().uuid(), screenName: z.string(), screenDeleted: z.boolean(),
+    acceptedEvents: reportCount, playedMs: reportCount
+  })),
+  details: z.array(z.object({
+    eventId: z.string().uuid(), campaignId: z.string().uuid(), campaignName: z.string(), screenId: z.string().uuid(), screenName: z.string(), screenDeleted: z.boolean(),
+    planVersion: z.number().int().positive(), happenedAt: reportTimestamp, receivedAt: reportTimestamp, playedMs: z.number().int().min(0).max(3_600_000)
+  })).max(100),
+  hasMore: z.boolean(),
+  goals: z.array(z.object({ campaignId: z.string().uuid(), campaignName: z.string(), targetPlays: reportCount })),
+  filterOptions: z.object({ campaigns: z.array(reportOption), screens: z.array(reportOption.extend({ deleted: z.boolean() })) }),
+  qrScans: z.null(), completedPlays: z.null(), historicalScreenGroupsAvailable: z.literal(false)
+});
+export type SponsorReport = z.infer<typeof sponsorReportSchema>;

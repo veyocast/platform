@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { contentCreateTasks } from "../../apps/control/app/(shell)/dashboard/studio/content-create-catalog";
 import { fixture, mount, next, prepareWizardFixture } from "../helpers/sync-create-wizard-fixture";
 
 test.beforeAll(prepareWizardFixture);
@@ -24,15 +25,15 @@ test("Studio overview and creation journey use real responsive controls", async 
   ).toBeVisible();
   await page.getByRole("button", {name: "Snel naar een onderdeel"}).click();
   const navigation = page.getByRole("dialog", {name: "Snel naar een onderdeel"});
-  await navigation.getByLabel("Zoek navigatie en resources").fill("Studio");
-  await expect(navigation.getByRole("link", {name: /^Studio/}).first()).toHaveAttribute("href", "/dashboard/studio");
+  await navigation.getByLabel("Zoek navigatie en resources").fill("Content");
+  await expect(navigation.getByRole("link", {name: /^Content/}).first()).toHaveAttribute("href", "/dashboard/content");
   await page.keyboard.press("Escape");
 
   await page.getByRole("link", { name: "Nieuwe slide" }).click();
   await expect(page).toHaveURL(/\/dashboard\/studio\/new$/);
   const picker = page.getByRole("dialog", {name: "Wat wil je maken?"});
   await expect(picker).toBeVisible();
-  await expect(picker.locator(".vc-template-card")).toHaveCount(36);
+  await expect(picker.locator(".vc-template-card")).toHaveCount(contentCreateTasks.length);
   await expect(picker.getByRole("button", {name: /^Vrij ontwerp /})).toBeDisabled();
   // The real demo route enforces the live-session boundary. Authoring below
   // uses the separately identified shared component fixture, never that session.

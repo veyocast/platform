@@ -1,0 +1,30 @@
+{
+  "validatedWorkspacePayloads": 2,
+  "rows": [
+    {
+      "key": "workspace-after-window-restored",
+      "restoredRows": [
+        {
+          "confirmedReleaseId": "f8b082c3-c5ef-4a7a-a0b0-509ab0de5530",
+          "confirmedAt": "2026-11-09T16:40:27.167802+00:00",
+          "historicalRenderedAt": "2026-11-09T14:40:26.980265+00:00"
+        },
+        {
+          "confirmedReleaseId": "f8b082c3-c5ef-4a7a-a0b0-509ab0de5530",
+          "confirmedAt": "2026-11-09T14:40:27.133808+00:00",
+          "historicalRenderedAt": "2026-11-09T14:40:26.968654+00:00"
+        }
+      ]
+    },
+    {
+      "key": "workspace-after-overlay-restored",
+      "restoredRows": [
+        {
+          "confirmedReleaseId": "f8b082c3-c5ef-4a7a-a0b0-509ab0de5530",
+          "confirmedAt": "2026-11-09T14:40:27.133808+00:00",
+          "historicalRenderedAt": "2026-11-09T14:40:26.968654+00:00"
+        }
+      ]
+    }
+  ]
+}

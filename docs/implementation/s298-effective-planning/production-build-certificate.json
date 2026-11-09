@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "productionBuild": "PASS",
+  "authBoundary": "PASS",
+  "clientSecretGuard": "PASS",
+  "command": "NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 pnpm --filter @veyocast/control build",
+  "logSha256": "66ad1921e4ff13fffa837811779f02d698107c07df8655766289a998c6e5a64c",
+  "files": {
+    "BUILD_ID": {
+      "sha256": "dd2fed1242a01dd98c025a6489b1b2fcd471482a72e85a14fb6034b64423f644",
+      "bytes": 21
+    },
+    "build-manifest.json": {
+      "sha256": "93973c1b870640b541af9d65a5452ce862238f71c1f1598a48f9a4f1cce38dc7",
+      "bytes": 996
+    },
+    "routes-manifest.json": {
+      "sha256": "a6d99ba077172cfdc9ec8efdc6fa51acf15e5dff6601491c61f01caba205ff36",
+      "bytes": 22845
+    }
+  },
+  "retiredGeneratedOutput": true,
+  "noLocalServer": true
+}

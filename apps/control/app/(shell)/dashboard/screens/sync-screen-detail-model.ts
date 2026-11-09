@@ -12,7 +12,7 @@ export function syncScreenTab(value?: string): SyncScreenTab {
   return "overview";
 }
 
-export function screenPlaybackEvidence(device: FleetDevice | null, now = Date.now()) {
+export function screenPlaybackEvidence(device: FleetDevice | null, now = Date.now(), screenStatus = "active", desiredReleaseId = device?.desiredReleaseId) {
   return syncPlaybackEvidence(device ? {
     active_release_id: device.activeReleaseId,
     desired_release_id: device.desiredReleaseId,
@@ -20,7 +20,7 @@ export function screenPlaybackEvidence(device: FleetDevice | null, now = Date.no
     last_seen_at: device.lastSeenAt,
     last_error_code: device.lastErrorCode,
     status: device.status,
-  } : undefined, now);
+  } : undefined, now, screenStatus, desiredReleaseId);
 }
 
 /** Current telemetry must never borrow contact or runtime from an old device. */

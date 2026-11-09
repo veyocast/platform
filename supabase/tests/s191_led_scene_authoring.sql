@@ -435,12 +435,14 @@ select ok(position(
 select ok(position(
   'version.id = pending.alert_version_id' in
   pg_get_functiondef(
-    'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure
+    coalesce(to_regprocedure('public.get_ledscores_player_bootstrap_before_matchday_s300_v1(text)'),
+      'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure)
   )
 )>0 and position(
   'pending_catchup desc' in
   pg_get_functiondef(
-    'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure
+    coalesce(to_regprocedure('public.get_ledscores_player_bootstrap_before_matchday_s300_v1(text)'),
+      'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure)
   )
 )>0,'the Player bootstrap prioritizes immutable versions needed by pending catch-up deliveries');
 select ok(position('250000' in pg_get_constraintdef(

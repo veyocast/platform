@@ -1,0 +1,1805 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-09T14:27:26.719324+00:00",
+  "task": "Read-only S299 Player CI cancellation diagnosis",
+  "repository": "veyocast/platform",
+  "pr": 326,
+  "workflowRunId": 42616646027,
+  "attempt": 2,
+  "jobId": 129177533663,
+  "runUrl": "https://github.com/veyocast/platform/actions/runs/42616646027/attempts/2",
+  "headSha": "a16b9f74f1a9c2583f0cf37d22a6ed94edaa7fe1",
+  "testedMergeSha": "08b3452247489e1b7c552e13be5250f66dbbb381",
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "verdict": {
+    "cause": "existing GitHub Actions 75-minute Player job watchdog",
+    "directEvidence": "The job has exceeded the maximum execution time of 1h15m0s",
+    "isExternalCancellationEstablished": false,
+    "isGatePass": false,
+    "scope": "The timeout cause is directly annotated by GitHub. No claim is made about access to a complete actor audit log."
+  },
+  "timing": {
+    "jobStartedAt": "2026-11-09T13:05:20Z",
+    "jobCompletedAt": "2026-11-09T14:20:44Z",
+    "jobElapsedSeconds": 4524.0,
+    "galleryFixturePreparationSeconds": 669.0,
+    "caseGateStartedAt": "2026-11-09T13:18:25Z",
+    "caseGateCancelledAt": "2026-11-09T14:20:33Z",
+    "caseGateElapsedSeconds": 3728.0,
+    "preGateElapsedSeconds": 785.0,
+    "artifactUploadSeconds": 8.0
+  },
+  "testedWorkflowContract": {
+    "workflowPath": ".github/workflows/pr-gates.yml",
+    "playerJobTimeoutMinutes": 75,
+    "otherBrowserJobTimeoutMinutes": 45,
+    "concurrencyGroup": "pr-gates-${{ github.workflow }}-${{ github.ref }}",
+    "cancelInProgress": true,
+    "runnerHasSeparateGlobalDeadline": false,
+    "caseTimeoutMilliseconds": 60000,
+    "workers": 1,
+    "cliVersion": "1.61.1",
+    "oneFreshPlaywrightInvocationPerOriginalCase": true,
+    "retries": 0,
+    "productionPlayerServer": "A fresh next start is owned by each Playwright invocation in CI; reuseExistingServer is false.",
+    "boundary": "Tests can retain their existing explicit per-test budgets. No timeout, runner, workflow, selection, retry, or tolerance was modified by this investigation."
+  },
+  "caseClosure": {
+    "complete": false,
+    "discoveredCases": 460,
+    "specFiles": 64,
+    "invokedRecords": 380,
+    "completedExpectedResults": 379,
+    "passed": 364,
+    "expectedSkipped": 15,
+    "failedResults": 0,
+    "incompleteInvokedRecords": [
+      {
+        "index": 380,
+        "id": "883db773ece2476fc641-e264329c63fdc8feb810",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "invoked": true,
+        "exitCode": null,
+        "result": null
+      }
+    ],
+    "neverInvokedCount": 80,
+    "unverifiedCasesTotal": 81,
+    "neverInvoked": [
+      {
+        "id": "883db773ece2476fc641-689783cc35a051ea4c2d",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 84,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "activities/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "activities/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:84:170 \u203a activities/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "883db773ece2476fc641-8c05a820c793e8bdc428",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 84,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "agenda/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:84:170 \u203a agenda/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "883db773ece2476fc641-28ee81b3cd79048ed78a",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 84,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "agenda/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:84:170 \u203a agenda/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "883db773ece2476fc641-46d03a6d7847a3d9da0a",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 84,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "agenda/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:84:170 \u203a agenda/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "883db773ece2476fc641-2ed5bb3d6d1bf5f1b3c4",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 84,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "agenda/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:84:170 \u203a agenda/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "883db773ece2476fc641-e0ac1a309a400c4be093",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 97,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "welcome 0\u20134 uses the approved landscape card geometry and real visitor crests"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome 0\u20134 uses the approved landscape card geometry and real visitor crests"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:97:63 \u203a welcome 0\u20134 uses the approved landscape card geometry and real visitor crests"
+      },
+      {
+        "id": "883db773ece2476fc641-6231822e09e1c2338c80",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 97,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "welcome 0\u20134 uses the approved portrait card geometry and real visitor crests"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome 0\u20134 uses the approved portrait card geometry and real visitor crests"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:97:63 \u203a welcome 0\u20134 uses the approved portrait card geometry and real visitor crests"
+      },
+      {
+        "id": "883db773ece2476fc641-e641b05adc008e662cdb",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 111,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "the actual phase chip precedes and stays above the score in landscape"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the actual phase chip precedes and stays above the score in landscape"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:111:63 \u203a the actual phase chip precedes and stays above the score in landscape"
+      },
+      {
+        "id": "883db773ece2476fc641-d43fc201deeed4d5c623",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 111,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "the actual phase chip precedes and stays above the score in portrait"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the actual phase chip precedes and stays above the score in portrait"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:111:63 \u203a the actual phase chip precedes and stays above the score in portrait"
+      },
+      {
+        "id": "883db773ece2476fc641-8eecaf76570fae31d643",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 120,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "short standings stay still and an absent own row is reported without fabricated or duplicate rows"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "short standings stay still and an absent own row is reported without fabricated or duplicate rows"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:120:5 \u203a short standings stay still and an absent own row is reported without fabricated or duplicate rows"
+      },
+      {
+        "id": "883db773ece2476fc641-303bca7556d18cfea705",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 128,
+        "column": 69,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "birthdays: the seventh real record reaches a second page with five empty slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "birthdays: the seventh real record reaches a second page with five empty slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:128:69 \u203a birthdays: the seventh real record reaches a second page with five empty slots"
+      },
+      {
+        "id": "883db773ece2476fc641-bac531d3301dcd185ef6",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 128,
+        "column": 69,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "activities: the seventh real record reaches a second page with five empty slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "activities: the seventh real record reaches a second page with five empty slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:128:69 \u203a activities: the seventh real record reaches a second page with five empty slots"
+      },
+      {
+        "id": "883db773ece2476fc641-867f162316e9cba9f2d9",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-playback.spec.ts",
+        "line": 128,
+        "column": 69,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-playback.spec.ts",
+          "agenda: the seventh real record reaches a second page with five empty slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda: the seventh real record reaches a second page with five empty slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-playback.spec.ts:128:69 \u203a agenda: the seventh real record reaches a second page with five empty slots"
+      },
+      {
+        "id": "2076d79b16db43bd9ddc-d1d977db28d262ef2ce5",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-export.spec.ts",
+        "line": 14,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-export.spec.ts",
+          "the full canonical motion export agrees with DOM time, survives cold offline startup and remains the complete older-Player fallback"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the full canonical motion export agrees with DOM time, survives cold offline startup and remains the complete older-Player fallback"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-export.spec.ts:14:5 \u203a the full canonical motion export agrees with DOM time, survives cold offline startup and remains the complete older-Player fallback"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-b4f18e9c3d62ac29198f",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 54,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "an approved canvas remains pixel-identical when a legacy Sync stylesheet loads on the same page"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "an approved canvas remains pixel-identical when a legacy Sync stylesheet loads on the same page"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:54:5 \u203a an approved canvas remains pixel-identical when a legacy Sync stylesheet loads on the same page"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-c19e5041450dab968b55",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 59,
+        "column": 56,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "one real controlled own row remains pinned at both boundaries (first)"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "one real controlled own row remains pinned at both boundaries (first)"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:59:56 \u203a one real controlled own row remains pinned at both boundaries (first)"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-d30c167e5885b9a80349",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 59,
+        "column": 56,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "one real controlled own row remains pinned at both boundaries (middle)"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "one real controlled own row remains pinned at both boundaries (middle)"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:59:56 \u203a one real controlled own row remains pinned at both boundaries (middle)"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-aa25ef5c24676f518e2d",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 59,
+        "column": 56,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "one real controlled own row remains pinned at both boundaries (last)"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "one real controlled own row remains pinned at both boundaries (last)"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:59:56 \u203a one real controlled own row remains pinned at both boundaries (last)"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-186fbbe15279c22cb05d",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 68,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "the actual Player clock moves, pauses, resumes and accrues no hidden time"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the actual Player clock moves, pauses, resumes and accrues no hidden time"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:68:5 \u203a the actual Player clock moves, pauses, resumes and accrues no hidden time"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-d85b1f1171b85c11bec7",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 76,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "reduced motion keeps the complete DOM collection still and readable"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "reduced motion keeps the complete DOM collection still and readable"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:76:5 \u203a reduced motion keeps the complete DOM collection still and readable"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-ce4660e7cb72f65d1d4c",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 79,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "a failed approved font decoder retains the binary path without a visible-frame acknowledgment"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a failed approved font decoder retains the binary path without a visible-frame acknowledgment"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:79:5 \u203a a failed approved font decoder retains the binary path without a visible-frame acknowledgment"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-233a33a36be72a0cd739",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 82,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "an older sticky/SVG capability profile selects its existing binary without exposing the new DOM"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "an older sticky/SVG capability profile selects its existing binary without exposing the new DOM"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:82:5 \u203a an older sticky/SVG capability profile selects its existing binary without exposing the new DOM"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-8e424f8b961eb0cb93fd",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "birthdays/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "birthdays/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a birthdays/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-6e8d10b9366532656870",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "birthdays/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "birthdays/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a birthdays/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-45ff9c0b45fe97a65c42",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "birthdays/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "birthdays/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a birthdays/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-1dc3af4f5b8777d297c2",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "birthdays/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "birthdays/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a birthdays/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-a24e129752fbdd42cb18",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "activities/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "activities/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a activities/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-83e8eb81cfc68cc683d0",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "activities/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "activities/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a activities/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-4db5ac2ba1c57d251f64",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "activities/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "activities/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a activities/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-a4be7df6cbb614c6785b",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "activities/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "activities/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a activities/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-d9af784d3f184181fdff",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "agenda/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a agenda/landscape/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-13fb51388700ea9b4fbb",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "agenda/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a agenda/landscape/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-2f0c60064c08721d8b8d",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "agenda/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a agenda/portrait/light: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-cf529a14c60115ab7f0c",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 86,
+        "column": 170,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "agenda/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:86:170 \u203a agenda/portrait/dark: every 0\u20136 selection retains six identical fixed slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-f0b7c5e050ed2d814898",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 99,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "welcome 0\u20134 uses the approved landscape card geometry and real visitor crests"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome 0\u20134 uses the approved landscape card geometry and real visitor crests"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:99:63 \u203a welcome 0\u20134 uses the approved landscape card geometry and real visitor crests"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-a69bf5c301c9095faeaf",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 99,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "welcome 0\u20134 uses the approved portrait card geometry and real visitor crests"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome 0\u20134 uses the approved portrait card geometry and real visitor crests"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:99:63 \u203a welcome 0\u20134 uses the approved portrait card geometry and real visitor crests"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-770a3d675b0d12d30b29",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 113,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "the actual phase chip precedes and stays above the score in landscape"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the actual phase chip precedes and stays above the score in landscape"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:113:63 \u203a the actual phase chip precedes and stays above the score in landscape"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-481157e9f96d04df4ebf",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 113,
+        "column": 63,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "the actual phase chip precedes and stays above the score in portrait"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the actual phase chip precedes and stays above the score in portrait"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:113:63 \u203a the actual phase chip precedes and stays above the score in portrait"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-672f457bdfcb8a64c11a",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 122,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "short standings stay still and an absent own row is reported without fabricated or duplicate rows"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "short standings stay still and an absent own row is reported without fabricated or duplicate rows"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:122:5 \u203a short standings stay still and an absent own row is reported without fabricated or duplicate rows"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-0f07a6153291084b8ad6",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 130,
+        "column": 69,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "birthdays: the seventh real record reaches a second page with five empty slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "birthdays: the seventh real record reaches a second page with five empty slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:130:69 \u203a birthdays: the seventh real record reaches a second page with five empty slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-066539ee1f62cbe8f58e",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 130,
+        "column": 69,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "activities: the seventh real record reaches a second page with five empty slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "activities: the seventh real record reaches a second page with five empty slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:130:69 \u203a activities: the seventh real record reaches a second page with five empty slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-0b5f5b088e725422c871",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 130,
+        "column": 69,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "agenda: the seventh real record reaches a second page with five empty slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "agenda: the seventh real record reaches a second page with five empty slots"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:130:69 \u203a agenda: the seventh real record reaches a second page with five empty slots"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-d30b72a0baf0d1857617",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 135,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "the actual Worker and Player share native entrance pixels at equal elapsed times"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the actual Worker and Player share native entrance pixels at equal elapsed times"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:135:5 \u203a the actual Worker and Player share native entrance pixels at equal elapsed times"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-d7f7c20243a025073390",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 154,
+        "column": 106,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "welcome scale 100/150/200 fits all 1\u20134 actual landscape/light compositions"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome scale 100/150/200 fits all 1\u20134 actual landscape/light compositions"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:154:106 \u203a welcome scale 100/150/200 fits all 1\u20134 actual landscape/light compositions"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-36f479b5483a995ba6f8",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 154,
+        "column": 106,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "welcome scale 100/150/200 fits all 1\u20134 actual landscape/dark compositions"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome scale 100/150/200 fits all 1\u20134 actual landscape/dark compositions"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:154:106 \u203a welcome scale 100/150/200 fits all 1\u20134 actual landscape/dark compositions"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-e211d9c28276cea4b54a",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 154,
+        "column": 106,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "welcome scale 100/150/200 fits all 1\u20134 actual portrait/light compositions"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome scale 100/150/200 fits all 1\u20134 actual portrait/light compositions"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:154:106 \u203a welcome scale 100/150/200 fits all 1\u20134 actual portrait/light compositions"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-e64d3fb128e8e05e1bae",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 154,
+        "column": 106,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "welcome scale 100/150/200 fits all 1\u20134 actual portrait/dark compositions"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welcome scale 100/150/200 fits all 1\u20134 actual portrait/dark compositions"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:154:106 \u203a welcome scale 100/150/200 fits all 1\u20134 actual portrait/dark compositions"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-9d4eef30352622d1d493",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 170,
+        "column": 39,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "a preloaded goal is complete at zero"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a preloaded goal is complete at zero"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:170:39 \u203a a preloaded goal is complete at zero"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-fa04251bb9b0f80548ec",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 170,
+        "column": 39,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "a paused goal stays complete after resume"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a paused goal stays complete after resume"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:170:39 \u203a a paused goal stays complete after resume"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-3f3c10107a1dc557ea06",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 186,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "the actual Worker and Player share a complete native goal when paused at zero"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the actual Worker and Player share a complete native goal when paused at zero"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:186:5 \u203a the actual Worker and Player share a complete native goal when paused at zero"
+      },
+      {
+        "id": "bb391a927e3dbb9022c4-9c2ae73397fce89d0d56",
+        "project": "chromium",
+        "file": "tests/player/sync-onzetrots-v9-playback.spec.ts",
+        "line": 203,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-onzetrots-v9-playback.spec.ts",
+          "a facts-only refresh preserves already loaded fonts and the visible frame"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a facts-only refresh preserves already loaded fonts and the visible frame"
+        ],
+        "selection": "[chromium] \u203a player/sync-onzetrots-v9-playback.spec.ts:203:5 \u203a a facts-only refresh preserves already loaded fonts and the visible frame"
+      },
+      {
+        "id": "11793f5fbe7fa806265b-1363928d847a881ad405",
+        "project": "chromium",
+        "file": "tests/player/sync-player-status.spec.ts",
+        "line": 6,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-player-status.spec.ts",
+          "eerste download en verificatie zijn echt; een volgende download bedekt geen LKG"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "eerste download en verificatie zijn echt; een volgende download bedekt geen LKG"
+        ],
+        "selection": "[chromium] \u203a player/sync-player-status.spec.ts:6:5 \u203a eerste download en verificatie zijn echt; een volgende download bedekt geen LKG"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-ce8aeba8fbb0c82cfa6e",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 123,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "Source playback verifies and renders all pages, pauses its page clock and cycles without a binary gap"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "Source playback verifies and renders all pages, pauses its page clock and cycles without a binary gap"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:123:5 \u203a Source playback verifies and renders all pages, pauses its page clock and cycles without a binary gap"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-4cd06b21eb29bc1c8a35",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 150,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "an older CSS implementation renders the existing complete binary fallback"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "an older CSS implementation renders the existing complete binary fallback"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:150:5 \u203a an older CSS implementation renders the existing complete binary fallback"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-28939ca9315c77d47d7c",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 161,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "a Source font failure uses binary playback without claiming a Source frame"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a Source font failure uses binary playback without claiming a Source frame"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:161:5 \u203a a Source font failure uses binary playback without claiming a Source frame"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-563b855d8c198fe6d64b",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 171,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "the outgoing passive Source frame remains visible without producing a new frame receipt"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "the outgoing passive Source frame remains visible without producing a new frame receipt"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:171:5 \u203a the outgoing passive Source frame remains visible without producing a new frame receipt"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-27b4febd468c98ad7e1c",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 183,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "a transparent motion frame cannot acknowledge playback and resumes from its paused beginning"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a transparent motion frame cannot acknowledge playback and resumes from its paused beginning"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:183:5 \u203a a transparent motion frame cannot acknowledge playback and resumes from its paused beginning"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-09848afa95ea5081be23",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 199,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "a parent render after acknowledgement does not restart Source preparation or report another first frame"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a parent render after acknowledgement does not restart Source preparation or report another first frame"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:199:5 \u203a a parent render after acknowledgement does not restart Source preparation or report another first frame"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-3acd0393780d087798c1",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 207,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "DOM video respects the complete encoded loop boundary even when placement minimum is longer"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "DOM video respects the complete encoded loop boundary even when placement minimum is longer"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:207:5 \u203a DOM video respects the complete encoded loop boundary even when placement minimum is longer"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-84b8cc42178e2d08c68c",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 215,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "a Source frame receipt and page clock wait until the actual frame is visible"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a Source frame receipt and page clock wait until the actual frame is visible"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:215:5 \u203a a Source frame receipt and page clock wait until the actual frame is visible"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-f562569cf5a3247b0289",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 247,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "Source portrait cover applies the same bottom crop as its binary fallback"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "Source portrait cover applies the same bottom crop as its binary fallback"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:247:5 \u203a Source portrait cover applies the same bottom crop as its binary fallback"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-096d9c0570d63f8b9dca",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 254,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "Source portrait contain honors a left focus without stretching"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "Source portrait contain honors a left focus without stretching"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:254:5 \u203a Source portrait contain honors a left focus without stretching"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-69133d6b68775031a5ce",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 260,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "an existing trimmed Source placement plays its verified binary instead of ignoring trim"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "an existing trimmed Source placement plays its verified binary instead of ignoring trim"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:260:5 \u203a an existing trimmed Source placement plays its verified binary instead of ignoring trim"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-20a66cebfc91e68e8b02",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 265,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "connected Source uses its own complete presentation and page timing without Studio fields"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "connected Source uses its own complete presentation and page timing without Studio fields"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:265:5 \u203a connected Source uses its own complete presentation and page timing without Studio fields"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-30defb1a085b084f1f6b",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 268,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "connected Source refuses a presentation paired with another binary checksum"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "connected Source refuses a presentation paired with another binary checksum"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:268:5 \u203a connected Source refuses a presentation paired with another binary checksum"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-c045605bc1fb6fd035b1",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 272,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "connected data grows beyond an image fallback and completes all three pages before its natural boundary"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "connected data grows beyond an image fallback and completes all three pages before its natural boundary"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:272:5 \u203a connected data grows beyond an image fallback and completes all three pages before its natural boundary"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-9483b01c27d794ebf5da",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 275,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "a failed connected DOM font retains the image fallback and its own complete playback boundary"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a failed connected DOM font retains the image fallback and its own complete playback boundary"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:275:5 \u203a a failed connected DOM font retains the image fallback and its own complete playback boundary"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-d4785918396158bff373",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 280,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "Source score consumes the existing global state, freezes its offline clock and keeps one original item boundary"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "Source score consumes the existing global state, freezes its offline clock and keeps one original item boundary"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:280:5 \u203a Source score consumes the existing global state, freezes its offline clock and keeps one original item boundary"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-79614ea0290c37bccf3e",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 297,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "a Source Engage presentation follows public visibility without replacing its design or restarting its item clock"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "a Source Engage presentation follows public visibility without replacing its design or restarting its item clock"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:297:5 \u203a a Source Engage presentation follows public visibility without replacing its design or restarting its item clock"
+      },
+      {
+        "id": "b936aff6a1cccb02e4fa-6bf7568f6844f771c99d",
+        "project": "chromium",
+        "file": "tests/player/sync-studio-playback.spec.ts",
+        "line": 307,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/sync-studio-playback.spec.ts",
+          "Source YouTube uses the official iframe boundary and its full Source fallback owns exactly one natural end after failure"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "Source YouTube uses the official iframe boundary and its full Source fallback owns exactly one natural end after failure"
+        ],
+        "selection": "[chromium] \u203a player/sync-studio-playback.spec.ts:307:5 \u203a Source YouTube uses the official iframe boundary and its full Source fallback owns exactly one natural end after failure"
+      },
+      {
+        "id": "b037f89af982a341f062-2708705469581433e513",
+        "project": "chromium",
+        "file": "tests/player/watchdog-recovery.spec.ts",
+        "line": 10,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/watchdog-recovery.spec.ts",
+          "does not remount a healthy video when no watchdog override is present"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "does not remount a healthy video when no watchdog override is present"
+        ],
+        "selection": "[chromium] \u203a player/watchdog-recovery.spec.ts:10:5 \u203a does not remount a healthy video when no watchdog override is present"
+      },
+      {
+        "id": "b037f89af982a341f062-2a2f88fd81d7f2ab7fae",
+        "project": "chromium",
+        "file": "tests/player/watchdog-recovery.spec.ts",
+        "line": 61,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/watchdog-recovery.spec.ts",
+          "does not treat an intentional video pause as a playback stall"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "does not treat an intentional video pause as a playback stall"
+        ],
+        "selection": "[chromium] \u203a player/watchdog-recovery.spec.ts:61:5 \u203a does not treat an intentional video pause as a playback stall"
+      },
+      {
+        "id": "b037f89af982a341f062-388bf2bb0d99717ecf83",
+        "project": "chromium",
+        "file": "tests/player/watchdog-recovery.spec.ts",
+        "line": 121,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/watchdog-recovery.spec.ts",
+          "retries a decode failure once, skips it and reports recovery in heartbeat"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "retries a decode failure once, skips it and reports recovery in heartbeat"
+        ],
+        "selection": "[chromium] \u203a player/watchdog-recovery.spec.ts:121:5 \u203a retries a decode failure once, skips it and reports recovery in heartbeat"
+      },
+      {
+        "id": "b037f89af982a341f062-83994697b63c523c20de",
+        "project": "chromium",
+        "file": "tests/player/watchdog-recovery.spec.ts",
+        "line": 211,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/watchdog-recovery.spec.ts",
+          "detects a stalled video that stops making time progress"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "detects a stalled video that stops making time progress"
+        ],
+        "selection": "[chromium] \u203a player/watchdog-recovery.spec.ts:211:5 \u203a detects a stalled video that stops making time progress"
+      },
+      {
+        "id": "b037f89af982a341f062-484e490be01fb5bf24a1",
+        "project": "chromium",
+        "file": "tests/player/watchdog-recovery.spec.ts",
+        "line": 279,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/watchdog-recovery.spec.ts",
+          "hands a naturally ended video directly to the next playlist item"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "hands a naturally ended video directly to the next playlist item"
+        ],
+        "selection": "[chromium] \u203a player/watchdog-recovery.spec.ts:279:5 \u203a hands a naturally ended video directly to the next playlist item"
+      },
+      {
+        "id": "b806d81ccee7b8d2176b-4af47b259014a6f00164",
+        "project": "chromium",
+        "file": "tests/player/welcome-arrivals-motion.spec.ts",
+        "line": 43,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/welcome-arrivals-motion.spec.ts",
+          "welkomstslides bieden vijf motionpresets met een stabiel eindbeeld"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welkomstslides bieden vijf motionpresets met een stabiel eindbeeld"
+        ],
+        "selection": "[chromium] \u203a player/welcome-arrivals-motion.spec.ts:43:5 \u203a welkomstslides bieden vijf motionpresets met een stabiel eindbeeld"
+      },
+      {
+        "id": "b806d81ccee7b8d2176b-39673ed446ec0074f549",
+        "project": "chromium",
+        "file": "tests/player/welcome-arrivals-motion.spec.ts",
+        "line": 76,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/welcome-arrivals-motion.spec.ts",
+          "welkomstmotion respecteert verminderde beweging"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welkomstmotion respecteert verminderde beweging"
+        ],
+        "selection": "[chromium] \u203a player/welcome-arrivals-motion.spec.ts:76:5 \u203a welkomstmotion respecteert verminderde beweging"
+      },
+      {
+        "id": "b806d81ccee7b8d2176b-8593044da67579d13cb3",
+        "project": "chromium",
+        "file": "tests/player/welcome-arrivals-motion.spec.ts",
+        "line": 88,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/welcome-arrivals-motion.spec.ts",
+          "welkomstraster gebruikt maximaal twee vaste halve slots"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "welkomstraster gebruikt maximaal twee vaste halve slots"
+        ],
+        "selection": "[chromium] \u203a player/welcome-arrivals-motion.spec.ts:88:5 \u203a welkomstraster gebruikt maximaal twee vaste halve slots"
+      },
+      {
+        "id": "b806d81ccee7b8d2176b-1ff60c4ab6264285c236",
+        "project": "chromium",
+        "file": "tests/player/welcome-arrivals-motion.spec.ts",
+        "line": 239,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/welcome-arrivals-motion.spec.ts",
+          "staand welkomstraster gebruikt boven en onder"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "staand welkomstraster gebruikt boven en onder"
+        ],
+        "selection": "[chromium] \u203a player/welcome-arrivals-motion.spec.ts:239:5 \u203a staand welkomstraster gebruikt boven en onder"
+      },
+      {
+        "id": "b806d81ccee7b8d2176b-8900f09e1629082076f8",
+        "project": "chromium",
+        "file": "tests/player/welcome-arrivals-motion.spec.ts",
+        "line": 358,
+        "column": 5,
+        "titlePath": [
+          "",
+          "chromium",
+          "player/welcome-arrivals-motion.spec.ts",
+          "Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
+        ],
+        "expectedStatus": "passed",
+        "retries": 0,
+        "titles": [
+          "Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
+        ],
+        "selection": "[chromium] \u203a player/welcome-arrivals-motion.spec.ts:358:5 \u203a Royal blauwe welkomstslide vergroot alle bezoekinformatie zonder overflow"
+      }
+    ],
+    "skippedCases": [
+      {
+        "index": 287,
+        "id": "325ad81bf122fe7eae25-942d21fad363062e2ffc",
+        "file": "tests/player/royal-current-handover-reference.spec.ts"
+      },
+      {
+        "index": 288,
+        "id": "80e075e16fc1cb1488cc-f333a8a23a7b9a57196d",
+        "file": "tests/player/royal-current-implementation-coverage.spec.ts"
+      },
+      {
+        "index": 313,
+        "id": "b333dde7fe5a1db568a3-cbbc01c34d654d638041",
+        "file": "tests/player/sites-original-operations.spec.ts"
+      },
+      {
+        "index": 314,
+        "id": "b333dde7fe5a1db568a3-54a0c61c8c22a242f4ac",
+        "file": "tests/player/sites-original-operations.spec.ts"
+      },
+      {
+        "index": 315,
+        "id": "b333dde7fe5a1db568a3-921ce13fe1eece346233",
+        "file": "tests/player/sites-original-operations.spec.ts"
+      },
+      {
+        "index": 316,
+        "id": "14a33f538897aac99cd4-189c276fc21c845183cb",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 317,
+        "id": "14a33f538897aac99cd4-e13ec5d37fec0115d699",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 318,
+        "id": "14a33f538897aac99cd4-f11bac388ae432478f69",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 319,
+        "id": "14a33f538897aac99cd4-e8ff3fb4cca9c6412b92",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 320,
+        "id": "14a33f538897aac99cd4-187dd2e46fbf78869f2d",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 321,
+        "id": "14a33f538897aac99cd4-b7aab7d0f2eaf344af39",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 322,
+        "id": "14a33f538897aac99cd4-1a9b47d4a866eee4f817",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 323,
+        "id": "14a33f538897aac99cd4-a8bee68a9cc93e074e56",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 324,
+        "id": "14a33f538897aac99cd4-141a1038f80a6354892a",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      },
+      {
+        "index": 325,
+        "id": "14a33f538897aac99cd4-b81a5a7044f30c0b0501",
+        "file": "tests/player/sites-original-routes.spec.ts"
+      }
+    ],
+    "evidencePrecision": "Artifact closure records 379 completed cases and invocation380 without result. The text log stops at case379; its stdout is therefore not used to override artifact counts. The ZIP contains case379 execution.json proving passed/status passed/errors0. It has no case380 execution.json."
+  },
+  "textLogProgress": {
+    "lastVisibleCaseStart": {
+      "index": 379,
+      "observedAt": "2026-11-09T14:20:25.4860221Z"
+    },
+    "visibleCaseStartLines": 379,
+    "nextStartWarningCount": 379,
+    "case310To311Seconds": 267.080984,
+    "case311To312Seconds": 284.831431,
+    "longCases": "The two existing S295 publication/orientation cases consumed about 9m12s together and both passed before timeout; this is not an individual assertion timeout."
+  },
+  "artifact": {
+    "id": 13681758061,
+    "node_id": "MDg6QXJ0aWZhY3QxMzY4MTc1ODA2MQ==",
+    "name": "browser-gates-player-08b3452247489e1b7c552e13be5250f66dbbb381",
+    "size_in_bytes": 147323147,
+    "url": "https://api.github.com/repos/veyocast/platform/actions/artifacts/13681758061",
+    "archive_download_url": "https://api.github.com/repos/veyocast/platform/actions/artifacts/13681758061/zip",
+    "expired": false,
+    "digest": "sha256:00638c0ce5ce1e3a5d2bdcfa760cae11770ea9867bc2325785e3aca5e2ea76b9",
+    "created_at": "2026-11-09T14:20:41Z",
+    "updated_at": "2026-11-09T14:20:41Z",
+    "expires_at": "2026-11-23T14:20:34Z",
+    "workflow_run": {
+      "id": 42616646027,
+      "repository_id": 1302428738,
+      "head_repository_id": 1302428738,
+      "head_branch": "veyocast/s299-sponsorrapportage",
+      "head_sha": "a16b9f74f1a9c2583f0cf37d22a6ed94edaa7fe1"
+    }
+  },
+  "otherAttemptJobResults": [
+    {
+      "name": "Browser gates (marketing)",
+      "conclusion": "success",
+      "jobId": 129177534942
+    },
+    {
+      "name": "Browser gates (control)",
+      "conclusion": "success",
+      "jobId": 129177535355
+    },
+    {
+      "name": "Foundation gates",
+      "conclusion": "success",
+      "jobId": 129177536466
+    },
+    {
+      "name": "Browser gates (cross)",
+      "conclusion": "success",
+      "jobId": 129177602681
+    }
+  ],
+  "advice": {
+    "fullPlayerGateStillRequired": true,
+    "doNotTreatPartialClosureAsPass": true,
+    "doNotBlindRerunUnchangedBudget": "The observed attempt used 75 minutes before completing the original460 cases; an unchanged retry has a concrete budget risk.",
+    "parentSelectedFollowup": "Root explicitly selected a Player-job-only global watchdog increase from75 to105 minutes, with existing case budgets, per-case isolation, coverage, workers1 and strict closure unchanged. This investigation makes no workflow edit or rerun.",
+    "completionCriterion": "A new complete original-case inventory must have complete=true and one validated expected result per ID. Unstarted/interrupted cases from this attempt remain unverified, and results must not be carried across a changed source as a full-gate claim."
+  },
+  "readOnlyActions": {
+    "githubApiReadsOnly": true,
+    "repositoryWrites": false,
+    "workflowMutation": false,
+    "runDispatchRerunCancel": false,
+    "deploymentsApprovalsProviderRequests": false,
+    "localOutputsOnly": "/tmp",
+    "artifactReadMethod": "HTTP byte ranges, selected closure and case379 report only; no full147MB ZIP download."
+  },
+  "evidenceFiles": [
+    {
+      "path": "/tmp/s299-ci-attempt2-metadata.json",
+      "bytes": 15386,
+      "sha256": "224ad89020debc80e2925281027bcdcb00cb1e7e988e66ffcde588fca6461b8c"
+    },
+    {
+      "path": "/tmp/s299-ci-attempt2-run-api.json",
+      "bytes": 12414,
+      "sha256": "1cf55046cc0f81cbc7d90b30c6904f24891ce9ffba8c7fe83be9fa2f510482db"
+    },
+    {
+      "path": "/tmp/s299-ci-player-job-api.json",
+      "bytes": 3529,
+      "sha256": "8ce7821f8f6334fd528a9cdaa35bcc71b809cde8e03a975290128febf720b50b"
+    },
+    {
+      "path": "/tmp/s299-ci-player-check.json",
+      "bytes": 3522,
+      "sha256": "34803477236eb20816f73a81700c65a67e857179b4563df3582434563be0322c"
+    },
+    {
+      "path": "/tmp/s299-ci-player-annotations.json",
+      "bytes": 1585,
+      "sha256": "0dbd8f0b85cd4931717b7dc1a627363b73245f238a88c5aec79a3efc942668ee"
+    },
+    {
+      "path": "/tmp/s299-ci-artifacts-metadata.json",
+      "bytes": 3047,
+      "sha256": "25b23812390009c1511abc322c11174f95520d131512a38696a1ac533a5c84b9"
+    },
+    {
+      "path": "/tmp/s299-player-ci-cancelled.log",
+      "bytes": 788969,
+      "sha256": "c71ede7448a7530f69704cad5f3d152e8b5a1e6f6c9bf7bf6f5a4ef02cbb92f4"
+    },
+    {
+      "path": "/tmp/s299-pr-gates-tested.yml",
+      "bytes": 7786,
+      "sha256": "d4b3cfbf368e7a7bc580ea9bf6fe796ccfd3a12b4edb5f523c08b5c728635821"
+    },
+    {
+      "path": "/tmp/s299-run-browser-gates-tested.mjs",
+      "bytes": 12529,
+      "sha256": "03b87ecddcc65dc3582bd7e60f64aa87e46b5b0680c80c9a3e69b25c269544c0"
+    },
+    {
+      "path": "/tmp/s299-playwright-config-tested.ts",
+      "bytes": 4082,
+      "sha256": "b8570e3d01ca7e88185a87b08c4a4191069d610bda82ac892531f04a9256fbbb"
+    },
+    {
+      "path": "/tmp/s299-player-ci-artifact/player/case-closure.json",
+      "bytes": 482465,
+      "sha256": "b14ac73b1f62582305a4e85331b4ac57e86c6f5b93cde5a23edc42271634ed83"
+    },
+    {
+      "path": "/tmp/s299-player-ci-artifact/player/case-379/execution.json",
+      "bytes": 1010,
+      "sha256": "e6220514eee72bbf4081d7d5ed0ac5d9ec0260bfa37e8c86288c1a4e86b22173"
+    },
+    {
+      "path": "/tmp/s299-ci-player-artifact-entries.json",
+      "bytes": 111313,
+      "sha256": "8d61aebfda1d9c1937f86b44a3bdf56e8e1cbb63645061f0bc858f63d76912ae"
+    }
+  ]
+}

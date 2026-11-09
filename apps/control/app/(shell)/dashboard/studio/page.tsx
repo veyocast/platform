@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { legacyStudioIndexHref } from "../content/content-library";
 import { redirect } from "next/navigation";
 import {randomUUID} from "node:crypto";
 import {createStudioTvCollection} from "./sites-series-actions";
@@ -57,7 +58,7 @@ type StudioPageProps = {
 export default async function StudioPage({ searchParams }: StudioPageProps) {
   const session = await requireTenantControlSession("tenant.studio.read");
   const params = await searchParams;
-  if (params.advanced !== "1") redirect("/dashboard/content");
+  if (params.advanced !== "1") redirect(legacyStudioIndexHref(params));
   const filter = parseFilter(params);
   const [data, brandResources, dynamicDesignCount, authoringPaused] = await Promise.all([
     loadStudioOverview(
@@ -256,7 +257,7 @@ export default async function StudioPage({ searchParams }: StudioPageProps) {
               </Button>
             </div>
           }
-          clearHref="/dashboard/studio"
+          clearHref="/dashboard/studio?advanced=1"
           defaultOpen={filterCount(filter) > 0}
           primary={
             <input

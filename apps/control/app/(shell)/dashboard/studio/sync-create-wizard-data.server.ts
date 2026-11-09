@@ -2,7 +2,7 @@ import "server-only";
 import { hasCapability } from "@veyocast/auth";
 import { syncContentFamilies, type SyncContentFamily } from "@veyocast/contracts";
 import { createSyncStudioStarter } from "@veyocast/studio";
-import { requireTenantControlSession } from "../../../../lib/control-session";
+import { requireContentSession } from "../content/content-access.server";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
 import { applySyncThemeCreationDefaults, syncThemeCreationStarterDefaults } from "../../../../lib/sync-theme-creation-defaults";
 import { loadSyncThemeCreationDefaults } from "../themes/sync-theme-defaults-data.server";
@@ -15,7 +15,7 @@ const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 /** A new wizard only reads. The original canonical writers create its final draft. */
 export async function loadSyncCreateWizardData(family: SyncContentFamily, requestedMode?: SyncCreateWizardMode, requestedSourceId?: string): Promise<SyncCreateWizardData | null> {
   if (!syncContentFamilies.some(value => value.id === family)) return null;
-  const session = await requireTenantControlSession();
+  const session = await requireContentSession(true);
   if (!session.isLive || !session.tenantId || !session.userId) return null;
   const slideType = (syncConnectedAuthoringType(family)??syncConnectedAuthoringType(family,'sync-onzetrots-v1')) ?? null;
   const active = session.tenantStatus === "active";

@@ -1,0 +1,3445 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-09T14:12:27.671261+00:00",
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "testedWorkingTree": true,
+  "buildId": "afx4WTMdRokUAATS7ARkh",
+  "provenance": "Real compiled Player with controlled authorized origin responses; actual SHA-verified media, IndexedDB/CacheStorage and visible frame/heartbeat callbacks. No customer/provider fixtures. Origin acceptance tags describe the local fixture transport, not hosted database acceptance.",
+  "profiles": [
+    {
+      "profile": "Chromium React",
+      "verified": [
+        "offline natural-boundary expiry",
+        "monotone clock rollback",
+        "cold NOW before expiry and cold END after expiry",
+        "full landscape and portrait three-zone compositions",
+        "decoded video in side zone",
+        "slow/obsolete manifest rejection",
+        "actual overlay frame and correction",
+        "offline restoration ACK retry and terminal rejection"
+      ]
+    },
+    {
+      "profile": "Chromium LG legacy path",
+      "verified": [
+        "ordinary NOW offline cache/cold reload after modern temporary playback"
+      ],
+      "boundary": "Does not advertise matchday-expiry-v1; new temporal S300 targets blocked by preflight. No physical LG claim."
+    },
+    {
+      "profile": "1280x320 browser output",
+      "verified": [
+        "both issued teams and field inside verified visible card",
+        "fullscreen media width preserved"
+      ],
+      "boundary": "Browser viewport; no physical LED panel claim."
+    },
+    {
+      "profile": "Physical Android/WebView/LG",
+      "verified": [],
+      "boundary": "No attached hardware acceptance collected."
+    }
+  ],
+  "sourceHashes": {
+    "apps/player/app/_components/player-matchday-actions.module.css": "ef14667808e4f2cf861a97cf767e6eb3b69e8047d057d249f489e7cb9f8adb2c",
+    "apps/player/app/_components/player-matchday-actions.tsx": "9287212419cfbf0f2ed0719d9084c75c573aaacfc22494b34f50dbc7de786cae",
+    "apps/player/app/_components/player-playback.module.css": "bf66cdd93026b5fe64668d7aea598d4a84e92fe345e3e6488c70ecab67dd5b63",
+    "apps/player/app/_components/player-runtime.tsx": "3ae0a8857a0370971721bda955f4dacfd547513c351668177a6213c7be20a752",
+    "apps/player/app/_components/screen-composition-zone.tsx": "5ab6018fcf7573a1768517bd33875619034c8bfe79cfe9f26514f05947c7425b",
+    "apps/player/app/_components/verified-empty-zone.tsx": "e8a13a42bb22ea23b61dfc3ff086603951904be61f61b90e4c4d8cfd4fa9a320",
+    "apps/player/app/_lib/player-cache.ts": "ffded8e7e8e4b281920dc5c40a8be2336c2a5ae1277bb67b69460722ac623600",
+    "apps/player/app/_lib/player-manifest.ts": "e8d93182af9b1e1f53205ea0fa7a25df596ec878c4a0357b235a9d21e5eb1e34",
+    "apps/player/app/_lib/player-matchday-actions.test.ts": "72220d9ad4340f1f7ab15ae049f68c12643050539e1870d94fbf3e659139757b",
+    "apps/player/app/_lib/player-matchday-actions.ts": "39ea659a79d0572018f72e4d571a26e60321ec068029658aba5c1a5c81c3afea",
+    "apps/player/app/_lib/player-matchday-cache.test.ts": "1c3ac445ee37c93ad30070bc7408df62bee2431a75fd109eb284e8bac3ee9b59",
+    "apps/player/app/_lib/player-matchday-window-server.ts": "d980a9dbce9218b52411dd8b756ccc80de95823fd2b35dda1e460647abb9f003",
+    "apps/player/app/_lib/player-matchday-window.test.ts": "ff149b68b6a470dfd6019df9ddf181b81739a46cc8e2b3339a5a1bde624e4be8",
+    "apps/player/app/_lib/player-matchday-window.ts": "7004a7b86258ba38b77ad07946ef772e50287e5eb04276a9b17fe8ec09245448",
+    "apps/player/app/api/player/heartbeat/route.test.ts": "e1452f3d237f2f2eea46bcefa9097403ba54395df9155def31d4bb59564d67e4",
+    "apps/player/app/api/player/heartbeat/route.ts": "dcbcaa255a2db027ce1b5daf3b9e1e5408c4d02841fd3dad013b8c9f3bdfbe9f",
+    "apps/player/app/api/player/manifest/live-target.test.ts": "d87aed9e6cd009752970428656cfa26241eb20ac86aaa4e54c193e959dc0ea1e",
+    "apps/player/app/api/player/manifest/route.ts": "bb38647511e2ddd4dde23ae045bcc15e91c6cc9fb64fc286eb4d3d5e94e32652",
+    "apps/player/app/api/player/manifest/s300-matchday-target.test.ts": "9cb15ef41d1156021c45f8dcc201b35e0b4654f16fa47e7fcee917e89c9de90e",
+    "apps/player/app/api/player/matchday/route.test.ts": "da85b0843281cc59bab4ac85ab5ea14b113ad9600bb0f89703e213f8598239a0",
+    "apps/player/app/api/player/matchday/route.ts": "836046d19e466ee0859f045282fb28ff368c1e838af3936703882bb98a94096e",
+    "packages/contracts/src/matchday-runbook.ts": "1dff837b11c548e5a4e2322f290ae5f4a867a914ecbb55cc5cce234e71c448d8",
+    "packages/domain/src/matchday-runbook.ts": "b624aadbf7eaa300697b1bd22f7b88f843ce0098a9372051d9ff8ef2a2a10380",
+    "tests/player/connectivity.spec.ts": "883620752bfb0e6c231551944e951a2dc65004e50e96a08ff6d7ad490eaf4d85",
+    "tests/player/s300-matchday-expiry.spec.ts": "9cb2449d7947c5ce2036db818db2c1dc390de877071dae4df65dae7089defc00"
+  },
+  "runs": [
+    {
+      "name": "matchdayRuntime",
+      "reportPath": "/tmp/s300-player-final-reviewed-profiles-report.json",
+      "reportSha256": "48225d5ece7117f629f7e6f303ce3f18700a4a3e95692f6565242ba7eb761fb4",
+      "stats": {
+        "startTime": "2026-11-09T14:09:12.242Z",
+        "duration": 104042.879,
+        "expected": 10,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "13b08f0d8e401fca2efb-a769539b07ec8285bd61",
+          "title": "S300: a verified temporary frame expires offline at its natural boundary and cold reload keeps ordinary END",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 55,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 16944
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-b909cf44ab8e779210b9",
+          "title": "S300: cold offline boot during a temporary window and an older decoder see ordinary NOW, never future END",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 65,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2053
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-695a6979de4bc232c33a",
+          "title": "S300: a response held beyond its issued lifetime cannot replace the verified ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 73,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 3882
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-a99a6dcb4bcb32cb5554",
+          "title": "S300: only a visible nonce-bound action frame is rendered and authoritative empty restores the verified base",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 80,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2113
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-1d8ebcf86aa19735f835",
+          "title": "S300: an expired never-visible first frame is skipped and the ordinary recovery needs no missing main timer",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 94,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 10270
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-460c561b0ecfe74c190c",
+          "title": "S300: landscape full composition expires with all verified zone frames and preserves its configured geometry",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 103,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 21166
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-7585c75db17a3782740d",
+          "title": "S300: portrait full composition expires with all verified zone frames and preserves its configured geometry",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 103,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 20796
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-21d46de8a36df398c8f7",
+          "title": "S300: offline restoration retries the identical issued ACK after the temporary publication is gone",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 111,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 16494
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-78c378a0669894b98f15",
+          "title": "S300: a supported 1280×320 LED viewport keeps both teams and field visible and retires terminal ACK rejection",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 120,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 7179
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-e7e02e0b9f17986a7de9",
+          "title": "S300: verified video uses its composition zone width while ordinary fullscreen media keeps viewport width",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 128,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1911
+        }
+      ],
+      "buildId": "afx4WTMdRokUAATS7ARkh"
+    },
+    {
+      "name": "verifiedOriginConnectivity",
+      "reportPath": "/tmp/s300-connectivity-ordered-green-report.json",
+      "reportSha256": "6422de7d986a15a6d27dee0946517f9339b42a6f8ea86d9f0c4a88a8fbaf7bb1",
+      "stats": {
+        "startTime": "2026-11-09T14:08:46.022Z",
+        "duration": 16012.260999999999,
+        "expected": 18,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "1b2da8dbc28591e38dac-75628bde19bb0d35ecb9",
+          "title": "shows only a compact offline status while cached playback continues",
+          "file": "player/connectivity.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1013
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-1a34a188634b83a6acd4",
+          "title": "detects an unreachable Player API behind an online network interface",
+          "file": "player/connectivity.spec.ts",
+          "line": 30,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 868
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-9a11b4d91ed15c3b9397",
+          "title": "an offline hint cancels a held manifest and verifies the unreachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 644
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-d1436c48b99e33527972",
+          "title": "an offline hint cancels a held manifest and verifies the reachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 716
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-ad9772496611b2242ca3",
+          "title": "an origin failure after a completed conditional check keeps compact and playback connectivity consistent",
+          "file": "player/connectivity.spec.ts",
+          "line": 115,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 899
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-d152a480967d8a54f72d",
+          "title": "an origin failure during initial preparation cannot activate an incomplete release",
+          "file": "player/connectivity.spec.ts",
+          "line": 151,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 656
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-0fdc87683fe486dd76d2",
+          "title": "shows only a compact offline status while cached playback continues",
+          "file": "player/connectivity.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 619
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-0f3c83009b48063370dc",
+          "title": "detects an unreachable Player API behind an online network interface",
+          "file": "player/connectivity.spec.ts",
+          "line": 30,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 830
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-c39e7cefea53666d211e",
+          "title": "an offline hint cancels a held manifest and verifies the unreachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 588
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-426da7b65f4b44a08e55",
+          "title": "an offline hint cancels a held manifest and verifies the reachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 566
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-1b5fb5bc3bc179866ba1",
+          "title": "an origin failure after a completed conditional check keeps compact and playback connectivity consistent",
+          "file": "player/connectivity.spec.ts",
+          "line": 115,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 937
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-31651b097e9e599ad19d",
+          "title": "an origin failure during initial preparation cannot activate an incomplete release",
+          "file": "player/connectivity.spec.ts",
+          "line": 151,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 647
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-bb76edcaab859ab67340",
+          "title": "shows only a compact offline status while cached playback continues",
+          "file": "player/connectivity.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 663
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-ffcb1e16634f2eaf77b1",
+          "title": "detects an unreachable Player API behind an online network interface",
+          "file": "player/connectivity.spec.ts",
+          "line": 30,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 900
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-5037b722090e7c2a59aa",
+          "title": "an offline hint cancels a held manifest and verifies the unreachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 654
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-94fb8c25c7d887f23c9a",
+          "title": "an offline hint cancels a held manifest and verifies the reachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 761
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-2987ff1a2bd1d53546ed",
+          "title": "an origin failure after a completed conditional check keeps compact and playback connectivity consistent",
+          "file": "player/connectivity.spec.ts",
+          "line": 115,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 974
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-1f09953af70c7b1ab7b0",
+          "title": "an origin failure during initial preparation cannot activate an incomplete release",
+          "file": "player/connectivity.spec.ts",
+          "line": 151,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 727
+        }
+      ],
+      "buildId": "afx4WTMdRokUAATS7ARkh"
+    },
+    {
+      "name": "existingSourceCompositionGoal",
+      "buildId": "afx4WTMdRokUAATS7ARkh",
+      "reportPath": "/tmp/s300-player-existing-final-report.json",
+      "reportSha256": "82dfb03047a3f42f4aebafd26f895ce23d565a7c9f19126e78751f15b976924c",
+      "stats": {
+        "startTime": "2026-11-09T14:11:08.522Z",
+        "duration": 668196.327,
+        "expected": 70,
+        "skipped": 0,
+        "unexpected": 3,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "88c42a8c4623a30c2a35-ac4946fe534fbd71597e",
+          "title": "an unchanged 200 during first-frame preparation does not restart playback or create a request loop",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 18,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1317
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-7f996107169ce7278713",
+          "title": "an activation update prepared before the first main frame is visible in that same occurrence",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 192,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1769
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-c75b56e266b4211c54b8",
+          "title": "a visible side zone retains its boundary while the main first frame is still preparing",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 214,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 8715
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-faccd89c32cd4c1e3813",
+          "title": "browser: slow activation reads coalesce and a newer follow-up replaces their old facts",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 240,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 16081
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-0ee9e8d7698438c7ac39",
+          "title": "browser: a failed origin preserves local playback and activation respects retry backoff until reconnect",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 261,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 15734
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-5e54401f92f2fb603fc9",
+          "title": "browser: each single-item news occurrence checks conditionally and displays new facts at a natural boundary",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 279,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 6131
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-7b4c69640605e6ea34e4",
+          "title": "browser: each single-item sport_results occurrence checks conditionally and displays new facts at a natural boundary",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 279,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 6124
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-c4ec69fe32f436ac5c1f",
+          "title": "browser: a stale legacy 200 preserves newer prepared news and a higher revision can correct it back to earlier facts",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 314,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 925
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-ad358be3783d35beaff8",
+          "title": "browser: ordinary results display zero-zero, correct the same match and apply removal and valid empty facts",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 381,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 26187
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-75187ba5f8652a4e72d1",
+          "title": "browser: independently empty side and main zones retain other clocks, recover fresh facts and survive offline",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 481,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2293
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-dbfb2236446706054dd3",
+          "title": "browser: repeated slide IDs start distinct occurrences without a redraw request loop",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 575,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 10894
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-79ee1b6386ccd9deada2",
+          "title": "browser: two independent dynamic zones share the authorized check while the main item keeps playing",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 590,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 11510
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-08c018a0d76ea7f39e1c",
+          "title": "static-lg: slow activation reads coalesce and a newer follow-up replaces their old facts",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 240,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 15878
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-d49596efd2fd1ac14c63",
+          "title": "static-lg: a failed origin preserves local playback and activation respects retry backoff until reconnect",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 261,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 15324
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-5c01a229153f2a89683f",
+          "title": "static-lg: each single-item news occurrence checks conditionally and displays new facts at a natural boundary",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 279,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 11070
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-02885b1c3f86f89efcfa",
+          "title": "static-lg: each single-item sport_results occurrence checks conditionally and displays new facts at a natural boundary",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 279,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 11132
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-dd03ae95ed34191915e9",
+          "title": "static-lg: a stale legacy 200 preserves newer prepared news and a higher revision can correct it back to earlier facts",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 314,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1353
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-e2194a9f7f037f8c08d2",
+          "title": "static-lg: ordinary results display zero-zero, correct the same match and apply removal and valid empty facts",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 381,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "failed",
+          "durationMs": 27569
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-02da7a748d7aa21c41c1",
+          "title": "static-lg: independently empty side and main zones retain other clocks, recover fresh facts and survive offline",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 481,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 3295
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-20a4de2df08c4b159b26",
+          "title": "static-lg: repeated slide IDs start distinct occurrences without a redraw request loop",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 575,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 10593
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-d9f2e3d7a38327e64820",
+          "title": "static-lg: two independent dynamic zones share the authorized check while the main item keeps playing",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 590,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 10967
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-58c4f2c68c18873477e3",
+          "title": "a rejected side-zone data commit preserves the main occurrence and resumes verified playback",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 607,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "failed",
+          "durationMs": 63039
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-2f3680bbce28317182ca",
+          "title": "concurrent screens retain separate authorized playback and activation checks",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 651,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 6357
+        },
+        {
+          "id": "9f0c8a1e8f9999783fa1-b0e94b42f1426fbe0f10",
+          "title": "toont één realtime Goal Alert boven last-known-good playback en pauzeert de onderlaag",
+          "file": "player/ledscores-goal-alert.spec.ts",
+          "line": 10,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 3267
+        },
+        {
+          "id": "9f0c8a1e8f9999783fa1-f13364ddf9dc1bb24073",
+          "title": "verbindt opnieuw wanneer LED Scores bij Player-start nog niet is vrijgegeven",
+          "file": "player/ledscores-goal-alert.spec.ts",
+          "line": 104,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4250
+        },
+        {
+          "id": "9f0c8a1e8f9999783fa1-b183828e9ee5edda3066",
+          "title": "plant hetzelfde goal-event op drie Players met begrensde renderskew",
+          "file": "player/ledscores-goal-alert.spec.ts",
+          "line": 199,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5509
+        },
+        {
+          "id": "ac3176da51af673b11b9-34808d8dd9b068db1ec6",
+          "title": "LG verifies all zone bytes, shows every zone and resumes the full composition offline",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 38,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1110
+        },
+        {
+          "id": "ac3176da51af673b11b9-c539ae5ad7660c290812",
+          "title": "LG retains the previous composition through a corrupt side zone and stores its full LKG when replaced",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 40,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2753
+        },
+        {
+          "id": "ac3176da51af673b11b9-289193544c062535cf09",
+          "title": "LG waits for a healthy main video to end naturally before changing every zone",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 42,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5424
+        },
+        {
+          "id": "ac3176da51af673b11b9-720c2500aa9cd331b558",
+          "title": "LG applies checksum-bound Sites facts at the natural loop boundary within the same release",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 44,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5783
+        },
+        {
+          "id": "ac3176da51af673b11b9-1e09245ec7abc3b44de2",
+          "title": "an unchanged LG Sites 200 renews access while preserving displayed nodes and the three-page playback clock",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 46,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "failed",
+          "durationMs": 7638
+        },
+        {
+          "id": "ac3176da51af673b11b9-56491b3fab9ab050e647",
+          "title": "LG YouTube failure returns to the verified local fallback without a provider slide import",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 86,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 506
+        },
+        {
+          "id": "ac3176da51af673b11b9-1c046dd2f29880c5146f",
+          "title": "LG renders exact fieldflow landscape score DOM without container or modern math support",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 89,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 9639
+        },
+        {
+          "id": "ac3176da51af673b11b9-71699bc2984859760106",
+          "title": "LG renders exact onzetrots-tv landscape score DOM without container or modern math support",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 89,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 6629
+        },
+        {
+          "id": "ac3176da51af673b11b9-df662efe7130bcc61b67",
+          "title": "LG renders exact fieldflow portrait score DOM without container or modern math support",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 89,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5968
+        },
+        {
+          "id": "ac3176da51af673b11b9-5aa0b11f7b3941ded11c",
+          "title": "LG renders exact onzetrots-tv portrait score DOM without container or modern math support",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 89,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4397
+        },
+        {
+          "id": "ac3176da51af673b11b9-d6a0da328be073901fc8",
+          "title": "LG preloads exact Sites system bytes and acknowledges a goal only after its real markup frame",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 102,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 16790
+        },
+        {
+          "id": "ac3176da51af673b11b9-c5094d6d3fd0e0e9335b",
+          "title": "LG online YouTube takes priority over Sites Studio and errors activate its verified Studio fallback",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 118,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 3275
+        },
+        {
+          "id": "ac3176da51af673b11b9-122885a3786aa3c510bc",
+          "title": "LG Engage upgrades the verified Studio fallback with real campaign data and preserves its deadline through refresh",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 126,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4059
+        },
+        {
+          "id": "ac3176da51af673b11b9-3fd78ddae52febf30bca",
+          "title": "S215 LG widget pages and portrait image frame landscape",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 135,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4447
+        },
+        {
+          "id": "ac3176da51af673b11b9-f8988cf7d6f24117d6d3",
+          "title": "S215 LG widget pages and portrait image frame portrait",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 135,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4549
+        },
+        {
+          "id": "ac3176da51af673b11b9-a984c30261df7811185d",
+          "title": "S221 LG headerless menu paints without aspect-ratio and remains visible offline landscape",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 146,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5508
+        },
+        {
+          "id": "ac3176da51af673b11b9-e7559aaf55dec3c91bb9",
+          "title": "S221 LG headerless menu paints without aspect-ratio and remains visible offline portrait",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 146,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5993
+        },
+        {
+          "id": "ac3176da51af673b11b9-b72468617561af4a3866",
+          "title": "S221 LG never acknowledges a zero-height Sites frame and uses its verified fallback",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 175,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4264
+        },
+        {
+          "id": "ac3176da51af673b11b9-fc7515f50353cc9a3a19",
+          "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart landscape/light",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 193,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5818
+        },
+        {
+          "id": "ac3176da51af673b11b9-2a9e745797174e5fd37e",
+          "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart landscape/dark",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 193,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5486
+        },
+        {
+          "id": "ac3176da51af673b11b9-6bb13c086c4218429790",
+          "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart portrait/light",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 193,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5495
+        },
+        {
+          "id": "ac3176da51af673b11b9-6c472c710b32b5f574b8",
+          "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart portrait/dark",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 193,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5499
+        },
+        {
+          "id": "ac3176da51af673b11b9-ffb9283efb7df5c4af12",
+          "title": "LG multipage Sites facts preserve both canvases and the unchanged main clock without another activation",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 212,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 16048
+        },
+        {
+          "id": "1071b47efad61d60fa36-3b5387f431a47107eb8d",
+          "title": "one-item multipage Menu facts accepted at the first page boundary do not start another activation check",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 35,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 17292
+        },
+        {
+          "id": "1071b47efad61d60fa36-bc9968c73cc824174cf1",
+          "title": "actual Twelve MenuDocument widgets are DOM-ready landscape/light and survive offline reboot",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 50,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 6065
+        },
+        {
+          "id": "1071b47efad61d60fa36-7a5f54064efa8542c6bb",
+          "title": "actual Twelve MenuDocument widgets are DOM-ready landscape/dark and survive offline reboot",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 50,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 6028
+        },
+        {
+          "id": "1071b47efad61d60fa36-dc2df22b2d83e45cff0a",
+          "title": "actual Twelve MenuDocument widgets are DOM-ready portrait/light and survive offline reboot",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 50,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5535
+        },
+        {
+          "id": "1071b47efad61d60fa36-b24bd0d82deb4986e4cd",
+          "title": "actual Twelve MenuDocument widgets are DOM-ready portrait/dark and survive offline reboot",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 50,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5800
+        },
+        {
+          "id": "1071b47efad61d60fa36-bba02282ec1d5379b038",
+          "title": "an approved Menu dataset switches at the natural boundary without downloading another descriptor and rejects regression",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 56,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5217
+        },
+        {
+          "id": "1071b47efad61d60fa36-4480ef2ba52f69b4f5f5",
+          "title": "a real Menu renderer exception restores the prior verified dataset",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 62,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 11273
+        },
+        {
+          "id": "1071b47efad61d60fa36-bc530a5a5ef1d5ac7694",
+          "title": "a mixed-clock Menu composition waits for its side zone and retains both verified datasets offline",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 67,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 15004
+        },
+        {
+          "id": "1071b47efad61d60fa36-a0b81a1bc61cc45634fd",
+          "title": "a stale side-zone Menu revision cannot roll back its verified frame inside an unchanged main publication",
+          "file": "player/menu-dom-v2.spec.ts",
+          "line": 72,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 7693
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-6585e5e332f493337e61",
+          "title": "v2 RSS landscape/light: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 52,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5432
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-affe804e1b25152d0d9a",
+          "title": "v2 RSS landscape/dark: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 52,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 7368
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-4aafafaa6836f03c2c6d",
+          "title": "v2 RSS portrait/light: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 52,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5665
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-44705b89c21b4629ded1",
+          "title": "v2 RSS portrait/dark: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 52,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4891
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-a84a68097ccb3cc52318",
+          "title": "v2 facts change at the natural boundary without a new descriptor or font load; unchanged and regressed revisions do not replace it",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 63,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 13964
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-24fe05b674c672aa0616",
+          "title": "a stale same-publication 200 cannot cancel newer Source facts prepared for the next boundary",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 77,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 7968
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-a76f7328def540baf8ba",
+          "title": "real RSS refresh projection retains original media through renewal and offline reload",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 102,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 13013
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-552aa77ea99a9d262f25",
+          "title": "a same-hash RSS asset repair rejects corrupt media and commits only the complete verified set",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 125,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 43050
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-a20daa338acb3d41c5b7",
+          "title": "a complete DOM publication survives a real offline reload and rejects corrupt new descriptor bytes",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 147,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 6479
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-6b830758ea2d4924c038",
+          "title": "a renderer exception restores the verified prior DOM data and preserves a v1 app rollback release",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 155,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 11325
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-7f928a01f07db0d10073",
+          "title": "a corrupt new original image keeps the prior complete CSS data active",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 175,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 4269
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-86cff18e5d0779256004",
+          "title": "v2 birthdays landscape/0: authorized empty or paged content becomes a real offline recovery point",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 184,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2654
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-e39843d7554b6635db73",
+          "title": "v2 birthdays landscape/8: authorized empty or paged content becomes a real offline recovery point",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 184,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5486
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-315ba3b6580b598df84f",
+          "title": "v2 birthdays portrait/0: authorized empty or paged content becomes a real offline recovery point",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 184,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2624
+        },
+        {
+          "id": "4ac1207fdf1d9b513b28-594397cc2221734cdbd0",
+          "title": "v2 birthdays portrait/8: authorized empty or paged content becomes a real offline recovery point",
+          "file": "player/sync-dom-v2.spec.ts",
+          "line": 184,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5466
+        }
+      ]
+    },
+    {
+      "name": "unchangedIsolatedQuota",
+      "buildId": "afx4WTMdRokUAATS7ARkh",
+      "reportPath": "/tmp/s300-player-quota-isolated-valid-report.json",
+      "reportSha256": "6f6d1b4e23662cd897af2d3c2405b98f2037f9b132afc0497aecfaff9515f244",
+      "stats": {
+        "startTime": "2026-11-09T14:23:27.397Z",
+        "duration": 18998.813000000002,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "88c42a8c4623a30c2a35-58c4f2c68c18873477e3",
+          "title": "a rejected side-zone data commit preserves the main occurrence and resumes verified playback",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 608,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 18069
+        }
+      ]
+    },
+    {
+      "name": "integratedAccessibilityOffline",
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+      "reportPath": "/tmp/s300-player-integrated-accessibility-offline-report.json",
+      "reportSha256": "2dc79e39e20902ce454848209b4da94e06a3174dc2c733d68db569a521b41ed8",
+      "stats": {
+        "startTime": "2026-11-09T14:31:14.570Z",
+        "duration": 12495.888,
+        "expected": 20,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "46f40dec63c4dc716a32-979327de476c908ef647",
+          "title": "LG HTML/CSS-renderdiagnose blijft semantisch en toetsenbordbedienbaar",
+          "file": "a11y/player-lg-html-debug.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 235
+        },
+        {
+          "id": "01e364cf37f0609f4a61-b6c251099ff3523b56d0",
+          "title": "LG Legacy Player heeft een leesbaar semantisch statusscherm",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 6,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 312
+        },
+        {
+          "id": "01e364cf37f0609f4a61-c78280e44f2bb5066b6b",
+          "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1920×1080",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 39,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 308
+        },
+        {
+          "id": "01e364cf37f0609f4a61-ad2e1d1212923ab21b3e",
+          "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1080×1920",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 39,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 335
+        },
+        {
+          "id": "01e364cf37f0609f4a61-e7e7921419f373edf999",
+          "title": "LG toont de eerste werkelijke download en verificatie vóór zichtbare activatie",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 82,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 364
+        },
+        {
+          "id": "d7b0734a8b2e39c27e93-aa93ef5677f4d83025b7",
+          "title": "zelfstandige LG-probe blijft semantisch en toetsenbordbedienbaar",
+          "file": "a11y/player-lg-probe.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 167
+        },
+        {
+          "id": "8b463b1519bee67c6c1d-5bb44317b4c467d1ff04",
+          "title": "zelfstandige recoveryroute heeft leesbare semantiek en toetsenbordacties",
+          "file": "a11y/player-recovery.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 143
+        },
+        {
+          "id": "a6fabd0e624288e4dbce-f9e6b182f2d766a7b41b",
+          "title": "landscape nieuwsslide houdt kop, bron en positie toegankelijk",
+          "file": "a11y/player-rss-landscape.spec.ts",
+          "line": 10,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 657
+        },
+        {
+          "id": "6900696e7d11a931993d-81fbf155bc1fc5696aaf",
+          "title": "portrait nieuwsslide houdt kop, bron en positie toegankelijk",
+          "file": "a11y/player-rss-portrait.spec.ts",
+          "line": 10,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 575
+        },
+        {
+          "id": "8b89507781ede412c94f-eeb95cc6f1e3af33f981",
+          "title": "player setup and playback expose accessible landmarks and diagnostics",
+          "file": "a11y/player-runtime.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 789
+        },
+        {
+          "id": "8b89507781ede412c94f-4f7b66421fbf0caedfb1",
+          "title": "paired player without content exposes a clear ready state",
+          "file": "a11y/player-runtime.spec.ts",
+          "line": 39,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 450
+        },
+        {
+          "id": "35c926fdbf2f75ec73fe-4747b2410c7941ce7735",
+          "title": "starts from last-known-good when manifest and media are unavailable",
+          "file": "player-offline/cache-atomic.spec.ts",
+          "line": 7,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "failed",
+          "durationMs": 144
+        },
+        {
+          "id": "35c926fdbf2f75ec73fe-b232c35a9a928695d23f",
+          "title": "rejects corrupt pending assets without replacing active playback",
+          "file": "player-offline/cache-atomic.spec.ts",
+          "line": 114,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 923
+        },
+        {
+          "id": "c92dcb17f14f760845f2-ec3b6f8ad5d222c22b51",
+          "title": "upgrades an existing shell cache and decodes the verified Marker font with the network offline",
+          "file": "player-offline/onzetrots-font-shell.spec.ts",
+          "line": 24,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 190
+        },
+        {
+          "id": "e94af60d246f153bc3ce-8cc189b830bddcc2342e",
+          "title": "serves cached media as 200, 206 and 416 through the service worker",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 907
+        },
+        {
+          "id": "e94af60d246f153bc3ce-cacdad644394f32e261b",
+          "title": "pre-caches and reloads the complete player shell without a network connection",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 944
+        },
+        {
+          "id": "e94af60d246f153bc3ce-7b6bc72a97cbd61db0ab",
+          "title": "normalizes a cached response before serving a Range request",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 95,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 703
+        },
+        {
+          "id": "e94af60d246f153bc3ce-8d50c4f949cb8331ecd6",
+          "title": "removes obsolete player shell caches on service-worker activation",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 131,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1113
+        },
+        {
+          "id": "e94af60d246f153bc3ce-aae45bfd215a6722933e",
+          "title": "leaves uncached native video Range requests usable without storing partial MP4 responses",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 159,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 741
+        },
+        {
+          "id": "e94af60d246f153bc3ce-70f93293f7020728a91d",
+          "title": "rechecks source bytes after a rejected download instead of retaining them in the app shell cache",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 173,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 716
+        },
+        {
+          "id": "81b0d1da3d9d03c7ad8f-8eee504646b9e0e1e515",
+          "title": "unpaired player startup is visible without a network-backed release",
+          "file": "player-offline/startup.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 448
+        }
+      ]
+    },
+    {
+      "name": "unchangedNativeStartupRetry",
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+      "reportPath": "/tmp/s300-player-integrated-cache-retry-report.json",
+      "reportSha256": "798679c1a81241198331b7b6e056426ca6d74c7d737abba5ceb41147a55d721f",
+      "stats": {
+        "startTime": "2026-11-09T14:32:41.205Z",
+        "duration": 1751.5290000000002,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "35c926fdbf2f75ec73fe-4747b2410c7941ce7735",
+          "title": "starts from last-known-good when manifest and media are unavailable",
+          "file": "player-offline/cache-atomic.spec.ts",
+          "line": 7,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1165
+        }
+      ]
+    },
+    {
+      "name": "integratedLgAndQuotaRepairs",
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+      "reportPath": "/tmp/s300-player-integrated-lg-quota-report.json",
+      "reportSha256": "505896a1c7d248e42026470a16cda1aea039f343c749dfd1b42fde91d6f2426b",
+      "stats": {
+        "startTime": "2026-11-09T14:33:59.052Z",
+        "duration": 61942.432,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "88c42a8c4623a30c2a35-e2194a9f7f037f8c08d2",
+          "title": "static-lg: ordinary results display zero-zero, correct the same match and apply removal and valid empty facts",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 382,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 27296
+        },
+        {
+          "id": "88c42a8c4623a30c2a35-58c4f2c68c18873477e3",
+          "title": "a rejected side-zone data commit preserves the main occurrence and resumes verified playback",
+          "file": "player/dynamic-activation-refresh.spec.ts",
+          "line": 608,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 18062
+        },
+        {
+          "id": "ac3176da51af673b11b9-1e09245ec7abc3b44de2",
+          "title": "an unchanged LG Sites 200 renews access while preserving displayed nodes and the three-page playback clock",
+          "file": "player/lg-sites-composition.spec.ts",
+          "line": 46,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 15496
+        }
+      ]
+    },
+    {
+      "name": "integratedMatchdayRuntime",
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+      "reportPath": "/tmp/s300-player-integrated-runtime-report.json",
+      "reportSha256": "01a6160879f116583a842cca6372162b01cfe7e847373e4e5e9e4bd9b237344f",
+      "stats": {
+        "startTime": "2026-11-09T14:35:18.550Z",
+        "duration": 99297.31300000001,
+        "expected": 10,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "13b08f0d8e401fca2efb-a769539b07ec8285bd61",
+          "title": "S300: a verified temporary frame expires offline at its natural boundary and cold reload keeps ordinary END",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 55,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 16940
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-b909cf44ab8e779210b9",
+          "title": "S300: cold offline boot during a temporary window and an older decoder see ordinary NOW, never future END",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 65,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2085
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-695a6979de4bc232c33a",
+          "title": "S300: a response held beyond its issued lifetime cannot replace the verified ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 73,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 3736
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-a99a6dcb4bcb32cb5554",
+          "title": "S300: only a visible nonce-bound action frame is rendered and authoritative empty restores the verified base",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 80,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1985
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-1d8ebcf86aa19735f835",
+          "title": "S300: an expired never-visible first frame is skipped and the ordinary recovery needs no missing main timer",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 94,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 10327
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-460c561b0ecfe74c190c",
+          "title": "S300: landscape full composition expires with all verified zone frames and preserves its configured geometry",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 103,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 21183
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-7585c75db17a3782740d",
+          "title": "S300: portrait full composition expires with all verified zone frames and preserves its configured geometry",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 103,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 21839
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-21d46de8a36df398c8f7",
+          "title": "S300: offline restoration retries the identical issued ACK after the temporary publication is gone",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 111,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 13089
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-78c378a0669894b98f15",
+          "title": "S300: a supported 1280×320 LED viewport keeps both teams and field visible and retires terminal ACK rejection",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 120,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 5672
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-e7e02e0b9f17986a7de9",
+          "title": "S300: verified video uses its composition zone width while ordinary fullscreen media keeps viewport width",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 128,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1338
+        }
+      ]
+    },
+    {
+      "name": "integratedVerifiedOriginConnectivity",
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+      "reportPath": "/tmp/s300-player-integrated-connectivity-report.json",
+      "reportSha256": "ba4186d1ae8bd56e24e964cfe5a328f2e3b2b6289306e272ff2152602d339394",
+      "stats": {
+        "startTime": "2026-11-09T14:37:20.200Z",
+        "duration": 25658.439,
+        "expected": 18,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "1b2da8dbc28591e38dac-75628bde19bb0d35ecb9",
+          "title": "shows only a compact offline status while cached playback continues",
+          "file": "player/connectivity.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 775
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-1a34a188634b83a6acd4",
+          "title": "detects an unreachable Player API behind an online network interface",
+          "file": "player/connectivity.spec.ts",
+          "line": 30,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1447
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-9a11b4d91ed15c3b9397",
+          "title": "an offline hint cancels a held manifest and verifies the unreachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1076
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-d1436c48b99e33527972",
+          "title": "an offline hint cancels a held manifest and verifies the reachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1328
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-ad9772496611b2242ca3",
+          "title": "an origin failure after a completed conditional check keeps compact and playback connectivity consistent",
+          "file": "player/connectivity.spec.ts",
+          "line": 115,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1741
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-d152a480967d8a54f72d",
+          "title": "an origin failure during initial preparation cannot activate an incomplete release",
+          "file": "player/connectivity.spec.ts",
+          "line": 151,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 815
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-0fdc87683fe486dd76d2",
+          "title": "shows only a compact offline status while cached playback continues",
+          "file": "player/connectivity.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1168
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-0f3c83009b48063370dc",
+          "title": "detects an unreachable Player API behind an online network interface",
+          "file": "player/connectivity.spec.ts",
+          "line": 30,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1108
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-c39e7cefea53666d211e",
+          "title": "an offline hint cancels a held manifest and verifies the unreachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1080
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-426da7b65f4b44a08e55",
+          "title": "an offline hint cancels a held manifest and verifies the reachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1136
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-1b5fb5bc3bc179866ba1",
+          "title": "an origin failure after a completed conditional check keeps compact and playback connectivity consistent",
+          "file": "player/connectivity.spec.ts",
+          "line": 115,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1236
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-31651b097e9e599ad19d",
+          "title": "an origin failure during initial preparation cannot activate an incomplete release",
+          "file": "player/connectivity.spec.ts",
+          "line": 151,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1384
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-bb76edcaab859ab67340",
+          "title": "shows only a compact offline status while cached playback continues",
+          "file": "player/connectivity.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1344
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-ffcb1e16634f2eaf77b1",
+          "title": "detects an unreachable Player API behind an online network interface",
+          "file": "player/connectivity.spec.ts",
+          "line": 30,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1820
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-5037b722090e7c2a59aa",
+          "title": "an offline hint cancels a held manifest and verifies the unreachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1174
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-94fb8c25c7d887f23c9a",
+          "title": "an offline hint cancels a held manifest and verifies the reachable origin",
+          "file": "player/connectivity.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1205
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-2987ff1a2bd1d53546ed",
+          "title": "an origin failure after a completed conditional check keeps compact and playback connectivity consistent",
+          "file": "player/connectivity.spec.ts",
+          "line": 115,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 2126
+        },
+        {
+          "id": "1b2da8dbc28591e38dac-1f09953af70c7b1ab7b0",
+          "title": "an origin failure during initial preparation cannot activate an incomplete release",
+          "file": "player/connectivity.spec.ts",
+          "line": 151,
+          "project": "chromium",
+          "repeatEachIndex": 0,
+          "status": "passed",
+          "durationMs": 1429
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/portrait-composition-expiry-evidence.json",
+      "sha256": "3b0bdae0be358ca1e99958bdd9b1d27b7f48a28498aba1a93b3539f507b7ffbc",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/composition-expiry-evidence.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/portrait-composition-layout-diagnostic.json",
+      "sha256": "80f3bd0c7f1912848e0a0b9a4f656e8cb0ade6c5d9c5536ad94abb72eab17133",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/composition-layout-diagnostic.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/portrait-ordinary-restored-three-zone-frame.png",
+      "sha256": "f6d2a0d9d74621823089efd6ae5cc685becd0eb08e2f2fb3841d646094b9998c",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/portrait-ordinary-restored-three-zone-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/portrait-temporary-three-zone-frame.png",
+      "sha256": "4c087cccf8d8fbf5bc5d72fbbf436dacf911076815033d08e04320db22d71ec4",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/portrait-temporary-three-zone-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/expired-first-frame-recovers-ordinary.png",
+      "sha256": "fa39556a37e0b78bb613e34548215f2a665d35b71a50e374abdfbfd444d7df23",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-6bd9c-needs-no-missing-main-timer-chromium/expired-first-frame-recovers-ordinary.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/action-frame-evidence.json",
+      "sha256": "408a7cc6a8e483db38e35aeae233997cc71c1d6008110a66c48e6cff7fb6960e",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-75efa--restores-the-verified-base-chromium/action-frame-evidence.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/ordinary-now-offline-cold-frame.png",
+      "sha256": "a948b5e05ca4d785510b96a44594f2f33910e58abbcfbba10cc5cdbd7323a0ff",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-78dea-dinary-NOW-never-future-END-chromium/ordinary-now-offline-cold-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/expiry-frame-evidence.json",
+      "sha256": "088e6823c4b39d67611c8da691c7ad6cee3a0b1777e2cf313bb077d83c854647",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-85561-d-reload-keeps-ordinary-END-chromium/expiry-frame-evidence.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/ordinary-end-offline-cold-frame.png",
+      "sha256": "7f368f90a13232be67b17f0f4d6e39398524e1cf77595e0c1ceb80e6d704637e",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-85561-d-reload-keeps-ordinary-END-chromium/ordinary-end-offline-cold-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/temporary-verified-frame.png",
+      "sha256": "2c021280af05570675e87c16f17174c31dd70e562850df8fe6f868c7129fb1fb",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-85561-d-reload-keeps-ordinary-END-chromium/temporary-verified-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/offline-restored-ack-evidence.json",
+      "sha256": "f1b732874ebb5ce9a905209a3b85f2a8927a61ac37f656dd242a3586bcb0e3ec",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-a3e4e-mporary-publication-is-gone-chromium/offline-restored-ack-evidence.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/slow-response-keeps-ordinary-frame.png",
+      "sha256": "0aa62e1ecc1d0ccd477a6a6f20a84e40c5169d31cea1e0adac579f5b87e1dcc4",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-b59cb-the-verified-ordinary-frame-chromium/slow-response-keeps-ordinary-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/video-zone-geometry.json",
+      "sha256": "d0d8ea5979ca46c24275ae917485c2480937f7ed1d2cc334d0030dc675589236",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-c9e54--media-keeps-viewport-width-chromium/video-zone-geometry.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/led-1280x320-field-frame.png",
+      "sha256": "66e4b066531b27b6e05781ce4d5594a209949038c56b79be9be6a9b35109c1a9",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-cd125-ires-terminal-ACK-rejection-chromium/led-1280x320-field-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/landscape-composition-expiry-evidence.json",
+      "sha256": "99ff88f94c9c899a2a7899ca2924e9ec3fc92fa5ec70fb6cdbf95b7695246b58",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/composition-expiry-evidence.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/landscape-composition-layout-diagnostic.json",
+      "sha256": "cf70d221f7d6e4c7810f1b0be838cf501f12dd1781d62b9980760f99b20e3bef",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/composition-layout-diagnostic.json",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/landscape-ordinary-restored-three-zone-frame.png",
+      "sha256": "b213db5cba8c86fc55ca122274505f090c0ffa548296411f0e0cc8a6540d915d",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/landscape-ordinary-restored-three-zone-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/landscape-temporary-three-zone-frame.png",
+      "sha256": "ef326fc94cc5171f54d844d55582a3e812f6e5f0af60f76238658ff106655dc5",
+      "source": "/tmp/s300-player-final-reviewed-profiles-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/landscape-temporary-three-zone-frame.png",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/portrait-composition-expiry-evidence.json",
+      "sha256": "4f129c74cf274d0f2e29b5f844f003f288d426e3c38c7f0acf57479a3c53e879",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/composition-expiry-evidence.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/portrait-composition-layout-diagnostic.json",
+      "sha256": "80f3bd0c7f1912848e0a0b9a4f656e8cb0ade6c5d9c5536ad94abb72eab17133",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/composition-layout-diagnostic.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/portrait-ordinary-restored-three-zone-frame.png",
+      "sha256": "f6d2a0d9d74621823089efd6ae5cc685becd0eb08e2f2fb3841d646094b9998c",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/portrait-ordinary-restored-three-zone-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/portrait-temporary-three-zone-frame.png",
+      "sha256": "4c087cccf8d8fbf5bc5d72fbbf436dacf911076815033d08e04320db22d71ec4",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-2c0c9-ves-its-configured-geometry-chromium/portrait-temporary-three-zone-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/expired-first-frame-recovers-ordinary.png",
+      "sha256": "6f0b151f2091be45c73b489769bbf56bdce425ff658e5937af3c4ba0919da4b6",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-6bd9c-needs-no-missing-main-timer-chromium/expired-first-frame-recovers-ordinary.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/action-frame-evidence.json",
+      "sha256": "54417d9b7270dc2e8b02bf84d34ce9b5e30820d81de52060b180038a66116c6f",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-75efa--restores-the-verified-base-chromium/action-frame-evidence.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/ordinary-now-offline-cold-frame.png",
+      "sha256": "16cb06191068a890a752a030e97a9d4369b4dcf05eec4e88dbf5fda42d7baa54",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-78dea-dinary-NOW-never-future-END-chromium/ordinary-now-offline-cold-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/expiry-frame-evidence.json",
+      "sha256": "b0bd27e0814fa20ade65c7ce96e7c9f82a22f30608dc64e94642bdc8c03b9492",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-85561-d-reload-keeps-ordinary-END-chromium/expiry-frame-evidence.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/ordinary-end-offline-cold-frame.png",
+      "sha256": "25218acf11693c6a77582b99ef25eca4ba2cef1bcce7927716a316c41a6810fb",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-85561-d-reload-keeps-ordinary-END-chromium/ordinary-end-offline-cold-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/temporary-verified-frame.png",
+      "sha256": "e81f7b7ded8aa17fceb79e9b361360ba9dbe2e552db12dbcfc98e226135c18a0",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-85561-d-reload-keeps-ordinary-END-chromium/temporary-verified-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/offline-restored-ack-evidence.json",
+      "sha256": "148ed7217ae381d8dc2938c0f8f714bfb387fc141d5562f1004760a50e2a1084",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-a3e4e-mporary-publication-is-gone-chromium/offline-restored-ack-evidence.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/slow-response-keeps-ordinary-frame.png",
+      "sha256": "c160c6eefd9d8aa50fffed4a717283393c6258aa92d1173f8389e986701f7852",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-b59cb-the-verified-ordinary-frame-chromium/slow-response-keeps-ordinary-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/video-zone-geometry.json",
+      "sha256": "d0d8ea5979ca46c24275ae917485c2480937f7ed1d2cc334d0030dc675589236",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-c9e54--media-keeps-viewport-width-chromium/video-zone-geometry.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/led-1280x320-field-frame.png",
+      "sha256": "66e4b066531b27b6e05781ce4d5594a209949038c56b79be9be6a9b35109c1a9",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-cd125-ires-terminal-ACK-rejection-chromium/led-1280x320-field-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/landscape-composition-expiry-evidence.json",
+      "sha256": "4f8a92ae783ab5165ea68afb04ebd08defc9881e7f5ec7ce5068089e94b34047",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/composition-expiry-evidence.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/landscape-composition-layout-diagnostic.json",
+      "sha256": "cf70d221f7d6e4c7810f1b0be838cf501f12dd1781d62b9980760f99b20e3bef",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/composition-layout-diagnostic.json",
+      "visuallyReviewed": false,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/landscape-ordinary-restored-three-zone-frame.png",
+      "sha256": "b213db5cba8c86fc55ca122274505f090c0ffa548296411f0e0cc8a6540d915d",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/landscape-ordinary-restored-three-zone-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    },
+    {
+      "path": "docs/implementation/s300-matchday/player-evidence/integrated-67e369ee/landscape-temporary-three-zone-frame.png",
+      "sha256": "ef326fc94cc5171f54d844d55582a3e812f6e5f0af60f76238658ff106655dc5",
+      "source": "/tmp/s300-player-integrated-runtime-artifacts/player-s300-matchday-expir-d024c-ves-its-configured-geometry-chromium/landscape-temporary-three-zone-frame.png",
+      "visuallyReviewed": true,
+      "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+      "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354"
+    }
+  ],
+  "supersededEvidence": [
+    {
+      "report": "/tmp/s300-player-profile-final-report.json",
+      "result": "8 passed, 1 failed",
+      "reason": "Only synthetic ordinary-END wait ended 77 ms before the legal next item boundary; wait now explicitly derives from issued lifetime plus longest zone duration plus 5 s. Runtime expiry/watchdog unchanged."
+    },
+    {
+      "report": "/tmp/s300-composition-width-red-report.json",
+      "result": "3 failed",
+      "reason": "Real image/video rendered at 100vw in narrower composition zone; exact bounds reject it. Scoped wrapper CSS fixes it, same fixture SVG typography retained."
+    },
+    {
+      "report": "/tmp/s300-connectivity-ordered-red-report.json",
+      "result": "1 failed",
+      "reason": "Completed conditional manifest check followed by real heartbeat transport failure left runtime PLAYING/online while compact chip was offline; verified-origin event plus commit-time status derivation fixes it."
+    },
+    {
+      "report": "/tmp/s300-player-existing-final-report.json",
+      "result": "70 passed, 3 failed (11.1m)",
+      "reason": "Quota injection was not reached during the batch but the exact unchanged case passed isolated in18.1s with original45s/16s deadlines. Two LG initialization failures remain awaiting the inherited pageshow fix in the new integrated artifact. No product diagnosis or timeout relaxation inferred from scheduling gaps.",
+      "finalResolution": "All three exact original cases now pass on integrated Z artifact with inherited LG pageshow fix; quota also passed unchanged on earlier isolated run. Original70/3batch retained."
+    },
+    {
+      "report": "/tmp/s300-player-integrated-accessibility-offline-report.json",
+      "result": "20 passed,1 failed before test body; exact unchanged case then passed in1.2s (1.8s total)",
+      "reason": "Chromium native browser.newContext crash (SIGSEGV, inotify_init EMFILE). No app/assertion failure inferred. Original trace retained; retry has identical case/deadlines. Later commands use per-process ulimit65536; no global system change.",
+      "trace": "/tmp/s300-player-integrated-accessibility-offline-artifacts/player-offline-cache-atomi-a9d19-t-and-media-are-unavailable-chromium/trace.zip"
+    }
+  ],
+  "remainingLocalGates": [
+    "normal complete CI against final integrated source, including root-owned confirmedAt metadata fix",
+    "normal hosted/staging acceptance and release review",
+    "physical Android/WebView/LG/LED acceptance remains uncollected"
+  ],
+  "noFullBrowserSuiteClaim": true,
+  "testedSourceCommit": "598cf5fb",
+  "integratedSourceHead": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+  "integratedBuildPending": false,
+  "buildSourceBoundary": "The earlier afx artifact remains immutable evidence for70 unchanged existing cases. Final Z artifact is compiled from67e369ee and proves40 latest unique cases including inherited LG fixes, all new temporal runtime cases, connectivity, accessibility and offline. This is a union of explicit runs, not one complete-suite PASS. Subsequent root-owned Control confirmedAt metadata is not in this historical artifact.",
+  "broaderRunInProgress": false,
+  "currentLocalCaseClosure": {
+    "unique": 110,
+    "passed": 110,
+    "failed": 0,
+    "skipped": 0,
+    "uncovered": 0,
+    "notFullSuite": true,
+    "identity": "project + original file + original title; line/Playwright IDs retained per observation",
+    "buildDistribution": {
+      "Z_tgM-l9qx8rCVRUmtFrT": 40,
+      "afx4WTMdRokUAATS7ARkh": 70
+    },
+    "historicalExecutions": {
+      "passed": 151,
+      "failed": 4
+    },
+    "latestCases": [
+      {
+        "id": "13b08f0d8e401fca2efb-a769539b07ec8285bd61",
+        "title": "S300: a verified temporary frame expires offline at its natural boundary and cold reload keeps ordinary END",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 55,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 16940,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-b909cf44ab8e779210b9",
+        "title": "S300: cold offline boot during a temporary window and an older decoder see ordinary NOW, never future END",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 65,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 2085,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-695a6979de4bc232c33a",
+        "title": "S300: a response held beyond its issued lifetime cannot replace the verified ordinary frame",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 73,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 3736,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-a99a6dcb4bcb32cb5554",
+        "title": "S300: only a visible nonce-bound action frame is rendered and authoritative empty restores the verified base",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 80,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1985,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-1d8ebcf86aa19735f835",
+        "title": "S300: an expired never-visible first frame is skipped and the ordinary recovery needs no missing main timer",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 94,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 10327,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-460c561b0ecfe74c190c",
+        "title": "S300: landscape full composition expires with all verified zone frames and preserves its configured geometry",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 103,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 21183,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-7585c75db17a3782740d",
+        "title": "S300: portrait full composition expires with all verified zone frames and preserves its configured geometry",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 103,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 21839,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-21d46de8a36df398c8f7",
+        "title": "S300: offline restoration retries the identical issued ACK after the temporary publication is gone",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 111,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 13089,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-78c378a0669894b98f15",
+        "title": "S300: a supported 1280×320 LED viewport keeps both teams and field visible and retires terminal ACK rejection",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 120,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5672,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-e7e02e0b9f17986a7de9",
+        "title": "S300: verified video uses its composition zone width while ordinary fullscreen media keeps viewport width",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 128,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1338,
+        "run": "integratedMatchdayRuntime",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "1b2da8dbc28591e38dac-bb76edcaab859ab67340",
+        "title": "shows only a compact offline status while cached playback continues",
+        "file": "player/connectivity.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1344,
+        "run": "integratedVerifiedOriginConnectivity",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "1b2da8dbc28591e38dac-ffcb1e16634f2eaf77b1",
+        "title": "detects an unreachable Player API behind an online network interface",
+        "file": "player/connectivity.spec.ts",
+        "line": 30,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1820,
+        "run": "integratedVerifiedOriginConnectivity",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "1b2da8dbc28591e38dac-5037b722090e7c2a59aa",
+        "title": "an offline hint cancels a held manifest and verifies the unreachable origin",
+        "file": "player/connectivity.spec.ts",
+        "line": 45,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1174,
+        "run": "integratedVerifiedOriginConnectivity",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "1b2da8dbc28591e38dac-94fb8c25c7d887f23c9a",
+        "title": "an offline hint cancels a held manifest and verifies the reachable origin",
+        "file": "player/connectivity.spec.ts",
+        "line": 45,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1205,
+        "run": "integratedVerifiedOriginConnectivity",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "1b2da8dbc28591e38dac-2987ff1a2bd1d53546ed",
+        "title": "an origin failure after a completed conditional check keeps compact and playback connectivity consistent",
+        "file": "player/connectivity.spec.ts",
+        "line": 115,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 2126,
+        "run": "integratedVerifiedOriginConnectivity",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "1b2da8dbc28591e38dac-1f09953af70c7b1ab7b0",
+        "title": "an origin failure during initial preparation cannot activate an incomplete release",
+        "file": "player/connectivity.spec.ts",
+        "line": 151,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1429,
+        "run": "integratedVerifiedOriginConnectivity",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-ac4946fe534fbd71597e",
+        "title": "an unchanged 200 during first-frame preparation does not restart playback or create a request loop",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 18,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1317,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-7f996107169ce7278713",
+        "title": "an activation update prepared before the first main frame is visible in that same occurrence",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 192,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1769,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-c75b56e266b4211c54b8",
+        "title": "a visible side zone retains its boundary while the main first frame is still preparing",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 214,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 8715,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-faccd89c32cd4c1e3813",
+        "title": "browser: slow activation reads coalesce and a newer follow-up replaces their old facts",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 240,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 16081,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-0ee9e8d7698438c7ac39",
+        "title": "browser: a failed origin preserves local playback and activation respects retry backoff until reconnect",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 261,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 15734,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-5e54401f92f2fb603fc9",
+        "title": "browser: each single-item news occurrence checks conditionally and displays new facts at a natural boundary",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 279,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 6131,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-7b4c69640605e6ea34e4",
+        "title": "browser: each single-item sport_results occurrence checks conditionally and displays new facts at a natural boundary",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 279,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 6124,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-c4ec69fe32f436ac5c1f",
+        "title": "browser: a stale legacy 200 preserves newer prepared news and a higher revision can correct it back to earlier facts",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 314,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 925,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-ad358be3783d35beaff8",
+        "title": "browser: ordinary results display zero-zero, correct the same match and apply removal and valid empty facts",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 381,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 26187,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-75187ba5f8652a4e72d1",
+        "title": "browser: independently empty side and main zones retain other clocks, recover fresh facts and survive offline",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 481,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 2293,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-dbfb2236446706054dd3",
+        "title": "browser: repeated slide IDs start distinct occurrences without a redraw request loop",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 575,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 10894,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-79ee1b6386ccd9deada2",
+        "title": "browser: two independent dynamic zones share the authorized check while the main item keeps playing",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 590,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 11510,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-08c018a0d76ea7f39e1c",
+        "title": "static-lg: slow activation reads coalesce and a newer follow-up replaces their old facts",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 240,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 15878,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-d49596efd2fd1ac14c63",
+        "title": "static-lg: a failed origin preserves local playback and activation respects retry backoff until reconnect",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 261,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 15324,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-5c01a229153f2a89683f",
+        "title": "static-lg: each single-item news occurrence checks conditionally and displays new facts at a natural boundary",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 279,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 11070,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-02885b1c3f86f89efcfa",
+        "title": "static-lg: each single-item sport_results occurrence checks conditionally and displays new facts at a natural boundary",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 279,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 11132,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-dd03ae95ed34191915e9",
+        "title": "static-lg: a stale legacy 200 preserves newer prepared news and a higher revision can correct it back to earlier facts",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 314,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1353,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-e2194a9f7f037f8c08d2",
+        "title": "static-lg: ordinary results display zero-zero, correct the same match and apply removal and valid empty facts",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 382,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 27296,
+        "run": "integratedLgAndQuotaRepairs",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-02da7a748d7aa21c41c1",
+        "title": "static-lg: independently empty side and main zones retain other clocks, recover fresh facts and survive offline",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 481,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 3295,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-20a4de2df08c4b159b26",
+        "title": "static-lg: repeated slide IDs start distinct occurrences without a redraw request loop",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 575,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 10593,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-d9f2e3d7a38327e64820",
+        "title": "static-lg: two independent dynamic zones share the authorized check while the main item keeps playing",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 590,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 10967,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-58c4f2c68c18873477e3",
+        "title": "a rejected side-zone data commit preserves the main occurrence and resumes verified playback",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 608,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 18062,
+        "run": "integratedLgAndQuotaRepairs",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "88c42a8c4623a30c2a35-2f3680bbce28317182ca",
+        "title": "concurrent screens retain separate authorized playback and activation checks",
+        "file": "player/dynamic-activation-refresh.spec.ts",
+        "line": 651,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 6357,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "9f0c8a1e8f9999783fa1-b0e94b42f1426fbe0f10",
+        "title": "toont één realtime Goal Alert boven last-known-good playback en pauzeert de onderlaag",
+        "file": "player/ledscores-goal-alert.spec.ts",
+        "line": 10,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 3267,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "9f0c8a1e8f9999783fa1-f13364ddf9dc1bb24073",
+        "title": "verbindt opnieuw wanneer LED Scores bij Player-start nog niet is vrijgegeven",
+        "file": "player/ledscores-goal-alert.spec.ts",
+        "line": 104,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4250,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "9f0c8a1e8f9999783fa1-b183828e9ee5edda3066",
+        "title": "plant hetzelfde goal-event op drie Players met begrensde renderskew",
+        "file": "player/ledscores-goal-alert.spec.ts",
+        "line": 199,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5509,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-34808d8dd9b068db1ec6",
+        "title": "LG verifies all zone bytes, shows every zone and resumes the full composition offline",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 38,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1110,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-c539ae5ad7660c290812",
+        "title": "LG retains the previous composition through a corrupt side zone and stores its full LKG when replaced",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 40,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 2753,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-289193544c062535cf09",
+        "title": "LG waits for a healthy main video to end naturally before changing every zone",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 42,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5424,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-720c2500aa9cd331b558",
+        "title": "LG applies checksum-bound Sites facts at the natural loop boundary within the same release",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 44,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5783,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-1e09245ec7abc3b44de2",
+        "title": "an unchanged LG Sites 200 renews access while preserving displayed nodes and the three-page playback clock",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 46,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 15496,
+        "run": "integratedLgAndQuotaRepairs",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "ac3176da51af673b11b9-56491b3fab9ab050e647",
+        "title": "LG YouTube failure returns to the verified local fallback without a provider slide import",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 86,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 506,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-1c046dd2f29880c5146f",
+        "title": "LG renders exact fieldflow landscape score DOM without container or modern math support",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 89,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 9639,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-71699bc2984859760106",
+        "title": "LG renders exact onzetrots-tv landscape score DOM without container or modern math support",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 89,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 6629,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-df662efe7130bcc61b67",
+        "title": "LG renders exact fieldflow portrait score DOM without container or modern math support",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 89,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5968,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-5aa0b11f7b3941ded11c",
+        "title": "LG renders exact onzetrots-tv portrait score DOM without container or modern math support",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 89,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4397,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-d6a0da328be073901fc8",
+        "title": "LG preloads exact Sites system bytes and acknowledges a goal only after its real markup frame",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 102,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 16790,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-c5094d6d3fd0e0e9335b",
+        "title": "LG online YouTube takes priority over Sites Studio and errors activate its verified Studio fallback",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 118,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 3275,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-122885a3786aa3c510bc",
+        "title": "LG Engage upgrades the verified Studio fallback with real campaign data and preserves its deadline through refresh",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 126,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4059,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-3fd78ddae52febf30bca",
+        "title": "S215 LG widget pages and portrait image frame landscape",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 135,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4447,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-f8988cf7d6f24117d6d3",
+        "title": "S215 LG widget pages and portrait image frame portrait",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 135,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4549,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-a984c30261df7811185d",
+        "title": "S221 LG headerless menu paints without aspect-ratio and remains visible offline landscape",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 146,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5508,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-e7559aaf55dec3c91bb9",
+        "title": "S221 LG headerless menu paints without aspect-ratio and remains visible offline portrait",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 146,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5993,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-b72468617561af4a3866",
+        "title": "S221 LG never acknowledges a zero-height Sites frame and uses its verified fallback",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 175,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4264,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-fc7515f50353cc9a3a19",
+        "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart landscape/light",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 193,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5818,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-2a9e745797174e5fd37e",
+        "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart landscape/dark",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 193,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5486,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-6bb13c086c4218429790",
+        "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart portrait/light",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 193,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5495,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-6c472c710b32b5f574b8",
+        "title": "approved OnzeTrots menu keeps Marker headers and prices after offline restart portrait/dark",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 193,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5499,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "ac3176da51af673b11b9-ffb9283efb7df5c4af12",
+        "title": "LG multipage Sites facts preserve both canvases and the unchanged main clock without another activation",
+        "file": "player/lg-sites-composition.spec.ts",
+        "line": 212,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 16048,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-3b5387f431a47107eb8d",
+        "title": "one-item multipage Menu facts accepted at the first page boundary do not start another activation check",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 35,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 17292,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-bc9968c73cc824174cf1",
+        "title": "actual Twelve MenuDocument widgets are DOM-ready landscape/light and survive offline reboot",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 50,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 6065,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-7a5f54064efa8542c6bb",
+        "title": "actual Twelve MenuDocument widgets are DOM-ready landscape/dark and survive offline reboot",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 50,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 6028,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-dc2df22b2d83e45cff0a",
+        "title": "actual Twelve MenuDocument widgets are DOM-ready portrait/light and survive offline reboot",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 50,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5535,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-b24bd0d82deb4986e4cd",
+        "title": "actual Twelve MenuDocument widgets are DOM-ready portrait/dark and survive offline reboot",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 50,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5800,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-bba02282ec1d5379b038",
+        "title": "an approved Menu dataset switches at the natural boundary without downloading another descriptor and rejects regression",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 56,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5217,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-4480ef2ba52f69b4f5f5",
+        "title": "a real Menu renderer exception restores the prior verified dataset",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 62,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 11273,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-bc530a5a5ef1d5ac7694",
+        "title": "a mixed-clock Menu composition waits for its side zone and retains both verified datasets offline",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 67,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 15004,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "1071b47efad61d60fa36-a0b81a1bc61cc45634fd",
+        "title": "a stale side-zone Menu revision cannot roll back its verified frame inside an unchanged main publication",
+        "file": "player/menu-dom-v2.spec.ts",
+        "line": 72,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 7693,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-6585e5e332f493337e61",
+        "title": "v2 RSS landscape/light: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 52,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5432,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-affe804e1b25152d0d9a",
+        "title": "v2 RSS landscape/dark: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 52,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 7368,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-4aafafaa6836f03c2c6d",
+        "title": "v2 RSS portrait/light: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 52,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5665,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-44705b89c21b4629ded1",
+        "title": "v2 RSS portrait/dark: actual photo, QR, logo and first-frame receipt without a full-slide binary",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 52,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4891,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-a84a68097ccb3cc52318",
+        "title": "v2 facts change at the natural boundary without a new descriptor or font load; unchanged and regressed revisions do not replace it",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 63,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 13964,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-24fe05b674c672aa0616",
+        "title": "a stale same-publication 200 cannot cancel newer Source facts prepared for the next boundary",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 77,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 7968,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-a76f7328def540baf8ba",
+        "title": "real RSS refresh projection retains original media through renewal and offline reload",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 102,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 13013,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-552aa77ea99a9d262f25",
+        "title": "a same-hash RSS asset repair rejects corrupt media and commits only the complete verified set",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 125,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 43050,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-a20daa338acb3d41c5b7",
+        "title": "a complete DOM publication survives a real offline reload and rejects corrupt new descriptor bytes",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 147,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 6479,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-6b830758ea2d4924c038",
+        "title": "a renderer exception restores the verified prior DOM data and preserves a v1 app rollback release",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 155,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 11325,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-7f928a01f07db0d10073",
+        "title": "a corrupt new original image keeps the prior complete CSS data active",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 175,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 4269,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-86cff18e5d0779256004",
+        "title": "v2 birthdays landscape/0: authorized empty or paged content becomes a real offline recovery point",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 184,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 2654,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-e39843d7554b6635db73",
+        "title": "v2 birthdays landscape/8: authorized empty or paged content becomes a real offline recovery point",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 184,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5486,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-315ba3b6580b598df84f",
+        "title": "v2 birthdays portrait/0: authorized empty or paged content becomes a real offline recovery point",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 184,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 2624,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "4ac1207fdf1d9b513b28-594397cc2221734cdbd0",
+        "title": "v2 birthdays portrait/8: authorized empty or paged content becomes a real offline recovery point",
+        "file": "player/sync-dom-v2.spec.ts",
+        "line": 184,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 5466,
+        "run": "existingSourceCompositionGoal",
+        "buildId": "afx4WTMdRokUAATS7ARkh"
+      },
+      {
+        "id": "46f40dec63c4dc716a32-979327de476c908ef647",
+        "title": "LG HTML/CSS-renderdiagnose blijft semantisch en toetsenbordbedienbaar",
+        "file": "a11y/player-lg-html-debug.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 235,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-b6c251099ff3523b56d0",
+        "title": "LG Legacy Player heeft een leesbaar semantisch statusscherm",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 6,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 312,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-c78280e44f2bb5066b6b",
+        "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1920×1080",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 39,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 308,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-ad2e1d1212923ab21b3e",
+        "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1080×1920",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 39,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 335,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-e7e7921419f373edf999",
+        "title": "LG toont de eerste werkelijke download en verificatie vóór zichtbare activatie",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 82,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 364,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "d7b0734a8b2e39c27e93-aa93ef5677f4d83025b7",
+        "title": "zelfstandige LG-probe blijft semantisch en toetsenbordbedienbaar",
+        "file": "a11y/player-lg-probe.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 167,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "8b463b1519bee67c6c1d-5bb44317b4c467d1ff04",
+        "title": "zelfstandige recoveryroute heeft leesbare semantiek en toetsenbordacties",
+        "file": "a11y/player-recovery.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 143,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "a6fabd0e624288e4dbce-f9e6b182f2d766a7b41b",
+        "title": "landscape nieuwsslide houdt kop, bron en positie toegankelijk",
+        "file": "a11y/player-rss-landscape.spec.ts",
+        "line": 10,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 657,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "6900696e7d11a931993d-81fbf155bc1fc5696aaf",
+        "title": "portrait nieuwsslide houdt kop, bron en positie toegankelijk",
+        "file": "a11y/player-rss-portrait.spec.ts",
+        "line": 10,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 575,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "8b89507781ede412c94f-eeb95cc6f1e3af33f981",
+        "title": "player setup and playback expose accessible landmarks and diagnostics",
+        "file": "a11y/player-runtime.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 789,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "8b89507781ede412c94f-4f7b66421fbf0caedfb1",
+        "title": "paired player without content exposes a clear ready state",
+        "file": "a11y/player-runtime.spec.ts",
+        "line": 39,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 450,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "35c926fdbf2f75ec73fe-4747b2410c7941ce7735",
+        "title": "starts from last-known-good when manifest and media are unavailable",
+        "file": "player-offline/cache-atomic.spec.ts",
+        "line": 7,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1165,
+        "run": "unchangedNativeStartupRetry",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "35c926fdbf2f75ec73fe-b232c35a9a928695d23f",
+        "title": "rejects corrupt pending assets without replacing active playback",
+        "file": "player-offline/cache-atomic.spec.ts",
+        "line": 114,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 923,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "c92dcb17f14f760845f2-ec3b6f8ad5d222c22b51",
+        "title": "upgrades an existing shell cache and decodes the verified Marker font with the network offline",
+        "file": "player-offline/onzetrots-font-shell.spec.ts",
+        "line": 24,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 190,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-8cc189b830bddcc2342e",
+        "title": "serves cached media as 200, 206 and 416 through the service worker",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 907,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-cacdad644394f32e261b",
+        "title": "pre-caches and reloads the complete player shell without a network connection",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 45,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 944,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-7b6bc72a97cbd61db0ab",
+        "title": "normalizes a cached response before serving a Range request",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 95,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 703,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-8d50c4f949cb8331ecd6",
+        "title": "removes obsolete player shell caches on service-worker activation",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 131,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 1113,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-aae45bfd215a6722933e",
+        "title": "leaves uncached native video Range requests usable without storing partial MP4 responses",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 159,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 741,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-70f93293f7020728a91d",
+        "title": "rechecks source bytes after a rejected download instead of retaining them in the app shell cache",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 173,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 716,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      },
+      {
+        "id": "81b0d1da3d9d03c7ad8f-8eee504646b9e0e1e515",
+        "title": "unpaired player startup is visible without a network-backed release",
+        "file": "player-offline/startup.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "repeatEachIndex": 0,
+        "status": "passed",
+        "durationMs": 448,
+        "run": "integratedAccessibilityOffline",
+        "buildId": "Z_tgM-l9qx8rCVRUmtFrT"
+      }
+    ]
+  },
+  "finalIntegratedArtifact": {
+    "buildId": "Z_tgM-l9qx8rCVRUmtFrT",
+    "sourceCommit": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+    "buildLog": "/tmp/s300-player-integrated-final-build.log",
+    "buildLogSha256": "68ceab0624d72cc183ea730ce9802096bac0ec9c137a9927110072467552cb10",
+    "sourceHashesAtBuild": {
+      "apps/player/app/_components/player-matchday-actions.module.css": "ef14667808e4f2cf861a97cf767e6eb3b69e8047d057d249f489e7cb9f8adb2c",
+      "apps/player/app/_components/player-matchday-actions.tsx": "9287212419cfbf0f2ed0719d9084c75c573aaacfc22494b34f50dbc7de786cae",
+      "apps/player/app/_components/player-playback.module.css": "bf66cdd93026b5fe64668d7aea598d4a84e92fe345e3e6488c70ecab67dd5b63",
+      "apps/player/app/_components/player-runtime.tsx": "3ae0a8857a0370971721bda955f4dacfd547513c351668177a6213c7be20a752",
+      "apps/player/app/_components/screen-composition-zone.tsx": "5ab6018fcf7573a1768517bd33875619034c8bfe79cfe9f26514f05947c7425b",
+      "apps/player/app/_components/verified-empty-zone.tsx": "e8a13a42bb22ea23b61dfc3ff086603951904be61f61b90e4c4d8cfd4fa9a320",
+      "apps/player/app/_lib/lg-legacy-page.ts": "55f09695663e39af1e870b818fb9982927008f3f0e982c874fd9bb0b6b67c0ab",
+      "apps/player/app/_lib/player-cache.ts": "ffded8e7e8e4b281920dc5c40a8be2336c2a5ae1277bb67b69460722ac623600",
+      "apps/player/app/_lib/player-connectivity.ts": "14134a080cf6ca262b798cd8913720d5095bc6e522712fcee61c57f716f07924",
+      "apps/player/app/_lib/player-manifest.ts": "e8d93182af9b1e1f53205ea0fa7a25df596ec878c4a0357b235a9d21e5eb1e34",
+      "apps/player/app/_lib/player-matchday-actions.test.ts": "72220d9ad4340f1f7ab15ae049f68c12643050539e1870d94fbf3e659139757b",
+      "apps/player/app/_lib/player-matchday-actions.ts": "39ea659a79d0572018f72e4d571a26e60321ec068029658aba5c1a5c81c3afea",
+      "apps/player/app/_lib/player-matchday-cache.test.ts": "1c3ac445ee37c93ad30070bc7408df62bee2431a75fd109eb284e8bac3ee9b59",
+      "apps/player/app/_lib/player-matchday-window-server.ts": "d980a9dbce9218b52411dd8b756ccc80de95823fd2b35dda1e460647abb9f003",
+      "apps/player/app/_lib/player-matchday-window.test.ts": "ff149b68b6a470dfd6019df9ddf181b81739a46cc8e2b3339a5a1bde624e4be8",
+      "apps/player/app/_lib/player-matchday-window.ts": "7004a7b86258ba38b77ad07946ef772e50287e5eb04276a9b17fe8ec09245448",
+      "apps/player/app/_lib/player-screen-composition.ts": "77c34d335e25b8601481107f892f84746c1b59edf8a3faae59535069fa5cf024",
+      "apps/player/app/_lib/player-source-data-boundary.ts": "64b1a959e415b33d2bfcfcdbc27700f91fcc6e8d0c01e25d5079861fceddc99e",
+      "apps/player/app/_lib/screen-composition-boundary.ts": "137082095420a7877aa5e9f1377bb1be08037d146cc9a421bae7e501adb18bd1",
+      "apps/player/app/api/player/heartbeat/route.test.ts": "e1452f3d237f2f2eea46bcefa9097403ba54395df9155def31d4bb59564d67e4",
+      "apps/player/app/api/player/heartbeat/route.ts": "dcbcaa255a2db027ce1b5daf3b9e1e5408c4d02841fd3dad013b8c9f3bdfbe9f",
+      "apps/player/app/api/player/manifest/live-target.test.ts": "d87aed9e6cd009752970428656cfa26241eb20ac86aaa4e54c193e959dc0ea1e",
+      "apps/player/app/api/player/manifest/route.ts": "bb38647511e2ddd4dde23ae045bcc15e91c6cc9fb64fc286eb4d3d5e94e32652",
+      "apps/player/app/api/player/manifest/s300-matchday-target.test.ts": "9cb15ef41d1156021c45f8dcc201b35e0b4654f16fa47e7fcee917e89c9de90e",
+      "apps/player/app/api/player/matchday/route.test.ts": "da85b0843281cc59bab4ac85ab5ea14b113ad9600bb0f89703e213f8598239a0",
+      "apps/player/app/api/player/matchday/route.ts": "836046d19e466ee0859f045282fb28ff368c1e838af3936703882bb98a94096e",
+      "packages/contracts/src/matchday-runbook.ts": "1dff837b11c548e5a4e2322f290ae5f4a867a914ecbb55cc5cce234e71c448d8",
+      "packages/domain/src/matchday-runbook.ts": "b624aadbf7eaa300697b1bd22f7b88f843ce0098a9372051d9ff8ef2a2a10380",
+      "tests/player/connectivity.spec.ts": "883620752bfb0e6c231551944e951a2dc65004e50e96a08ff6d7ad490eaf4d85",
+      "tests/player/s300-matchday-expiry.spec.ts": "9cb2449d7947c5ce2036db818db2c1dc390de877071dae4df65dae7089defc00"
+    },
+    "runtimeVersionObserved": "67e369ee39977bdcc86b9ece0a18f904d7308354",
+    "applicationSourceBoundary": "All listed apps/player and tests/player files still match this build. A subsequent root-owned optional confirmedAt contract and Control/SQL projection fix is outside this artifact; normal final CI must build that exact latest source. No claim that the shared contract remains byte-identical after that metadata-only fix."
+  },
+  "lastUpdatedAt": "2026-11-09T14:41:02.306160+00:00"
+}

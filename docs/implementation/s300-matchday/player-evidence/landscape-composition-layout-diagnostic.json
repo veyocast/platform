@@ -1,0 +1,77 @@
+{
+  "orientation": "landscape",
+  "viewport": {
+    "width": 1440,
+    "height": 810
+  },
+  "imageLayout": [
+    {
+      "label": "Gewoon NU A",
+      "naturalWidth": 1008,
+      "naturalHeight": 648,
+      "width": 1008,
+      "height": 648,
+      "x": 0,
+      "y": 0,
+      "parent": {
+        "width": 1008,
+        "height": 648,
+        "x": 0,
+        "y": 0
+      },
+      "computedWidth": "1008px",
+      "objectFit": "cover"
+    },
+    {
+      "label": "Tijdelijk rustbeeld",
+      "naturalWidth": 1008,
+      "naturalHeight": 648,
+      "width": 1008,
+      "height": 648,
+      "x": 0,
+      "y": 0,
+      "parent": {
+        "width": 1008,
+        "height": 648,
+        "x": 0,
+        "y": 0
+      },
+      "computedWidth": "1008px",
+      "objectFit": "cover"
+    },
+    {
+      "label": "Zijzone Tijdelijk rustbeeld",
+      "naturalWidth": 432,
+      "naturalHeight": 648,
+      "width": 432,
+      "height": 648,
+      "x": 1008,
+      "y": 0,
+      "parent": {
+        "width": 432,
+        "height": 648,
+        "x": 1008,
+        "y": 0
+      },
+      "computedWidth": "432px",
+      "objectFit": "cover"
+    },
+    {
+      "label": "Voetzone Tijdelijk rustbeeld",
+      "naturalWidth": 1440,
+      "naturalHeight": 162,
+      "width": 1440,
+      "height": 162,
+      "x": 0,
+      "y": 648,
+      "parent": {
+        "width": 1440,
+        "height": 162,
+        "x": 0,
+        "y": 648
+      },
+      "computedWidth": "1440px",
+      "objectFit": "cover"
+    }
+  ]
+}

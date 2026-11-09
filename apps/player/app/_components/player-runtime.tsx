@@ -1,4 +1,6 @@
 "use client";
+import type {PlayerMatchdayWindowReport} from "@veyocast/contracts";
+import {PlayerMatchdayClock,armMatchdayExpiry,assertMatchdayWindowContinuity,matchdayExpiryHeader,matchdayExpiryVersion,matchdayRequestHeader,matchdayWindowIdentity,supportsMatchdayExpiry} from "../_lib/player-matchday-window";
 import {hasVisibleMenuDomFrame,hasVisibleSyncDomFrame} from "../_lib/sync-dom-frame";
 import {screenCompositionZoneFrameIdentity} from "../_lib/player-screen-composition";
 import {syncOnzeTrotsCurrentHeader,syncOnzeTrotsCurrentVersion} from '../_lib/sync-player-capabilities';
@@ -14,6 +16,7 @@ import {screenCompositionIdentity,screenCompositionDataIdentity,playerItemDataId
 import {ScreenCompositionBoundary,changedCompositionDataBoundaryZones} from "../_lib/screen-composition-boundary";
 import {ScreenCompositionZone} from "./screen-composition-zone";
 import {VerifiedEmptyZone} from "./verified-empty-zone";
+import {PlayerMatchdayActions} from "./player-matchday-actions";
 import {isDynamicPlayerItem,playerActivationIdentity} from "../_lib/player-dynamic-activation";
 
 import { publicationTrace, type PublicationTrace } from "../_lib/publication-telemetry";
@@ -31,6 +34,7 @@ import React, {
   useLayoutEffect,
   useRef,
   useState,
+  type SetStateAction,
   type ReactNode
 } from "react";
 
@@ -41,6 +45,7 @@ import {
   readCompatibilityRelease,
   garbageCollectPersistedPlayerMedia,
   hydrateCachedRelease,
+  hydrateMatchdayRecovery,
   hydratePreparedRelease,
   preparePendingRelease,
   readActiveRelease,
@@ -175,7 +180,7 @@ const pairingClaimPollIntervalMs = 2_000;
 const pairingProvisionCooldownMs = 5_000;
 let volatilePlayerInstanceId: string | null = null;
 
-function domTargetKey(envelope:PlayerManifestEnvelope){return `${envelope.manifest.releaseId}:${screenCompositionIdentity(envelope)}:${screenCompositionDataIdentity(envelope)}`;}
+function domTargetKey(envelope:PlayerManifestEnvelope){return `${envelope.manifest.releaseId}:${screenCompositionIdentity(envelope)}:${screenCompositionDataIdentity(envelope)}:${matchdayWindowIdentity(envelope)}`;}
 
 export type PlaybackFailureCode =
   | "SYNC_DOM_ERROR"
@@ -235,7 +240,25 @@ type InstallationRuntime =
   | { code: string; status: "unavailable" };
 
 export function PlayerRuntime() {
-  const [runtime, setRuntime] = useState<RuntimeView>({ state: "BOOTING" });
+  const [runtime, commitRuntime] = useState<RuntimeView>({ state: "BOOTING" });
+  // Preparation can finish after a later origin request has failed. Derive
+  // connectivity at the actual state commit, without restarting playback.
+  const setRuntime = useCallback((update: SetStateAction<RuntimeView>) => {
+    commitRuntime(current => {
+      const next = typeof update === "function" ? update(current) : update;
+      if (!isPlaybackRuntime(next) || readPlayerConnectivity() ||
+          (next.state === "OFFLINE_PLAYING" && next.release.envelope.diagnostics.syncStatus === "offline")) return next;
+      return { ...next, state: "OFFLINE_PLAYING", release: { ...next.release,
+        envelope: withSyncDiagnostics(next.release.envelope, "offline", "VeyoCast-origin niet bereikbaar; geverifieerde lokale inhoud blijft actief.") } };
+    });
+  }, []);
+  useEffect(() => {
+    const observeOrigin = (event: Event) => {
+      if (!(event as PlayerConnectivityEvent).detail.online) setRuntime(value => value);
+    };
+    window.addEventListener(playerConnectivityEventName, observeOrigin);
+    return () => window.removeEventListener(playerConnectivityEventName, observeOrigin);
+  }, [setRuntime]);
   const [initialPreparationPhase, setInitialPreparationPhase] = useState<PlayerCachePhase | null>(null);
   const [installation, setInstallation] = useState<InstallationRuntime>({
     status: "registering"
@@ -293,6 +316,23 @@ export function PlayerRuntime() {
   const deferredMainBoundaryRef = useRef<string | null>(null);
   const latestTargetRef = useRef(new LatestPlayerTarget());
   const pendingTargetRef = useRef<{ release: HydratedPlayerRelease; token: PlayerTargetToken;dataOnly?:boolean } | null>(null);
+  const matchdayClockRef=useRef(new PlayerMatchdayClock());
+  const matchdayWindowReportRef=useRef<PlayerMatchdayWindowReport|null>(null);
+  const matchdayRestorationRef=useRef<{window:NonNullable<PlayerManifestEnvelope['matchdayWindow']>;releaseId:string}|null>(null);
+  const matchdayRestoringRef=useRef(false);
+  const matchdayRestorationTaskRef=useRef<Promise<void>|null>(null);
+  const matchdayRestorationControllerRef=useRef<AbortController|null>(null);
+  const matchdayPreFrameBoundaryRef=useRef<((itemId:string)=>void)|null>(null);
+  const[matchdayFrameKey,setMatchdayFrameKey]=useState<string|null>(null);
+  const matchdayFrameKeyRef=useRef<string|null>(null);
+  const reportMatchdayWindow=useCallback((envelope:PlayerManifestEnvelope,phase:PlayerMatchdayWindowReport['phase'])=>{
+    const window=envelope.matchdayWindow;if(!window)return;
+    const old=matchdayWindowReportRef.current;
+    const order={received:0,prepared:1,rendered:2,restored:3};
+    if(old?.windowId===window.windowId&&old.contentHash===window.contentHash&&order[old.phase]>=order[phase])return;
+    matchdayWindowReportRef.current={schemaVersion:1,publicationId:window.publicationId,targetId:window.targetId,windowId:window.windowId,contentHash:window.contentHash,releaseId:envelope.manifest.releaseId,phase,reportedAt:new Date().toISOString(),compositionId:envelope.composition?.published.id??null,compositionRevision:envelope.composition?.published.revision??null,compositionHash:window.compositionHash??null};
+    sendHeartbeatRef.current?.();
+  },[]);
   const presentedReleaseIdRef = useRef<string | null>(null);
   const goalPausedRef = useRef(false);
   const screenGoalPaused=realtimeGoal.pauseUnderlay||Boolean(realtimeGoal.active&&isPlaybackRuntime(runtime)&&runtime.release.envelope.composition);
@@ -441,11 +481,65 @@ export function PlayerRuntime() {
     };
   }, [recoveryMenuOpen]);
 
+  const stageMatchdayRestoration=useCallback(async()=>{
+    if(matchdayRestorationTaskRef.current){await matchdayRestorationTaskRef.current;return;}
+    const current=runtimeRef.current;
+    if(!isPlaybackRuntime(current)||!current.release.envelope.matchdayWindow||!matchdayClockRef.current.expired(current.release.envelope,performance.now())||matchdayRestoringRef.current)return;
+    const pending=pendingTargetRef.current;
+    if(pending?.token.isCurrent()&&!matchdayClockRef.current.expired(pending.release.envelope,performance.now()))return;
+    const window=current.release.envelope.matchdayWindow,deviceToken=readStoredDeviceToken();if(!deviceToken)return;
+    matchdayRestoringRef.current=true;
+    const task=(async()=>{
+    try{
+      const fallback=await hydrateMatchdayRecovery(current.release,kind=>kind==='active'?readActiveRelease(deviceToken):readPreviousRelease(deviceToken));
+      const latest=runtimeRef.current;
+      if(!isPlaybackRuntime(latest)||latest.release!==current.release){revokeHydratedRelease(fallback);return;}
+      const newer=pendingTargetRef.current;if(newer?.token.isCurrent()&&!matchdayClockRef.current.expired(newer.release.envelope,performance.now())){revokeHydratedRelease(fallback);return;}
+      matchdayRestorationControllerRef.current?.abort();const controller=new AbortController();matchdayRestorationControllerRef.current=controller;
+      const token:PlayerTargetToken={generation:-Math.max(1,Math.round(performance.now()*1000)),signal:controller.signal,isCurrent:()=>!controller.signal.aborted&&readStoredDeviceToken()===deviceToken};
+      hydratedReleasesRef.current.push(fallback);pendingTargetRef.current={release:fallback,token};
+      if(hasSyncDomV2Envelope(fallback.envelope))domCommitRef.current={key:domTargetKey(fallback.envelope),signal:token.signal};
+      matchdayRestorationRef.current={window,releaseId:fallback.envelope.manifest.releaseId};
+      publicationTraceRef.current=publicationTrace(fallback.envelope,token.generation,null,null);
+      setRuntime(value=>isPlaybackRuntime(value)&&value.release===current.release?{...value,pendingRelease:fallback,state:'SWITCH_PENDING',syncMessage:'Tijdelijk draaiboekvenster verlopen; geverifieerde gewone planning wacht op de natuurlijke wisselgrens.'}:value);
+      // A candidate that never produced a frame has no running item clock.
+      // Its existing visible zones still participate in the ordinary barrier.
+      if(presentedMainOccurrenceRef.current!==mainOccurrenceRef.current){
+        const item=current.release.envelope.manifest.items[current.activeIndex];
+        if(item)queueMicrotask(()=>matchdayPreFrameBoundaryRef.current?.(item.id));
+      }
+    }catch{
+      // Expired temporary content is never the fallback for failed recovery.
+      setRuntime(value=>isPlaybackRuntime(value)&&value.release===current.release?{state:'READY',deviceToken,device:{...current.release.envelope.device,activeReleaseId:null,desiredReleaseId:null},branding:current.release.envelope.branding,syncMessage:'Tijdelijk venster verlopen; geen gewone publicatie kan nog volledig worden geverifieerd.'}:value);
+    }finally{matchdayRestoringRef.current=false;}
+    })();
+    matchdayRestorationTaskRef.current=task;
+    try{await task;}finally{if(matchdayRestorationTaskRef.current===task)matchdayRestorationTaskRef.current=null;}
+  },[]);
+
+  const recoverExpiredMatchdayCandidate=useCallback(async(candidate:NonNullable<typeof pendingTargetRef.current>)=>{
+    const window=candidate.release.envelope.matchdayWindow!;
+    const keys=new Set(getEnvelopeCacheableAssets(window.fallback).map(asset=>asset.cacheKey));
+    const restored=await hydratePreparedRelease({envelope:window.fallback,assets:candidate.release.assets.filter(asset=>keys.has(asset.cacheKey))});
+    if(!candidate.token.isCurrent()||pendingTargetRef.current!==candidate){revokeHydratedRelease(restored);return null;}
+    hydratedReleasesRef.current.push(restored);
+    const replacement={release:restored,token:candidate.token};pendingTargetRef.current=replacement;
+    if(hasSyncDomV2Envelope(restored.envelope))domCommitRef.current={key:domTargetKey(restored.envelope),signal:candidate.token.signal};
+    matchdayRestorationRef.current={window,releaseId:restored.envelope.manifest.releaseId};
+    publicationTraceRef.current=publicationTrace(restored.envelope,candidate.token.generation,null,null);
+    return replacement;
+  },[]);
+
   const advancePlayback = useCallback(async (itemId: string, recoveryMessage?: string, zoneBoundary = false, pageBoundary = false) => {
     if (goalPausedRef.current) return;
     if (advancingRef.current) {
       if (!zoneBoundary && !pageBoundary && advancingZoneRef.current) deferredMainBoundaryRef.current = itemId;
       return;
+    }
+    const before=runtimeRef.current;
+    if(isPlaybackRuntime(before)&&before.release.envelope.matchdayWindow&&matchdayClockRef.current.expired(before.release.envelope,performance.now())){
+      await stageMatchdayRestoration();
+      if(advancingRef.current)return;
     }
     const currentSnapshot = runtimeRef.current;
     if (!isPlaybackRuntime(currentSnapshot)) return;
@@ -470,7 +564,10 @@ export function PlayerRuntime() {
     let acceptedData = false;
     let heldDataZones:readonly string[]|null = null;
     try {
-      const pending = pendingTargetRef.current;
+      let pending = pendingTargetRef.current;
+      if(pending&&matchdayClockRef.current.expired(pending.release.envelope,performance.now())){
+        pending=await recoverExpiredMatchdayCandidate(pending);if(!pending)return;
+      }
       const deviceToken = readStoredDeviceToken();
       if (pending && deviceToken && pending.token.isCurrent()) {
         if(pending.dataOnly){
@@ -479,8 +576,10 @@ export function PlayerRuntime() {
             ?await compositionBoundaryRef.current.holdAll(pending.token.signal)
             :await compositionBoundaryRef.current.holdZones(heldDataZones,pending.token.signal);
           if(!zonesHeld||!pending.token.isCurrent()){retryBoundary=true;return;}
+          if(matchdayClockRef.current.expired(pending.release.envelope,performance.now())){await recoverExpiredMatchdayCandidate(pending);retryBoundary=true;return;}
           try{
             if(!hasSyncDomV2Envelope(pending.release.envelope))await activateRelease({assets:pending.release.assets,deviceToken,envelope:pending.release.envelope,signal:pending.token.signal});
+            if(matchdayClockRef.current.expired(pending.release.envelope,performance.now())){retryBoundary=true;return;}
             if(!pending.token.isCurrent()||pendingTargetRef.current!==pending){retryBoundary=true;return;}
             pendingTargetRef.current=null;
             acceptedData = true;
@@ -499,11 +598,12 @@ export function PlayerRuntime() {
             if(snapshot.release.envelope.manifest.items.length===1&&(snapshot.release.envelope.manifest.items[0]?.syncDynamic?.schemaVersion===2||snapshot.release.envelope.manifest.items[0]?.menuDom)){playbackReadyRef.current=false;setPlaybackAttempt(attempt=>attempt+1);setPlaybackOccurrence(value=>value+1);return;}
           }catch{ /* Current complete content keeps playing; retry at a later boundary. */ }
         }else{
-        const order = publicationPlaybackOrder(
+        let order = publicationPlaybackOrder(
           snapshot.release.envelope.manifest, pending.release.envelope.manifest,
           snapshot.activeIndex,
           pending.release.envelope.target?.assignmentSource === "schedule" || Boolean(pending.release.envelope.manifest.sponsorPlan)
         );
+        if(!order.length&&(pending.release.envelope.matchdayWindow||matchdayRestorationRef.current?.releaseId===pending.release.envelope.manifest.releaseId))order=[Math.max(0,findFirstPlayableItemIndex(pending.release.envelope.manifest.items))];
         if (order.length) {
           const trace = publicationTraceRef.current;
           if (trace?.releaseId === pending.release.envelope.manifest.releaseId) {
@@ -511,10 +611,16 @@ export function PlayerRuntime() {
             boundaryMonotonicRef.current = performance.now();
           }
           if(!(await compositionBoundaryRef.current.holdAll(pending.token.signal))||!pending.token.isCurrent()){retryBoundary=true;return;}
+          if(matchdayClockRef.current.expired(pending.release.envelope,performance.now())){
+            pending=await recoverExpiredMatchdayCandidate(pending);if(!pending)return;
+            order=publicationPlaybackOrder(snapshot.release.envelope.manifest,pending.release.envelope.manifest,snapshot.activeIndex,false);
+            if(!order.length)order=[Math.max(0,findFirstPlayableItemIndex(pending.release.envelope.manifest.items))];
+          }
           let committed = false;
           try {
             if(!hasSyncDomV2Envelope(pending.release.envelope))await activateRelease({ assets: pending.release.assets, deviceToken,
               envelope: pending.release.envelope, signal: pending.token.signal });
+            if(matchdayClockRef.current.expired(pending.release.envelope,performance.now())){retryBoundary=true;return;}
             committed = true;
           } catch {
             if (pending.token.isCurrent()) {
@@ -565,7 +671,13 @@ export function PlayerRuntime() {
       deferredMainBoundaryRef.current = null;
       if (deferredMain) void advancePlayback(deferredMain);
     }
-  }, []);
+  }, [stageMatchdayRestoration,recoverExpiredMatchdayCandidate]);
+  matchdayPreFrameBoundaryRef.current=itemId=>{void advancePlayback(itemId);};
+
+  useEffect(()=>{
+    if(!isPlaybackRuntime(runtime)||!runtime.release.envelope.matchdayWindow)return;
+    return armMatchdayExpiry(matchdayClockRef.current,runtime.release.envelope,()=>void stageMatchdayRestoration(),()=>performance.now(),(callback,delay)=>window.setTimeout(callback,delay),timer=>window.clearTimeout(timer));
+  },[runtime,stageMatchdayRestoration]);
 
   const restorePersistedLastKnownGood = useCallback(async () => {
     const deviceToken = readStoredDeviceToken();
@@ -639,13 +751,21 @@ export function PlayerRuntime() {
     }
     if(commit?.signal.aborted&&hasSyncDomV2Envelope(snapshot.release.envelope)||!isPlaybackRuntime(runtimeRef.current)||domTargetKey(runtimeRef.current.release.envelope)!==visibleKey)return;
     presentedReleaseIdRef.current=snapshot.release.envelope.manifest.releaseId;
+    if(snapshot.release.envelope.matchdayWindow||matchdayFrameKeyRef.current){matchdayFrameKeyRef.current=visibleKey;setMatchdayFrameKey(visibleKey);}
+    const trace=publicationTraceRef.current,newFrame=trace?.releaseId===presentedReleaseIdRef.current&&!trace.firstFrameAt;if(newFrame){trace.firstFrameAt=new Date().toISOString();if(boundaryMonotonicRef.current!==null)trace.frameAfterBoundaryMs=Math.round(performance.now()-boundaryMonotonicRef.current);}
+    if(snapshot.release.envelope.matchdayWindow)reportMatchdayWindow(snapshot.release.envelope,'rendered');
+    const restoring=matchdayRestorationRef.current;
+    if(restoring?.releaseId===presentedReleaseIdRef.current){
+      matchdayWindowReportRef.current={schemaVersion:1,publicationId:restoring.window.publicationId,targetId:restoring.window.targetId,windowId:restoring.window.windowId,contentHash:restoring.window.contentHash,releaseId:restoring.releaseId,phase:'restored',reportedAt:new Date().toISOString(),compositionId:snapshot.release.envelope.composition?.published.id??null,compositionRevision:snapshot.release.envelope.composition?.published.revision??null,compositionHash:snapshot.release.envelope.composition?restoring.releaseId===restoring.window.fallback.manifest.releaseId?restoring.window.fallbackCompositionHash??null:restoring.releaseId===restoring.window.ordinary.manifest.releaseId?restoring.window.ordinaryCompositionHash??null:null:null};
+      matchdayRestorationRef.current=null;sendHeartbeatRef.current?.();
+    }
     if(!composition)return;
-    const trace=publicationTraceRef.current;if(trace?.releaseId===presentedReleaseIdRef.current&&!trace.firstFrameAt){trace.firstFrameAt=new Date().toISOString();if(boundaryMonotonicRef.current!==null)trace.frameAfterBoundaryMs=Math.round(performance.now()-boundaryMonotonicRef.current);sendHeartbeatRef.current?.();}
+    if(newFrame)sendHeartbeatRef.current?.();
     const revision=snapshot.release.envelope.target?.revision,token=readStoredDeviceToken();if(!revision||!token||compositionAckInFlightRef.current)return;
     const key=`${composition.published.id}:${revision}`;if(compositionAckRef.current===key)return;
     compositionAckInFlightRef.current=true;const controller=new AbortController();const timeout=window.setTimeout(()=>controller.abort(),8000);
     try{const result=await fetchPlayerOrigin("/api/player/composition/ack",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({compositionId:composition.published.id,targetRevision:revision}),signal:controller.signal});if(result.ok&&isPlaybackRuntime(runtimeRef.current)&&runtimeRef.current.release.envelope.composition?.published.id===composition.published.id&&runtimeRef.current.release.envelope.target?.revision===revision)compositionAckRef.current=key;}catch{ /* Retry after the next actual-frame or heartbeat check. */ }finally{window.clearTimeout(timeout);compositionAckInFlightRef.current=false;}
-  },[]);
+  },[reportMatchdayWindow]);
   const handleZoneFrame=useCallback((zoneId:"side"|"bottom",releaseId:string)=>{zoneFramesRef.current.set(zoneId,releaseId);void acknowledgeVisibleComposition();},[acknowledgeVisibleComposition]);
   const handlePlaybackReady = useCallback((itemId: string, occurrenceKey: string, dataIdentity: string) => {
     const currentRuntime = runtimeRef.current;
@@ -1298,6 +1418,9 @@ export function PlayerRuntime() {
       manifestController = new AbortController();
       const requestController = manifestController;
       const syncReceipt = syncRetryRequestedRef.current;
+      const matchdayCapable=supportsMatchdayExpiry();
+      const matchdayRequestId=matchdayCapable?crypto.randomUUID():null;
+      const matchdayRequestStartedAt=performance.now();
       const requestTimeout = window.setTimeout(() => requestController.abort(), 10_000);
       let syncSucceeded = false;
       let nextSyncBaseDelayMs = isWaitingContentRuntime(runtimeRef.current)
@@ -1313,6 +1436,7 @@ export function PlayerRuntime() {
             headers: {
               Accept: "application/json",
               Authorization: `Bearer ${activeDeviceToken}`,
+              ...(matchdayRequestId?{[matchdayExpiryHeader]:matchdayExpiryVersion,[matchdayRequestHeader]:matchdayRequestId}:{}),
               ...(supportsSyncSlideDom()?{[syncPlayerRendererHeader]:syncPlayerRendererVersion}:{}),
               ...(supportsSyncSlideDom()?{[syncEngagePagingHeader]:syncEngagePagingVersion}:{}),
               ...(supportsSyncBackgrounds()?{[syncBackgroundsHeader]:syncBackgroundsVersion}:{}),
@@ -1340,7 +1464,7 @@ export function PlayerRuntime() {
         if (response.status === 304) {
           syncSucceeded = true;
           setRuntime((value) => isPlaybackRuntime(value) && value.state === "OFFLINE_PLAYING"
-            ? { ...value, state: "PLAYING", syncMessage: "Verbinding hersteld; actuele opdracht gecontroleerd." } : value);
+            ? { ...value, state: "PLAYING", release: { ...value.release, envelope: withSyncDiagnostics(value.release.envelope, "online", "actuele opdracht gecontroleerd") }, syncMessage: "Verbinding hersteld; actuele opdracht gecontroleerd." } : value);
           return;
         }
         if (response.status === 409) { nextSyncBaseDelayMs = 100; return; }
@@ -1399,23 +1523,29 @@ export function PlayerRuntime() {
         // installed and still-preparing revisions must survive stale 200s.
         getEnvelopeCacheableAssets(body);
         try {
-          if (isPlaybackRuntime(currentRuntime)) assertSyncDynamicEnvelopeContinuity(currentRuntime.release.envelope, body);
+          if (isPlaybackRuntime(currentRuntime)) assertMatchdayWindowContinuity(currentRuntime.release.envelope, body);
           const pending = pendingTargetRef.current;
-          if (pending?.token.isCurrent()) assertSyncDynamicEnvelopeContinuity(pending.release.envelope, body);
-          if (observedSourceTarget?.token.isCurrent()) assertSyncDynamicEnvelopeContinuity(observedSourceTarget.envelope, body);
+          if (pending?.token.isCurrent()) assertMatchdayWindowContinuity(pending.release.envelope, body);
+          if (observedSourceTarget?.token.isCurrent()) assertMatchdayWindowContinuity(observedSourceTarget.envelope, body);
         } catch {
           syncSucceeded = true;
           return;
         }
+        if(body.matchdayWindow){
+          if(!matchdayRequestId)throw Error('MATCHDAY_CAPABILITY_REQUIRED');
+          matchdayClockRef.current.observe(body,matchdayRequestId,matchdayRequestStartedAt,performance.now());
+        }
         if(failedDomTargetsRef.current.has(domTargetKey(body))){manifestEtag=receivedEtag;syncSucceeded=true;return;}
         const releaseId = body.manifest.releaseId;
         const targetToken = latestTargetRef.current.observe(
-          `${body.device.screenId}:${body.target?.revision ?? releaseId}:${releaseId}:${screenCompositionIdentity(body)}:${body.manifest.sponsorPlan?.revisionId ?? ""}:${screenCompositionDataIdentity(body)}`,
+          `${body.device.screenId}:${body.target?.revision ?? releaseId}:${releaseId}:${screenCompositionIdentity(body)}:${body.manifest.sponsorPlan?.revisionId ?? ""}:${screenCompositionDataIdentity(body)}:${matchdayWindowIdentity(body)}`,
           body.device.screenId, body.target?.revision
         );
         if (!targetToken) { syncSucceeded = true; return; }
+        matchdayRestorationControllerRef.current?.abort();
+        reportMatchdayWindow(body,'received');
         observedSourceTarget = { envelope: body, token: targetToken };
-        if (body.target && (publicationTraceRef.current?.targetRevision !== body.target.revision || publicationTraceRef.current?.releaseId !== releaseId)) {
+        if (body.target && (publicationTraceRef.current?.targetRevision !== body.target.revision || publicationTraceRef.current?.releaseId !== releaseId || isPlaybackRuntime(currentRuntime)&&matchdayWindowIdentity(currentRuntime.release.envelope)!==matchdayWindowIdentity(body))) {
           publicationTraceRef.current = publicationTrace(body, targetToken.generation, signalReceivedAtRef.current, targetCommitRef.current);
           boundaryMonotonicRef.current = null;
         }
@@ -1432,12 +1562,12 @@ export function PlayerRuntime() {
             body.manifest.sponsorPlan?.revisionId
         ) {
           const pendingData=pendingTargetRef.current;
-          if(pendingData?.dataOnly&&pendingData.token.isCurrent()&&screenCompositionDataIdentity(pendingData.release.envelope)===screenCompositionDataIdentity(body)){syncSucceeded=true;return;}
+          if(pendingData?.dataOnly&&pendingData.token.isCurrent()&&screenCompositionDataIdentity(pendingData.release.envelope)===screenCompositionDataIdentity(body)&&matchdayWindowIdentity(pendingData.release.envelope)===matchdayWindowIdentity(body)){syncSucceeded=true;return;}
           if (currentRuntime.pendingRelease) {
             releaseHydratedReference(currentRuntime.pendingRelease);
           }
           const activeHashes = new Map(currentRuntime.release.envelope.manifest.items.map((item) => [item.id, item.dynamicTemplate?.snapshotHash]));
-          if (screenCompositionDataIdentity(currentRuntime.release.envelope)!==screenCompositionDataIdentity(body)||body.manifest.items.some((item) => activeHashes.get(item.id) !== item.dynamicTemplate?.snapshotHash)) {
+          if (matchdayWindowIdentity(currentRuntime.release.envelope)!==matchdayWindowIdentity(body)||screenCompositionDataIdentity(currentRuntime.release.envelope)!==screenCompositionDataIdentity(body)||body.manifest.items.some((item) => activeHashes.get(item.id) !== item.dynamicTemplate?.snapshotHash)) {
             const generation = ++dataGeneration;
             void refreshLiveData(body, targetToken, generation);
             syncSucceeded = true;
@@ -1545,6 +1675,8 @@ export function PlayerRuntime() {
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) return;
         if (!prepared.ok) throw new Error(prepared.error);
         const hydrated = await hydratePreparedRelease({ assets: prepared.assets, envelope: body });
+        if(matchdayClockRef.current.expired(body,performance.now())){revokeHydratedRelease(hydrated);throw Error('MATCHDAY_WINDOW_EXPIRED');}
+        reportMatchdayWindow(body,'prepared');
         if(hasSyncDomV2Envelope(body))domCommitRef.current={key:domTargetKey(body),signal:token.signal};
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
         const needsVisibleBoundary=()=>{
@@ -1560,6 +1692,7 @@ export function PlayerRuntime() {
         };
         if(needsVisibleBoundary()){stageAtBoundary();return;}
         if(!hasSyncDomV2Envelope(body))await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken, envelope: body, signal: token.signal });
+        if(matchdayClockRef.current.expired(body,performance.now())){revokeHydratedRelease(hydrated);throw Error('MATCHDAY_WINDOW_EXPIRED');}
         if (cancelled || !token.isCurrent() || generation !== dataGeneration) { revokeHydratedRelease(hydrated); return; }
         if(needsVisibleBoundary()){stageAtBoundary();return;}
         hydratedReleasesRef.current.push(hydrated);
@@ -1586,6 +1719,8 @@ export function PlayerRuntime() {
         if (!prepared.ok) throw new Error(prepared.error);
         hydrated = await hydratePreparedRelease({ assets: prepared.assets,
           envelope: withSyncDiagnostics(body, "online", "publication verified") });
+        if(matchdayClockRef.current.expired(body,performance.now())){revokeHydratedRelease(hydrated);throw Error('MATCHDAY_WINDOW_EXPIRED');}
+        reportMatchdayWindow(body,'prepared');
         if (cancelled || !token.isCurrent()) { revokeHydratedRelease(hydrated); return; }
         hydratedReleasesRef.current.push(hydrated);
         if(hasSyncDomV2Envelope(body))domCommitRef.current={key:domTargetKey(body),signal:token.signal};
@@ -1602,6 +1737,7 @@ export function PlayerRuntime() {
         }
         if(!hasSyncDomV2Envelope(hydrated.envelope))await activateRelease({ assets: prepared.assets, deviceToken: activeDeviceToken,
           envelope: hydrated.envelope, signal: token.signal });
+        if(matchdayClockRef.current.expired(body,performance.now()))throw Error('MATCHDAY_WINDOW_EXPIRED');
         if (cancelled || !token.isCurrent()) return;
         playbackReadyRef.current = false;
         setRuntime({ activeIndex: resolveInitialPlaybackIndex(hydrated), release: hydrated,
@@ -1799,6 +1935,10 @@ export function PlayerRuntime() {
       if (syncTimer) window.clearTimeout(syncTimer);
       manifestController?.abort();
       latestTargetRef.current.cancel();
+      matchdayRestorationControllerRef.current?.abort();
+      matchdayClockRef.current=new PlayerMatchdayClock();
+      matchdayWindowReportRef.current=null;matchdayRestorationRef.current=null;
+      matchdayFrameKeyRef.current=null;setMatchdayFrameKey(null);
       pendingTargetRef.current = null;
       window.removeEventListener("veyocast:sync-requested", handleSyncRequest);
       window.removeEventListener("veyocast:target-invalidated", handleInvalidation);
@@ -1808,7 +1948,7 @@ export function PlayerRuntime() {
       window.removeEventListener("online", handleNetworkOnline);
       hydratedReleasesRef.current.splice(0).forEach(revokeHydratedRelease);
     };
-  }, [runtimeBootstrapKey, pairingRevision, transitionPairing]);
+  }, [runtimeBootstrapKey, pairingRevision, transitionPairing,reportMatchdayWindow]);
 
   useEffect(() => {
     if (installation.status !== "ready") return undefined;
@@ -2182,6 +2322,7 @@ export function PlayerRuntime() {
             runtimeVersion: currentPlayerApplicationVersion(),
             sourceDomProtocol:supportsSyncDomV2()?2:undefined,
             sourceDataConfirmation:visibleSourceRef.current,
+            ...(supportsMatchdayExpiry()?{matchdayExpiryProtocol:matchdayExpiryVersion,matchdayWindow:matchdayWindowReportRef.current}:{}),
             publicationTrace: publicationTraceRef.current,
             preparationError: preparationErrorRef.current,
             automationCapabilities,
@@ -2298,6 +2439,10 @@ export function PlayerRuntime() {
   if (isPlaybackRuntime(runtime)) {
     playerView = (
       <PlaybackView
+        canPresent={runtime.release.envelope.matchdayWindow?()=>!matchdayClockRef.current.expired(runtime.release.envelope,performance.now()):undefined}
+        frameContextKey={matchdayWindowIdentity(runtime.release.envelope)}
+        matchdayReady={playbackReadyRef.current&&matchdayFrameKey===domTargetKey(runtime.release.envelope)}
+        deviceCredential={readStoredDeviceToken()}
         onActivation={handlePlaybackActivation}
         onZoneBoundary={handleZoneBoundary}
         compositionBoundary={compositionBoundaryRef.current}
@@ -2361,6 +2506,7 @@ export function PlayerRuntime() {
 }
 
 function PlaybackView({
+  canPresent,frameContextKey,matchdayReady,deviceCredential,
   onActivation,
   onZoneBoundary,
   compositionBoundary,onZoneFrame,onSponsorPause,goalPaused,
@@ -2377,6 +2523,7 @@ function PlaybackView({
   underlayPaused,
   watchdogTimeoutMs
 }: {
+  canPresent?:()=>boolean;frameContextKey:string;matchdayReady:boolean;deviceCredential:string|null;
   onActivation: () => void;
   onZoneBoundary: () => void;
   compositionBoundary:ScreenCompositionBoundary;onZoneFrame:(zone:"side"|"bottom",releaseId:string)=>void;onSponsorPause:(paused:boolean)=>void;goalPaused:boolean;
@@ -2407,7 +2554,7 @@ function PlaybackView({
   const mainEmpty=!activeItem||(!underlayPaused&&!isPlayerManifestItemPlayable(activeItem));
   if (mainEmpty && !runtime.release.envelope.composition) {
     return (
-      <VerifiedEmptyZone fullscreen identity={`main:${screenCompositionZoneFrameIdentity(runtime.release.envelope)}`} screenName={runtime.release.envelope.device.screenName} paused={underlayPaused} onFrame={()=>{if(activeItem)onReady(activeItem.id,playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence),playerItemDataIdentity(activeItem));}} onBoundary={()=>{if(activeItem)onEnded(activeItem.id);}}/>
+      <VerifiedEmptyZone canPresent={canPresent} fullscreen identity={`main:${screenCompositionZoneFrameIdentity(runtime.release.envelope)}`} screenName={runtime.release.envelope.device.screenName} paused={underlayPaused} onFrame={()=>{if(activeItem)onReady(activeItem.id,playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence),playerItemDataIdentity(activeItem));}} onBoundary={()=>{if(activeItem)onEnded(activeItem.id);}}/>
     );
   }
 
@@ -2426,8 +2573,8 @@ function PlaybackView({
             : undefined
         }
       >
-        <div style={runtime.release.envelope.composition?{position:"absolute",...Object.fromEntries(Object.entries(screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).find(zone=>zone.id==="main")!).filter(([key])=>["left","top","width","height"].includes(key)).map(([key,value])=>[key,`${value}%`]))}:{position:"absolute",inset:0}}>
-        {mainEmpty?<VerifiedEmptyZone identity={`main:${screenCompositionZoneFrameIdentity(runtime.release.envelope)}`} screenName={runtime.release.envelope.device.screenName} paused={underlayPaused} onFrame={()=>{if(activeItem)onReady(activeItem.id,playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence),playerItemDataIdentity(activeItem));}} onBoundary={()=>{if(activeItem)onEnded(activeItem.id);}}/>:activeItem?<PlaybackScene onBoundary={onBoundary}
+        <div className={runtime.release.envelope.composition?styles.compositionZone:undefined} style={runtime.release.envelope.composition?{position:"absolute",...Object.fromEntries(Object.entries(screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).find(zone=>zone.id==="main")!).filter(([key])=>["left","top","width","height"].includes(key)).map(([key,value])=>[key,`${value}%`]))}:{position:"absolute",inset:0}}>
+        {mainEmpty?<VerifiedEmptyZone canPresent={canPresent} identity={`main:${screenCompositionZoneFrameIdentity(runtime.release.envelope)}`} screenName={runtime.release.envelope.device.screenName} paused={underlayPaused} onFrame={()=>{if(activeItem)onReady(activeItem.id,playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence),playerItemDataIdentity(activeItem));}} onBoundary={()=>{if(activeItem)onEnded(activeItem.id);}}/>:activeItem?<PlaybackScene canPresent={canPresent} frameContextKey={frameContextKey} onBoundary={onBoundary}
           activationKey={playerActivationIdentity(manifest.releaseId,"main",runtime.activeIndex,playbackOccurrence)}
           onActivation={onActivation}
           item={activeItem}
@@ -2440,7 +2587,7 @@ function PlaybackView({
           watchdogTimeoutMs={watchdogTimeoutMs}
         />:null}
         </div>
-        {runtime.release.envelope.composition&&screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).filter(zone=>zone.id!=="main").map(zone=>{const envelope=runtime.release.envelope.composition!.zones[zone.id as "side"|"bottom"];return envelope?<div key={zone.id} style={{position:"absolute",left:`${zone.left}%`,top:`${zone.top}%`,width:`${zone.width}%`,height:`${zone.height}%`,overflow:"hidden"}}><ScreenCompositionZone key={`${zone.id}:${envelope.manifest.releaseId}`} zoneId={zone.id as "side"|"bottom"} envelope={envelope} paused={underlayPaused} boundary={compositionBoundary} onActivation={onActivation} onBoundary={onZoneBoundary} onDomFailure={()=>{if(activeItem)onFailure(activeItem.id,'SYNC_DOM_ERROR');}} onFrame={onZoneFrame} liveMatchStates={liveMatchStates} watchdogTimeoutMs={watchdogTimeoutMs}/></div>:null;})}
+        {runtime.release.envelope.composition&&screenCompositionGeometry(runtime.release.envelope.composition.published.configuration).filter(zone=>zone.id!=="main").map(zone=>{const envelope=runtime.release.envelope.composition!.zones[zone.id as "side"|"bottom"];return envelope?<div className={styles.compositionZone} key={zone.id} style={{position:"absolute",left:`${zone.left}%`,top:`${zone.top}%`,width:`${zone.width}%`,height:`${zone.height}%`,overflow:"hidden"}}><ScreenCompositionZone canPresent={canPresent} frameContextKey={frameContextKey} key={`${zone.id}:${envelope.manifest.releaseId}`} zoneId={zone.id as "side"|"bottom"} envelope={envelope} paused={underlayPaused} boundary={compositionBoundary} onActivation={onActivation} onBoundary={onZoneBoundary} onDomFailure={()=>{if(activeItem)onFailure(activeItem.id,'SYNC_DOM_ERROR');}} onFrame={onZoneFrame} liveMatchStates={liveMatchStates} watchdogTimeoutMs={watchdogTimeoutMs}/></div>:null;})}
         <SponsorLayer
           onFullscreenVisibility={onSponsorPause} paused={goalPaused}
           activeItemId={activeItem?.id??""}
@@ -2449,6 +2596,7 @@ function PlaybackView({
           showFullscreen={!mainEmpty&&activeItem?.id === manifest.items[0]?.id}
           theme={activeTheme}
         />
+        <PlayerMatchdayActions envelope={runtime.release.envelope} credential={deviceCredential} ready={matchdayReady} paused={underlayPaused}/>
         <LedScoresExperienceOverlay overlay={goal} theme={activeTheme} onComplete={onGoalComplete} onReady={onGoalReady} />
         <img
           alt=""
@@ -2637,6 +2785,7 @@ type PlaybackSceneState = {
 };
 
 export function PlaybackScene({
+  canPresent,frameContextKey,
   activationKey,
   onActivation,
   item,
@@ -2649,6 +2798,7 @@ export function PlaybackScene({
   paused,
   watchdogTimeoutMs
 }: {
+  canPresent?:()=>boolean;frameContextKey?:string;
   activationKey: string;
   onActivation: () => void;
   item: PlayerManifestItem;
@@ -2666,6 +2816,9 @@ export function PlaybackScene({
   const currentRoot=useRef<HTMLDivElement>(null);
   const requestedKey = dom?`${item.id}:dom:${domResources}`:`${item.id}:${playbackAttempt}:${domResources}`;
   const lastVisibleSceneRef=useRef<PlaybackSceneEntry|null>(null);
+  const presentedOccurrence=useRef<string|null>(null);
+  const presentationAllowed=useRef(canPresent);presentationAllowed.current=canPresent;
+  const mayShow=()=>presentedOccurrence.current===activationKey||presentationAllowed.current?.()!==false;
   const requestedSceneRef = useRef<PlaybackSceneEntry>({
     item,
     key: requestedKey
@@ -2749,17 +2902,19 @@ export function PlaybackScene({
     if (!scene.ready) return;
     let second=0;const started=performance.now();
     const report=()=>{
+      if(!mayShow()){if(currentRoot.current)currentRoot.current.style.display='none';return;}
       if(item.menuDom){const root=currentRoot.current?.querySelector<HTMLElement>('[data-menu-content-hash]');if(root?.dataset.menuContentHash!==item.menuDom.contentHash||!hasVisibleMenuDomFrame(root??null)){if(performance.now()-started<5000)second=requestAnimationFrame(report);return;}}
       if(item.syncDynamic?.schemaVersion===2){
         const root=currentRoot.current?.querySelector<HTMLElement>('[data-sync-ready="true"][data-sync-content-hash]');
         if(root?.dataset.syncContentHash!==item.syncDynamic.contentHash||!hasVisibleSyncDomFrame(root??null,item.syncDynamic.presentation.rendererVersion)){if(performance.now()-started<5000)second=requestAnimationFrame(report);return;}
       }
       lastVisibleSceneRef.current={item,key:scene.current.key};
+      presentedOccurrence.current=activationKey;
       onReady(scene.current.item.id,activationKey,playerItemDataIdentity(item));
     };
     const first=requestAnimationFrame(()=>{second=requestAnimationFrame(report);});
     return()=>{cancelAnimationFrame(first);cancelAnimationFrame(second);};
-  },[onReady,activationKey,scene.current.item.id,scene.current.key,scene.ready,playerItemDataIdentity(item),dom?`${dom.contentHash}:${playbackAttempt}`:undefined]);
+  },[onReady,activationKey,scene.current.item.id,scene.current.key,scene.ready,playerItemDataIdentity(item),dom?`${dom.contentHash}:${playbackAttempt}`:undefined,frameContextKey]);
 
 
   const currentClassName = scene.ready
@@ -2798,6 +2953,7 @@ export function PlaybackScene({
       ) : null}
       <div
         ref={currentRoot}
+        style={mayShow()?undefined:{display:'none'}}
         className={`${styles.scene} ${styles.current} ${currentClassName}`}
         data-player-handoff={
           scene.ready ? "first-frame-ready" : "waiting-for-first-frame"
@@ -2812,6 +2968,7 @@ export function PlaybackScene({
           onEnded={onEnded}
           onFailure={onFailure}
           onReady={() => {
+            if(!mayShow()){if(currentRoot.current)currentRoot.current.style.display='none';return;}
             setScene((currentScene) =>
               currentScene.current.key === scene.current.key&&!currentScene.ready
                 ? { ...currentScene, ready: true }

@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { syncContentFamilies } from "../../packages/contracts/src/sync-content-families";
+import { contentCreateTasks } from "../../apps/control/app/(shell)/dashboard/studio/content-create-catalog";
 import { syncOnzeTrotsSystemAssets } from "../../packages/contracts/src/sync-onzetrots-assets";
 import type { StudioDocument } from "../../packages/studio/src/schema";
 
@@ -16,7 +16,7 @@ const compiler = require.resolve("esbuild", { paths: [require.resolve("tsx")] })
 let bundle: { js: string; css: string };
 
 test.beforeAll(() => {
-  const entry = `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'@veyocast/ui';import{SyncStudioCreateDialog}from'./apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog';function App(){const[portal,setPortal]=useState(null),[scope,setScope]=useState('23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000003');globalThis.setPickerActor=setScope;return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Templatekiezercontrole</h1><SyncStudioCreateDialog tenantId="23400000-0000-4000-8000-000000000001" tenantName="Acceptatieclub" actorScope={scope} canCreate={globalThis.fixtureCanCreate}/></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
+  const entry = `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{DialogPortalProvider}from'@veyocast/ui';import{SyncStudioCreateDialog}from'./apps/control/app/(shell)/dashboard/studio/sync-studio-create-dialog';function App(){const[portal,setPortal]=useState(null),[scope,setScope]=useState('23400000-0000-4000-8000-000000000001:23400000-0000-4000-8000-000000000003');globalThis.setPickerActor=setScope;return <div className="sync-control app-shell" style={{display:'block'}} ref={setPortal}><DialogPortalProvider container={portal}><main id="control-content"><h1>Templatekiezercontrole</h1><SyncStudioCreateDialog tenantId="23400000-0000-4000-8000-000000000001" tenantName="Acceptatieclub" actorScope={scope} canCreate={globalThis.fixtureCanCreate} canCreateManual={globalThis.fixtureManual} canCreateConnected={globalThis.fixtureConnected} liveSportAvailable={globalThis.fixtureLiveSport}/></main></DialogPortalProvider></div>}createRoot(document.getElementById('root')).render(<App/>);`;
   const script = `const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/control/node_modules'],bundle:true,write:false,outfile:'fixture.js',platform:'browser',format:'iife',jsx:'automatic',loader:{'.module.css':'local-css','.css':'css'},plugins:[{name:'controlled-boundaries',setup(b){b.onResolve({filter:/sync-create-wizard-actions$/},a=>({path:a.path,namespace:'actions'}));b.onLoad({filter:/.*/,namespace:'actions'},()=>({contents:'export async function resolveSyncCreationReceiptAction(input,scope){const r=await fetch("/__picker/receipt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({input,scope})});if(!r.ok)throw Error("Transport unavailable");return r.json()}',loader:'js'}));b.onResolve({filter:/^next\\/navigation$/},a=>({path:a.path,namespace:'navigation'}));b.onLoad({filter:/.*/,namespace:'navigation'},()=>({contents:'export function useRouter(){return{push:path=>{globalThis.visited=(globalThis.visited||[]).concat(path)}}}',loader:'js'}));}}]});const js=result.outputFiles.find(f=>f.path.endsWith('.js'))?.text,css=result.outputFiles.find(f=>f.path.endsWith('.css'))?.text??'';if(!js)throw Error('Missing fixture JavaScript');process.stdout.write(JSON.stringify({js,css}));`;
   bundle = JSON.parse(execFileSync(process.execPath, ["-e", `(async()=>{${script}})().catch(e=>{console.error(e);process.exitCode=1})`], {
     encoding: "utf8", timeout: 30_000, maxBuffer: 16 * 1024 * 1024,
@@ -24,7 +24,7 @@ test.beforeAll(() => {
 });
 
 type Command = { document: StudioDocument; idempotencyKey: string };
-async function mount(page: Page, options: { dropFirst?: boolean; viewer?: boolean } = {}) {
+async function mount(page: Page, options: { dropFirst?: boolean; viewer?: boolean; manualOnly?: boolean; connectedOnly?: boolean; liveBlocked?: boolean } = {}) {
   const errors: string[] = [], commands: Command[] = [], receiptReads: unknown[] = [];
   const receipts = new Map<string, string>();
   page.on("pageerror", error => errors.push(error.message));
@@ -50,7 +50,7 @@ async function mount(page: Page, options: { dropFirst?: boolean; viewer?: boolea
   await page.route(`${origin}/__picker/receipt`, route => { receiptReads.push(route.request().postDataJSON()); return route.fulfill({ json: { ok: true, href: "/dashboard/studio/23400000-0000-4000-8000-000000000002" } }); });
   await page.route(`${origin}/__picker/fixture`, route => route.fulfill({
     contentType: "text/html",
-    body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Templatekiezer · VeyoCast</title><style>${css}\n${bundle.css}</style></head><body><div id="root"></div><script>globalThis.fixtureCanCreate=${!options.viewer};${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>`,
+    body: `<!doctype html><html lang="nl" data-design-system="fieldflow"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Templatekiezer · VeyoCast</title><style>${css}\n${bundle.css}</style></head><body><div id="root"></div><script>globalThis.fixtureCanCreate=${!options.viewer};globalThis.fixtureManual=${!options.connectedOnly};globalThis.fixtureConnected=${!options.manualOnly};globalThis.fixtureLiveSport=${!options.liveBlocked};${bundle.js.replace(/<\/script/gi, "<\\/script")}</script></body></html>`,
   }));
   await page.goto(`${origin}/__picker/fixture`);
   const trigger = page.getByRole("button", { name: "Nieuw ontwerp", exact: true });
@@ -63,13 +63,13 @@ async function mount(page: Page, options: { dropFirst?: boolean; viewer?: boolea
   return { errors, commands, receipts, receiptReads, trigger };
 }
 
-for (const width of [390, 1440]) {
-  test(`all 36 choices retain complete preview and readable names at ${width}px`, async ({ page }, info) => {
+for (const width of [320, 390, 1440]) {
+  test(`bundled content choices retain complete preview and readable names at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 });
     const fixture = await mount(page);
     const dialog = page.getByRole("dialog", { name: "Wat wil je maken?" });
     const cards = dialog.locator(".vc-template-card");
-    await expect(cards).toHaveCount(36);
+    await expect(cards).toHaveCount(contentCreateTasks.length);
     const measurements = await cards.evaluateAll(elements => elements.map(element => {
       const rectangle = (node: Element) => {
         const { x, y, width, height, bottom, right } = node.getBoundingClientRect();
@@ -87,10 +87,10 @@ for (const width of [390, 1440]) {
     }));
     await info.attach("actual-card-geometry", { body: JSON.stringify(measurements, null, 2), contentType: "application/json" });
     await info.attach("actual-picker", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
-    await expect(dialog).toHaveCSS("width", width === 390 ? "370px" : "960px");
-    await expect(dialog).toHaveCSS("border-radius", width === 390 ? "18px" : "22px");
-    await expect(dialog.locator(":scope > header")).toHaveCSS("padding", width === 390 ? "18px" : "22px 26px");
-    await expect(dialog.locator(":scope > header > h2")).toHaveCSS("font-size", width === 390 ? "17px" : "19px");
+    await expect(dialog).toHaveCSS("width", width <= 760 ? `${width - 20}px` : "960px");
+    await expect(dialog).toHaveCSS("border-radius", width <= 760 ? "18px" : "22px");
+    await expect(dialog.locator(":scope > header")).toHaveCSS("padding", width <= 760 ? "18px" : "22px 26px");
+    await expect(dialog.locator(":scope > header > h2")).toHaveCSS("font-size", width <= 760 ? "17px" : "19px");
     await expect(dialog.locator(":scope > header > h2")).toHaveCSS("font-weight", "750");
     await expect(dialog.locator(":scope > header > h2")).toHaveCSS("color", "rgb(18, 46, 50)");
     await expect(dialog.locator(".vc-dialog__body > .vc-dialog__description")).toHaveCount(1);
@@ -98,8 +98,8 @@ for (const width of [390, 1440]) {
     await expect(dialog.locator(":scope > header .vc-dialog__description")).toHaveCount(0);
     await expect(dialog.locator(":scope > header").getByRole("button", { name: "Sluiten", exact: true })).toHaveCSS("width", "44px");
     await expect(dialog.locator(":scope > header").getByRole("button", { name: "Sluiten", exact: true })).toHaveCSS("height", "44px");
-    expect(measurements.map(value => value.name)).toEqual(syncContentFamilies.map(family => family.name));
-    expect(measurements.map(value => value.copy)).toEqual(syncContentFamilies.map(family => family.description));
+    expect(measurements.map(value => value.name)).toEqual(contentCreateTasks.map(family => family.name));
+    expect(measurements.map(value => value.copy)).toEqual(contentCreateTasks.map(family => family.description));
     for (const value of measurements) {
       expect(value.preview.width, value.name!).toBeCloseTo(value.preview.height * 16 / 9, 1);
       expect(value.card.height, value.name!).toBeGreaterThanOrEqual(44);
@@ -129,7 +129,7 @@ for (const width of [390, 1440]) {
       const tab = tabs.getByRole("button", { name: group, exact: true });
       await tab.click();
       await expect(tab).toHaveAttribute("aria-pressed", "true");
-      await expect(dialog.locator(".vc-template-card > span > strong")).toHaveText(syncContentFamilies.filter(family => group === "Alles" || family.group === group).map(family => family.name));
+      await expect(dialog.locator(".vc-template-card > span > strong")).toHaveText(contentCreateTasks.filter(family => group === "Alles" || family.group === group).map(family => family.name));
       expect((await tab.boundingBox())!.height).toBeGreaterThanOrEqual(44);
       expect((await tab.boundingBox())!.width).toBeGreaterThanOrEqual(44);
     }
@@ -141,7 +141,7 @@ for (const width of [390, 1440]) {
     }
     const cards = dialog.locator(".vc-template-card");
     await cards.first().focus();
-    for (let index = 1; index < 36; index++) await page.keyboard.press("Tab");
+    for (let index = 1; index < contentCreateTasks.length; index++) await page.keyboard.press("Tab");
     await expect(cards.last()).toBeFocused();
     await expect(cards.last().locator(":scope > span > small")).toBeInViewport({ ratio: 1 });
     const violations = (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations;
@@ -169,7 +169,7 @@ for (const width of [390, 700, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     const fixture = await mount(page);
     const cards = page.getByRole("dialog", { name: "Wat wil je maken?" }).locator(".vc-template-card");
-    await expect(cards).toHaveCount(36);
+    await expect(cards).toHaveCount(contentCreateTasks.length);
     await page.getByRole("dialog", { name: "Wat wil je maken?" }).evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     const comparisons = await cards.evaluateAll(elements => elements.map(element => {
       const root = element.querySelector<HTMLElement>(".sync-slide-root")!;
@@ -257,4 +257,51 @@ test("a changed actor unlocks its chooser and old receipt completion cannot unlo
   ]);
   expect(await page.evaluate(key => sessionStorage.getItem(key), key)).toBe(original);
   expect(fixture.commands).toEqual([]); expect(fixture.errors).toEqual([]);
+});
+
+for (const [task, scope, family] of [["Uitslagen", "Hele club", "club-results"], ["Uitslagen", "Eén team", "team-results"], ["Uitslagen", "Eén poule", "pool-results"], ["Programma", "Eén poule", "pool-program"]]) {
+  test(`one ${task} task retains the ${scope} family`, async ({ page }) => {
+    const fixture = await mount(page);
+    const dialog = page.getByRole("dialog", { name: "Wat wil je maken?" });
+    await dialog.locator(".vc-template-card").filter({ has: page.locator("strong", { hasText: new RegExp(`^${task}$`) }) }).click();
+    await expect(dialog.getByRole("heading", { name: task === "Uitslagen" ? "Welke uitslagen wil je tonen?" : "Welk programma wil je tonen?", exact: true })).toBeVisible();
+    expect(fixture.commands).toEqual([]);
+    await dialog.getByRole("button", { name: scope, exact: true }).click();
+    await expect.poll(() => page.evaluate(() => (globalThis as typeof globalThis & { visited?: string[] }).visited)).toEqual([`/dashboard/studio/new?family=${family}&mode=connected`]);
+    expect(fixture.commands).toEqual([]); expect(fixture.receiptReads).toEqual([]);
+  });
+}
+test("the standard menu task opens the existing specialist, without creating an object", async ({ page }) => {
+  const fixture = await mount(page);
+  await page.getByRole("dialog").locator(".vc-template-card").filter({ has: page.locator("strong", { hasText: /^Kantinemenu$/ }) }).click();
+  await expect.poll(() => page.evaluate(() => (globalThis as typeof globalThis & { visited?: string[] }).visited)).toEqual(["/dashboard/slides/menu-studio/new"]);
+  expect(fixture.commands).toEqual([]); expect(fixture.receiptReads).toEqual([]);
+});
+
+test("a manual-only creator retains a legitimate task without linked-source or live-sport choices", async ({ page }) => {
+  const fixture = await mount(page, { manualOnly: true });
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.locator(".vc-template-card").filter({ has: page.locator("strong", { hasText: /^Doelpunt$/ }) })).toBeDisabled();
+  await dialog.locator(".vc-template-card").filter({ has: page.locator("strong", { hasText: /^Uitslagen$/ }) }).click();
+  await expect(dialog.getByRole("button", { name: "Hele club", exact: true })).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Handmatig invullen", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => (globalThis as typeof globalThis & { visited?: string[] }).visited)).toEqual(["/dashboard/studio/new?family=results&mode=manual"]);
+  expect(fixture.commands).toEqual([]);
+});
+test("a linked-slide-only creator cannot choose an unsupported manual design", async ({ page }) => {
+  const fixture = await mount(page, { connectedOnly: true });
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.locator(".vc-template-card").filter({ has: page.locator("strong", { hasText: /^Vrij ontwerp$/ }) })).toBeDisabled();
+  await dialog.locator(".vc-template-card").filter({ has: page.locator("strong", { hasText: /^Nieuws & RSS$/ }) }).click();
+  await expect.poll(() => page.evaluate(() => (globalThis as typeof globalThis & { visited?: string[] }).visited)).toEqual(["/dashboard/studio/new?family=rss&mode=connected"]);
+  expect(fixture.commands).toEqual([]);
+});
+test("a disabled live feature stays blocked while the older menu variant remains reachable", async ({ page }) => {
+  const fixture = await mount(page, { liveBlocked: true, connectedOnly: true });
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.locator(".vc-template-card").filter({ has: page.locator("strong", { hasText: /^Doelpunt$/ }) })).toBeDisabled();
+  await dialog.locator(".vc-modal-family-tabs").getByRole("button", { name: "Kantine", exact: true }).click();
+  await dialog.getByRole("button", { name: "Andere menu-opmaak", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => (globalThis as typeof globalThis & { visited?: string[] }).visited)).toEqual(["/dashboard/studio/new?family=menu&mode=connected"]);
+  expect(fixture.commands).toEqual([]);
 });

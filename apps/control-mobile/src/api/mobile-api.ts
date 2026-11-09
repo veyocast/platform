@@ -294,9 +294,9 @@ export const mobileApi = {
       { body: input, method: "POST", tenantId }
     ).then((response) => response.data);
   },
-  screens(tenantId: string) {
+  screens(tenantId: string, sourceScreenId?: string) {
     return request(
-      "/api/mobile/v1/screens",
+      `/api/mobile/v1/screens?statusEvidence=1${sourceScreenId ? `&sourceEvidenceFor=${encodeURIComponent(sourceScreenId)}` : ""}`,
       mobileScreensEnvelopeSchema,
       { tenantId }
     ).then((response) => response.data);

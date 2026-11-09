@@ -43,7 +43,7 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {
       if (!String(error).includes("ERR_ABORTED")) throw error;
     }
     await expect(page).toHaveURL(
-      new RegExp(`${(pathname === "/dashboard/studio" ? "/dashboard/content" : pathname).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
+      new RegExp(`${(pathname === "/dashboard/studio" ? "/dashboard/content?filter=designs&status=active&page=1" : pathname).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
     );
     await expect(page.locator("#control-content")).toBeVisible();
     // Broadcast previews are images inside the workspace, not page landmarks.

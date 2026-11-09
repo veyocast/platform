@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/actions.ts",
+      "sha256": "a66695dea6c72dcf807da7881bd50df81eed35c21f1ffebb225fb98db9f83b3e",
+      "scope": "server context only; separately gated"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/delegation.tsx",
+      "sha256": "4e47b3c3b799507aac73bfde191ba83d2ded163a9216ac5ceb70431479f097ea",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/delivery-view.tsx",
+      "sha256": "a02142e08b784ab16ad46df15200e5cbcfce322224995a7de348b4681cd4e77d",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/draft-editor.tsx",
+      "sha256": "5b2370ec01168830aa2e4c6ba26c4fce8badcb360ef21143047b15e0c2c72012",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/labels.ts",
+      "sha256": "87436d1f7e267046485cf80561fe790adf7b40e28195326604591a920b347439",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/matchday.module.css",
+      "sha256": "0e29c67c80e61059943b748b1d1394f263a11ddfb8b4b956741ff08099b6d2bc",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/operator.tsx",
+      "sha256": "7aab667cb1f6573b11d2662bf0cf454dfa73dddebda051cf1484f55bc1c8c5b6",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/page.tsx",
+      "sha256": "41f743f2f944925249e15b6070dc6957547774dd212366bf88688dc0c721988d",
+      "scope": "server context only; separately gated"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/use-command.ts",
+      "sha256": "2b6ec0261845d9a7e05826b2a8ca8a2a5150ebc45ea98a6f0b857ba4bce07327",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/workbench.tsx",
+      "sha256": "0718c1f8822a800751092bc98a7a24c98a12ac7a9056524ceac05a3e6942f94d",
+      "scope": "component-rendered"
+    },
+    {
+      "path": "apps/control/lib/matchday-service.ts",
+      "sha256": "ddaf2452ef1e95fc14d0d643f0c52d6f09a398eebd5b3f3c27e9d6a79a43bdaa",
+      "scope": "server context only; separately gated"
+    },
+    {
+      "path": "packages/contracts/src/matchday-runbook.ts",
+      "sha256": "1dff837b11c548e5a4e2322f290ae5f4a867a914ecbb55cc5cce234e71c448d8",
+      "scope": "strict DTO parser and component contracts"
+    },
+    {
+      "path": "packages/domain/src/matchday-runbook.ts",
+      "sha256": "b624aadbf7eaa300697b1bd22f7b88f843ce0098a9372051d9ff8ef2a2a10380",
+      "scope": "component domain helpers"
+    },
+    {
+      "path": "tests/control/s300-matchday-workbench.spec.ts",
+      "sha256": "3311fc7cf6072672e40b048e88cffa2a2fc7a051d52d1f170f501d591ebd4d9a",
+      "scope": "browser assertions"
+    },
+    {
+      "path": "tests/helpers/matchday-fixture.ts",
+      "sha256": "27f3b9b35442f29cd57a5553d9a433d5c87a884331565eb914db8da3539d4835",
+      "scope": "controlled Next/actions/session transport"
+    },
+    {
+      "path": "tests/fixtures/s300-matchday-rpc.json",
+      "sha256": "1e88f5fc7b5fa04e12f1002a114531c11fa0ecd38f69b8885346fd071d878680",
+      "scope": "actual normalized isolated rollback RPC output"
+    },
+    {
+      "path": "apps/player/app/api/player/matchday/route.ts",
+      "sha256": "836046d19e466ee0859f045282fb28ff368c1e838af3936703882bb98a94096e",
+      "scope": "separate57unit API gate"
+    },
+    {
+      "path": "apps/player/app/api/player/matchday/route.test.ts",
+      "sha256": "da85b0843281cc59bab4ac85ab5ea14b113ad9600bb0f89703e213f8598239a0",
+      "scope": "separate57unit API gate"
+    },
+    {
+      "path": "tokens/veyocast-design-tokens.css",
+      "sha256": "368399f509423f166b8f8d7969a637d1a14772af34e2ced096137186fd66641c",
+      "scope": "actual component CSS"
+    },
+    {
+      "path": "packages/ui/src/styles.css",
+      "sha256": "92f1a37f22f1f58bdedcec9bff5b65d37510e3121de629db02f6797e92ca4f15",
+      "scope": "actual component CSS"
+    },
+    {
+      "path": "apps/control/app/globals.css",
+      "sha256": "1998a4016e57fa1eb0a38cb2c23b4c1f43f0f58d2d9a88f5e10662e85a659d11",
+      "scope": "actual component CSS"
+    },
+    {
+      "path": "apps/control/app/fieldflow.css",
+      "sha256": "91131b1c2666d8670d953c027ab5c40938a3822778272a8f5d9eca641cbd4418",
+      "scope": "actual component CSS"
+    },
+    {
+      "path": "apps/control/app/sync-source.css",
+      "sha256": "5fecb4d8834be77390d381c6420c076d9bff59d0cfe5ffe0e1d2b8a7a36dc437",
+      "scope": "actual component CSS"
+    },
+    {
+      "path": "apps/control/app/sync-adapter.css",
+      "sha256": "918593ea27e734f386be8d09f49bf40dcbe9fb4e1ac635c6e120b02b15bfca04",
+      "scope": "actual component CSS"
+    }
+  ]
+}

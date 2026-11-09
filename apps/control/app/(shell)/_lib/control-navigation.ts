@@ -1,6 +1,8 @@
 import { hasCapability, type Capability } from "@veyocast/auth";
 import type { HumanRole, TenantStatus } from "@veyocast/domain";
 
+import { contentEntryCapabilities } from "../dashboard/content/content-library";
+
 import type { TenantMembershipContext } from "../../../lib/tenant-context";
 
 export type ControlRole = HumanRole;
@@ -25,6 +27,7 @@ export type ControlNavigationItem = {
   href: string;
   label: string;
   requiredCapability: Capability;
+  anyCapabilities?: readonly Capability[];
   section: ControlNavigationSection;
   scope: ControlScope;
 };
@@ -189,26 +192,13 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     description: "Ontwerpen, media en dynamische content in één bibliotheek",
     href: "/dashboard/content",
     label: "Content",
-    requiredCapability: "tenant.overview.read",
+    requiredCapability: "tenant.media.read",
+    anyCapabilities: contentEntryCapabilities,
     section: "content",
     scope: "tenant"
   },
-  {
-    description: "Visuele content ontwerpen en genereren",
-    href: "/dashboard/studio",
-    label: "Studio",
-    requiredCapability: "tenant.studio.read",
-    section: "content",
-    scope: "tenant"
-  },
-  {
-    description: "Menu’s en prijslijsten ontwerpen en beheren",
-    href: "/dashboard/slides/menu-studio",
-    label: "Menu Studio",
-    requiredCapability: "tenant.dynamic_slide.read",
-    section: "content",
-    scope: "tenant"
-  },
+
+
   {
     description: "Sponsors, campagnes, posities en bewijs van vertoning",
     href: "/dashboard/sponsors",
@@ -225,14 +215,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     section: "growth",
     scope: "tenant"
   },
-  {
-    description: "Bibliotheek, verwerking en gebruik",
-    href: "/dashboard/media",
-    label: "Media",
-    requiredCapability: "tenant.media.read",
-    section: "content",
-    scope: "tenant"
-  },
+
   {
     description: "Concepten maken en publiceren",
     href: "/dashboard/playlists",
@@ -241,14 +224,7 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     section: "content",
     scope: "tenant"
   },
-  {
-    description: "Datagestuurde slides, versies en renderstatus",
-    href: "/dashboard/slides",
-    label: "Slides & formats",
-    requiredCapability: "tenant.dynamic_slide.read",
-    section: "content",
-    scope: "tenant"
-  },
+
   {
     description: "Kleuren, typografie en logo-oppervlakken per slide-theme",
     href: "/dashboard/themes",
@@ -395,7 +371,7 @@ export function getNavigationForRoles(
   includeTenantScope = true
 ) {
   return controlNavigation.filter((item) =>
-    hasCapability(roles, item.requiredCapability) &&
+    (item.anyCapabilities ? item.anyCapabilities.some(capability => hasCapability(roles, capability)) : hasCapability(roles, item.requiredCapability)) &&
     (includeTenantScope || item.scope !== "tenant")
   );
 }

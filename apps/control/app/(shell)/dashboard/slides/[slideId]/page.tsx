@@ -59,6 +59,7 @@ export default async function SlideDetailPage({ params, searchParams }: PageProp
       <PageHeader
         actions={<div className={styles.heroActions}>
           <Button asChild variant="ghost"><Link href="/dashboard/slides">Terug</Link></Button>
+          {isVersionedSportlink && data.slide.slide_type.startsWith("sport_") && hasCapability(session.capabilities, "tenant.data_source.read") ? <Button asChild variant="ghost"><Link href={`/dashboard/sources/sportlink/season-switch?resourceKind=dynamic_slide&resourceId=${slideId}`}>Seizoenskoppeling controleren</Link></Button> : null}
           {canWrite && isVersionedSportlink && activeVersion?.status === "draft" ? (
             <Button asChild variant="secondary"><Link href={`/dashboard/slides/${slideId}/edit`}><PencilLine aria-hidden="true" />Concept verder bewerken</Link></Button>
           ) : canWrite && isVersionedSportlink && activeVersion?.status === "publishing" ? (

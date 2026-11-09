@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "evidenceKind": "isolated-database-real-ingest-and-rpc",
+  "database": {
+    "host": "127.0.0.1",
+    "port": 64432,
+    "rolledBack": true
+  },
+  "asOf": "2026-11-09T12:14:39.833499+00:00",
+  "timezone": "Europe/Amsterdam",
+  "period": {
+    "fromDate": "2026-11-02",
+    "untilDate": "2026-11-10",
+    "from": "2026-11-01T23:00:00+00:00",
+    "until": "2026-11-09T23:00:00+00:00"
+  },
+  "assertions": {
+    "acceptedEvents": "5501",
+    "playedMs": "5509251",
+    "campaign": "2751",
+    "screen": "1833",
+    "intersection": "917",
+    "targetPlays": "6000",
+    "detailsPerPage": 50,
+    "cursorOverlap": 0,
+    "groupTotalsEqual": true,
+    "csvTotalsEqual": true
+  },
+  "csvSha256": "1a7f868c4fd90a066f912df57dcce905bca96ba3c75532b348723a8d61ae34d5",
+  "fixtureSha256": "7e233864be5a1c917e29465c2f04f3a7cc2e1f1d056549d8f847ef801a0e0f3b",
+  "testSha256": "45d4780539850050dae333805de9ff06989674a1f749e5606d4855f669bbd2e1",
+  "limitations": [
+    "Generated isolated data; no customer telemetry",
+    "CSV uses aggregate rows; detail pagination stays independent",
+    "Cutoff freezes receipts, not mutable names or agreement metadata",
+    "Browser uses these captured RPC answers over controlled HTTP, not a hosted deployment"
+  ]
+}

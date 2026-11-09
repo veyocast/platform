@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 1,
+  "task": "S300",
+  "observedAt": "2026-11-09T14:41:14.863984+00:00",
+  "scope": "isolated local PostgreSQL only; no hosted database writes or provider/hardware claims",
+  "source": {
+    "migration": "supabase/migrations/20261109130824_s300_matchday_runbook_operations.sql",
+    "migrationSha256": "469bc9c75c125dae256f59b7a7fdf366be010681e87f549a1aa6d680ac90b190",
+    "test": "supabase/tests/s300_matchday_runbooks.sql",
+    "testSha256": "bdf1263cddf75b36f13620835b98085d4a1a18ccb0c3696e4fcf44d02ceffd27"
+  },
+  "gates": {
+    "focused": {
+      "files": 1,
+      "assertions": 154,
+      "seconds": 4,
+      "result": "PASS"
+    },
+    "freshReset": {
+      "migrations": 218,
+      "latest": "20261109130824",
+      "result": "PASS"
+    },
+    "full": {
+      "files": 154,
+      "assertions": 5308,
+      "seconds": 120,
+      "result": "PASS",
+      "historicalTestCompatibilityCases": 5,
+      "compatibilityCasesInRealSource": true
+    },
+    "sqlLint": {
+      "schemas": [
+        "public",
+        "private"
+      ],
+      "errors": 0
+    },
+    "advisors": {
+      "type": "all",
+      "minimumLevel": "error",
+      "errors": 0
+    }
+  },
+  "confirmedTimestampRegression": {
+    "previousMigrationSha256": "7de6f7a9d61700024e5babf9d3da4a826194ab63d58e0187e2c7b68e2801405b",
+    "red": {
+      "files": 1,
+      "assertions": 154,
+      "failures": [
+        71,
+        91
+      ],
+      "otherAssertionsPassed": 152,
+      "result": "FAIL"
+    },
+    "green": {
+      "files": 1,
+      "assertions": 154,
+      "result": "PASS"
+    },
+    "behavior": "confirmedAt follows restored_at for the confirmed restored release; renderedAt retains the historical frame time. No confirmed release gives null confirmedAt.",
+    "actualRpcExport": {
+      "dtoCount": 18,
+      "path": "/tmp/s300-actual-rpc-confirmed-at-final.json",
+      "sha256": "d796a8c0963b85cc8cba108985de3a127f1ceb205edab566cc6c856e257c7ab5"
+    },
+    "additionalRestoredWorkspaces": {
+      "count": 2,
+      "path": "/tmp/s300-restored-confirmation-rpc.json",
+      "sha256": "815c34c8ba349271f8943775eb84f85bb7a11931041aaa17194ce1361cd9c8e4"
+    },
+    "captureAssertions": 113,
+    "captureTransaction": "ROLLBACK"
+  },
+  "sourceAssembly": {
+    "path": "/tmp/veyocast-s300-confirmed-at-final",
+    "migrations": 218,
+    "tests": 154,
+    "allSqlBytesMatchCurrentBranch": true,
+    "temporaryTestPatches": false,
+    "historicalCompatibilityCasesInRealSource": 5
+  },
+  "database": {
+    "host": "127.0.0.1",
+    "port": 64432,
+    "projectId": "veyocast-s295-verify",
+    "container": "supabase_db_veyocast-s295-verify",
+    "volume": "supabase_db_veyocast-s295-verify",
+    "state": "running; retained for parent source binding and DTO validation",
+    "hostedWrites": 0
+  },
+  "limits": [
+    "SQL admission media/menu fixtures prove transactional boundaries, not physical rendering or provider freshness.",
+    "Actual Player/browser evidence belongs to separate sibling/root gates.",
+    "Local auth identities, source rows and token hashes are synthetic fixture data. All test rows roll back.",
+    "The normalized RPC capture contains metadata/receipts only and no source credentials or device tokens."
+  ],
+  "coverage": [
+    "canonical tenant/source/team/competition/pool/season/phase and tenant timezone",
+    "two same-team matches and another park team preserved",
+    "exact group target freeze, capability race, immutable publications/targets/actions",
+    "CAS, exact nonce replay, changed-body conflict, object/screen/action/expiry-scoped delegation and removed-member denial",
+    "explicit all-target main phase, operational lifecycle revision separate from publication version",
+    "independent received/prepared/rendered/restored acknowledgements and monotone restoration",
+    "exact device/window/release/composition UUID-revision-hash plus fresh actual frame",
+    "exclusive local end and ordinary shared resolver NOW versus END",
+    "eight distinct immutable fallback identities, no eviction, ninth offer rejected",
+    "old issued offline fallback retained as historical evidence rather than current planning claim",
+    "exact optional LED bridge/freshness, close/reconnect queue guard, unrelated legacy path",
+    "frozen menu placement sold_out/available without catalog/price/source mutations",
+    "real S301 runbook draft context switch with explicit match clearing, immutable old publication and receipt replay",
+    "separate confirmed release timestamp after overlay and temporal-window restoration, with historical rendered time retained"
+  ],
+  "artifacts": {
+    "s300-confirmed-at-db-start.log": {
+      "path": "/tmp/s300-confirmed-at-db-start.log",
+      "sha256": "ed42cafd548958769f8d3367a28bcc083ae51d0e6f442c8b4d46797962066c73"
+    },
+    "s300-confirmed-at-red.log": {
+      "path": "/tmp/s300-confirmed-at-red.log",
+      "sha256": "70578066a80d064fdad5edb7b3b322b33db0518958c287402a9be58323ff37ca"
+    },
+    "s300-confirmed-at-focused-green.log": {
+      "path": "/tmp/s300-confirmed-at-focused-green.log",
+      "sha256": "d6b448497ef381dbf81a36823be2798835c2914e7c7985210379571b502de754"
+    },
+    "s300-confirmed-at-final-reset.log": {
+      "path": "/tmp/s300-confirmed-at-final-reset.log",
+      "sha256": "ec91758bbfa2d3137d778f567ad20dea6bfa06cef7f86010155d42e46d0870b1"
+    },
+    "s300-confirmed-at-final-rls.log": {
+      "path": "/tmp/s300-confirmed-at-final-rls.log",
+      "sha256": "8fc434b7c9fbf00bc1733399287103fa0abd7f180ce5f14a8773523ee57ccc8a"
+    },
+    "s300-confirmed-at-final-db-lint.log": {
+      "path": "/tmp/s300-confirmed-at-final-db-lint.log",
+      "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+    },
+    "s300-confirmed-at-final-db-advisors.log": {
+      "path": "/tmp/s300-confirmed-at-final-db-advisors.log",
+      "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+    },
+    "s300-confirmed-at-final-inputs.json": {
+      "path": "/tmp/s300-confirmed-at-final-inputs.json",
+      "sha256": "ef5d7bcaf70b6f8a9dbe634658f0c4d2b99845a6c3f135483eed020cdf91bdc5"
+    },
+    "s300-capture-confirmed-at-final.sql": {
+      "path": "/tmp/s300-capture-confirmed-at-final.sql",
+      "sha256": "e6563ecc033f88569035c4bab6a3cd9d575a49fe8fb02ef46f93144d4cc59253"
+    },
+    "s300-capture-confirmed-at-final.log": {
+      "path": "/tmp/s300-capture-confirmed-at-final.log",
+      "sha256": "1a7b53b9376db20b025cf5a2ad3b47c39a8fb1cf113186bc2904c8641e5f913a"
+    },
+    "s300-actual-rpc-confirmed-at-final.json": {
+      "path": "/tmp/s300-actual-rpc-confirmed-at-final.json",
+      "sha256": "d796a8c0963b85cc8cba108985de3a127f1ceb205edab566cc6c856e257c7ab5"
+    },
+    "s300-restored-confirmation-rpc.json": {
+      "path": "/tmp/s300-restored-confirmation-rpc.json",
+      "sha256": "815c34c8ba349271f8943775eb84f85bb7a11931041aaa17194ce1361cd9c8e4"
+    },
+    "s300-confirmed-at-installed-certificate.json": {
+      "path": "/tmp/s300-confirmed-at-installed-certificate.json",
+      "sha256": "9ae23a10bc6b8f32c445544140be281f35d7c704d02b8e4afeca37cc9bc5adc1"
+    },
+    "s300-confirmed-at-docker-certificate.json": {
+      "path": "/tmp/s300-confirmed-at-docker-certificate.json",
+      "sha256": "4e3193d0787d047963055dbcd376bc58b241eee098be03c8206a504ccede5a95"
+    }
+  },
+  "previousValidation": {
+    "schemaVersion": 1,
+    "task": "S300",
+    "observedAt": "2026-11-09T14:14:21.720864+00:00",
+    "scope": "isolated local PostgreSQL only; no hosted database writes or provider/hardware claims",
+    "source": {
+      "migration": "supabase/migrations/20261109130824_s300_matchday_runbook_operations.sql",
+      "migrationSha256": "7de6f7a9d61700024e5babf9d3da4a826194ab63d58e0187e2c7b68e2801405b",
+      "test": "supabase/tests/s300_matchday_runbooks.sql",
+      "testSha256": "eb50e6b7836117868a02f5cc4869e1c8a7df63c0d620e8c32c846751f56c462f"
+    },
+    "gates": {
+      "focused": {
+        "files": 1,
+        "assertions": 152,
+        "seconds": 4,
+        "result": "PASS"
+      },
+      "freshReset": {
+        "migrations": 218,
+        "latest": "20261109130824",
+        "result": "PASS"
+      },
+      "full": {
+        "files": 154,
+        "assertions": 5306,
+        "seconds": 126,
+        "result": "PASS",
+        "historicalTestCompatibilityCases": 5
+      },
+      "sqlLint": {
+        "schemas": [
+          "public",
+          "private"
+        ],
+        "errors": 0
+      },
+      "advisors": {
+        "type": "all",
+        "minimumLevel": "error",
+        "errors": 0
+      }
+    },
+    "originalFullAttempt": {
+      "files": 154,
+      "assertions": 5306,
+      "seconds": 134,
+      "result": "FAIL",
+      "failures": [
+        "rls_s142_ledscores_canvas_editor.sql:case26:historical function-body introspection",
+        "s191_led_scene_authoring.sql:case26:historical function-body introspection"
+      ],
+      "functionalCatchupChecks": "PASS; original immutable A remains before B, also when paused/retargeted"
+    },
+    "temporaryAssembly": {
+      "path": "/tmp/veyocast-s296-s298-s299-s301-s300-final",
+      "compatibility": "3 S301 pre-integration expectations and 2 LED original-function-body lookups; no assertions skipped. Product source bytes unchanged. Parent will apply identical patch after dependency merge."
+    },
+    "limits": [
+      "SQL admission media/menu fixtures prove transactional boundaries, not physical rendering or provider freshness.",
+      "Actual Player/browser evidence belongs to separate sibling/root gates.",
+      "Local auth identities, source rows and token hashes are synthetic fixture data. All test rows roll back.",
+      "The normalized RPC capture contains metadata/receipts only and no source credentials or device tokens."
+    ],
+    "coverage": [
+      "canonical tenant/source/team/competition/pool/season/phase and tenant timezone",
+      "two same-team matches and another park team preserved",
+      "exact group target freeze, capability race, immutable publications/targets/actions",
+      "CAS, exact nonce replay, changed-body conflict, object/screen/action/expiry-scoped delegation and removed-member denial",
+      "explicit all-target main phase, operational lifecycle revision separate from publication version",
+      "independent received/prepared/rendered/restored acknowledgements and monotone restoration",
+      "exact device/window/release/composition UUID-revision-hash plus fresh actual frame",
+      "exclusive local end and ordinary shared resolver NOW versus END",
+      "eight distinct immutable fallback identities, no eviction, ninth offer rejected",
+      "old issued offline fallback retained as historical evidence rather than current planning claim",
+      "exact optional LED bridge/freshness, close/reconnect queue guard, unrelated legacy path",
+      "frozen menu placement sold_out/available without catalog/price/source mutations",
+      "real S301 runbook draft context switch with explicit match clearing, immutable old publication and receipt replay"
+    ],
+    "artifacts": {
+      "s300-focused-final-152.log": {
+        "path": "/tmp/s300-focused-final-152.log",
+        "sha256": "c6a48d42b9ecbf59f2ad711fc94127efe2802685a996bcc4506e49c19bbc59af"
+      },
+      "s300-final-reset-152.log": {
+        "path": "/tmp/s300-final-reset-152.log",
+        "sha256": "86d855eccae5d3b41524a6744cb6a190e710cf7206f44bde46f2728bbe7b46cc"
+      },
+      "s300-final-rls.log": {
+        "path": "/tmp/s300-final-rls.log",
+        "sha256": "734063476737c188d760bfbfd0a9d9689ec1d02f7c7e1049c4d92d0d46c8c008"
+      },
+      "s300-final-rls-compatible.log": {
+        "path": "/tmp/s300-final-rls-compatible.log",
+        "sha256": "3d5c5c477a7a7e7f4376a2d91619dcf3cc966456684de126e8ae67790a21ab2f"
+      },
+      "s300-final-db-lint.log": {
+        "path": "/tmp/s300-final-db-lint.log",
+        "sha256": "42fcca4315ae0b1f77c28eb784128c3732b5c7177c7b9b9bef7fa3a5980c4297"
+      },
+      "s300-final-db-advisors.log": {
+        "path": "/tmp/s300-final-db-advisors.log",
+        "sha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+      },
+      "s300-final-inputs.json": {
+        "path": "/tmp/s300-final-inputs.json",
+        "sha256": "fdc4cab1f2fcee2e1512b5327a15b5d196d880606a9fc208e589e54646251318"
+      },
+      "s300-historical-test-compat.patch": {
+        "path": "/tmp/s300-historical-test-compat.patch",
+        "sha256": "acc1ac2235dec8f8de590fd265b98703b0bdfa293f43c19d5f7c595de7b80be1"
+      },
+      "s300-actual-rpc-final.json": {
+        "path": "/tmp/s300-actual-rpc-final.json",
+        "sha256": "1e88f5fc7b5fa04e12f1002a114531c11fa0ecd38f69b8885346fd071d878680"
+      },
+      "s300-database-installed-certificate.json": {
+        "path": "/tmp/s300-database-installed-certificate.json",
+        "sha256": "bacd9cd2f2e0e51934f1ce1daa3eaa5c0862f4648a1662bcdbef8d4c7a3b4980"
+      },
+      "s300-docker-certificate.json": {
+        "path": "/tmp/s300-docker-certificate.json",
+        "sha256": "28a6ebb9b38a6c9c4e167dc831804d8d3965d98f824cf41e2592d58223cba865"
+      },
+      "s300-capture-final-source.log": {
+        "path": "/tmp/s300-capture-final-source.log",
+        "sha256": "4a6693c2a6e0f5117af73b62a754858d9438befb8661b97ecf66a5b2dc6653a0"
+      },
+      "s300-database-retirement.json": {
+        "path": "/tmp/s300-database-retirement.json",
+        "sha256": "bf614b7d934a81aad62607329ea87eba9c551b14e329561beddd12c68ee7f425"
+      }
+    },
+    "retirement": {
+      "retiredAt": "2026-11-09T14:15:51.063109+00:00",
+      "containerId": "209c809c7f8675dbab4edfa3bb9f1a26bbfc887aba53413a90df7012e36d3299",
+      "container": "supabase_db_veyocast-s295-verify",
+      "volume": "supabase_db_veyocast-s295-verify",
+      "ownVolumeKiB": 273784,
+      "otherDatabaseClientsBeforeRetirement": 0,
+      "siblingsConfirmedNoDatabaseDependency": true,
+      "beforeAvailableBytes": 989618176,
+      "afterAvailableBytes": 1449914368,
+      "availableBytesChange": 460296192,
+      "commands": [
+        {
+          "command": [
+            "docker",
+            "stop",
+            "--time",
+            "20",
+            "supabase_db_veyocast-s295-verify"
+          ],
+          "stdout": "Flag --time has been deprecated, use --timeout instead\nsupabase_db_veyocast-s295-verify",
+          "exitCode": 0
+        },
+        {
+          "command": [
+            "docker",
+            "rm",
+            "supabase_db_veyocast-s295-verify"
+          ],
+          "stdout": "supabase_db_veyocast-s295-verify",
+          "exitCode": 0
+        },
+        {
+          "command": [
+            "docker",
+            "volume",
+            "rm",
+            "supabase_db_veyocast-s295-verify"
+          ],
+          "stdout": "supabase_db_veyocast-s295-verify",
+          "exitCode": 0
+        }
+      ],
+      "otherContainersOrVolumesTouched": false,
+      "certificate": "/tmp/s300-database-installed-certificate.json",
+      "reconstructionAssembly": "/tmp/veyocast-s296-s298-s299-s301-s300-final"
+    }
+  }
+}

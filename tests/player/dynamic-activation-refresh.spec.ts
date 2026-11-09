@@ -370,6 +370,7 @@ for (const platform of ["browser", "static-lg"] as const) {
     // LG schedules its authorized read on a zero-delay timer.
     await page.clock.runFor(1);
     await expect.poll(() => state.requests.some(request => request.revision === 3 && request.status === 200)).toBe(true);
+    await staged();
     await page.clock.fastForward(5_500);
     await expect.poll(storedRevision).toBe(3);
     await expect(page.getByText("Zichtbaar 1", { exact: true }).last()).toBeAttached();

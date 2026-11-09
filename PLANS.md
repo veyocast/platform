@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S296–S301 voeren de overdracht van 9 november 2026 uit: gedeelde schermstatus,
+één Content-ingang, uitlegbare effectieve planning, volledige sponsortotalen,
+een optionele Wedstrijddagwerkplek en gecontroleerde seizoenswissel. De gebruiker
+heeft daarna staging én productie gevraagd. Ownership, afhankelijkheden,
+acceptatie en herstel staan in `docs/s296-s301-overdracht-2026-11-09.md`.
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en
@@ -532,3 +538,40 @@ S228 herstelt de op de fysieke LG bewezen weigering van beide lokale
 videotransporten met een begrensde native HTTP-herpoging na volledige
 releaseverificatie. Netwerkafhankelijke video verdringt de vorige lokaal
 werkende release niet; zie `docs/s228-lg-native-media.md`.
+
+S300 bronreview is afgerond voor de optionele draaiboekpublicatie, beperkte
+operationele acties, expliciete delegatie en geverifieerde lokale afloop.
+Default blijft uit; hosted oefeningen raken uitsluitend interne stagingcanaries.
+SQL218migraties/154bestanden/5306asserties en lint/advisors groen; echte
+Playerproductiebuildafx met10 afloop/framegevallen en18 verbindingsgevallen groen.
+Complete foundationlint/typecheck30/30 en tests30/30 met expliciete
+Turbo-concurrency1 zijn groen; de eerdere parallelle starvationfouten blijven bewaard.
+Gewone integratiemerges nemen de gereviewde S296/S297/S298/S301ouders en S299
+mee; de uiteindelijke combinatie moet alle normale CI-gates en hosted acceptatie
+doorlopen vóór de aangevraagde productiepromotie. Migraties blijven oplopend.
+
+S296 CI-herstel door root: expliciete ownership voor de drie bestaande STATE-fixtures en de lokale Source-wizardfooter-CSS; scherm-/publicatiewaarheid en bestaande touchhoogte blijven leidend.40 betrokken browsercases en alle30 foundationtaken groen; normale finale CI opnieuw vereist.
+
+S298 aanvullende CI sluit een ontbrekende kandidaatbarrière in de bestaande
+LG-test en dezelfde lokaal bewezen wizardtouchhoogte als S296. Vier gerichte
+Playergevallen groen; precieze nieuwe bron-SHA en normale CI blijven de
+releasegrens. Zie het eigen CI-barrièrebewijs.
+
+S301 integreert de gereviewde S296/S298-vervolgbronnen. De concrete normale Player-CI-inconsistentie gebruikt nu dezelfde echte origintracker bij alle complete playbackcommits;18 gerichte verbindingstests en30foundationtaken groen, nieuwe volledigeCI volgt.
+
+S297 brede-CI-vervolg behoudt de geavanceerde Studio bij filters wissen, sluit dertien concrete Control-regressies en een echte LG-pageshowrace. Laatste lokale34Controlgevallen en2LGgevallen groen, alle30foundationtaken groen; normale exacte-head-CI en hosted acceptatie blijven vereist.
+
+Deel-PR's325–329 zijn via gewone merges gecombineerd in release-PR330.
+Alle normale CI-gates moeten op die uiteindelijke combinatie slagen. De oude
+S29975minPlayerwatchdog brak af bij379afgerond/81onbevestigd; uitsluitend
+het totale jobbudget wordt105min, met20bestaande runnerunits en normale
+workflowvalidatie groen. Geen individuele deadlines/isolation/coveragewijziging.
+
+Laatste S300-review koppelt bevestigde herstelversie aan haar eigen confirmedAt;
+het eerdere tijdelijke frame houdt zijn historische renderedAt. Twee echte SQL-
+tegenproeven rood, verse218migraties/focus154/full154bestanden5308asserties groen.
+De oorspronkelijke responsive Teamfixture mockt alleen de optionele Matchday-
+beschikbaarheid; daadwerkelijke drie browsergevallen en bundel groen. Finale
+foundationlint/typecheck/test opnieuw30/30; definitieve integratie-CI volgt.
+
+S300 exacte veiligheidscontrole: type-only clientimport uit server-only service verplaatst naar puur typecontract. Originele importgraphgate ongewijzigd3/3PASS. Eerdere cached Configresultaten vervallen als bewijs voor deze repositorybrede controle; alle finale foundationtaken met--force,0cachehits,30/30 pergate groen (22,641/21,428/86,159s), Config11/contract222/Control2200/Player755PASS. Definitieve36UIgevallen opnieuwe18RPC-capture groen41,7s.

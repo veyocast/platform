@@ -1,0 +1,878 @@
+{
+  "schemaVersion": 1,
+  "task": "S297",
+  "baseSha": "da3d1242c92beedee3e8d8d8d2c8d35404ab4ae6",
+  "scope": "local Control routes/components and production Control build, plus generated LG runtime regression; no hosted candidate or physical Player claim",
+  "gates": {
+    "workspaceLint": {
+      "tasksPassed": 30,
+      "tasksTotal": 30
+    },
+    "workspaceTypecheck": {
+      "tasksPassed": 30,
+      "tasksTotal": 30
+    },
+    "workspaceTest": {
+      "tasksPassed": 30,
+      "tasksTotal": 30,
+      "controlFilesPassed": 185,
+      "controlTestsPassed": 2100,
+      "controlTestsExplicitSkipped": 34
+    },
+    "productionControlBuild": {
+      "status": "passed",
+      "authBoundary": "passed",
+      "clientSecretGuard": "passed",
+      "buildId": "z3Tjx-zNY3qp5PZWRm5wa",
+      "buildLogSha256": "f55a463dfee3c7159135aef980753be89d3aabd6ae7e841c236d8e154fdcf205",
+      "buildManifestSha256": "050698844441d1726e2c3995b724984701ba4196d31ec25612e3c970d1faf7dd",
+      "generatedOutputRemovedAfterProof": true
+    },
+    "gitDiffCheck": "passed"
+  },
+  "browsers": {
+    "uniqueRelevantCasesPassed": 55,
+    "chooser": {
+      "passed": 21,
+      "seconds": 50.0,
+      "transport": "controlled real component/Radix/CSS; no provider or persistence claim"
+    },
+    "existingWizard": {
+      "passed": 22,
+      "source": "all 22 passed in initial 40-case run; five initial chooser failures subsequently repaired in final 21-case chooser run"
+    },
+    "actualNextRoutes": {
+      "passed": 12,
+      "runs": [
+        {
+          "passed": 10,
+          "harnessFailures": 2
+        },
+        {
+          "passed": 2,
+          "seconds": 37.1,
+          "selection": "exact two earlier failures, same relevant product source"
+        }
+      ],
+      "environment": "local development demo, no tenant records or mutation permission"
+    },
+    "broadA11y": {
+      "planned": 27,
+      "passedBeforeStop": 8,
+      "complete": false,
+      "reason": "development server memory restarts; CI broad gate remains required"
+    },
+    "normalTurbopackHarness": {
+      "complete": false,
+      "reason": "host inotify max_user_instances 128, visible instances 125; raising only child FD soft limit did not resolve; no sysctl/unrelated process changes"
+    },
+    "productionRouteHarness": {
+      "complete": false,
+      "reason": "production mode without Supabase correctly fails closed at login; local route demo requires development mode"
+    },
+    "builtDemoBroadAttempt": {
+      "complete": false,
+      "reason": "stopped by root after 8 completed cases; no 45-case PASS claim; built assets with explicit development-only demo environment"
+    }
+  },
+  "database": {
+    "migrationChanged": false,
+    "existingRlsGate": "supabase/tests/s226_content_library.sql",
+    "literalSearchReadOnlyCheck": "isolated PostgreSQL exact regex matches intended literal star/punctuation only: t|f|f; no data writes"
+  },
+  "hostedAcceptance": {
+    "INT-01": "pending release workflow",
+    "INT-02": "pending release workflow",
+    "productionDataChanged": false,
+    "providerRequests": 0,
+    "hardwareAcceptanceClaimed": false
+  },
+  "screenshots": [
+    {
+      "path": "screenshots/content-1280.png",
+      "sha256": "941f0620b9a0596c0c02788b8dd193733a560e83588838aa31c4de93bf226a82",
+      "environment": "actual local demo shell"
+    },
+    {
+      "path": "screenshots/content-320.png",
+      "sha256": "c86038311f3e2a9c948357325ef52621ed7de0e76de4acda420af89d71193f09",
+      "environment": "actual local demo shell"
+    },
+    {
+      "path": "screenshots/content-768.png",
+      "sha256": "17f36f8322911142fb44984ffde8a2ead6e51b0e2ebbfd33e7342232c876e296",
+      "environment": "actual local demo shell"
+    },
+    {
+      "path": "screenshots/shared-chooser-desktop.png",
+      "sha256": "df4361e96a2ff2583399ac9aaac41d3bf83c36699e6c1f9126153e985dbc60dd",
+      "environment": "actual local demo shell"
+    }
+  ],
+  "logCertificates": [
+    {
+      "name": "s297-workspace-lint-final.log",
+      "sha256": "c505c43a7cb7439e003238cc2e4d56e88206db421743e05cd88f35ece23df18a"
+    },
+    {
+      "name": "s297-workspace-typecheck-final.log",
+      "sha256": "31c72ffe4bf605c4e847fb61cf5df6e2404939913f10c47542bf36acba9f4c28"
+    },
+    {
+      "name": "s297-workspace-tests-final.log",
+      "sha256": "bf9c6dee76fa7bff1eadbc4beff5c9725b4ed1eea7166ff2da87fb1ec3107a6e"
+    },
+    {
+      "name": "s297-browser-picker.log",
+      "sha256": "62ab766c3b40505255f16b7ed504b475eb59b302917d6e00279e9614feffa309"
+    },
+    {
+      "name": "s297-browser-picker-rights-final.log",
+      "sha256": "dd6b19902365d253eb670757c8ab447e4f2b025b863f3079212509153e7c5757"
+    },
+    {
+      "name": "s297-browser-entry-shell-frozen.log",
+      "sha256": "7f98f0f4cb8f236e2b49e1a77dba9c882ab57f31182b2f955a1ecb883f190d48"
+    },
+    {
+      "name": "s297-browser-route-repairs-final.log",
+      "sha256": "159ee051d70c12200ae8bd09ed9b0809756ec707745ed2242385e93441ce29a9"
+    },
+    {
+      "name": "s297-browser-a11y-final.log",
+      "sha256": "32b6c3bcbb5ea801686f6dd6c69f673192e6cf71bc9d9dab20e9a7c04a7d9a43"
+    },
+    {
+      "name": "s297-control-build.log",
+      "sha256": "f55a463dfee3c7159135aef980753be89d3aabd6ae7e841c236d8e154fdcf205"
+    },
+    {
+      "name": "s297-control-production-browser.log",
+      "sha256": "e58f2b059779494a54db3cad1303ced382f2115cd99a545a300b4b41460e2287"
+    },
+    {
+      "name": "s297-control-built-demo-browser.log",
+      "sha256": "17d333b0eda1157f05f3af3a94a0195e820550e6c01a4444e130629fd31f3c83"
+    },
+    {
+      "name": "s297-content-a2-geometry-closed.log",
+      "sha256": "fe11bcdef91b5716620a16ac12b631a0ca1b361fef37071606f76478f6dbdeb1"
+    },
+    {
+      "name": "s297-source-validator-tests-closed.log",
+      "sha256": "d5dfbf1a72accf5afa399d450474619e4e381e5fa0e6c488ad630ec459f72d5b"
+    },
+    {
+      "name": "s297-responsive-lint-closed.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "s297-advanced-detail-regression.log",
+      "sha256": "da01150597c5aabc8ac6b6c937e1e103ba7ad77084041add19fc19a57d4b178a"
+    }
+  ],
+  "responsiveA2": {
+    "originalCi": {
+      "headSha": "f91e6f007e565a48c5d2097a6b9ced002cbd70f5",
+      "runId": 42617787583,
+      "passed": 54,
+      "failed": 12,
+      "failedCaseIds": [
+        "RESP-0013",
+        "RESP-0014",
+        "RESP-0015",
+        "RESP-0016",
+        "RESP-0017",
+        "RESP-0018",
+        "RESP-0019",
+        "RESP-0020",
+        "RESP-0021",
+        "RESP-0022",
+        "RESP-0023",
+        "RESP-0024"
+      ],
+      "reason": "intentional Content replacement region and correct Studio alias filter; raw geometry preserved"
+    },
+    "localTargeted": {
+      "passed": 12,
+      "seconds": 49.8,
+      "caseIds": [
+        "RESP-0013",
+        "RESP-0014",
+        "RESP-0015",
+        "RESP-0016",
+        "RESP-0017",
+        "RESP-0018",
+        "RESP-0019",
+        "RESP-0020",
+        "RESP-0021",
+        "RESP-0022",
+        "RESP-0023",
+        "RESP-0024"
+      ],
+      "viewports": [
+        360,
+        390,
+        412,
+        768,
+        1024,
+        1440
+      ],
+      "axeRequired": true,
+      "pixelParity": false,
+      "rawReadbackSha256": "343f16e5a33739736c3ac9c9ff8f399d8d466734fb35550cc42ced93d3bece36"
+    },
+    "validatorTestsPassed": 13,
+    "scopedLint": "passed",
+    "unchangedCriteria": "original66 IDs, immutable baseline assets, raw deltas, shell/fonts/overflow/axe/44px remain strict",
+    "full66CandidateCi": "required; targeted12 is not full66 evidence",
+    "intentionalChangedProperties": {
+      "sectionHeader": [
+        "height"
+      ],
+      "sectionHeaderAction": [
+        "y"
+      ],
+      "libraryToolbar": [
+        "y",
+        "height"
+      ],
+      "filterTabs": [
+        "y",
+        "width",
+        "height",
+        "gap"
+      ],
+      "search": [
+        "y"
+      ],
+      "heading0": [
+        "width"
+      ],
+      "heading1": [
+        "y"
+      ]
+    },
+    "newAdvancedDetailCases": {
+      "count": 2,
+      "priorEnvironmentAttempt": {
+        "count": 2,
+        "localStatus": "incomplete_environment",
+        "reason": "Watchpack EMFILE; stopped before assertions; normal CI required",
+        "port3217AfterAttempt": "closed"
+      },
+      "localStatus": "passed",
+      "seconds": 25.726702,
+      "port3217AfterAttempt": "closed",
+      "scope": "ordinary local Next dev, original demo; no hosted mutation claim"
+    }
+  },
+  "lgStartupClosure": {
+    "sourceBaseHead": "909ab47e5fdf029cc6d0e70692a1eb7e9fd39872",
+    "authorizedPaths": [
+      "apps/player/app/_lib/lg-legacy-page.ts",
+      "apps/player/app/_lib/lg-legacy-page.test.ts",
+      "tests/player/lg-legacy-player.spec.ts"
+    ],
+    "originalCi": {
+      "runId": "42622856700",
+      "jobId": "129179285041",
+      "case": 143,
+      "result": "failed",
+      "symptom": "initial pageshow aborts the outstanding first manifest before an ETag is known; the replacement request is therefore unconditional",
+      "traceSha256": "59f161d942559077784d7f1665eb9d3c083ba4b1aaada96083ee84631db6ef15",
+      "logSha256": "10ef2273033e6fa809edbf13f100c0e42f8849b340b988d929b4b70c7ccaa897"
+    },
+    "redToGreen": {
+      "generatedRuntimeUnit": {
+        "before": "failed: expected zero invalidations for the first non-persisted pageshow; received one",
+        "after": {
+          "passed": 27,
+          "file": "apps/player/app/_lib/lg-legacy-page.test.ts"
+        }
+      },
+      "browser": {
+        "before": "failed: the extra request lacked the expected If-None-Match",
+        "after": {
+          "passed": 2,
+          "seconds": 1.9
+        },
+        "cases": [
+          "original static shell/local verified blob image",
+          "delayed first 200 with real initial pageshow, persisted-pageshow event and online recovery; same visible DOM retained"
+        ]
+      },
+      "transport": "real renderLgLegacyHtml helper compiled with esbuild for Node, served with actual public assets; controlled Playwright API responses on localhost3197",
+      "limits": [
+        "not a Next production-build proof",
+        "persisted pageshow is an explicit PageTransitionEvent, not a physical-device or actual browser BFCache restoration certificate",
+        "no hosted candidate or physical LG acceptance claim"
+      ],
+      "serverStopped": true
+    },
+    "finalFoundation": {
+      "lint": {
+        "passed": 30,
+        "total": 30,
+        "seconds": 20.833
+      },
+      "typecheck": {
+        "passed": 30,
+        "total": 30,
+        "seconds": 42.754
+      },
+      "test": {
+        "passed": 30,
+        "total": 30,
+        "seconds": 24.942,
+        "playerFiles": 85,
+        "playerPassed": 656,
+        "controlFiles": 185,
+        "controlPassed": 2100,
+        "controlExplicitSkipped": 34
+      }
+    },
+    "additionalBrowserTypeAudit": {
+      "baselineDiagnostics": 5,
+      "currentDiagnostics": 5,
+      "unchanged": true,
+      "newCaseDiagnostics": 0,
+      "detail": "standalone whole-spec strict compile retains five pre-existing HTMLElement/SVGElement media-property errors; ordinary workspace typecheck passes"
+    },
+    "preservedTriggers": [
+      "online",
+      "visibilitychange",
+      "dynamic activation",
+      "periodic",
+      "in-flight coalescing",
+      "backoff"
+    ],
+    "newPlayerBuildClaim": false,
+    "hardwareClaim": false,
+    "providerRequests": 0,
+    "productionMutations": 0,
+    "logs": [
+      {
+        "name": "s297-lg-pageshow-unit-red.log",
+        "sha256": "3b69c32fdd04b23676f57d5c0e369d6a9f91b4f412302d0f7b4f1edf043b96ab"
+      },
+      {
+        "name": "s297-lg-pageshow-units-green.log",
+        "sha256": "ead11a84add3ebb8d771e0ebcb7ffda9ace201873af419132bc0ee287a2998c5"
+      },
+      {
+        "name": "s297-lg-pageshow-browser-red.log",
+        "sha256": "409c1fad080e66c04f3887a05b0f05fc02e931ba0d202b14f44148dc7d03bd56"
+      },
+      {
+        "name": "s297-lg-pageshow-browser-green.log",
+        "sha256": "c36b9ce8e141eeacb1401f2009fd2588c622ccab3e8688cb5750f6123fbaab0e"
+      },
+      {
+        "name": "s297-lg-pageshow-browser-red-report.json",
+        "sha256": "907fd501029da4ce04866be02cffc0f22a552092327049bb231299336ad7f4e9"
+      },
+      {
+        "name": "s297-lg-pageshow-browser-green-report.json",
+        "sha256": "3a0ee6183935dc7237864ca3230df237cf2098af9f6bf425b9eedbd1b70cb390"
+      },
+      {
+        "name": "s297-lg-pageshow-foundation-lint.log",
+        "sha256": "8b98fdf85228b46436c1920a566e52e61d6abf59229ff25c920b0511211f95d2"
+      },
+      {
+        "name": "s297-lg-pageshow-foundation-typecheck.log",
+        "sha256": "05b28b482393ef57f2743e3919b012579265d81435438b8d2745bd17dbcab270"
+      },
+      {
+        "name": "s297-lg-pageshow-foundation-test.log",
+        "sha256": "d4e8adca423f9a7f95c9106da7b73225f7886b90e4484c791187b62378c627ed"
+      },
+      {
+        "name": "s297-lg-pageshow-lint.log",
+        "sha256": "3e03e8bff54111f2080c28224ef73aedf233d0eb2289f3df5904150087800dcd"
+      },
+      {
+        "name": "s297-lg-pageshow-types.log",
+        "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+      },
+      {
+        "name": "s297-lg-browser-baseline-diagnostics.json",
+        "sha256": "8eb7ff0f745e35de22b6f7466fa6f3c16649f4948eed98a6acd30b732b4c9114"
+      }
+    ]
+  },
+  "controlCiClosure": {
+    "originalCi": {
+      "runId": "42622856700",
+      "controlLogSha256": "c07b44f4f938b1d30130c99411bf1d9a12c7d04a6a1adfb1bfbf38ee70d4898a",
+      "failed": 13,
+      "didNotRun": 3,
+      "passed": 693,
+      "explicitSkipped": 629
+    },
+    "originalFailureClosure": [
+      {
+        "file": "tests/control/s297-content-entry.spec.ts",
+        "title": "advanced Studio and original design details remain at their own routes at 320px",
+        "finalTitle": "advanced Studio and original design details remain at their own routes at 320px",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-advanced-report.json"
+      },
+      {
+        "file": "tests/control/s297-content-entry.spec.ts",
+        "title": "advanced Studio and original design details remain at their own routes at 1440px",
+        "finalTitle": "advanced Studio and original design details remain at their own routes at 1440px",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-advanced-report.json"
+      },
+      {
+        "file": "tests/control/sites-shell-workflows.spec.ts",
+        "title": "original SHELL-0001 390x844 search",
+        "finalTitle": "original SHELL-0001 390x844 search",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sites-shell-workflows.spec.ts",
+        "title": "original SHELL-0005 390x844 navigation-more",
+        "finalTitle": "original SHELL-0005 390x844 navigation-more",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sites-shell-workflows.spec.ts",
+        "title": "original SHELL-0007 390x844 keyboard-focus",
+        "finalTitle": "original SHELL-0007 390x844 keyboard-focus",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sites-shell-workflows.spec.ts",
+        "title": "original SHELL-0009 1440x900 search",
+        "finalTitle": "original SHELL-0009 1440x900 search",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sites-shell-workflows.spec.ts",
+        "title": "original SHELL-0015 1440x900 keyboard-focus",
+        "finalTitle": "original SHELL-0015 1440x900 keyboard-focus",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sync-management-dialog.spec.ts",
+        "title": "Source cards preserve every permitted domain and responsive geometry at 390px",
+        "finalTitle": "Source cards preserve every permitted domain and responsive geometry at 390px",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sync-management-dialog.spec.ts",
+        "title": "Source cards preserve every permitted domain and responsive geometry at 1440px",
+        "finalTitle": "Source cards preserve every permitted domain and responsive geometry at 1440px",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sync-management-dialog.spec.ts",
+        "title": "actual shell exposes only Media for a custom role without any eight-core capabilities",
+        "finalTitle": "actual shell exposes only Content for a media-only role without management capabilities",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/control/sync-platform-mobile-layout.spec.ts",
+        "title": "platform forms, summaries and support cards remain readable at 390px",
+        "finalTitle": "platform forms, summaries and support cards remain readable at 390px",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/e2e/dynamic-content-recovery.spec.ts",
+        "title": "stuurt de oude slideflow door naar de Unified Studio",
+        "finalTitle": "stuurt de oude slideflow door naar de Unified Studio",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-routes-report.json"
+      },
+      {
+        "file": "tests/e2e/studio.spec.ts",
+        "title": "Studio overview and creation journey use real responsive controls",
+        "finalTitle": "Studio overview and creation journey use real responsive controls",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-routes-report.json"
+      }
+    ],
+    "originalDidNotRunClosure": [
+      {
+        "file": "tests/control/sync-platform-mobile-layout.spec.ts",
+        "title": "platform forms, summaries and support cards remain readable at 1440px",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-components-report.json"
+      },
+      {
+        "file": "tests/e2e/studio.spec.ts",
+        "title": "desktop Studio editor supports editing, preview and revision inspection",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-routes-report.json"
+      },
+      {
+        "file": "tests/e2e/studio.spec.ts",
+        "title": "mobile Studio is a focused quick-edit journey rather than a mini desktop",
+        "status": "passed",
+        "report": "s297-control-ci-repaired-routes-report.json"
+      }
+    ],
+    "latestLocalUnion": {
+      "passed": 34,
+      "failed": 0,
+      "didNotRun": 0,
+      "cases": [
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0001 390x844 search",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0002 390x844 account",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0003 390x844 tenant",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0004 390x844 notifications",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0005 390x844 navigation-more",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0006 390x844 sidebar-collapsed",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0007 390x844 keyboard-focus",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0008 390x844 reduced-motion",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0009 1440x900 search",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0010 1440x900 account",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0011 1440x900 tenant",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0012 1440x900 notifications",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0013 1440x900 navigation-more",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0014 1440x900 sidebar-collapsed",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0015 1440x900 keyboard-focus",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "original SHELL-0016 1440x900 reduced-motion",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "Meldingen loading preserves privacy and keyboard recovery",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "Meldingen empty preserves privacy and keyboard recovery",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "Meldingen error preserves privacy and keyboard recovery",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "Meldingen network preserves privacy and keyboard recovery",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "Meldingen readonly preserves privacy and keyboard recovery",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sites-shell-workflows.spec.ts",
+          "title": "Meldingen wrong-tenant preserves privacy and keyboard recovery",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sync-management-dialog.spec.ts",
+          "title": "Source cards preserve every permitted domain and responsive geometry at 390px",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sync-management-dialog.spec.ts",
+          "title": "Source cards preserve every permitted domain and responsive geometry at 1440px",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sync-management-dialog.spec.ts",
+          "title": "management card preserves the real href and both close callbacks",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sync-management-dialog.spec.ts",
+          "title": "actual shell exposes only Content for a media-only role without management capabilities",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sync-platform-mobile-layout.spec.ts",
+          "title": "platform forms, summaries and support cards remain readable at 390px",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/sync-platform-mobile-layout.spec.ts",
+          "title": "platform forms, summaries and support cards remain readable at 1440px",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-components-report.json"
+        },
+        {
+          "file": "tests/control/s297-content-entry.spec.ts",
+          "title": "advanced Studio and original design details remain at their own routes at 320px",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-advanced-report.json"
+        },
+        {
+          "file": "tests/control/s297-content-entry.spec.ts",
+          "title": "advanced Studio and original design details remain at their own routes at 1440px",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-advanced-report.json"
+        },
+        {
+          "file": "tests/e2e/dynamic-content-recovery.spec.ts",
+          "title": "stuurt de oude slideflow door naar de Unified Studio",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-routes-report.json"
+        },
+        {
+          "file": "tests/e2e/studio.spec.ts",
+          "title": "Studio overview and creation journey use real responsive controls",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-routes-report.json"
+        },
+        {
+          "file": "tests/e2e/studio.spec.ts",
+          "title": "desktop Studio editor supports editing, preview and revision inspection",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-routes-report.json"
+        },
+        {
+          "file": "tests/e2e/studio.spec.ts",
+          "title": "mobile Studio is a focused quick-edit journey rather than a mini desktop",
+          "status": "passed",
+          "report": "s297-control-ci-repaired-routes-report.json"
+        }
+      ]
+    },
+    "componentRun": {
+      "passed": 28,
+      "seconds": 39.781727,
+      "scope": "real components/CSS with controlled Next/session/read transport; original geometry, focus, privacy and axe assertions retained"
+    },
+    "actualNextUnion": {
+      "passed": 6,
+      "runs": [
+        {
+          "passed": 4,
+          "failed": 2,
+          "seconds": 73.58459,
+          "failedCause": "new advanced-test query used detail-only demo title Clubhuis, absent from canonical overview; retained as failed harness history"
+        },
+        {
+          "passed": 2,
+          "failed": 0,
+          "seconds": 25.726702,
+          "selection": "exact same two advanced titles; canonical overview name Wedstrijd van de dag plus exact original design ID"
+        }
+      ],
+      "mode": "ordinary Next dev and original local demo; process-only WATCHPACK_POLLING=true; no Auth bypass",
+      "serverStopped": true,
+      "generatedOutputRetiredAfterCertificate": true,
+      "nextCertificate": {
+        "mode": "normal Next dev; existing local demo auth boundary; WATCHPACK_POLLING=true process environment only",
+        "sourceHead": "909ab47e5fdf029cc6d0e70692a1eb7e9fd39872",
+        "port": 3217,
+        "serverStopped": true,
+        "compiledFiles": [
+          {
+            "path": "apps/control/.next/build-manifest.json",
+            "sha256": "7a00253d808c2a7b95ae4216d9edcb862cf363373b17c6ec256131a5f9b400eb"
+          },
+          {
+            "path": "apps/control/.next/app-build-manifest.json",
+            "sha256": "3a0cfcb7763f2becf739f16ee16cfe7aa209d74c8c8efd048188976509af49b5"
+          }
+        ],
+        "serverLogSha256": "4467d6a0a1e7860cfab83d134ccf9adbdaef937e054d2b6843d8cae9d2ecf336",
+        "initialSixRunReportSha256": "0b8c8450c0173178411066d41a910cdf8f0dc0347467b29edbe8635f870448a9",
+        "exactAdvancedRepairsReportSha256": "5c2cad8dc429e37fc1b65a0ec5222b8feb2f6d39d4f4c5e8fd090d3aad366208",
+        "productionBuildClaim": false,
+        "providerRequests": 0,
+        "tenantDataWrites": 0
+      }
+    },
+    "authorizedProductChanges": [
+      {
+        "path": "apps/control/app/(shell)/dashboard/studio/page.tsx",
+        "change": "filters clear to exact advanced workbench instead of exiting through the new Content alias"
+      },
+      {
+        "path": "apps/control/app/(shell)/dashboard/studio/sync-create-wizard.module.css",
+        "change": "exact c9445d2 footer specificity correction to existing 48px token; 44px assertions unchanged"
+      }
+    ],
+    "catalogue": {
+      "canonicalFamilyCount": 36,
+      "firstGridCount": 30,
+      "retainedScopeIds": [
+        "club-program",
+        "team-program",
+        "pool-program",
+        "club-results",
+        "team-results",
+        "pool-results"
+      ],
+      "proof": "explicit ordered 30 task IDs and all displayed names; Programma/Uitslagen each once; exact original scope mappings retained"
+    },
+    "finalFoundation": {
+      "lint": {
+        "passed": 30,
+        "total": 30,
+        "seconds": 17.366
+      },
+      "typecheck": {
+        "passed": 30,
+        "total": 30,
+        "seconds": 10.331
+      },
+      "test": {
+        "passed": 30,
+        "total": 30,
+        "seconds": 19.666,
+        "controlPassed": 2100,
+        "controlExplicitSkipped": 34,
+        "playerPassed": 656
+      }
+    },
+    "noToleranceOrLockedAssetChanges": true,
+    "noWorkflowChanges": true,
+    "hostedOrHardwareClaim": false,
+    "logs": [
+      {
+        "name": "s297-control-ci-final-failed.log",
+        "sha256": "c07b44f4f938b1d30130c99411bf1d9a12c7d04a6a1adfb1bfbf38ee70d4898a"
+      },
+      {
+        "name": "s297-control-ci-repaired-components-report.json",
+        "sha256": "06244ef0cd9ba39c94ad983cbafb6de00c800bdde3056bcaddd5e8603f36d804"
+      },
+      {
+        "name": "s297-control-ci-repaired-components.log",
+        "sha256": "315040d1a6d38e9c8dbb3c446a5f341a30fa8532dcc13c43a2e6bc42e9290534"
+      },
+      {
+        "name": "s297-control-ci-repaired-routes-report.json",
+        "sha256": "0b8c8450c0173178411066d41a910cdf8f0dc0347467b29edbe8635f870448a9"
+      },
+      {
+        "name": "s297-control-ci-repaired-routes.log",
+        "sha256": "ece4a96c440d2e8ba80af76d96465912f3a1a3a113769703783496d38e63ff4c"
+      },
+      {
+        "name": "s297-control-ci-repaired-advanced-report.json",
+        "sha256": "5c2cad8dc429e37fc1b65a0ec5222b8feb2f6d39d4f4c5e8fd090d3aad366208"
+      },
+      {
+        "name": "s297-control-ci-repaired-advanced.log",
+        "sha256": "505ed86690f92ab06958f1da88942c89f1868f088873ed1b7f067df847b7fa30"
+      },
+      {
+        "name": "s297-control-ci-repaired-foundation-lint.log",
+        "sha256": "1db51caf04e868234a2a6b41a3a55bfc81467d80a6f981e2432bb013ba471908"
+      },
+      {
+        "name": "s297-control-ci-repaired-foundation-typecheck.log",
+        "sha256": "d7e690d1a02d114f5603efe687864b48adea3f4db5b5fd13f169f5c277ed4773"
+      },
+      {
+        "name": "s297-control-ci-repaired-foundation-test.log",
+        "sha256": "f293b3034b11711e78cc1d990ce575d03478aab914c45b121d1908d90913deed"
+      },
+      {
+        "name": "s297-ci-repairs-next-certificate.json",
+        "sha256": "e36263a0b9b82ba0e68a119765d2ca3ec26922587ec680febaf4b65945e33829"
+      }
+    ]
+  }
+}

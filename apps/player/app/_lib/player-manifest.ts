@@ -1,6 +1,7 @@
 import {syncOnzeTrotsWelcomeShouldSkip,syncDynamicBinaryPlaybackSchema} from '@veyocast/contracts';
 import type {PlayerSitesMarkup} from "./player-sites-markup";
 import type {PlayerScreenComposition} from "./player-screen-composition";
+import type {PlayerMatchdayWindow} from "./player-matchday-window";
 
 import type {
   PlayerDynamicTemplatePayload,
@@ -142,6 +143,7 @@ export type PlayerReleaseManifest = {
 };
 
 export type PlayerManifestEnvelope = {
+  matchdayWindow?:PlayerMatchdayWindow;
   composition?:PlayerScreenComposition;
   target?: {
     revision: string;

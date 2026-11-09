@@ -16,6 +16,7 @@ import type {
 import { resolveMonotonicPlayerEntitlement } from "./player-entitlement";
 import { createPlayerMediaStore, type PlayerMediaStore } from "./player-media-store";
 import { playerMediaTraffic } from "./media-traffic";
+import {assertMatchdayWindowEnvelope,matchdayColdBootEnvelope,matchdayWindowIdentity} from "./player-matchday-window";
 import { downloadMedia } from "./media-download";
 
 export const playerAssetCacheName = "veyocast-player-assets-v1";
@@ -34,7 +35,7 @@ let preparingMediaCount = 0;
 let mediaCollection: Promise<unknown> = Promise.resolve();
 
 export type PlayerCachePhase = "DOWNLOADING" | "VERIFYING";
-export function hasSyncDomV2Envelope(envelope:PlayerManifestEnvelope){return[envelope,...Object.values(envelope.composition?.zones??{})].some(zone=>zone.manifest.schemaVersion===2);}
+export function hasSyncDomV2Envelope(envelope:PlayerManifestEnvelope){return[envelope,...Object.values(envelope.composition?.zones??{}),...(envelope.matchdayWindow?[envelope.matchdayWindow.fallback,...Object.values(envelope.matchdayWindow.fallback.composition?.zones??{}),envelope.matchdayWindow.ordinary,...Object.values(envelope.matchdayWindow.ordinary.composition?.zones??{})]:[])].some(zone=>zone.manifest.schemaVersion===2);}
 
 export type PlayerCacheAsset = {
   bytes: number;
@@ -130,8 +131,9 @@ export function getCacheableAssets(
 
 
 export function getEnvelopeCacheableAssets(envelope:PlayerManifestEnvelope):PlayerCacheAsset[]{
+ assertMatchdayWindowEnvelope(envelope);
  if(envelope.composition){const parsed=publishedScreenCompositionSchema.safeParse(envelope.composition.published);if(!parsed.success)throw new Error("COMPOSITION_ASSETS_UNAVAILABLE");const bindings=parsed.data.bindings.filter(binding=>binding.zoneId!=="main");if(Object.keys(envelope.composition.zones).length!==bindings.length||bindings.some(binding=>{const zone=envelope.composition!.zones[binding.zoneId as "side"|"bottom"];return !zone||zone.composition||zone.manifest.tenantId!==envelope.manifest.tenantId||zone.device.id!==envelope.device.id||zone.device.screenId!==envelope.device.screenId||zone.manifest.releaseId!==binding.releaseId||zone.manifest.playlistId!==binding.playlistId;}))throw new Error("COMPOSITION_ASSETS_UNAVAILABLE");}
- const assets=[...getCacheableAssets(envelope.manifest),...Object.values(envelope.composition?.zones??{}).flatMap(zone=>getCacheableAssets(zone.manifest))];
+ const assets=[...getCacheableAssets(envelope.manifest),...Object.values(envelope.composition?.zones??{}).flatMap(zone=>getCacheableAssets(zone.manifest)),...(envelope.matchdayWindow?[...getEnvelopeCacheableAssets(envelope.matchdayWindow.fallback),...getEnvelopeCacheableAssets(envelope.matchdayWindow.ordinary)]:[])];
  return [...new Map(assets.map(asset=>[asset.cacheKey,asset])).values()];
 }
 
@@ -227,6 +229,9 @@ export async function activateRelease({
   envelope: PlayerManifestEnvelope;
   signal?: AbortSignal;
 }) {
+  // Old app versions must only ever see an ordinary verified LKG. Temporal
+  // playback is session-local; a new boot needs fresh authorized clock proof.
+  ({envelope,assets}=persistablePlayerRelease(envelope,assets));
   const cachedRelease: CachedPlayerRelease = {
     activatedAt: new Date().toISOString(),
     assets,
@@ -265,6 +270,25 @@ export async function activateRelease({
   }
 
   return cachedRelease;
+}
+
+export function persistablePlayerRelease(envelope:PlayerManifestEnvelope,assets:PlayerCacheAsset[]){
+  if(!envelope.matchdayWindow)return{envelope,assets};
+  const required=getEnvelopeCacheableAssets(envelope),provided=new Map(assets.map(asset=>[asset.cacheKey,asset]));
+  if(required.some(asset=>{const actual=provided.get(asset.cacheKey);return !actual||actual.bytes!==asset.bytes||actual.checksumSha256!==asset.checksumSha256;}))throw Error("MATCHDAY_FALLBACK_INCOMPLETE");
+  const ordinary=envelope.matchdayWindow.ordinary,keys=new Set(getEnvelopeCacheableAssets(ordinary).map(asset=>asset.cacheKey));
+  return{envelope:ordinary,assets:assets.filter(asset=>keys.has(asset.cacheKey))};
+}
+
+/** Expiry uses the verified END publication, then the same bounded ordinary
+ * active/previous recovery order as cold boot. No temporary cache is revived. */
+export async function hydrateMatchdayRecovery(release:HydratedPlayerRelease,readKnownGood:(kind:'active'|'previous')=>Promise<Pick<CachedPlayerRelease,'assets'|'envelope'|'activatedAt'|'deviceToken'>|null|undefined>,store=createPlayerMediaStore(playerAssetCacheName)){
+ const window=release.envelope.matchdayWindow;if(!window)throw Error('MATCHDAY_WINDOW_REQUIRED');
+ try{const keys=new Set(getEnvelopeCacheableAssets(window.fallback).map(asset=>asset.cacheKey));return await hydratePreparedRelease({envelope:window.fallback,assets:release.assets.filter(asset=>keys.has(asset.cacheKey))},store);}catch{/* Continue only with fully verified ordinary history. */}
+ for(const kind of ['active','previous']as const){
+  try{const cached=await readKnownGood(kind);if(cached)return await hydrateCachedRelease(cached,store);}catch{/* A corrupt newer record does not invalidate older complete history. */}
+ }
+ throw Error('MATCHDAY_RECOVERY_UNAVAILABLE');
 }
 
 export async function readActiveRelease(deviceToken: string) {
@@ -567,6 +591,11 @@ export async function hydrateCachedRelease(
   cachedRelease: CachedPlayerRelease,
   store = createPlayerMediaStore(playerAssetCacheName)
 ): Promise<HydratedPlayerRelease> {
+  const bootEnvelope=matchdayColdBootEnvelope(cachedRelease.envelope);
+  if(bootEnvelope!==cachedRelease.envelope){
+    const required=new Set(getEnvelopeCacheableAssets(bootEnvelope).map(asset=>asset.cacheKey));
+    cachedRelease={...cachedRelease,envelope:bootEnvelope,assets:cachedRelease.assets.filter(asset=>required.has(asset.cacheKey))};
+  }
   try {
     return await hydratePreparedRelease(cachedRelease, store);
   } catch (error) {
@@ -762,6 +791,7 @@ function withCachedUrls(
 
   return {
     ...envelope,
+    ...(envelope.matchdayWindow?{matchdayWindow:{...envelope.matchdayWindow,fallback:withCachedUrls(envelope.matchdayWindow.fallback,playbackUrls),ordinary:withCachedUrls(envelope.matchdayWindow.ordinary,playbackUrls)}}:{}),
     ...(envelope.composition?{composition:{...envelope.composition,zones:Object.fromEntries(Object.entries(envelope.composition.zones).map(([id,zone])=>[id,withCachedUrls(zone,playbackUrls)]))}}:{}),
     manifest: {
       ...manifest,
@@ -840,6 +870,8 @@ export function refreshHydratedReleaseEnvelope({
   freshEnvelope: PlayerManifestEnvelope;
   online?: boolean;
 }): PlayerManifestEnvelope {
+  assertMatchdayWindowEnvelope(freshEnvelope);
+  if(matchdayWindowIdentity(cachedEnvelope)!==matchdayWindowIdentity(freshEnvelope))throw Error("MATCHDAY_WINDOW_PREPARATION_REQUIRED");
   assertSyncPlayerAssetManifest(freshEnvelope.manifest);
   assertSyncDynamicConfigurationContinuity(cachedEnvelope.manifest,freshEnvelope.manifest);
   assertMediaFrameManifest(freshEnvelope.manifest);
@@ -855,6 +887,7 @@ export function refreshHydratedReleaseEnvelope({
 
   const refreshed: PlayerManifestEnvelope = {
     ...freshEnvelope,
+    ...(freshEnvelope.matchdayWindow&&cachedEnvelope.matchdayWindow?{matchdayWindow:{...freshEnvelope.matchdayWindow,fallback:refreshHydratedReleaseEnvelope({cachedEnvelope:cachedEnvelope.matchdayWindow.fallback,freshEnvelope:freshEnvelope.matchdayWindow.fallback,online}),ordinary:refreshHydratedReleaseEnvelope({cachedEnvelope:cachedEnvelope.matchdayWindow.ordinary,freshEnvelope:freshEnvelope.matchdayWindow.ordinary,online})}}:{}),
     ...(entitlement
       ? {
           entitlement,

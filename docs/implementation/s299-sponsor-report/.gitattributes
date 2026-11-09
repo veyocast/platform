@@ -1,0 +1,2 @@
+# Preserve the product serializer's RFC4180 CRLF bytes for its evidence hash.
+actual-database-report.csv -text !eol whitespace=cr-at-eol
