@@ -25,3 +25,12 @@ de bytebewaarde originele bootstrap achter de guard. Geen assertions overslaan
 of historische migraties wijzigen. De uiteindelijke gecombineerde SHA vereist
 alle normale CI-gates en stagingbewijs; productie is direct door de gebruiker
 geautoriseerd. Default-off blijft voor klantverenigingen behouden.
+
+Root autoriseert na de daadwerkelijke GitHubannotatie van S299run42616646027
+uitbreiding naar uitsluitend de totale Playerjobwatchdog in
+`.github/workflows/pr-gates.yml`:75 naar105 minuten. Artifactclosure had379
+afgeronde gevallen(364PASS/15verwachteSKIP), één onderbroken en80 nog niet
+gestarte, complete=false. Voorbereiding11m09s en casegate62m08s bereikten de
+75minlimiet. Behoud alle oorspronkelijke en nieuwe gevallen, aparte processen,
+worker1, rapportage en individuele test-/encoderdeadlines. Geen coverage-,
+isolatie- of assertionversoepeling en geen workflowsecret-/deploywijziging.

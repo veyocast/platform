@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "productSourceSha": "04b7026a57633fa75bccf75ba8b7eea67c8b9b26",
+  "buildId": "dAwYB6HT7wU2Zs8FElBgt",
+  "command": "NEXT_PUBLIC_APP_VERSION=04b7026a57633fa75bccf75ba8b7eea67c8b9b26 pnpm --filter @veyocast/control build",
+  "buildResult": "PASS",
+  "authGuard": "Control authcontrole: beveiligde routes zijn dynamisch.",
+  "logSha256": "a86e04b4fbb64e1442410088bf633eeda1a657276a56866d04bd501efb9d8655",
+  "routeSamples": {
+    "/(shell)/dashboard/content/media/[frameId]/page": "app/(shell)/dashboard/content/media/[frameId]/page.js",
+    "/(shell)/dashboard/content/media/source/[assetId]/page": "app/(shell)/dashboard/content/media/source/[assetId]/page.js",
+    "/(shell)/dashboard/content/page": "app/(shell)/dashboard/content/page.js",
+    "/(shell)/dashboard/matchday/page": "app/(shell)/dashboard/matchday/page.js",
+    "/(shell)/dashboard/matchday/preview/[releaseId]/page": "app/(shell)/dashboard/matchday/preview/[releaseId]/page.js",
+    "/(shell)/dashboard/planning/effectief/page": "app/(shell)/dashboard/planning/effectief/page.js"
+  },
+  "fileCount": 3644,
+  "outputTreeSha256": "2c092a9fd5c61c1b0f862a65c31fcbfd0d752a24803d6d3fe0e71b4a494c9f9b",
+  "runtimeProofClaim": false,
+  "retirement": "Own completed ignored .next only; no server running; preserve certificate and source/build log."
+}

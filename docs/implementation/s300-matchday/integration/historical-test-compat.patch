@@ -1,0 +1,62 @@
+--- original/supabase/tests/s301_sportlink_season_switch.sql
++++ assembly/supabase/tests/s301_sportlink_season_switch.sql
+@@ -196,9 +196,9 @@
+ select ok(exists(select 1 from jsonb_array_elements(pg_temp.row_for('Matchday')#>'{bindings,0,candidates}')candidate
+  where candidate#>>'{context,providerTeamId}'='-1'),'canonical string team identities are never restricted to positive digit-only codes');
+ select ok(not(pg_temp.row_for('Matchday')->'impact'?'reviewHash'),'internal review fingerprint is not an extra public payload field');
+-select is(pg_temp.inventory()#>>'{integration,matchdayRunbooks}','unavailable','S300 integration is explicitly unavailable, not a complete empty claim');
+-select is(public.get_sportlink_season_switch_inventory_v1('10000000-0000-4000-8000-000000000301',pg_temp.connection_id(),'2026')->'totalCount','null'::jsonb,
+- 'unknown runbooks prevent a full heterogeneous selection count');
++select is(pg_temp.inventory()#>>'{integration,matchdayRunbooks}',case when to_regclass('public.matchday_runbooks')is not null then'available'else'unavailable'end,'S300 integration accurately reports the installed private adapter');
++select is(public.get_sportlink_season_switch_inventory_v1('10000000-0000-4000-8000-000000000301',pg_temp.connection_id(),'2026')->'totalCount',case when to_regclass('public.matchday_runbooks')is not null then'4'::jsonb else'null'::jsonb end,
++ 'known runbooks permit an exact heterogeneous count; unavailable integration retains unknown');
+ select ok(exists(select 1 from jsonb_array_elements(pg_temp.row_for('Matchday')#>'{impact,references}')ref where ref->>'kind'='publication')
+  and exists(select 1 from jsonb_array_elements(pg_temp.row_for('Matchday')#>'{impact,references}')ref where ref->>'kind'='screen'),
+  'exact frozen release and desired/default screen impact are retained');
+@@ -354,7 +354,7 @@
+  '2025','concurrent editor draft is not overwritten');
+ select throws_ok($$select public.preview_sportlink_season_switch_v1('10000000-0000-4000-8000-000000000301',
+  ((select value-'requestId'-'correlationId'from facts where key='command')||'{"resourceKind":"matchday_runbook"}'))$$,
+- '55000',null,'S300 adapter blocks unavailable integration instead of silently dropping matches');
++ case when to_regclass('public.matchday_runbooks')is not null then'42501'else'55000'end,null,'S300 adapter rejects a non-runbook resource or explicitly unavailable integration');
+ reset role;
+ select is(private.sportlink_season_patch_s301_v1(jsonb_build_object('context',pg_temp.context(),
+  'sourceTeamSelection',jsonb_build_object('mode','selected','teamContexts',jsonb_build_array(pg_temp.context()))),
+--- original/supabase/tests/rls_s142_ledscores_canvas_editor.sql
++++ assembly/supabase/tests/rls_s142_ledscores_canvas_editor.sql
+@@ -435,12 +435,14 @@
+ select ok(position(
+   'version.id = pending.alert_version_id' in
+   pg_get_functiondef(
+-    'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure
++    coalesce(to_regprocedure('public.get_ledscores_player_bootstrap_before_matchday_s300_v1(text)'),
++      'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure)
+   )
+ )>0 and position(
+   'pending_catchup desc' in
+   pg_get_functiondef(
+-    'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure
++    coalesce(to_regprocedure('public.get_ledscores_player_bootstrap_before_matchday_s300_v1(text)'),
++      'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure)
+   )
+ )>0,'the Player bootstrap prioritizes immutable versions needed by pending catch-up deliveries');
+ select ok(position('250000' in pg_get_constraintdef(
+--- original/supabase/tests/s191_led_scene_authoring.sql
++++ assembly/supabase/tests/s191_led_scene_authoring.sql
+@@ -435,12 +435,14 @@
+ select ok(position(
+   'version.id = pending.alert_version_id' in
+   pg_get_functiondef(
+-    'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure
++    coalesce(to_regprocedure('public.get_ledscores_player_bootstrap_before_matchday_s300_v1(text)'),
++      'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure)
+   )
+ )>0 and position(
+   'pending_catchup desc' in
+   pg_get_functiondef(
+-    'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure
++    coalesce(to_regprocedure('public.get_ledscores_player_bootstrap_before_matchday_s300_v1(text)'),
++      'public.get_ledscores_player_bootstrap_v1(text)'::regprocedure)
+   )
+ )>0,'the Player bootstrap prioritizes immutable versions needed by pending catch-up deliveries');
+ select ok(position('250000' in pg_get_constraintdef(

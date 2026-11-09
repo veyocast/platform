@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "productSourceSha": "04b7026a57633fa75bccf75ba8b7eea67c8b9b26",
+  "applicationSourceChangesAfterProductSha": false,
+  "workspace": {
+    "lint": {
+      "passed": 30,
+      "seconds": 22.784
+    },
+    "typecheck": {
+      "passed": 30,
+      "seconds": 34.306
+    },
+    "test": {
+      "passed": 30,
+      "seconds": 57.489,
+      "command": "pnpm test --concurrency=1",
+      "individualDeadlinesChanged": false,
+      "counts": {
+        "@veyocast/config": "11 passed (11)",
+        "@veyocast/testkit": "29 passed (29)",
+        "@veyocast/contracts": "219 passed (219)",
+        "@veyocast/observability": "6 passed (6)",
+        "@veyocast/tokens": "7 passed (7)",
+        "@veyocast/ui": "19 passed (19)",
+        "@veyocast/mobile-design-system": "3 passed (3)",
+        "@veyocast/integrations": "230 passed (230)",
+        "@veyocast/domain": "101 passed (101)",
+        "@veyocast/content-templates": "292 passed (292)",
+        "@veyocast/player": "755 passed (755)",
+        "@veyocast/studio": "40 passed (40)",
+        "@veyocast/auth": "10 passed (10)",
+        "@veyocast/database": "8 passed (8)",
+        "@veyocast/media-worker": "436 passed | 343 skipped (779)",
+        "@veyocast/control-mobile": "62 passed (62)",
+        "@veyocast/marketing": "20 passed (20)",
+        "@veyocast/control": "2200 passed | 34 skipped (2234)"
+      }
+    }
+  },
+  "watchdogChange": {
+    "beforeMinutes": 75,
+    "afterMinutes": 105,
+    "scope": "Player CI job total time only",
+    "controlMinutesUnchanged": 45,
+    "caseIsolationUnchanged": true,
+    "coverageUnchanged": true,
+    "individualDeadlinesUnchanged": true,
+    "existingRunnerUnitTestsPassed": 20,
+    "workflowValidation": "PASS"
+  },
+  "logSha256": {
+    "/tmp/s300-integrated-final-lint.log": "968950a41deb99fff57322fae1dcd009f379afe4b315a763cf224d47c7ef8a02",
+    "/tmp/s300-integrated-final-typecheck.log": "ae2cc72e21b0b7d837bb820f167e1b4cf317b42499377e44fcd0c9d38ade9741",
+    "/tmp/s300-integrated-final-test.log": "1f28ecf5e8ec64c62f8225d9b2fd42c983de4e45a01e6688ec3beee3ff5be9e7",
+    "/tmp/s300-player-runner-unchanged-tests.log": "19db66618941c609e08c0c443d9ef55794dfafe2875dfca944f7e58211cdf964",
+    "/tmp/s300-player-watchdog-workflow-validation.log": "d79b1f87464a8f8f0064bd183620482a4b43b2d71e48dc900faf41776291fcb2"
+  }
+}
