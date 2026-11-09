@@ -78,7 +78,9 @@ consumentenproeven gebruiken gecontroleerde metadata en claimen geen productie-
 database-readback. De geïsoleerde SQL-proef slaagde 31/31 in 3 seconden; public/
 private lint en securityadvisors vonden nul issues. Zie het afzonderlijke
 [RPC-bewijs](implementation/s296-screen-status/metadata-rpc-evidence.json). De
-volledige geïntegreerde reset/RLS-gate blijft onderdeel van root/CI.
+verse geconsolideerde reset met S296/S298/S299 slaagde daarna met 152 SQL-
+bestanden en 5064 asserties in 121 seconden. Public/private lint en securityadvisors
+bleven zonder issues. De exacte applicatiebuild blijft onderdeel van root/CI.
 
 RPC-uitkomst: maximaal 200 metadataobjecten met `snapshotId`, `sourceName`,
 `sourceKind`, `datasetKey`, `lastSuccessAt`, `lastAttemptAt`, `checkedAt`,
