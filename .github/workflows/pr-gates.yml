@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     # Includes actual binary preparation and every isolated original case.
     # Individual test and encoder deadlines remain unchanged.
-    timeout-minutes: ${{ matrix.group == 'player' && 105 || 45 }}
+    timeout-minutes: ${{ matrix.group == 'player' && 105 || matrix.group == 'control' && 60 || 45 }}
     strategy:
       fail-fast: false
       matrix:

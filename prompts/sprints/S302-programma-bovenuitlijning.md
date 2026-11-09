@@ -17,7 +17,9 @@ Respecteer het Player-offlinecontract en bestaande immutable releases.
 Ownership: sportlink_worker uitsluitend gedeelde layoutbestanden in
 content-templates; available_receipt uitsluitend eigen S302-browserspec en
 fixturehelper; root prompt, ledger, documentatie, integratie, review en PR.
-Geen migraties, afhankelijkheids- of workflowwijzigingen voor deze layouttaak.
+Geen migraties of afhankelijkheidswijzigingen voor deze layouttaak. De tijdens
+de volledige CI aangetoonde Control-jobafbreking wordt afzonderlijk hersteld
+met voldoende joblooptijd; alle cases en individuele limieten blijven gelijk.
 
 Acceptatie op 1920 × 1080: speel een volle pagina met zes wedstrijden en
 daarna respectievelijk drie, één en twee wedstrijden. Meet bij de echte

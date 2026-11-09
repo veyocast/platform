@@ -48,3 +48,22 @@ captures krijgen de gedeelde layout via de gewone renderflow.
 
 Selectie, paginacapaciteit, afspeeltiming, huidige publicaties, tenantdata en
 de overige slidefamilies worden door deze correctie niet gewijzigd.
+
+## Volledige Control-gate afmaken
+
+De ongewijzigde Control-suite op PR333 werd na de joblimiet van 45 minuten
+afgebroken: 1.414 vereiste gevallen, 772 PASS, 629 bestaande SKIP, 0 FAIL en 13 nog
+onafgerond. Dezelfde eerdere PR332-job was succesvol in 36 min 47 s. Deze
+looptijdvariatie laat te weinig marge voor de volledige bestaande suite.
+De Control-job krijgt daarom 60 minuten; Player houdt 105 minuten en de
+overige jobs 45 minuten. Alle cases, de enkele worker, individuele 60s-budgets,
+asserties en artifactregistratie blijven gelijk. De afgebroken run telt niet
+als PASS. De nieuwe PR334-head doorloopt alle toepasselijke CI opnieuw.
+
+Referenties: PR333-run 42694386510/job 129422205855; vorige groene
+PR332-run 42654264299/job 129288482433. Deze workflowcorrectie verandert
+uitsluitend de joblimiet en is afzonderlijk gereviewd.
+
+PR334 integreert ook de afzonderlijk gereviewde bron van PR333 via een gewone
+dependencymerge. De volledige nieuwe bronboom gaat met normale CI naar main;
+de afgebroken PR333-gate wordt daarmee niet als geslaagd aangemerkt.
