@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-09T15:44:40.311149+00:00",
+  "sourceBaseHead": "27238f32687c5ac617a4cada97f9226a87615a05",
+  "sourceWorktree": "/home/codex/repos/veyocast-s300-availability",
+  "assembly": "/tmp/veyocast-s300-availability-final",
+  "sourceBindingFile": "/tmp/s300-availability-final-source-binding.json",
+  "sourceBindingSha256": "9fcef7e17721b39954479439c02098b6589a0e5764f9d85cb336ea1bde944793",
+  "sqlFiles": 374,
+  "allSqlAndSeedSourceCopiesByteIdentical": true,
+  "containerId": "e09b61cfa7b7b096be1e15366c1dd74568987a81b2986825ca962d7b34834122",
+  "containerName": "/supabase_db_veyocast-s300-availability-verify",
+  "image": "public.ecr.aws/supabase/postgres:15.8.1.085",
+  "imageId": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
+  "healthy": true,
+  "ports": {
+    "5432/tcp": [
+      {
+        "HostIp": "0.0.0.0",
+        "HostPort": "64432"
+      },
+      {
+        "HostIp": "::",
+        "HostPort": "64432"
+      }
+    ]
+  },
+  "networkId": "874e6784c2d8556a8ce5934fe5fb23836e6ed0ef1cebdd143430f3f3e650b990",
+  "networkName": "veyocast-s300-availability-verify",
+  "networkSubnet": "10.249.11.0/28",
+  "networkContainerCount": 1,
+  "installed": {
+    "database": "postgres",
+    "actionCount": 0,
+    "otherClients": 0,
+    "runbookCount": 0,
+    "deliveryCount": 0,
+    "serverVersion": "15.8",
+    "settingsCount": 0,
+    "migrationCount": 219,
+    "latestMigration": "20261109152406",
+    "applyFunctionMd5": "8d13d4ec74c53dc49b63e3a37bad3e9a",
+    "offerFunctionMd5": "17277dfdafb249f031edcffae073da79",
+    "canaryTenantCount": 0,
+    "receiptFunctionMd5": "7c649b62a737fe1462bcf8855dab94d5"
+  },
+  "functionDefinitionsMatchIterativeProof": true,
+  "fullRls": {
+    "files": 155,
+    "assertions": 5354,
+    "result": "PASS",
+    "pgProveWallclockSeconds": 120
+  },
+  "lintPublicErrors": 0,
+  "lintPrivateErrors": 0,
+  "advisorErrors": 0,
+  "gates": [
+    {
+      "command": [
+        "/home/codex/repos/veyocast-s300-matchday/node_modules/.bin/supabase",
+        "db",
+        "start",
+        "--workdir",
+        "/tmp/veyocast-s300-availability-final",
+        "--network-id",
+        "veyocast-s300-availability-verify"
+      ],
+      "startedAt": "2026-11-09T15:39:49.926229+00:00",
+      "exitCode": 0,
+      "durationSeconds": 30.039,
+      "log": "/tmp/s300-availability-final-db-start.log",
+      "resultFile": "/tmp/s300-availability-final-db-start-result.json",
+      "resultSha256": "c5197b33ce2cbb3f31362c04224664771108318a1d03783329438f13d0cd5127",
+      "logSha256": "cb3d9db0e19aa16c2deff0fdfc49f8c4d7195029740d2e8f889728dedac28a00"
+    },
+    {
+      "command": [
+        "/home/codex/repos/veyocast-s300-matchday/node_modules/.bin/supabase",
+        "db",
+        "reset",
+        "--local",
+        "--workdir",
+        "/tmp/veyocast-s300-availability-final",
+        "--network-id",
+        "veyocast-s300-availability-verify",
+        "--yes"
+      ],
+      "startedAt": "2026-11-09T15:40:46.632614+00:00",
+      "exitCode": 0,
+      "durationSeconds": 25.042,
+      "log": "/tmp/s300-availability-final-db-reset.log",
+      "resultFile": "/tmp/s300-availability-final-db-reset-result.json",
+      "resultSha256": "9204c9b42966dbd3652dbae824ae629faf3066c793bf08d225270a1afac68b31",
+      "logSha256": "44a5a12a9a88def00d95d3ebf2bc8dfdadb9417192bf588914d81027db57e6a2"
+    },
+    {
+      "command": [
+        "/home/codex/repos/veyocast-s300-matchday/node_modules/.bin/supabase",
+        "test",
+        "db",
+        "--workdir",
+        "/tmp/veyocast-s300-availability-final",
+        "--network-id",
+        "veyocast-s300-availability-verify"
+      ],
+      "startedAt": "2026-11-09T15:41:17.134397+00:00",
+      "exitCode": 0,
+      "durationSeconds": 121.53,
+      "log": "/tmp/s300-availability-final-full-rls.log",
+      "resultFile": "/tmp/s300-availability-final-full-rls-result.json",
+      "resultSha256": "af855c8dce571d2f4316bbb57f50ce595da6131baca45384eb93c836f6335911",
+      "logSha256": "0fe9d1726dc9bfa2728ecb18516d5feff18c7ad684c1a013f5d6897f7ae64a0e"
+    },
+    {
+      "command": [
+        "/home/codex/repos/veyocast-s300-matchday/node_modules/.bin/supabase",
+        "db",
+        "lint",
+        "--schema",
+        "public",
+        "--level",
+        "error",
+        "--fail-on",
+        "error",
+        "--local",
+        "--workdir",
+        "/tmp/veyocast-s300-availability-final",
+        "--network-id",
+        "veyocast-s300-availability-verify"
+      ],
+      "startedAt": "2026-11-09T15:43:41.216105+00:00",
+      "exitCode": 0,
+      "durationSeconds": 1.055,
+      "log": "/tmp/s300-availability-final-lint-public.log",
+      "resultFile": "/tmp/s300-availability-final-lint-public-result.json",
+      "resultSha256": "f2278429b860a1adbb2643f4799dd598a3dd93e1539e5206d8e3735ef59774fa",
+      "logSha256": "b1b30a2f11b940fc5790ce33075ac02e4d99a9c410ab5f7fa72f776b0af759d9"
+    },
+    {
+      "command": [
+        "/home/codex/repos/veyocast-s300-matchday/node_modules/.bin/supabase",
+        "db",
+        "lint",
+        "--schema",
+        "private",
+        "--level",
+        "error",
+        "--fail-on",
+        "error",
+        "--local",
+        "--workdir",
+        "/tmp/veyocast-s300-availability-final",
+        "--network-id",
+        "veyocast-s300-availability-verify"
+      ],
+      "startedAt": "2026-11-09T15:43:42.271656+00:00",
+      "exitCode": 0,
+      "durationSeconds": 0.912,
+      "log": "/tmp/s300-availability-final-lint-private.log",
+      "resultFile": "/tmp/s300-availability-final-lint-private-result.json",
+      "resultSha256": "88f530602d7f1811795787e3e7eadff2f6d3d63b25e32445b9efe77e544c61b7",
+      "logSha256": "35f0aa5b9ad5ec160407675c747fd1badc5037ac1c672d8f49ca6ef1310b6e31"
+    },
+    {
+      "command": [
+        "/home/codex/repos/veyocast-s300-matchday/node_modules/.bin/supabase",
+        "db",
+        "advisors",
+        "--type",
+        "all",
+        "--level",
+        "error",
+        "--fail-on",
+        "error",
+        "--local",
+        "--workdir",
+        "/tmp/veyocast-s300-availability-final",
+        "--network-id",
+        "veyocast-s300-availability-verify"
+      ],
+      "startedAt": "2026-11-09T15:43:43.184259+00:00",
+      "exitCode": 0,
+      "durationSeconds": 0.919,
+      "log": "/tmp/s300-availability-final-advisors.log",
+      "resultFile": "/tmp/s300-availability-final-advisors-result.json",
+      "resultSha256": "c448184f14e116ba80d9f4b257b168ef2c42e1c81b68701272d7fc637ef05544",
+      "logSha256": "ac16630c7479d9c630e53f68e0e441b520f6ffb5d8f400434dc2ec5bbeecaa1c"
+    }
+  ],
+  "actualWorkspaceCapture": {
+    "resultFile": "/tmp/s300-availability-capture-actual-workspace-result.json",
+    "resultSha256": "72f2997ca4de41d9a72d5cf4bef89d0ec9c776f17fc589ba2e8e020c5b63b0db",
+    "file": "/tmp/s300-availability-actual-workspace.json",
+    "sha256": "83f83ca4e612d8487542f93fa29f2f3c9e37669e96039c6e358b850521f1024b",
+    "normalMemberRpc": true,
+    "rollbackOnly": true,
+    "physicalOrHostedPlayerClaim": false
+  },
+  "otherLocalS295ContainerUnchanged": true,
+  "hostedOperations": false,
+  "leftRunningForRoot": true
+}

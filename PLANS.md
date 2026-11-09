@@ -6,6 +6,13 @@ een optionele Wedstrijddagwerkplek en gecontroleerde seizoenswissel. De gebruike
 heeft daarna staging én productie gevraagd. Ownership, afhankelijkheden,
 acceptatie en herstel staan in `docs/s296-s301-overdracht-2026-11-09.md`.
 
+De afzonderlijke S300-opvolgfix herstelt vroeg beëindigde menuvensters en de
+causale afleverstatus van **Weer beschikbaar**. Twee echte gebouwde Playerproeven
+en de database-tegenproef zijn rood op27238. Alleen een passend geverifieerd en
+zichtbaar herstelbeeld mag de nieuwe actie bevestigen. PR330 blijft als bestaande
+integratie bevroren; productie wacht ook op deze fix en haar eigen normale gates.
+Zie `docs/s300-available-restoration.md`.
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en

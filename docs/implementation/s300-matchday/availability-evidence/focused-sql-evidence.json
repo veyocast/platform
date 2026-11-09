@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "sourceBase": "27238f32687c5ac617a4cada97f9226a87615a05",
+  "database": "isolated local 127.0.0.1:64432 / exact container supabase_db_veyocast-s295-verify",
+  "source": {
+    "supabase/migrations/20261109152406_s300_available_restoration_receipt.sql": "accd6e12d7057e15adf8d4401937f5b5ae4211002eef92d551ed89581cf21dfe",
+    "supabase/tests/s300_available_restoration.sql": "a6450015def802950b0c0473c1fd5229d0cbfbfee7c1af5d8b3b664d29e9d614"
+  },
+  "finalFocusedPgTap": {
+    "files": 1,
+    "assertions": 46,
+    "result": "PASS",
+    "log": "/tmp/s300-available-final46-pgtap-unique-container.log"
+  },
+  "red": {
+    "original218": {
+      "assertions": 38,
+      "visibleNotOk": 16,
+      "finishFailedAfterSavepointRollback": 8,
+      "log": "/tmp/s300-available-pre-fix-red.log"
+    },
+    "partialSupersessionOriginalHumanWriterOnIterativeDatabase": {
+      "fourScopeCases": "RED",
+      "log": "/tmp/s300-available-shared-scope-original-red.log"
+    },
+    "offerOriginalWriterOnIterativeDatabase": {
+      "twoReadTransitionCases": "RED",
+      "log": "/tmp/s300-available-offer-recheck-corrected-original-red.log"
+    }
+  },
+  "concurrency": {
+    "atomicAvailable": "/tmp/s300-available-offer-concurrency.json",
+    "actualClockExpiryOldAndNew": "/tmp/s300-offer-expiry-concurrency.json"
+  },
+  "discardedHarnessAttempts": {
+    "reversedLockOrder": "/tmp/s300-available-offer-concurrency.log; /tmp/s300-available-offer-concurrency-lock-green.log",
+    "reuseConflictAndPayloadShape": "/tmp/s300-available-offer-concurrency-real-lock-order.log; /tmp/s300-available-offer-concurrency-real-lock-order-final.log",
+    "wrongDatabaseAlias": "/tmp/s300-available-final46-pgtap.log",
+    "cliHostRewrite": "/tmp/s300-available-final46-pgtap-explicit-host.log",
+    "notProductFailures": true
+  },
+  "compatibility": {
+    "unchangedArchiveIdentityLimit": 8,
+    "noExpandedAcknowledgementAuthorization": true,
+    "requiresPreviouslyOfferedExactRestorationIdentity": true,
+    "otherUnarchivedCurrentPhaseCannotConfirmRestoration": true,
+    "noProviderOrHostedOperations": true
+  },
+  "fullFresh219ResetAndRls": "ROOT pending; do not infer completion from iterative focused proof"
+}

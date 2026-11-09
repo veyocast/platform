@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "database": "isolated local 64432",
+  "actualWallClockExpiry": true,
+  "results": [
+    {
+      "variant": "old",
+      "realConnections": 3,
+      "offerBlockedOnDeliveryAfterInitialTargetRead": true,
+      "sourceWindowExpiredBeforeUnlock": true,
+      "returnedOffer": true,
+      "sourceOffered": true
+    },
+    {
+      "variant": "new",
+      "realConnections": 3,
+      "offerBlockedOnDeliveryAfterInitialTargetRead": true,
+      "sourceWindowExpiredBeforeUnlock": true,
+      "returnedOffer": false,
+      "sourceOffered": false
+    }
+  ],
+  "passed": true
+}

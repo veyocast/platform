@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "scope": "Local production-built Player and isolated iterative SQL; final full database/CI/hosted proof separate",
+  "files": [
+    {
+      "path": "early-window-composed.json",
+      "sha256": "9a25113601ff370a624690df054b08ea29904cfc29a98022e41a7d66ebc3e5eb",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-8b496--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "visuallyReviewedByAgent": false,
+      "rootVisualReview": "not applicable"
+    },
+    {
+      "path": "early-window-composed.png",
+      "sha256": "ca58066fcc23090b2b2c022e823092498299bd40758cb9d59a64d3c4568f8d23",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-8b496--its-offered-ordinary-frame-chromium/early-window-verified-recovery.png",
+      "visuallyReviewedByAgent": true,
+      "rootVisualReview": "PASS"
+    },
+    {
+      "path": "early-ordinary-fullscreen.json",
+      "sha256": "0454fcc4f1eeff54c97cb9c297622a018d0a94eaf0ceeebf1f824081c3d48bc6",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-52552--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "visuallyReviewedByAgent": false,
+      "rootVisualReview": "not applicable"
+    },
+    {
+      "path": "early-ordinary-fullscreen.png",
+      "sha256": "73a336303ed70dac77032f0d0da8d68fa93d37dae9714a7f43ca3f0470d16cf0",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-52552--its-offered-ordinary-frame-chromium/early-ordinary-verified-recovery.png",
+      "visuallyReviewedByAgent": true,
+      "rootVisualReview": "PASS"
+    },
+    {
+      "path": "early-ordinary-composed.json",
+      "sha256": "5e60257487d41377a3fe5b9bc071a2ca0be16c488db474c0311f92f47a763ee1",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-587e5--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "visuallyReviewedByAgent": false,
+      "rootVisualReview": "not applicable"
+    },
+    {
+      "path": "early-ordinary-composed.png",
+      "sha256": "ca58066fcc23090b2b2c022e823092498299bd40758cb9d59a64d3c4568f8d23",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-587e5--its-offered-ordinary-frame-chromium/early-ordinary-verified-recovery.png",
+      "visuallyReviewedByAgent": true,
+      "rootVisualReview": "PASS"
+    },
+    {
+      "path": "early-window-fullscreen.json",
+      "sha256": "fd24aae904080235ceacfa9c6b5777cac8888193bde2d0afb48d81b4fcf49259",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-0ac53--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "visuallyReviewedByAgent": false,
+      "rootVisualReview": "not applicable"
+    },
+    {
+      "path": "early-window-fullscreen.png",
+      "sha256": "6c298b3f1ad1ccf2e2062dfc6a9b66f96411db0c4ad60c0f8224d16236f204b2",
+      "originalPath": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-0ac53--its-offered-ordinary-frame-chromium/early-window-verified-recovery.png",
+      "visuallyReviewedByAgent": true,
+      "rootVisualReview": "PASS"
+    },
+    {
+      "path": "original-player-evidence.json",
+      "sha256": "cd9b2828416d7b5256f08668bc1f8bc11b284c66030c2450393801cf96498be9",
+      "originalPath": "/tmp/s300-availability-player-evidence.json"
+    },
+    {
+      "path": "focused-sql-evidence.json",
+      "sha256": "f285ebb63d16514738a6eef0a14632f0e8812a8668fbfd5eafcd1b542176c230",
+      "originalPath": "/tmp/s300-available-sql-evidence.json"
+    },
+    {
+      "path": "atomic-availability-concurrency.json",
+      "sha256": "44ab11d38d0f40d99e0d469086653e5000a83722227638743b6269a28aa51877",
+      "originalPath": "/tmp/s300-available-offer-concurrency.json"
+    },
+    {
+      "path": "offer-expiry-concurrency.json",
+      "sha256": "238af87422d856b9d2973547fa314bbf4abee1160d4dc12415778a620f16ff8d",
+      "originalPath": "/tmp/s300-offer-expiry-concurrency.json"
+    },
+    {
+      "path": "final-validation.json",
+      "sha256": "374b2f2c94157f518a7f18e02a86e96a46456952c309a68d34896572dc790733",
+      "provenance": "ROOT source-bound final local validation"
+    },
+    {
+      "path": "final-database-certificate.json",
+      "sha256": "a2a222489bcd3170b9d2c4cbbfd157ce3d24fd92c7854fc1401b1c999e4c95f4",
+      "provenance": "ROOT source-bound final local validation"
+    },
+    {
+      "path": "actual-available-confirmation.json",
+      "sha256": "f27d121ebe4c44e7841e321c8b7479dac6d3892b7e384beb45a70b13e92a89e8",
+      "provenance": "ROOT source-bound final local validation"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-09T15:42:47.220211+00:00",
+  "baseSha": "27238f32687c5ac617a4cada97f9226a87615a05",
+  "testedWorkingTree": true,
+  "sources": {
+    "apps/player/app/_components/player-runtime.tsx": "2e5e8fffc906daee4e995dad45e34fe98419e01341da4b504bcf918f5c561db2",
+    "tests/player/s300-matchday-expiry.spec.ts": "e3abf1e5e1ff5e6579644981343917b9cbbcadaa03a15a3e9db936c1dceb7e57",
+    "supabase/migrations/20261109152406_s300_available_restoration_receipt.sql": "accd6e12d7057e15adf8d4401937f5b5ae4211002eef92d551ed89581cf21dfe",
+    "supabase/tests/s300_available_restoration.sql": "a6450015def802950b0c0473c1fd5229d0cbfbfee7c1af5d8b3b664d29e9d614"
+  },
+  "gates": [
+    {
+      "gate": "lint",
+      "result": "PASS",
+      "tasks": 30,
+      "cacheHits": 0,
+      "durationSeconds": 21.774,
+      "log": "/tmp/s300-availability-workspace-lint.log",
+      "sha256": "a2863e1adefbac95988b85f6830d57a381be1dd76cd5bb5936a6eb59f1beb5d2"
+    },
+    {
+      "gate": "typecheck",
+      "result": "PASS",
+      "tasks": 30,
+      "cacheHits": 0,
+      "durationSeconds": 44.641,
+      "log": "/tmp/s300-availability-workspace-typecheck.log",
+      "sha256": "90a7e7885ea75f62aca0fe7e18cc57d3f4a19e1adf1515f970ba3225d205d3c7"
+    },
+    {
+      "gate": "test",
+      "result": "PASS",
+      "tasks": 30,
+      "cacheHits": 0,
+      "durationSeconds": 86.576,
+      "log": "/tmp/s300-availability-workspace-test.log",
+      "sha256": "31f29d1df78cbffd2e22f5127068b30bb15f2dfb3c748d922aa37fec3c5ed7c6"
+    }
+  ],
+  "playerBuildId": "b7qX4mLNw136ZVfFuOMXq",
+  "playerCases": {
+    "passed": 38,
+    "skipped": 0,
+    "open": 0
+  },
+  "focusedDatabaseAssertions": 46,
+  "fullFreshDatabase": {
+    "result": "PASS",
+    "freshMigrations": 219,
+    "sqlTestFiles": 155,
+    "assertions": 5354,
+    "sqlSourcesByteIdentical": 374,
+    "resetSeconds": 25.042,
+    "rlsWallclockSeconds": 120,
+    "lintPublicErrors": 0,
+    "lintPrivateErrors": 0,
+    "advisorErrors": 0,
+    "certificateSha256": "a2a222489bcd3170b9d2c4cbbfd157ce3d24fd92c7854fc1401b1c999e4c95f4",
+    "certificateFile": "final-database-certificate.json"
+  },
+  "normalCi": "PENDING",
+  "hostedAcceptance": "PENDING",
+  "productionDeployment": "PENDING",
+  "hardware": "Not available",
+  "actualWorkspaceStrictParse": {
+    "result": "PASS",
+    "file": "actual-available-confirmation.json"
+  }
+}

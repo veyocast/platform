@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "database": "isolated local 64432",
+  "fixtureProvenance": "normalized SQL fixtures; no provider or hosted operations",
+  "results": [
+    {
+      "variant": "new",
+      "realConcurrentConnections": 3,
+      "offerObservedWaitingOnRowLock": true,
+      "availableOutcome": "applied",
+      "lateOfferReturned": false,
+      "restoredAt": null,
+      "sourceOffered": false,
+      "availableStatus": "skipped",
+      "confirmedReleaseId": null
+    }
+  ],
+  "passed": true
+}

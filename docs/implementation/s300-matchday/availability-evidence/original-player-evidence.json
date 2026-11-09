@@ -1,0 +1,1057 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-09T15:38:53.922034+00:00",
+  "baseSha": "27238f32687c5ac617a4cada97f9226a87615a05",
+  "testedWorkingTree": true,
+  "finalBuildId": "b7qX4mLNw136ZVfFuOMXq",
+  "compiledApplicationVersion": "27238f32687c5ac617a4cada97f9226a87615a05",
+  "sourceHashes": {
+    "apps/player/app/_components/player-runtime.tsx": "2e5e8fffc906daee4e995dad45e34fe98419e01341da4b504bcf918f5c561db2",
+    "tests/player/s300-matchday-expiry.spec.ts": "e3abf1e5e1ff5e6579644981343917b9cbbcadaa03a15a3e9db936c1dceb7e57"
+  },
+  "boundary": "Local production-built Chromium Player with controlled authorized fixture origin responses. HTTP fixture acceptance is not real SQL acceptance, hosted staging, final committed head, or physical hardware. Final CI/release must build the committed exact source. Existing eight-offer archive remains authoritative; C uses the same ordinary/end recovery942, whereas other offered ordinary identities require an archived server identity before SQL confirmation.",
+  "runs": [
+    {
+      "name": "early-red",
+      "buildId": "-0er8lyjYpD7b99JvH9j8",
+      "report": "/tmp/s300-availability-player-early-red-report.json",
+      "reportSha256": "84d80356bbe8484985d07448fc2670b834676a8f451077a9e1a2ccc05189cd45",
+      "stats": {
+        "startTime": "2026-11-09T15:28:59.159Z",
+        "duration": 25424.238,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "13b08f0d8e401fca2efb-252d59701f5a422a26b8",
+          "title": "S300: early ordinary recovery confirms the old window only after its offered ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 80,
+          "project": "chromium",
+          "status": "failed",
+          "durationMs": 11204
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-a15ae956e1e155f10879",
+          "title": "S300: early window recovery confirms the old window only after its offered ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 80,
+          "project": "chromium",
+          "status": "failed",
+          "durationMs": 11191
+        }
+      ]
+    },
+    {
+      "name": "composition-red",
+      "buildId": "84NWo7r4WglfwPVl9Te5g",
+      "report": "/tmp/s300-availability-player-composition-red-report.json",
+      "reportSha256": "c7fda09ad41ecdb008b2a0e6efb4427ec02d607be85f5d81a044a9cb82613d93",
+      "stats": {
+        "startTime": "2026-11-09T15:32:56.070Z",
+        "duration": 7076.464,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "13b08f0d8e401fca2efb-e73e846ba255b188f567",
+          "title": "S300: an early recovery receipt waits for its exact visible composition acknowledgement",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 95,
+          "project": "chromium",
+          "status": "failed",
+          "durationMs": 5897
+        }
+      ]
+    },
+    {
+      "name": "final",
+      "buildId": "b7qX4mLNw136ZVfFuOMXq",
+      "report": "/tmp/s300-availability-player-final-report.json",
+      "reportSha256": "7b328fe71e399478ae922626234240d22ea826af78f6607da780c0ed0bd004dd",
+      "stats": {
+        "startTime": "2026-11-09T15:35:12.974Z",
+        "duration": 144324.831,
+        "expected": 17,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "13b08f0d8e401fca2efb-a769539b07ec8285bd61",
+          "title": "S300: a verified temporary frame expires offline at its natural boundary and cold reload keeps ordinary END",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 56,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 16965
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-b909cf44ab8e779210b9",
+          "title": "S300: cold offline boot during a temporary window and an older decoder see ordinary NOW, never future END",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 66,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 2003
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-695a6979de4bc232c33a",
+          "title": "S300: a response held beyond its issued lifetime cannot replace the verified ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 74,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 3770
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-252d59701f5a422a26b8",
+          "title": "S300: early ordinary recovery confirms the old window only after its offered ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 81,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 6189
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-2f0920cd92a6a6eca5b1",
+          "title": "S300: early ordinary composed recovery confirms the old window only after its offered ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 81,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 6163
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-a15ae956e1e155f10879",
+          "title": "S300: early window recovery confirms the old window only after its offered ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 81,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 6158
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-a867c013a371649bd347",
+          "title": "S300: early window composed recovery confirms the old window only after its offered ordinary frame",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 81,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 6128
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-e73e846ba255b188f567",
+          "title": "S300: an early recovery receipt waits for its exact visible composition acknowledgement",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 95,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 6320
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-76fbd3b64a14834d48e7",
+          "title": "S300: a changed composition cannot borrow an old recovery hash from the same main release",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 102,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 6100
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-2068e28743c515a1eab6",
+          "title": "S300: a different authorized publication does not claim restoration of an unoffered window recovery",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 106,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 6318
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-a99a6dcb4bcb32cb5554",
+          "title": "S300: only a visible nonce-bound action frame is rendered and authoritative empty restores the verified base",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 110,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 2002
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-1d8ebcf86aa19735f835",
+          "title": "S300: an expired never-visible first frame is skipped and the ordinary recovery needs no missing main timer",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 124,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 10325
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-460c561b0ecfe74c190c",
+          "title": "S300: landscape full composition expires with all verified zone frames and preserves its configured geometry",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 133,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 21177
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-7585c75db17a3782740d",
+          "title": "S300: portrait full composition expires with all verified zone frames and preserves its configured geometry",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 133,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 21109
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-21d46de8a36df398c8f7",
+          "title": "S300: offline restoration retries the identical issued ACK after the temporary publication is gone",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 141,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 16141
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-78c378a0669894b98f15",
+          "title": "S300: a supported 1280×320 LED viewport keeps both teams and field visible and retires terminal ACK rejection",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 150,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 5391
+        },
+        {
+          "id": "13b08f0d8e401fca2efb-e7e02e0b9f17986a7de9",
+          "title": "S300: verified video uses its composition zone width while ordinary fullscreen media keeps viewport width",
+          "file": "player/s300-matchday-expiry.spec.ts",
+          "line": 158,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 808
+        }
+      ]
+    },
+    {
+      "name": "offline-a11y",
+      "buildId": "b7qX4mLNw136ZVfFuOMXq",
+      "report": "/tmp/s300-availability-player-offline-a11y-report.json",
+      "reportSha256": "2b3a396f4b41a5537b782fe73d202d6d275efdf521158bed7dd21fa6f6f69de4",
+      "stats": {
+        "startTime": "2026-11-09T15:37:51.929Z",
+        "duration": 12695.027,
+        "expected": 21,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "id": "46f40dec63c4dc716a32-979327de476c908ef647",
+          "title": "LG HTML/CSS-renderdiagnose blijft semantisch en toetsenbordbedienbaar",
+          "file": "a11y/player-lg-html-debug.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 202
+        },
+        {
+          "id": "01e364cf37f0609f4a61-b6c251099ff3523b56d0",
+          "title": "LG Legacy Player heeft een leesbaar semantisch statusscherm",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 6,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 328
+        },
+        {
+          "id": "01e364cf37f0609f4a61-c78280e44f2bb5066b6b",
+          "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1920×1080",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 39,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 304
+        },
+        {
+          "id": "01e364cf37f0609f4a61-ad2e1d1212923ab21b3e",
+          "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1080×1920",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 39,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 320
+        },
+        {
+          "id": "01e364cf37f0609f4a61-e7e7921419f373edf999",
+          "title": "LG toont de eerste werkelijke download en verificatie vóór zichtbare activatie",
+          "file": "a11y/player-lg-legacy.spec.ts",
+          "line": 82,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 351
+        },
+        {
+          "id": "d7b0734a8b2e39c27e93-aa93ef5677f4d83025b7",
+          "title": "zelfstandige LG-probe blijft semantisch en toetsenbordbedienbaar",
+          "file": "a11y/player-lg-probe.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 154
+        },
+        {
+          "id": "8b463b1519bee67c6c1d-5bb44317b4c467d1ff04",
+          "title": "zelfstandige recoveryroute heeft leesbare semantiek en toetsenbordacties",
+          "file": "a11y/player-recovery.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 134
+        },
+        {
+          "id": "a6fabd0e624288e4dbce-f9e6b182f2d766a7b41b",
+          "title": "landscape nieuwsslide houdt kop, bron en positie toegankelijk",
+          "file": "a11y/player-rss-landscape.spec.ts",
+          "line": 10,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 660
+        },
+        {
+          "id": "6900696e7d11a931993d-81fbf155bc1fc5696aaf",
+          "title": "portrait nieuwsslide houdt kop, bron en positie toegankelijk",
+          "file": "a11y/player-rss-portrait.spec.ts",
+          "line": 10,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 596
+        },
+        {
+          "id": "8b89507781ede412c94f-eeb95cc6f1e3af33f981",
+          "title": "player setup and playback expose accessible landmarks and diagnostics",
+          "file": "a11y/player-runtime.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 857
+        },
+        {
+          "id": "8b89507781ede412c94f-4f7b66421fbf0caedfb1",
+          "title": "paired player without content exposes a clear ready state",
+          "file": "a11y/player-runtime.spec.ts",
+          "line": 39,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 499
+        },
+        {
+          "id": "35c926fdbf2f75ec73fe-4747b2410c7941ce7735",
+          "title": "starts from last-known-good when manifest and media are unavailable",
+          "file": "player-offline/cache-atomic.spec.ts",
+          "line": 7,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 956
+        },
+        {
+          "id": "35c926fdbf2f75ec73fe-b232c35a9a928695d23f",
+          "title": "rejects corrupt pending assets without replacing active playback",
+          "file": "player-offline/cache-atomic.spec.ts",
+          "line": 114,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 931
+        },
+        {
+          "id": "c92dcb17f14f760845f2-ec3b6f8ad5d222c22b51",
+          "title": "upgrades an existing shell cache and decodes the verified Marker font with the network offline",
+          "file": "player-offline/onzetrots-font-shell.spec.ts",
+          "line": 24,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 192
+        },
+        {
+          "id": "e94af60d246f153bc3ce-8cc189b830bddcc2342e",
+          "title": "serves cached media as 200, 206 and 416 through the service worker",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 936
+        },
+        {
+          "id": "e94af60d246f153bc3ce-cacdad644394f32e261b",
+          "title": "pre-caches and reloads the complete player shell without a network connection",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 45,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 924
+        },
+        {
+          "id": "e94af60d246f153bc3ce-7b6bc72a97cbd61db0ab",
+          "title": "normalizes a cached response before serving a Range request",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 95,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 659
+        },
+        {
+          "id": "e94af60d246f153bc3ce-8d50c4f949cb8331ecd6",
+          "title": "removes obsolete player shell caches on service-worker activation",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 131,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 1113
+        },
+        {
+          "id": "e94af60d246f153bc3ce-aae45bfd215a6722933e",
+          "title": "leaves uncached native video Range requests usable without storing partial MP4 responses",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 159,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 714
+        },
+        {
+          "id": "e94af60d246f153bc3ce-70f93293f7020728a91d",
+          "title": "rechecks source bytes after a rejected download instead of retaining them in the app shell cache",
+          "file": "player-offline/range-service-worker.spec.ts",
+          "line": 173,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 669
+        },
+        {
+          "id": "81b0d1da3d9d03c7ad8f-8eee504646b9e0e1e515",
+          "title": "unpaired player startup is visible without a network-backed release",
+          "file": "player-offline/startup.spec.ts",
+          "line": 5,
+          "project": "chromium",
+          "status": "passed",
+          "durationMs": 434
+        }
+      ]
+    }
+  ],
+  "caseClosure": {
+    "unique": 38,
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0,
+    "historicalExecutions": {
+      "failed": 3,
+      "passed": 38
+    },
+    "latestCases": [
+      {
+        "id": "13b08f0d8e401fca2efb-252d59701f5a422a26b8",
+        "title": "S300: early ordinary recovery confirms the old window only after its offered ordinary frame",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 81,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 6189,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-a15ae956e1e155f10879",
+        "title": "S300: early window recovery confirms the old window only after its offered ordinary frame",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 81,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 6158,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-e73e846ba255b188f567",
+        "title": "S300: an early recovery receipt waits for its exact visible composition acknowledgement",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 95,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 6320,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-a769539b07ec8285bd61",
+        "title": "S300: a verified temporary frame expires offline at its natural boundary and cold reload keeps ordinary END",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 56,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 16965,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-b909cf44ab8e779210b9",
+        "title": "S300: cold offline boot during a temporary window and an older decoder see ordinary NOW, never future END",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 66,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 2003,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-695a6979de4bc232c33a",
+        "title": "S300: a response held beyond its issued lifetime cannot replace the verified ordinary frame",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 74,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 3770,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-2f0920cd92a6a6eca5b1",
+        "title": "S300: early ordinary composed recovery confirms the old window only after its offered ordinary frame",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 81,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 6163,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-a867c013a371649bd347",
+        "title": "S300: early window composed recovery confirms the old window only after its offered ordinary frame",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 81,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 6128,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-76fbd3b64a14834d48e7",
+        "title": "S300: a changed composition cannot borrow an old recovery hash from the same main release",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 102,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 6100,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-2068e28743c515a1eab6",
+        "title": "S300: a different authorized publication does not claim restoration of an unoffered window recovery",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 106,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 6318,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-a99a6dcb4bcb32cb5554",
+        "title": "S300: only a visible nonce-bound action frame is rendered and authoritative empty restores the verified base",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 110,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 2002,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-1d8ebcf86aa19735f835",
+        "title": "S300: an expired never-visible first frame is skipped and the ordinary recovery needs no missing main timer",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 124,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 10325,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-460c561b0ecfe74c190c",
+        "title": "S300: landscape full composition expires with all verified zone frames and preserves its configured geometry",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 133,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 21177,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-7585c75db17a3782740d",
+        "title": "S300: portrait full composition expires with all verified zone frames and preserves its configured geometry",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 133,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 21109,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-21d46de8a36df398c8f7",
+        "title": "S300: offline restoration retries the identical issued ACK after the temporary publication is gone",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 141,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 16141,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-78c378a0669894b98f15",
+        "title": "S300: a supported 1280×320 LED viewport keeps both teams and field visible and retires terminal ACK rejection",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 150,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 5391,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "13b08f0d8e401fca2efb-e7e02e0b9f17986a7de9",
+        "title": "S300: verified video uses its composition zone width while ordinary fullscreen media keeps viewport width",
+        "file": "player/s300-matchday-expiry.spec.ts",
+        "line": 158,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 808,
+        "run": "final",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "46f40dec63c4dc716a32-979327de476c908ef647",
+        "title": "LG HTML/CSS-renderdiagnose blijft semantisch en toetsenbordbedienbaar",
+        "file": "a11y/player-lg-html-debug.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 202,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-b6c251099ff3523b56d0",
+        "title": "LG Legacy Player heeft een leesbaar semantisch statusscherm",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 6,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 328,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-c78280e44f2bb5066b6b",
+        "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1920×1080",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 39,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 304,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-ad2e1d1212923ab21b3e",
+        "title": "LG tijdelijke koppeling behoudt Source-geometrie op 1080×1920",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 39,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 320,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "01e364cf37f0609f4a61-e7e7921419f373edf999",
+        "title": "LG toont de eerste werkelijke download en verificatie vóór zichtbare activatie",
+        "file": "a11y/player-lg-legacy.spec.ts",
+        "line": 82,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 351,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "d7b0734a8b2e39c27e93-aa93ef5677f4d83025b7",
+        "title": "zelfstandige LG-probe blijft semantisch en toetsenbordbedienbaar",
+        "file": "a11y/player-lg-probe.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 154,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "8b463b1519bee67c6c1d-5bb44317b4c467d1ff04",
+        "title": "zelfstandige recoveryroute heeft leesbare semantiek en toetsenbordacties",
+        "file": "a11y/player-recovery.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 134,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "a6fabd0e624288e4dbce-f9e6b182f2d766a7b41b",
+        "title": "landscape nieuwsslide houdt kop, bron en positie toegankelijk",
+        "file": "a11y/player-rss-landscape.spec.ts",
+        "line": 10,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 660,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "6900696e7d11a931993d-81fbf155bc1fc5696aaf",
+        "title": "portrait nieuwsslide houdt kop, bron en positie toegankelijk",
+        "file": "a11y/player-rss-portrait.spec.ts",
+        "line": 10,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 596,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "8b89507781ede412c94f-eeb95cc6f1e3af33f981",
+        "title": "player setup and playback expose accessible landmarks and diagnostics",
+        "file": "a11y/player-runtime.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 857,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "8b89507781ede412c94f-4f7b66421fbf0caedfb1",
+        "title": "paired player without content exposes a clear ready state",
+        "file": "a11y/player-runtime.spec.ts",
+        "line": 39,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 499,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "35c926fdbf2f75ec73fe-4747b2410c7941ce7735",
+        "title": "starts from last-known-good when manifest and media are unavailable",
+        "file": "player-offline/cache-atomic.spec.ts",
+        "line": 7,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 956,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "35c926fdbf2f75ec73fe-b232c35a9a928695d23f",
+        "title": "rejects corrupt pending assets without replacing active playback",
+        "file": "player-offline/cache-atomic.spec.ts",
+        "line": 114,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 931,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "c92dcb17f14f760845f2-ec3b6f8ad5d222c22b51",
+        "title": "upgrades an existing shell cache and decodes the verified Marker font with the network offline",
+        "file": "player-offline/onzetrots-font-shell.spec.ts",
+        "line": 24,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 192,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-8cc189b830bddcc2342e",
+        "title": "serves cached media as 200, 206 and 416 through the service worker",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 936,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-cacdad644394f32e261b",
+        "title": "pre-caches and reloads the complete player shell without a network connection",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 45,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 924,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-7b6bc72a97cbd61db0ab",
+        "title": "normalizes a cached response before serving a Range request",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 95,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 659,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-8d50c4f949cb8331ecd6",
+        "title": "removes obsolete player shell caches on service-worker activation",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 131,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 1113,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-aae45bfd215a6722933e",
+        "title": "leaves uncached native video Range requests usable without storing partial MP4 responses",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 159,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 714,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "e94af60d246f153bc3ce-70f93293f7020728a91d",
+        "title": "rechecks source bytes after a rejected download instead of retaining them in the app shell cache",
+        "file": "player-offline/range-service-worker.spec.ts",
+        "line": 173,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 669,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      },
+      {
+        "id": "81b0d1da3d9d03c7ad8f-8eee504646b9e0e1e515",
+        "title": "unpaired player startup is visible without a network-backed release",
+        "file": "player-offline/startup.spec.ts",
+        "line": 5,
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 434,
+        "run": "offline-a11y",
+        "buildId": "b7qX4mLNw136ZVfFuOMXq"
+      }
+    ]
+  },
+  "gates": {
+    "final-build": {
+      "log": "/tmp/s300-availability-player-final-build.log",
+      "sha256": "b8230fa807a3a3163941f3c9767718b2d26157e810be61b9627b54ce17d62139",
+      "result": "PASS"
+    },
+    "final-typecheck": {
+      "log": "/tmp/s300-availability-player-final-typecheck.log",
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+      "result": "PASS"
+    },
+    "browser-typecheck": {
+      "log": "/tmp/s300-availability-player-browser-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": "PASS"
+    },
+    "final-lint": {
+      "log": "/tmp/s300-availability-player-final-lint.log",
+      "sha256": "c6ddace7eac5b79d818eecb01537d5028115936aed96cced6cde1f3f0d0c4603",
+      "result": "PASS"
+    },
+    "final-units": {
+      "log": "/tmp/s300-availability-player-final-units.log",
+      "sha256": "433b9f92d10a4bf422a0d7e936ee58c75d45a5a9727aa5a19476b9db4feaa12f",
+      "result": "PASS"
+    }
+  },
+  "units": {
+    "files": 90,
+    "passed": 755
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-8b496--its-offered-ordinary-frame-chromium/early-window-verified-recovery.png",
+      "sha256": "ca58066fcc23090b2b2c022e823092498299bd40758cb9d59a64d3c4568f8d23",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-8b496--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "sha256": "9a25113601ff370a624690df054b08ea29904cfc29a98022e41a7d66ebc3e5eb",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-52552--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "sha256": "0454fcc4f1eeff54c97cb9c297622a018d0a94eaf0ceeebf1f824081c3d48bc6",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-52552--its-offered-ordinary-frame-chromium/early-ordinary-verified-recovery.png",
+      "sha256": "73a336303ed70dac77032f0d0da8d68fa93d37dae9714a7f43ca3f0470d16cf0",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-587e5--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "sha256": "5e60257487d41377a3fe5b9bc071a2ca0be16c488db474c0311f92f47a763ee1",
+      "visuallyReviewed": false
+    },
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-587e5--its-offered-ordinary-frame-chromium/early-ordinary-verified-recovery.png",
+      "sha256": "ca58066fcc23090b2b2c022e823092498299bd40758cb9d59a64d3c4568f8d23",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-0ac53--its-offered-ordinary-frame-chromium/early-window-verified-recovery.png",
+      "sha256": "6c298b3f1ad1ccf2e2062dfc6a9b66f96411db0c4ad60c0f8224d16236f204b2",
+      "visuallyReviewed": true
+    },
+    {
+      "path": "/tmp/s300-availability-player-final-artifacts/player-s300-matchday-expir-0ac53--its-offered-ordinary-frame-chromium/early-restoration-evidence.json",
+      "sha256": "fd24aae904080235ceacfa9c6b5777cac8888193bde2d0afb48d81b4fcf49259",
+      "visuallyReviewed": false
+    }
+  ],
+  "frames": [
+    {
+      "replacement": "window",
+      "composed": true,
+      "requestedAtEpochMs": 1794238555967,
+      "firstFrameAt": "2026-11-09T15:36:00.868Z",
+      "restoredAt": "2026-11-09T15:36:00.868Z",
+      "frameAfterCommandMs": 4901,
+      "activeReleaseId": "30000000-0000-4000-8000-000000000002",
+      "activeCompositionId": "30000000-0000-4000-8000-000000000502",
+      "oldWindowReport": {
+        "schemaVersion": 1,
+        "publicationId": "30000000-0000-4000-8000-000000000010",
+        "targetId": "30000000-0000-4000-8000-000000000011",
+        "windowId": "30000000-0000-4000-8000-000000000012",
+        "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "releaseId": "30000000-0000-4000-8000-000000000002",
+        "phase": "restored",
+        "reportedAt": "2026-11-09T15:36:00.868Z",
+        "compositionId": "30000000-0000-4000-8000-000000000502",
+        "compositionRevision": 1,
+        "compositionHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "manifestRequests": 2,
+      "heartbeats": 13
+    },
+    {
+      "replacement": "ordinary",
+      "composed": false,
+      "requestedAtEpochMs": 1794238537477,
+      "firstFrameAt": "2026-11-09T15:35:42.388Z",
+      "restoredAt": "2026-11-09T15:35:42.388Z",
+      "frameAfterCommandMs": 4911,
+      "activeReleaseId": "30000000-0000-4000-8000-000000000002",
+      "activeCompositionId": null,
+      "oldWindowReport": {
+        "schemaVersion": 1,
+        "publicationId": "30000000-0000-4000-8000-000000000010",
+        "targetId": "30000000-0000-4000-8000-000000000011",
+        "windowId": "30000000-0000-4000-8000-000000000012",
+        "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "releaseId": "30000000-0000-4000-8000-000000000002",
+        "phase": "restored",
+        "reportedAt": "2026-11-09T15:35:42.388Z",
+        "compositionId": null,
+        "compositionRevision": null,
+        "compositionHash": null
+      },
+      "manifestRequests": 4,
+      "heartbeats": 9
+    },
+    {
+      "replacement": "ordinary",
+      "composed": true,
+      "requestedAtEpochMs": 1794238543676,
+      "firstFrameAt": "2026-11-09T15:35:48.586Z",
+      "restoredAt": "2026-11-09T15:35:48.586Z",
+      "frameAfterCommandMs": 4910,
+      "activeReleaseId": "30000000-0000-4000-8000-000000000002",
+      "activeCompositionId": "30000000-0000-4000-8000-000000000502",
+      "oldWindowReport": {
+        "schemaVersion": 1,
+        "publicationId": "30000000-0000-4000-8000-000000000010",
+        "targetId": "30000000-0000-4000-8000-000000000011",
+        "windowId": "30000000-0000-4000-8000-000000000012",
+        "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "releaseId": "30000000-0000-4000-8000-000000000002",
+        "phase": "restored",
+        "reportedAt": "2026-11-09T15:35:48.586Z",
+        "compositionId": "30000000-0000-4000-8000-000000000502",
+        "compositionRevision": 1,
+        "compositionHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "manifestRequests": 2,
+      "heartbeats": 9
+    },
+    {
+      "replacement": "window",
+      "composed": false,
+      "requestedAtEpochMs": 1794238549939,
+      "firstFrameAt": "2026-11-09T15:35:54.769Z",
+      "restoredAt": "2026-11-09T15:35:54.769Z",
+      "frameAfterCommandMs": 4830,
+      "activeReleaseId": "30000000-0000-4000-8000-000000000002",
+      "activeCompositionId": null,
+      "oldWindowReport": {
+        "schemaVersion": 1,
+        "publicationId": "30000000-0000-4000-8000-000000000010",
+        "targetId": "30000000-0000-4000-8000-000000000011",
+        "windowId": "30000000-0000-4000-8000-000000000012",
+        "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "releaseId": "30000000-0000-4000-8000-000000000002",
+        "phase": "restored",
+        "reportedAt": "2026-11-09T15:35:54.769Z",
+        "compositionId": null,
+        "compositionRevision": null,
+        "compositionHash": null
+      },
+      "manifestRequests": 4,
+      "heartbeats": 10
+    }
+  ],
+  "physicalAndroid": false,
+  "physicalLG": false,
+  "hostedExecution": false,
+  "databaseAcceptance": "Owned separately by available_receipt; no SQL writes/queries executed by this Player agent."
+}
