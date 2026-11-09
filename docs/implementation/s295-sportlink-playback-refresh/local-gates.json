@@ -1,0 +1,96 @@
+{
+  "recordedAt": "2026-11-09T03:45:13.364012+00:00",
+  "baseSha": "282bcec3e986207b5b01ea186325297b2b974b11",
+  "migration": "20261109000829_s295_sportlink_observation_scope.sql",
+  "runtimeBuildId": "xY_Z2TviobCpHZ6QQ7BmI",
+  "foundation": {
+    "lint": {
+      "passed": 30,
+      "total": 30
+    },
+    "typecheck": {
+      "passed": 30,
+      "total": 30
+    },
+    "test": {
+      "passed": 30,
+      "total": 30
+    },
+    "build": {
+      "passed": 18,
+      "total": 18,
+      "status": "PASS",
+      "cached": 17,
+      "seconds": 31.836
+    }
+  },
+  "database": {
+    "isolatedProject": "veyocast-s295-verify",
+    "localPort": 64432,
+    "resetFromEmptyWithSeed": true,
+    "testFiles": 149,
+    "assertions": 4937,
+    "seconds": 104,
+    "status": "PASS",
+    "lintErrors": 0,
+    "advisorErrors": 0,
+    "migrationSha256": "12db2a793a896bd79eb747bd7bdc93e81ad91586427d72f651083db05368f9e7"
+  },
+  "units": {
+    "player": 655,
+    "mediaWorker": 436,
+    "integrations": 230,
+    "contentTemplates": 292,
+    "contracts": 207
+  },
+  "browsers": {
+    "finalStatus": "Closed unique-case inventories; prior failures and not-run observations retained in case histories.",
+    "playwright": "1.61.1",
+    "engine": "Chromium 149",
+    "playerInventory": 449,
+    "nonPlayerInventory": 1352,
+    "optionalLiveSuitesRequireSeparateOptIn": true,
+    "nonPlayerUniquePassed": 721,
+    "nonPlayerExplicitSkipped": 631,
+    "nonPlayerRemaining": 0,
+    "playerA11yCases": 11,
+    "explicitPlayerOfflineCases": 10,
+    "playerIncludingA11yInventory": 460,
+    "aggregation": "Unique case closure across preserved invocations, with exact case IDs and build/source impact. Not a single full-suite passing run.",
+    "playerUniquePassed": 445,
+    "playerExplicitSkipped": 15,
+    "playerRemaining": 0,
+    "playerFinalAffectedCases": 198,
+    "playerFinalAffectedPassed": 195,
+    "playerFinalAffectedTestAssumptionFailures": 3,
+    "playerExactFailedCaseRerunPassed": 3
+  },
+  "boundaries": {
+    "actualSportlinkParameterComparison": false,
+    "hostedCandidateStaging": false,
+    "physicalAndroidWebView": false,
+    "physicalLG": false,
+    "productionWrites": false
+  },
+  "publicationFrameProof": {
+    "runtimeBuildId": "xY_Z2TviobCpHZ6QQ7BmI",
+    "casesPassed": 2,
+    "verifiedRevisionFrames": 12,
+    "seconds": 543.84589,
+    "status": "PASS on final migration and final application build",
+    "evidence": "publication-frame-evidence.json"
+  },
+  "releaseRunnerChecks": {
+    "boundedRunnerTests": 103,
+    "boundedRunnerSeconds": 10.164895011,
+    "githubActionsValidation": "PASS",
+    "vpsDeploymentValidationTests": 234,
+    "vpsDeploymentValidationSeconds": 20.27368112,
+    "status": "PASS",
+    "exactFoundationBoundedRunnerLint": "PASS"
+  },
+  "independentReviews": {
+    "productAndPrivacy": "PASS; 60 source/test hashes and all publication frames verified",
+    "claimsAndDatabase": "PASS; closure counts, migration hash, 46 indexed file hashes and all latency claims verified"
+  }
+}

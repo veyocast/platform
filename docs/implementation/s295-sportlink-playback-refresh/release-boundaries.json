@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-11-09T03:43:57.431801+00:00",
+  "productionWrites": false,
+  "candidateHostedStaging": false,
+  "liveSportlinkParameterComparison": false,
+  "providerPublicationLatencyMeasured": false,
+  "physicalAndroid": {
+    "connectedDevices": 0,
+    "tested": false
+  },
+  "physicalLG": {
+    "available": false,
+    "tested": false
+  },
+  "protectedDiagnostics": [
+    {
+      "url": "https://github.com/veyocast/platform/actions/runs/42538600641",
+      "status": "waiting",
+      "environmentReviewPending": true
+    },
+    {
+      "url": "https://github.com/veyocast/platform/actions/runs/42538602901",
+      "status": "waiting",
+      "environmentReviewPending": true
+    }
+  ],
+  "deploymentRule": "Existing deploy.yml release preflight requires current origin/main; featurebranch staging deployment would bypass this gate.",
+  "remoteMainSha": "282bcec3e986207b5b01ea186325297b2b974b11",
+  "protectedDiagnosticsBaselineSha": "282bcec3e986207b5b01ea186325297b2b974b11"
+}

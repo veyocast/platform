@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
+binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
+dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en
+natuurlijke grenzen blijven leidend. Uitvoering en bewijsgrenzen staan in
+`docs/s295-sportlink-playback-refresh.md`.
+
 S294 herstelt de bij een echte RSS-datarefresh gevonden ontbrekende asset-
 overdracht. Initiële en actuele Source-payloads delen de bestaande begrensde
 collector; onvolledige metadata activeert geen uitgeklede kandidaat.

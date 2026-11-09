@@ -1,0 +1,253 @@
+{
+  "baseSha": "282bcec3e986207b5b01ea186325297b2b974b11",
+  "testedSourceCommit": "392816d7f41a65da0d06195563d409330c2bb893",
+  "runtimeBuildId": "xY_Z2TviobCpHZ6QQ7BmI",
+  "recordedAt": "2026-11-09T03:44:17.667140+00:00",
+  "localBuildFromCandidateWorkingTree": true,
+  "commitBinding": "Runtime and validation file hashes bind the pre-commit build to the tested source commit; documentation-only follow-up does not rebuild these bytes.",
+  "files": [
+    {
+      "path": "apps/control/app/(shell)/dashboard/playlists/_components/sites/sync-studio-preview.tsx",
+      "sha256": "dfd788946234f3ef2331c4eeacecd0c08a0e673f7492feaa404bf023e9aa1593"
+    },
+    {
+      "path": "apps/media-worker/src/sportlink-sync-runner.ts",
+      "sha256": "ba2a86a25ef851b1287dbff3bd33086f0ce5e3a768032ef0924a13c7427bd153"
+    },
+    {
+      "path": "apps/media-worker/src/sync-dom-capture.tsx",
+      "sha256": "44a4d489d2f257b5e518a91602034b48f1e7eac9d51e3981221fc4699575e229"
+    },
+    {
+      "path": "apps/player/app/_components/player-runtime.tsx",
+      "sha256": "bab2445bf6e3343e3e8ed5006acb25a9a7686fedd8b362db604e3982a94a7efb"
+    },
+    {
+      "path": "apps/player/app/_components/screen-composition-zone.tsx",
+      "sha256": "2df5e8a4afff88c8a6b948346a23f5c701c509671f830a776a592fead5992d2d"
+    },
+    {
+      "path": "apps/player/app/_components/sync-studio-media.tsx",
+      "sha256": "263b80e8acb14497cde64da5521be9f3bd168016f984fc7fff791c4b0444d6d4"
+    },
+    {
+      "path": "apps/player/app/_components/verified-empty-zone.module.css",
+      "sha256": "e09403e683896775c6e06d34fad4f7d2c838e3ef582089a86f619f31da135744"
+    },
+    {
+      "path": "apps/player/app/_components/verified-empty-zone.tsx",
+      "sha256": "1189a859a19b8c71cf274c22e86a9b1972b7356e30394e0fdcd728c39cacdc2f"
+    },
+    {
+      "path": "apps/player/app/_lib/lg-legacy-page.ts",
+      "sha256": "2f61ad25fccae4de3791a0a041f8ebb8c65f799daa95480406a8b8ee5b4b326f"
+    },
+    {
+      "path": "apps/player/app/_lib/lg-sites-runtime.ts",
+      "sha256": "e00075b829d402833a708771f4678da914202668b1c4b8357923f0dc1f51be4d"
+    },
+    {
+      "path": "apps/player/app/_lib/player-dynamic-activation.ts",
+      "sha256": "ff55760a9767d5ebde2a33d5ee1a8a5b43a3f79e880e19392769964b713d16fe"
+    },
+    {
+      "path": "apps/player/app/_lib/player-dynamic-template-payload.ts",
+      "sha256": "c3831c56de0ea2c07a364c2cc5c97339d6de1cbf8276e1edf9fff22730417be1"
+    },
+    {
+      "path": "apps/player/app/_lib/player-manifest.ts",
+      "sha256": "6abac3add02c8a0cb4849ae2881590301817232556c448afeae4397bf8be4c4d"
+    },
+    {
+      "path": "apps/player/app/_lib/player-release-envelope.ts",
+      "sha256": "35cca5eb3cbed47a59fd2f8f17b6991559e18e36a3e077b13621b5f7095a2ab6"
+    },
+    {
+      "path": "apps/player/app/_lib/player-runtime-config.ts",
+      "sha256": "46df140410f148c44ea53aed81394d72eae20a1c11c97862b865ab4f5c023dee"
+    },
+    {
+      "path": "apps/player/app/_lib/player-screen-composition.ts",
+      "sha256": "77c34d335e25b8601481107f892f84746c1b59edf8a3faae59535069fa5cf024"
+    },
+    {
+      "path": "apps/player/app/_lib/player-source-data-boundary.ts",
+      "sha256": "64b1a959e415b33d2bfcfcdbc27700f91fcc6e8d0c01e25d5079861fceddc99e"
+    },
+    {
+      "path": "apps/player/app/_lib/screen-composition-boundary.ts",
+      "sha256": "137082095420a7877aa5e9f1377bb1be08037d146cc9a421bae7e501adb18bd1"
+    },
+    {
+      "path": "apps/player/app/_lib/sync-player-assets.ts",
+      "sha256": "8dce1cf87212e1d6f6f03a26ff5e75bb2cd86bcf1b0d993ff7524500f4ff7ffe"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-matchday-styles.ts",
+      "sha256": "e270f456730c712119c67e6fd29cf7dd5c707cc274cbb95c49489781f6e8e81a"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-motion.ts",
+      "sha256": "c30d19329c6023567fe4d7e644a192a0c05a71ed360153ff8fcfa638d2548fbc"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-projector.ts",
+      "sha256": "6721982575753efe63a41c71691f391312a61b254c4df507289f57194a96f63c"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-styles.ts",
+      "sha256": "b6d2841a298343a717d69231c8aea0f840eb1eb743b4102c8901944a8867f43d"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-v9-styles.ts",
+      "sha256": "3d8ee701dbf52bedc648deccae44f20ae66631304c180c393777a4ba8bae6879"
+    },
+    {
+      "path": "packages/content-templates/src/sync-onzetrots-view.tsx",
+      "sha256": "6c724bff805d1208548eb2724c16a9c99acb4a6b789113ffd0ff3efe89439465"
+    },
+    {
+      "path": "packages/contracts/src/sync-slide-presentation.ts",
+      "sha256": "48c8ea2bd9ef07c0dcc0bbcc7f5f5a83e7414a6f87f23928044fdb16ed935d85"
+    },
+    {
+      "path": "packages/integrations/src/sportlink-mappers.ts",
+      "sha256": "f1a326dc9ea66a81a7301a610a67abf676b43bef164849b97df26608f4886fd3"
+    },
+    {
+      "path": "packages/integrations/src/sportlink-registry.ts",
+      "sha256": "2edea71b8634f3ad255bf32bccd569818b6655d4c0cab9837a15cb9b3ba4e0a1"
+    },
+    {
+      "path": "scripts/build-sync-onzetrots-assets.mjs",
+      "sha256": "82f29e4ae8dc9503af7dc6264c063032031112b6b267d8bad0d696681ab85366"
+    },
+    {
+      "path": "scripts/build-sync-onzetrots-v9-assets.mjs",
+      "sha256": "e891a5feebc9d34ddfd8e52b0d52d758447579382b6ea39a9478931ae69403ba"
+    },
+    {
+      "path": "supabase/migrations/20261109000829_s295_sportlink_observation_scope.sql",
+      "sha256": "12db2a793a896bd79eb747bd7bdc93e81ad91586427d72f651083db05368f9e7"
+    }
+  ],
+  "validationFiles": [
+    {
+      "path": "apps/media-worker/test/sportlink-observation.test.ts",
+      "sha256": "52670168f1a2e1c4b13d760a5e96af40fb1a6a0da425bab7fa66a04ac71a137e"
+    },
+    {
+      "path": "apps/media-worker/test/sportlink-sync-runner.test.ts",
+      "sha256": "e23638992dea66965540db87c53f7e9043ec270e51034d629fd4e7414175ef8d"
+    },
+    {
+      "path": "apps/player/app/_components/verified-empty-zone.test.tsx",
+      "sha256": "aa30f27533869c694aec1930f139f83145362cd6e7341fb67778d7fb5fedf34f"
+    },
+    {
+      "path": "apps/player/app/_lib/lg-legacy-page.test.ts",
+      "sha256": "77a5038e24b4584629330a4ca5c129f9d77afca5e8e9649c0d5dae47b7b139ef"
+    },
+    {
+      "path": "apps/player/app/_lib/lg-sites-runtime.test.ts",
+      "sha256": "dd65c2c6074cd6d58b2a9a642073432859c89aa2559040b62f571b1c9abbc872"
+    },
+    {
+      "path": "apps/player/app/_lib/menu-dom-envelope.test.ts",
+      "sha256": "223caa323562029956a837f2b7977830b23b8e39e6f64453a500fdde1bb4029a"
+    },
+    {
+      "path": "apps/player/app/_lib/player-release-envelope-legacy.test.ts",
+      "sha256": "a754e97ad83c64056573cd97a5de8bf38b70299cabdb3ae1e1f1b79222f96827"
+    },
+    {
+      "path": "apps/player/app/_lib/player-runtime-config.test.ts",
+      "sha256": "b4e4ce3d82b09c379ca561fb19474a8b3a380975d5f5d462c25ec94dc3e57ebb"
+    },
+    {
+      "path": "apps/player/app/_lib/player-source-data-boundary.test.ts",
+      "sha256": "0e9a07331a8455aa1f8ea7c951514b2f9ca347e7d0e9e1c5bf2c7bac6fe3d925"
+    },
+    {
+      "path": "apps/player/app/_lib/screen-composition-boundary.test.ts",
+      "sha256": "9eacdd64a17f6c669a739ab244078598cf2dd2963075dace8fc7accc17681431"
+    },
+    {
+      "path": "apps/player/app/_lib/sync-player-assets.test.ts",
+      "sha256": "42ed0e08f93cf142560adbdfa227c0f85930ad2d3f306f37b7eabc18356d3a7c"
+    },
+    {
+      "path": "packages/content-templates/test/sync-onzetrots-motion.test.ts",
+      "sha256": "e306e750460fe685a9a8699080f5923a61057af4b69c02f424e320bf0aaf7e8a"
+    },
+    {
+      "path": "packages/content-templates/test/sync-onzetrots-projector.test.ts",
+      "sha256": "afa6c9c9aaa72e3cdd2c47110e2d86d4cf626f6eebcba0d0cff4dbefee837ded"
+    },
+    {
+      "path": "packages/contracts/test/s295-matchday-assets.test.ts",
+      "sha256": "997f26247c8a0b962b9a394dd2325d1f45afa66ebf4fa7d9f5a2b6b98f5c6609"
+    },
+    {
+      "path": "packages/contracts/test/s295-matchday-motion.test.ts",
+      "sha256": "d25b2615562eed8e00969cc2a8e3382e7b574820a6ae767cb1dea70e4a8856ae"
+    },
+    {
+      "path": "packages/integrations/test/sportlink.test.ts",
+      "sha256": "6c6f52c5c767f23259fa4017ae5ecfda39c6171b54aac9219c29fdeaac08ca27"
+    },
+    {
+      "path": "scripts/verify-s295-sportlink-publication.mts",
+      "sha256": "fe8e677b28010e45801e4b98951437c057ea9282b8908f1e0cf5cca562017d36"
+    },
+    {
+      "path": "supabase/tests/s295_published_sportlink_chain.sql",
+      "sha256": "341d740b5d0023e42292fe7f190766d778e14765746a4cf7249957b51813810a"
+    },
+    {
+      "path": "supabase/tests/s295_sportlink_observation_scope.sql",
+      "sha256": "8e4f68503c6854b4d9e3884e40a70cc75964ed2a50ab3f3e3150e7eaa0760bf2"
+    },
+    {
+      "path": "tests/e2e/control-mobile-scroll.spec.ts",
+      "sha256": "aca8f2a5bdd1d31ed6104a620fbbab0782cb34e555a7c19369abe2381da4dc53"
+    },
+    {
+      "path": "tests/fixtures/s295-published-sportlink.json",
+      "sha256": "f237ee7cf381113c8f32ed1639101ec93dda392fed06a32c9b1df603991433f1"
+    },
+    {
+      "path": "tests/player/dynamic-activation-refresh.spec.ts",
+      "sha256": "41c34af7505c93e7a2a5d7fe07e3dd04d46510fbe6182c405df1158ac815121e"
+    },
+    {
+      "path": "tests/player/latest-publication.spec.ts",
+      "sha256": "92f969320e86a39e3010ff567e777e52bf035efdb9190198f03dd708e5ee3c35"
+    },
+    {
+      "path": "tests/player/lg-legacy-player.spec.ts",
+      "sha256": "8e8af417e4e6a65ac76c7504ada66175f932d0ec57618d2b71c379cb71e15d78"
+    },
+    {
+      "path": "tests/player/lg-sites-composition.spec.ts",
+      "sha256": "664ec302ec5cb64f1f727d5fefbb2b3682cec6f463cfd109cdadc3fb87358580"
+    },
+    {
+      "path": "tests/player/menu-dom-v2.spec.ts",
+      "sha256": "cfbf0433238131986e9d4f0ba32c464742c8d5854810e2d06966855b02fbcb06"
+    },
+    {
+      "path": "tests/player/s295-sportlink-publication.spec.ts",
+      "sha256": "c02349a91a00dd7c5a07aec0073178bd853612979511d00bc9aae03b03ccbf2a"
+    },
+    {
+      "path": "tests/player/sync-binary-legacy.spec.ts",
+      "sha256": "e3d7ee5097e3cfbfaa330e24efa66c8a72ee1c983e6567fe9bcdad392838a936"
+    },
+    {
+      "path": "tests/player/sync-dom-v2.spec.ts",
+      "sha256": "fc17794105b79dd9b6e9567937c13c8b0229c2cd5fff4981c638de7f8b7438ed"
+    }
+  ],
+  "commitBoundAt": "2026-11-09T03:45:22.076648+00:00"
+}

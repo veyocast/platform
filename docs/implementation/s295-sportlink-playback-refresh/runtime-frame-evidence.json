@@ -1,0 +1,1042 @@
+{
+  "schemaVersion": 1,
+  "buildId": "xY_Z2TviobCpHZ6QQ7BmI",
+  "fixturesControlled": true,
+  "scope": "Authorized manifest responses to the actual Player runtimes; root SQL-generated publication proof is separate.",
+  "proofs": [
+    {
+      "kind": "activation",
+      "platform": "static-lg",
+      "family": "news",
+      "evidence": {
+        "fixture": true,
+        "platform": "static-lg",
+        "family": "news",
+        "verifiedFrame": true,
+        "periodicIntervalMs": 60000,
+        "itemDurationMs": 5000,
+        "immutableReleaseId": "29500000-0000-4000-8000-000000000001",
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194322095,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194322184,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194327177,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-4",
+            "at": 1794194332176,
+            "conditional": "\"activation-2\"",
+            "status": 304,
+            "revision": 2
+          }
+        ],
+        "originChangeToVisibleFrameMs": 10549,
+        "visibleRevision": 2
+      },
+      "files": [
+        {
+          "path": "activation/static-lg-news.json",
+          "sha256": "701f7adab68e21b702f1ea39e7ec74f4403f78735b49928c958afb64f7eadd49",
+          "bytes": 706
+        },
+        {
+          "path": "activation/static-lg-news-before.png",
+          "sha256": "141d36f9d18e860d8a875a33284dab31e485689a92114c4d81ab74504f820f85",
+          "bytes": 64243
+        },
+        {
+          "path": "activation/static-lg-news-updated.png",
+          "sha256": "efded8e742bf90d09fcf8030ae80b0000bfb241b311c9686983a089665dbb95d",
+          "bytes": 73947
+        }
+      ]
+    },
+    {
+      "kind": "activation",
+      "platform": "browser",
+      "family": "news",
+      "evidence": {
+        "fixture": true,
+        "platform": "browser",
+        "family": "news",
+        "verifiedFrame": true,
+        "periodicIntervalMs": 60000,
+        "itemDurationMs": 5000,
+        "immutableReleaseId": "29500000-0000-4000-8000-000000000001",
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194227079,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194227199,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194232293,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          }
+        ],
+        "originChangeToVisibleFrameMs": 6258,
+        "visibleRevision": 2
+      },
+      "files": [
+        {
+          "path": "activation/browser-news.json",
+          "sha256": "89f0c62722dca1e2147274bb2a34e293ff9d765c77ed45f8989b5ef3d60d229d",
+          "bytes": 582
+        },
+        {
+          "path": "activation/browser-news-before.png",
+          "sha256": "d941b0cdae8df93c7c5d111c2487911413bf8b8cea09b3b1e66c75ae76a41a51",
+          "bytes": 87941
+        },
+        {
+          "path": "activation/browser-news-updated.png",
+          "sha256": "3e5d8cf06aea311ea234986bab06b76f8f5557ffde8d381cd054e294a445981f",
+          "bytes": 82627
+        }
+      ]
+    },
+    {
+      "kind": "activation",
+      "platform": "static-lg",
+      "family": "sport_results",
+      "evidence": {
+        "fixture": true,
+        "platform": "static-lg",
+        "family": "sport_results",
+        "verifiedFrame": true,
+        "periodicIntervalMs": 60000,
+        "itemDurationMs": 5000,
+        "immutableReleaseId": "29500000-0000-4000-8000-000000000001",
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194333150,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194333255,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194338260,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-4",
+            "at": 1794194343274,
+            "conditional": "\"activation-2\"",
+            "status": 304,
+            "revision": 2
+          }
+        ],
+        "originChangeToVisibleFrameMs": 10547,
+        "visibleRevision": 2
+      },
+      "files": [
+        {
+          "path": "activation/static-lg-sport-results.json",
+          "sha256": "e0f954de2f9a4fd1c6928852ebac85dd56991fd43f42830349755c22d2c68120",
+          "bytes": 715
+        },
+        {
+          "path": "activation/static-lg-sport-results-before.png",
+          "sha256": "3e18ab5f7e204fe3dfca5e632a74e5c8b700aea98a7a6b46da11a8b7745dba98",
+          "bytes": 108248
+        },
+        {
+          "path": "activation/static-lg-sport-results-updated.png",
+          "sha256": "9ba98d9d9a4a6d00bb4eae4f06aabd95b1892698e8b501475b3fcee2fea88574",
+          "bytes": 112263
+        }
+      ]
+    },
+    {
+      "kind": "activation",
+      "platform": "browser",
+      "family": "sport_results",
+      "evidence": {
+        "fixture": true,
+        "platform": "browser",
+        "family": "sport_results",
+        "verifiedFrame": true,
+        "periodicIntervalMs": 60000,
+        "itemDurationMs": 5000,
+        "immutableReleaseId": "29500000-0000-4000-8000-000000000001",
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194234201,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194234302,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194239381,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          }
+        ],
+        "originChangeToVisibleFrameMs": 5254,
+        "visibleRevision": 2
+      },
+      "files": [
+        {
+          "path": "activation/browser-sport-results.json",
+          "sha256": "ffb417dcc9142b74886d84d021f56bea9fa9c85639a9b1de947941db19ccdb36",
+          "bytes": 591
+        },
+        {
+          "path": "activation/browser-sport-results-before.png",
+          "sha256": "4e262c767de2baa21350184064c338273a204d6df81e42431f6e272ed516a9db",
+          "bytes": 139948
+        },
+        {
+          "path": "activation/browser-sport-results-updated.png",
+          "sha256": "f8a412cc00f813432324587fdab86706923272b77747d5e66084712a5bb8e072",
+          "bytes": 145944
+        }
+      ]
+    },
+    {
+      "kind": "ordinary-results",
+      "platform": "static-lg",
+      "family": null,
+      "evidence": {
+        "fixture": true,
+        "platform": "static-lg",
+        "immutableReleaseId": "29500000-0000-4000-8000-000000000001",
+        "periodicIntervalMs": 60000,
+        "itemDurationMs": 5000,
+        "sameCorrectedMatchId": "match-new",
+        "emptyOfflineReloadRetained": true,
+        "freshAfterEmptyRevision": 6,
+        "frames": [
+          {
+            "revision": 2,
+            "matchIds": [
+              "match-new",
+              "match-old"
+            ],
+            "verifiedFrame": true,
+            "score": "0\u20130"
+          },
+          {
+            "revision": 3,
+            "matchIds": [
+              "match-new",
+              "match-old"
+            ],
+            "verifiedFrame": true,
+            "score": "2\u20130"
+          },
+          {
+            "revision": 4,
+            "matchIds": [
+              "match-new"
+            ],
+            "verifiedFrame": true,
+            "score": "2\u20130"
+          },
+          {
+            "revision": 5,
+            "matchIds": [],
+            "verifiedFrame": true,
+            "score": null,
+            "emptyState": "connected-ready-existing-skip-contract"
+          }
+        ],
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194345237,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194345350,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194345451,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-4",
+            "at": 1794194350359,
+            "conditional": "\"activation-2\"",
+            "status": 304,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-5",
+            "at": 1794194350690,
+            "conditional": "\"activation-2\"",
+            "status": 200,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-6",
+            "at": 1794194355358,
+            "conditional": "\"activation-3\"",
+            "status": 304,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-7",
+            "at": 1794194355903,
+            "conditional": "\"activation-3\"",
+            "status": 200,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-8",
+            "at": 1794194360373,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-9",
+            "at": 1794194361126,
+            "conditional": "\"activation-4\"",
+            "status": 200,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-10",
+            "at": 1794194365374,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-11",
+            "at": 1794194370353,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-12",
+            "at": 1794194371730,
+            "status": 503,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-13",
+            "at": 1794194371940,
+            "status": 200,
+            "revision": 6
+          },
+          {
+            "correlationId": "activation-fixture-0-14",
+            "at": 1794194371945,
+            "status": 200,
+            "revision": 6
+          },
+          {
+            "correlationId": "activation-fixture-0-15",
+            "at": 1794194371997,
+            "conditional": "\"activation-6\"",
+            "status": 304,
+            "revision": 6
+          }
+        ]
+      },
+      "files": [
+        {
+          "path": "ordinary-results/static-lg/results-acceptance-evidence.json",
+          "sha256": "0f53a4a006bf4c9d90925c114ff35cf11fa673e249cd7ddcd6f6ba7dc6f601f9",
+          "bytes": 2330
+        },
+        {
+          "path": "ordinary-results/static-lg/results-empty-offline-frame.png",
+          "sha256": "3a0902c1693d64b9bfa6bf5460a28926ac36804b4e977e0c999258548c4a9dde",
+          "bytes": 496911
+        },
+        {
+          "path": "ordinary-results/static-lg/results-restored-after-empty-frame.png",
+          "sha256": "bf113eac64e0626e058d9ae6832ffa21f10dba21b11d1ba22268a0011c874bd9",
+          "bytes": 108126
+        },
+        {
+          "path": "ordinary-results/static-lg/results-revision-2-frame.png",
+          "sha256": "f24c575f984c2913e68a31c2e07f7842dc3d6b5e742b7eb46c6ff0603229b75e",
+          "bytes": 107826
+        },
+        {
+          "path": "ordinary-results/static-lg/results-revision-3-frame.png",
+          "sha256": "31a43e10e7479b93c658928e48e6cd8c6d5592b4a04aa38b40f4322bf5c575a9",
+          "bytes": 124110
+        },
+        {
+          "path": "ordinary-results/static-lg/results-revision-4-frame.png",
+          "sha256": "c5abb8745cd021c4a3d2883178dde0b22a1776c460dbf933313f8c11bb6746f5",
+          "bytes": 112636
+        },
+        {
+          "path": "ordinary-results/static-lg/results-revision-5-frame.png",
+          "sha256": "e3af2e5b9b179c5a35b770e7d343aacf362b55a11ca2e097841b195570278ce9",
+          "bytes": 509702
+        }
+      ]
+    },
+    {
+      "kind": "ordinary-results",
+      "platform": "browser",
+      "family": null,
+      "evidence": {
+        "fixture": true,
+        "platform": "browser",
+        "immutableReleaseId": "29500000-0000-4000-8000-000000000001",
+        "periodicIntervalMs": 60000,
+        "itemDurationMs": 5000,
+        "sameCorrectedMatchId": "match-new",
+        "emptyOfflineReloadRetained": true,
+        "freshAfterEmptyRevision": 6,
+        "frames": [
+          {
+            "revision": 2,
+            "matchIds": [
+              "match-new",
+              "match-old"
+            ],
+            "verifiedFrame": true,
+            "score": "0\u20130"
+          },
+          {
+            "revision": 3,
+            "matchIds": [
+              "match-new",
+              "match-old"
+            ],
+            "verifiedFrame": true,
+            "score": "2\u20130"
+          },
+          {
+            "revision": 4,
+            "matchIds": [
+              "match-new"
+            ],
+            "verifiedFrame": true,
+            "score": "2\u20130"
+          },
+          {
+            "revision": 5,
+            "matchIds": [],
+            "verifiedFrame": true,
+            "score": null,
+            "emptyState": "connected-ready-existing-skip-contract"
+          }
+        ],
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194241218,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194241323,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194241444,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-4",
+            "at": 1794194246405,
+            "conditional": "\"activation-2\"",
+            "status": 304,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-5",
+            "at": 1794194247657,
+            "conditional": "\"activation-2\"",
+            "status": 200,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-6",
+            "at": 1794194251457,
+            "conditional": "\"activation-3\"",
+            "status": 304,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-7",
+            "at": 1794194251981,
+            "conditional": "\"activation-3\"",
+            "status": 200,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-8",
+            "at": 1794194256506,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-9",
+            "at": 1794194257209,
+            "conditional": "\"activation-4\"",
+            "status": 200,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-10",
+            "at": 1794194262523,
+            "conditional": "\"activation-5\"",
+            "status": 503,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-11",
+            "at": 1794194262751,
+            "status": 503,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-12",
+            "at": 1794194262944,
+            "status": 200,
+            "revision": 6
+          },
+          {
+            "correlationId": "activation-fixture-0-13",
+            "at": 1794194262948,
+            "status": 200,
+            "revision": 6
+          },
+          {
+            "correlationId": "activation-fixture-0-14",
+            "at": 1794194266791,
+            "conditional": "\"activation-6\"",
+            "status": 304,
+            "revision": 6
+          }
+        ]
+      },
+      "files": [
+        {
+          "path": "ordinary-results/browser/results-acceptance-evidence.json",
+          "sha256": "bfec8b5122ab930080ad751f84b8d25a40b44cb96ae84b3591f7f9a2e54127ff",
+          "bytes": 2206
+        },
+        {
+          "path": "ordinary-results/browser/results-empty-offline-frame.png",
+          "sha256": "3b5142117867f862f2358c7cdc685925c9b08ed9f30c63a970871bf611ad5146",
+          "bytes": 465730
+        },
+        {
+          "path": "ordinary-results/browser/results-restored-after-empty-frame.png",
+          "sha256": "9f25cd3de5c488f6a90e5ad451fd8a48b586e32d299611754c91ac3bc6865456",
+          "bytes": 110123
+        },
+        {
+          "path": "ordinary-results/browser/results-revision-2-frame.png",
+          "sha256": "7c2af5029cb180d962f38266f558897e27228fd7dc3ce2e299d50ae1df7d2fa6",
+          "bytes": 144288
+        },
+        {
+          "path": "ordinary-results/browser/results-revision-3-frame.png",
+          "sha256": "0b6dde56a6b0d27636b80aa3734f1e325ca2d431116118db963e50c13c343eb1",
+          "bytes": 146104
+        },
+        {
+          "path": "ordinary-results/browser/results-revision-4-frame.png",
+          "sha256": "341caf9d3c58e948f5bdf4605c86cc4325e7f6027a4e5f1661a54f37f853d605",
+          "bytes": 143271
+        },
+        {
+          "path": "ordinary-results/browser/results-revision-5-frame.png",
+          "sha256": "f938da67af3981e78cd2b16888c70adbeb0a500145e1c8b2566e5bd45f475fd0",
+          "bytes": 478798
+        }
+      ]
+    },
+    {
+      "kind": "independent-empty-zones",
+      "platform": "browser",
+      "family": null,
+      "evidence": {
+        "fixture": true,
+        "platform": "browser",
+        "immutableMainReleaseId": "29500000-0000-4000-8000-000000000001",
+        "mainDurationMs": 120000,
+        "sideDurationMs": 19000,
+        "observedSideClockMs": 19110,
+        "sideEmptyOfflineReload": true,
+        "mainRetainedDuringSideChanges": true,
+        "sideRetainedDuringMainChanges": true,
+        "restored": {
+          "main": 3,
+          "side": 3,
+          "release": "29500000-0000-4000-8000-000000000001"
+        },
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194267370,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194267486,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194267495,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-4",
+            "at": 1794194267640,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-5",
+            "at": 1794194267669,
+            "conditional": "\"activation-2\"",
+            "status": 304,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-6",
+            "at": 1794194267761,
+            "conditional": "\"activation-2\"",
+            "status": 304,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-7",
+            "at": 1794194267874,
+            "conditional": "\"activation-2\"",
+            "status": 503,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-8",
+            "at": 1794194268079,
+            "status": 503,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-9",
+            "at": 1794194268168,
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-10",
+            "at": 1794194268202,
+            "conditional": "\"activation-2\"",
+            "status": 200,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-11",
+            "at": 1794194268247,
+            "conditional": "\"activation-3\"",
+            "status": 304,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-12",
+            "at": 1794194268260,
+            "conditional": "\"activation-3\"",
+            "status": 304,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-13",
+            "at": 1794194268295,
+            "conditional": "\"activation-3\"",
+            "status": 200,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-14",
+            "at": 1794194268309,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-15",
+            "at": 1794194268359,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-16",
+            "at": 1794194268416,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-17",
+            "at": 1794194268432,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-18",
+            "at": 1794194268813,
+            "conditional": "\"activation-4\"",
+            "status": 200,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-19",
+            "at": 1794194268837,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-20",
+            "at": 1794194268849,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-21",
+            "at": 1794194269020,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-22",
+            "at": 1794194269025,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          }
+        ]
+      },
+      "files": [
+        {
+          "path": "independent-empty-zones/browser/empty-zone-evidence.json",
+          "sha256": "f4d788a1d0e3235e2aad7e671f9036f22bb33540a7100796a52af607fdadff17",
+          "bytes": 2949
+        },
+        {
+          "path": "independent-empty-zones/browser/both-zones-recovered-frame.png",
+          "sha256": "50b932d620af7c6b8188d74f6d1fe538c13a178dbb889b2d60ccb0531179c631",
+          "bytes": 99273
+        },
+        {
+          "path": "independent-empty-zones/browser/main-empty-side-preserved-frame.png",
+          "sha256": "fbe7714350cc6a5f9f24171d44e052fd565510692bab4bdedc442f9cc2568274",
+          "bytes": 334969
+        },
+        {
+          "path": "independent-empty-zones/browser/side-empty-main-preserved-frame.png",
+          "sha256": "e97ab1e23fd046822e21d41aa1c5ccd675385fa10b5e6a062941a0cc72b838da",
+          "bytes": 159450
+        }
+      ]
+    },
+    {
+      "kind": "independent-empty-zones",
+      "platform": "static-lg",
+      "family": null,
+      "evidence": {
+        "fixture": true,
+        "platform": "static-lg",
+        "immutableMainReleaseId": "29500000-0000-4000-8000-000000000001",
+        "mainDurationMs": 120000,
+        "sideDurationMs": 19000,
+        "observedSideClockMs": 19113,
+        "sideEmptyOfflineReload": true,
+        "mainRetainedDuringSideChanges": true,
+        "sideRetainedDuringMainChanges": true,
+        "restored": {
+          "main": 3,
+          "side": 3,
+          "release": "29500000-0000-4000-8000-000000000001"
+        },
+        "requests": [
+          {
+            "correlationId": "activation-fixture-0-1",
+            "at": 1794194372416,
+            "status": 200,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-2",
+            "at": 1794194372635,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-3",
+            "at": 1794194372653,
+            "conditional": "\"activation-1\"",
+            "status": 304,
+            "revision": 1
+          },
+          {
+            "correlationId": "activation-fixture-0-4",
+            "at": 1794194372825,
+            "conditional": "\"activation-1\"",
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-5",
+            "at": 1794194372970,
+            "conditional": "\"activation-2\"",
+            "status": 304,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-6",
+            "at": 1794194373286,
+            "status": 503,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-7",
+            "at": 1794194373548,
+            "status": 200,
+            "revision": 2
+          },
+          {
+            "correlationId": "activation-fixture-0-8",
+            "at": 1794194373593,
+            "conditional": "\"activation-2\"",
+            "status": 200,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-9",
+            "at": 1794194373735,
+            "conditional": "\"activation-3\"",
+            "status": 304,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-10",
+            "at": 1794194373748,
+            "conditional": "\"activation-3\"",
+            "status": 304,
+            "revision": 3
+          },
+          {
+            "correlationId": "activation-fixture-0-11",
+            "at": 1794194373765,
+            "conditional": "\"activation-3\"",
+            "status": 200,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-12",
+            "at": 1794194373880,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-13",
+            "at": 1794194373915,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-14",
+            "at": 1794194373920,
+            "conditional": "\"activation-4\"",
+            "status": 304,
+            "revision": 4
+          },
+          {
+            "correlationId": "activation-fixture-0-15",
+            "at": 1794194374480,
+            "conditional": "\"activation-4\"",
+            "status": 200,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-16",
+            "at": 1794194374622,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          },
+          {
+            "correlationId": "activation-fixture-0-17",
+            "at": 1794194374627,
+            "conditional": "\"activation-5\"",
+            "status": 304,
+            "revision": 5
+          }
+        ]
+      },
+      "files": [
+        {
+          "path": "independent-empty-zones/static-lg/empty-zone-evidence.json",
+          "sha256": "4cfe7ee58e879afd5e2997caa2e6a5b927110461a5e5aff5efa01e399e0c4086",
+          "bytes": 2341
+        },
+        {
+          "path": "independent-empty-zones/static-lg/both-zones-recovered-frame.png",
+          "sha256": "d3a2410c4ecf5290b2659ef8f6ac059dcf5ea38299c867e3a4833180ba6f15ff",
+          "bytes": 74853
+        },
+        {
+          "path": "independent-empty-zones/static-lg/main-empty-side-preserved-frame.png",
+          "sha256": "af0ce37de74d026ed3b3222a055b920f2035a4722587e7399be019a4a9820c25",
+          "bytes": 135858
+        },
+        {
+          "path": "independent-empty-zones/static-lg/side-empty-main-preserved-frame.png",
+          "sha256": "c00c12aaea345e6ad5046a9f3a12803529fa2d8f07f64bd1356f0dd2d9d41976",
+          "bytes": 207915
+        }
+      ]
+    },
+    {
+      "kind": "unchanged-sites",
+      "platform": "static-lg",
+      "family": null,
+      "evidence": {
+        "fixture": true,
+        "itemDurationMs": 12000,
+        "pageDurationMs": 4000,
+        "periodicIntervalMs": 60000,
+        "boundariesMs": [
+          3879,
+          7747
+        ],
+        "initialDomRetainedAcrossUnchanged200": true,
+        "renewedAccess": true,
+        "renewedAccessObserved": [
+          "/__lg-sites/1.svg?signature=renewed-1",
+          "/__lg-sites/1.svg?signature=renewed-2"
+        ],
+        "downloads": [
+          "/__lg-sites/1.svg"
+        ],
+        "requests": 5
+      },
+      "files": [
+        {
+          "path": "unchanged-sites/static-lg/unchanged-sites-evidence.json",
+          "sha256": "de8c98aad1b759e6f7457549787f303df633439418e80204b1cb99da630c96d2",
+          "bytes": 333
+        }
+      ]
+    },
+    {
+      "kind": "rss-media-projection",
+      "platform": "browser",
+      "family": null,
+      "evidence": {
+        "fontsBefore": 7,
+        "fontsAfterNewMedia": 14,
+        "unchangedRenewalExtraFontLoads": 0,
+        "descriptorDownloads": 1,
+        "newMediaDownloads": 1,
+        "unchangedRenewalExtraMediaDownloads": 0
+      },
+      "files": [
+        {
+          "path": "rss-media-projection/browser/refresh-metrics.json",
+          "sha256": "4710d1b9a78d9ca05cc89f271a7365aa1525d27651a149887af52103c088283b",
+          "bytes": 162
+        },
+        {
+          "path": "rss-media-projection/browser/rss-real-projection-refresh.png",
+          "sha256": "336b216f308835c7d1e171b91ec8b7993a170df693205e1a193adf0d78383767",
+          "bytes": 2249341
+        }
+      ]
+    },
+    {
+      "kind": "older-mixed-offline-cache",
+      "platform": "static-lg",
+      "files": [
+        {
+          "path": "older-mixed-offline-cache/static-lg/older-mixed-offline-cache-frame.png",
+          "sha256": "fd4b7d8018ffe095da5791aec392720e38f406fa8b9144dc7573128b5668ef84",
+          "bytes": 10855
+        }
+      ]
+    }
+  ],
+  "hostedStaging": false,
+  "actualProvider": false
+}

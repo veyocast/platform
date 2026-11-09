@@ -3,6 +3,41 @@
 Status: versioned DOM-ready Source protocol (S292); historical contracts retained
 Scope: fixed menu boards, RSS news, Publisher integration and all Players
 
+## Sportlink-waarnemingen en wedstrijddag (S295)
+
+Een detailbatch bewijst geen afwezigheid en kan een officiële eindstand niet
+terugzetten naar Programma. Alleen een volledige geldige scopewaarneming
+bepaalt haar zichtbare resultaat- of programmaset; een geldige lege set wordt
+direct zichtbaar. Technische of partiële fouten behouden geldige blokken;
+positieve deelwaarnemingen blijven bruikbaar. Een ontbrekend, null, leeg of
+onleesbaar uitslagveld bewijst geen officiële afscherming of intrekking: zo'n
+rij verlaat de writebatch en maakt haar dekking incompleet. Een echte 0–0 is
+een gepubliceerd scorepaar. Geldige lege feeds en expliciete officiële
+afgelastingen blijven verwerkbaar. Historische deactivatie behoudt
+haar bestaande drie-waarnemingenbescherming. De verbindingstijdzone bepaalt
+kalenderselecties; een begrensde serverqueue verwerkt de lokale middernacht
+zonder een nieuwe providerrespons of playlistpublicatie.
+
+Onze wedstrijddag houdt eigen programma en eigen uitslagen strikt op het
+geselecteerde team en de gekozen thuis/uitrichting. Een additief `poolResults`-
+blok bewijst afzonderlijk dezelfde tenant, verbinding, competitie, poule,
+seizoen en fase. Het Uitslagen-paneel reserveert de eerste plaats voor de
+nieuwste eigen uitslag en toont daarna de nieuwste andere poulewedstrijden.
+De volledige officiële stand blijft onafhankelijk. Portrait gebruikt bij
+andere pouleuitslagen ruimte voor maximaal drie bestaande kaarten in hetzelfde
+paneel, met behoud van de drie panelen en typografie. Oude eigen-team-only
+payloads behouden hun geometrie.
+Bij de extra kaarten past de standscroll haar cyclus aan de gemeten viewport
+en bestaande vaste paginaduur aan; de immutable descriptor-/itemduur blijft
+behouden. Preview, capture en Player gebruiken dezelfde berekening.
+
+De bestaande syncpolicies en leases blijven bronautoriteit. Voor gepubliceerde
+live matchdaygegevens kan `live_max_staleness_seconds` de achterstand begrenzen
+(300–86400 seconden, standaard 3600); `NULL` gebruikt uitsluitend de gewone
+frequentie. De capability- en tenantbeveiligde policyopdracht audit wijzigingen.
+Een Player raadpleegt alleen VeyoCast; extra schermen starten geen eigen
+providerwaarneming.
+
 ## Independent Source DOM protocol 2 (S292)
 
 This section governs newly opted-in Sync/Sportlink, RSS, Sync Menu and current

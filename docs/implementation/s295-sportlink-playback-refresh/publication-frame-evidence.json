@@ -1,0 +1,75 @@
+{
+  "runtimeBuildId": "xY_Z2TviobCpHZ6QQ7BmI",
+  "fixturesControlled": true,
+  "hostedStaging": false,
+  "actualProvider": false,
+  "serverClockInstrumentedForExpiry": true,
+  "casesPassed": 2,
+  "proofs": [
+    {
+      "orientation": "portrait",
+      "releaseId": "61434cd3-a5b6-45fd-94e9-045b487e522f",
+      "snapshotId": "2cb2e0e2-0b7c-4323-8332-1c64b23a0271",
+      "frames": 6,
+      "offlineColdReloadVerified": true,
+      "latencyMs": {
+        "expiredOriginToReadableFrameMs": 24643,
+        "emptyOriginToReadableFrameMs": 44881,
+        "standingOriginToReadableFrameMs": 44797,
+        "newResultOriginToReadableFrameMs": 44793,
+        "poolOriginToReadableFrameMs": 44832
+      },
+      "files": [
+        {
+          "path": "player-portrait-frames.json",
+          "sha256": "e6ddd80f7ac44e2ad0d90903ea88fc1801ffc43f5fda9381d5402b2888dc28fb"
+        },
+        {
+          "path": "sportlink-portrait-new-zero-result.png",
+          "sha256": "fe45e25469b569fd9d35de7cc07072fa57e220448f7a246ae579a15a1d5842bd"
+        },
+        {
+          "path": "sportlink-portrait-last-standing-row.png",
+          "sha256": "897232e420b6dd19445aaf78e13f4eed83db95965d15403d71c0d5386456b86b"
+        },
+        {
+          "path": "sportlink-portrait-empty-results.png",
+          "sha256": "a2e51e0eb5e7d3c75fb5bf0b4a6c6f3e6514f95ea19c6942576c0d3e1cc280f4"
+        }
+      ]
+    },
+    {
+      "orientation": "landscape",
+      "releaseId": "3ce4e797-f63f-4f2f-860c-0cefb9be6c35",
+      "snapshotId": "e6083950-3f05-461e-81b1-0b266da35d89",
+      "frames": 6,
+      "offlineColdReloadVerified": true,
+      "latencyMs": {
+        "expiredOriginToReadableFrameMs": 23688,
+        "emptyOriginToReadableFrameMs": 41785,
+        "standingOriginToReadableFrameMs": 41803,
+        "newResultOriginToReadableFrameMs": 41670,
+        "poolOriginToReadableFrameMs": 41690
+      },
+      "files": [
+        {
+          "path": "player-landscape-frames.json",
+          "sha256": "a4abf767a48266e71fd738b073398b6fa7b22aae2c9d533ef0addddf59267e82"
+        },
+        {
+          "path": "sportlink-landscape-new-zero-result.png",
+          "sha256": "31f204fde5b666e04fc2a9bc615071b486b8e15df8e3068dba979083a76bb6fd"
+        },
+        {
+          "path": "sportlink-landscape-last-standing-row.png",
+          "sha256": "98d36ec00f8c8a5a2fc840ceae769cd316f28917b0f54cd8b6a9d89a75b85ea6"
+        },
+        {
+          "path": "sportlink-landscape-empty-results.png",
+          "sha256": "6d2a4dd53f8c186f75d63cd2010e6daf3d4ef69ae6f81e556adba4ba88ba5540"
+        }
+      ]
+    }
+  ],
+  "durationMs": 543845.89
+}

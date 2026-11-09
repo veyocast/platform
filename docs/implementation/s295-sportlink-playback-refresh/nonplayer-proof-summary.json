@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T03:15:48Z",
+  "scope": "nonPlayer Chromium gates; unique original-case closure across preserved original and isolated attempts",
+  "totals": {
+    "inventory": 1352,
+    "uniquePassed": 721,
+    "explicitSkipped": 631,
+    "remaining": 0,
+    "complete": true
+  },
+  "originalBroadRun": {
+    "passed": 697,
+    "skipped": 631,
+    "failed": 23,
+    "didNotRun": 1
+  },
+  "closure": {
+    "path": "/tmp/s295-nonplayer-case-closure-final.json",
+    "sha256": "76ea7a6b0712a7fc4cd5b2221e2b4bea1a19cddcc115a86ba4faaa507933a995",
+    "bytes": 784458
+  },
+  "phaseReports": [
+    {
+      "path": "/tmp/s295-nonplayer-isolated-control/case-closure.json",
+      "sha256": "5f073416d6e0b954c37dbdccb86476fc79c871e1c2347524da4fd373b3242767",
+      "bytes": 10448
+    },
+    {
+      "path": "/tmp/s295-nonplayer-mobile-canonical/case-closure.json",
+      "sha256": "594e40ea8d61a40b1e05ad568aa44aa1bf04a8eeda47719a9138a28e0643cf49",
+      "bytes": 1582
+    },
+    {
+      "path": "/tmp/s295-nonplayer-isolated-marketing/case-closure.json",
+      "sha256": "4def762a1dd68b95853aaa6d4c4cb8b97eae298347f21dc4f391fc554583b7a0",
+      "bytes": 15524
+    }
+  ],
+  "finalSeven": [
+    {
+      "file": "tests/e2e/control-shell.spec.ts",
+      "line": 29,
+      "originalCaseResult": "passed",
+      "originalExitCode": 0,
+      "originalReport": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-1/execution.json",
+        "sha256": "80d3feec0115bd606d925eef7ba4acc9f61a2d5b83582537b86e1b4fad031e44",
+        "bytes": 969
+      },
+      "serverLog": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-1/control-server.log",
+        "sha256": "b04127a4e346e58f6a73ddfe3b6e87d0f8c872a432d3350fd59be37d626e4e03",
+        "bytes": 43537
+      },
+      "finalStatus": "passed_unchanged"
+    },
+    {
+      "file": "tests/e2e/control-shell.spec.ts",
+      "line": 234,
+      "originalCaseResult": "passed",
+      "originalExitCode": 0,
+      "originalReport": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-2/execution.json",
+        "sha256": "911018af605a1ca3a938b41a000422434f03348afb4cc5c47058841b490f2939",
+        "bytes": 999
+      },
+      "serverLog": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-2/control-server.log",
+        "sha256": "9d03eab91b3b59769881d3a90922b5765577ee5defe6e4b7c7c5d5f826568f91",
+        "bytes": 608
+      },
+      "finalStatus": "passed_unchanged"
+    },
+    {
+      "file": "tests/e2e/control-mobile-scroll.spec.ts",
+      "line": 90,
+      "originalCaseResult": "failed",
+      "originalExitCode": 1,
+      "originalReport": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-3/execution.json",
+        "sha256": "962faf7cc8d471c4cd4652975df7af9545f1bcd858ab090078c9f01091958fbc",
+        "bytes": 997
+      },
+      "serverLog": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-3/control-server.log",
+        "sha256": "1c47f000f6216a3e85193ebc981572c35dc4f173a0cab8b35e772f2c5c0fc745",
+        "bytes": 185016
+      },
+      "finalStatus": "passed_after_existing_redirect_contract_correction",
+      "correctedReport": {
+        "path": "/tmp/s295-nonplayer-mobile-canonical/case-1/execution.json",
+        "sha256": "471fdc2f924ef2f792ae6b0af04641fa1264069878ad43de4c407a209e68d0c0",
+        "bytes": 995
+      },
+      "correctedServerLog": {
+        "path": "/tmp/s295-nonplayer-mobile-canonical/case-1/control-server.log",
+        "sha256": "4653f44f4aafcf503fabe7d9d7f45f99bf8fa41e44835e14b125a8a3099b0beb",
+        "bytes": 198549
+      },
+      "retainedOriginalError": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-3/artifacts/e2e-control-mobile-scroll--fc22b-achable-on-mobile-viewports-chromium/error-context.md",
+        "sha256": "0d167576c164bf5b9e4ee2a259729f526654b0b0ad509af1684dd57d32b02fca",
+        "bytes": 9634
+      },
+      "retainedOriginalTrace": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-3/artifacts/e2e-control-mobile-scroll--fc22b-achable-on-mobile-viewports-chromium/trace.zip",
+        "sha256": "06261e457f8f29c7f870462abaeb2f3524cd419142f95ffe47967b99f796a4dc",
+        "bytes": 24245869
+      }
+    },
+    {
+      "file": "tests/e2e/pilot-readiness.spec.ts",
+      "line": 8,
+      "originalCaseResult": "passed",
+      "originalExitCode": 0,
+      "originalReport": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-4/execution.json",
+        "sha256": "3da8e6d9df9dc64c911710cea4432273177490f69aa02a4e469e6d5958045f56",
+        "bytes": 992
+      },
+      "serverLog": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-4/control-server.log",
+        "sha256": "ae495a6c3055b8d56d118b4e485f25e112079955b8f8ea3c5d871d11f4df0dfd",
+        "bytes": 26893
+      },
+      "finalStatus": "passed_unchanged"
+    },
+    {
+      "file": "tests/e2e/studio.spec.ts",
+      "line": 116,
+      "originalCaseResult": "passed",
+      "originalExitCode": 0,
+      "originalReport": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-5/execution.json",
+        "sha256": "9fc236782fa6ebacf93a7d58ecb9f20ff8ee62bac5a48495e42dfa63119bab04",
+        "bytes": 978
+      },
+      "serverLog": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-5/control-server.log",
+        "sha256": "508f1fa69e4a0c1a8ba3c681311f7582b81c17368bf11eb4d2e622bada268d0f",
+        "bytes": 758
+      },
+      "finalStatus": "passed_unchanged"
+    },
+    {
+      "file": "tests/e2e/vector-studio-journeys.spec.ts",
+      "line": 5,
+      "originalCaseResult": "passed",
+      "originalExitCode": 0,
+      "originalReport": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-6/execution.json",
+        "sha256": "95b9d5943d85584d66fd7d4d274be88ed56f7f20ed42c4e289ca73e58a129c43",
+        "bytes": 1035
+      },
+      "serverLog": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-6/control-server.log",
+        "sha256": "78ffd2494bc4759f7c845092fa5e41313b5617fcac481e2f979ed46ef4ff7f1e",
+        "bytes": 8462
+      },
+      "finalStatus": "passed_unchanged"
+    },
+    {
+      "file": "tests/e2e/studio.spec.ts",
+      "line": 251,
+      "originalCaseResult": "passed",
+      "originalExitCode": 0,
+      "originalReport": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-7/execution.json",
+        "sha256": "e68519811d8dd70f87d225b5a3fa7b93c1290b2e873de7949b93a9f32a672281",
+        "bytes": 979
+      },
+      "serverLog": {
+        "path": "/tmp/s295-nonplayer-isolated-control/case-7/control-server.log",
+        "sha256": "e70e86352e92ff1a8aee9e34ab46ae4813cc03ed81d5c11ee462b9f21fa8f846",
+        "bytes": 692
+      },
+      "finalStatus": "passed_unchanged"
+    }
+  ],
+  "testContractCorrection": {
+    "file": "tests/e2e/control-mobile-scroll.spec.ts",
+    "line": 46,
+    "addedLines": 1,
+    "removedLines": 1,
+    "diff": "diff --git a/tests/e2e/control-mobile-scroll.spec.ts b/tests/e2e/control-mobile-scroll.spec.ts\nindex 2ce4884e..e30a35d9 100644\n--- a/tests/e2e/control-mobile-scroll.spec.ts\n+++ b/tests/e2e/control-mobile-scroll.spec.ts\n@@ -43,7 +43,7 @@ async function assertPageEndIsReachable(page: Page, pathname: string) {\n       if (!String(error).includes(\"ERR_ABORTED\")) throw error;\n     }\n     await expect(page).toHaveURL(\n-      new RegExp(`${pathname.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\")}$`)\n+      new RegExp(`${(pathname === \"/dashboard/studio\" ? \"/dashboard/content\" : pathname).replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\")}$`)\n     );\n     await expect(page.locator(\"#control-content\")).toBeVisible();\n     // Broadcast previews are images inside the workspace, not page landmarks.\n",
+    "baselineBehavior": "apps/control/app/(shell)/dashboard/studio/page.tsx:60 redirects bare /dashboard/studio to /dashboard/content on baseline282bcec3 and candidate",
+    "preserved": [
+      "15 original route visits",
+      "2 original viewports",
+      "exact URL, heading and scroll assertions",
+      "original case line90/identity",
+      "all original timeouts"
+    ],
+    "productChanges": false,
+    "lint": {
+      "status": "PASS",
+      "log": {
+        "path": "/tmp/s295-control-mobile-canonical-lint.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    "diffCheck": "PASS"
+  },
+  "rss": {
+    "unit": "KiB",
+    "maxControlProcessGroup": 5666420,
+    "minimumHostMemAvailable": 1617384,
+    "peakByOriginalCase": {
+      "s295-nonplayer-isolated-control-rss.jsonl:1": 5034608,
+      "s295-nonplayer-isolated-control-rss.jsonl:2": 1962168,
+      "s295-nonplayer-isolated-control-rss.jsonl:3": 5666420,
+      "s295-nonplayer-isolated-control-rss.jsonl:4": 3281276,
+      "s295-nonplayer-isolated-control-rss.jsonl:5": 2910416,
+      "s295-nonplayer-isolated-control-rss.jsonl:6": 2925256,
+      "s295-nonplayer-isolated-control-rss.jsonl:7": 2631992,
+      "s295-nonplayer-mobile-canonical-rss.jsonl:1": 5154368
+    },
+    "sources": [
+      "/tmp/s295-nonplayer-isolated-control-rss.jsonl",
+      "/tmp/s295-nonplayer-mobile-canonical-rss.jsonl"
+    ]
+  },
+  "serverCleanup": {
+    "path": "/tmp/s295-nonplayer-final-server-stop.json",
+    "sha256": "e9c99a530f66d01b14f56500c483809e1db5c9de14fb29c42abcc8b7be7dfa89",
+    "bytes": 1021
+  },
+  "executionLogs": [
+    {
+      "path": "/tmp/s295-browser-nonplayer-final.log",
+      "sha256": "000c436f85a8426c45bd01caf019cc7cf0ed28dcd1d850e77482a0d080aaad5a",
+      "bytes": 288936
+    },
+    {
+      "path": "/tmp/s295-browser-nonplayer-serial-retry.log",
+      "sha256": "9a2cbd0e36deca722a268ac89a777390281cb9b228ff8c4b848c189e8064409c",
+      "bytes": 6307
+    },
+    {
+      "path": "/tmp/s295-nonplayer-isolated-marketing.log",
+      "sha256": "1d4219d4bcbce5bc587896c83ba58a9bbffd9f21cbdb2b486765ff2ea07c9446",
+      "bytes": 10407
+    },
+    {
+      "path": "/tmp/s295-nonplayer-isolated-control.log",
+      "sha256": "20c381ddc8f27687ce761b62443b6ac584e6f90b8103b15fadf626abfc7006d8",
+      "bytes": 7971
+    },
+    {
+      "path": "/tmp/s295-nonplayer-mobile-canonical.log",
+      "sha256": "1adccbdbae8ad270f55b848ea78892c5be2736ec362b8ee1f526e3227e902a8c",
+      "bytes": 725
+    }
+  ],
+  "limitations": [
+    "Original broad run failed; this is an exact-case union, not a single broad PASS.",
+    "631 existing conditional skips are excluded from execution acceptance.",
+    "Local Control used explicit Webpack/polling after host inotify/EMFILE blocked normal Turbopack; no global host settings changed.",
+    "Original broad Control restarts and Marketing hang are preserved; the latest mobile failure specifically proved a baseline redirect expectation mismatch.",
+    "Seven Control/cross cases ran on fresh owned Control servers, workers1/retries0.",
+    "Parent start signal identified Player build4upCbBWMmIbpauOHR2tBs; these runs preceded the final inline LG-cache-only rebuild. No later build or tested commit is claimed by this summary."
+  ]
+}
