@@ -139,6 +139,29 @@
     {
       "name": "s301-browser-quota-repair-final.log",
       "sha256": "30b7550112ab07fbc67c6ff3558f3ef70d4ab6ae1bba77bdcb276c65b842c056"
+    },
+    {
+      "name": "s301-stacked-lint.log",
+      "sha256": "3d542e602f2bda5d2b7bb0ad8af247df07e3587ecf823844cb4b6b5312d69263"
+    },
+    {
+      "name": "s301-stacked-typecheck.log",
+      "sha256": "b3353532878ef47cd86397b39fa8587177e8620b8b698c162e38219bce99dfb5"
+    },
+    {
+      "name": "s301-stacked-test.log",
+      "sha256": "e2678f1bde53163588bddb05f62e116be3bcc16b7a405f4c77503a332925d109"
     }
-  ]
+  ],
+  "integration": {
+    "productSha": "325443476b5ecb7cab042bb8667d944fcd7f8793",
+    "dependencySha": "2e8dda5526f1d94cb3d5b40be1fa700fffd7cc2c",
+    "prBase": "veyocast/s296-schermstatus",
+    "method": "ordinary merge; only PLANS/TASK_LEDGER conflicts resolved; no rebase, force or migration duplication",
+    "lint": "30/30 PASS 22.647s",
+    "typecheck": "30/30 PASS 33.72s",
+    "test": "30/30 PASS 51.205s; Control2093 PASS/34existing skips",
+    "sqlIndependentReview": "PASS exact a8639f153a469916c2fb8b323f5d7d5b77f041933ecfbf9006a99d7d016386c9",
+    "finalCiRequired": true
+  }
 }
