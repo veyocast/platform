@@ -12,6 +12,8 @@ import { PageHeader } from "../../src/components/page-header";
 import { useMobileCockpit, useMobileScreens } from "../../src/query/use-mobile-data";
 import { useTenant } from "../../src/tenant/tenant-provider";
 
+import { mobileScreenStatus } from "../../src/screens/screen-status";
+
 export default function VandaagScreen() {
   const cockpit = useMobileCockpit();
   const screens = useMobileScreens();
@@ -34,10 +36,11 @@ export default function VandaagScreen() {
           <View style={styles.metrics}>
             {([
               ["online", "Online", "success"],
+              ["stale", "Status verouderd", "warning"],
               ["offline", "Offline", "warning"],
               ["unknown", "Onbekend", "neutral"],
             ] as const).map(([status, label, tone]) => <SurfaceCard key={status} style={styles.metric}>
-              <AppText variant="pageTitle">{items.filter(screen => screen.status === status).length}</AppText>
+              <AppText variant="pageTitle">{items.filter(screen => mobileScreenStatus(screen).kind === status).length}</AppText>
               <StatusBadge label={label} tone={tone} />
             </SurfaceCard>)}
           </View>
@@ -67,20 +70,17 @@ export default function VandaagScreen() {
 
 function CockpitScreen({ screen, onPress }: { screen: MobileScreenSummary; onPress: () => void }) {
   const theme = useMobileTheme();
-  const status = {
-    online: { label: "Online", tone: "success" }, offline: { label: "Offline", tone: "warning" },
-    unknown: { label: "Onbekend", tone: "neutral" }, attention: { label: "Aandacht nodig", tone: "warning" },
-    pairing: { label: "Wacht op koppeling", tone: "info" },
-  } as const;
-  return <PressableSurface accessibilityLabel={`Open ${screen.name}, ${status[screen.status].label}`} onPress={onPress}>
+  const status = mobileScreenStatus(screen);
+  return <PressableSurface accessibilityLabel={`Open ${screen.name}, ${status.label}`} onPress={onPress}>
     <SurfaceCard style={styles.screen}>
       <Monitor color={theme.colors.secondaryInk} size={20} />
       <View style={styles.copy}>
         <AppText variant="cardTitle">{screen.name}</AppText>
         <AppText muted variant="caption">{screen.location ?? "Locatie niet ingevuld"}</AppText>
-        <AppText muted variant="caption">Contact: {screen.lastSeenAt ? formatTimestamp(screen.lastSeenAt) : "nog niet ontvangen"}</AppText>
-        <AppText muted variant="caption">Actief: {screen.activeReleaseLabel ?? "nog niet bekend"}</AppText>
-        <StatusBadge {...status[screen.status]} />
+        <AppText muted variant="caption">Contact: {status.lastSeenAt ? formatTimestamp(status.lastSeenAt) : "nog niet ontvangen"}</AppText>
+        <AppText muted variant="caption">Laatst bevestigd: {screen.activeReleaseLabel ?? "nog niet bekend"}</AppText>
+        {status.confirmedAt ? <AppText muted variant="caption">Beeld bevestigd: {formatTimestamp(status.confirmedAt)}</AppText> : null}
+        <StatusBadge label={status.label} tone={status.tone} />
       </View>
       <ChevronRight color={theme.colors.secondaryInk} size={18} />
     </SurfaceCard>

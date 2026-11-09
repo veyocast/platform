@@ -23,7 +23,9 @@ import { AppError } from "../../src/components/app-error";
 import { PageHeader } from "../../src/components/page-header";
 import { useMobileScreens } from "../../src/query/use-mobile-data";
 
-type Filter = "all" | MobileScreenSummary["status"];
+type Filter = "all" | ReturnType<typeof mobileScreenStatus>["kind"];
+
+import { mobileScreenStatus } from "../../src/screens/screen-status";
 
 export default function SchermenScreen() {
   const query = useMobileScreens();
@@ -35,7 +37,7 @@ export default function SchermenScreen() {
     const normalized = search.trim().toLocaleLowerCase("nl-NL");
     return (query.data?.data.items ?? []).filter(
       (screen) =>
-        (filter === "all" || screen.status === filter) &&
+        (filter === "all" || mobileScreenStatus(screen).kind === filter) &&
         (!normalized ||
           screen.name.toLocaleLowerCase("nl-NL").includes(normalized) ||
           screen.location?.toLocaleLowerCase("nl-NL").includes(normalized))
@@ -139,7 +141,7 @@ function ScreenRow({
   screen: MobileScreenSummary;
 }) {
   const theme = useMobileTheme();
-  const status = statusPresentation[screen.status];
+  const status = mobileScreenStatus(screen);
   return (
     <PressableSurface
       accessibilityHint="Opent schermdetails en veilige beheeracties"
@@ -173,20 +175,11 @@ function ScreenRow({
 }
 
 const filters: ReadonlyArray<{ label: string; value: Filter }> = [
-  { label: "Alle", value: "all" },
-  { label: "Online", value: "online" },
-  { label: "Aandacht", value: "attention" },
-  { label: "Offline", value: "offline" },
-  { label: "Te koppelen", value: "pairing" }
+  {label:"Alle",value:"all"},{label:"Online",value:"online"},
+  {label:"Status verouderd",value:"stale"},{label:"Offline",value:"offline"},
+  {label:"Onbekend",value:"unknown"},{label:"Niet gekoppeld",value:"unpaired"},
+  {label:"Onderhoud",value:"maintenance"},{label:"Uitgeschakeld",value:"disabled"}
 ];
-
-const statusPresentation = {
-  attention: { label: "Aandacht", tone: "critical" },
-  offline: { label: "Offline", tone: "warning" },
-  online: { label: "Online", tone: "success" },
-  pairing: { label: "Te koppelen", tone: "info" },
-  unknown: { label: "Onbekend", tone: "neutral" }
-} as const;
 
 const styles = StyleSheet.create({
   filterScroller: { flexGrow: 0 },

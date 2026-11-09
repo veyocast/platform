@@ -1,4 +1,5 @@
 "use client";
+import { validScreenTimestamp } from "@veyocast/domain";
 
 /* eslint-disable @next/next/no-img-element -- Uses an existing private immutable publication preview. */
 import { useRef, useState, type ReactNode } from "react";
@@ -16,8 +17,8 @@ const tabs = [
   ["device", "Apparaat", Settings2],
 ] as const;
 
-export function SyncScreenDetail({ screen, device, releases, groupLabel, preview, activeTab, legacyTab, canManage, canAssign, notices, overview, content, planning, layout, hours, health, deviceContent, player, settings, activity, assignment }: {
-  screen: FleetScreen; device: FleetDevice | null; releases: readonly FleetRelease[];
+export function SyncScreenDetail({ screen, device, releases, groupLabel, preview, activeTab, legacyTab, canManage, canAssign, notices, overview, content, planning, layout, hours, health, deviceContent, player, settings, activity, assignment, now, timeZone = "Europe/Amsterdam" }: {
+  now: number; timeZone?: string; screen: FleetScreen; device: FleetDevice | null; releases: readonly FleetRelease[];
   groupLabel: string; preview?: FrozenReleasePreview; activeTab: SyncScreenTab; legacyTab?: string;
   canManage: boolean; canAssign: boolean;
   notices: ReactNode; overview: ReactNode; content: ReactNode; planning: ReactNode; layout: ReactNode;
@@ -29,14 +30,14 @@ export function SyncScreenDetail({ screen, device, releases, groupLabel, preview
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
-  const evidence = screenPlaybackEvidence(device);
+  const evidence = screenPlaybackEvidence(device, now, screen.status, screen.assignedReleaseId);
   const confirmed = releases.find(release => release.id === evidence.confirmedReleaseId);
-  const desired = releases.find(release => release.id === device?.desiredReleaseId);
-  const status = screen.status === "disabled" ? "Uitgeschakeld" : screen.status === "maintenance" ? "Onderhoud" : evidence.contact === "online" ? "Bereikbaar" : evidence.contact === "offline" ? "Offline" : "Status onbekend";
-  const headline = evidence.desiredConfirmed ? "Je verhaal is in beeld." : evidence.confirmedReleaseId && device?.desiredReleaseId === evidence.confirmedReleaseId ? "Je laatste bevestigde verhaal." : device?.desiredReleaseId ? "Een nieuwe versie staat klaar." : "Klaar voor de eerste publicatie.";
-  const healthDescription = !device ? "Koppel eerst een Player. Er is nog geen publicatie door dit apparaat bevestigd." : evidence.desiredConfirmed ? "De Player heeft een zichtbaar frame van de gewenste publicatie bevestigd." : evidence.confirmedReleaseId ? "De vorige inhoud blijft spelen totdat alle bestanden klaar zijn en een nieuw beeld is bevestigd." : "De Player wacht op de eerste volledig voorbereide en bevestigde publicatie.";
+  const desired = releases.find(release => release.id === evidence.desiredReleaseId);
+  const status = evidence.health.label;
+  const headline = evidence.desiredConfirmed ? "Je verhaal is in beeld." : evidence.confirmedReleaseId && evidence.desiredReleaseId === evidence.confirmedReleaseId ? "Je laatste bevestigde verhaal." : evidence.desiredReleaseId ? "Een nieuwe versie staat klaar." : "Klaar voor de eerste publicatie.";
+  const healthDescription = !device ? "Koppel eerst een Player. Er is nog geen publicatie door dit apparaat bevestigd." : evidence.desiredConfirmed ? "De Player heeft een zichtbaar frame van de gewenste publicatie bevestigd." : evidence.confirmedReleaseId ? "Dit is het laatste geldige beeldbewijs. Zonder recent contact is de huidige weergave onbekend." : "De Player wacht op de eerste volledig voorbereide en bevestigde publicatie.";
   const version = (release: FleetRelease | undefined) => release ? `v${release.version}` : "Nog niet bevestigd";
-  const image = preview ? <img alt={`Publicatievoorbeeld: ${preview.title}`} src={preview.url} /> : <div className={styles.noPreview}><Monitor size={34} aria-hidden="true" /><strong>Nog geen bevestigd publicatievoorbeeld</strong><p>Een toewijzing is nog geen bevestiging door de Player.</p></div>;
+  const image = preview ? <img alt={`Publicatievoorbeeld: ${preview.title}`} src={preview.url} /> : <div className={styles.noPreview}><Monitor size={34} aria-hidden="true" /><strong>{confirmed ? "Opgeslagen publicatievoorbeeld niet beschikbaar" : "Nog geen bevestigd publicatievoorbeeld"}</strong><p>Een toewijzing is nog geen bevestiging door de Player.</p></div>;
 
   return <div className={`px-pages ${styles.root}`}>
     <Link className="px-back" href="/dashboard/screens"><ArrowLeft size={16} aria-hidden="true" />Alle schermen</Link>
@@ -44,7 +45,7 @@ export function SyncScreenDetail({ screen, device, releases, groupLabel, preview
     {notices}
     <div className="px-detail-top">
       <div className={`px-detail-preview ${styles.preview}${screen.orientation === "portrait" ? ` portrait ${styles.portrait}` : ""}`}>{image}{preview ? <button className="px-preview-launch" type="button" onClick={event => { previewTrigger.current = event.currentTarget; setPreviewOpen(true); }}><Maximize2 size={16} aria-hidden="true" />Publicatievoorbeeld</button> : null}</div>
-      <div className="card px-health-panel"><div className="row between"><span className="px-overline">HET SCHERM VANDAAG</span><span className={`badge ${evidence.contact === "online" && screen.status === "active" ? "badge-green" : ""}`}>{status}</span></div><h2 className={styles.healthHeading}>{headline}</h2><p className="muted">{healthDescription}</p><div className="px-confirmation"><div><Eye size={18} aria-hidden="true" /><span>Laatst bevestigd<strong>{version(confirmed)}</strong></span></div><div><Send size={18} aria-hidden="true" /><span>Klaargezet<strong>{desired ? `v${desired.version}` : "Nog geen publicatie"}</strong></span></div></div><button className="btn btn-secondary" disabled={!canAssign} type="button" onClick={event => { assignmentTrigger.current = event.currentTarget; setAssignmentOpen(true); }}>Playlist toewijzen <ArrowRight size={15} aria-hidden="true" /></button><div className="px-demo-note">Publicatievoorbeeld uit opgeslagen bytes · geen live screenshot van het scherm</div></div>
+      <div className="card px-health-panel"><div className="row between"><span className="px-overline">HET SCHERM VANDAAG</span><span className={`badge ${evidence.health.reachable ? "badge-green" : ""}`}>{status}</span></div><h2 className={styles.healthHeading}>{headline}</h2><p className="muted">{healthDescription}</p><div className="px-confirmation"><div><Eye size={18} aria-hidden="true" /><span>Laatst bevestigd<strong>{version(confirmed)}</strong></span></div><div><Send size={18} aria-hidden="true" /><span>Klaargezet<strong>{desired ? `v${desired.version}` : "Nog geen publicatie"}</strong></span></div></div><button className="btn btn-secondary" disabled={!canAssign} type="button" onClick={event => { assignmentTrigger.current = event.currentTarget; setAssignmentOpen(true); }}>Playlist toewijzen <ArrowRight size={15} aria-hidden="true" /></button><dl className={styles.evidence} aria-label="Afzonderlijk schermbewijs"><div><dt>Laatste geldig contact</dt><dd>{safeTime(evidence.health.lastSeenAt, now, timeZone)}</dd></div><div><dt>Beeld bevestigd op</dt><dd>{safeTime(evidence.confirmedAt, now, timeZone)}</dd></div><div><dt>Gewenste versie gepubliceerd op</dt><dd>{safeTime(desired?.publishedAt, now, timeZone)}</dd></div><div><dt>Uitvoering publicatie</dt><dd>{evidence.publicationKind === "syncing" ? "Synchroniseren" : evidence.publicationKind === "confirmed" ? "Gewenst beeld bevestigd" : evidence.publicationKind === "error" ? "Playerfout · zie Gezondheid" : "Nog niet bevestigd"}</dd></div><div><dt>Gemelde bronrevisie</dt><dd>{evidence.reportedSource ? `Revisie ${evidence.reportedSource.dataRevision} · ${safeTime(evidence.reportedSourceAt, now, timeZone)}` : "Onbekend · geen gegevensbewijs van de Player"}</dd></div></dl><div className="px-demo-note">Publicatievoorbeeld uit opgeslagen bytes · geen live screenshot van het scherm</div></div>
     </div>
     <div className="px-detail-shell"><nav className={`px-tabs ${styles.tabs}`} aria-label="Schermdetails">{tabs.map(([id, label, Icon]) => <Link aria-current={activeTab === id ? "page" : undefined} className={activeTab === id ? "active" : ""} href={`/dashboard/screens/${screen.id}?tab=${id}`} key={id}><Icon size={16} aria-hidden="true" />{label}</Link>)}</nav><div className={`px-tab-content ${styles.content}`}>
       {activeTab === "overview" ? <>{overview}<details open={legacyTab === "content"} className={styles.advanced}><summary>Content en publicaties</summary>{content}</details><details open={legacyTab === "planning"} className={styles.advanced}><summary>Planning en prioriteit</summary>{planning}</details></> : null}
@@ -57,4 +58,9 @@ export function SyncScreenDetail({ screen, device, releases, groupLabel, preview
     <Dialog open={editOpen} onOpenChange={setEditOpen}><DialogContent className={styles.dialog} size="wide" onCloseAutoFocus={event => { event.preventDefault(); editTrigger.current?.focus(); }}><DialogHeader><DialogTitle>Schermgegevens</DialogTitle><DialogDescription>Bewaar bestaande scherminstellingen, groepen en beveiligde beheeracties.</DialogDescription></DialogHeader><DialogBody>{editOpen ? settings : null}</DialogBody></DialogContent></Dialog>
     <Dialog open={assignmentOpen} onOpenChange={setAssignmentOpen}><DialogContent className={styles.dialog} onCloseAutoFocus={event => { event.preventDefault(); assignmentTrigger.current?.focus(); }}><DialogHeader><DialogTitle>Playlist klaarzetten</DialogTitle></DialogHeader><DialogBody>{assignmentOpen ? assignment : null}</DialogBody></DialogContent></Dialog>
   </div>;
+}
+
+function safeTime(value: string | null | undefined, now: number, timeZone: string) {
+  if (validScreenTimestamp(value, now) === null) return "Onbekend";
+  return new Intl.DateTimeFormat("nl-NL", {dateStyle:"short",timeStyle:"short",timeZone}).format(new Date(value!));
 }

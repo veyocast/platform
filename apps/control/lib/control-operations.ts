@@ -178,17 +178,16 @@ export function deriveOperationalDashboard(
       continue;
     }
     const lastSeenMs = timestamp(device.last_seen_at);
-    const offline = !lastSeenMs || nowMs - lastSeenMs >= offlineAfterMs;
+    const contactStatus = syncPlaybackEvidence(device, nowMs, screen.status, screen.assigned_release_id).health;
+    const offline = !contactStatus.reachable;
 
     if (offline) {
       signals.push(signal({
-        cause: device.last_seen_at
-          ? `De laatste heartbeat van ${screen.name} is ouder dan vijf minuten.`
-          : `${screen.name} heeft nog geen heartbeat verzonden.`,
+        cause: contactStatus.explanation,
         effect: "Nieuwe publicaties en actuele playerstatus kunnen niet worden bevestigd; een geldige lokale release blijft spelen.",
         href: `/dashboard/screens/${screen.id}`,
-        id: `screen-offline:${screen.id}`,
-        label: "Scherm offline",
+        id: `screen-${contactStatus.kind}:${screen.id}`,
+        label: contactStatus.label,
         occurredAt: device.last_seen_at ?? screen.created_at,
         recovery: "Controleer voeding en netwerk op locatie en open daarna de schermdiagnose.",
         resource: screen.name,
@@ -197,8 +196,8 @@ export function deriveOperationalDashboard(
     }
 
     if (
-      device.desired_release_id &&
-      device.desired_release_id !== device.active_release_id &&
+      screen.assigned_release_id &&
+      screen.assigned_release_id !== device.active_release_id &&
       (!lastSeenMs || nowMs - lastSeenMs >= syncTimeoutMs)
     ) {
       signals.push(signal({
@@ -214,8 +213,8 @@ export function deriveOperationalDashboard(
       }, nowMs));
     }
 
-    const playbackEvidence = syncPlaybackEvidence(device, nowMs);
-    if (playbackEvidence.contact === "online" && device.desired_release_id && !playbackEvidence.desiredConfirmed && !device.last_error_code) {
+    const playbackEvidence = syncPlaybackEvidence(device, nowMs, screen.status, screen.assigned_release_id);
+    if (playbackEvidence.contact === "online" && playbackEvidence.desiredReleaseId && !playbackEvidence.desiredConfirmed && !device.last_error_code) {
       signals.push(signal({
         cause: "De gewenste publicatie is nog niet met een zichtbaar frame bevestigd.",
         effect: "De laatst geldige publicatie kan blijven spelen terwijl de Player de nieuwe opdracht voorbereidt.",
@@ -379,7 +378,7 @@ export function deriveOperationalDashboard(
   const activePlaybackCount = source.screens.filter(screen => {
     const device = devicesByScreen.get(screen.id);
     const heartbeat = latestHeartbeats.get(screen.id);
-    const evidence = syncPlaybackEvidence(device, nowMs);
+    const evidence = syncPlaybackEvidence(device, nowMs, screen.status, screen.assigned_release_id);
     return screen.status === "active" && evidence.contact === "online" && Boolean(evidence.confirmedReleaseId) &&
       heartbeat?.active_release_id === evidence.confirmedReleaseId &&
       ["PLAYING", "OFFLINE_PLAYING", "READY"].includes(heartbeat.runtime_state) &&
@@ -390,10 +389,11 @@ export function deriveOperationalDashboard(
   const integrationHealth = deriveIntegrationHealth(source.integrations, nowMs);
   const onlineScreenCount = source.screens.filter((screen) => {
     const device = devicesByScreen.get(screen.id);
-    return screen.status === "active" && syncPlaybackEvidence(device, nowMs).contact === "online";
+    return screen.status === "active" && syncPlaybackEvidence(device, nowMs, screen.status, screen.assigned_release_id).contact === "online";
   }).length;
   const sortedSignals = signals.sort(compareSignals);
   const status = deriveOperationalState({
+    contactKinds: source.screens.filter(screen => screen.status === "active").map(screen => syncPlaybackEvidence(devicesByScreen.get(screen.id), nowMs, screen.status, screen.assigned_release_id).health.kind),
     activePlaybackCount,
     availability: source.availability ?? completeAvailability,
     integrationHealth,
@@ -455,6 +455,7 @@ function deriveIntegrationHealth(
 
 
 function deriveOperationalState({
+  contactKinds,
   activePlaybackCount,
   availability,
   integrationHealth,
@@ -470,6 +471,7 @@ function deriveOperationalState({
   pairedDeviceCount: number;
   signals: readonly OperationalSignal[];
   source: OperationalSource;
+  contactKinds: readonly string[];
 }): OperationalState {
   const unavailable = Object.entries(availability)
     .filter(([, available]) => !available)
@@ -513,7 +515,12 @@ function deriveOperationalState({
     );
   }
 
-  if (pairedDeviceCount > 0 && onlineScreenCount === 0) {
+  if (pairedDeviceCount > 0 && onlineScreenCount === 0 && contactKinds.includes("stale")) {
+    return operationalState("stale", "warning", "Status verouderd", "Recent Playercontact is niet bevestigd",
+      "Geldige lokale inhoud kan blijven spelen. Oud beeldbewijs blijft als historie zichtbaar.",
+      "Controleer het laatste contact per scherm.", unavailable);
+  }
+  if (pairedDeviceCount > 0 && onlineScreenCount === 0 && contactKinds.length && contactKinds.every(kind => kind === "offline")) {
     return operationalState(
       "offline",
       "critical",

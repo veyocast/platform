@@ -1,5 +1,7 @@
 # VeyoCast MVP Plan
 
+S296 brengt één gedeelde contactstatus met afzonderlijk publicatie- en bronbewijs naar Control en mobiele clients. De uitvoering volgt de overdracht van 9 november 2026; normale staging- en productiepromotie zijn expliciet gevraagd.
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en

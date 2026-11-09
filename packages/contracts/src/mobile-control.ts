@@ -95,6 +95,27 @@ export const mobileScreenStatusSchema = z.enum([
   "unknown"
 ]);
 
+// Explicitly requested by updated clients; the default v1 response stays byte-shape compatible.
+export const mobileScreenSourceEvidenceSchema = z.object({
+  snapshotId: z.string().min(1).max(200), sourceName: z.string().max(200), sourceKind: z.string().max(200), datasetKey: z.string().max(200),
+  lastSuccessAt: instant.nullable(), lastAttemptAt: instant.nullable(), checkedAt: instant.nullable(),
+  dataRevision: z.number().int().positive().nullable(), contentHash: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
+  lastErrorCode: z.string().max(120).nullable()
+}).strict();
+
+export const mobileScreenEvidenceSchema = z.object({
+  screenStatus: z.string().max(40),
+  deviceStatus: z.string().max(40).nullable(),
+  kind: z.enum(["online", "stale", "offline", "unknown", "disabled", "maintenance", "unpaired"]),
+  publicationKind: z.enum(["confirmed", "syncing", "unconfirmed", "error"]),
+  desiredReleaseLabel: z.string().max(200).nullable(),
+  desiredPublishedAt: instant.nullable(),
+  confirmedAt: instant.nullable(),
+  reportedSourceRevision: z.number().int().positive().nullable(),
+  reportedSourceAt: instant.nullable(),
+  sources: z.array(mobileScreenSourceEvidenceSchema).max(200).optional()
+}).strict();
+
 export const mobileScreenSummarySchema = z
   .object({
     activeReleaseLabel: z.string().max(200).nullable(),
@@ -104,7 +125,8 @@ export const mobileScreenSummarySchema = z
     lastSeenAt: instant.nullable(),
     location: z.string().max(200).nullable(),
     name: z.string().min(1).max(160),
-    status: mobileScreenStatusSchema
+    status: mobileScreenStatusSchema,
+    statusEvidence: mobileScreenEvidenceSchema.optional()
   })
   .strict();
 
