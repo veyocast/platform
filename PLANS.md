@@ -582,3 +582,13 @@ beschikbaarheid; daadwerkelijke drie browsergevallen en bundel groen. Finale
 foundationlint/typecheck/test opnieuw30/30; definitieve integratie-CI volgt.
 
 S300 exacte veiligheidscontrole: type-only clientimport uit server-only service verplaatst naar puur typecontract. Originele importgraphgate ongewijzigd3/3PASS. Eerdere cached Configresultaten vervallen als bewijs voor deze repositorybrede controle; alle finale foundationtaken met--force,0cachehits,30/30 pergate groen (22,641/21,428/86,159s), Config11/contract222/Control2200/Player755PASS. Definitieve36UIgevallen opnieuwe18RPC-capture groen41,7s.
+
+
+S300 toegewezen route — afzonderlijk vervolg op PR331. De echte bovenliggende
+dashboardlayout vereist Overzicht, waardoor een geldig begrensd SQL-draaiboek
+voor een customrol zonder algemene leesrechten onbereikbaar bleef. Alleen de
+Wedstrijddag-leaf verhuist naar een routegroep met dezelfde publieke URL;
+dashboardguard en publicatiepreview behouden hun rechten. De globale uploadbak
+raadpleegt geen media zonder tenant.media.read. Gerichte echte route-/sessie-
+tegenproef, gewone gates en hosted normale Auth/delegatie moeten dit bevestigen.
+Geen verruimde rol, migratie, Player- of publicatiecontractwijziging.

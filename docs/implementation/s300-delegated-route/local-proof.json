@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-09T16:14:14.349630+00:00",
+  "baseSourceSha": "4de74eb98897514a707dbac41ec1bcb6687c524e",
+  "publicRoute": "/dashboard/matchday",
+  "sourceBinding": {
+    "apps/control/app/(shell)/(matchday)/dashboard/matchday/page.tsx": "27c5365371806488c6ae1542755aa7e52bb4c6641a3663fcddee26020333d93a",
+    "apps/control/app/(shell)/layout.tsx": "41cddf5bf4d0fba6bbb0cb7bab4bd782f8188fd46294fe3ac95389677a65a159",
+    "apps/control/lib/matchday-route-boundary.test.tsx": "be720d0263eeb0bfbde62f7d069ba5ae60282bb04b49b7d6e7df752388b3176b"
+  },
+  "unchangedGuardBinding": {
+    "apps/control/app/(shell)/dashboard/layout.tsx": "1c2038f7cbfc5c4f16598eddf60b18eba689a5e9d479ae64d72b386eb3f787da",
+    "apps/control/app/(shell)/dashboard/matchday/preview/[releaseId]/page.tsx": "a520c2b5beec872ffcfdd76442d2a9b89b295b48dd78cdc0bc8120fbcbca2c7a",
+    "apps/control/lib/control-session.ts": "d91e3675c86090cae4caa58e4b89595342e4066203376a8af7172f13dc8ac367",
+    "apps/control/lib/matchday-service.ts": "4498bfe7bc65ef52b17c5af8ea031b21bbd5d88103f79777d4adf8b60a277a0e"
+  },
+  "red": {
+    "cases": 6,
+    "failed": 4,
+    "passed": 2,
+    "cause": "actual dashboard overview guard redirects bounded role before canonical workspace RPC; Shell queried upload metadata without media.read"
+  },
+  "focusedGreen": {
+    "cases": 6,
+    "passed": 6,
+    "durationSeconds": 1.09
+  },
+  "focusedAndExistingServiceGreen": {
+    "files": 2,
+    "cases": 18,
+    "passed": 18,
+    "durationSeconds": 1.82
+  },
+  "testBoundary": {
+    "realControlSessionGuard": true,
+    "realAuthenticatedWorkspaceService": true,
+    "filesystemRouteAncestorsExecuted": true,
+    "nextPathNormalizer": "installed next/dist/shared/lib/router/utils/app-paths",
+    "mocked": [
+      "Supabase transport and responses",
+      "Next cookies/redirect/cache host adapters",
+      "client renderers"
+    ],
+    "notClaimed": [
+      "real SQL enforcement by this unit test",
+      "production Next routing compiler",
+      "hosted HTTP/Auth",
+      "physical hardware"
+    ]
+  },
+  "logs": {
+    "route-boundary-red": {
+      "file": "route-boundary-red.txt",
+      "sha256": "243e84ff3c4014e59272c22b71e2a7f392861bf152fe4526e7f385c9d75e5650"
+    },
+    "route-boundary-green": {
+      "file": "route-boundary-green.txt",
+      "sha256": "b56c4820f46994c82fb7c7c9bfc115b4c985b965df1ca20555754265d671e690"
+    },
+    "route-service-final": {
+      "file": "route-service-final.txt",
+      "sha256": "76ef5e5213c6f90e21ebd90b668f84f7926187c2c33818316daf6519e5e5e840"
+    }
+  },
+  "independentReview": "PASS; available_receipt; no findings",
+  "workspaceGates": {
+    "lint": {
+      "tasks": 30,
+      "cached": 0,
+      "seconds": 22.339
+    },
+    "typecheck": {
+      "tasks": 30,
+      "cached": 0,
+      "seconds": 44.215
+    },
+    "tests": {
+      "tasks": 30,
+      "cached": 0,
+      "seconds": 84.622,
+      "ControlPass": 2206,
+      "ControlExistingSkip": 34,
+      "PlayerPass": 755
+    }
+  },
+  "nextProductionBuild": {
+    "status": "PASS",
+    "buildId": "Bu2L3prVPZDnG22K40OOw",
+    "certificate": "production-build-certificate.json"
+  },
+  "normalExactHeadCi": "PENDING",
+  "hostedBoundedRoleAcceptance": "PENDING",
+  "checkoutHarnessFailures": [
+    {
+      "log": "/tmp/s332-workspace-test-missing-fixture.log",
+      "cause": "sparse checkout omitted existing CONFIG_TO_RENDER_TRACE.csv",
+      "sourceChange": false
+    },
+    {
+      "log": "/tmp/s332-workspace-test-missing-style-fixture.log",
+      "cause": "sparse checkout omitted existing reference styles.css",
+      "sourceChange": false
+    }
+  ],
+  "fixtureRestorationCertificate": "/tmp/s332-complete-fixture-tree-certificate.json"
+}

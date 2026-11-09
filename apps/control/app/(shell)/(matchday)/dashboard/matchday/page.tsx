@@ -1,8 +1,8 @@
 import Link from "next/link";
 import {hasCapability} from "@veyocast/auth";
-import { requireControlSession } from "../../../../lib/control-session";
-import { loadMatchdayWorkspace } from "../../../../lib/matchday-service";
-import { MatchdayWorkbench } from "./workbench";
+import { requireControlSession } from "../../../../../lib/control-session";
+import { loadMatchdayWorkspace } from "../../../../../lib/matchday-service";
+import { MatchdayWorkbench } from "../../../dashboard/matchday/workbench";
 
 export default async function MatchdayPage({searchParams}:{searchParams:Promise<{runbook?:string;day?:string}>}) {
   const session=await requireControlSession();

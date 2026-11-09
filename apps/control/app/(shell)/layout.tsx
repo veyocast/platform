@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { hasCapability } from "@veyocast/auth";
 
 import { requireControlSession } from "../../lib/control-session";
 import { createControlSupabaseClient } from "../../lib/supabase/server";
@@ -17,10 +18,9 @@ export default async function ShellLayout({
     session.capabilities,
     Boolean(session.tenantId) || !session.isLive
   );
-  const uploadQueue = await loadGlobalUploadQueue(
-    session.tenantId,
-    session.isLive
-  );
+  const uploadQueue = hasCapability(session.capabilities, "tenant.media.read")
+    ? await loadGlobalUploadQueue(session.tenantId, session.isLive)
+    : [];
   return (
     <ControlShell
       key={session.tenantId ?? "platform"}

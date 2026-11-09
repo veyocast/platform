@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-09T16:22:41.619014+00:00",
+  "buildId": "Bu2L3prVPZDnG22K40OOw",
+  "gitHeadAtWorkingTreeBuild": "4de74eb98897514a707dbac41ec1bcb6687c524e",
+  "binding": "working-tree product hashes in local-proof.json; official CI will build committed head",
+  "fileCount": 3644,
+  "fileBytes": 1048568145,
+  "treeSha256": "e21fe78dbcf4a466be27a29598a16615d091afd8a5488ba86df25926b9c3fdaf",
+  "compilerRoutes": {
+    "/(shell)/(matchday)/dashboard/matchday/page": "/dashboard/matchday",
+    "/(shell)/dashboard/matchday/preview/[releaseId]/page": "/dashboard/matchday/preview/[releaseId]"
+  },
+  "compiledLoaderTreeExecuted": {
+    "leafLayouts": [
+      "app/layout.tsx",
+      "app/(shell)/layout.tsx"
+    ],
+    "previewLayouts": [
+      "app/layout.tsx",
+      "app/(shell)/layout.tsx",
+      "app/(shell)/dashboard/layout.tsx"
+    ],
+    "evaluatedLazyLayoutFunctions": false
+  },
+  "nextProductionBuild": "PASS",
+  "authBoundaryScript": "PASS",
+  "clientBundleSecretBoundaryScript": "PASS",
+  "hostedOrHardwareClaim": false
+}
