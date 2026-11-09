@@ -1,0 +1,94 @@
+
+ RUN  v3.2.7 /home/codex/repos/veyocast-s300-delegated-route/apps/control
+
+ ❯ lib/matchday-route-boundary.test.tsx (6 tests | 4 failed) 116ms
+   × delegated Matchday server route boundary > passes the actual parent chain with no global capabilities to the exact delegated workspace RPC 42ms
+     → redirect:/context?reden=selected
+   × delegated Matchday server route boundary > does not query tenant media even when an overview-only member opens the shell 48ms
+     → expected [ { fileName: 'eigen.png', …(3) } ] to deeply equal []
+   ✓ delegated Matchday server route boundary > retains the authorized upload tray for members with media.read 7ms
+   × delegated Matchday server route boundary > does not render a workspace when the canonical delegation RPC denies access 5ms
+     → redirect:/context?reden=selected
+   ✓ delegated Matchday server route boundary > rejects an unauthenticated request in the real shell guard before reading a workspace 6ms
+   × delegated Matchday server route boundary > keeps overview and immutable preview under the original overview parent 6ms
+     → expected [ …(2) ] to not include '/home/codex/repos/veyocast-s300-deleg…'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/matchday-route-boundary.test.tsx > delegated Matchday server route boundary > passes the actual parent chain with no global capabilities to the exact delegated workspace RPC
+Error: redirect:/context?reden=selected
+ ❯ redirect lib/matchday-route-boundary.test.tsx:19:72
+     17| vi.mock("./supabase/server", () => ({ createControlSupabaseClient: moc…
+     18| vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({…
+     19| vi.mock("next/navigation", () => ({ redirect: (url: string) => { throw…
+       |                                                                        ^
+     20| vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+     21| // Client rendering is outside this server-route test. Neither session…
+ ❯ requireControlCapability lib/control-session.ts:327:5
+ ❯ requireTenantControlSession lib/control-session.ts:341:19
+ ❯ Module.TenantLayout app/(shell)/dashboard/layout.tsx:8:3
+ ❯ requestRoute lib/matchday-route-boundary.test.tsx:87:21
+ ❯ lib/matchday-route-boundary.test.tsx:130:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/matchday-route-boundary.test.tsx > delegated Matchday server route boundary > does not query tenant media even when an overview-only member opens the shell
+AssertionError: expected [ { fileName: 'eigen.png', …(3) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "fileName": "eigen.png",
++     "id": "private-upload",
++     "status": "processing",
++     "title": "Eigen upload",
++   },
++ ]
+
+ ❯ lib/matchday-route-boundary.test.tsx:140:45
+    138|     capabilities = ["tenant.overview.read"];
+    139|     const result = await requestRoute();
+    140|     expect(result.shell?.props.uploadQueue).toEqual([]);
+       |                                             ^
+    141|     expect(mocks.from).not.toHaveBeenCalledWith("media_assets");
+    142|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/matchday-route-boundary.test.tsx > delegated Matchday server route boundary > does not render a workspace when the canonical delegation RPC denies access
+Error: redirect:/context?reden=selected
+ ❯ redirect lib/matchday-route-boundary.test.tsx:19:72
+     17| vi.mock("./supabase/server", () => ({ createControlSupabaseClient: moc…
+     18| vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({…
+     19| vi.mock("next/navigation", () => ({ redirect: (url: string) => { throw…
+       |                                                                        ^
+     20| vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+     21| // Client rendering is outside this server-route test. Neither session…
+ ❯ requireControlCapability lib/control-session.ts:327:5
+ ❯ requireTenantControlSession lib/control-session.ts:341:19
+ ❯ Module.TenantLayout app/(shell)/dashboard/layout.tsx:8:3
+ ❯ requestRoute lib/matchday-route-boundary.test.tsx:87:21
+ ❯ lib/matchday-route-boundary.test.tsx:153:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  lib/matchday-route-boundary.test.tsx > delegated Matchday server route boundary > keeps overview and immutable preview under the original overview parent
+AssertionError: expected [ …(2) ] to not include '/home/codex/repos/veyocast-s300-deleg…'
+ ❯ lib/matchday-route-boundary.test.tsx:171:33
+    169|     const matchdayLayouts = routeLayouts(routePage("/dashboard/matchda…
+    170|     expect(matchdayLayouts).toContain(path.join(shellRoot, "layout.tsx…
+    171|     expect(matchdayLayouts).not.toContain(dashboardLayout);
+       |                                 ^
+    172|     for (const url of ["/dashboard", "/dashboard/matchday/preview/[rel…
+    173|       expect(routeLayouts(routePage(url))).toContain(dashboardLayout);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed (6)
+   Start at  17:11:23
+   Duration  1.10s (transform 405ms, setup 0ms, collect 721ms, tests 116ms, environment 0ms, prepare 61ms)

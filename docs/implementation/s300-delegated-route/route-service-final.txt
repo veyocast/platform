@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /home/codex/repos/veyocast-s300-delegated-route/apps/control
+
+ ✓ lib/matchday-service.test.ts (12 tests) 34ms
+ ✓ lib/matchday-route-boundary.test.tsx (6 tests) 209ms
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  17:12:36
+   Duration  1.82s (transform 789ms, setup 0ms, collect 2.13s, tests 243ms, environment 0ms, prepare 243ms)
