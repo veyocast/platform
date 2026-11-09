@@ -46,3 +46,24 @@ Er zijn geen productiegegevens, bestaande planningen, providercredentials of pro
 De definitieve lokale foundation heeft30/30 lint en30/30 typecheck. De eerste parallelle testloop had zes timingfouten in ongewijzigde login-/raster-/renderertests; de volledige Control-suite is daarna met twee workers opnieuw groen:184 bestanden,2.085 tests en34 bestaande expliciete skips (38,31s), naast de29 overige groene workspacetaken. Browserbewijs sluit13 unieke gevallen als unie:12 groen in de volledige run en één `page.goto`-loadtimeout in de quotafake, daarna exact datzelfde geval groen in2,6s met dezelfde productbron/assertions/timeout. Browser-TSC en gerichte lint zijn groen. De echte Control-productiebuild was groen vóór de laatste uitsluitend Nederlandse impactlabels; die laatste tekst is door de definitieve types/lint/tests gedekt en wordt door normale CI opnieuw gebouwd.
 
 De definitieve S296-dependency `2e8dda5526f1d94cb3d5b40be1fa700fffd7cc2c` is met een gewone merge geïntegreerd op productbron `325443476b5ecb7cab042bb8667d944fcd7f8793`. Alleen de centrale plan-/ledgerconflicten zijn door root samengevoegd. Lint/typecheck/test slagen op deze combinatie elk30/30; Control2.093 PASS en34 bestaande skips. De PR start gestapeld op de S296-branch en krijgt na die integratie main als basis. De normale CI en de vastgelegde migratievolgorde blijven verplicht; er zijn geen siblingmigraties gekopieerd of gedeelde branches herschreven.
+
+## Gecombineerde CI en verbindingsbewijs
+
+Deze branch integreert de gewone S296- en S298-vervolgcommits via merges,
+zonder rebase of force-push. De bestaande Player-CI vond daarna een
+reproduceerbare inconsistentie: een voltooide conditionele manifestcontrole
+gevolgd door een mislukte heartbeat liet de compacte indicator offline en de
+verborgen playbackdiagnose online staan. De Player gebruikt nu bij echte
+verbindingsfouten dezelfde bestaande origintracker, ook wanneer asynchrone
+voorbereiding later eindigt. Alleen complete speelbare inhoud krijgt de
+offlinestatus; playback, deadlines, pairing en verificatie worden niet herstart.
+Een positief event herstelt de status pas via de bestaande manifestcontrole.
+
+De oude bron is met de precieze requestvolgorde rood bewezen. De kandidaat
+slaagt18/18(zes gevallen ieder driemaal,16,0s) op de afzonderlijk gebouwde
+S300-Player `afx4WTMdRokUAATS7ARkh`; de gemeenschappelijke guard is gelijk.
+Dit vervangt geen eigen S301-build of volledige CI. Vier bestaande cases
+zijn ongewijzigd; twee nieuwe bewaken de echte heartbeatfout, herstel via304
+en geen incomplete activatie tijdens initialisatie. Lint/typecheck/test van
+de gecombineerde S301-bron zijn elk30/30 groen(22,521/31,392/38,551s).
+De oorspronkelijke rode trace en bron-/loghashes staan in het aanvullende bewijs.

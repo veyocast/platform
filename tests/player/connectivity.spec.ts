@@ -111,3 +111,53 @@ for (const reachable of [false, true]) {
     }
   });
 }
+
+test("an origin failure after a completed conditional check keeps compact and playback connectivity consistent", async ({ page }) => {
+  const heldHeartbeats: Route[] = [];
+  await page.route("**/api/player/heartbeat", route => { heldHeartbeats.push(route); });
+  let checked = 0;
+  page.on("response", response => {
+    if (new URL(response.url()).pathname === "/api/player/manifest" && response.status() === 304) checked += 1;
+  });
+  await page.goto(`${playerURL}/?deviceToken=demo-online&durationMs=5000&syncMs=120000`);
+  await expect(page.locator('[data-player-handoff="first-frame-ready"]')).toBeAttached();
+  await expect.poll(() => heldHeartbeats.length).toBeGreaterThan(0);
+  const before = checked;
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "onLine", { configurable: true, get: () => false });
+    window.dispatchEvent(new Event("offline"));
+  });
+  // Embedded profiles may reach the origin despite an offline browser hint.
+  await expect.poll(() => checked).toBeGreaterThan(before);
+  await expect(page.getByLabel("Player diagnostics")).not.toContainText("OFFLINE_PLAYING");
+  for (const route of heldHeartbeats) await route.abort("internetdisconnected").catch(() => undefined);
+  await expect(page.getByRole("status")).toHaveText("Geen internetverbinding");
+  await expect(page.getByLabel("Release playback")).toBeVisible();
+  await expect(page.getByLabel("Player diagnostics")).toContainText("OFFLINE_PLAYING");
+  // A positive event alone cannot claim a current manifest was checked.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("veyocast:connectivity", { detail: { online: true } })));
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(page.getByLabel("Player diagnostics")).toContainText("OFFLINE_PLAYING");
+  await page.unroute("**/api/player/heartbeat");
+  const failedCheck = checked;
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await expect.poll(() => checked).toBeGreaterThan(failedCheck);
+  await expect(page.getByLabel("Player diagnostics")).not.toContainText("OFFLINE_PLAYING");
+  await expect(page.getByLabel("Player diagnostics")).toContainText("online");
+  await expect(page.getByRole("status")).toHaveCount(0);
+});
+
+
+test("an origin failure during initial preparation cannot activate an incomplete release", async ({ page }) => {
+  let heldManifest: Route | undefined;
+  await page.route("**/api/player/manifest", route => { heldManifest = route; });
+  await page.route("**/api/player/commands", route => route.abort("internetdisconnected"));
+  await page.goto(`${playerURL}/?deviceToken=demo-online&syncMs=120000`);
+  await expect.poll(() => Boolean(heldManifest)).toBe(true);
+  await expect(page.getByRole("status")).toHaveText("Geen internetverbinding");
+  await expect(page.getByLabel("Release playback")).toHaveCount(0);
+  await expect(page.locator('[data-player-handoff="first-frame-ready"]')).toHaveCount(0);
+  await heldManifest!.continue();
+  await expect(page.getByLabel("Release playback")).toBeVisible();
+  await expect(page.locator('[data-player-handoff="first-frame-ready"]')).toBeAttached();
+});

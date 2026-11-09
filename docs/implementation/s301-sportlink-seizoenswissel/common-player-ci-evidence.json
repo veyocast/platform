@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "ciRunId": "42624166712",
+  "ciJobId": "129183514312",
+  "rootCause": "PWA indicator observed actual origin connectivity failures, but playback diagnostics only downgraded after manifest failure; a conditional check followed by heartbeat failure left inconsistent labels.",
+  "change": "Playable state commits derive offline evidence from existing origin tracker; false events refresh the existing runtime without resetting playback; positive events need the existing manifest recovery path.304 also restores online diagnostics.",
+  "proofBoundary": "18 actual browser cases against separately built S300 Player afx4WTMdRokUAATS7ARkh with identical common guard; own S301 production build and complete CI remain required.",
+  "actualBrowserResults": {
+    "passed": 18,
+    "seconds": 16.0,
+    "repetitionsPerCase": 3,
+    "existingUnchangedCases": 4,
+    "newCases": 2
+  },
+  "minimumWorkspaceGates": {
+    "lint": "30/30 PASS22.521s",
+    "typecheck": "30/30 PASS31.392s",
+    "test": "30/30 PASS38.551s; Player655;Control2102PASS34existingSKIP"
+  },
+  "files": {
+    "/tmp/s301-player-ci-job.log": "a4d48bbe2022b29606c1cb7e092382900ff90d19420d2cfe62844419fcd134e2",
+    "/tmp/s301-player-connectivity-trace/trace.zip": "8d5a9748704d9241c1e73772cf1da663636cbd9099d9561fe5d199abbbf86297",
+    "/tmp/s300-common-connectivity.patch": "c4fe8e7b31950210ae83b3cfa34b4bd6e1a9c25d20022198968a84538379833f",
+    "/tmp/s300-connectivity-ordered-red-report.json": "163faf0fd715333098c611bb2c18d025aed63228f24ff0f72c95c2582f570592",
+    "/tmp/s300-connectivity-ordered-green-report.json": "6422de7d986a15a6d27dee0946517f9339b42a6f8ea86d9f0c4a88a8fbaf7bb1",
+    "/tmp/s301-common-final-lint.log": "9329c218e1a07b53026bad63d4d7af327d6810d4fb6c1181e25411c489f1c97b",
+    "/tmp/s301-common-final-typecheck.log": "140960cb04c9dc1803956c31b31bbb313094645fa2da53c31b83d497791e2b82",
+    "/tmp/s301-common-final-test.log": "c7516fa9521341615be0461ff63b8aa058fd3c28a973b4af7d9e9f93193fd7fe"
+  }
+}

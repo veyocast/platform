@@ -44,3 +44,11 @@ De uiteindelijke code-/testpaden zijn:
 - `tests/helpers/s301-season-fixtures.ts`
 
 Eigen documentatie en twee screenshots staan onder `docs/implementation/s301-sportlink-seizoenswissel/`. De gecontroleerde browsercase gebruikt één exact bewaard rollback-only RPC-capture; ze claimt geen directe hostedDB- of fysieke Playerverbinding. De productiebuild was groen vóór de laatste uitsluitend Nederlandse impactstatelabels; de definitieve bron heeft opnieuw lint/typecheck en de volledige beperkte2-workerControltests. Normale CI herbouwt die exacte definitieve bron. Eerste parallellehosttimingfails blijven in bewijs benoemd; geen gate of timeout is versoepeld.
+
+Root autoriseert na de concrete normale Player-CI-fout de beperkte bestaande
+`player-runtime.tsx`-verbindingsadapter en `tests/player/connectivity.spec.ts`.
+Gebruik uitsluitend de bestaande echte origintracker, behoud complete
+assetverificatie, alle deadlines en lokale playback. Bewijs304→heartbeatfout
+RED→GREEN; een positieve browserhint of los event mag geen actuele manifestcheck
+claimen. Onderscheid de gerichte afzonderlijke S300-build van eigen volledige
+S301-CI. Integreer S296/S298/S297 via gewone merges en houd alle deelbewijzen.

@@ -545,3 +545,5 @@ S298 aanvullende CI sluit een ontbrekende kandidaatbarrière in de bestaande
 LG-test en dezelfde lokaal bewezen wizardtouchhoogte als S296. Vier gerichte
 Playergevallen groen; precieze nieuwe bron-SHA en normale CI blijven de
 releasegrens. Zie het eigen CI-barrièrebewijs.
+
+S301 integreert de gereviewde S296/S298-vervolgbronnen. De concrete normale Player-CI-inconsistentie gebruikt nu dezelfde echte origintracker bij alle complete playbackcommits;18 gerichte verbindingstests en30foundationtaken groen, nieuwe volledigeCI volgt.

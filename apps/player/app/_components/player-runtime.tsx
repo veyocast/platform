@@ -31,6 +31,7 @@ import React, {
   useLayoutEffect,
   useRef,
   useState,
+  type SetStateAction,
   type ReactNode
 } from "react";
 
@@ -235,7 +236,25 @@ type InstallationRuntime =
   | { code: string; status: "unavailable" };
 
 export function PlayerRuntime() {
-  const [runtime, setRuntime] = useState<RuntimeView>({ state: "BOOTING" });
+  const [runtime, commitRuntime] = useState<RuntimeView>({ state: "BOOTING" });
+  // Preparation can finish after a later origin request has failed. Derive
+  // connectivity at the actual state commit, without restarting playback.
+  const setRuntime = useCallback((update: SetStateAction<RuntimeView>) => {
+    commitRuntime(current => {
+      const next = typeof update === "function" ? update(current) : update;
+      if (!isPlaybackRuntime(next) || readPlayerConnectivity() ||
+          (next.state === "OFFLINE_PLAYING" && next.release.envelope.diagnostics.syncStatus === "offline")) return next;
+      return { ...next, state: "OFFLINE_PLAYING", release: { ...next.release,
+        envelope: withSyncDiagnostics(next.release.envelope, "offline", "VeyoCast-origin niet bereikbaar; geverifieerde lokale inhoud blijft actief.") } };
+    });
+  }, []);
+  useEffect(() => {
+    const observeOrigin = (event: Event) => {
+      if (!(event as PlayerConnectivityEvent).detail.online) setRuntime(value => value);
+    };
+    window.addEventListener(playerConnectivityEventName, observeOrigin);
+    return () => window.removeEventListener(playerConnectivityEventName, observeOrigin);
+  }, [setRuntime]);
   const [initialPreparationPhase, setInitialPreparationPhase] = useState<PlayerCachePhase | null>(null);
   const [installation, setInstallation] = useState<InstallationRuntime>({
     status: "registering"
@@ -1340,7 +1359,7 @@ export function PlayerRuntime() {
         if (response.status === 304) {
           syncSucceeded = true;
           setRuntime((value) => isPlaybackRuntime(value) && value.state === "OFFLINE_PLAYING"
-            ? { ...value, state: "PLAYING", syncMessage: "Verbinding hersteld; actuele opdracht gecontroleerd." } : value);
+            ? { ...value, state: "PLAYING", release: { ...value.release, envelope: withSyncDiagnostics(value.release.envelope, "online", "actuele opdracht gecontroleerd") }, syncMessage: "Verbinding hersteld; actuele opdracht gecontroleerd." } : value);
           return;
         }
         if (response.status === 409) { nextSyncBaseDelayMs = 100; return; }
