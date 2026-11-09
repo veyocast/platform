@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "fixture": true,
+  "actualHostedStaging": false,
+  "source": {
+    "path": "supabase/tests/s298_effective_planning.sql",
+    "sha256": "79f342de528549d41b78fe9c802f49e66056354774d6d580942269afcff1a68b"
+  },
+  "current": {
+    "screens": [
+      {
+        "name": "Kantine",
+        "next": {
+          "at": "2026-11-09T14:16:00+00:00",
+          "winner": {
+            "name": "Rule 102",
+            "draft": false,
+            "endsAt": "2026-11-09T18:16:00+00:00",
+            "source": "publisher",
+            "priority": 10,
+            "startsAt": "2026-11-09T10:16:00+00:00",
+            "releaseId": "cfba7a1c-df92-4f75-8358-2eb935692a38",
+            "playlistId": "29800000-0000-4000-8000-000000000031",
+            "scheduleId": "e1b185c2-120b-4494-b7f9-1d5526526f2f",
+            "targetKind": "screen",
+            "playlistName": "Wedstrijdprogramma",
+            "releaseVersion": 1,
+            "targetSnapshotId": "3a9eeb76-e921-48ed-b81f-c6e993d7a728"
+          }
+        },
+        "status": "active",
+        "winner": {
+          "name": "Rule 103",
+          "draft": false,
+          "endsAt": "2026-11-09T14:16:00+00:00",
+          "source": "override",
+          "priority": 0,
+          "startsAt": "2026-11-09T11:16:00+00:00",
+          "releaseId": "cfba7a1c-df92-4f75-8358-2eb935692a38",
+          "playlistId": "29800000-0000-4000-8000-000000000031",
+          "scheduleId": "2e336945-44e9-46c4-8375-b3f1f97de0ff",
+          "targetKind": "screen_group",
+          "playlistName": "Wedstrijdprogramma",
+          "releaseVersion": 1,
+          "targetSnapshotId": "f81775a8-6864-4692-9fe9-c1c36ac9458b"
+        },
+        "desired": {
+          "releaseId": "616cd7ef-e261-4361-b688-10fb0b92e915",
+          "scheduleId": null
+        },
+        "screenId": "29800000-0000-4000-8000-000000000040",
+        "alternatives": [
+          {
+            "name": "Rule 103",
+            "source": "override",
+            "priority": 0,
+            "startsAt": "2026-11-09T11:16:00+00:00",
+            "scheduleId": "2e336945-44e9-46c4-8375-b3f1f97de0ff",
+            "targetKind": "screen_group"
+          },
+          {
+            "name": "Rule 102",
+            "source": "publisher",
+            "priority": 10,
+            "startsAt": "2026-11-09T10:16:00+00:00",
+            "scheduleId": "e1b185c2-120b-4494-b7f9-1d5526526f2f",
+            "targetKind": "screen"
+          },
+          {
+            "name": "Rule 101",
+            "source": "publisher",
+            "priority": 1000,
+            "startsAt": "2026-11-09T09:16:00+00:00",
+            "scheduleId": "4f505806-1067-4e72-8fff-48612b596920",
+            "targetKind": "screen_group"
+          },
+          {
+            "name": "Rule 100",
+            "source": "fallback",
+            "priority": 1000,
+            "startsAt": "2026-11-09T09:16:00+00:00",
+            "scheduleId": "1c698c9a-e3a6-4d13-88db-3ea403363915",
+            "targetKind": "screen_group"
+          }
+        ],
+        "searchedUntil": "2026-11-17T12:16:00+00:00",
+        "candidateCount": 4,
+        "reportedDevice": null,
+        "searchComplete": true,
+        "evaluationApplies": true,
+        "desiredPublication": {
+          "name": "Standaard",
+          "version": 1
+        },
+        "reportedPublication": null,
+        "proposalTieUncertain": false
+      }
+    ],
+    "proposal": false,
+    "timezone": "Europe/Amsterdam",
+    "horizonEnd": "2026-11-17T12:16:00+00:00",
+    "evaluatedAt": "2026-11-09T12:16:00+00:00",
+    "schemaVersion": 1
+  },
+  "proposal": {
+    "screens": [
+      {
+        "name": "Entree",
+        "next": {
+          "at": "2026-11-09T12:36:00+00:00",
+          "winner": {
+            "name": "Standaardinhoud",
+            "draft": false,
+            "endsAt": null,
+            "source": "default",
+            "priority": null,
+            "startsAt": null,
+            "releaseId": "616cd7ef-e261-4361-b688-10fb0b92e915",
+            "playlistId": "29800000-0000-4000-8000-000000000030",
+            "scheduleId": null,
+            "targetKind": null,
+            "playlistName": "Standaard",
+            "releaseVersion": 1,
+            "targetSnapshotId": null
+          }
+        },
+        "status": "active",
+        "winner": {
+          "name": "Voorgenomen overname",
+          "draft": true,
+          "endsAt": "2026-11-09T12:36:00+00:00",
+          "source": "override",
+          "priority": 900,
+          "startsAt": "2026-11-09T12:16:00+00:00",
+          "releaseId": "cfba7a1c-df92-4f75-8358-2eb935692a38",
+          "playlistId": "29800000-0000-4000-8000-000000000031",
+          "scheduleId": "00000000-0000-4000-8000-000000000001",
+          "targetKind": "screen",
+          "playlistName": "Wedstrijdprogramma",
+          "releaseVersion": 1,
+          "targetSnapshotId": null
+        },
+        "desired": {
+          "releaseId": "616cd7ef-e261-4361-b688-10fb0b92e915",
+          "scheduleId": null
+        },
+        "screenId": "29800000-0000-4000-8000-000000000041",
+        "alternatives": [
+          {
+            "name": "Voorgenomen overname",
+            "source": "override",
+            "priority": 900,
+            "startsAt": "2026-11-09T12:16:00+00:00",
+            "scheduleId": "00000000-0000-4000-8000-000000000001",
+            "targetKind": "screen"
+          }
+        ],
+        "searchedUntil": "2026-11-17T12:16:00+00:00",
+        "candidateCount": 1,
+        "reportedDevice": null,
+        "searchComplete": true,
+        "evaluationApplies": true,
+        "desiredPublication": {
+          "name": "Standaard",
+          "version": 1
+        },
+        "reportedPublication": null,
+        "proposalTieUncertain": false
+      },
+      {
+        "name": "Kantine",
+        "next": {
+          "at": "2026-11-09T12:36:00+00:00",
+          "winner": {
+            "name": "Rule 103",
+            "draft": false,
+            "endsAt": "2026-11-09T14:16:00+00:00",
+            "source": "override",
+            "priority": 0,
+            "startsAt": "2026-11-09T11:16:00+00:00",
+            "releaseId": "cfba7a1c-df92-4f75-8358-2eb935692a38",
+            "playlistId": "29800000-0000-4000-8000-000000000031",
+            "scheduleId": "2e336945-44e9-46c4-8375-b3f1f97de0ff",
+            "targetKind": "screen_group",
+            "playlistName": "Wedstrijdprogramma",
+            "releaseVersion": 1,
+            "targetSnapshotId": "f81775a8-6864-4692-9fe9-c1c36ac9458b"
+          }
+        },
+        "status": "active",
+        "winner": {
+          "name": "Voorgenomen overname",
+          "draft": true,
+          "endsAt": "2026-11-09T12:36:00+00:00",
+          "source": "override",
+          "priority": 900,
+          "startsAt": "2026-11-09T12:16:00+00:00",
+          "releaseId": "cfba7a1c-df92-4f75-8358-2eb935692a38",
+          "playlistId": "29800000-0000-4000-8000-000000000031",
+          "scheduleId": "00000000-0000-4000-8000-000000000001",
+          "targetKind": "screen",
+          "playlistName": "Wedstrijdprogramma",
+          "releaseVersion": 1,
+          "targetSnapshotId": null
+        },
+        "desired": {
+          "releaseId": "cfba7a1c-df92-4f75-8358-2eb935692a38",
+          "scheduleId": "e1b185c2-120b-4494-b7f9-1d5526526f2f"
+        },
+        "screenId": "29800000-0000-4000-8000-000000000040",
+        "alternatives": [
+          {
+            "name": "Voorgenomen overname",
+            "source": "override",
+            "priority": 900,
+            "startsAt": "2026-11-09T12:16:00+00:00",
+            "scheduleId": "00000000-0000-4000-8000-000000000001",
+            "targetKind": "screen"
+          },
+          {
+            "name": "Rule 103",
+            "source": "override",
+            "priority": 0,
+            "startsAt": "2026-11-09T11:16:00+00:00",
+            "scheduleId": "2e336945-44e9-46c4-8375-b3f1f97de0ff",
+            "targetKind": "screen_group"
+          },
+          {
+            "name": "Rule 102",
+            "source": "publisher",
+            "priority": 10,
+            "startsAt": "2026-11-09T10:16:00+00:00",
+            "scheduleId": "e1b185c2-120b-4494-b7f9-1d5526526f2f",
+            "targetKind": "screen"
+          },
+          {
+            "name": "Rule 101",
+            "source": "publisher",
+            "priority": 1000,
+            "startsAt": "2026-11-09T09:16:00+00:00",
+            "scheduleId": "4f505806-1067-4e72-8fff-48612b596920",
+            "targetKind": "screen_group"
+          },
+          {
+            "name": "Rule 100",
+            "source": "fallback",
+            "priority": 1000,
+            "startsAt": "2026-11-09T09:16:00+00:00",
+            "scheduleId": "1c698c9a-e3a6-4d13-88db-3ea403363915",
+            "targetKind": "screen_group"
+          }
+        ],
+        "searchedUntil": "2026-11-17T12:16:00+00:00",
+        "candidateCount": 5,
+        "reportedDevice": null,
+        "searchComplete": true,
+        "evaluationApplies": true,
+        "desiredPublication": {
+          "name": "Wedstrijdprogramma",
+          "version": 1
+        },
+        "reportedPublication": null,
+        "proposalTieUncertain": false
+      }
+    ],
+    "proposal": true,
+    "timezone": "Europe/Amsterdam",
+    "horizonEnd": "2026-11-17T12:16:00+00:00",
+    "evaluatedAt": "2026-11-09T12:16:00+00:00",
+    "schemaVersion": 1
+  }
+}

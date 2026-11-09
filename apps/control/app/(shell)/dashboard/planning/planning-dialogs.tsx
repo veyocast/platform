@@ -31,6 +31,7 @@ import {
   zonedLocalDateTimeToIso
 } from "./schedule-time";
 import styles from "./planning.module.css";
+import { ScheduleOutcomePreview } from "./schedule-outcome-preview";
 
 
 type ReleaseOption = {
@@ -98,6 +99,7 @@ export function ContentScheduleDialog({defaultOpen=false,defaultStartAt,defaultT
      {isEditing&&schedule?.scheduleKind!=="once"?<p className={styles.repeatNote}>Wijzigingen gelden voor de volledige reeks.</p>:null}
     </section>
     <section className={styles.wizardPanel} data-wizard-step="2" style={{display:step===2?undefined:"none"}}><div className={styles.reviewGrid}><div><h3>{name}</h3><dl className={styles.reviewFacts}><dt>Content</dt><dd>{selectedPlaylist?.label??"Geen playlist geselecteerd"}</dd><dt>Schermen</dt><dd>{targetLabel} · {targetCount} {targetCount===1?"scherm":"schermen"}</dd><dt>Wanneer</dt><dd>{scheduleKind==="once"?"Eenmalig":scheduleKind==="daily"?"Elke dag":scheduleKind==="weekly"?"Elke week":"Gekozen weekdagen"} · {date}</dd><dt>Tijd</dt><dd>{startTime}–{endTime}</dd><dt>Status</dt><dd>{enabled?"Actief":"Gepauzeerd"}</dd></dl></div><div className={styles.reviewPreview}><div><Layers3 aria-hidden="true" size={28}/><strong>{selectedPlaylist?.label??"Content"}</strong><span>Afspeellijst</span></div></div></div><div className={styles.clearBox}><Clock3 aria-hidden="true" size={18}/>De standaard content blijft buiten dit moment zichtbaar.</div></section>
+    {step===2&&enabled&&conflictCheck&&!conflictCheck.error?<ScheduleOutcomePreview readForm={()=>form.current?new FormData(form.current):null}/>:null}
     {conflictCheck?<ConflictReview check={conflictCheck} onConfirm={step===2&&conflictCheck.conflicts.length?confirmAndSubmit:undefined} timezoneName={timezoneName}/>:null}
     <DialogFooter className={styles.stepActions}>{schedule?<ScheduleDeleteDialog schedule={schedule}/>:null}<span/>{step?<Button type="button" variant="secondary" onClick={()=>{setStep(step-1);clearConflictReview();}}>Vorige</Button>:<DialogClose asChild><Button variant="secondary">Annuleren</Button></DialogClose>}<Button disabled={checking||step===2&&Boolean(conflictCheck?.error||conflictCheck?.conflicts.length)} type="submit">{checking?"Conflicten controleren…":step<2?"Volgende":isEditing?"Wijzigingen opslaan":"Moment inplannen"}{step<2?<ChevronRight aria-hidden="true" size={16}/>:null}</Button></DialogFooter>
    </form>

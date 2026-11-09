@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "origin": "https://staging-player.veyocast.nl",
+  "orientation": "landscape",
+  "actualHostedStaging": true,
+  "runtime": "Chromium real webplayer",
+  "interceptedRequests": 0,
+  "physicalAndroid": false,
+  "physicalLG": false,
+  "periodicIntervalMs": 8000,
+  "providerData": "normalized internal fixture",
+  "requests": [
+    {
+      "at": "2026-11-09T12:43:33.573Z",
+      "status": 200,
+      "conditional": false,
+      "etag": "\"target-f7ddc4b689031e18a2eee3297905695d5662d5a77ed896295bbcdf67c455e536-zstd\"",
+      "releaseId": "d1c434dd-711b-4856-b686-043734cf5743",
+      "items": [
+        {
+          "id": "34874739-989c-4af4-af9a-a549a4a64fd0",
+          "revision": 6,
+          "contentHash": "8119413874efe678a9797cced06c65d37b6228592d631070dc8d443d05731e76",
+          "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8"
+        }
+      ]
+    },
+    {
+      "at": "2026-11-09T12:43:34.901Z",
+      "status": 304,
+      "conditional": true,
+      "etag": "\"target-f7ddc4b689031e18a2eee3297905695d5662d5a77ed896295bbcdf67c455e536\""
+    },
+    {
+      "at": "2026-11-09T12:43:43.220Z",
+      "status": 304,
+      "conditional": true,
+      "etag": "\"target-f7ddc4b689031e18a2eee3297905695d5662d5a77ed896295bbcdf67c455e536\""
+    },
+    {
+      "at": "2026-11-09T12:43:51.630Z",
+      "status": 304,
+      "conditional": true,
+      "etag": "\"target-f7ddc4b689031e18a2eee3297905695d5662d5a77ed896295bbcdf67c455e536\""
+    }
+  ],
+  "frames": [
+    {
+      "at": "2026-11-09T12:43:37.030Z",
+      "revision": 6,
+      "contentHash": "8119413874efe678a9797cced06c65d37b6228592d631070dc8d443d05731e76",
+      "snapshotId": "934596c0-ce9a-4685-b1ff-3ec055d327c8",
+      "itemId": "34874739-989c-4af4-af9a-a549a4a64fd0",
+      "rendererVersion": "sync-onzetrots-v9"
+    }
+  ],
+  "snapshots": [
+    {
+      "label": "initial",
+      "at": "2026-11-09T12:43:37.628Z",
+      "visible": {
+        "ready": true,
+        "contentHashes": [
+          "8119413874efe678a9797cced06c65d37b6228592d631070dc8d443d05731e76"
+        ],
+        "visibleText": "S295–S301 interne stagingcanary · SportWEDSTRIJDDAGVORIGE SPEELRONDEDe uitslagen.Zondag 8 novemberAfgelopenZO 8 NOVONS EERSTECETCanary eigen team3CTCanary tegenstander1ZO 8 NOVAFGELOPENCPACanary poule A2CPBCanary poule B0De vorige rondeAFGELOPENCLUB TVDit is onze plek.De ranglijstDe hele poule · S295–S301 interne stagingcanary in beeld#TeamGWGLV+/−PVorm1CETCanary eigen team2101+592CPACanary poule A2101+143CP3Canary pouleteam 32101+144CP4Canary pouleteam 42101+145CP5Canary pouleteam 52101+146CP6Canary pouleteam 62101+147CP7Canary pouleteam 72101+148CP8Canary pouleteam 82101+149CP9Canary pouleteam 92101+1410CP1Canary pouleteam 102101+1411CP1Canary pouleteam 112101+1412CP1Canary pouleteam 122101+1413CP1Canary pouleteam 132101+1414CP1Canary pouleteam 142101+14Winst Gelijk VerliesS295–S301 interne stagingcanary blijft in beeld VOLGENDE SPEELRONDEHet programma.Donderdag 12 november1 wedstrijdenDO 12 NOVONS EERSTECETCanary eigen teamCVCanary volgende13:20AFTRAPDe volgende aftrap13:20ONZE CLUB. ONZE TROTS.",
+        "results": "VORIGE SPEELRONDEDe uitslagen.Zondag 8 novemberAfgelopenZO 8 NOVONS EERSTECETCanary eigen team3CTCanary tegenstander1ZO 8 NOVAFGELOPENCPACanary poule A2CPBCanary poule B0De vorige rondeAFGELOPEN",
+        "fixtures": "VOLGENDE SPEELRONDEHet programma.Donderdag 12 november1 wedstrijdenDO 12 NOVONS EERSTECETCanary eigen teamCVCanary volgende13:20AFTRAPDe volgende aftrap13:20",
+        "ownRank": "1CETCanary eigen team2101+59",
+        "standingsRows": 14
+      },
+      "manifestRequests": 2,
+      "frameReports": 1
+    },
+    {
+      "label": "rank-tail-visible",
+      "at": "2026-11-09T12:43:55.559Z",
+      "visible": {
+        "ready": true,
+        "contentHashes": [
+          "8119413874efe678a9797cced06c65d37b6228592d631070dc8d443d05731e76"
+        ],
+        "visibleText": "S295–S301 interne stagingcanary · SportWEDSTRIJDDAGVORIGE SPEELRONDEDe uitslagen.Zondag 8 novemberAfgelopenZO 8 NOVONS EERSTECETCanary eigen team3CTCanary tegenstander1ZO 8 NOVAFGELOPENCPACanary poule A2CPBCanary poule B0De vorige rondeAFGELOPENCLUB TVDit is onze plek.De ranglijstDe hele poule · S295–S301 interne stagingcanary in beeld#TeamGWGLV+/−PVorm1CETCanary eigen team2101+592CPACanary poule A2101+143CP3Canary pouleteam 32101+144CP4Canary pouleteam 42101+145CP5Canary pouleteam 52101+146CP6Canary pouleteam 62101+147CP7Canary pouleteam 72101+148CP8Canary pouleteam 82101+149CP9Canary pouleteam 92101+1410CP1Canary pouleteam 102101+1411CP1Canary pouleteam 112101+1412CP1Canary pouleteam 122101+1413CP1Canary pouleteam 132101+1414CP1Canary pouleteam 142101+14Winst Gelijk VerliesS295–S301 interne stagingcanary blijft in beeld VOLGENDE SPEELRONDEHet programma.Donderdag 12 november1 wedstrijdenDO 12 NOVONS EERSTECETCanary eigen teamCVCanary volgende13:20AFTRAPDe volgende aftrap13:20ONZE CLUB. ONZE TROTS.",
+        "results": "VORIGE SPEELRONDEDe uitslagen.Zondag 8 novemberAfgelopenZO 8 NOVONS EERSTECETCanary eigen team3CTCanary tegenstander1ZO 8 NOVAFGELOPENCPACanary poule A2CPBCanary poule B0De vorige rondeAFGELOPEN",
+        "fixtures": "VOLGENDE SPEELRONDEHet programma.Donderdag 12 november1 wedstrijdenDO 12 NOVONS EERSTECETCanary eigen teamCVCanary volgende13:20AFTRAPDe volgende aftrap13:20",
+        "ownRank": "1CETCanary eigen team2101+59",
+        "standingsRows": 14
+      },
+      "manifestRequests": 4,
+      "frameReports": 1
+    }
+  ],
+  "errors": []
+}

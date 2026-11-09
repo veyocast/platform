@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S296–S301 voeren de overdracht van 9 november 2026 uit: gedeelde schermstatus,
+één Content-ingang, uitlegbare effectieve planning, volledige sponsortotalen,
+een optionele Wedstrijddagwerkplek en gecontroleerde seizoenswissel. De gebruiker
+heeft daarna staging én productie gevraagd. Ownership, afhankelijkheden,
+acceptatie en herstel staan in `docs/s296-s301-overdracht-2026-11-09.md`.
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en
