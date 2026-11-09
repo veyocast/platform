@@ -13,6 +13,7 @@ import { hasCapability } from "@veyocast/auth";
 import { Button, DialogTrigger, PageHeader } from "@veyocast/ui";
 
 import { requireTenantControlSession } from "../../../../lib/control-session";
+import { loadMatchdayAvailability } from "../../../../lib/matchday-service";
 import { loadContentSchedules } from "./data";
 import {
   ContentScheduleDialog,
@@ -60,9 +61,13 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
   const currentTime = visualReference
     ? new Date("2026-08-24T08:42:00.000Z")
     : new Date();
-  const loadedData = session.isLive && session.tenantId
-    ? await loadContentSchedules(session.tenantId)
-    : emptyPlanningData();
+  const [loadedData, matchdayAvailability] = await Promise.all([
+    session.isLive && session.tenantId ? loadContentSchedules(session.tenantId) : emptyPlanningData(),
+    session.isLive && session.tenantId ? loadMatchdayAvailability() : null
+  ]);
+  const matchdayEntry = matchdayAvailability?.canOpen
+    ? <Button asChild variant="secondary"><Link href="/dashboard/matchday">Wedstrijddag openen</Link></Button>
+    : null;
   const data = visualReference ? createReferencePlanningData() : loadedData;
   const now = currentTime.getTime();
   const view = query.view ? normalizePlanningView(query.view) : "week";
@@ -110,6 +115,7 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
           eyebrow="VeyoCast FieldFlow"
           title="Planning"
         />
+        {matchdayEntry}
         <section className={planningStyles.loadFailure} role="alert">
           <CalendarClock aria-hidden="true" />
           <div>
@@ -133,13 +139,14 @@ export default async function PlanningPage({ searchParams }: PlanningPageProps) 
       nextHref={planningHref({ ...hrefContext, date: shiftReferenceDate(referenceDate, "week", 1) })}
       notice={<>{query.fout ? <p className="notice notice--critical" role="alert"><strong>Planning niet opgeslagen.</strong> {query.fout}</p> : null}{query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}{!session.isLive && !visualReference ? <p className="notice notice--warning" role="status">Configureer Supabase en log in om echte planningen te beheren.</p> : !canWrite ? <p className="notice notice--info" role="status">Je kunt de planning bekijken. Playlistbewerkingsrechten zijn nodig om tijdvakken te wijzigen.</p> : null}</>}
       dialogs={<div hidden>{editingSchedule && canOpenReferenceEditor ? <ContentScheduleDialog key={editingSchedule.id} defaultOpen defaultStartAt={defaultStartAt} disabled={false} groups={data.groups} releases={data.releases} screens={data.screens} schedule={editingSchedule} timezoneName={data.timezoneName} /> : null}{query.nieuw === "1" && canOpenReferenceEditor ? <ContentScheduleDialog defaultOpen defaultStartAt={defaultStartAt} defaultTarget={selectedTarget} disabled={false} groups={data.groups} releases={data.releases} screens={data.screens} timezoneName={data.timezoneName} /> : null}</div>}
-      management={<RecurringPlanningDialog schedules={filteredSchedules} defaultStartAt={defaultStartAt} disabled={!canWrite} groups={data.groups} releases={data.releases} screens={data.screens} timezoneName={data.timezoneName} />}
+      management={<>{matchdayEntry}<RecurringPlanningDialog schedules={filteredSchedules} defaultStartAt={defaultStartAt} disabled={!canWrite} groups={data.groups} releases={data.releases} screens={data.screens} timezoneName={data.timezoneName} /></>}
     />;
   }
 
   return (
     <div className={planningStyles.planningPage}>
       <div><PageHeader description="Bepaal waar en wanneer content zichtbaar wordt." eyebrow="VeyoCast FieldFlow" title="Planning"/></div>
+      {matchdayEntry}
 
       {query.fout ? <p className="notice notice--critical" role="alert"><strong>Planning niet opgeslagen.</strong> {query.fout}</p> : null}
       {query.succes ? <p className="notice notice--success" role="status">{query.succes}</p> : null}

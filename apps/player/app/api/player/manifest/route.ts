@@ -12,6 +12,8 @@ import {
 } from "../../../_lib/player-manifest";
 import {loadAuthorizedScreenComposition} from "../../../_lib/player-screen-composition";
 import { loadPlayerReleaseEnvelope } from "../../../_lib/player-release-envelope";
+import {matchdayExpiryHeader,matchdayExpiryVersion,matchdayRequestHeader} from "../../../_lib/player-matchday-window";
+import {bindMatchdayWindow,canUseMatchdayWindow,matchdayBootstrapKey,readMatchdayBootstrapWindow,type MatchdayBootstrapWindow} from "../../../_lib/player-matchday-window-server";
 import { signPlayerEntitlement } from "../../../_lib/player-entitlement-server";
 import {
   createPlayerAnonClient,
@@ -63,7 +65,7 @@ export async function GET(request: Request) {
   }
 
   response.headers.set(playerVersionHeader, currentPlayerApplicationVersion());
-  response.headers.set("Vary",[response.headers.get("Vary"),syncPlayerRendererHeader,syncDynamicRendererHeader,syncBackgroundsHeader,syncEngagePagingHeader,syncOnzeTrotsHeader,syncOnzeTrotsV9Header,syncOnzeTrotsCurrentHeader].filter(Boolean).join(", "));
+  response.headers.set("Vary",[response.headers.get("Vary"),syncPlayerRendererHeader,syncDynamicRendererHeader,syncBackgroundsHeader,syncEngagePagingHeader,syncOnzeTrotsHeader,syncOnzeTrotsV9Header,syncOnzeTrotsCurrentHeader,matchdayExpiryHeader,matchdayRequestHeader].filter(Boolean).join(", "));
   return response;
 }
 
@@ -86,6 +88,7 @@ type BootstrapRow = {
   composition?:unknown;
   desired_composition_id?:string|null;
   active_composition_id?:string|null;
+  matchday_window?:unknown;
 };
 
 type TenantRow = { name: string };
@@ -165,7 +168,20 @@ async function getLiveManifest(request: Request, token: string | null) {
     );
   }
 
-  if (!bootstrap.desired_release_id) {
+  let matchday:MatchdayBootstrapWindow|null;
+  try{matchday=readMatchdayBootstrapWindow(bootstrap.matchday_window);}catch{
+    return manifestProblem(503,"ERROR_RECOVERABLE",{cause:"Het tijdelijke schermvenster kon niet veilig worden gecontroleerd.",code:"MATCHDAY_WINDOW_UNAVAILABLE",effect:"Bestaande geldige lokale inhoud blijft beschikbaar.",recovery:"Controleer het draaiboek en de geverifieerde herstelpublicatie."});
+  }
+  const matchdayRequestId=request.headers.get(matchdayRequestHeader);
+  const matchdayCapable=request.headers.get(matchdayExpiryHeader)===matchdayExpiryVersion;
+  const useMatchday=canUseMatchdayWindow(matchday,matchdayCapable,matchdayRequestId,Date.now());
+  // A legacy/downgraded client receives the ordinary winner NOW. The verified
+  // end-of-window fallback may be a different future ordinary publication.
+  const desiredReleaseId=matchday&&!useMatchday?matchday.unsupported_release_id:bootstrap.desired_release_id;
+  const desiredComposition=matchday&&!useMatchday?matchday.unsupported_composition:bootstrap.composition;
+  const matchdayKey=matchdayBootstrapKey(matchday,useMatchday);
+
+  if (!desiredReleaseId) {
     const fetchedAt = new Date().toISOString();
     const branding = await loadPlayerWaitingBranding(bootstrap.tenant_id);
     return NextResponse.json(
@@ -211,6 +227,7 @@ async function getLiveManifest(request: Request, token: string | null) {
     bootstrap.tenant_id, bootstrap.device_id, bootstrap.screen_id, bootstrap.target_revision, bootstrap.desired_release_id,
     entitlementRow?.revision, entitlementRow?.billing_state, entitlementRow?.playback_mode, entitlementRow?.hard_stop_at,
     bootstrap.data_key, bootstrap.sponsor_key, Math.floor(Date.now() / 1_800_000),
+    ...(matchday?[matchdayKey,desiredReleaseId]:[]),
     currentPlayerApplicationVersion(),...(enableSyncOnzeTrotsCurrent?[syncOnzeTrotsCurrentVersion]:[]),...(enableSyncOnzeTrotsV9?[syncOnzeTrotsV9Version]:[]),...(enableSyncOnzeTrots?[syncOnzeTrotsVersion]:[]),...(enableSyncBackgrounds?[syncBackgroundsVersion]:[]),...(enableSyncStudio?[syncPlayerRendererVersion]:[]),...(enableSyncEngagePaging?[syncEngagePagingVersion]:[]),...(syncDynamicMode?[`sync-dynamic:${syncDynamicMode}`]:[])
   ])).digest("hex")}"`;
   if (request.headers.get("if-none-match") === targetEtag) {
@@ -218,22 +235,22 @@ async function getLiveManifest(request: Request, token: string | null) {
   }
   let releaseStage = "release";
   try {
-    const body = await loadPlayerReleaseEnvelope({
+    let body = await loadPlayerReleaseEnvelope({
       device: {
         activeReleaseId: bootstrap.active_release_id ?? "",
-        desiredReleaseId: bootstrap.desired_release_id,
+        desiredReleaseId,
         id: bootstrap.device_id,
         screenId: bootstrap.screen_id,
         screenName: bootstrap.screen_name
       },
-      releaseId: bootstrap.desired_release_id,
+      releaseId: desiredReleaseId,
       tenantId: bootstrap.tenant_id,
       enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncOnzeTrots,enableSyncOnzeTrotsV9,enableSyncOnzeTrotsCurrent,enableSyncEngagePaging,
     });
     releaseStage = "composition";
-    body.composition=await loadAuthorizedScreenComposition({candidate:bootstrap.composition,main:body,load:releaseId=>loadPlayerReleaseEnvelope({device:body.device,releaseId,tenantId:bootstrap.tenant_id,enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncOnzeTrots,enableSyncOnzeTrotsV9,enableSyncOnzeTrotsCurrent,enableSyncEngagePaging})});
-    body.target = { revision: bootstrap.target_revision, publicationId: bootstrap.publication_id,
-      configRevision: bootstrap.config_revision, assignmentSource: bootstrap.assignment_source,
+    body.composition=await loadAuthorizedScreenComposition({candidate:desiredComposition,main:body,load:releaseId=>loadPlayerReleaseEnvelope({device:body.device,releaseId,tenantId:bootstrap.tenant_id,enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncOnzeTrots,enableSyncOnzeTrotsV9,enableSyncOnzeTrotsCurrent,enableSyncEngagePaging})});
+    body.target = { revision: bootstrap.target_revision, publicationId: matchday&&!useMatchday?desiredReleaseId:bootstrap.publication_id,
+      configRevision: bootstrap.config_revision, assignmentSource: matchday&&!useMatchday?"matchday_restore":bootstrap.assignment_source,
       committedAt: bootstrap.target_changed_at };
     body.branding = await loadPlayerWaitingBranding(bootstrap.tenant_id);
     if (entitlementRow) {
@@ -241,15 +258,39 @@ async function getLiveManifest(request: Request, token: string | null) {
       const capabilities = entitlementRow.capabilities_json;
       body.entitlement = signPlayerEntitlement({ billingState: entitlementRow.billing_state as never, canActivateNetNewScreen:Boolean(capabilities.canActivateNetNewScreen), canManageBilling:Boolean(capabilities.canManageBilling), canPairReplacement:Boolean(capabilities.canPairReplacement), canPublish:Boolean(capabilities.canPublish), canRecoverPlayer:Boolean(capabilities.canRecoverPlayer), deviceId:entitlementRow.device_id, hardStopAt:entitlementRow.hard_stop_at, issuedAt:entitlementRow.issued_at, playbackMode:entitlementRow.playback_mode, reason:entitlementRow.reason, revision:Number(entitlementRow.revision), screenId:entitlementRow.screen_id, tenantId:entitlementRow.tenant_id, validUntil:entitlementRow.valid_until });
     }
+    if(matchday&&useMatchday&&matchdayRequestId){
+      releaseStage="matchday-recovery";
+      const loadOrdinary=async(releaseId:string,composition:unknown)=>{
+        const device={...body.device,desiredReleaseId:releaseId};
+        const ordinary=await loadPlayerReleaseEnvelope({device,releaseId,tenantId:bootstrap.tenant_id,enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncOnzeTrots,enableSyncOnzeTrotsV9,enableSyncOnzeTrotsCurrent,enableSyncEngagePaging});
+        ordinary.composition=await loadAuthorizedScreenComposition({candidate:composition,main:ordinary,load:child=>loadPlayerReleaseEnvelope({device,releaseId:child,tenantId:bootstrap.tenant_id,enableSyncStudio,syncDynamicMode,enableSyncBackgrounds,enableSyncOnzeTrots,enableSyncOnzeTrotsV9,enableSyncOnzeTrotsCurrent,enableSyncEngagePaging})});
+        ordinary.target={revision:bootstrap.target_revision,publicationId:releaseId,configRevision:bootstrap.config_revision,assignmentSource:"matchday_restore",committedAt:bootstrap.target_changed_at};
+        ordinary.branding=body.branding;ordinary.entitlement=body.entitlement;
+        return ordinary;
+      };
+      const fallback=await loadOrdinary(matchday.fallback_release_id,matchday.fallback_composition);
+      const ordinary=matchday.unsupported_release_id===matchday.fallback_release_id&&JSON.stringify(matchday.unsupported_composition)===JSON.stringify(matchday.fallback_composition)?fallback:await loadOrdinary(matchday.unsupported_release_id,matchday.unsupported_composition);
+      body=bindMatchdayWindow(body,fallback,ordinary,matchday,matchdayRequestId);
+    }
     releaseStage = "target";
     const checked = await admin.rpc("get_player_effective_target_v1", {
       p_token_hash: createHash("sha256").update(token.trim()).digest("hex")
     });
     const current = checked.data as BootstrapRow | null;
     if (checked.error || !current || current.target_revision !== bootstrap.target_revision ||
-      current.desired_release_id !== bootstrap.desired_release_id || current.data_key !== bootstrap.data_key || current.sponsor_key !== bootstrap.sponsor_key || current.desired_composition_id!==bootstrap.desired_composition_id) {
+      current.desired_release_id !== bootstrap.desired_release_id || current.data_key !== bootstrap.data_key || current.sponsor_key !== bootstrap.sponsor_key || current.desired_composition_id!==bootstrap.desired_composition_id||
+      matchdayBootstrapKey(readMatchdayBootstrapWindow(current.matchday_window),canUseMatchdayWindow(readMatchdayBootstrapWindow(current.matchday_window),matchdayCapable,matchdayRequestId,Date.now()))!==matchdayKey) {
       return manifestProblem(409, "ERROR_RECOVERABLE", { cause: "De schermopdracht wijzigde tijdens het ophalen.",
         code: "TARGET_CHANGED", effect: "De huidige inhoud blijft spelen.", recovery: "De Player haalt direct de actuele opdracht op." });
+    }
+    if(body.matchdayWindow&&matchday){
+      releaseStage='matchday-offer';
+      const composition=body.matchdayWindow.fallback.composition?.published;
+      const offered=await admin.rpc('record_player_matchday_window_offer_s300_v1',{
+        p_token_hash:createHash('sha256').update(token.trim()).digest('hex'),
+        p_input:{publicationId:matchday.publication_id,targetId:matchday.target_id,windowId:matchday.window_id,contentHash:matchday.content_hash,fallbackReleaseId:body.matchdayWindow.fallback.manifest.releaseId,fallbackCompositionId:composition?.id??null,fallbackCompositionRevision:composition?.revision??null,fallbackCompositionHash:composition?matchday.fallback_composition_hash:null}
+      });
+      if(offered.error||offered.data!==true)throw Error('MATCHDAY_FALLBACK_OFFER_UNAVAILABLE');
     }
     return NextResponse.json(body, {
       headers: {

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import {
   playerAutomationSyncSchema,
+  playerMatchdayWindowReportSchema,
   syncBinaryFrameConfirmationSchema,syncDomFrameConfirmationSchema,
   screenAutomationCapabilityReportSchema,
   screenAutomationCommandReportSchema
@@ -21,6 +22,7 @@ import {
   mediaTrafficWarning,
   safePlayerIdentifier
 } from "../../../_lib/player-heartbeat";
+import {matchdayExpiryVersion} from "../../../_lib/player-matchday-window";
 
 const runtimeStates = new Set([
   "READY",
@@ -59,6 +61,8 @@ export async function POST(request: Request) {
     sourceDomProtocol?:unknown;
     sourceDataConfirmation?:unknown;
     publicationTrace?: unknown;
+    matchdayWindow?:unknown;
+    matchdayExpiryProtocol?:unknown;
     preparationError?: unknown;
     videoProbe?: unknown;
     mediaTraffic?: unknown;
@@ -113,6 +117,7 @@ export async function POST(request: Request) {
   const playbackErrorDetail = playbackErrorSyncDetail(body.lastPlaybackError);
   const tokenHash = sha256(deviceToken);
   const traffic = safeMediaTraffic(body.mediaTraffic);
+  const matchdayWindow=body.matchdayExpiryProtocol===matchdayExpiryVersion?playerMatchdayWindowReportSchema.safeParse(body.matchdayWindow).data:undefined;
 
   const { data: heartbeatReceipt, error } = await supabase.rpc("record_player_heartbeat_v3", {
     p_active_release_id: body.activeReleaseId ?? null,
@@ -125,7 +130,8 @@ export async function POST(request: Request) {
       mediaTraffic: traffic,
       manifestSchemaVersions: body.sourceDomProtocol===2?[1,2]:[1],
       ...(body.sourceDomProtocol===2?{sourceDomProtocol:2}:{}),
-      releaseHashAlgorithms: ["sha256"]
+      releaseHashAlgorithms: ["sha256"],
+      ...(body.matchdayExpiryProtocol===matchdayExpiryVersion?{matchdayExpiry:matchdayExpiryVersion}:{})
     },
     p_desired_release_id: body.desiredReleaseId ?? null,
     p_platform: playerPlatform(request),
@@ -145,6 +151,7 @@ export async function POST(request: Request) {
       sourceDataConfirmation:syncDomFrameConfirmationSchema.safeParse(body.sourceDataConfirmation).data??syncBinaryFrameConfirmationSchema.safeParse(body.sourceDataConfirmation).data??null,
       videoProbe: safeVideoProbe(body.videoProbe),
       publicationTrace: safePublicationTrace(body.publicationTrace),
+      ...(matchdayWindow?{matchdayWindow}:{}),
       preparationError: typeof body.preparationError === "string" && /^[A-Z_0-9]{1,80}$/.test(body.preparationError) ? body.preparationError : null,
       acknowledgedAt: new Date().toISOString(),
       goalVideoDiagnostics: safeGoalVideoDiagnostics(body.goalVideoDiagnostics),

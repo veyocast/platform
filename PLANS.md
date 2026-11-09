@@ -1,5 +1,8 @@
 # VeyoCast MVP Plan
 
+S300: uitvoering van fase C uit de overdracht van 9 november 2026: optioneel wedstrijddagdraaiboek en begrensde mobiele acties, met bestaande publicatie-, TTL- en offlinecontracten. Geen wijziging van bestaande Duindorp-planningen.
+
+
 S295 herstelt Sportlink-uitslagwaarnemingen, de afzonderlijke pouleuitslagen
 binnen Onze wedstrijddag en conditionele manifestcontrole bij iedere echte
 dynamische afspeelbeurt. Bronleases, immutable publicaties, geverifieerde LKG en
@@ -532,3 +535,14 @@ S228 herstelt de op de fysieke LG bewezen weigering van beide lokale
 videotransporten met een begrensde native HTTP-herpoging na volledige
 releaseverificatie. Netwerkafhankelijke video verdringt de vorige lokaal
 werkende release niet; zie `docs/s228-lg-native-media.md`.
+
+S300 bronreview is afgerond voor de optionele draaiboekpublicatie, beperkte
+operationele acties, expliciete delegatie en geverifieerde lokale afloop.
+Default blijft uit; hosted oefeningen raken uitsluitend interne stagingcanaries.
+SQL218migraties/154bestanden/5306asserties en lint/advisors groen; echte
+Playerproductiebuildafx met10 afloop/framegevallen en18 verbindingsgevallen groen.
+Complete foundationlint/typecheck30/30 en tests30/30 met expliciete
+Turbo-concurrency1 zijn groen; de eerdere parallelle starvationfouten blijven bewaard.
+Gewone integratiemerges nemen de gereviewde S296/S297/S298/S301ouders en S299
+mee; de uiteindelijke combinatie moet alle normale CI-gates en hosted acceptatie
+doorlopen vóór de aangevraagde productiepromotie. Migraties blijven oplopend.

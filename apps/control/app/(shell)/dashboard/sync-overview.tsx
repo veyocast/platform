@@ -11,8 +11,8 @@ import { buildCalendarDays } from "./planning/schedule-calendar";
 import { isoToZonedDateTimeLocal } from "./planning/schedule-time";
 import { sourceOverviewHealth } from "./sources/sites-sources-model";
 
-export async function SyncOverview({ canCreateStudio, canManageScreens, data, schedules, tenant, userName, tenantId, timezone = "Europe/Amsterdam", planningError, visualState }: {
-  canCreateStudio: boolean; canManageScreens: boolean; data: TenantOverview; schedules: ContentScheduleListItem[];
+export async function SyncOverview({ canOpenMatchday=false, canCreateStudio, canManageScreens, data, schedules, tenant, userName, tenantId, timezone = "Europe/Amsterdam", planningError, visualState }: {
+  canOpenMatchday?:boolean; canCreateStudio: boolean; canManageScreens: boolean; data: TenantOverview; schedules: ContentScheduleListItem[];
   tenant: string; userName: string; tenantId?: string | null; timezone?: string;
   planningError?: string | null; visualState?: string;
 }) {
@@ -45,7 +45,7 @@ export async function SyncOverview({ canCreateStudio, canManageScreens, data, sc
   const primaryPlaylist = primary?.release ? playlists.get(primary.release.playlist_id) : undefined;
   const statusAvailable = !data.error && Object.values(data.availability).every(Boolean) && operations.status.id === "healthy";
   return <div className="ov-page ov-sync" data-visual-state={visualState}>
-    <header className="ov-page-header"><div><span className="ov-eyebrow">JOUW WERKPLEK · {tenant}</span><h1>Mooi dat je er bent, {userName.split(/\s+/)[0] || "welkom"}<span>.</span></h1><p>De club in beeld. Jij houdt het overzicht.</p></div><div className="ov-quick-actions"><Link className="btn btn-secondary" href="/dashboard/planning"><CalendarDays size={18} />Planning</Link>{canCreateStudio ? <Link className="btn btn-primary" href="/dashboard/studio"><Plus size={18} />Content maken</Link> : null}</div></header>
+    <header className="ov-page-header"><div><span className="ov-eyebrow">JOUW WERKPLEK · {tenant}</span><h1>Mooi dat je er bent, {userName.split(/\s+/)[0] || "welkom"}<span>.</span></h1><p>De club in beeld. Jij houdt het overzicht.</p></div><div className="ov-quick-actions">{canOpenMatchday?<Link className="btn btn-secondary" href="/dashboard/matchday">Wedstrijddag openen</Link>:null}<Link className="btn btn-secondary" href="/dashboard/planning"><CalendarDays size={18} />Planning</Link>{canCreateStudio ? <Link className="btn btn-primary" href="/dashboard/studio"><Plus size={18} />Content maken</Link> : null}</div></header>
     {data.error ? <p className="notice notice--critical" role="alert"><strong>Niet alle actuele gegevens zijn beschikbaar.</strong> Ontbrekende controles blijven onbekend. <Link href="/dashboard">Opnieuw proberen</Link></p> : null}
     {planningError ? <p className="notice notice--critical" role="alert">De dagplanning kon niet worden geladen. <Link href="/dashboard/planning">Open Planning om opnieuw te proberen.</Link></p> : null}
     <section className="ov-metrics" aria-label="Belangrijkste cijfers">

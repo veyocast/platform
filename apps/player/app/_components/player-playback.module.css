@@ -79,3 +79,8 @@
     animation: none;
   }
 }
+
+/* A media item occupies its configured zone rather than the viewport. */
+.compositionZone :global(.playback-media) {
+  width: 100%;
+}
