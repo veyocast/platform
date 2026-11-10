@@ -1,0 +1,54 @@
+import {expect,test} from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import {matchdayFixture,matchdayPreflightFixture,matchdayUuid as id,mountMatchday,prepareMatchdayFixture} from "../helpers/matchday-fixture";
+
+test.beforeAll(prepareMatchdayFixture);
+for(const width of [320,1440])test(`S306 unknown untargeted screens leave the workbench usable at ${width}px`,async({page},info)=>{
+ await page.setViewportSize({width,height:900});
+ const data=matchdayFixture(),commands:unknown[]=[];
+ data.options.screens.push({...data.options.screens[0]!,id:id(99),name:"Onbekend scherm",width:null,height:null});
+ data.options.groups.push({id:id(98),name:"Groep met onbekend scherm",screenIds:[id(20),id(99)]});
+ const {errors}=await mountMatchday(page,data,async(route,command)=>{commands.push(command);await route.abort();});
+ await page.getByRole("button",{name:"Instellen",exact:true}).click();
+ await expect(page.getByRole("heading",{name:"Draaiboek instellen"})).toBeVisible();
+ await page.getByRole("button",{name:/Doelen voor Entree/}).click();
+ await expect(page.getByRole("checkbox",{name:/^Onbekend scherm Resolutie onbekend\./})).toBeDisabled();
+ await expect(page.getByRole("checkbox",{name:/^Groep met onbekend scherm Deze groep/})).toBeDisabled();
+ await expect(page.getByRole("checkbox",{name:/^Entree 1920 × 1080/})).toBeEnabled();
+ await expect(page.getByText("Resolutie onbekend. Controleer eerst het schermprofiel.",{exact:true})).toBeVisible();
+ await page.getByRole("checkbox",{name:/^Onbekend scherm Resolutie onbekend\./}).scrollIntoViewIfNeeded();
+ await expect(page.getByRole("checkbox",{name:/^Onbekend scherm Resolutie onbekend\./})).toBeInViewport();
+ await page.screenshot({path:info.outputPath(`unknown-resolution-options-${width}.png`),fullPage:true});
+ await page.getByRole("button",{name:/Doelen voor Entree/}).click();
+ await expect(page.getByRole("button",{name:"Publicatie controleren",exact:true})).toBeEnabled();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);
+ await page.screenshot({path:info.outputPath(`unknown-resolution-${width}.png`),fullPage:true});
+ expect(commands).toEqual([]);expect(errors).toEqual([]);
+});
+test("S306 an existing group with unknown dimensions blocks preflight and can be removed",async({page})=>{
+ const data=matchdayFixture(),commands:unknown[]=[];
+ data.options.screens[0]!.height=null;
+ data.selected!.configuration.roles[0]!.targets=[{kind:"screen_group",id:id(70)}];
+ await mountMatchday(page,data,async(route,command)=>{commands.push(command);await route.abort();});
+ await page.getByRole("button",{name:"Instellen",exact:true}).click();
+ await expect(page.getByRole("alert")).toContainText("De resolutie van Entree is onbekend");
+ await expect(page.getByRole("button",{name:"Publicatie controleren",exact:true})).toBeDisabled();
+ await page.getByRole("button",{name:/Doelen voor Entree/}).click();
+ const group=page.getByRole("checkbox",{name:/^Entree en clubmuur Deze groep/});
+ await expect(group).toBeEnabled();await group.uncheck();
+ await expect(group).toBeDisabled();expect(commands).toEqual([]);
+});
+test("S306 newly unknown target dimensions invalidate a previously ready UI preflight",async({page})=>{
+ const data=matchdayFixture(),preflight=matchdayPreflightFixture(data),commands:unknown[]=[];
+ await mountMatchday(page,data,async(route,command)=>{commands.push(command);await route.fulfill({json:{ok:true,preflight}});});
+ await page.getByRole("button",{name:"Instellen",exact:true}).click();
+ await page.getByRole("button",{name:"Publicatie controleren",exact:true}).click();
+ await expect(page.getByRole("button",{name:"Draaiboek publiceren",exact:true})).toBeEnabled();
+ data.options.screens[0]!.width=null;
+ await page.evaluate(workspace=>(globalThis as unknown as {updateMatchdayWorkspace:(value:unknown)=>void}).updateMatchdayWorkspace(workspace),data);
+ await expect(page.getByRole("alert")).toContainText("De resolutie van Entree is onbekend");
+ await expect(page.getByRole("button",{name:"Draaiboek publiceren",exact:true})).toBeDisabled();
+ await expect(page.getByRole("article").filter({has:page.getByRole("heading",{name:"Entree · Entree",exact:true})})).toContainText("Geblokkeerd");
+ expect(commands).toHaveLength(1);await expect(page.getByRole("dialog")).toHaveCount(0);
+});

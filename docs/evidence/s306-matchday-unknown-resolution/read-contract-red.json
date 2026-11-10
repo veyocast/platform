@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "kind": "S306_EXISTING_MATCHDAY_READ_CONTRACT_RED",
+  "softwareSha": "a46c56f67195353e90f41320854c0dba30daa72f",
+  "schemaSha256": "cee817848943c70bfc7b95fe6acd38ddc8e36bfde794e0317bf4303c3d72b4b8",
+  "fixtureSha256": "d796a8c0963b85cc8cba108985de3a127f1ceb205edab566cc6c856e257c7ab5",
+  "baseFixtureKey": "workspace-before-publish",
+  "baseFixtureValid": true,
+  "representativeLegalUntargetedNullScreens": 3,
+  "otherFixtureFieldsUnchanged": true,
+  "workspaceAccepted": false,
+  "issueCount": 6,
+  "issues": [
+    {
+      "path": [
+        "options",
+        "screens",
+        2,
+        "width"
+      ],
+      "code": "invalid_type",
+      "expected": "number"
+    },
+    {
+      "path": [
+        "options",
+        "screens",
+        2,
+        "height"
+      ],
+      "code": "invalid_type",
+      "expected": "number"
+    },
+    {
+      "path": [
+        "options",
+        "screens",
+        3,
+        "width"
+      ],
+      "code": "invalid_type",
+      "expected": "number"
+    },
+    {
+      "path": [
+        "options",
+        "screens",
+        3,
+        "height"
+      ],
+      "code": "invalid_type",
+      "expected": "number"
+    },
+    {
+      "path": [
+        "options",
+        "screens",
+        4,
+        "width"
+      ],
+      "code": "invalid_type",
+      "expected": "number"
+    },
+    {
+      "path": [
+        "options",
+        "screens",
+        4,
+        "height"
+      ],
+      "code": "invalid_type",
+      "expected": "number"
+    }
+  ],
+  "actualRawWorkspaceCaptured": false,
+  "hostedCalls": 0,
+  "credentialReads": 0,
+  "boundary": "Offline representative reproduction using unchanged normalized actual-RPC fixture and exact deployed-M Zod. ROOT separately observed three existing untargeted staging screens with SQL NULL dimensions. No live metadata modified and no claim that this representative fixture is the live workspace."
+}

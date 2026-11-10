@@ -274,7 +274,7 @@ export function SyncStudioFrame(props: FrameProps) {
   const matchFamily = ["matchday", "next-match", "scoreboard", "goal"].includes(
     presentation.family,
   );
-  const previewNode = props.previewContent ?? (isSyncOnzeTrotsPresentation(preview) ? <SyncSlidePreview presentation={preview} assetUrls={Object.fromEntries(syncSlideAssets(preview).flatMap(asset=>{const url=asset.kind==='tenant'?resolveAsset(asset):undefined;return asset.kind==='tenant'&&url?[[asset.mediaAssetId,url]]:[];}))} durationSeconds={effectiveSeconds} id={preview.family} active={playing} onPageChange={setPage} replayToken={replayToken} pageOverride={playing?undefined:Math.min(page,pages-1)}/> : (
+  const previewNode = props.previewContent ?? (isSyncOnzeTrotsPresentation(preview) ? <SyncSlidePreview presentation={preview} intrinsic assetUrls={Object.fromEntries(syncSlideAssets(preview).flatMap(asset=>{const url=asset.kind==='tenant'?resolveAsset(asset):undefined;return asset.kind==='tenant'&&url?[[asset.mediaAssetId,url]]:[];}))} durationSeconds={effectiveSeconds} id={preview.family} active={playing} onPageChange={setPage} replayToken={replayToken} pageOverride={playing?undefined:Math.min(page,pages-1)}/> : (
     <SyncSlideStaticView
       presentation={preview}
       includeStyles={false}
