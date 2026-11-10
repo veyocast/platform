@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ inputs.quiesce_worker && 'deploy-veyocast-main' || format('probe-runtime-database-{0}-{1}', inputs.target_environment, inputs.tenant_id) }}
+  group: ${{ inputs.quiesce_worker && 'deploy-veyocast-main-20261110' || format('probe-runtime-database-{0}-{1}', inputs.target_environment, inputs.tenant_id) }}
   cancel-in-progress: false
 
 jobs:

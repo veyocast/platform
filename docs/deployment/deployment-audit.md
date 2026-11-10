@@ -57,7 +57,7 @@ Management API-token nodig.
 | Oude workflow | één dynamische `deploy-vps.yml` via `workflow_run` | vervangen | consolideren naar `.github/workflows/deploy.yml` |
 | Definitieve triggers | `push` naar `main` en `workflow_dispatch`, nooit PR | vereist | statisch valideren |
 | Jobgraph | push: `preflight` → `build-release` → `deploy-staging`; expliciete productiondispatch voegt `deploy-production` toe | vereist | production houdt `needs: deploy-staging` en de dispatchconditie |
-| Concurrency | `deploy-veyocast-main`, niet annuleren | vereist | behouden |
+| Concurrency | `deploy-veyocast-main-20261110`, niet annuleren | vereist | gedeeld door alle vijf writers; eenmalige incidentovergang in S303 |
 | Action pinning | oude workflow gebruikte mutable major-tags | incorrect | volledige action-SHA's gebruiken |
 | Stale protection | oude productiepad accepteerde iedere main-ancestor | incorrect | actuele main eisen, behalve bevestigde rollback |
 | Immutable promotion | oude images waren environmentgetagd en werden opnieuw gebouwd | incorrect | één `:<GITHUB_SHA>` plus lokale image-ID per service |
