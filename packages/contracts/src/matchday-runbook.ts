@@ -202,7 +202,7 @@ export const matchdayPreflightSchema = z.object({
   issues:z.array(z.object({screenId:uuid.nullable(),role:matchdayRoleSchema.nullable(),code:id,message:z.string().max(500)}).strict()).max(500)
 }).strict();
 
-const workspaceScreen=z.object({id:uuid,name:z.string().max(200),status:z.string().max(40),orientation:z.enum(["landscape","portrait"]),width:z.number().int().positive(),height:z.number().int().positive(),playerId:uuid.nullable(),expiryCapability:z.boolean(),lastSeenAt:instant.nullable(),confirmedReleaseId:uuid.nullable(),confirmedAt:instant.nullable()}).strict();
+const workspaceScreen=z.object({id:uuid,name:z.string().max(200),status:z.string().max(40),orientation:z.enum(["landscape","portrait"]),width:z.number().int().positive().nullable(),height:z.number().int().positive().nullable(),playerId:uuid.nullable(),expiryCapability:z.boolean(),lastSeenAt:instant.nullable(),confirmedReleaseId:uuid.nullable(),confirmedAt:instant.nullable()}).strict();
 const releaseOption=z.object({id:uuid,playlistId:uuid,label:z.string().max(300),version:z.number().int().positive(),orientation:z.enum(["landscape","portrait"]),width:z.number().int().positive(),height:z.number().int().positive(),ready:z.boolean()}).strict();
 const delegation=z.object({id:uuid,userId:uuid,userLabel:z.string().max(200),screenIds:z.array(uuid).max(200),objectIds:z.array(objectKey).max(100),actionKinds:z.array(matchdayActionKindSchema).max(6),endsAt:instant,revision}).strict();
 

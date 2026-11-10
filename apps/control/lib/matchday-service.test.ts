@@ -6,6 +6,7 @@ vi.mock("./supabase/server",()=>({createControlSupabaseClient:mock.client}));
 vi.mock("next/cache",()=>({revalidatePath:mock.revalidate}));
 vi.mock("next/navigation",()=>({redirect:(path:string)=>{throw Error(`redirect:${path}`);}}));
 import {applyMatchdayActionCommand as rawApply,loadMatchdayWorkspace,publishMatchdayCommand as rawPublish,setMatchdayEnabledCommand as rawSet,previewMatchdayCommand} from "./matchday-service";
+import workspaceFixture from "../../../tests/fixtures/s300-matchday-rpc.json";
 const uuid=(n:number)=>`30000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
 const actorScope=`${uuid(1)}:${uuid(101)}`;
 const applyMatchdayActionCommand=(input:unknown)=>rawApply(input,actorScope);
@@ -14,6 +15,14 @@ const setMatchdayEnabledCommand=(input:unknown)=>rawSet(input,actorScope);
 const input=()=>({runbookId:uuid(6),publicationId:uuid(2),expectedRevision:3,requestId:uuid(3),screenIds:[uuid(4)],endsAt:"2026-11-09T14:00:00Z",reason:"Veldverdeling aangepast",kind:"field",matchId:uuid(5),field:"2"});
 beforeEach(()=>{vi.clearAllMocks();mock.session={isLive:true,tenantId:uuid(1),userId:uuid(101),tenantMemberships:[{id:uuid(1)}],tenantStatus:"active",capabilities:[]};mock.client.mockResolvedValue({rpc:mock.rpc});mock.rpc.mockResolvedValue({data:{outcome:"applied",requestId:uuid(3),runbookId:uuid(6),publicationId:uuid(2),actionId:uuid(7),actualRevision:4,message:"Klaargezet; wacht op Playerbewijs."},error:null});});
 describe("S300 ordinary authenticated service boundary",()=>{
+ it("loads the authorized workspace when an untargeted screen has no measured resolution",async()=>{
+  const workspace=structuredClone(workspaceFixture["workspace-before-publish"]);
+  const other={...workspace.options.screens[0]!,id:uuid(999),width:null,height:null};
+  mock.rpc.mockResolvedValue({data:{...workspace,options:{...workspace.options,screens:[...workspace.options.screens,other]}},error:null});
+  const result=await loadMatchdayWorkspace(null,"2026-11-10");
+  expect(result).toMatchObject({ok:true,workspace:{options:{screens:expect.arrayContaining([expect.objectContaining({id:uuid(999),width:null,height:null})])}}});
+  expect(mock.rpc).toHaveBeenCalledWith("get_matchday_workspace_s300_v1",{p_tenant_id:uuid(1),p_runbook_id:null,p_day:"2026-11-10"});
+ });
  it("blocks an old actor/tenant closure before its retry can reach another current tenant",async()=>{
   await applyMatchdayActionCommand(input());mock.rpc.mockClear();mock.client.mockClear();
   mock.session.userId=uuid(102);
