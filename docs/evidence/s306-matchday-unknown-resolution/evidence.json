@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "task": "S306",
+  "baselineMain": "78b86569dafebe3aa0c13b0d2c73dbf541b2903f",
+  "actualOldStagingRead": {
+    "softwareSha": "a46c56f67195353e90f41320854c0dba30daa72f",
+    "observedAt": "2026-11-10T09:45:59.224288+00:00",
+    "reportSha256": "3d332d6d42a3312b95e1a8caa9a7740fb5ac53a32ed1727e940665eddbe122cc",
+    "rpcReturned": true,
+    "permissions": {
+      "canEdit": true,
+      "canPublish": true,
+      "canDelegate": true,
+      "canManageFeature": true
+    },
+    "screenCount": 4,
+    "screenDimensionTypes": [
+      {
+        "index": 0,
+        "width": "null",
+        "height": "null"
+      },
+      {
+        "index": 1,
+        "width": "null",
+        "height": "null"
+      },
+      {
+        "index": 2,
+        "width": "null",
+        "height": "null"
+      },
+      {
+        "index": 3,
+        "width": "number",
+        "height": "number"
+      }
+    ],
+    "knownFixtureAvailability": {
+      "cScreenAvailable": true,
+      "mainMatchAvailable": true,
+      "parkMatchAvailable": true,
+      "normalMenuAvailable": true,
+      "unavailableMenuAvailable": true
+    },
+    "rawWorkspaceCollectedByThisAgent": false,
+    "boundary": "ROOT observed the actual authorized error view and separately called the read-only public RPC as the existing synthetic owner. This is the old deployment diagnosis, not evidence that S306 is hosted."
+  },
+  "representativeOldZodReproduction": {
+    "file": "read-contract-red.json",
+    "sha256": "7c9175ed505d403febb732560304c194178610e73c3b228ca2e2881dd7e36729",
+    "baseActualRpcFixtureAccepted": true,
+    "representativeUntargetedUnknownScreens": 3,
+    "onlyDimensionIssuePaths": 6,
+    "liveRawWorkspaceZodClaim": false
+  },
+  "testedProductFiles": [
+    {
+      "path": "packages/contracts/src/matchday-runbook.ts",
+      "sha256": "ef4221463c6793fd35003b3551b18c4c800763e4b7988ddc62a7f47a6ff9d6ca"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/labels.ts",
+      "sha256": "bef0f5aad145b2a3967d1f51c8e97953f88b5569fd8da7a4f37c6ab1fb16e0e6"
+    },
+    {
+      "path": "apps/control/app/(shell)/dashboard/matchday/draft-editor.tsx",
+      "sha256": "9e12f342d1be6b685cc0ed5580930df87b9c6d8cc3d04792ddc3291b4f6c1bc8"
+    },
+    {
+      "path": "supabase/migrations/20261110095225_s306_matchday_unknown_resolution.sql",
+      "sha256": "dfbe3704abaa96b7b07b8710d80d1b48b239604726bf4b431f73c7aa3c76ce45"
+    }
+  ],
+  "localGates": {
+    "contracts": {
+      "passed": 232,
+      "failed": 0,
+      "log": "/tmp/s306-contracts-full.log"
+    },
+    "controlUnits": {
+      "initialBroad": {
+        "passed": 2177,
+        "failed": 6,
+        "skipped": 34,
+        "missingSuiteCases": 40,
+        "cause": "Sparse checkout omitted unchanged brand assets and immutable reference fixture files."
+      },
+      "unchangedFailedSuiteClosure": {
+        "passed": 46,
+        "failed": 0,
+        "log": "/tmp/s306-control-sparse-closure-final.log"
+      },
+      "union": {
+        "passed": 2223,
+        "skipped": 34,
+        "failed": 0
+      },
+      "singleAllGreenRunClaim": false
+    },
+    "packageLint": [
+      "@veyocast/contracts",
+      "@veyocast/control"
+    ],
+    "packageTypes": [
+      "@veyocast/contracts",
+      "@veyocast/control"
+    ],
+    "browser": {
+      "passed": 4,
+      "failed": 0,
+      "workers": 1,
+      "durationSeconds": 8.4,
+      "widths": [
+        320,
+        1440
+      ],
+      "a11y": "Both widths: zero WCAG2A/AA/2.1AA violations",
+      "cases": [
+        "unknown untargeted screen stays readable; exact known target stays selectable",
+        "unknown direct/group options cannot be newly selected",
+        "existing unknown group can be removed and cannot pass preview",
+        "a later unknown profile blocks an earlier ready UI proof"
+      ],
+      "transport": "Controlled authenticated-contract fixture with the real React components; no Next server, hosted UI or physical hardware claim."
+    },
+    "sql": {
+      "focusedAssertions": 20,
+      "oldBehaviorFailedAssertions": 6,
+      "greenFailedAssertions": 0,
+      "sameConnectionCachedCallerRollbackAssertions": 20,
+      "publicPrivateLintErrors": 0,
+      "securityAdvisorErrors": 0,
+      "database": "s306_unknown_resolution",
+      "container": "supabase_db_veyocast-s295",
+      "port": 64422,
+      "baseline": "Isolated clone of S305 local template: 219 baseline definitions plus S305 applied; owned S306 applied only to this clone. No fresh reset/history claim."
+    },
+    "dependencies": "Existing local dependencies reused through S306-owned link directories; no install or lockfile change. pnpm_config_verify_deps_before_run=warn makes this explicit. Clean installation, full build, complete fresh database/RLS and all normal CI remain required."
+  },
+  "logs": [
+    {
+      "path": "/tmp/s306-contract-red.log",
+      "sha256": "013bae8e942d997ce9ca6e2842e9ec898879c420dfa74a2c2b89819d669a058a"
+    },
+    {
+      "path": "/tmp/s306-service-red.log",
+      "sha256": "53f71e69a506d3de6b5cbcbe79583f3f6e09833dc6d243d47d281c8429b2caae"
+    },
+    {
+      "path": "/tmp/s306-contracts-full.log",
+      "sha256": "a278b3f8c93f5943523c272118d65bede849050e295ab56248d6055213daca67"
+    },
+    {
+      "path": "/tmp/s306-control-full.log",
+      "sha256": "ae80d066266114ff71766f28c12e06a4fd74fe045f7355701c66f22f42fd19a5"
+    },
+    {
+      "path": "/tmp/s306-control-sparse-closure-final.log",
+      "sha256": "1f5084e99c113adaa011cb6e4527f26fb98f7fe3aaf407e9da2fc99e0038ee0c"
+    },
+    {
+      "path": "/tmp/s306-full-scoped-lint.log",
+      "sha256": "7c976376be2cabac8419fa454d3f3dbc5d8ecf1b422b613e4d46bbbdf97e559b"
+    },
+    {
+      "path": "/tmp/s306-contract-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/s306-control-typecheck-final.log",
+      "sha256": "d684aadf7cc18ecc0092139d60cc8dde7043f28dab178aa0b69edc8c63e236be"
+    },
+    {
+      "path": "/tmp/s306-browser-final.log",
+      "sha256": "6c72f27ba041e9a05f81afd1d55b4948babddec04b58b7de668e7a60e48f90ad"
+    },
+    {
+      "path": "/tmp/s306-db-red.log",
+      "sha256": "e00ca3eeb74d4886dd39a976db75b9d05d131c33db9d1b5a709e55e18328bbc0"
+    },
+    {
+      "path": "/tmp/s306-db-green.log",
+      "sha256": "87f05860a78f2a75d76848650376c187ab68bd389fa2e8d4c04230caf9bec29d"
+    },
+    {
+      "path": "/tmp/s306-cached-caller-rollback.log",
+      "sha256": "9a8a06e0ad694039b13d8386399bfe2a5b09e2fe58a3972dd2aa80203630337e"
+    },
+    {
+      "path": "/tmp/s306-db-lint-final.log",
+      "sha256": "a12c18bfc4b14669afcf1403b805e609b9a04031964cde573bed869a055b695b"
+    },
+    {
+      "path": "/tmp/s306-db-advisors-final.log",
+      "sha256": "787b82f7fe548780e774ee923b05dca02dffadb45143ff952fbbed44bf57459d"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "options-1440.png",
+      "sha256": "48dd43253a5dcf56775e3c4fd39f5a66ae1192ce153decaca14281e93010915e"
+    },
+    {
+      "file": "options-320.png",
+      "sha256": "6a6ab85f9bc372ef32fd57ec0ffd03565ab3b8186e2979cdac0f957ba798154d"
+    }
+  ],
+  "securityAndReleaseBoundary": {
+    "hostedWritesByAgent": 0,
+    "customerMetadataChanged": false,
+    "publishedFrozenTargetDimensionsRemainStrict": true,
+    "serviceRoleInBrowser": false,
+    "providerCalls": 0,
+    "hardwareProof": false,
+    "candidateStagingOrProductionPassClaim": false
+  }
+}
