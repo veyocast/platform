@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "task": "S307",
+  "baseSha": "0de91d599637d3adb7be949be56a6c01a403dc25",
+  "createdAt": "2026-11-10T10:24:10.961647+00:00",
+  "productSourceFrozen": true,
+  "sourceSha256": {
+    "apps/control/app/(shell)/dashboard/studio/sync-studio-frame.tsx": "5315d589879794686e2d75c1488188dc5704e69c2dd4f28c81b69b289acb8cd6",
+    "apps/control/app/(shell)/dashboard/playlists/_components/sites/sync-studio-preview.tsx": "7b1bfaaf1166525cd704d74c1734b35f0e0e53408d3dd83294bc0ba882bad569",
+    "tests/control/sync-studio-workflows.spec.ts": "687c2b754cdd468f07a0642aad93fefe807269faa0cd34bebf348ec305849112"
+  },
+  "hostedBefore": {
+    "file": "hosted-before.json",
+    "sha256": "e273fffa5fb4da13f35cad5eba33e424912d55dd9f40532e5a8e11ec3e469e82",
+    "oldMCallerByteIdenticalToBase": true,
+    "oldCallerSha256": "1b6f1519774fef41281ba6b6138645f0d0b827d28a15efa9afc614a1585bc813"
+  },
+  "localGates": {
+    "red": {
+      "result": "REPRODUCED",
+      "failures": 1,
+      "reason": "Actual real Studio frame width 0; default5-second predicate retained."
+    },
+    "browser": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 52.9,
+      "workers": 1,
+      "newCases": 2,
+      "existingCases": 7,
+      "newCaseCoverage": [
+        "real production Editor/Frame/Preview with ControlCSS and native ResizeObserver",
+        "landscape1440 full6 to tail3 via normal running12-second clock",
+        "portrait1920 full5 to tail4 via normal running12-second clock",
+        "both resize320, complete frame/card/text bounds and source aspect ratio",
+        "both preview scopes zero a11y violations",
+        "zero authoring writes"
+      ],
+      "boundary": "Controlled local HTTP transport. No Next/Auth/manifest/offline/hardware or new hosted proof."
+    },
+    "units": {
+      "files": 3,
+      "passed": 335,
+      "failed": 0,
+      "seconds": 1.96
+    },
+    "lint": {
+      "scope": "two product files and browser spec",
+      "exitCode": 0
+    },
+    "types": {
+      "scope": "entire Control TypeScript project",
+      "exitCode": 0
+    },
+    "logs": {
+      "red": {
+        "file": "/tmp/s307-preview-red-final.log",
+        "sha256": "9e76f58d65715941963a4b53d4f979532929f950e3e787eec14eed6a9468d116"
+      },
+      "oldPageBack": {
+        "file": "/tmp/s307-old-pageback.log",
+        "sha256": "ea628e3f297b4a757d95d1895243bd4ace70ced0819046ebde4efa6ad45c8713"
+      },
+      "browser": {
+        "file": "/tmp/s307-preview-closure.log",
+        "sha256": "edf0e1fd4316488263d16d8e85ca2120b9fd391e7ede0a86d3ca2058e4747064"
+      },
+      "units": {
+        "file": "/tmp/s307-preview-units-final.log",
+        "sha256": "89f36de9fd563335c750df52bc40778ba883ef2bd1122982724c4abddb74b6fa"
+      },
+      "lint": {
+        "file": "/tmp/s307-scoped-lint-closure.log",
+        "sha256": "be2a3c7d0964763cd94ed4571d646f34178098cfd3676d2b1dea3b687c5d1f74"
+      },
+      "types": {
+        "file": "/tmp/s307-control-types.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "preexistingOpen": {
+    "code": "PREVIEW_PAGE_BACK_REACT_MAXIMUM_UPDATE_DEPTH",
+    "confirmed": true,
+    "introducedByS307": false,
+    "oldCallerSha256": "1b6f1519774fef41281ba6b6138645f0d0b827d28a15efa9afc614a1585bc813",
+    "steps": [
+      "normal previous unchanged caller without intrinsic",
+      "normal next6to3",
+      "normal previous",
+      "Maximum update depth exceeded; no geometry assertions; zero writes"
+    ],
+    "proof": "/tmp/s307-old-pageback.log",
+    "temporaryDiagnosticCaseRetainedInGit": false,
+    "scopeDecision": "ROOT explicitly leaves page logic open; height-only scope."
+  },
+  "preservedLocalFailures": [
+    {
+      "log": "/tmp/s307-preview-green.log",
+      "kind": "duplicate physical React copies in reused local dependency tree; fixture fails before product assertions; own links corrected without installation or shared writes"
+    },
+    {
+      "log": "/tmp/s307-preview-green-final.log",
+      "kind": "confirmed pre-existing page-back loop after successful full/tail geometry"
+    },
+    {
+      "log": "/tmp/s307-preview-intrinsic-final.log",
+      "kind": "portrait Chromium page.goto crash before assertions; cause unconfirmed; original trace retained; same case passes isolated and in final9"
+    },
+    {
+      "log": "/tmp/s307-preview-units.log",
+      "kind": "sparse checkout omitted2 unchanged immutable reference files; exactHEADbytes read back; same units pass"
+    }
+  ],
+  "artifacts": {
+    "studio-portrait-320.png": "04461bd922f3681cee5b71263a942370bf720a3b40d2ca8cb1da50fc89416874",
+    "studio-landscape.png": "e946c539d12625c30b2e362d117884016bd8344a7a14e03311edebfa1dfc7946"
+  },
+  "releaseBoundary": {
+    "rootControlsCommitIntegrationMergeDeploy": true,
+    "normalCombined11CIRequired": true,
+    "newHostedPreviewRequired": true,
+    "newHostedFixAcceptanceClaimed": false,
+    "physicalHardwareTested": false,
+    "providerCallsOrChanges": false,
+    "databaseOrPublishedContentChanges": false
+  }
+}
