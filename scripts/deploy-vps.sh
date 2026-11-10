@@ -497,6 +497,52 @@ wait_for_marketing_image() {
   return 1
 }
 
+discard_checkout_next_build_caches() {
+  # All host gates have finished. Recheck the release and validate every fixed
+  # target before deleting any cache; runtime outputs and immutable images stay.
+  assert_release_checkout
+  node --input-type=module - "${repository_root}" <<'NODE'
+  import { lstatSync, realpathSync, rmSync, statfsSync } from 'node:fs';
+  import { isAbsolute, join, resolve } from 'node:path';
+  import process from 'node:process';
+  const root = process.argv[2];
+  const cachePaths = ['control', 'player', 'marketing'].map(app => `apps/${app}/.next/cache`);
+  try {
+    if (!isAbsolute(root) || resolve(root) !== root || realpathSync(root) !== root) throw new Error('root');
+    const uid = process.geteuid();
+    const directory = path => {
+      const stat = lstatSync(path);
+      if (stat.isSymbolicLink() || !stat.isDirectory() || stat.uid !== uid) throw new Error('directory');
+    };
+    directory(root);
+    const targets = [];
+    for (const relative of cachePaths) {
+      let path = root, present = true;
+      for (const component of relative.split('/')) {
+        path = join(path, component);
+        try { directory(path); } catch (error) {
+          if (error.code !== 'ENOENT') throw error;
+          present = false;
+          break;
+        }
+      }
+      if (present) targets.push(path);
+    }
+    const available = () => { const stat = statfsSync(root, { bigint: true }); return stat.bavail * stat.bsize; };
+    const before = available();
+    for (const path of targets) rmSync(path, { recursive: true });
+    const after = available();
+    console.log(JSON.stringify({
+      event: 'next_build_cache_cleanup', cachePaths, removedCacheCount: targets.length,
+      availableBytesBefore: String(before), availableBytesAfter: String(after), availableBytesDelta: String(after - before)
+    }));
+  } catch {
+    console.error('Next-buildcache kon niet veilig uit de releasecheckout worden verwijderd.');
+    process.exitCode = 1;
+  }
+NODE
+}
+
 build_release() {
   # De stagingrunner deelt zijn beperkte CPU/geheugenbudget met Rootless Docker.
   # Turbo's standaardparallelisme kan daardoor meerdere TypeScript-processen
@@ -537,6 +583,7 @@ build_release() {
   pnpm typecheck --concurrency="${release_gate_concurrency}"
   pnpm test --concurrency="${release_gate_concurrency}"
   pnpm build --concurrency="${release_gate_concurrency}"
+  discard_checkout_next_build_caches
 
   install -d -m 0700 "${release_root}" "${release_directory}"
   local key_fingerprint

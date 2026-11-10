@@ -10,6 +10,7 @@ import {
   readdirSync,
   rmSync,
   statSync,
+  symlinkSync,
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -44,6 +45,207 @@ const workerId = "c".repeat(64);
 const oldImage = `sha256:${"d".repeat(64)}`;
 const runtimeFiles = [".env.runtime", "REVISION", "PREVIOUS_REVISION", "RELEASE_MANIFEST"];
 const fixtures = [];
+
+const webApps = ["control", "player", "marketing"];
+const retainedBuildFiles = [
+  ".next/standalone/server.js", ".next/static/chunk.js", ".next/build-manifest.json",
+  "public/asset.svg", "node_modules/fixture", ".turbo/fixture"
+];
+
+test("release build discards only its three Next caches after all gates and before Docker", () => {
+  const run = runReleaseBuild();
+  assert.equal(run.result.status, 77, run.result.stderr);
+  assert.deepEqual(run.trace, [
+    "pnpm:install --frozen-lockfile", "pnpm:lint --concurrency=2",
+    "pnpm:typecheck --concurrency=2", "pnpm:test --concurrency=2",
+    "pnpm:build --concurrency=2", "docker:build"
+  ]);
+  for (const app of webApps) assert.ok(!existsSync(join(run.root, "apps", app, ".next/cache")), app);
+  assertRetainedBuildFiles(run.root);
+  const diagnostic = JSON.parse(run.result.stdout.trim());
+  assert.deepEqual(diagnostic.cachePaths, webApps.map((app) => `apps/${app}/.next/cache`));
+  assert.equal(diagnostic.removedCacheCount, 3);
+  assert.match(diagnostic.availableBytesBefore, /^\d+$/);
+  assert.match(diagnostic.availableBytesAfter, /^\d+$/);
+  assert.equal(BigInt(diagnostic.availableBytesDelta), BigInt(diagnostic.availableBytesAfter) - BigInt(diagnostic.availableBytesBefore));
+});
+
+for (const gate of ["install", "lint", "typecheck", "test", "build"]) {
+  test(`failed ${gate} keeps every Next cache and prevents Docker`, () => {
+    const run = runReleaseBuild({ failGate: gate });
+    assert.equal(run.result.status, 43, run.result.stderr);
+    for (const app of webApps) assert.ok(existsSync(join(run.root, "apps", app, ".next/cache/cached")));
+    assert.ok(!run.trace.includes("docker:build"));
+    assertRetainedBuildFiles(run.root);
+  });
+}
+
+test("a checkout changed during the gates cannot authorize cache deletion or Docker", () => {
+  const run = runReleaseBuild({ changedCheckout: true });
+  assert.equal(run.result.status, 1, run.result.stderr);
+  for (const app of webApps) assert.ok(existsSync(join(run.root, "apps", app, ".next/cache/cached")));
+  assert.ok(!run.trace.includes("docker:build"));
+});
+
+for (const unsafePath of ["apps", "apps/marketing", "apps/marketing/.next", "apps/marketing/.next/cache"]) {
+  test(`cache cleanup rejects symlink ${unsafePath} before deleting any other cache`, () => {
+    const run = runReleaseBuild({ unsafePath });
+    assert.equal(run.result.status, 1, run.result.stderr);
+    assert.equal(readFileSync(join(run.outside, "sentinel"), "utf8"), "keep");
+    if (unsafePath !== "apps") assert.ok(existsSync(join(run.root, "apps/control/.next/cache/cached")));
+    assert.ok(!run.trace.includes("docker:build"));
+  });
+}
+
+test("a non-directory cache fails before deleting another app cache", () => {
+  const run = runReleaseBuild({ cacheFile: true });
+  assert.equal(run.result.status, 1, run.result.stderr);
+  assert.ok(existsSync(join(run.root, "apps/control/.next/cache/cached")));
+  assert.equal(readFileSync(join(run.root, "apps/marketing/.next/cache"), "utf8"), "keep");
+  assert.ok(!run.trace.includes("docker:build"));
+});
+
+test("an existing partial immutable release is rejected before gates or cache cleanup", () => {
+  const run = runReleaseBuild({ partialRelease: true });
+  assert.equal(run.result.status, 1, run.result.stderr);
+  assert.match(run.result.stderr, /incompleet of gewijzigd en wordt niet overschreven/);
+  assert.deepEqual(run.trace, []);
+  for (const app of webApps) assert.ok(existsSync(join(run.root, "apps", app, ".next/cache/cached")));
+  assertRetainedBuildFiles(run.root);
+});
+
+test("cache cleanup rejects a symlink checkout root", () => {
+  const run = runReleaseBuild({ symlinkRoot: true });
+  assert.equal(run.result.status, 1, run.result.stderr);
+  for (const app of webApps) assert.ok(existsSync(join(run.root, "apps", app, ".next/cache/cached")));
+  assert.ok(!run.trace.includes("docker:build"));
+});
+
+test("missing Next caches are harmless and a nested cache symlink cannot delete its target", () => {
+  const run = runReleaseBuild({ missingCache: "marketing", nestedSymlink: true });
+  assert.equal(run.result.status, 77, run.result.stderr);
+  assert.equal(readFileSync(join(run.outside, "sentinel"), "utf8"), "keep");
+  for (const app of webApps) assert.ok(!existsSync(join(run.root, "apps", app, ".next/cache")));
+  assertRetainedBuildFiles(run.root);
+  assert.equal(JSON.parse(run.result.stdout.trim()).removedCacheCount, 2);
+});
+
+for (const failApp of [null, ...webApps]) {
+  test(`Docker web-builder clears each completed app cache in the same RUN (${failApp ?? "success"})`, () => {
+    const run = runDockerWebBuild(failApp);
+    assert.equal(run.result.status, failApp ? 43 : 0, run.result.stderr);
+    const expected = failApp ? webApps.slice(0, webApps.indexOf(failApp) + 1) : webApps;
+    assert.deepEqual(run.trace, expected);
+    for (const app of expected) assert.equal(existsSync(join(run.root, "apps", app, ".next/cache")), app === failApp);
+    assertRetainedBuildFiles(run.root);
+  });
+}
+
+function assertRetainedBuildFiles(root) {
+  for (const app of webApps) {
+    for (const file of retainedBuildFiles) assert.equal(readFileSync(join(root, "apps", app, file), "utf8"), "keep", `${app}/${file}`);
+  }
+  assert.equal(readFileSync(join(root, "release/RELEASE_METADATA.json"), "utf8"), "immutable");
+}
+
+function releaseBuildFixture() {
+  const directory = mkdtempSync(join(tmpdir(), "veyocast-build-cache-"));
+  fixtures.push(directory);
+  const root = join(directory, "checkout"), outside = join(directory, "outside");
+  mkdirSync(outside);
+  writeFileSync(join(outside, "sentinel"), "keep");
+  for (const app of webApps) {
+    for (const file of [...retainedBuildFiles, ".next/cache/cached"]) {
+      const path = join(root, "apps", app, file);
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, file.endsWith("cached") ? "regenerable" : "keep");
+    }
+  }
+  mkdirSync(join(root, "release"));
+  writeFileSync(join(root, "release/RELEASE_METADATA.json"), "immutable");
+  const traceFile = join(directory, "trace");
+  writeFileSync(traceFile, "");
+  return { directory, root, outside, traceFile };
+}
+
+function runReleaseBuild(options = {}) {
+  const fixture = releaseBuildFixture();
+  const { directory, root, outside, traceFile } = fixture;
+  if (options.unsafePath) {
+    rmSync(join(root, options.unsafePath), { recursive: true });
+    symlinkSync(outside, join(root, options.unsafePath));
+  }
+  if (options.missingCache) rmSync(join(root, "apps", options.missingCache, ".next/cache"), { recursive: true });
+  if (options.nestedSymlink) symlinkSync(outside, join(root, "apps/control/.next/cache/external"));
+  if (options.cacheFile) {
+    rmSync(join(root, "apps/marketing/.next/cache"), { recursive: true });
+    writeFileSync(join(root, "apps/marketing/.next/cache"), "keep");
+  }
+  let checkout = root;
+  if (options.symlinkRoot) {
+    checkout = join(directory, "checkout-link");
+    symlinkSync(root, checkout);
+  }
+  const program = `set -Eeuo pipefail
+${shellFunctions}
+run_preflight() { :; }
+git() {
+  [[ $* == "-C $repository_root rev-parse HEAD" ]] || return 98
+  if [[ -e $TEST_DIRECTORY/checkout-changed ]]; then printf '%s\\n' '${oldSha}'; else printf '%s\\n' '${nextSha}'; fi
+}
+pnpm() {
+  printf 'pnpm:%s\\n' "$*" >> "$TEST_TRACE"
+  [[ $1 != "$TEST_FAIL_GATE" ]] || return 43
+  if [[ $1 == build && $TEST_CHANGED_CHECKOUT == true ]]; then touch "$TEST_DIRECTORY/checkout-changed"; fi
+}
+docker() {
+  if [[ $1 == image && $2 == inspect ]]; then return 1; fi
+  [[ $1 == build ]] || return 98
+  printf 'docker:build\\n' >> "$TEST_TRACE"
+  return 77
+}
+build_release`;
+  const result = spawnSync("bash", ["-c", program], {
+    cwd: directory, encoding: "utf8", timeout: 5000,
+    env: { ...process.env, repository_root: checkout, environment: "staging", DEPLOYMENT_SHA: nextSha,
+      deployment_mode: "release", release_root: join(directory, "releases"), release_directory: join(directory, "releases", nextSha),
+      release_metadata: options.partialRelease ? join(root, "release/RELEASE_METADATA.json") : join(directory, "absent-metadata"),
+      release_key_fingerprint: join(directory, "absent-key"),
+      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: "synthetic-fixture-only", TEST_DIRECTORY: directory, TEST_TRACE: traceFile,
+      TEST_FAIL_GATE: options.failGate ?? "", TEST_CHANGED_CHECKOUT: String(options.changedCheckout ?? false) }
+  });
+  return { ...fixture, result, trace: readFileSync(traceFile, "utf8").trim().split("\n").filter(Boolean) };
+}
+
+function runDockerWebBuild(failApp) {
+  const fixture = releaseBuildFixture();
+  const dockerfile = readFileSync(join(repository, "infra/production/Dockerfile"), "utf8");
+  const builder = dockerfile.split("FROM dependencies AS web-builder\n")[1].split("\nFROM ")[0];
+  assert.equal((builder.match(/^RUN /gm) ?? []).length, 1, "build and cleanup must remain in one layer");
+  // Execute the actual && chain, replacing only its container root with this
+  // owned fixture. No Docker, installation, secret, or real app build is run.
+  const chain = builder.slice(builder.indexOf("  pnpm --filter")).replaceAll("\\\n", " ").replaceAll("/app/apps/", `${fixture.root}/apps/`);
+  for (const app of webApps) rmSync(join(fixture.root, "apps", app, ".next/cache"), { recursive: true });
+  const program = `set -Eeuo pipefail
+pnpm() {
+  [[ $# == 3 && $1 == --filter && $3 == build ]] || return 98
+  local app=\${2#@veyocast/} previous
+  for previous in control player marketing; do
+    [[ $previous != "$app" ]] || break
+    [[ ! -e "$TEST_ROOT/apps/$previous/.next/cache" ]] || return 79
+  done
+  printf '%s\\n' "$app" >> "$TEST_TRACE"
+  mkdir -p "$TEST_ROOT/apps/$app/.next/cache"
+  touch "$TEST_ROOT/apps/$app/.next/cache/cached"
+  [[ $app != "$TEST_FAIL_APP" ]] || return 43
+}
+${chain}`;
+  const result = spawnSync("bash", ["-c", program], {
+    encoding: "utf8", timeout: 5000,
+    env: { ...process.env, TEST_ROOT: fixture.root, TEST_TRACE: fixture.traceFile, TEST_FAIL_APP: failApp ?? "" }
+  });
+  return { ...fixture, result, trace: readFileSync(fixture.traceFile, "utf8").trim().split("\n").filter(Boolean) };
+}
 
 afterEach(() => {
   for (const fixture of fixtures.splice(0)) rmSync(fixture, { recursive: true, force: true });

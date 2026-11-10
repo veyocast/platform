@@ -20,8 +20,11 @@ RUN --mount=type=secret,id=next_server_actions_encryption_key \
   test -s /run/secrets/next_server_actions_encryption_key; \
   export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/next_server_actions_encryption_key)"; \
   pnpm --filter @veyocast/control build \
+    && rm -rf -- /app/apps/control/.next/cache \
     && pnpm --filter @veyocast/player build \
-    && VEYOCAST_ENVIRONMENT=production pnpm --filter @veyocast/marketing build
+    && rm -rf -- /app/apps/player/.next/cache \
+    && VEYOCAST_ENVIRONMENT=production pnpm --filter @veyocast/marketing build \
+    && rm -rf -- /app/apps/marketing/.next/cache
 
 FROM node:24-trixie-slim AS control
 ENV NODE_ENV=production
