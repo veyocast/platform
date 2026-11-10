@@ -31,7 +31,9 @@ export async function POST(request: Request, context: { params: Promise<{ import
   if (!current) return failure(404);
   const page = `/dashboard/sources/twelve/imports/${importId}`;
   const catalog = "/dashboard/sources/twelve/products";
-  const go = (path: string) => NextResponse.redirect(new URL(path, request.url), 303);
+  // These app-owned paths stay relative: the browser retains its public origin
+  // even when a reverse proxy gives Request.url the internal container host.
+  const go = (path: string) => new NextResponse(null, { status: 303, headers: { Location: path } });
   const form = await request.formData().catch(() => null);
   if (!form || form.get("importId") !== importId) return failure(400);
   const intent = form.get("intent");
