@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "kind": "ACTUAL_HOSTED_PREVIEW_FAILURE_BEFORE_S307",
+  "revision": "a46c56f67195353e90f41320854c0dba30daa72f",
+  "observedAt": "2026-11-10T10:12:31.548Z",
+  "result": "FAIL_NONZERO_RENDERED_FRAME_REQUIRED",
+  "health": {
+    "control": {
+      "at": "2026-11-10T10:12:28.586Z",
+      "status": 200,
+      "revision": "a46c56f67195353e90f41320854c0dba30daa72f"
+    },
+    "player": {
+      "at": "2026-11-10T10:12:28.733Z",
+      "status": 200,
+      "revision": "a46c56f67195353e90f41320854c0dba30daa72f"
+    }
+  },
+  "frame": {
+    "x": 1251.5,
+    "y": 418.921875,
+    "width": 0,
+    "height": 0,
+    "right": 1251.5,
+    "bottom": 418.921875,
+    "clientWidth": 0,
+    "clientHeight": 0
+  },
+  "stage": {
+    "x": 726.5,
+    "y": 413.921875,
+    "width": 1050,
+    "height": 10,
+    "right": 1776.5,
+    "bottom": 423.921875,
+    "clientWidth": 1040,
+    "clientHeight": 0
+  },
+  "root": {
+    "x": 1251.5,
+    "y": 418.921875,
+    "width": 0,
+    "height": 0,
+    "right": 1251.5,
+    "bottom": 418.921875,
+    "clientWidth": 0,
+    "clientHeight": 0
+  },
+  "svg": {
+    "x": 1251.5,
+    "y": 418.921875,
+    "width": 0,
+    "height": 0,
+    "right": 1251.5,
+    "bottom": 418.921875,
+    "clientWidth": 0,
+    "clientHeight": 0
+  },
+  "gridCount": 1,
+  "gridRect": {
+    "x": 1304.5,
+    "y": 644.921875,
+    "width": 1494,
+    "height": 531,
+    "right": 2798.5,
+    "bottom": 1175.921875,
+    "clientWidth": 1494,
+    "clientHeight": 531
+  },
+  "ancestors": [
+    {
+      "classes": [
+        "sync-slide-root",
+        "ot-v9-scope"
+      ],
+      "rect": {
+        "x": 1251.5,
+        "y": 418.921875,
+        "width": 0,
+        "height": 0,
+        "right": 1251.5,
+        "bottom": 418.921875,
+        "clientWidth": 0,
+        "clientHeight": 0
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [],
+      "rect": {
+        "x": 1251.5,
+        "y": 418.921875,
+        "width": 0,
+        "height": 0,
+        "right": 1251.5,
+        "bottom": 418.921875,
+        "clientWidth": 0,
+        "clientHeight": 0
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [],
+      "rect": {
+        "x": 1251.5,
+        "y": 418.921875,
+        "width": 0,
+        "height": 0,
+        "right": 1251.5,
+        "bottom": 418.921875,
+        "clientWidth": 0,
+        "clientHeight": 0
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [],
+      "rect": {
+        "x": 731.5,
+        "y": 418.921875,
+        "width": 1040,
+        "height": 0,
+        "right": 1771.5,
+        "bottom": 418.921875,
+        "clientWidth": 1040,
+        "clientHeight": 0
+      },
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    {
+      "classes": [],
+      "rect": {
+        "x": 731.5,
+        "y": 418.921875,
+        "width": 1040,
+        "height": 0,
+        "right": 1771.5,
+        "bottom": 418.921875,
+        "clientWidth": 1040,
+        "clientHeight": 0
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [
+        "vc-stage-canvas"
+      ],
+      "rect": {
+        "x": 726.5,
+        "y": 413.921875,
+        "width": 1050,
+        "height": 10,
+        "right": 1776.5,
+        "bottom": 423.921875,
+        "clientWidth": 1040,
+        "clientHeight": 0
+      },
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    {
+      "classes": [
+        "vc-studio-stage"
+      ],
+      "rect": {
+        "x": 619,
+        "y": 322.921875,
+        "width": 1265,
+        "height": 861.390625,
+        "right": 1884,
+        "bottom": 1184.3125,
+        "clientWidth": 1265,
+        "clientHeight": 861
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [
+        "vc-studio-workspace"
+      ],
+      "rect": {
+        "x": 264,
+        "y": 322.921875,
+        "width": 1620,
+        "height": 861.390625,
+        "right": 1884,
+        "bottom": 1184.3125,
+        "clientWidth": 1620,
+        "clientHeight": 861
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [
+        "vc-studio-page",
+        "sync-studio-frame"
+      ],
+      "rect": {
+        "x": 264,
+        "y": 123,
+        "width": 1620,
+        "height": 1061.3125,
+        "right": 1884,
+        "bottom": 1184.3125,
+        "clientWidth": 1620,
+        "clientHeight": 1061
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [
+        "vx-content",
+        "main-content",
+        "vx-content--editor"
+      ],
+      "rect": {
+        "x": 228,
+        "y": 79,
+        "width": 1692,
+        "height": 1141.3125,
+        "right": 1920,
+        "bottom": 1220.3125,
+        "clientWidth": 1692,
+        "clientHeight": 1141
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [
+        "vx-main",
+        "app-body"
+      ],
+      "rect": {
+        "x": 228,
+        "y": 0,
+        "width": 1692,
+        "height": 1080,
+        "right": 1920,
+        "bottom": 1080,
+        "clientWidth": 1692,
+        "clientHeight": 1080
+      },
+      "overflowX": "auto",
+      "overflowY": "auto"
+    },
+    {
+      "classes": [
+        "sites-control",
+        "vx-shell",
+        "app-shell",
+        "design-sync",
+        "sync-control"
+      ],
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080,
+        "right": 1920,
+        "bottom": 1080,
+        "clientWidth": 1920,
+        "clientHeight": 1080
+      },
+      "overflowX": "hidden",
+      "overflowY": "hidden"
+    },
+    {
+      "classes": [],
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080,
+        "right": 1920,
+        "bottom": 1080,
+        "clientWidth": 1920,
+        "clientHeight": 1080
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    },
+    {
+      "classes": [],
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080,
+        "right": 1920,
+        "bottom": 1080,
+        "clientWidth": 1920,
+        "clientHeight": 1080
+      },
+      "overflowX": "visible",
+      "overflowY": "visible"
+    }
+  ],
+  "diagnosticSha256": "74ade1775cd48f3874d12fc07b8464badcf435996ce1abef8f29385c1a2b7873",
+  "viewportPngSha256": "be2e23e2359000d4ef1a8b9009bd900473c415bc6782dd0ebc9b9be4e6060f1f",
+  "localArtifactDirectory": "/home/codex/repos/veyocast-s298-planning/.tmp/s295-staging-canary/s302-final-m-1110-0951-9/hosted-preview-2026-11-10T10-12-28-432Z",
+  "helperSha256": "cc633ea339fe87dff689a8c6fb483d0d4b18c2203581de9a0ff94e85bd786498",
+  "boundary": "Read-only normal owner Studio preview. No customer, publication, source or Player changes. This remains a failure, not hosted acceptance of the fix."
+}

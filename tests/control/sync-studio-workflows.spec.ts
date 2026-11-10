@@ -41,6 +41,8 @@ type Save = {
 type Hooks = {
   approved?:boolean;
   approvedV9?:boolean;
+  approvedProgramme?:boolean;
+  approvedPortrait?:boolean;
   historicalV9?:boolean;
   approvedPages?:boolean;
   approvedManualFamily?:'birthdays'|'activities'|'agenda';
@@ -60,14 +62,20 @@ type Hooks = {
   rejectSeriesRecovery?:boolean;
 };
 async function mount(page: Page, hooks: Hooks = {}) {
-  const approved=hooks.approvedManualFamily?createSyncStudioStarter({family:hooks.approvedManualFamily,tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation:hooks.approved||hooks.approvedV9?createSyncTemplatePreview(hooks.approvedPages?'birthdays':'standings',hooks.approvedV9?'sync-onzetrots-v9':'sync-onzetrots-v1'):undefined;
+  const approved=hooks.approvedManualFamily?createSyncStudioStarter({family:hooks.approvedManualFamily,tenantName:'Eigen club',theme:'onzetrots-tv'}).syncPresentation:hooks.approved||hooks.approvedV9?createSyncTemplatePreview(hooks.approvedProgramme?'fixtures':hooks.approvedPages?'birthdays':'standings',hooks.approvedV9?'sync-onzetrots-v9':'sync-onzetrots-v1'):undefined;
   if(hooks.historicalV9&&approved){approved.style={...approved.style,font:'Inter',fontChanged:false};}
   if(approved?.rendererVersion==='sync-onzetrots-v1'&&hooks.approvedPages)approved.rich!.birthdays!.push({...approved.rich!.birthdays![0]!,id:'approved-seventh-birthday'});
+  if(hooks.approvedProgramme&&approved){
+    if(hooks.approvedPortrait)approved.orientation='portrait';
+    approved.rows=Array.from({length:9},(_,i)=>[`Eigen team ${i+1}`,`Bezoekers ${i+1}`,'12:00',`VELD ${i+1}`]);
+    approved.rich={...approved.rich,fixtures:undefined};
+    approved.style={...approved.style,motion:'geen'};
+  }
   const document = approved?createSyncStudioDocument(approved,hooks.approvedPages?3:12):createSyncStudioStarter({
     family: hooks.family ?? "fixtures",
     tenantName: "Club A",
   });
-  if (document.syncPresentation?.family === "fixtures")
+  if (document.syncPresentation?.family === "fixtures" && !hooks.approvedProgramme)
     document.syncPresentation.rows = [["Thuis A", "Uit B", "11:00", "2"]];
   const snapshot = structuredClone(document);
   snapshot.syncPresentation!.title = "Historische inhoud";
@@ -1006,4 +1014,36 @@ test('read-only historical v9 gets the current header font while preserving its 
  const run=await mount(page,{approvedV9:true,historicalV9:true,viewer:true});await expect(page.getByRole('button',{name:'Opslaan',exact:true})).toBeDisabled();
  await expect(page.locator('.vc-stage-canvas [data-ot-header-text]').first()).toHaveCSS('font-family',/OTMarker/);
  expect(run.writes).toHaveLength(0);expect(run.state.document.syncPresentation!.style).toMatchObject({font:'Inter',fontChanged:false});expect(run.errors).toEqual([]);
+});
+
+
+for(const [width,portrait] of [[1440,false],[1920,true]]as const)test(`S307 real Studio ${portrait?'portrait':'landscape'} preview has an intrinsic canvas at ${width}px, across pages and resize`,async({page},info)=>{
+ await page.setViewportSize({width,height:1100});
+ const fixture=await mount(page,{approvedV9:true,approvedProgramme:true,approvedPortrait:portrait});
+ const before=structuredClone(fixture.state.document),stage=page.locator('.vc-stage-canvas'),frame=stage.locator('.ot-approved-frame');
+ async function visibleCanvas(ratio:number,count:number){
+  await expect(frame).toHaveCount(1);
+  await expect.poll(()=>frame.evaluate(e=>e.getBoundingClientRect().width)).toBeGreaterThan(100);
+  await expect.poll(()=>frame.evaluate(e=>e.getBoundingClientRect().height)).toBeGreaterThan(50);
+  await frame.scrollIntoViewIfNeeded();
+  await page.evaluate(async()=>{await document.fonts.ready;await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
+  const bounds=await frame.evaluate(e=>{const b=e.getBoundingClientRect();return {width:b.width,height:b.height};});
+  expect(Math.abs(bounds.width/bounds.height-ratio)).toBeLessThan(.005);
+  await expect(stage.locator('.matches-grid .match-card')).toHaveCount(count);
+  expect(await frame.evaluate(e=>{const f=e.getBoundingClientRect();return [...e.querySelectorAll('.match-card')].every(card=>{const b=card.getBoundingClientRect();if(b.width<=0||b.height<=0||b.left<f.left-.1||b.top<f.top-.1||b.right>f.right+.1||b.bottom>f.bottom+.1)return false;for(let node:Element|null=card;node&&node!==e.parentElement;node=node.parentElement){const s=getComputedStyle(node);if(s.display==='none'||s.visibility!=='visible'||Number(s.opacity)<.99)return false;}return [...card.querySelectorAll('.team-line>span:not(.club-initials),.kickoff')].every(child=>{const c=child.getBoundingClientRect();return c.width>0&&c.height>0&&c.left>=b.left-.1&&c.top>=b.top-.1&&c.right<=b.right+.1&&c.bottom<=b.bottom+.1;});});})).toBe(true);
+  return bounds;
+ }
+ const ratio=portrait?9/16:16/9,firstCount=portrait?5:6,tailCount=9-firstCount;
+ const first=await visibleCanvas(ratio,firstCount);
+ await page.getByRole('button',{name:'Afspelen',exact:true}).click();
+ await expect(frame.locator('.page-indicator')).toHaveText('02 / 02',{timeout:16000});
+ await page.getByRole('button',{name:'Pauzeren',exact:true}).click();
+ const tail=await visibleCanvas(ratio,tailCount);expect(tail).toEqual(first);
+ await page.screenshot({path:info.outputPath(`studio-tail-${width}.png`),fullPage:true});
+ await page.setViewportSize({width:320,height:900});
+ await visibleCanvas(ratio,tailCount);
+ await page.screenshot({path:info.outputPath(`studio-${portrait?'portrait':'landscape'}-320.png`),fullPage:true});
+ expect((await new AxeBuilder({page}).include('.vc-stage-canvas').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+ expect(fixture.writes).toEqual([]);expect(fixture.errors).toEqual([]);
+ expect(fixture.state.document).toEqual(before);
 });

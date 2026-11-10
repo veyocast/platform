@@ -9,7 +9,9 @@ import type {SyncStudioLibraryMember} from './model';
 export function SyncStudioLibraryPreview({member,active=false,compact=false,intrinsic=false}:{member:SyncStudioLibraryMember;active?:boolean;compact?:boolean;intrinsic?:boolean}){
  return <SyncSlidePreview presentation={member.presentation}assetUrls={member.assetUrls}durationSeconds={member.durationSeconds}id={member.id}active={active}compact={compact}intrinsic={intrinsic}/>;
 }
-/** Shared visual only; Studio and connected Source keep their own provenance. */
+/** Shared visual only; Studio and connected Source keep their own provenance.
+ * Auto-height authoring containers use intrinsic; fixed playback/preview slots
+ * keep the default width-and-height containment contract. */
 export function SyncSlidePreview({presentation,assetUrls,durationSeconds,id,active=false,compact=false,intrinsic=false,pageOverride,onPageChange,replayToken=0}:{presentation:SyncSlidePresentation;assetUrls:Record<string,string>;durationSeconds:number;id:string;active?:boolean;compact?:boolean;intrinsic?:boolean;pageOverride?:number;onPageChange?:(page:number)=>void;replayToken?:number}){
  const root=useRef<HTMLDivElement>(null),[size,setSize]=useState({width:0,height:0}),[page,setPage]=useState(0);
  const elapsed=useRef(0),introFinished=useRef(false),scenePage=useRef(0),modern=isSyncOnzeTrotsPresentation(presentation);
