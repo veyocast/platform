@@ -59,6 +59,11 @@ jobs:
       - name: Validate scoped database context
         run: node --test scripts/probe-data-api-resources.test.mjs scripts/supabase-capacity-metrics.test.mjs
 
+      - name: Validate shared deployment serialization
+        run: |
+          pnpm exec eslint scripts/deployment-concurrency-policy.mjs scripts/deployment-concurrency-policy.test.mjs --max-warnings=0
+          node --test scripts/deployment-concurrency-policy.test.mjs
+
       - name: Validate complete Player case isolation
         run: node --test scripts/run-browser-gates.test.mjs
 

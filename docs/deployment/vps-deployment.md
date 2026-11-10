@@ -91,8 +91,12 @@ De applicatieworkflow gebruikt geen `sudo` en wijzigt deze configuratie niet.
 ## Releaseflow
 
 Een push of merge naar `main` start `.github/workflows/deploy.yml`. De workflow
-heeft globale concurrency `deploy-veyocast-main` met
+heeft globale concurrency `deploy-veyocast-main-20261110` met
 `cancel-in-progress: false`, zodat releases elkaar niet kunnen passeren.
+Alle vijf workflows die deploymentresources wijzigen gebruiken dezelfde groep.
+De eenmalige overgang vanaf de vastgelopen oude groep en de grens voor
+historische workflowherhalingen staan in
+[S303](./s303-deploy-concurrency-cutover.md).
 
 Alle checkouts gebruiken volledige historie met `persist-credentials: false`.
 De checkoutactie gebruikt het automatisch gegenereerde jobtoken alleen tijdens

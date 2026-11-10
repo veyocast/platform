@@ -1,5 +1,13 @@
 # VeyoCast MVP Plan
 
+S303 herstelt de vastgelopen Actions-deploywachtrij na afgewezen annulering,
+native heraanvraag en gesloten Supportticket4979898. Eén vaste nieuwe
+concurrencygroep blijft gedeeld door alle vijf bestaande muterende workflows.
+De enige achterblijvende oude push wordt vóór build/deploy door de bestaande
+actuele-maincontrole afgewezen. Oude handmatige workflowversies worden niet
+herstart. Normale CI, staging, immutable images en productiechecks blijven
+leidend; zie `docs/deployment/s303-deploy-concurrency-cutover.md`.
+
 S296–S301 voeren de overdracht van 9 november 2026 uit: gedeelde schermstatus,
 één Content-ingang, uitlegbare effectieve planning, volledige sponsortotalen,
 een optionele Wedstrijddagwerkplek en gecontroleerde seizoenswissel. De gebruiker

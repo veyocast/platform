@@ -1,5 +1,13 @@
 # Begrensde native heraanvraag van de vastgelopen deploycontrole
 
+Vervolg op 10 november: de ene native hersteluitvoering werd met HTTP403
+afgewezen; de gesaniteerde fout maakt de GET/POST-fase niet zichtbaar.
+Supportticket4979898 werd wegens het supportrecht gesloten zonder de run
+vrij te maken. De oorspronkelijke run is niet geannuleerd. De afzonderlijke
+[S303-overgang](deployment/s303-deploy-concurrency-cutover.md) houdt alle vijf
+muterende workflows gezamenlijk exclusief in een nieuwe vaste groep. De
+onderstaande oorspronkelijke herstelpoging blijft als historisch bewijs staan.
+
 Op 9 november bleef deployrun `42669988139` voor main-SHA
 `bd5f1fb59254a4fd7d56e3a2974d82f39e0ef611` wachten vóór de eerste
 Preflight-stap. De stagingomgeving heeft geen vereiste reviewers. De runner is

@@ -35,7 +35,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-veyocast-main
+  group: deploy-veyocast-main-20261110
   cancel-in-progress: false
 
 env:

@@ -4,6 +4,7 @@ import process from "node:process";
 import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath, URL } from "node:url";
 import { validateRunnerToolchains } from "./runner-toolchain-policy.mjs";
+import { validateDeploymentConcurrency } from "./deployment-concurrency-policy.mjs";
 
 const workflowPath = fileURLToPath(
   new URL("../.github/workflows/deploy.yml", import.meta.url)
@@ -13,6 +14,7 @@ const workflowDirectory = new URL("../.github/workflows/", import.meta.url);
 const workflowNames = (await readdir(workflowDirectory)).filter((name) => /\.ya?ml$/.test(name));
 const allWorkflows = await Promise.all(workflowNames.map((name) => readFile(new URL(name, workflowDirectory), "utf8")));
 validateRunnerToolchains(allWorkflows);
+validateDeploymentConcurrency(Object.fromEntries(workflowNames.map((name, index) => [name, allWorkflows[index]])));
 
 assertMatch(
   workflow,
@@ -71,7 +73,7 @@ for (const [source, mode, entrypoint] of [
   assertNotMatch(source, /^\s*(?:continue-on-error|shell):/m, "Diagnose staat geen failureomzetting of shelloverride toe.");
   const quiesceInput = source.match(/^ {6}quiesce_worker:\n(?: {8}[^\n]*\n)*/m)?.[0] ?? "";
   assertMatch(quiesceInput, /^ {8}type: boolean\n {8}default: false$/m, "Workerquiescence is uitsluitend expliciet en standaard uit in zijn eigen inputblok.");
-  assertMatch(source, /^ {2}group: \$\{\{ inputs\.quiesce_worker && 'deploy-veyocast-main' \|\| format\('[^']+', inputs\.target_environment, inputs\.tenant_id\) \}\}\n {2}cancel-in-progress: false$/m, "Quiescence deelt het exclusieve deploymentownership zonder cancellation.");
+  assertMatch(source, /^ {2}group: \$\{\{ inputs\.quiesce_worker && 'deploy-veyocast-main-20261110' \|\| format\('[^']+', inputs\.target_environment, inputs\.tenant_id\) \}\}\n {2}cancel-in-progress: false$/m, "Quiescence deelt het exclusieve deploymentownership zonder cancellation.");
   const fixedDispatch = [
     '          case "$QUIESCE_WORKER" in',
     `            true) exec bash scripts/probe-with-quiesced-worker.sh ${mode} "$TARGET_ENVIRONMENT" "$EXPECTED_RUNTIME_SHA" "$TENANT_ID" ;;`,
