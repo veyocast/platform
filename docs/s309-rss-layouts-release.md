@@ -72,8 +72,13 @@ de ZIP is als productie-inhoud overgenomen.
   400-tekentitels/lange tekst, lange URL, ontbrekende foto/URL, tweede artikel
   met eigen bron en defecte foto. QR's zijn onafhankelijk met ZXing uit het
   volledige native frame gedecodeerd, niet uit de verwachte matrix of DOM.
-- Zes extra proeven met de echte `SyncStudioMedia` Player-component groen:
+- Zeven extra proeven met de echte `SyncStudioMedia` Player-component groen:
   alle combinaties, geverifieerde assetbytes/fontloading en ready-framebevestiging.
+  Een live feitenwisseling A→B controleert ook foto/fallback, titel, bron en de
+  onafhankelijk gedecodeerde artikel-QR, zonder Playerherstart. De fotonode is
+  aan de geverifieerde beeld-URL gekoppeld zodat een vorige decode/foutstatus
+  niet bij een volgende foto blijft hangen. De native portraitfixture gebruikt
+  daadwerkelijk een 1080×1920 Player-host.
 - Zes volledige Worker-captures groen met onafhankelijk gedecodeerde artikel-QR.
   De bestaande Worker/preview-pixelvergelijking en artikelwisseling zijn opnieuw
   groen. De meting blijft serialisatie-veilig: geen externe/named helperclosure
@@ -82,7 +87,7 @@ de ZIP is als productie-inhoud overgenomen.
   onmiddellijke preview, portrait, reload, behouden selectie van zeven artikelen,
   verloren HTTP-response en exact dezelfde bevestigde opdracht bij retry.
   Beide geteste schermen hebben nul geteste axe-A/AA-overtredingen.
-- Elf regressie-units bewaken seed/duplicatie/serialisatie, beide oriëntaties,
+- Twaalf regressie-units bewaken seed/duplicatie/serialisatie, beide oriëntaties,
   historische ontbrekende keuze, ongeldige waarden, uitgever/datum/URL en tekst.
   De volledige canonical projector behoudt ook artikelen met een ontbrekende,
   ongeldige, credentialhoudende of niet-toegestane artikel-URL. Alleen QR/CTA
@@ -100,8 +105,9 @@ de ZIP is als productie-inhoud overgenomen.
   laatste serialisatiecorrectie zijn de echte Worker-/Player-proeven opnieuw
   groen (14/14) en de renderercontroles opnieuw uitgevoerd.
 - De aanvullende URL-correctie heeft opnieuw 19/19 packagegates groen, nu
-  content305 tests; de zes ontbrekende-URL-, zes Worker- en zes echte
-  Player-componentproeven zijn opnieuw groen (18/18).
+  content306 tests; de zes ontbrekende-URL-, zes Worker- en zeven echte
+  Player-componentproeven zijn opnieuw groen (19/19). Ook een na normalisatie
+  te lange URL en een niet-codeerbare QR-bestemming vallen veilig weg.
 - Vijf transactionele DB-suites met beide migrations samen: 215 assertions
   groen (46 + 14 + 40 + 45 + 70), inclusief historische OnzeTrots-contracten.
 

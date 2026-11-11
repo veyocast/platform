@@ -76,7 +76,9 @@ const publicUrl = z
   }, "Gebruik een publieke HTTPS-link zonder aanmeldgegevens.");
 export function syncSlideArticleUrl(value: unknown): string | null {
   const parsed = publicUrl.safeParse(value);
-  return parsed.success ? new URL(parsed.data).href : null;
+  if (!parsed.success) return null;
+  const normalized = new URL(parsed.data).href;
+  return publicUrl.safeParse(normalized).success ? normalized : null;
 }
 
 const club = z

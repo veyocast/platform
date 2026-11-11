@@ -48,4 +48,7 @@ describe('saved RSS layouts through the shared renderer', () => {
     expect(html).not.toContain('data-article-url=');
     expect(html).not.toContain('Lees het hele artikel');
   });
+  it('rejects an overlong normalized destination before QR encoding, without changing article text', () => {
+    expect(rssArticleUrl(`https://example.org/${'😀'.repeat(400)}`)).toBeNull();
+  });
 });

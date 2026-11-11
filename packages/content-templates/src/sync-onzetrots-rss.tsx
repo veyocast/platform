@@ -19,7 +19,8 @@ export function OnzeTrotsRssLayout({ slide, resolveAsset, page, qr, qrSize }: {
 }) {
   const article = slide.rich?.news?.[page] ?? slide.news[page];
   const rich = slide.rich?.news?.[page];
-  const url = rssArticleUrl(article?.url);
+  const destination = rssArticleUrl(article?.url);
+  const url = destination && qrSize(destination) > 0 ? destination : null;
   const image = rich?.heroImage && resolveAsset(rich.heroImage);
   const logo = rich?.providerLogo && resolveAsset(rich.providerLogo);
   const tenantLogo = slide.style.showLogo && slide.club.logo && resolveAsset(slide.club.logo);
@@ -33,7 +34,7 @@ export function OnzeTrotsRssLayout({ slide, resolveAsset, page, qr, qrSize }: {
     <header className="rss-mast"><div><strong>{slide.authoring.headerTexts.rss ?? 'Nieuws'}</strong>{slide.authoring.headerSubtitles.rss && <span>{slide.authoring.headerSubtitles.rss}</span>}{rich?.dateLabel && <span>{rich.dateLabel}</span>}</div>
       {slide.style.showLogo && <div className="rss-tenant">{tenantLogo && <img src={tenantLogo} alt=""/>}<span>Scherm: {slide.club.name}</span></div>}
     </header>
-    <div className="rss-story-photo">{image && <img src={image} alt="" style={rich?.imageFocalPoint ? { objectPosition: `${rich.imageFocalPoint.x * 100}% ${rich.imageFocalPoint.y * 100}%` } : undefined} onError={event => { event.currentTarget.style.visibility = 'hidden'; }}/>}</div>
+    <div className="rss-story-photo">{image && <img key={image} src={image} alt="" style={rich?.imageFocalPoint ? { objectPosition: `${rich.imageFocalPoint.x * 100}% ${rich.imageFocalPoint.y * 100}%` } : undefined} onError={event => { event.currentTarget.style.visibility = 'hidden'; }}/>}</div>
     <div className="rss-story-copy" data-rss-copy>
       {source && <div className="rss-source">{logo && <img src={logo} alt=""/>}<span>{source}</span></div>}
       <h3 data-rss-title>{title}</h3><p data-rss-summary={summary}>{summary}</p>
