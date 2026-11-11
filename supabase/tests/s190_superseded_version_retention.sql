@@ -1,4 +1,14 @@
 begin;
+create function pg_temp.freeze_legacy_publication(p_snapshot_id uuid) returns void language plpgsql as $$
+declare source_slide_id uuid; version_id uuid;
+begin
+ update public.dynamic_slide_versions version set status='published',published_at=now(),published_snapshot_id=p_snapshot_id
+ where version.id=(select dynamic_slide_version_id from public.dynamic_slide_snapshots where id=p_snapshot_id) and version.status='publishing'
+ returning version.dynamic_slide_id,version.id into source_slide_id,version_id;
+ if version_id is not null then
+  update public.dynamic_slides set current_published_version_id=version_id,active_draft_version_id=null where id=source_slide_id;
+ end if;
+end; $$;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
 select no_plan();
@@ -166,6 +176,7 @@ select ('62000000-0000-4000-8000-'||lpad(number::text,12,'0'))::uuid,slide.tenan
 from public.dynamic_slides slide cross join generate_series(1,3) number where slide.id='61000000-0000-4000-8000-000000001901';
 update public.dynamic_slides set current_snapshot_id='62000000-0000-4000-8000-000000000001',status='ready'
   where id='61000000-0000-4000-8000-000000001901';
+select pg_temp.freeze_legacy_publication('62000000-0000-4000-8000-000000000001');
 insert into public.dynamic_slide_versions(id,tenant_id,dynamic_slide_id,version_number,status,name,slide_type,
   orientation,template_id,template_version_id,data_source_id,selection_mode,configuration_json,theme_selection_json,based_on_version_id)
 select '63000000-0000-4000-8000-000000001902',tenant_id,dynamic_slide_id,2,'publishing',name,slide_type,
@@ -180,6 +191,7 @@ select '62000000-0000-4000-8000-000000000004',tenant_id,id,template_version_id,d
 from public.dynamic_slides where id='61000000-0000-4000-8000-000000001901';
 update public.dynamic_slides set current_snapshot_id='62000000-0000-4000-8000-000000000004'
   where id='61000000-0000-4000-8000-000000001901';
+select pg_temp.freeze_legacy_publication('62000000-0000-4000-8000-000000000004');
 
 select throws_ok($$update public.dynamic_slide_versions set name='Unsafe rewrite' where id='63000000-0000-4000-8000-000000001902'$$,
   '55000','published dynamic slide versions are immutable','publishing a successor never makes its configuration mutable');

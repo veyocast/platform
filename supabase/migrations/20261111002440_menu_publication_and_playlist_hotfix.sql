@@ -45,6 +45,7 @@ begin
         menu_last_published_revision = case when slide.slide_type = 'price_list'
           then (slide.configuration_json ->> 'revision')::bigint else slide.menu_last_published_revision end
     where slide.id = new.id and slide.tenant_id = new.tenant_id;
+    perform private.propagate_dynamic_publication_v1(new.tenant_id,new.id,version_id,new.current_snapshot_id);
   end if;
   return new;
 end;
@@ -616,29 +617,24 @@ end;
 $$;
 revoke all on function private.clone_dynamic_publication_branch_v1(uuid,uuid,uuid,uuid) from public,anon,authenticated,service_role;
 
-create function private.propagate_dynamic_publication_v1() returns trigger
+create function private.propagate_dynamic_publication_v1(p_tenant_id uuid,p_slide_id uuid,p_version_id uuid,p_snapshot_id uuid) returns void
 language plpgsql security definer set search_path = '' as $$
 declare publication record;
 begin
-  if new.current_published_version_id is null
-    or new.current_published_version_id is not distinct from old.current_published_version_id then return new; end if;
   for publication in
     select current.release_id from public.playlist_publications current
-    where current.tenant_id = new.tenant_id and exists (
+    where current.tenant_id = p_tenant_id and exists (
       select 1 from public.playlist_release_items item
       join public.dynamic_slide_snapshots snapshot on snapshot.tenant_id = item.tenant_id and snapshot.id = item.dynamic_snapshot_id
       where item.tenant_id = current.tenant_id and item.release_id = current.release_id
-        and snapshot.dynamic_slide_id = new.id and item.live_data_enabled)
+        and snapshot.dynamic_slide_id = p_slide_id and item.live_data_enabled)
     order by current.playlist_id
   loop
-    perform private.clone_dynamic_publication_branch_v1(new.tenant_id,new.current_published_version_id,new.current_snapshot_id,publication.release_id);
+    perform private.clone_dynamic_publication_branch_v1(p_tenant_id,p_version_id,p_snapshot_id,publication.release_id);
   end loop;
-  return new;
 end;
 $$;
-revoke all on function private.propagate_dynamic_publication_v1() from public,anon,authenticated,service_role;
-create trigger dynamic_slides_propagate_publication after update of current_published_version_id on public.dynamic_slides
-for each row execute function private.propagate_dynamic_publication_v1();
+revoke all on function private.propagate_dynamic_publication_v1(uuid,uuid,uuid,uuid) from public,anon,authenticated,service_role;
 
 update public.dynamic_slides slide set current_snapshot_id = snapshot.id
 from public.dynamic_slide_snapshots snapshot

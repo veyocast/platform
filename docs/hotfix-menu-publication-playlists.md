@@ -89,6 +89,10 @@ lopende taken worden niet blind opnieuw gestart; daarvoor bestaat de retryactie.
 
 ### Bestaande playlistpublicaties
 
+Deze doorwerking start alleen na echte geslaagde finalisatie. Historische
+pointerrestauratie via het bestaande seizoensherstel behoudt haar eigen frozen
+releaseketen en wordt niet als een tweede nieuwe publicatie behandeld.
+
 Bij activering van een nieuwe slideversie wordt per huidige, volgende
 playlistpublicatie een nieuwe immutable release afgeleid van de **laatst
 gepubliceerde release**, niet van het bewerkconcept. De manifest-itemidentiteit,
@@ -211,6 +215,9 @@ alleen units, componentbrowserproeven of toewijzingspointers.
 - `apps/media-worker/src/sites-dom-capture.tsx`.
 - `apps/player/app/_components/player-runtime.tsx`.
 - `supabase/migrations/20261111002440_menu_publication_and_playlist_hotfix.sql`.
-- `supabase/tests/`: `rls_dynamic_slide_versions.sql`, `s215_menu_widgets.sql`.
+- `supabase/tests/`: `rls_dynamic_slide_versions.sql`, `s215_menu_widgets.sql`,
+  `rls_menu_studio_v2.sql`, `rls_s145_supabase_lint_recovery.sql`,
+  `rls_s161_royal_current_theme.sql`, `rls_s177_dynamic_slide_management.sql`,
+  `s190_superseded_version_retention.sql`, `s191_provider_completion_latency.sql`.
 - `tests/control/`: `menu-hotfix-layout.spec.ts`, `sites-playlist-workflows.spec.ts`.
 - Dit document en `TASK_LEDGER.md`.

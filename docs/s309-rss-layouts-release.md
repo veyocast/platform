@@ -7,7 +7,7 @@ mainintegratie en staging-/productie-uitrol. Eerst de bijgevoegde RSS-opdracht,
 daarna samen met de voorafgaande menu-/playlist-hotfix uitrollen. Deze toestemming
 hoort bij dit VeyoCast-traject; bestaande releaseguards blijven verplicht.
 Regenerabele Next-cachebestanden ouder dan zeven dagen zijn gericht verwijderd
-uit drie oude werkruimten om lokale schijfruimte vrij te maken. Geen bronbestanden,
+uit oude werkruimten om lokale schijfruimte vrij te maken. Geen bronbestanden,
 databasevolumes, runtime-assets, environments of secrets verwijderd of aangepast.
 
 ## Onderzoek en configuratiemapping
@@ -103,6 +103,25 @@ Dit zijn gecontroleerde voorbeeldberichten, geen claim van echte providers.
 De titels, QR-bestemming, fonts, bounds en volledige frames zijn daadwerkelijk getest.
 
 ## Release en bewijsgrens
+
+De eerste verse hosted RLS-run bij `c6a03bd5` wees terecht publicatiefixtures
+zonder bruikbare output af en vond een conflict met de bestaande seizoensherstelproef.
+De productieguard is niet versoepeld: de vier publicatie-/beheerfixtures krijgen
+een echte ready mediarecord plus original-variant. Twee historische retentieproeven
+maken hun bewust onvolledige legacy-metadata nu expliciet als historische publicatie,
+zonder te doen alsof dit nieuwe valide Worker-output is.
+
+Automatische playlistdoorwerking wordt uitsluitend vanuit geslaagde finalisatie
+aangeroepen. Een willekeurige wijziging van een historische actieve-versiepointer
+(bijvoorbeeld het bestaande seizoensherstel met eigen frozen releases) start geen
+tweede publicatieketen. De bestaande S305-proeven blijven daardoor ongewijzigd.
+De complete lokale SQL-suite wordt aanvullend met de ontbrekende migratiesuffix
+per transactie gecontroleerd; dit reset of migreert de gedeelde database niet blijvend.
+De acht door hosted CI gevonden gevallen zijn met die suffix lokaal hersteld en
+groen, inclusief beide ongewijzigde S305-herstelproeven. De brede lokale controle
+vond daarnaast ontbrekende standaardseed/pgTAP-setup en twee S295-baselineafwijkingen;
+die zijn afzonderlijk tegen de situatie zonder deze hotfix vergeleken. Dat is
+geen vervanging voor de verplichte verse hosted reset/RLS-run bij de nieuwe SHA.
 
 De gecombineerde branch/PR gaat via de ongewijzigde normale CI, immutable
 main→staging-build en expliciete productiepromotie met dezelfde digests.
