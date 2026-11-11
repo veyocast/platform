@@ -52,6 +52,14 @@ const retainedBuildFiles = [
   "public/asset.svg", "node_modules/fixture", ".turbo/fixture"
 ];
 
+test("insufficient host capacity stops before dependencies, gates, cache deletion and image creation", () => {
+  const run = runReleaseBuild({ failCapacity: true });
+  assert.equal(run.result.status, 61, run.result.stderr);
+  assert.deepEqual(run.trace, []);
+  for (const app of webApps) assert.ok(existsSync(join(run.root, "apps", app, ".next/cache/cached")));
+  assertRetainedBuildFiles(run.root);
+});
+
 test("release build discards only its three Next caches after all gates and before Docker", () => {
   const run = runReleaseBuild();
   assert.equal(run.result.status, 77, run.result.stderr);
@@ -189,6 +197,7 @@ function runReleaseBuild(options = {}) {
   const program = `set -Eeuo pipefail
 ${shellFunctions}
 run_preflight() { :; }
+ensure_build_capacity() { [[ $TEST_FAIL_CAPACITY != true ]] || return 61; }
 git() {
   [[ $* == "-C $repository_root rev-parse HEAD" ]] || return 98
   if [[ -e $TEST_DIRECTORY/checkout-changed ]]; then printf '%s\\n' '${oldSha}'; else printf '%s\\n' '${nextSha}'; fi
@@ -212,7 +221,8 @@ build_release`;
       release_metadata: options.partialRelease ? join(root, "release/RELEASE_METADATA.json") : join(directory, "absent-metadata"),
       release_key_fingerprint: join(directory, "absent-key"),
       NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: "synthetic-fixture-only", TEST_DIRECTORY: directory, TEST_TRACE: traceFile,
-      TEST_FAIL_GATE: options.failGate ?? "", TEST_CHANGED_CHECKOUT: String(options.changedCheckout ?? false) }
+      TEST_FAIL_GATE: options.failGate ?? "", TEST_CHANGED_CHECKOUT: String(options.changedCheckout ?? false),
+      TEST_FAIL_CAPACITY: String(options.failCapacity ?? false) }
   });
   return { ...fixture, result, trace: readFileSync(traceFile, "utf8").trim().split("\n").filter(Boolean) };
 }

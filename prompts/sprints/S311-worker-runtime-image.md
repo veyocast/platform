@@ -6,6 +6,16 @@ van fonts/assets, Chromium, FFmpeg, publicatiegedrag en volledige controles.
 De bestaande deployworkflows, omgevingen, secrets, immutable guards en vorige
 werkende release blijven onaangetast.
 
+De gebruiker breidt op 11 november de toestemming expliciet uit naar de volledige
+staging-/productieuitrol, snellere deployments en voldoende blijvende capaciteit.
+Root bezit aanvullend de PR-workflow en gerichte CI-fixture-/pogingregressies,
+deployment-capaciteitscontrole met tests en operationeel onderhoud uitsluitend
+voor VeyoCast. Andere projecten/volumes, actieve/rollbackreleases en secrets
+blijven beschermd. Verlaag geen dekking, renderdeadlines of releaseguards.
+De oorspronkelijke v9-videofixture faalde in één van vier identieke builds;
+deel daarom één volledig werkelijk gerenderde, bron/run/poginggebonden set.
+Bewaar alle oude foutbewijzen; artifactnamen en downloads scheiden pogingen.
+
 Begin vanaf main `56a41544deac1b8f7c1b9c3cc2ce287e770b5c0e`. PR339 bevat de
 volledig geteste menu-/playlist-/RSS-hotfix; PR340 de bewezen Player-CI-versnelling.
 Beide nieuwe main-SHA's hebben door schijfgebrek slechts gedeeltelijke images;

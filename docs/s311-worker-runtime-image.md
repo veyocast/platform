@@ -1,5 +1,44 @@
 # S311 — Kleinere, geïsoleerde Worker-runtime
 
+## Uitgebreide release- en capaciteitsopdracht van 11 november
+
+De gebruiker autoriseert na de werkende Tailscale-beheerlogin expliciet de
+volledige uitrol en duurzame optimalisatie van deployments/capaciteit. De
+eerste normale hosted Foundation-gate (43001326337/130457894270) bouwde echt
+een Workerimage van **554.193.552 bytes**, tegenover de op de VPS geïnspecteerde
+actieve image van circa5,28GB. Alle 354 assets, zes native RSS-captures, zestien
+menuproducten, SVG/H264/ffprobe en browserbundle slaagden in de read-only image.
+De overige oorspronkelijke gates slaagden behalve één van vier identieke
+v9-videovoorbereidingen; die liep vóór de browsercases tegen de bestaande
+rendergrens. Deze mislukking wordt niet als geslaagde test of deploy behandeld.
+
+De volledige oorspronkelijke videofixtures worden nu eenmaal per bron/run/poging
+werkelijk geproduceerd, daarna per bestand gehasht en aan de gepinde CLI gebonden.
+Alle vier onafhankelijke Player-shards verifiëren de gedownloade bytes en identiteit
+vóór hun oorspronkelijke cases. Elke case behoudt haar verse CLI/server/browser,
+retry0, assertions en deadlines. Control/Marketing/Cross wachten niet op de
+videoproductie. Er is geen cross-run fixturecache of vervanging door dummyvideo's.
+Browserbewijs blijft per case bewaard; de gezamenlijke media hoeven niet meer
+viermaal te worden opgebouwd/opgeslagen. Alle artifactnamen en closure-downloads
+zijn poginggebonden; oude foutbewijzen blijven bestaan. Herhaal deze workflow
+volledig, niet uitsluitend een losse shard met een andere pogingidentiteit.
+
+Vóór een nieuwe immutable build meet `ensure-build-capacity.sh` de checkout- en
+Dockerpartitie. Onder **12GiB** wordt eenmaal alleen ongebruikte lokale BuildKit-
+cache ouder dan één uur verwijderd. Deze conservatieve startreserve volgt op de
+bewezen mislukking met10,25GB; zij is geen garantie voor elke toekomstige bouwpiek.
+Runner, eigenaar, lokale rootless socket, concrete daemonbuilder en afwezigheid
+van actieve builds worden gecontroleerd. Image-/container-/volumefingerprints
+moeten gelijk blijven. Onvoldoende ruimte stopt vóór dependencyinstallatie of
+het aanmaken van gedeeltelijke images, met een zichtbare oorzaak. Bij voldoende
+ruimte blijft de bruikbare buildcache juist behouden. Bestaande gates, secrets,
+immutable/rollbackguards en expliciete productiepromotie blijven ongewijzigd.
+
+203 gerichte infrastructuurregressies slagen lokaal, waaronder elf fixture-
+transportproeven, tien capaciteitsproeven en64deployment-lifecycleproeven. De
+daadwerkelijke volledige nieuwe hostedrun en exacte staging-/productieuitrol
+blijven vereist en worden per finale SHA als PR-/runbewijs vastgelegd.
+
 ## Aanleiding en bewijs
 
 De nieuwe stagingbuilds `42987483267` (5fc6) en `42995791952` (56a4) faalden

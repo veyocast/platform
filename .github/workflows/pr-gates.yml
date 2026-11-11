@@ -66,14 +66,15 @@ jobs:
 
       - name: Validate complete Player case isolation
         run: |
-          pnpm exec eslint scripts/verify-player-shards.mjs --max-warnings=0
-          node --test scripts/run-browser-gates.test.mjs
+          pnpm exec eslint scripts/verify-player-shards.mjs scripts/player-fixtures.mjs scripts/player-fixtures.test.mjs --max-warnings=0
+          node --test scripts/run-browser-gates.test.mjs scripts/player-fixtures.test.mjs
+          shellcheck scripts/prepare-player-fixtures.sh
 
       - name: Validate isolated Worker runtime and real image
         run: |
-          pnpm exec eslint scripts/prepare-worker-runtime.mjs scripts/prepare-worker-runtime.test.mjs scripts/smoke-worker-runtime.mjs --max-warnings=0
-          node --test scripts/prepare-worker-runtime.test.mjs
-          shellcheck scripts/test-worker-runtime-image.sh
+          pnpm exec eslint scripts/prepare-worker-runtime.mjs scripts/prepare-worker-runtime.test.mjs scripts/smoke-worker-runtime.mjs scripts/ensure-build-capacity.test.mjs --max-warnings=0
+          node --test scripts/prepare-worker-runtime.test.mjs scripts/ensure-build-capacity.test.mjs
+          shellcheck scripts/test-worker-runtime-image.sh scripts/ensure-build-capacity.sh
           bash scripts/test-worker-runtime-image.sh
 
       - name: Build
@@ -91,23 +92,10 @@ jobs:
       - name: Validate VPS deployment definitions
         run: bash scripts/validate-vps-deployment.sh
 
-  browsers:
-    name: Browser gates (${{ matrix.label }})
+  player-fixtures:
+    name: Prepare complete Player fixtures
     runs-on: ubuntu-latest
-    # Includes actual binary preparation and every isolated original case.
-    # Individual test and encoder deadlines remain unchanged.
-    timeout-minutes: ${{ matrix.group == 'player' && 135 || matrix.group == 'control' && 60 || 45 }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { group: control, label: control, shardIndex: 1, shardCount: 1 }
-          - { group: marketing, label: marketing, shardIndex: 1, shardCount: 1 }
-          - { group: cross, label: cross, shardIndex: 1, shardCount: 1 }
-          - { group: player, label: 'player 1/4', shardIndex: 1, shardCount: 4 }
-          - { group: player, label: 'player 2/4', shardIndex: 2, shardCount: 4 }
-          - { group: player, label: 'player 3/4', shardIndex: 3, shardCount: 4 }
-          - { group: player, label: 'player 4/4', shardIndex: 4, shardCount: 4 }
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -123,9 +111,66 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Build Player artifact
-        if: matrix.group == 'player'
-        run: pnpm --filter @veyocast/player build
+      - name: Use canonical HTTPS Ubuntu mirror for browser tools
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          browser_apt_sources=()
+          for browser_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/apt-mirrors*.txt; do
+            if [[ -f ${browser_apt_source} ]]; then
+              browser_apt_sources+=("${browser_apt_source}")
+            fi
+          done
+          (( ${#browser_apt_sources[@]} > 0 ))
+          sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${browser_apt_sources[@]}"
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Render and seal all original complete videos
+        run: bash scripts/prepare-player-fixtures.sh
+      - name: Preserve verified shared fixtures
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: player-fixtures-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/player-fixtures
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve failed fixture preparation
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: player-fixtures-failure-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/player-fixtures
+          if-no-files-found: ignore
+          retention-days: 14
+
+  browsers:
+    name: Browser gates (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    # Includes actual binary preparation and every isolated original case.
+    # Individual test and encoder deadlines remain unchanged.
+    timeout-minutes: ${{ matrix.group == 'player' && 135 || matrix.group == 'control' && 60 || 45 }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { group: control, label: control, shardIndex: 1, shardCount: 1 }
+          - { group: marketing, label: marketing, shardIndex: 1, shardCount: 1 }
+          - { group: cross, label: cross, shardIndex: 1, shardCount: 1 }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Build Marketing artifact
         if: matrix.group == 'marketing'
         run: pnpm --filter @veyocast/marketing build
@@ -146,31 +191,6 @@ jobs:
           sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${browser_apt_sources[@]}"
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Prepare complete gallery video fixtures
-        if: matrix.group == 'player'
-        shell: bash
-        env:
-          S238_BACKGROUND_BINARIES: ${{ runner.temp }}/browser-gates/s238-background-binaries-${{ github.run_id }}-${{ github.run_attempt }}
-        run: |
-          set -Eeuo pipefail
-          if ! command -v ffmpeg > /dev/null || ! command -v ffprobe > /dev/null; then
-            sudo apt-get update
-            sudo apt-get install --yes --no-install-recommends ffmpeg
-          fi
-          ffmpeg -version
-          ffprobe -version
-          export SITES_CAPTURE_TEST_CHROMIUM
-          SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')
-          test -x "$SITES_CAPTURE_TEST_CHROMIUM"
-          mkdir -p "$RUNNER_TEMP/browser-gates"
-          pnpm exec tsx tests/helpers/sync-background-binary.ts
-          printf 'S238_BACKGROUND_BINARIES=%s\n' "$S238_BACKGROUND_BINARIES" >> "$GITHUB_ENV"
-          export S285_ONZETROTS_BINARIES="$RUNNER_TEMP/browser-gates/s285-onzetrots-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          pnpm exec tsx tests/helpers/sync-onzetrots-export.ts "$S285_ONZETROTS_BINARIES" "$SITES_CAPTURE_TEST_CHROMIUM"
-          printf 'S285_ONZETROTS_BINARIES=%s\n' "$S285_ONZETROTS_BINARIES" >> "$GITHUB_ENV"
-          export S286_ONZETROTS_BINARIES="$RUNNER_TEMP/browser-gates/s286-onzetrots-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          pnpm exec tsx tests/helpers/sync-onzetrots-export.ts "$S286_ONZETROTS_BINARIES" "$SITES_CAPTURE_TEST_CHROMIUM" sync-onzetrots-v9
-          printf 'S286_ONZETROTS_BINARIES=%s\n' "$S286_ONZETROTS_BINARIES" >> "$GITHUB_ENV"
       - name: Verify every discovered spec in the application group
         env:
           PLAYWRIGHT_GATE_GROUP: ${{ matrix.group }}
@@ -178,11 +198,83 @@ jobs:
           PLAYWRIGHT_PLAYER_SHARD_INDEX: ${{ matrix.shardIndex }}
           PLAYWRIGHT_PLAYER_SHARD_COUNT: ${{ matrix.shardCount }}
         run: node scripts/run-browser-gates.mjs
-      - name: Preserve Player case closure
-        if: always() && matrix.group == 'player'
+      - name: Preserve browser failures
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: player-case-closure-${{ matrix.shardIndex }}-${{ github.sha }}
+          name: browser-gates-${{ matrix.group }}-${{ matrix.shardIndex }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/browser-gates
+          if-no-files-found: ignore
+          retention-days: 14
+
+  players:
+    name: Browser gates (${{ matrix.label }})
+    needs: player-fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 135
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { group: player, label: 'player 1/4', shardIndex: 1, shardCount: 4 }
+          - { group: player, label: 'player 2/4', shardIndex: 2, shardCount: 4 }
+          - { group: player, label: 'player 3/4', shardIndex: 3, shardCount: 4 }
+          - { group: player, label: 'player 4/4', shardIndex: 4, shardCount: 4 }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: 11.5.2
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Player artifact
+        run: pnpm --filter @veyocast/player build
+      - name: Use canonical HTTPS Ubuntu mirror for browser tools
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          browser_apt_sources=()
+          for browser_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/apt-mirrors*.txt; do
+            if [[ -f ${browser_apt_source} ]]; then
+              browser_apt_sources+=("${browser_apt_source}")
+            fi
+          done
+          (( ${#browser_apt_sources[@]} > 0 ))
+          sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${browser_apt_sources[@]}"
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Download complete source-bound fixtures
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: player-fixtures-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/player-fixtures
+      - name: Verify every fixture byte and its workflow identity
+        env:
+          PLAYWRIGHT_FIXTURE_ROOT: ${{ runner.temp }}/player-fixtures
+        run: node scripts/player-fixtures.mjs verify
+      - name: Verify every discovered original Player case
+        env:
+          PLAYWRIGHT_GATE_GROUP: player
+          PLAYWRIGHT_GATE_OUTPUT: ${{ runner.temp }}/browser-gates
+          PLAYWRIGHT_PLAYER_SHARD_INDEX: ${{ matrix.shardIndex }}
+          PLAYWRIGHT_PLAYER_SHARD_COUNT: ${{ matrix.shardCount }}
+          S238_BACKGROUND_BINARIES: ${{ runner.temp }}/player-fixtures/backgrounds
+          S285_ONZETROTS_BINARIES: ${{ runner.temp }}/player-fixtures/onzetrots-v1
+          S286_ONZETROTS_BINARIES: ${{ runner.temp }}/player-fixtures/onzetrots-v9
+        run: node scripts/run-browser-gates.mjs
+      - name: Preserve Player case closure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: player-case-closure-${{ matrix.shardIndex }}-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/browser-gates/player/case-closure.json
           if-no-files-found: error
           retention-days: 14
@@ -190,14 +282,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: browser-gates-${{ matrix.group }}-${{ matrix.shardIndex }}-${{ github.sha }}
+          name: browser-gates-player-${{ matrix.shardIndex }}-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/browser-gates
           if-no-files-found: ignore
           retention-days: 14
 
   player-closure:
     name: Browser gates (player)
-    needs: browsers
+    needs: [browsers, players]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -205,7 +297,8 @@ jobs:
       - name: Require successful browser jobs
         env:
           BROWSER_RESULT: ${{ needs.browsers.result }}
-        run: test "$BROWSER_RESULT" = success
+          PLAYER_RESULT: ${{ needs.players.result }}
+        run: test "$BROWSER_RESULT" = success && test "$PLAYER_RESULT" = success
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - name: Setup Node.js
@@ -215,7 +308,7 @@ jobs:
       - name: Download independent Player closures
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: player-case-closure-*-${{ github.sha }}
+          pattern: player-case-closure-*-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/player-shard-reports
       - name: Prove complete original Player coverage
         env:
@@ -226,7 +319,7 @@ jobs:
       - name: Preserve combined Player closure
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: player-combined-closure-${{ github.sha }}
+          name: player-combined-closure-${{ github.sha }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/player-combined-closure/case-closure.json
           if-no-files-found: error
           retention-days: 14
