@@ -176,6 +176,30 @@ virtuele klok bewaken late voltooiing, langzame dashboardverversing, annuleren
 van een vertraagde response na sluiten en herstel na een leesstoring. Alle vier
 zijn groen; dit is geen vervanging van de echte Worker-/RLS-publicatieproef.
 
+De volledige hosted Control-matrix bij `72308ed7` is groen: 811 proeven uitgevoerd,
+629 verwachte opt-in-skips; de originele referentiecohorten zijn apart groen.
+De geïsoleerde Player-matrix bereikte proef 464/536 en vond een fout in de nieuwe
+QR-proef. De bewaarde trace toont `data-sync-ready=false` en een volledig verborgen
+frame: de proef maakte de afbeelding vóór de echte font-/beeldvoorbereiding af
+was. Dit was geen aangetoonde artikel-/QR-mismatch in een zichtbaar Player-frame.
+De proef wacht nu op de echte eenmalige ready-bevestiging én volledige zichtbaarheid,
+vertraagt de echte fontdecoder bewust met 750 ms en decodeert zowel artikel A als
+artikel B uit het volledige beeld. Vijf koude herhalingen zijn groen. Ook behoud
+van de ready-bevestiging en het aantal fontloads bij de wisseling wordt bewaakt;
+er is geen productiecode of QR-assertie versoepeld.
+
+De aanvullend lokaal uitgevoerde laatste Player-cohorten vonden daarna twee
+ongewijzigde watchdogproeven die de extra itemverversing terecht afkeurden:
+een gewoon ongewijzigd manifest overschreef onmiddellijk de herstelmelding
+van de decoder/watchdog. De bestaande herstelactie en heartbeat bleven werken,
+maar de diagnose verdween. Zo'n gewone ontvangst behoudt nu de actuele
+operatiemelding; een echte terugkeer van offline of ingetrokken pending release
+krijgt wel de bijbehorende synchronisatiemelding. Beide oorspronkelijke proeven
+blijven ongewijzigd als regressiebewaking.
+De Player-lint/typecheck, 755 unittests en productiebuild zijn opnieuw groen.
+Alle 28 aanvullende activatie-/offline-/watchdogbrowserproeven zijn groen,
+inclusief de twee oorspronkelijke, niet aangepaste herstelproeven.
+
 De gecombineerde branch/PR gaat via de ongewijzigde normale CI, immutable
 main→staging-build en expliciete productiepromotie met dezelfde digests.
 Exacte SHA's, workflowlinks en resultaten worden na de uitrol vastgelegd in het

@@ -1618,7 +1618,9 @@ export function PlayerRuntime() {
                     value.state === "SWITCH_PENDING"
                       ? "PLAYING"
                       : value.state,
-                  syncMessage: "Manifest gecontroleerd; actieve release is ongewijzigd."
+                  syncMessage: value.state === "OFFLINE_PLAYING" || value.state === "SWITCH_PENDING"
+                    ? "Manifest gecontroleerd; actieve release is ongewijzigd."
+                    : value.syncMessage
                 }
               : value
           );
