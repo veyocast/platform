@@ -65,7 +65,9 @@ jobs:
           node --test scripts/deployment-concurrency-policy.test.mjs
 
       - name: Validate complete Player case isolation
-        run: node --test scripts/run-browser-gates.test.mjs
+        run: |
+          pnpm exec eslint scripts/verify-player-shards.mjs --max-warnings=0
+          node --test scripts/run-browser-gates.test.mjs
 
       - name: Build
         run: pnpm build --concurrency=1
@@ -83,15 +85,22 @@ jobs:
         run: bash scripts/validate-vps-deployment.sh
 
   browsers:
-    name: Browser gates (${{ matrix.group }})
+    name: Browser gates (${{ matrix.label }})
     runs-on: ubuntu-latest
     # Includes actual binary preparation and every isolated original case.
     # Individual test and encoder deadlines remain unchanged.
-    timeout-minutes: ${{ matrix.group == 'player' && 105 || matrix.group == 'control' && 60 || 45 }}
+    timeout-minutes: ${{ matrix.group == 'player' && 135 || matrix.group == 'control' && 60 || 45 }}
     strategy:
       fail-fast: false
       matrix:
-        group: [control, player, marketing, cross]
+        include:
+          - { group: control, label: control, shardIndex: 1, shardCount: 1 }
+          - { group: marketing, label: marketing, shardIndex: 1, shardCount: 1 }
+          - { group: cross, label: cross, shardIndex: 1, shardCount: 1 }
+          - { group: player, label: 'player 1/4', shardIndex: 1, shardCount: 4 }
+          - { group: player, label: 'player 2/4', shardIndex: 2, shardCount: 4 }
+          - { group: player, label: 'player 3/4', shardIndex: 3, shardCount: 4 }
+          - { group: player, label: 'player 4/4', shardIndex: 4, shardCount: 4 }
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -159,12 +168,58 @@ jobs:
         env:
           PLAYWRIGHT_GATE_GROUP: ${{ matrix.group }}
           PLAYWRIGHT_GATE_OUTPUT: ${{ runner.temp }}/browser-gates
+          PLAYWRIGHT_PLAYER_SHARD_INDEX: ${{ matrix.shardIndex }}
+          PLAYWRIGHT_PLAYER_SHARD_COUNT: ${{ matrix.shardCount }}
         run: node scripts/run-browser-gates.mjs
+      - name: Preserve Player case closure
+        if: always() && matrix.group == 'player'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: player-case-closure-${{ matrix.shardIndex }}-${{ github.sha }}
+          path: ${{ runner.temp }}/browser-gates/player/case-closure.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Preserve browser failures
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: browser-gates-${{ matrix.group }}-${{ github.sha }}
+          name: browser-gates-${{ matrix.group }}-${{ matrix.shardIndex }}-${{ github.sha }}
           path: ${{ runner.temp }}/browser-gates
           if-no-files-found: ignore
+          retention-days: 14
+
+  player-closure:
+    name: Browser gates (player)
+    needs: browsers
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Require successful browser jobs
+        env:
+          BROWSER_RESULT: ${{ needs.browsers.result }}
+        run: test "$BROWSER_RESULT" = success
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+      - name: Download independent Player closures
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: player-case-closure-*-${{ github.sha }}
+          path: ${{ runner.temp }}/player-shard-reports
+      - name: Prove complete original Player coverage
+        env:
+          PLAYWRIGHT_PLAYER_SHARD_REPORTS: ${{ runner.temp }}/player-shard-reports
+          PLAYWRIGHT_PLAYER_SHARD_COUNT: '4'
+          PLAYWRIGHT_PLAYER_CLOSURE_OUTPUT: ${{ runner.temp }}/player-combined-closure
+        run: node scripts/verify-player-shards.mjs
+      - name: Preserve combined Player closure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: player-combined-closure-${{ github.sha }}
+          path: ${{ runner.temp }}/player-combined-closure/case-closure.json
+          if-no-files-found: error
           retention-days: 14

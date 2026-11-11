@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S310 vermindert de seriële Player-CI-wachttijd met vier originele-case-shards
+en een verplichte volledige closurecontrole, met behoud van procesisolatie en
+alle tests. De gebruiker autoriseert de Player-jobgrens 105→135 minuten én
+vraagt daadwerkelijke versnelling. De lopende S309-release en deployworkflows
+blijven intact; zie `docs/s310-ci-player-shards.md`.
+
 S309 voegt de drie expliciet gekozen OnzeTrots RSS-indelingen toe aan de bestaande
 Sync-keten, met behoud van historische slides en echte artikel-/uitgeversidentiteit.
 De gebruiker autoriseert commit/push/main/staging/productie voor deze wijziging en
