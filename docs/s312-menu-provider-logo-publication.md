@@ -64,3 +64,31 @@ niet alle concepten en herschrijf geen immutable snapshots/releases. Een
 gerichte klant-retry vereist een ondubbelzinnig geïdentificeerde betrokken slide;
 zonder dat bewijs wordt uitsluitend de structurele fout uitgerold en de
 gebruiker naar de bestaande retryactie verwezen.
+
+## Bevestigde vervolgscope en Ubuntu-storing
+
+De gebruiker bevestigt zowel de exacte ‘Prijslijst Kantine’-publicatie als de
+veilige mirrorfallback. Twee hosted pogingen stagneerden vóór browsercases:
+`archive.ubuntu.com` en `security.ubuntu.com` waren niet resolveerbaar. Canonical
+meldt DNS Major Outage vanaf 11 november 14:26 UTC. De tweede Foundation-poging
+is geheel groen, inclusief 254 infrastructuurproeven; beide verse DB/RLS-runs
+slagen met 158 bestanden/5465 assertions. Dit is geen geslaagde browsergate.
+
+De drie CI-workflows delen nu `prepare-ubuntu-ci-mirrors.mjs`. Alleen eigen
+ephemeral Linux/GitHub-hosted runners zijn toegestaan, nooit de VPS-runners.
+De helper probeert de canonieke HTTPS-archive en vervolgens twee vaste HTTPS-
+mirrors. Hij verifieert alle vier suite-InRelease-bestanden werkelijk met
+`gpgv` en de bestaande Ubuntu Archive-keyring, inclusief Origin/Suite/Codename,
+vóór enige bronwijziging. Geen nieuwe keys, HTTP-downgrade of resolverwijziging.
+APT blijft authenticatie, pakketchecksums en Valid-Until afdwingen. Slechts
+bekende Ubuntu-bases wijzigen; suites/components/keyrings en externe repositories
+blijven gelijk. De oorspronkelijke `playwright install --with-deps chromium`
+blijft verplicht, inclusief alle fonts. Onbereikbare of ongeldige mirrors
+stoppen begrensd en fail-closed; herstel kiest weer de canonieke transportbasis.
+
+18 mirrorregressies en scoped lint zijn groen. Een afzonderlijke echte
+netwerk-/cryptoproef verifieert alle vier resolute-suites van de fallback met
+de echte Ubuntu Archive-keyring; een gewijzigde echte handtekening wordt
+afgewezen. Deze proef schrijft niet in de APT-configuratie van de gedeelde
+worker. Werkelijke hosted pakketinstallatie/browsergates en nieuwe uitrol
+blijven vereist en worden afzonderlijk in de PR vastgelegd.

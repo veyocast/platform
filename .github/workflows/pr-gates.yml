@@ -59,6 +59,11 @@ jobs:
       - name: Validate scoped database context
         run: node --test scripts/probe-data-api-resources.test.mjs scripts/supabase-capacity-metrics.test.mjs
 
+      - name: Validate signed Ubuntu CI mirror fallback
+        run: |
+          pnpm exec eslint scripts/prepare-ubuntu-ci-mirrors.mjs scripts/prepare-ubuntu-ci-mirrors.test.mjs --max-warnings=0
+          node --test scripts/prepare-ubuntu-ci-mirrors.test.mjs
+
       - name: Validate shared deployment serialization
         run: |
           pnpm exec eslint scripts/deployment-concurrency-policy.mjs scripts/deployment-concurrency-policy.test.mjs --max-warnings=0
@@ -112,17 +117,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Use canonical HTTPS Ubuntu mirror for browser tools
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          browser_apt_sources=()
-          for browser_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/apt-mirrors*.txt; do
-            if [[ -f ${browser_apt_source} ]]; then
-              browser_apt_sources+=("${browser_apt_source}")
-            fi
-          done
-          (( ${#browser_apt_sources[@]} > 0 ))
-          sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${browser_apt_sources[@]}"
+        run: node scripts/prepare-ubuntu-ci-mirrors.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Render and seal all original complete videos
@@ -175,20 +170,7 @@ jobs:
         if: matrix.group == 'marketing'
         run: pnpm --filter @veyocast/marketing build
       - name: Use canonical HTTPS Ubuntu mirror for browser tools
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          browser_apt_sources=()
-          for browser_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/apt-mirrors*.txt; do
-            if [[ -f ${browser_apt_source} ]]; then
-              browser_apt_sources+=("${browser_apt_source}")
-            fi
-          done
-          if (( ${#browser_apt_sources[@]} == 0 )); then
-            echo 'Ubuntu package sources are required for the real browser tools.' >&2
-            exit 1
-          fi
-          sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${browser_apt_sources[@]}"
+        run: node scripts/prepare-ubuntu-ci-mirrors.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify every discovered spec in the application group
@@ -238,17 +220,7 @@ jobs:
       - name: Build Player artifact
         run: pnpm --filter @veyocast/player build
       - name: Use canonical HTTPS Ubuntu mirror for browser tools
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          browser_apt_sources=()
-          for browser_apt_source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/apt-mirrors*.txt; do
-            if [[ -f ${browser_apt_source} ]]; then
-              browser_apt_sources+=("${browser_apt_source}")
-            fi
-          done
-          (( ${#browser_apt_sources[@]} > 0 ))
-          sudo sed -E -i 's#https?://azure[.]archive[.]ubuntu[.]com/ubuntu#https://archive.ubuntu.com/ubuntu#g' "${browser_apt_sources[@]}"
+        run: node scripts/prepare-ubuntu-ci-mirrors.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Download complete source-bound fixtures
