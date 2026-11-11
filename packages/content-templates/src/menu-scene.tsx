@@ -162,12 +162,22 @@ export function MenuSceneCanvas({
       frame = window.requestAnimationFrame(() => {
         if (!active) return;
         const columns = Array.from(canvas.querySelectorAll<HTMLElement>("[data-menu-column]"));
+        const bodyBounds = canvas.querySelector("main")!.getBoundingClientRect();
+        const floating = Array.from(canvas.querySelectorAll<HTMLElement>("main > :not([data-column-count])"))
+          .filter(element => element.getClientRects().length && getComputedStyle(element).opacity !== "0")
+          .map(element => element.getBoundingClientRect());
         const overflow = columns.some((column) => {
           const bounds = column.getBoundingClientRect();
           const rows = Array.from(column.querySelectorAll<HTMLElement>("[data-menu-row]"));
           const lastRow = rows.at(-1)?.getBoundingClientRect();
           return column.scrollHeight > column.clientHeight + 1 ||
-            Boolean(lastRow && lastRow.bottom > bounds.bottom + 1);
+            Boolean(lastRow && lastRow.bottom > Math.min(bounds.bottom, bodyBounds.bottom) + 1) ||
+            rows.some(row => {
+              const rect = row.getBoundingClientRect();
+              return rect.left < bounds.left - 1 || rect.right > bounds.right + 1 ||
+                floating.some(block => rect.left < block.right - 1 && rect.right > block.left + 1 &&
+                  rect.top < block.bottom - 1 && rect.bottom > block.top + 1);
+            });
         });
         canvas.dataset.menuContentFitVersion = MENU_SCENE_CONTENT_FIT_VERSION;
         canvas.dataset.menuContentMeasured = "true";

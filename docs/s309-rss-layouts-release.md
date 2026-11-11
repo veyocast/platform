@@ -9,6 +9,8 @@ hoort bij dit VeyoCast-traject; bestaande releaseguards blijven verplicht.
 Regenerabele Next-cachebestanden ouder dan zeven dagen zijn gericht verwijderd
 uit oude werkruimten om lokale schijfruimte vrij te maken. Geen bronbestanden,
 databasevolumes, runtime-assets, environments of secrets verwijderd of aangepast.
+Bij hernieuwde schijfdruk zijn ook Next-caches ouder dan één dag en de ongebruikte
+Playwright-browsercache 1208 verwijderd; de gebruikte browsercache 1228 blijft staan.
 
 ## Onderzoek en configuratiemapping
 
@@ -139,6 +141,32 @@ De daaropvolgende verse SQL/RLS- en concurrencycontroles zijn groen. De echte
 uploadproef slaagt ook; de publicatieproef liep nog op één verouderde knopnaam
 uit. Alleen die selector is bijgewerkt naar `Omhoog verplaatsen: …`; geen opslag-,
 conflict-, publicatie- of first-frameassertie is verwijderd of overgeslagen.
+
+De verse hosted run bij `530568ec` bevestigt alle 158 SQL-bestanden (5.450
+assertions), concurrency/advisors en beide echte opslag-/publicatiebrowserproeven.
+De daaropvolgende browsermatrix vond verouderde transportfixtures: publicatiestatus
+is een leesactie, geen mutatie. Die adapters volgen nu de echte queued status,
+zonder een preview gepubliceerd of plaatsbaar te verklaren. Previewselectors
+richten zich op het zichtbare scherm en niet op de aria-hidden all-page-fitprobes.
+Een nieuwe Beeldheld-preview wordt naast de ongemarkeerde legacy-RSS gecontroleerd.
+
+De originele menuhoeken zijn hersteld zonder de overflowmeting te verwijderen;
+de pixelvergelijking van de originele categoriekoppen blijft ongewijzigd. Bij
+productafbeeldingen telt de afbeelding niet meer als tekstbaseline. De klassieke
+MenuScene meet ook buiten de eigenlijke body groeiende kolommen en botsingen
+met zwevende blokken. De menu-goldenfixture heeft nu twee expliciet ingedeelde
+pagina's in plaats van impliciete capaciteitsafhankelijke paginering: dezelfde
+negen producten blijven aanwezig. Nieuwe goldens bewaken de aangevraagde
+prijsbaseline; de bestaande pixeltolerantie wordt niet verruimd. Een volle
+widgetproef past vóór opslaan expliciet het thema aan; de volmelding wordt niet
+genegeerd. Lokale parallelle hercontroles liepen tegen schijf-/geheugendruk en
+timeouts aan en worden daarom sequentieel herhaald, niet als geslaagd geteld.
+De herhaalde lint/typecheck/testtaken zijn groen (elk 30/30 inclusief
+afhankelijkheden); alle 44 bijgewerkte menu-goldens plus de tien overige
+menu-Playerproeven en alle negen gerichte opslag-/publicatiepreviewproeven zijn
+groen. De twaalf compacte/volle widgetproeven en de ongewijzigde originele
+categoriekoppixelvergelijkingen blijven groen. De volledige hosted browsermatrix
+moet vóór mainintegratie ook bij de definitieve SHA groen zijn.
 
 De gecombineerde branch/PR gaat via de ongewijzigde normale CI, immutable
 main→staging-build en expliciete productiepromotie met dezelfde digests.

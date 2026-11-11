@@ -177,6 +177,7 @@
 
 .mediaThumb {
   display: block;
+  align-self: start;
   width: 64px;
   height: 64px;
   overflow: hidden;

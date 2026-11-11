@@ -21,7 +21,7 @@ export const sitesMenuWidgetCss = String.raw`
 .vm-canvas.uc-portrait .vm-menu-slogan{font-size:43px}
 .vm-canvas .vm-widgets{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;align-content:start;flex:none;min-width:0}
 .vm-canvas .vm-widgets[data-columns="1"],.vm-canvas .vm-widgets[data-full=true]{grid-template-columns:1fr}
-.vm-widget{min-width:0;min-height:0;overflow:visible}
+.vm-widget{min-width:0;min-height:0;overflow:hidden}
 .vm-widget[data-column=full]{grid-column:1/-1}
 .vm-widget[data-column=left]{grid-column:1}
 .vm-widget[data-column=right]{grid-column:2}
@@ -44,7 +44,7 @@ export const sitesMenuWidgetCss = String.raw`
 .vm-canvas .vm-product>b{font-size:calc(31px * var(--vm-scale))}
 .vm-canvas.vm-custom-accent .vm-product>b{color:var(--vm-accent)}
 .vm-canvas.uc-portrait .vm-product>b{font-size:calc(34px * var(--vm-scale))}
-.vm-product>img{width:64px;height:64px;object-fit:contain;flex:none}
+.vm-product>img{width:64px;height:64px;object-fit:contain;flex:none;align-self:start}
 .vm-widget-image{margin:0;min-width:0;height:var(--vm-widget-height);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .vm-widget-image>img{width:100%;height:100%;min-height:0;object-fit:contain;max-width:100%}
 .vm-widget-image[data-ratio="9:16"]>img{width:min(var(--vm-image-width),calc(var(--vm-widget-height)*.5625));height:auto;aspect-ratio:9/16;max-height:100%}

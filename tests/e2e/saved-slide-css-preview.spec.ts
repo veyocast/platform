@@ -23,7 +23,7 @@ async function assertPreviewDoesNotPublish(page: Page, data: SavedPreviewFixture
 
 async function assertCanonicalRss(page: Page, data: SavedPreviewFixture) {
   await expect(page.getByText("Bestaande bronkop direct zichtbaar", { exact: true })).toBeVisible({ timeout: 10_000 });
-  const photo = page.locator('.rss-photo img'), logo = page.locator('.rss-provider img');
+  const photo = page.locator('.rss-photo img,.rss-story-photo img'), logo = page.locator('.rss-provider img,.rss-source img');
   for (const [image, asset] of [[photo, data.media[0]!], [logo, data.media[1]!]] as const) {
     await expect(image).toBeVisible();
     await expect.poll(() => image.evaluate((node: HTMLImageElement) => {
@@ -40,7 +40,7 @@ async function assertCanonicalRss(page: Page, data: SavedPreviewFixture) {
     });
     expect(actual).toEqual({ bytes: asset.bytes, sha: asset.sha });
   }
-  const qr = page.locator('.rss-qr-zone svg.ot-qr');
+  const qr = page.locator('.rss-qr-zone svg.ot-qr,.rss-story-qr svg.ot-qr');
   await expect(qr).toBeVisible();
   const require = createRequire(join(process.cwd(), "apps/control/package.json"));
   const { modules } = require("qrcode").create("https://example.invalid/canonical-news/1", { errorCorrectionLevel: "M" });
