@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { MenuDocumentV2, MenuProductPlacement } from "@veyocast/contracts";
+import { sitesDynamicConfigurationSchema, sitesCurrentPresentationVersion, sitesCurrentPresentationSourceRevision, type MenuDocumentV2, type MenuProductPlacement } from "@veyocast/contracts";
+import { projectSitesMenuWidgets } from "../src/sites-menu-widgets-model";
 
 import {
   menuSceneCanvases,
@@ -50,7 +51,7 @@ describe("MenuScene", () => {
       for (const mode of ["light", "dark"] as const) {
         for (const orientation of ["landscape", "portrait"] as const) {
           const pages = resolveMenuScenePages(document(themeId, mode), orientation);
-          expect(pages.length).toBeGreaterThan(1);
+          expect(pages).toHaveLength(1);
           expect(pages.every((page) => page.pageCount === pages.length)).toBe(true);
           signatures.add(JSON.stringify(pages));
           cases += 1;
@@ -61,16 +62,16 @@ describe("MenuScene", () => {
     expect(signatures.size).toBe(2);
   });
 
-  it("maakt vervolgkoppen en laat nooit een categorie als laatste rij achter", () => {
+  it("bewaart categoriekoppen eenmaal zonder afgeleide vervolgpagina’s", () => {
     for (const orientation of ["landscape", "portrait"] as const) {
       const pages = resolveMenuScenePages(document("editorial", "light"), orientation);
       const left = pages.map((page) => page.columns.left);
-      expect(left.some((rows) => rows.some((row) => row.kind === "category" && row.continuation))).toBe(true);
+      expect(left.some((rows) => rows.some((row) => row.kind === "category" && row.continuation))).toBe(false);
       expect(left.every((rows) => rows.at(-1)?.kind !== "category")).toBe(true);
     }
   });
 
-  it("pagineert twintig grotere portraittitels en bewaakt drie regels na een breuk", () => {
+  it("bewaart ook twintig en tweeëntwintig grotere portraittitels op de gekozen pagina", () => {
     const twenty = document("editorial", "light");
     const category = twenty.pages[0]!.blocks[0];
     if (category?.type !== "category") throw new Error("category fixture missing");
@@ -78,13 +79,13 @@ describe("MenuScene", () => {
     const onePage = resolveMenuScenePages(twenty, "portrait");
     expect(onePage.map((page) =>
       page.columns.left.filter((row) => row.kind === "product").length
-    )).toEqual([17, 3]);
+    )).toEqual([20]);
 
     category.productNodes = Array.from({ length: 22 }, (_, index) => product(index));
     const split = resolveMenuScenePages(twenty, "portrait");
     expect(split.map((page) =>
       page.columns.left.filter((row) => row.kind === "product").length
-    )).toEqual([18, 4]);
+    )).toEqual([22]);
   });
 
   it("verdeelt expliciet smalle portraitcategorieën over twee zichtbare kolommen", () => {
@@ -159,7 +160,7 @@ describe("MenuScene", () => {
     expect(rows.some((row) => row.kind === "category")).toBe(false);
   });
 
-  it("reserveert ruimte voor keep-together media en markeert echte underfill", () => {
+  it("bewaart media op de gekozen pagina en markeert echte underfill", () => {
     const candidate = document("editorial", "light");
     const category = candidate.pages[0]!.blocks[0];
     if (category?.type !== "category") throw new Error("category fixture missing");
@@ -180,7 +181,7 @@ describe("MenuScene", () => {
       type: "image"
     });
     const pages = resolveMenuScenePages(candidate, "portrait");
-    expect(pages.length).toBeGreaterThan(1);
+    expect(pages).toHaveLength(1);
     expect(pages[0]!.floatingBlocks.map((block) => block.id)).toEqual(["media-1"]);
     expect(pages.slice(1).every((page) => page.floatingBlocks.length === 0)).toBe(true);
 
@@ -191,6 +192,22 @@ describe("MenuScene", () => {
     );
     candidate.assets = [];
     expect(resolveMenuScenePages(candidate, "portrait")[0]!.underfilled).toBe(true);
+  });
+
+  it.each([13, 16])("bewaart %i producten op één expliciete pagina bij beide schermstanden", count => {
+    const candidate = document("editorial", "light");
+    const category = candidate.pages[0]!.blocks[0]!;
+    if (category.type !== "category") throw new Error("fixture");
+    category.productNodes = Array.from({ length: count }, (_, index) => product(index));
+    for (const orientation of ["landscape", "portrait"] as const) {
+      const configuration = sitesDynamicConfigurationSchema.parse({ schemaVersion: 1, rendererVersion: sitesCurrentPresentationVersion, sourceRevision: sitesCurrentPresentationSourceRevision, themeId: "fieldflow", unifiedKind: "kantine", provider: "menu", title: "Menu", orientation, menuWidgets: true, rowsPerPage: count });
+      const pages = projectSitesMenuWidgets(JSON.parse(JSON.stringify(candidate)), configuration, () => undefined);
+      expect(pages).toHaveLength(1);
+      expect(pages[0]!.widgets.flatMap(widget => widget.rows.map(row => row.id))).toEqual(category.productNodes.map(node => node.id));
+      const legacy = resolveMenuScenePages(candidate, orientation);
+      expect(legacy).toHaveLength(1);
+      expect(legacy[0]!.columns.left.filter(row => row.kind === "product")).toHaveLength(count);
+    }
   });
 
   it("berekent shared, from en separate prijzen zonder vrije tekst als prijsbron", () => {

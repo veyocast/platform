@@ -55,7 +55,7 @@ export default async function EditMenuStudioPage({ params, searchParams }: PageP
         description="Bekijk je opgeslagen menu. Maak een nieuwe versie om wijzigingen te publiceren; de huidige versie blijft ondertussen actief."
         eyebrow={session.tenant}
         status={draftVersion
-          ? { label: `Concept v${draftVersion.versionNumber}`, tone: "warning" }
+          ? { label: `${draftVersion.status === "publishing" ? "Publiceren" : "Concept"} v${draftVersion.versionNumber}`, tone: "warning" }
           : currentVersion
             ? { label: `Huidige versie v${currentVersion.versionNumber}`, tone: "success" }
             : { label: "Concept", tone: "warning" }}

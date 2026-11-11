@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { revalidatePath } from "next/cache";
 
 import {
@@ -102,6 +103,21 @@ export async function saveMenuStudioCommand(input: {
     .maybeSingle();
   if (current.error || !current.data) {
     return failure("MENU_DOCUMENT_NOT_FOUND", "Het menu bestaat niet meer of is niet toegankelijk.");
+  }
+  const receipt = await supabase.from("menu_studio_operations")
+    .select("base_revision,next_revision,command_json")
+    .eq("tenant_id", session.tenantId).eq("dynamic_slide_id", input.slideId)
+    .eq("operation_id", command.data.operationId).maybeSingle();
+  if (receipt.error) return failure("MENU_RECEIPT_UNAVAILABLE", "De opslagbevestiging kon niet worden gecontroleerd. Je invoer blijft behouden.");
+  if (receipt.data) {
+    const document = menuDocumentV2Schema.safeParse(current.data.configuration_json);
+    if (receipt.data.base_revision !== command.data.baseRevision || !isDeepStrictEqual(receipt.data.command_json, command.data.operation)) {
+      return failure("MENU_OPERATION_CONFLICT", "Deze opslagsleutel is al gebruikt voor andere invoer.");
+    }
+    if (!document.success || document.data.revision !== receipt.data.next_revision) {
+      return failure("MENU_OPERATION_STALE", "Deze bewerking is al opgeslagen, maar er bestaat inmiddels een nieuwere versie. Je invoer blijft behouden.");
+    }
+    return { ok: true, outcome: "already_applied", document: document.data, revision: document.data.revision, slideId: input.slideId };
   }
   const mutation = applyMenuStudioCommand(
     current.data.configuration_json,

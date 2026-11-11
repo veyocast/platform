@@ -85,6 +85,41 @@ async function mount(page:Page,qa=false){
  return{saves,setConflict:(value:boolean)=>{conflict=value;}};
 }
 async function contained(page:Page){const geometry=await page.getByRole("dialog").evaluate(dialog=>{const box=dialog.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:innerWidth,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth+1};});expect(geometry.left).toBeGreaterThanOrEqual(-1);expect(geometry.right).toBeLessThanOrEqual(geometry.width+1);expect(geometry.top).toBeGreaterThanOrEqual(-1);expect(geometry.bottom).toBeLessThanOrEqual(geometry.height+1);expect(geometry.overflow).toBe(false);}
+for (const width of [320, 1440]) test(`hotfix: itempijlen, snelle klikken en bevestigde volgorde op ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 1000 });
+  const transport = await mount(page);
+  await page.evaluate(() => {
+    const fixture = Reflect.get(window, "__sitesFixture");
+    Reflect.get(window, "__setPlaylist")({ ...fixture.playlist, slides: ["A", "B", "C", "D"].map((name, index) => ({ ...fixture.playlist.slides[0], id: `hotfix-item-${index}`, name, seconds: 11 + index })) });
+  });
+  const contents = page.getByRole("region", { name: "Playlistinhoud" }).locator("ol>li strong");
+  await expect(contents).toHaveText(["A", "B", "C", "D"]);
+  await expect(page.getByRole("button", { name: "Omhoog verplaatsen: A", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Omlaag verplaatsen: D", exact: true })).toBeDisabled();
+  const up = page.getByRole("button", { name: "Omhoog verplaatsen: C", exact: true });
+  const touch = await up.boundingBox();
+  expect(touch!.width).toBeGreaterThanOrEqual(44);
+  expect(touch!.height).toBeGreaterThanOrEqual(44);
+  await up.click();
+  await expect(contents).toHaveText(["A", "C", "B", "D"]);
+  await page.getByRole("button", { name: "Omlaag verplaatsen: C", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(contents).toHaveText(["A", "B", "C", "D"]);
+  await up.evaluate(button => { button.click(); button.click(); });
+  await expect(contents).toHaveText(["C", "A", "B", "D"]);
+  await expect(page.getByText("Nog niet opgeslagen", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Opslaan", exact: true }).click();
+  await expect(page.getByText("Geen nieuwe wijzigingen", { exact: true })).toBeVisible();
+  expect(transport.saves).toHaveLength(1);
+  expect(transport.saves[0]!.slides.map(slide => [slide.id, slide.name, slide.seconds])).toEqual([["hotfix-item-2", "C", 13], ["hotfix-item-0", "A", 11], ["hotfix-item-1", "B", 12], ["hotfix-item-3", "D", 14]]);
+  expect(new Set(transport.saves[0]!.slides.map(slide => slide.mediaId)).size).toBe(1);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Open Clubhuis vandaag", exact: true }).click();
+  await expect(contents).toHaveText(["C", "A", "B", "D"]);
+  await contained(page);
+  const accessibility = await new AxeBuilder({ page }).include("dialog").withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(accessibility.violations).toEqual([]);
+});
 for(const width of [390,1440])test(`latest saved menu price is fetched and pinned explicitly at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:1000});const transport=await mount(page);
  await page.evaluate(()=>{
@@ -238,7 +273,7 @@ for(const width of[390,768,1440]){
   await page.setViewportSize({width,height:900});const transport=await mount(page);await contained(page);expect(await page.evaluate(()=>Boolean(document.querySelector('dialog')?.contains(document.activeElement)))).toBe(true);
   await page.getByRole("button",{name:"Toevoegen",exact:true}).click();await expect(page.getByRole("dialog",{name:"Inhoud toevoegen aan playlist"})).toBeVisible();await page.getByRole("button",{name:"Nieuwe clubfoto, selecteren",exact:true}).click();await page.getByRole("dialog").getByRole("button",{name:"Slides",exact:true}).click();await page.getByRole("button",{name:"Clubnieuws reeks, 2 items, selecteren",exact:true}).click();await page.getByRole("button",{name:"Live scorebord, selecteren",exact:true}).click();await page.getByRole("button",{name:"3 geselecteerd",exact:true}).click();await expect(page.locator("#playlist-picker-selection li strong")).toHaveText(["Nieuwe clubfoto","Clubnieuws reeks","Live scorebord"]);await contained(page);await page.getByRole("button",{name:"4 items toevoegen",exact:true}).click();
   await expect(page.getByRole("region",{name:"Playlistinhoud"}).locator("ol>li strong")).toHaveText(["Clubfoto","Welkom","Nieuwe clubfoto","Studio welkom","Studio partners","Live scorebord"]);
-  await page.getByRole("button",{name:"Volgorde",exact:true}).click();await page.getByRole("button",{name:"Nieuwe clubfoto omhoog",exact:true}).click();await page.getByRole("button",{name:"Klaar",exact:true}).click();await page.getByRole("button",{name:"Selecteer",exact:true}).click();await page.getByRole("button",{name:"Alles selecteren",exact:true}).click();await page.getByRole("button",{name:"Toepassen",exact:true}).locator("..").locator("input").fill("15");await page.getByRole("button",{name:"Toepassen",exact:true}).click();await page.getByRole("button",{name:"Thema toepassen op 6 items",exact:true}).click();await page.getByRole("button",{name:"Opslaan",exact:true}).click();await expect.poll(()=>transport.saves.length).toBe(1);await expect(page.getByText("Geen nieuwe wijzigingen",{exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"Volgorde",exact:true}).click();await page.getByRole("button",{name:"Omhoog verplaatsen: Nieuwe clubfoto",exact:true}).click();await page.getByRole("button",{name:"Klaar",exact:true}).click();await page.getByRole("button",{name:"Selecteer",exact:true}).click();await page.getByRole("button",{name:"Alles selecteren",exact:true}).click();await page.getByRole("button",{name:"Toepassen",exact:true}).locator("..").locator("input").fill("15");await page.getByRole("button",{name:"Toepassen",exact:true}).click();await page.getByRole("button",{name:"Thema toepassen op 6 items",exact:true}).click();await page.getByRole("button",{name:"Opslaan",exact:true}).click();await expect.poll(()=>transport.saves.length).toBe(1);await expect(page.getByText("Geen nieuwe wijzigingen",{exact:true})).toBeVisible();
   const saved=transport.saves[0]!;expect(saved.slides.map(slide=>slide.name)).toEqual(["Clubfoto","Nieuwe clubfoto","Welkom","Studio welkom","Studio partners","Live scorebord"]);expect(saved.slides.every(slide=>slide.seconds===15)).toBe(true);expect(saved.slides.every(slide=>(slide.design?.themeId??slide.studioSlide?.themeId??slide.themeId)==="onzetrots-tv")).toBe(true);expect(saved.slides.at(-1)?.design?.seconds).toBe(15);expect(saved.slides[3]?.studioSlide?.duration).toBe(15);await contained(page);
  });
  test(`Sites playlist dirty guard and rejected save retain edits and keyboard focus at ${width}px`,async({page})=>{
@@ -266,7 +301,7 @@ for(const row of matrix){
    case"editor-preview":await page.getByRole("button",{name:"Voorbeeld",exact:true}).click();await expect(page.getByRole("region",{name:"Playlistvoorbeeld"})).toBeVisible();await expect(page.getByRole("button",{name:"Volgend item bekijken"})).toBeVisible();break;
    case"editor-details":await page.getByRole("button",{name:"Details",exact:true}).click();await expect(page.getByLabel("Naam playlist",{exact:true})).toHaveValue("Clubhuis — Vandaag");break;
    case"item-expanded":await page.getByRole("button",{name:`${names[0]}, 12 seconden, instellingen openen`,exact:true}).click();await page.getByRole("region",{name:"Playlistinhoud"}).getByRole("spinbutton").fill("15");await expect(page.getByRole("button",{name:`${names[0]}, 15 seconden, instellingen openen`,exact:true})).toBeVisible();break;
-   case"reorder":await page.getByRole("button",{name:"Volgorde",exact:true}).click();await page.getByRole("button",{name:`${names[0]} omlaag`,exact:true}).click();await expect(contents()).toHaveText([names[1]!,names[0]!,names[2]!,names[3]!]);break;
+   case"reorder":await page.getByRole("button",{name:"Volgorde",exact:true}).click();await page.getByRole("button",{name:`Omlaag verplaatsen: ${names[0]}`,exact:true}).click();await expect(contents()).toHaveText([names[1]!,names[0]!,names[2]!,names[3]!]);break;
    case"bulk-select":await selectTwo();await expect(page.getByRole("button",{name:"Thema toepassen op 2 items",exact:true})).toBeEnabled();break;
    case"picker-media":await picker();await expect(page.getByRole("button",{name:"Nieuwe clubfoto, selecteren",exact:true})).toBeVisible();break;
    case"picker-studio":await picker("Slides");await expect(page.getByRole("button",{name:"Clubnieuws reeks, 2 items, selecteren",exact:true})).toBeVisible();break;

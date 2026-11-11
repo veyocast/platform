@@ -50,6 +50,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -100,6 +101,7 @@ import {
   setMenuStudioOrientation
 } from "./actions";
 import styles from "./menu-studio.module.css";
+import { PublicationProgress } from "../publication-progress";
 
 const dutchProductCollator = new Intl.Collator("nl-NL", {
   numeric: true,
@@ -164,7 +166,9 @@ export function MenuStudioEditor({
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
-  const [contentOverflow, setContentOverflow] = useState(false);
+  const [pageFits, setPageFits] = useState<{ key: string; pages: Record<number, boolean> }>({ key: "", pages: {} });
+  const [publicationAttempt, setPublicationAttempt] = useState(0);
+  const publicationComplete = useCallback(() => setStatus("published"), []);
   const [hydrated, setHydrated] = useState(false);
   const [mobilePanel, setMobilePanel] = useState<"build" | "preview" | "library">("preview");
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
@@ -213,6 +217,10 @@ export function MenuStudioEditor({
     };
     return result;
   }, {});
+  const fitKey = JSON.stringify([document, orientation, assets]);
+  const contentOverflow = pageFits.key === fitKey && Object.values(pageFits.pages).some(Boolean);
+  const fitChecked = pageFits.key === fitKey && Object.keys(pageFits.pages).length === scenePages.length;
+  const reportFit = useCallback((key: string, index: number, overflow: boolean) => setPageFits(current => current.key === key && current.pages[index] === overflow ? current : { key, pages: { ...(current.key === key ? current.pages : {}), [index]: overflow } }), []);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -925,7 +933,10 @@ export function MenuStudioEditor({
 
   function publish() {
     if (!slideId || isPending || busyRef.current) return;
+    if (!fitChecked) { setMessage("De pagina-indeling wordt nog gecontroleerd. Probeer het over een ogenblik opnieuw."); setStatus("error"); return; }
+    if (contentOverflow) { setMessage("Eén of meer pagina’s zijn te vol. Pas de indeling aan voordat je publiceert."); setStatus("error"); return; }
     startTransition(async () => {
+      try {
       setMessage(null);
       setStatus("saving");
       const result = await publishMenuStudio({
@@ -937,8 +948,13 @@ export function MenuStudioEditor({
         setStatus("error");
         return;
       }
-      setStatus("published");
-      setMessage("Immutable release aangemaakt. De Player wisselt pas op een veilige item- of loopgrens.");
+      setStatus("saved");
+      setPublicationAttempt(value => value + 1);
+      setMessage("De publicatie is aangevraagd, maar nog niet bevestigd. De vorige werkende versie blijft actief.");
+      } catch {
+        setMessage("Publiceren kon niet worden bevestigd. Je opgeslagen wijzigingen blijven behouden; probeer opnieuw.");
+        setStatus("error");
+      }
     });
   }
 
@@ -961,6 +977,9 @@ export function MenuStudioEditor({
 
   return (
     <div className={styles.studio} data-hydrated={hydrated || undefined} data-mobile-panel={mobilePanel}>
+      <div aria-hidden="true" style={{position:"fixed",left:"-10000px",width:960,visibility:"hidden",pointerEvents:"none"}}>
+        {scenePages.map((scenePage,index) => <MenuSceneFit key={scenePage.id} document={document} orientation={orientation} assets={assets} pageIndex={index} fitKey={fitKey} onResult={reportFit}/>)}
+      </div>
       <header className={styles.toolbar}>
         <div className={styles.titleField}>
           <label htmlFor="menu-title"><span>Menunaam</span><small>Bewerkbaar</small></label>
@@ -1017,6 +1036,7 @@ export function MenuStudioEditor({
         </p>
       ) : null}
 
+      {publicationAttempt > 0 && slideId && <PublicationProgress key={publicationAttempt} slideId={slideId} onPublished={publicationComplete} />}
       <nav aria-label="Mobiele Menu Studio-panelen" className={styles.mobileTabs}>
         {(["build", "preview", "library"] as const).map((panel) => (
           <button
@@ -1207,7 +1227,6 @@ export function MenuStudioEditor({
               alignment="top"
               assets={assets}
               document={document}
-              onContentFit={setContentOverflow}
               orientation={orientation}
               pageIndex={activePageIndex}
               zoom={zoom}
@@ -2480,6 +2499,11 @@ function samePrice(
     left.taxMode === right.taxMode &&
     (left.taxRateBps ?? null) === (right.taxRateBps ?? null) &&
     (left.unitKey ?? null) === (right.unitKey ?? null);
+}
+
+function MenuSceneFit({ document, orientation, assets, pageIndex, fitKey, onResult }: { document: MenuDocumentV2; orientation: "landscape" | "portrait"; assets: Record<string, MenuSceneAsset>; pageIndex: number; fitKey: string; onResult: (key: string, page: number, overflow: boolean) => void }) {
+  const report = useCallback((overflow: boolean) => onResult(fitKey, pageIndex, overflow), [fitKey, pageIndex, onResult]);
+  return <div style={{width:960,height:orientation === "portrait" ? 960 * 16 / 9 : 540}}><MenuScene document={document} assets={assets} orientation={orientation} pageIndex={pageIndex} onContentFit={report}/></div>;
 }
 
 function slugId(value: string) {

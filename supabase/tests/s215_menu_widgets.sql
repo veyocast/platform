@@ -53,6 +53,9 @@ create function pg_temp.sites_v17_configuration(
 $$;
 
 select ok(private.sites_configuration_is_valid_v1(pg_temp.sites_v17_configuration()||'{"menuWidgets":true}'::jsonb),'complete real v17 menu configuration accepts its typed widget marker');
+select ok(private.sites_configuration_is_valid_v1(pg_temp.sites_v17_configuration()||'{"menuWidgets":true,"rowsPerPage":13}'::jsonb),'menu validation accepts 13 without imposing a page split');
+select ok(private.sites_configuration_is_valid_v1(pg_temp.sites_v17_configuration()||'{"menuWidgets":true,"rowsPerPage":16}'::jsonb),'menu validation accepts 16 without imposing a page split');
+select ok(not private.sites_configuration_is_valid_v1(pg_temp.sites_v17_configuration()||'{"rowsPerPage":1.5}'::jsonb),'menu row setting must still be an integer');
 select ok(not private.sites_configuration_is_valid_v1(pg_temp.sites_v17_configuration()||'{"menuWidgets":"true"}'::jsonb),'untyped widget marker is rejected at the configuration boundary');
 create temporary table menu_test_state (
   name text primary key,

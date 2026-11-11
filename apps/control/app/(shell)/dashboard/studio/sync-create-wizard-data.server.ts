@@ -46,7 +46,7 @@ export async function loadSyncCreateWizardData(family: SyncContentFamily, reques
     if (themeDefaults.ok) {
       data.themeDefaults = themeDefaults.value;
       data.themeDefaultsError = null;
-      const themeId = themeDefaults.value.defaultThemeId ?? "fieldflow";
+      const themeId = themeDefaults.value.defaultThemeId ?? (family === 'rss' ? 'onzetrots-tv' : 'fieldflow');
       const profile = themeDefaults.value.profiles.find(value => value.themeId === themeId)!;
       data.initialPresentation = applySyncThemeCreationDefaults(data.initialPresentation, themeId, profile.defaults ?? syncThemeCreationStarterDefaults(themeId));
     } else data.themeDefaultsError = themeDefaults.message;

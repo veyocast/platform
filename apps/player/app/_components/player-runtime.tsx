@@ -17,7 +17,7 @@ import {ScreenCompositionBoundary,changedCompositionDataBoundaryZones} from "../
 import {ScreenCompositionZone} from "./screen-composition-zone";
 import {VerifiedEmptyZone} from "./verified-empty-zone";
 import {PlayerMatchdayActions} from "./player-matchday-actions";
-import {isDynamicPlayerItem,playerActivationIdentity} from "../_lib/player-dynamic-activation";
+import {playerActivationIdentity} from "../_lib/player-dynamic-activation";
 
 import { publicationTrace, type PublicationTrace } from "../_lib/publication-telemetry";
 
@@ -2875,7 +2875,7 @@ export function PlaybackScene({
     // preparation and response-driven renders never start another occurrence.
     if (paused || scene.current.key !== requestedKey || activatedRef.current === activationKey) return;
     activatedRef.current = activationKey;
-    if (isDynamicPlayerItem(item)) onActivation();
+    onActivation();
   }, [activationKey, item, onActivation, paused, requestedKey, scene.current.key]);
 
   useLayoutEffect(() => {

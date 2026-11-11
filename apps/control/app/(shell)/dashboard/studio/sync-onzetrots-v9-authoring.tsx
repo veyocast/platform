@@ -12,6 +12,21 @@ export function SyncOnzeTrotsV9Authoring({ presentation, onChange, disabled = fa
   disabled?: boolean;
 }) {
   return <div className={styles.fields}>
+    {presentation.family === 'rss' && <fieldset className={styles.rssLayouts} disabled={disabled}>
+      <legend>Indeling</legend>
+      {!presentation.authoring.rssLayout && <p>Bestaande indeling actief. Alleen een expliciete keuze wijzigt dit ontwerp na opslaan.</p>}
+      <div className={styles.rssChoices}>
+        {([
+          ['beeldheld', 'Beeldheld', 'Grote foto met tekstoverlay.'],
+          ['nachteditie', 'Nachteditie', 'Donker met ingekaderde foto.'],
+          ['clubkrant', 'Clubkrant', 'Wit papier op blauw.'],
+        ] as const).map(([value, label, description]) => <button type="button" key={value} aria-pressed={presentation.authoring.rssLayout === value}
+          onClick={() => onChange({ ...presentation.authoring, rssLayout: value })}>
+          <span className={styles.rssMiniature} data-layout={value} aria-hidden="true"><i/><span/><b/></span>
+          <strong>{label}</strong><span>{description}</span>
+        </button>)}
+      </div>
+    </fieldset>}
     <span className={styles.caption}>SLIDEHEADER</span>
     <label className={styles.header}>
       <span>Subtitel boven de kop</span>

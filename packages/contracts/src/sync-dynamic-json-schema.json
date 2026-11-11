@@ -2546,6 +2546,30 @@
                         "type": "string",
                         "maxLength": 400
                       },
+                      "dateLabel": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "imageFocalPoint": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "y": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y"
+                        ],
+                        "additionalProperties": false
+                      },
                       "url": {
                         "type": "string",
                         "maxLength": 2048,
@@ -5523,6 +5547,30 @@
                         "type": "string",
                         "maxLength": 400
                       },
+                      "dateLabel": {
+                        "type": "string",
+                        "maxLength": 400
+                      },
+                      "imageFocalPoint": {
+                        "type": "object",
+                        "properties": {
+                          "x": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "y": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y"
+                        ],
+                        "additionalProperties": false
+                      },
                       "url": {
                         "type": "string",
                         "maxLength": 2048,
@@ -6821,6 +6869,14 @@
                 "visualRevision": {
                   "type": "string",
                   "const": "onzetrots-20261024"
+                },
+                "rssLayout": {
+                  "type": "string",
+                  "enum": [
+                    "beeldheld",
+                    "nachteditie",
+                    "clubkrant"
+                  ]
                 },
                 "headerSubtitles": {
                   "default": {},

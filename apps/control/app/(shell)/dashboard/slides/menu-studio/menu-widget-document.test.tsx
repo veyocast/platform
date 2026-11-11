@@ -27,12 +27,12 @@ describe("Menu widget persistence and display",()=>{
   expect(design.accent).toBe("#c12545");expect(reopened.theme.brand?.accent).toBe("#c12545");
   expect(renderToStaticMarkup(<SitesStaticView presentation={presentation} page={1}/>)).toContain("Koffiedeal");
  });
- it("keeps every product when a two-column widget requires multiple screen pages",()=>{
+ it("keeps every product on its explicit page even when the widget overflows",()=>{
   const source=fixture();source.pages=source.pages.slice(0,1);source.pages[0]!.blocks=source.pages[0]!.blocks.slice(0,1);const block=source.pages[0]!.blocks[0]!;if(block.type!=="category")throw Error("missing");
   const products=Array.from({length:22},(_,index)=>({...product(index+1),name:`Product ${index+1}`}));block.productNodes=products.map((item,index)=>({...menuProductPlacement(item,`row-${index}`),order:index,column:index<11?1:2}));
   const built=buildMenuWidgetDocument(source,products,{...design,rowsPerPage:4,scale:140},[photo]),presentation=buildSitesMenuPresentation(built)!;
   if(presentation.kind!=="dynamic")throw Error("missing");const rendered=presentation.content.menuPages!.flatMap(page=>page.widgets.flatMap(widget=>widget.rows));
-  expect(rendered).toHaveLength(22);expect(new Set(rendered.map(row=>row.id)).size).toBe(22);expect(sitesPresentationPages(presentation)).toBeGreaterThan(1);
+  expect(rendered).toHaveLength(22);expect(new Set(rendered.map(row=>row.id)).size).toBe(22);expect(sitesPresentationPages(presentation)).toBe(1);
  });
 
  it("preserves edited amounts and unrestricted sublines while refreshing catalog snapshots",()=>{
@@ -46,13 +46,13 @@ describe("Menu widget persistence and display",()=>{
   if(presentation.kind!=="dynamic")throw Error("missing");
   expect(presentation.content.menuPages?.[0]?.widgets[0]?.rows[0]).toMatchObject({value:"€ 3,75",secondary:copy.trim()});
  });
- it("fills automatic products down column one before two, without reshuffling existing rows",()=>{
+ it("balances automatic columns without changing explicit columns or source order",()=>{
   const source=fixture();source.pages=source.pages.slice(0,1);source.pages[0]!.blocks=source.pages[0]!.blocks.slice(0,1);const block=source.pages[0]!.blocks[0]!;if(block.type!=="category")throw Error("fixture");
   block.widget={column:"full"};
   const products=Array.from({length:12},(_,index)=>({...product(index+1),name:`Product ${index+1}`}));
   const project=(count:number)=>{block.productNodes=products.slice(0,count).map((item,index)=>({...menuProductPlacement(item,`row-${index}`),order:index}));const presentation=buildSitesMenuPresentation(buildMenuWidgetDocument(source,products,{...design,rowsPerPage:3,orientation:"portrait",scale:100},[photo]))!;if(presentation.kind!=="dynamic")throw Error("missing");return presentation.content.menuPages!.flatMap(page=>page.widgets.flatMap(widget=>widget.rows));};
-  expect(project(1).map(row=>row.column)).toEqual([1]);expect(project(2).map(row=>row.column)).toEqual([1,1]);
-  const rows=project(12);expect(rows.map(row=>row.id)).toEqual(products.map((_,index)=>`row-${index}`));expect(rows.map(row=>row.column)).toEqual([1,1,1,2,2,2,1,1,1,2,2,2]);
+  expect(project(1).map(row=>row.column)).toEqual([1]);expect(project(2).map(row=>row.column)).toEqual([1,2]);
+  const rows=project(12);expect(rows.map(row=>row.id)).toEqual(products.map((_,index)=>`row-${index}`));expect(rows.map(row=>row.column)).toEqual([1,1,1,1,1,1,2,2,2,2,2,2]);
  });
  it("parses decimal prices as exact cents and rejects ambiguous or invalid input",()=>{
   for(const [input,expected]of [["3,50",350],["3.5",350],["0",0],["0,01",1],["9999999,99",999999999],[" 2 ",200]] as const)expect(parseMenuPriceMinor(input)).toBe(expected);

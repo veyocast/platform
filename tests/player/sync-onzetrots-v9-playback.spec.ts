@@ -19,10 +19,11 @@ test.beforeAll(()=>{
  const code=`const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/player/node_modules'],bundle:true,write:false,platform:'browser',format:'iife',jsx:'automatic',define:{'process.env':'{}'}});process.stdout.write(result.outputFiles[0].text);`;
  bundle=execFileSync(process.execPath,['-e',`(async()=>{${code}})().catch(error=>{console.error(error.message);process.exitCode=1})`],{encoding:'utf8',maxBuffer:16*1024*1024,timeout:30000});
 });
-async function mount(page:Page,options:{scale?:number;native?:boolean;own?:'first'|'middle'|'last';passive?:boolean;brokenFont?:boolean;unsupported?:boolean;family?:SyncContentFamily;orientation?:'landscape'|'portrait';mode?:'light'|'dark';count?:number;phase?:'scheduled'|'live'|'paused'|'halftime'|'finished';noOwn?:boolean;seconds?:number;dynamic?:boolean}={}){
+async function mount(page:Page,options:{scale?:number;native?:boolean;own?:'first'|'middle'|'last';passive?:boolean;brokenFont?:boolean;unsupported?:boolean;family?:SyncContentFamily;orientation?:'landscape'|'portrait';mode?:'light'|'dark';count?:number;phase?:'scheduled'|'live'|'paused'|'halftime'|'finished';noOwn?:boolean;seconds?:number;rssLayout?:'beeldheld'|'nachteditie'|'clubkrant';dynamic?:boolean}={}){
  const sample=createSyncTemplatePreview(options.family??'standings','sync-onzetrots-v9');if(sample.rendererVersion!=='sync-onzetrots-v9')throw Error('New renderer unavailable');
  const presentation:SyncSlidePresentation=structuredClone(sample),standing=presentation.rich?.standings;
  presentation.orientation=options.orientation??presentation.orientation;
+ if(options.rssLayout)presentation.authoring.rssLayout=options.rssLayout;
  presentation.visual.mode=options.mode??presentation.visual.mode;
  if(options.scale!==undefined&&presentation.rendererVersion==='sync-onzetrots-v9')presentation.authoring.welcomeScalePercent=options.scale;
  if(options.phase)presentation.rich={...presentation.rich,phase:options.phase};
@@ -50,6 +51,16 @@ async function mount(page:Page,options:{scale?:number;native?:boolean;own?:'firs
  await page.goto(origin);return{presentation,errors};
 }
 async function ready(page:Page){await expect.poll(()=>page.evaluate(()=>(globalThis as typeof globalThis&{ready:unknown[]}).ready?.length??0)).toBe(1);await expect(page.locator('[data-ot-rank-list]')).toBeVisible();}
+
+for(const rssLayout of ['beeldheld','nachteditie','clubkrant'] as const)for(const orientation of ['landscape','portrait'] as const)test(`saved RSS ${rssLayout}/${orientation} reaches the actual verified Player component`,async({page})=>{
+ await page.setViewportSize(orientation==='portrait'?{width:1080,height:1920}:{width:1920,height:1080});
+ const state=await mount(page,{family:'rss',orientation,rssLayout,dynamic:true,native:true});
+ await expect.poll(()=>page.evaluate(()=>(globalThis as typeof globalThis&{ready:unknown[]}).ready?.length??0)).toBe(1);
+ await expect(page.locator('.screen')).toHaveAttribute('data-ot-rss-layout',rssLayout);
+ await expect(page.locator('[data-rss-title]')).toBeVisible();
+ expect(await page.locator('[data-rss-title]').evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTMarker');
+ expect(state.errors).toEqual([]);
+});
 async function position(page:Page){return page.locator('[data-ot-rank-list]').evaluate(list=>{const root=list as HTMLElement,own=root.querySelector<HTMLElement>('.own')!,bounds=root.getBoundingClientRect(),row=own.getBoundingClientRect();return{scroll:root.scrollTop,range:root.scrollHeight-root.clientHeight,ownCount:root.querySelectorAll('.own').length,ownY:(row.top-bounds.top)/(bounds.height/root.clientHeight),rowHeight:own.offsetHeight,viewport:root.clientHeight};});}
 test('an approved canvas remains pixel-identical when a legacy Sync stylesheet loads on the same page',async({page})=>{
  const state=await mount(page,{passive:true});await expect(page.locator('[data-ot-rank-list]')).toBeVisible();await page.evaluate(()=>document.fonts.ready);

@@ -98,6 +98,7 @@ export type DynamicTemplatePriceEntry =
   | { item: DynamicTemplateMenuItem; kind: "product" };
 
 export type DynamicTemplateNewsItem = {
+  publisher?: string;
   author: string;
   date: string;
   heroUrl: string;
@@ -1621,6 +1622,7 @@ function toNewsItem(
     link: safePublicLink(item.link),
     qrUrl: dynamicAssetUrl(item.qrMediaAssetId, payload),
     source: safeText(item.sourceName, safeText(feed?.sourceName, "Clubnieuws")),
+    publisher: safeText(item.sourceName, safeText(feed?.sourceName, "")),
     title
   };
 }

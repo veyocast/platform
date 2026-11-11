@@ -1,0 +1,69 @@
+{
+  "title": {
+    "x": 93.5999984741211,
+    "y": 480,
+    "width": 1350,
+    "height": 216.9375,
+    "top": 480,
+    "right": 1443.599998474121,
+    "bottom": 696.9375,
+    "left": 93.5999984741211
+  },
+  "glyphs": [
+    {
+      "x": 93.5999984741211,
+      "y": 465.6000061035156,
+      "width": 1228.3125,
+      "height": 136.80001831054688,
+      "top": 465.6000061035156,
+      "right": 1321.912498474121,
+      "bottom": 602.4000244140625,
+      "left": 93.5999984741211
+    },
+    {
+      "x": 93.5999984741211,
+      "y": 574.0687255859375,
+      "width": 1038.9000244140625,
+      "height": 136.800048828125,
+      "top": 574.0687255859375,
+      "right": 1132.5000228881836,
+      "bottom": 710.8687744140625,
+      "left": 93.5999984741211
+    }
+  ],
+  "copy": {
+    "x": 93.5999984741211,
+    "y": 420,
+    "width": 1350,
+    "height": 516,
+    "top": 420,
+    "right": 1443.599998474121,
+    "bottom": 936,
+    "left": 93.5999984741211
+  },
+  "photo": {
+    "x": 0,
+    "y": 0,
+    "width": 1920,
+    "height": 1080,
+    "top": 0,
+    "right": 1920,
+    "bottom": 1080,
+    "left": 0
+  },
+  "qr": {
+    "x": 1488,
+    "y": 591.375,
+    "width": 318,
+    "height": 371.0250244140625,
+    "top": 591.375,
+    "right": 1806,
+    "bottom": 962.4000244140625,
+    "left": 1488
+  },
+  "font": "OTMarker, cursive",
+  "fontSize": "80px",
+  "logicalHeight": 430,
+  "headingHeight": 181,
+  "text": "Sport & ontmoeting: echte verhalen van de regionale redactie. Sport & ontmoeting: echte verhalen van de regionale redactie."
+}

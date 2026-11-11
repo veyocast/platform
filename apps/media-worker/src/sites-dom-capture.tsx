@@ -166,6 +166,7 @@ export async function createSitesPresentationCapture({presentation,motionEnabled
    const key=`${targetPage}:${localTime}`;if(capturedPng&&capturedKey===key)return capturedPng;
    await page.evaluate(({frameTime,browserLifecycle})=>{globalThis.document.getAnimations().forEach(animation=>{animation.pause();animation.currentTime=frameTime;});
     if(!browserLifecycle)globalThis.document.querySelectorAll<HTMLElement>('[data-fit-box]').forEach(box=>{
+     if(box.classList.contains('vm-products-fit'))return;
      const inner=box.querySelector<HTMLElement>('[data-fit-content]');if(!inner)return;
      const base=inner.getBoundingClientRect(),ratio=base.width/Math.max(1,inner.offsetWidth)||1;
      const bounds=[base,...Array.from(inner.children).map(child=>child.getBoundingClientRect())];

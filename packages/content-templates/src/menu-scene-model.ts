@@ -100,17 +100,9 @@ export function resolveMenuScenePages(
           left: columnFlow.filter((block) => blockColumn(block, orientation) === "left"),
           right: columnFlow.filter((block) => blockColumn(block, orientation) === "right")
         };
-    const left = paginateColumn(
-      byColumn.left,
-      orientation,
-      firstPageCapacity(floatingBlocks, orientation, "left")
-    );
-    const right = paginateColumn(
-      byColumn.right,
-      orientation,
-      firstPageCapacity(floatingBlocks, orientation, "right")
-    );
-    const derivedCount = Math.max(1, left.length, right.length);
+    const left = [columnRows(byColumn.left)];
+    const right = [columnRows(byColumn.right)];
+    const derivedCount = 1;
     for (let index = 0; index < derivedCount; index += 1) {
       const activeFloatingBlocks = index === 0
         ? floatingBlocks.filter((block) => !block.hidden)
@@ -162,87 +154,15 @@ export function formatMenuMoney(money: MenuMoney) {
   }
 }
 
-function paginateColumn(
-  blocks: MenuFlowBlock[],
-  orientation: keyof typeof menuSceneCanvases,
-  reservedFirstPageCapacity?: number
-) {
-  const capacity = orientation === "portrait" ? 20 : 8;
-  const headingCost = orientation === "portrait" ? 2 : 1;
-  const pages: MenuSceneRow[][] = [];
-  let current: MenuSceneRow[] = [];
-  let used = 0;
-  let pageCapacity = Math.min(capacity, reservedFirstPageCapacity ?? capacity);
-  const flush = () => {
-    if (current.length) pages.push(current);
-    current = [];
-    used = 0;
-    pageCapacity = capacity;
-  };
-
-  for (const block of [...blocks].sort(
-    (left, right) => left.order - right.order || left.id.localeCompare(right.id)
-  )) {
-    if (block.type === "product-group") {
-      const cost = groupCost(block.group);
-      if (used + cost > pageCapacity) flush();
-      current.push({ group: block.group, id: block.id, kind: "product-group" });
-      used += cost;
-      continue;
-    }
-    const nodes = [...block.productNodes].sort(
-      (left, right) => left.order - right.order || left.id.localeCompare(right.id)
-    );
-    if (!nodes.length) continue;
-    let offset = 0;
-    let continuation = false;
-    const headingVisible = block.headingVisible !== false;
-    while (offset < nodes.length) {
-      const remaining = pageCapacity - used;
-      const minimumNodeCount = Math.min(3, nodes.length - offset);
-      const minimumCost = (headingVisible ? headingCost : 0) + nodes
-        .slice(offset, offset + minimumNodeCount)
-        .reduce((total, node) => total + nodeCost(node), 0);
-      if (used > 0 && remaining < minimumCost) {
-        flush();
-        continue;
-      }
-      if (headingVisible) {
-        current.push({
-          continuation,
-          id: `${block.id}:${continuation ? "continuation" : "category"}:${pages.length}`,
-          kind: "category",
-          label: block.labelOverride ?? block.source.sourceName,
-          subtitle: block.subtitle ?? ""
-        });
-        used += headingCost;
-      }
-      const startOffset = offset;
-      while (offset < nodes.length) {
-        const node = nodes[offset]!;
-        const cost = nodeCost(node);
-        if (used + cost > pageCapacity) break;
-        current.push(node.kind === "product"
-          ? { id: node.id, kind: "product", product: node }
-          : { group: node, id: node.id, kind: "product-group" });
-        used += cost;
-        offset += 1;
-      }
-      const remainder = nodes.length - offset;
-      if (remainder > 0 && remainder < 3 && offset - startOffset > 3) {
-        const moveCount = 3 - remainder;
-        current.splice(-moveCount, moveCount);
-        offset -= moveCount;
-        used = rowCost(current, orientation);
-      }
-      if (offset < nodes.length) {
-        flush();
-        continuation = true;
-      }
-    }
-  }
-  flush();
-  return pages;
+function columnRows(blocks: MenuFlowBlock[]): MenuSceneRow[] {
+  return [...blocks].filter(block => !block.hidden).sort((left, right) => left.order - right.order || left.id.localeCompare(right.id)).flatMap<MenuSceneRow>(block => {
+    if (block.type === "product-group") return [{ group: block.group, id: block.id, kind: "product-group" }];
+    const nodes = [...block.productNodes].sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
+    return [
+      ...(block.headingVisible !== false && nodes.length ? [{ continuation: false, id: `${block.id}:category:0`, kind: "category" as const, label: block.labelOverride ?? block.source.sourceName, subtitle: block.subtitle ?? "" }] : []),
+      ...nodes.map(node => node.kind === "product" ? { id: node.id, kind: "product" as const, product: node } : { group: node, id: node.id, kind: "product-group" as const })
+    ];
+  });
 }
 
 function distributeColumnFlow(
@@ -298,33 +218,6 @@ function columnFlowLayout(
     ...layout,
     [orientation]: { ...layout[orientation], w: width, x }
   };
-}
-
-function firstPageCapacity(
-  blocks: MenuFloatingBlock[],
-  orientation: keyof typeof menuSceneCanvases,
-  column: "left" | "right"
-) {
-  const base = orientation === "portrait" ? 22 : 8;
-  const body = menuSceneZones[orientation].body;
-  const columnWidth = orientation === "portrait"
-    ? body.w
-    : (body.w - 36) / 2;
-  const columnLeft = orientation === "portrait" || column === "left"
-    ? body.x
-    : body.x + columnWidth + 36;
-  const columnRight = columnLeft + columnWidth;
-  const firstBlockTop = blocks.reduce<number>((top, block) => {
-    if (block.hidden) return top;
-    const layout = block.layout[orientation];
-    const blockRight = layout.x + layout.w;
-    if (blockRight <= columnLeft || layout.x >= columnRight) return top;
-    return Math.min(top, layout.y - body.y);
-  }, body.h);
-  if (firstBlockTop >= body.h) return base;
-  const rowHeight = orientation === "portrait" ? 70 : 78;
-  const reserved = Math.floor(Math.max(0, firstBlockTop - 24) / rowHeight);
-  return Math.max(3, Math.min(base, reserved));
 }
 
 function groupCost(group: MenuProductGroupPlacement) {

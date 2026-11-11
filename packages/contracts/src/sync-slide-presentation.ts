@@ -319,9 +319,11 @@ export function isSyncOnzeTrotsPresentation(slide:Pick<SyncSlidePresentation,'re
  return slide?.rendererVersion===syncOnzeTrotsRendererVersion||slide?.rendererVersion===syncOnzeTrotsV9RendererVersion;
 }
 export function syncOnzeTrotsHeaderSubtitle(slide:SyncOnzeTrotsV9Presentation):string{
+ if(slide.family==='rss'&&slide.authoring.rssLayout)return slide.authoring.headerSubtitles.rss??'';
  return slide.authoring.headerSubtitles[slide.family]??`${slide.club.name} · ${syncContentFamilies.find(family=>family.id===slide.family)?.group??''}`.slice(0,120);
 }
 export function syncOnzeTrotsHeaderText(slide:SyncOnzeTrotsV9Presentation):string{
+ if(slide.family==='rss'&&slide.authoring.rssLayout)return slide.authoring.headerTexts.rss??'Nieuws';
  const label=syncContentFamilies.find(family=>family.id===slide.family)!.label;
  return slide.authoring.headerTexts[slide.family]??label.replaceAll('DUINDORP SV',slide.club.name.toUpperCase()).replaceAll('HOUTRUST',slide.club.name.toUpperCase()).slice(0,120);
 }

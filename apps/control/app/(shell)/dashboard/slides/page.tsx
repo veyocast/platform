@@ -14,6 +14,7 @@ import {
 import { requireTenantControlSession } from "../../../../lib/control-session";
 import { formatTenantDateTime } from "../../../../lib/tenant-time";
 import { SlideLibraryWorkspace } from "./slide-library-workspace";
+import { PublicationListRefresh } from "./publication-progress";
 import {
   parseSlideResourceFilter,
   slideTypeFilters,
@@ -68,6 +69,7 @@ export default async function SlidesPage({ searchParams }: PageProps) {
 
   return (
     <>
+      <PublicationListRefresh active={data.rows.some(row => row.technicalStatus === "rendering")} />
       <PageHeader
         actions={canWrite ? (
           <Button asChild>

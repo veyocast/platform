@@ -16,12 +16,12 @@ export const sitesMenuWidgetCss = String.raw`
 .vm-canvas.uc-portrait .uc-slide-title[data-length=medium]{font-size:calc(51px * var(--vm-scale))}
 .vm-canvas.uc-portrait .uc-slide-title[data-length=long]{font-size:calc(37px * var(--vm-scale))}
 .vm-products-fit{flex:1;min-height:0;min-width:0;overflow:hidden}
-.vm-content{height:100%;transform:scale(var(--led-auto-fit,1));transform-origin:top left}
+.vm-content{height:100%;--led-auto-fit:1}
 .vm-menu-slogan{flex:none;align-self:flex-start;margin:0;color:var(--uc-blue);font-family:var(--uc-font-display);font-size:35px;line-height:1.1;text-transform:uppercase}
 .vm-canvas.uc-portrait .vm-menu-slogan{font-size:43px}
 .vm-canvas .vm-widgets{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;align-content:start;flex:none;min-width:0}
 .vm-canvas .vm-widgets[data-columns="1"],.vm-canvas .vm-widgets[data-full=true]{grid-template-columns:1fr}
-.vm-widget{min-width:0;min-height:0;overflow:hidden}
+.vm-widget{min-width:0;min-height:0;overflow:visible}
 .vm-widget[data-column=full]{grid-column:1/-1}
 .vm-widget[data-column=left]{grid-column:1}
 .vm-widget[data-column=right]{grid-column:2}
@@ -35,6 +35,9 @@ export const sitesMenuWidgetCss = String.raw`
 .vm-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:38px;min-width:0}
 .vm-products[data-columns="1"]{grid-template-columns:1fr}
 .vm-product-column{min-width:0}
+.vm-canvas .vm-product{display:grid;grid-template-columns:minmax(0,1fr) minmax(5.5em,max-content);align-items:baseline;column-gap:16px}
+.vm-canvas .vm-product[data-image=true]{grid-template-columns:64px minmax(0,1fr) minmax(5.5em,max-content)}
+.vm-canvas .vm-product>b{justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 .vm-canvas .vm-product>span{flex:1;min-width:0;max-width:none;font-size:calc(24px * var(--vm-scale));text-align:var(--vm-align)}
 .vm-product strong{display:block;font-weight:750;overflow-wrap:anywhere}
 .vm-product small{display:block;font-size:calc(20px * var(--vm-scale));font-weight:400;line-height:1.3;margin-top:6px;overflow-wrap:anywhere}

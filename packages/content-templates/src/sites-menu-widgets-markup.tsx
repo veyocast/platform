@@ -45,7 +45,7 @@ export function SitesMenuWidgetsMarkup({ presentation, resolveAsset, page = 0, w
             <div className="vm-widget-content">
               {widget.type === "category" && <div className="vm-products" data-columns={widget.columns}>
                 {Array.from({ length: widget.columns }, (_, column) => <div className="vm-product-column" key={column}>
-                  {widget.rows.filter(row => row.column === column + 1).map(row => <article key={row.id} className={approved?"vm-product":"ucc-menu-item vm-product"}>
+                  {widget.rows.filter(row => row.column === column + 1).map(row => <article key={row.id} data-image={Boolean(row.image)} className={approved?"vm-product":"ucc-menu-item vm-product"}>
                     {row.image && <img src={resolveAsset(row.image)} alt=""/>}
                     <span><strong>{row.primary}</strong>{row.secondary && <small>{row.secondary}</small>}</span>
                     {config.showPrices && row.value && <b>{row.value}</b>}

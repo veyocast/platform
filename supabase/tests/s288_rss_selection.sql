@@ -58,4 +58,31 @@ reset role;
 select is((select count(*)from public.dynamic_news_articles where tenant_id='10000000-0000-4000-8000-000000000288'),90::bigint,'the explicit display selection never removes any source article');
 select is(has_function_privilege('authenticated','private.sync_rss_article_limit_v1(text,jsonb)','execute'),false,'the selection helper is not exposed to browser roles');
 select is(has_function_privilege('service_role','private.build_dynamic_snapshot_before_rss_selection_v1(public.dynamic_slides)','execute'),false,'the inherited source reader is not exposed to worker roles');
+grant update on replies to authenticated;
+insert into public.media_assets(id,tenant_id,kind,title,original_file_name,mime_type,status,storage_bucket,storage_path,file_size_bytes,checksum_sha256,width,height,processed_at)
+values('50000000-0000-4000-8000-000000288309','10000000-0000-4000-8000-000000000288','image','RSS test poster','poster.png','image/png','ready','tenant-media','tenants/10000000-0000-4000-8000-000000000288/assets/50000000-0000-4000-8000-000000288309/original/poster.png',100,repeat('e',64),1920,1080,now());
+insert into public.media_variants(tenant_id,asset_id,variant_type,storage_path,mime_type,file_size_bytes,checksum_sha256,width,height)
+select tenant_id,id,'original',storage_path,mime_type,file_size_bytes,checksum_sha256,width,height from public.media_assets where id='50000000-0000-4000-8000-000000288309';
+update public.dynamic_slide_snapshots set status='ready',output_media_asset_id='50000000-0000-4000-8000-000000288309',completed_at=now()
+where id in(select(result->>'snapshotId')::uuid from replies);
+update public.dynamic_slides slide set current_snapshot_id=(replies.result->>'snapshotId')::uuid,status='ready'
+from replies where slide.id=(replies.result->>'slideId')::uuid;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000288',true);
+select public.create_or_resume_dynamic_slide_version_v1((result->>'slideId')::uuid,null) from replies;
+update replies set request=jsonb_set(request,'{configuration,syncConfiguration,seed,authoring,rssLayout}',to_jsonb(case source_id
+ when '20000000-0000-4000-8000-000000000288' then 'beeldheld'
+ when '20000000-0000-4000-8000-000000000289' then 'nachteditie' else 'clubkrant' end));
+select lives_ok(format($sql$select public.mutate_sync_dynamic_authoring_v1('10000000-0000-4000-8000-000000000288','save',%L,%L,%s,%L::jsonb,gen_random_uuid())$sql$,
+ slide.id,version.id,version.edit_revision,replies.request::text),'the real guarded save accepts RSS layout '||(replies.request#>>'{configuration,syncConfiguration,seed,authoring,rssLayout}'))
+ from replies join public.dynamic_slides slide on slide.id=(replies.result->>'slideId')::uuid
+ join public.dynamic_slide_versions version on version.id=slide.active_draft_version_id;
+select is(slide.configuration_json#>>'{syncConfiguration,seed,authoring,rssLayout}',replies.request#>>'{configuration,syncConfiguration,seed,authoring,rssLayout}','stored layout survives reading the same logical slide')
+ from replies join public.dynamic_slides slide on slide.id=(replies.result->>'slideId')::uuid;
+select is(slide.data_source_id,replies.source_id,'a layout-only edit retains its source identity')
+ from replies join public.dynamic_slides slide on slide.id=(replies.result->>'slideId')::uuid;
+select is(slide.configuration_json#>>'{newsSelection,maximumArticles}','5','a layout-only edit retains its article selection')
+ from replies join public.dynamic_slides slide on slide.id=(replies.result->>'slideId')::uuid;
+select throws_ok(format($sql$select pg_temp.preview(%L::jsonb)$sql$,jsonb_set(pg_temp.request(),'{configuration,syncConfiguration,seed,authoring,rssLayout}','"design-3"')::text),'23514',null,'invalid layout values are rejected at the actual database boundary');
+reset role;
 select *from finish();rollback;

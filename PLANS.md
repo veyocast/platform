@@ -1,5 +1,10 @@
 # VeyoCast MVP Plan
 
+S309 voegt de drie expliciet gekozen OnzeTrots RSS-indelingen toe aan de bestaande
+Sync-keten, met behoud van historische slides en echte artikel-/uitgeversidentiteit.
+De gebruiker autoriseert commit/push/main/staging/productie voor deze wijziging en
+de voorafgaande menu-/playlist-hotfix. Zie `docs/s309-rss-layouts-release.md`.
+
 S303 herstelt de vastgelopen Actions-deploywachtrij na afgewezen annulering,
 native heraanvraag en gesloten Supportticket4979898. Eén vaste nieuwe
 concurrencygroep blijft gedeeld door alle vijf bestaande muterende workflows.
