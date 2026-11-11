@@ -1,5 +1,23 @@
 # VeyoCast MVP Plan
 
+S312 herstelt de daadwerkelijk op productie aangetoonde Menu-completionfout:
+een exact bevroren immutable providerlogo werd ten onrechte uitsluitend tegen
+tenant Media gevalideerd. Eén forwardmigration en gerichte SQL-regressies
+bewaren checksum-/tenant-/leasegrenzen en bewijzen echte versieactivering.
+Zie `docs/s312-menu-provider-logo-publication.md`; normale gates/uitrol blijven
+verplicht, concepten worden niet blind opnieuw gepubliceerd.
+
+De aanvullende echte-hash-tegenproef toont dat de gedeelde retry dezelfde
+terminale failed snapshot hergebruikt. Dezelfde forwardmigration bewaart die
+historie en volgt nu deterministische pogingidentiteiten onder dezelfde versie,
+geserialiseerd per slide. De versie-regressie gebruikt voortaan de werkelijke
+inhoudshash en bewaakt herhaalde en opeenvolgende retries.
+
+De gebruiker bevestigt expliciet de specifieke klant-retry en een gedeelde,
+GPG-geverifieerde HTTPS-mirrorfallback in alleen de drie CI-gateworkflows.
+Alle fonts/dependencies/tests en deploymentguards blijven verplicht; geen
+sleutelimport of wijziging van secrets, omgevingen, DNS of VPS-runners.
+
 S311 volgt de expliciet goedgekeurde gerichte Worker-imageoptimalisatie na
 twee echte staging-ENOSPC's. Alleen de bevroren geïnstalleerde runtimegraph en
 renderassets gaan naar de Workerimage; volledige native containercontroles

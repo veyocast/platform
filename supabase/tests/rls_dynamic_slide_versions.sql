@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(46);
+select plan(57);
 
 select is(private.rebase_dynamic_placement_configuration_v1(
   '{"title":"Oud","scale":100,"seconds":10,"rendererVersion":"oud"}',
@@ -258,7 +258,8 @@ select is((select version_number from public.dynamic_slide_versions where id=(se
 update public.dynamic_slide_versions set status='publishing'
 where dynamic_slide_id='30000000-0000-4000-8000-000000001221' and version_number=3;
 insert into public.dynamic_slide_snapshots(id,tenant_id,dynamic_slide_id,template_version_id,data_source_id,source_revision_hash,snapshot_data_json,status)
-select '40000000-0000-4000-8000-000000001223',tenant_id,id,template_version_id,data_source_id,repeat('e',64),
+select '40000000-0000-4000-8000-000000001223',tenant_id,id,template_version_id,data_source_id,
+  private.dynamic_snapshot_content_hash_v1(slide,private.build_dynamic_snapshot_data(slide)),
   private.build_dynamic_snapshot_data(slide),'rendering'
 from public.dynamic_slides slide where id='30000000-0000-4000-8000-000000001221';
 insert into public.dynamic_render_jobs(tenant_id,snapshot_id,output_media_asset_id,status,attempt_count,locked_at,locked_by,lease_token)
@@ -279,6 +280,49 @@ insert into version_test_state(name,value) values('failed-retry',public.publish_
   (select edit_revision from public.dynamic_slide_versions where dynamic_slide_id='30000000-0000-4000-8000-000000001221' and version_number=3)));
 select ok((select status='queued' and error_code is null from public.dynamic_render_jobs where snapshot_id=(select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry')),'failed immutable snapshot creates a fresh queued render for the same version');
 select is((select count(*) from public.playlist_releases where playlist_id in ('60000000-0000-4000-8000-000000001221','60000000-0000-4000-8000-000000001222')),4::bigint,'failed publication never replaces the last playable releases');
+select isnt((select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry'),
+  '40000000-0000-4000-8000-000000001223'::uuid,'real-hash retry never reuses a terminal failed snapshot');
+select is((select status from public.dynamic_slide_snapshots where id='40000000-0000-4000-8000-000000001223'),
+  'failed','retry preserves immutable failure history');
+insert into version_test_state(name,value) select 'failed-retry-first',value from version_test_state where name='failed-retry';
+insert into version_test_state(name,value) values('failed-retry-repeat',public.publish_dynamic_slide_version_v1(
+  '30000000-0000-4000-8000-000000001221',
+  (select active_draft_version_id from public.dynamic_slides where id='30000000-0000-4000-8000-000000001221'),
+  (select edit_revision from public.dynamic_slide_versions where dynamic_slide_id='30000000-0000-4000-8000-000000001221' and version_number=3)));
+select is((select value->>'snapshotId' from version_test_state where name='failed-retry-repeat'),
+  (select value->>'snapshotId' from version_test_state where name='failed-retry-first'),'a repeated click follows the already queued retry');
+select is((select count(*) from public.dynamic_render_jobs where snapshot_id=
+  (select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry-first')),1::bigint,'a repeated click never duplicates its retry job');
+update public.dynamic_render_jobs set status='failed',error_code='RENDER_FAILED'
+  where snapshot_id=(select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry-first');
+update public.dynamic_slide_snapshots set status='failed',error_code='RENDER_FAILED'
+  where id=(select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry-first');
+insert into version_test_state(name,value) values('failed-retry-second',public.publish_dynamic_slide_version_v1(
+  '30000000-0000-4000-8000-000000001221',
+  (select active_draft_version_id from public.dynamic_slides where id='30000000-0000-4000-8000-000000001221'),
+  (select edit_revision from public.dynamic_slide_versions where dynamic_slide_id='30000000-0000-4000-8000-000000001221' and version_number=3)));
+select isnt((select value->>'snapshotId' from version_test_state where name='failed-retry-second'),
+  (select value->>'snapshotId' from version_test_state where name='failed-retry-first'),'another explicit retry can recover a second terminal failure');
+select is((select job.status from public.dynamic_render_jobs job where job.snapshot_id=
+  (select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry-second')),'queued','the second retry really queues new work');
+select ok((select private.sync_dom_semantic_data_v2(retried.snapshot_data_json)=private.sync_dom_semantic_data_v2(failed.snapshot_data_json)
+  from public.dynamic_slide_snapshots retried cross join public.dynamic_slide_snapshots failed
+  where retried.id=(select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry-second')
+  and failed.id='40000000-0000-4000-8000-000000001223'),'retry identity changes without changing the selected content');
+select is((select count(*) from public.dynamic_slide_versions where dynamic_slide_id='30000000-0000-4000-8000-000000001221'),
+  3::bigint,'successive attempts remain under v3 without extra versions');
+select is((select version_number from public.dynamic_slide_versions where id=(select current_published_version_id
+  from public.dynamic_slides where id='30000000-0000-4000-8000-000000001221')),2,'the previous working version survives successive failures');
+insert into version_test_state(name,value) values('failed-retry-second-repeat',public.publish_dynamic_slide_version_v1(
+  '30000000-0000-4000-8000-000000001221',
+  (select active_draft_version_id from public.dynamic_slides where id='30000000-0000-4000-8000-000000001221'),
+  (select edit_revision from public.dynamic_slide_versions where dynamic_slide_id='30000000-0000-4000-8000-000000001221' and version_number=3)));
+select is((select value->>'snapshotId' from version_test_state where name='failed-retry-second-repeat'),
+  (select value->>'snapshotId' from version_test_state where name='failed-retry-second'),'a retry chain remains idempotent at its pending tip');
+select is((select count(*) from public.playlist_releases where playlist_id in
+  ('60000000-0000-4000-8000-000000001221','60000000-0000-4000-8000-000000001222')),4::bigint,
+  'retry clicks do not publish incomplete playlist releases');
+update version_test_state set value=(select value from version_test_state where name='failed-retry-second') where name='failed-retry';
 update public.dynamic_slide_snapshots set status='ready',output_media_asset_id='50000000-0000-4000-8000-000000001222',completed_at=now()
 where id=(select (value->>'snapshotId')::uuid from version_test_state where name='failed-retry');
 select public.publish_dynamic_slide_version_v1('30000000-0000-4000-8000-000000001221',
