@@ -34,7 +34,7 @@ het aanmaken van gedeeltelijke images, met een zichtbare oorzaak. Bij voldoende
 ruimte blijft de bruikbare buildcache juist behouden. Bestaande gates, secrets,
 immutable/rollbackguards en expliciete productiepromotie blijven ongewijzigd.
 
-203 gerichte infrastructuurregressies slagen lokaal, waaronder elf fixture-
+205 gerichte infrastructuurregressies slagen lokaal, waaronder dertien fixture-
 transportproeven, tien capaciteitsproeven en64deployment-lifecycleproeven. De
 daadwerkelijke volledige nieuwe hostedrun en exacte staging-/productieuitrol
 blijven vereist en worden per finale SHA als PR-/runbewijs vastgelegd.

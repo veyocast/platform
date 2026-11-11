@@ -9,7 +9,7 @@ blijven verplicht. Geen deployworkflow/secrets/SQL/dependency-delta. Zie
 De aanvullende brede releaseautorisatie omvat nu ook eenmaal voorbereide en
 byte-/poginggebonden volledige Player-fixtures, betrouwbare CI-reruns en een
 fail-closed bouwruimtereserve met uitsluitend veilige ongebruikte-cacheopruiming.
-203 gerichte infrastructuurproeven zijn groen; alle finale hostedgates en normale
+205 gerichte infrastructuurproeven zijn groen; alle finale hostedgates en normale
 staging-/productiepromotie blijven vereist. Andere VPS-projecten/data blijven intact.
 
 S310 vermindert de seriële Player-CI-wachttijd met vier originele-case-shards

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
@@ -72,3 +72,33 @@ test("the real CLI validates the exact runner-owned download and rejects an old 
   assert.notEqual(run({ GITHUB_RUN_ATTEMPT: "2" }).status, 0);
   assert.notEqual(run({ PLAYWRIGHT_FIXTURE_ROOT: temporary }).status, 0);
 }));
+
+for (const failHelper of [false, true]) {
+  test(`the actual orchestration starts without a fixture parent and ${failHelper ? "never seals a failed helper" : "seals all helper outputs"}`, () => {
+    const temporary = mkdtempSync(join(tmpdir(), "vc-fixture-runner-"));
+    const bin = join(temporary, "bin");
+    mkdirSync(bin);
+    const commands = {
+      ffmpeg: "exit 0", ffprobe: "exit 0",
+      node: 'if [[ $1 == --input-type=module ]]; then printf /bin/true; else exec "$TEST_NODE" "$@"; fi',
+      pnpm: `[[ $1 == exec && $2 == tsx ]] || exit 97
+if [[ $3 == tests/helpers/sync-background-binary.ts ]]; then
+  mkdir "$S238_BACKGROUND_BINARIES"
+  printf '{}' > "$S238_BACKGROUND_BINARIES/registry.json"
+else
+  [[ $3 == tests/helpers/sync-onzetrots-export.ts ]] || exit 97
+  if [[ \${5:-} == sync-onzetrots-v9 && $TEST_FAIL_HELPER == true ]]; then exit 42; fi
+  mkdir "$4"
+  for name in artifact.json presentation.json assets.json standings-full.mp4 standings-poster.png; do printf fixture > "$4/$name"; done
+fi`
+    };
+    for (const [name, command] of Object.entries(commands)) writeFileSync(join(bin, name), `#!/bin/bash\nset -eu\n${command}\n`, { mode: 0o700 });
+    try {
+      const result = spawnSync("bash", ["scripts/prepare-player-fixtures.sh"], { encoding: "utf8", timeout: 5000,
+        env: { ...process.env, ...environment, PATH: `${bin}:/usr/bin:/bin`, RUNNER_TEMP: temporary,
+          TEST_NODE: process.execPath, TEST_FAIL_HELPER: String(failHelper) } });
+      assert.equal(result.status, failHelper ? 42 : 0, result.stderr);
+      assert.equal(existsSync(join(temporary, "player-fixtures/fixtures.json")), !failHelper);
+    } finally { rmSync(temporary, { recursive: true, force: true }); }
+  });
+}

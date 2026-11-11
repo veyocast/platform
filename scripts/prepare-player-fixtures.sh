@@ -13,6 +13,7 @@ ffprobe -version
 export SITES_CAPTURE_TEST_CHROMIUM
 SITES_CAPTURE_TEST_CHROMIUM=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; process.stdout.write(chromium.executablePath())')
 test -x "$SITES_CAPTURE_TEST_CHROMIUM"
+mkdir -p "$PLAYWRIGHT_FIXTURE_ROOT"
 pnpm exec tsx tests/helpers/sync-background-binary.ts
 pnpm exec tsx tests/helpers/sync-onzetrots-export.ts "$S285_ONZETROTS_BINARIES" "$SITES_CAPTURE_TEST_CHROMIUM"
 pnpm exec tsx tests/helpers/sync-onzetrots-export.ts "$S286_ONZETROTS_BINARIES" "$SITES_CAPTURE_TEST_CHROMIUM" sync-onzetrots-v9
