@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S311 volgt de expliciet goedgekeurde gerichte Worker-imageoptimalisatie na
+twee echte staging-ENOSPC's. Alleen de bevroren geïnstalleerde runtimegraph en
+renderassets gaan naar de Workerimage; volledige native containercontroles
+blijven verplicht. Geen deployworkflow/secrets/SQL/dependency-delta. Zie
+`docs/s311-worker-runtime-image.md`.
+
 S310 vermindert de seriële Player-CI-wachttijd met vier originele-case-shards
 en een verplichte volledige closurecontrole, met behoud van procesisolatie en
 alle tests. De gebruiker autoriseert de Player-jobgrens 105→135 minuten én

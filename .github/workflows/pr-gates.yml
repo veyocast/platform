@@ -69,6 +69,13 @@ jobs:
           pnpm exec eslint scripts/verify-player-shards.mjs --max-warnings=0
           node --test scripts/run-browser-gates.test.mjs
 
+      - name: Validate isolated Worker runtime and real image
+        run: |
+          pnpm exec eslint scripts/prepare-worker-runtime.mjs scripts/prepare-worker-runtime.test.mjs scripts/smoke-worker-runtime.mjs --max-warnings=0
+          node --test scripts/prepare-worker-runtime.test.mjs
+          shellcheck scripts/test-worker-runtime-image.sh
+          bash scripts/test-worker-runtime-image.sh
+
       - name: Build
         run: pnpm build --concurrency=1
 
