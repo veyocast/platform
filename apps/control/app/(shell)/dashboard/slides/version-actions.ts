@@ -110,3 +110,36 @@ function record(value: unknown) {
     ? value as Record<string, unknown>
     : null;
 }
+
+export async function readDynamicPublication(slideId: string, expectedVersionId?: string) {
+  const session = await requireTenantControlSession("tenant.dynamic_slide.read");
+  if (!uuidPattern.test(slideId) || (expectedVersionId && !uuidPattern.test(expectedVersionId))) throw new Error("Ongeldige slideversie.");
+  const supabase = await createControlSupabaseClient();
+  if (!supabase || !session.tenantId) throw new Error("De publicatiestatus is niet beschikbaar.");
+  const slide = await supabase.from("dynamic_slides")
+    .select("current_published_version_id,active_draft_version_id,current_snapshot_id,last_error_code")
+    .eq("tenant_id", session.tenantId).eq("id", slideId).maybeSingle();
+  if (slide.error || !slide.data) throw new Error("De publicatiestatus kon niet worden opgehaald.");
+  const versionId = expectedVersionId ?? slide.data.active_draft_version_id ?? slide.data.current_published_version_id;
+  if (!versionId) throw new Error("De slide heeft geen versie.");
+  const version = await supabase.from("dynamic_slide_versions")
+    .select("id,status,edit_revision,published_snapshot_id")
+    .eq("tenant_id", session.tenantId).eq("dynamic_slide_id", slideId).eq("id", versionId).maybeSingle();
+  if (version.error || !version.data) throw new Error("De versie kon niet worden opgehaald.");
+  let snapshotQuery = supabase.from("dynamic_slide_snapshots")
+    .select("id,status,error_code,output_media_asset_id,created_at")
+    .eq("tenant_id", session.tenantId).eq("dynamic_slide_id", slideId).eq("dynamic_slide_version_id", versionId);
+  if (version.data.status === "published" && slide.data.current_snapshot_id) snapshotQuery = snapshotQuery.eq("id", slide.data.current_snapshot_id);
+  const snapshot = await snapshotQuery.order("snapshot_sequence", { ascending: false }).limit(1).maybeSingle();
+  if (snapshot.error) throw new Error("De verwerking kon niet worden gecontroleerd.");
+  const active = version.data.status === "published" && slide.data.current_published_version_id === versionId
+    && snapshot.data?.status === "ready"
+    && snapshot.data.output_media_asset_id !== null;
+  const error = snapshot.data?.status === "failed" ? snapshot.data.error_code ?? "RENDER_FAILED" : slide.data.last_error_code;
+  return {
+    versionId, revision: version.data.edit_revision,
+    status: active ? "published" as const : error ? "failed" as const : version.data.status === "publishing" ? "publishing" as const : "draft" as const,
+    error: error ?? null,
+    startedAt: snapshot.data?.created_at ?? null
+  };
+}

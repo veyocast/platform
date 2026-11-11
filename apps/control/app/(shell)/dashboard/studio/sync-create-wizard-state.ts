@@ -63,7 +63,9 @@ export function initialSyncCreateWizardDraft(data: SyncCreateWizardData): SyncCr
   const cfg=checkedCfg?.success?checkedCfg.data:null;
   return {
     mode: data.initialMode,
-    presentation: data.initialPresentation,
+    presentation: data.family === 'rss' && data.initialPresentation.rendererVersion === 'sync-onzetrots-v9'
+      ? { ...data.initialPresentation, authoring: { ...data.initialPresentation.authoring, rssLayout: data.initialPresentation.authoring.rssLayout ?? 'beeldheld' } }
+      : data.initialPresentation,
     seconds: data.family === "rss" ? "10" : "5",
     ...(data.family === "rss" ? { newsLimit: "5" } : {}),
     sourceId: data.initialSourceId ?? "",

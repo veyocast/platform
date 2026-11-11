@@ -3,6 +3,7 @@ import { CheckCircle2, Clock3, History } from "lucide-react";
 import { Button } from "@veyocast/ui";
 
 import { createOrResumeDynamicSlideVersion } from "./version-actions";
+import { PublicationProgress } from "./publication-progress";
 
 export type DynamicSlideVersionSummary = {
   createdAt: string;
@@ -54,6 +55,7 @@ export function VersionHistory({
           </li>
         ))}
       </ol>
+      {versions.filter(version => version.status === "publishing" || version.status === "draft").map(version => <PublicationProgress key={version.id} slideId={slideId} versionId={version.id} />)}
       <style>{`.vc-version-history ol{display:grid;gap:.25rem;margin:0;padding:0;list-style:none}.vc-version-history li{display:grid;grid-template-columns:3rem minmax(7rem,1fr) minmax(10rem,auto) auto;align-items:center;gap:.75rem;min-height:48px;padding:.5rem .75rem;border-top:1px solid var(--border)}.vc-version-history__number{font-weight:800;font-variant-numeric:tabular-nums}.vc-version-history__state{display:flex;align-items:center;gap:.4rem}.vc-version-history__state svg{width:16px;color:var(--success)}.vc-version-history time{color:var(--muted-foreground);font-size:.875rem}@media(max-width:680px){.vc-version-history li{grid-template-columns:3rem 1fr}.vc-version-history time,.vc-version-history form{grid-column:2}}`}</style>
     </section>
   );

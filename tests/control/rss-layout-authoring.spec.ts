@@ -1,0 +1,32 @@
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import { fixture, mount, next, prepareWizardFixture, id } from '../helpers/sync-create-wizard-fixture';
+
+test.beforeAll(prepareWizardFixture);
+for (const width of [320, 1440]) test(`RSS layout selection, keyboard and confirmed create receipt survive reload at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 950 });
+  const data = fixture('rss', true); data.initialSourceId = id(3); data.sources[0]!.kind = 'rss';
+  const state = await mount(page, data, { rssPreview: true, dropFirst: true });
+  const held = page.getByRole('button', { name: /^Beeldheld/ }), night = page.getByRole('button', { name: /^Nachteditie/ }), paper = page.getByRole('button', { name: /^Clubkrant/ });
+  await expect(held).toHaveAttribute('aria-pressed', 'true');
+  await night.focus(); await page.keyboard.press('Enter'); await expect(night).toHaveAttribute('aria-pressed', 'true');
+  await next(page); await page.getByRole('spinbutton', { name: 'Nieuwste artikelen', exact: true }).fill('7');
+  await next(page); await expect(page.locator('.rss-design')).toHaveClass(/rss-nachteditie/);
+  await paper.click(); await expect(page.locator('.rss-design')).toHaveClass(/rss-clubkrant/);
+  await page.getByRole('button', { name: 'Staand · 9:16', exact: true }).click();
+  await page.reload(); await expect(paper).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.screen')).toHaveAttribute('data-ot-rss-layout', 'clubkrant');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations).toEqual([]);
+  await next(page); await page.getByRole('button', { name: 'Bron controleren', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Ontwerp maken', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Ontwerp maken', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Dezelfde opdracht bevestigen', exact: true })).toBeEnabled();
+  await page.reload(); await page.getByRole('button', { name: 'Dezelfde opdracht bevestigen', exact: true }).click();
+  await expect.poll(() => state.creates.length).toBe(2);
+  expect(state.creates[1]).toEqual(state.creates[0]);
+  const command = state.creates[0]!.input;
+  if (command.kind !== 'connected') throw Error('Connected command required');
+  expect(command.command.request.configuration).toMatchObject({ newsSelection: { maximumArticles: 7 }, syncConfiguration: { seed: { authoring: { rssLayout: 'clubkrant' }, orientation: 'portrait' } } });
+  expect(state.errors).toEqual([]);
+});

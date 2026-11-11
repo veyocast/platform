@@ -163,8 +163,8 @@
 .productGroup {
   display: grid;
   min-height: 78px;
-  grid-template-columns: 64px minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-columns: 64px minmax(0, 1fr) minmax(5.5em, max-content);
+  align-items: baseline;
   gap: 16px;
   padding: 8px 4px;
   border-bottom: 1px solid var(--vc-theme-line);
@@ -177,6 +177,7 @@
 
 .mediaThumb {
   display: block;
+  align-self: start;
   width: 64px;
   height: 64px;
   overflow: hidden;
@@ -372,7 +373,7 @@
 .canvas[data-orientation="portrait"] .product,
 .canvas[data-orientation="portrait"] .productGroup {
   min-height: 62px;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 48px minmax(0, 1fr) minmax(5.5em, max-content);
   gap: 12px;
   padding-block: 5px;
 }

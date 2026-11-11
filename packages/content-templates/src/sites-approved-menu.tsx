@@ -29,13 +29,13 @@ export const approvedMenuCss=syncOnzeTrotsV9Styles({style:{font:'Brush',fontChan
 .vm-approved .vm-products-fit{flex:1;min-height:0;min-width:0;overflow:hidden}
 .vm-approved .vm-widgets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;height:auto;align-items:start}
 .vm-approved .vm-widgets[data-columns="1"],.vm-approved .vm-widgets[data-full="true"]{grid-template-columns:1fr}
-.vm-approved .vm-widget{min-width:0;overflow:hidden;background:transparent;border:0;border-radius:0}
+.vm-approved .vm-widget{min-width:0;overflow:visible;background:transparent;border:0;border-radius:0}
 .vm-approved .vm-widget[data-column="full"]{grid-column:1/-1}
 .vm-approved .vm-widget>header{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:10px}
 .vm-approved .vm-widget>header>span{color:var(--blue);font-size:15px}
 .vm-approved .vm-widget h2{font-family:OTMarker,cursive;font-size:calc(30px * var(--vm-scale));color:var(--blue);line-height:1.3}
 .vm-approved .vm-widget header p{font-size:calc(18px * var(--vm-scale));line-height:1.4;color:var(--dim);margin-top:6px}
-.vm-approved .vm-product{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:12px 0;min-width:0}
+.vm-approved .vm-product{display:grid;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding:12px 0;min-width:0}
 .vm-approved .vm-product>span{font-size:calc(22px * var(--vm-scale));line-height:1.35;color:var(--ink)}
 .vm-approved .vm-product>b{font-family:OTBarlow,sans-serif;white-space:nowrap;font-size:calc(27px * var(--vm-scale));color:var(--blue)}
 .vm-approved .vm-product small{font-size:calc(17px * var(--vm-scale));color:var(--dim)}

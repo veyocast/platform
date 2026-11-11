@@ -73,6 +73,18 @@ test("Menu Studio bewaakt 44 compatibility- en FieldFlow-goldens", async ({ page
           }));
           expect(geometry.scrollWidth).toBe(geometry.clientWidth);
           expect(geometry.scrollHeight).toBe(geometry.clientHeight);
+          const prices = await scene.locator("article[data-menu-row]").evaluateAll(rows => rows.map(row => {
+            const title = row.querySelector("strong")!;
+            const price = row.querySelector("b")!;
+            const range = document.createRange();
+            range.setStart(title.firstChild!, 0); range.setEnd(title.firstChild!, 1);
+            return { baseline: Math.abs(range.getBoundingClientRect().bottom - price.getBoundingClientRect().bottom), overlap: title.getBoundingClientRect().right > price.getBoundingClientRect().left, nowrap: getComputedStyle(price).whiteSpace };
+          }));
+          for (const price of prices) {
+            expect(price.baseline).toBeLessThan(10);
+            expect(price.overlap).toBe(false);
+            expect(price.nowrap).toBe("nowrap");
+          }
           const noteBox = await page.getByText("Vers bereid · lokaal ingekocht", { exact: true }).boundingBox();
           const imageBox = await page.getByAltText("Abstracte illustratie bij het dagmenu").boundingBox();
           const reducedMotionPoster = page.locator('[class*="reducedMotionPoster"]');
@@ -97,7 +109,7 @@ test("Menu Studio bewaakt 44 compatibility- en FieldFlow-goldens", async ({ page
   }
 });
 
-test("portrait pagineert twintig productregels voor de grotere titels zonder crop", async ({ page }) => {
+test("portrait bewaart twintig producten op de gekozen pagina en meldt ruimtegebrek", async ({ page }) => {
   await page.setViewportSize({ height: 1920, width: 1080 });
   const payload = buildPayload("editorial", "light", "portrait");
   const menu = buildDocument("editorial", "light");
@@ -107,7 +119,7 @@ test("portrait pagineert twintig productregels voor de grotere titels zonder cro
   );
   menu.assets = [];
   menu.theme.brand = { accent: "#FF5C20", support: "#0050FF" };
-  menu.pages[0]!.blocks = [capacityCategory];
+  menu.pages = [{ ...menu.pages[0]!, blocks: [capacityCategory] }];
   payload.assets = {};
   payload.data = { menuDocument: menu };
 
@@ -117,9 +129,9 @@ test("portrait pagineert twintig productregels voor de grotere titels zonder cro
   )).toBe(true);
   const scene = page.locator("[data-theme-mode][data-theme-id]");
   await expect(scene).toHaveAttribute("data-menu-content-measured", "true");
-  await expect(scene).toHaveAttribute("data-menu-content-overflow", "false");
-  await expect(scene.locator("[data-menu-row]")).toHaveCount(18);
-  await expect(scene.getByText("1 / 2", { exact: true })).toBeVisible();
+  await expect(scene).toHaveAttribute("data-menu-content-overflow", "true");
+  await expect(scene.locator("[data-menu-row]")).toHaveCount(21);
+  await expect(scene.getByText("1 / 1", { exact: true })).toBeVisible();
 
   const geometry = await scene.evaluate((element) => {
     const root = element.getBoundingClientRect();
@@ -145,9 +157,24 @@ test("portrait pagineert twintig productregels voor de grotere titels zonder cro
     body: { h: 1388, w: 936, x: 72, y: 348 },
     footer: { h: 64, w: 936, x: 72, y: 1760 },
     header: { h: 228, w: 936, x: 72, y: 96 },
-    scrollHeight: 1920,
     scrollWidth: 1080
   });
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(1920);
+});
+
+for (const orientation of ["landscape", "portrait"] as const) test(`${orientation} meldt een zwevend blok over producten zonder ze te verplaatsen`, async ({ page }) => {
+  await page.setViewportSize(orientation === "landscape" ? { height: 1080, width: 1920 } : { height: 1920, width: 1080 });
+  const payload = buildPayload("editorial", "light", orientation);
+  const menu = buildDocument("editorial", "light");
+  const note = menu.pages[0]!.blocks.find(block => block.type === "text")!;
+  note.layout[orientation] = { h: 100, rotation: 0, w: 500, x: orientation === "landscape" ? 96 : 72, y: orientation === "landscape" ? 400 : 500 };
+  payload.data = { menuDocument: menu };
+  await page.goto(`${playerURL}/thumbnail#payload=${encodePayload(payload)}`);
+  const scene = page.locator("[data-theme-mode][data-theme-id]");
+  await expect(scene).toHaveAttribute("data-menu-content-measured", "true");
+  await expect(scene).toHaveAttribute("data-menu-content-overflow", "true");
+  await expect(scene.locator("article[data-menu-row]")).toHaveCount(6);
+  await expect(scene.getByText("1 / 2", { exact: true })).toBeVisible();
 });
 
 test("portrait start een korte prijslijst altijd bovenaan", async ({ page }) => {
@@ -485,7 +512,7 @@ function buildDocument(
     pages: [{
       blocks: [
         category("dranken", "Dranken", 0, "left"),
-        category("gerechten", "Gerechten", 1, "right"),
+        { ...category("gerechten", "Gerechten", 1, "right"), productNodes: category("gerechten", "Gerechten", 1, "right").productNodes.slice(0, 2) },
         {
           alt: "Abstracte illustratie bij het dagmenu",
           appearance: {
@@ -543,6 +570,10 @@ function buildDocument(
       ],
       id: "golden-page",
       order: 0
+    }, {
+      blocks: [{ ...category("gerechten", "Gerechten", 0, "right"), id: "category-gerechten-page-2", productNodes: category("gerechten", "Gerechten", 0, "right").productNodes.slice(2) }],
+      id: "golden-page-2",
+      order: 1
     }],
     revision: 7,
     schemaVersion: "menu-document.v2",

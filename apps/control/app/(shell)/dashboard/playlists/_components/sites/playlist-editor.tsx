@@ -14,6 +14,7 @@ import { ScreenThemePicker } from './screen-theme-picker';
 import { SyncSlidePreview } from './sync-studio-preview';
 import type { ScreenThemeId } from './model';
 import s from './playlist-editor.module.css';
+import { movePlaylistItem } from '../../../../../../lib/move-playlist-item';
 
 type Props = {
   playlist: Playlist;
@@ -81,6 +82,8 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
   const scrollBody = useRef<HTMLDivElement>(null);
   const backAction = useRef<() => void>(() => {});
   const initial = useRef(JSON.stringify(playlist));
+  const latestPlaylist = useRef(playlist);
+  useEffect(() => { latestPlaylist.current = playlist; }, [playlist]);
   const [mode, setMode] = useState<'editor' | 'picker' | 'publish'>(startAdding && canWrite ? 'picker' : 'editor');
   const [view, setView] = useState<'Inhoud' | 'Voorbeeld' | 'Details'>('Inhoud');
   const [activeId, setActiveId] = useState(playlist.slides[0]?.id || '');
@@ -166,7 +169,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
     return () => window.clearTimeout(timer);
   }, [playing, mode, active, activeIndex, playlist.slides]);
 
-  function updateSlides(slides: Slide[]) { if (canEdit) onChange({ ...playlist, slides }); }
+  function updateSlides(slides: Slide[]) { if (canEdit) { latestPlaylist.current = { ...latestPlaylist.current, slides }; onChange(latestPlaylist.current); } }
   function patchSlide(id: string, patch: Partial<Slide>) {
     if (!canEdit) return;
     updateSlides(playlist.slides.map(slide => {
@@ -212,15 +215,14 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
     showMode('editor');
     setNotice(`${slides.length} ${slides.length === 1 ? 'item toegevoegd' : 'items toegevoegd'} onderaan je playlist.`);
   }
-  function move(id: string, offset: number) {
+  function move(id: string, offset: -1 | 1) {
     if (!canEdit) return;
-    const index = playlist.slides.findIndex(slide => slide.id === id);
-    const destination = index + offset;
-    if (index < 0 || destination < 0 || destination >= playlist.slides.length) return;
-    const slides = [...playlist.slides];
-    [slides[index], slides[destination]] = [slides[destination]!, slides[index]!];
+    const current = latestPlaylist.current.slides;
+    const slides = movePlaylistItem(current, id, offset);
+    if (slides === current) return;
     updateSlides(slides);
-    setNotice(`${slides[destination]!.name} staat nu op plek ${destination + 1}.`);
+    const destination = slides.findIndex(slide => slide.id === id);
+    setNotice(`${slides[destination]!.name} staat nu op plek ${destination + 1}. Nog niet opgeslagen.`);
   }
   function remove(ids: string[]) {
     if (!canEdit) return;
@@ -430,7 +432,7 @@ export function PlaylistEditor({ playlist, confirmedPlaylist, onChange, onClose,
                 <button type="button" className={s.rowMain} aria-expanded={listMode === 'normal' ? editingId === slide.id : undefined} onClick={() => { setActiveId(slide.id); setPlaying(false); if (listMode === 'select') setSelectedIds(previous => previous.includes(slide.id) ? previous.filter(id => id !== slide.id) : [...previous, slide.id]); else if (listMode === 'normal') setEditingId(editingId === slide.id ? null : slide.id); }}>
                   <span className={s.rowNumber}>{index + 1}</span>{thumbnail(slide)}<span className={s.rowCopy}><strong>{slide.name || 'Naamloos item'}</strong><small>{kind(slide)}{pages(slide) > 1 ? ` · ${pages(slide)} pagina’s` : ''}</small></span>
                 </button>
-                {listMode === 'reorder' ? <div className={s.moveButtons}><button type="button" aria-label={`${slide.name} omhoog`} disabled={!canEdit || index === 0} onClick={() => move(slide.id, -1)}><ArrowUp size={19} /></button><button type="button" aria-label={`${slide.name} omlaag`} disabled={!canEdit || index === playlist.slides.length - 1} onClick={() => move(slide.id, 1)}><ArrowDown size={19} /></button></div> : <button type="button" className={s.durationButton} aria-label={`${slide.name}, ${seconds(slide)} seconden, instellingen openen`} onClick={() => { setActiveId(slide.id); setPlaying(false); if (listMode === 'select') { setView('Voorbeeld'); } else setEditingId(editingId === slide.id ? null : slide.id); }}><span>{seconds(slide)}s</span>{listMode === 'normal' && <ChevronDown size={14} />}</button>}
+                {<div className={s.moveButtons}><button type="button" title="Omhoog verplaatsen" aria-label={`Omhoog verplaatsen: ${slide.name}`} disabled={!canEdit || index === 0} onClick={event => { event.stopPropagation(); move(slide.id, -1); }}><ArrowUp size={19} /></button><button type="button" title="Omlaag verplaatsen" aria-label={`Omlaag verplaatsen: ${slide.name}`} disabled={!canEdit || index === playlist.slides.length - 1} onClick={event => { event.stopPropagation(); move(slide.id, 1); }}><ArrowDown size={19} /></button></div>}{listMode !== 'reorder' && <button type="button" className={s.durationButton} aria-label={`${slide.name}, ${seconds(slide)} seconden, instellingen openen`} onClick={() => { setActiveId(slide.id); setPlaying(false); if (listMode === 'select') { setView('Voorbeeld'); } else setEditingId(editingId === slide.id ? null : slide.id); }}><span>{seconds(slide)}s</span>{listMode === 'normal' && <ChevronDown size={14} />}</button>}
               </div>
               {listMode === 'normal' && editingId === slide.id && itemSettings(slide)}
             </li>)}</ol>

@@ -14,15 +14,22 @@ let bundle:string;
 test.beforeAll(()=>{
  const compiler=require.resolve('esbuild',{paths:[require.resolve('tsx')]});
  const entry=`import React,{useState}from'react';import{createRoot}from'react-dom/client';import{SyncStudioMedia}from'./apps/player/app/_components/sync-studio-media';import{measureSyncOnzeTrotsV9Layout,measureSyncOnzeTrotsLayout,projectSyncOnzeTrotsMotion,applySyncOnzeTrotsMotion}from'@veyocast/content-templates/sync-slide-static-view';
- async function main(){globalThis.fontLoads=0;const originalLoad=FontFace.prototype.load;FontFace.prototype.load=function(){globalThis.fontLoads++;return originalLoad.call(this);};const props=globalThis.fixture,item=props.item;item.syncSystemAssetUrls={};for(const asset of props.assets){const response=await fetch(asset.path);const bytes=await response.arrayBuffer();const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');if(!response.ok||hash!==asset.sha256||bytes.byteLength!==asset.bytes)throw Error('Fixture asset integrity');item.syncSystemAssetUrls[asset.path]=URL.createObjectURL(new Blob([bytes],{type:asset.mimeType}));}if(props.brokenFont){const font=props.assets.find(asset=>asset.mimeType.startsWith('font/'));item.syncSystemAssetUrls[font.path]=URL.createObjectURL(new Blob([new Uint8Array([0])],{type:font.mimeType}));}if(props.unsupported){const original=CSS.supports.bind(CSS);CSS.supports=(key,value)=>key==='position'&&value==='sticky'?false:original(key,value);}globalThis.ready=[];globalThis.sceneFrame=(elapsed,flags)=>applySyncOnzeTrotsMotion(projectSyncOnzeTrotsMotion(elapsed,measureSyncOnzeTrotsLayout(),(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.scrollSpeed,false,{panelCount:measureSyncOnzeTrotsV9Layout(),mode:(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.mode,entranceAllowed:true,...flags}));globalThis.seek=elapsed=>applySyncOnzeTrotsMotion(projectSyncOnzeTrotsMotion(elapsed,measureSyncOnzeTrotsLayout(),(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.scrollSpeed,false,{panelCount:measureSyncOnzeTrotsV9Layout(),mode:(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.mode,paused:true,introFinished:true,entranceAllowed:true}));
- function App(){const[paused,setPaused]=useState(false),[current,setCurrent]=useState(item);return <><button onClick={()=>setCurrent(previous=>{const dynamic=previous.syncDynamic,presentation=dynamic?.presentation??previous.syncStudioPresentation,standing=presentation.rich.standings;const changed={...presentation,rich:{...presentation.rich,standings:{...standing,rows:standing.rows.map(row=>row.teamId===standing.ownTeamId?{...row,teamName:'Actuele ploeg'}:row)}}};return {...previous,syncSystemAssetUrls:{...previous.syncSystemAssetUrls},...(dynamic?{syncDynamic:{...dynamic,presentation:changed,dataRevision:dynamic.dataRevision+1,contentHash:'e'.repeat(64)}}:{syncStudioPresentation:changed})};})}>Gegevens verversen</button><button onClick={()=>setPaused(v=>!v)}>{paused?'Hervatten':'Pauzeren'}</button><div style={{width:props.native?1920:960,height:props.native?1080:540}}><SyncStudioMedia item={current} passive={props.passive} paused={paused} onReady={id=>globalThis.ready.push({id,visible:document.querySelector('.vc-slide-preview')?.getBoundingClientRect().width>0})} fallback={<p id='binary-fallback-selected'>Binaire uitvoer geselecteerd</p>}/></div></>;}createRoot(document.getElementById('root')).render(<App/>);}main().catch(error=>{globalThis.fixtureError=error.message;});`;
+ async function main(){globalThis.fontLoads=0;const originalLoad=FontFace.prototype.load;FontFace.prototype.load=function(){globalThis.fontLoads++;const delay=globalThis.fixture.fontDelayMs??0;return delay?new Promise(resolve=>setTimeout(resolve,delay)).then(()=>originalLoad.call(this)):originalLoad.call(this);};const props=globalThis.fixture,item=props.item;item.syncSystemAssetUrls={};for(const asset of props.assets){const response=await fetch(asset.path);const bytes=await response.arrayBuffer();const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');if(!response.ok||hash!==asset.sha256||bytes.byteLength!==asset.bytes)throw Error('Fixture asset integrity');item.syncSystemAssetUrls[asset.path]=URL.createObjectURL(new Blob([bytes],{type:asset.mimeType}));}if(props.brokenFont){const font=props.assets.find(asset=>asset.mimeType.startsWith('font/'));item.syncSystemAssetUrls[font.path]=URL.createObjectURL(new Blob([new Uint8Array([0])],{type:font.mimeType}));}if(props.unsupported){const original=CSS.supports.bind(CSS);CSS.supports=(key,value)=>key==='position'&&value==='sticky'?false:original(key,value);}globalThis.ready=[];globalThis.sceneFrame=(elapsed,flags)=>applySyncOnzeTrotsMotion(projectSyncOnzeTrotsMotion(elapsed,measureSyncOnzeTrotsLayout(),(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.scrollSpeed,false,{panelCount:measureSyncOnzeTrotsV9Layout(),mode:(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.mode,entranceAllowed:true,...flags}));globalThis.seek=elapsed=>applySyncOnzeTrotsMotion(projectSyncOnzeTrotsMotion(elapsed,measureSyncOnzeTrotsLayout(),(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.scrollSpeed,false,{panelCount:measureSyncOnzeTrotsV9Layout(),mode:(item.syncDynamic?.presentation??item.syncStudioPresentation).visual.mode,paused:true,introFinished:true,entranceAllowed:true}));
+ function App(){const[paused,setPaused]=useState(false),[current,setCurrent]=useState(item);return <><button onClick={()=>setCurrent(previous=>{const dynamic=previous.syncDynamic,presentation=dynamic?.presentation??previous.syncStudioPresentation,standing=presentation.rich.standings;const changed=presentation.family==='rss'?{...presentation,rich:{...presentation.rich,news:[...presentation.rich.news].reverse()}}:{...presentation,rich:{...presentation.rich,standings:{...standing,rows:standing.rows.map(row=>row.teamId===standing.ownTeamId?{...row,teamName:'Actuele ploeg'}:row)}}};return {...previous,syncSystemAssetUrls:{...previous.syncSystemAssetUrls},...(dynamic?{syncDynamic:{...dynamic,presentation:changed,dataRevision:dynamic.dataRevision+1,contentHash:'e'.repeat(64)}}:{syncStudioPresentation:changed})};})}>Gegevens verversen</button><button onClick={()=>setPaused(v=>!v)}>{paused?'Hervatten':'Pauzeren'}</button><div style={{width:props.native?(props.rssLayout&&props.orientation==='portrait'?1080:1920):960,height:props.native?(props.rssLayout&&props.orientation==='portrait'?1920:1080):540}}><SyncStudioMedia item={current} passive={props.passive} paused={paused} onReady={id=>globalThis.ready.push({id,visible:document.querySelector('.vc-slide-preview')?.getBoundingClientRect().width>0})} fallback={<p id='binary-fallback-selected'>Binaire uitvoer geselecteerd</p>}/></div></>;}createRoot(document.getElementById('root')).render(<App/>);}main().catch(error=>{globalThis.fixtureError=error.message;});`;
  const code=`const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/player/node_modules'],bundle:true,write:false,platform:'browser',format:'iife',jsx:'automatic',define:{'process.env':'{}'}});process.stdout.write(result.outputFiles[0].text);`;
  bundle=execFileSync(process.execPath,['-e',`(async()=>{${code}})().catch(error=>{console.error(error.message);process.exitCode=1})`],{encoding:'utf8',maxBuffer:16*1024*1024,timeout:30000});
 });
-async function mount(page:Page,options:{scale?:number;native?:boolean;own?:'first'|'middle'|'last';passive?:boolean;brokenFont?:boolean;unsupported?:boolean;family?:SyncContentFamily;orientation?:'landscape'|'portrait';mode?:'light'|'dark';count?:number;phase?:'scheduled'|'live'|'paused'|'halftime'|'finished';noOwn?:boolean;seconds?:number;dynamic?:boolean}={}){
+async function mount(page:Page,options:{scale?:number;native?:boolean;own?:'first'|'middle'|'last';passive?:boolean;brokenFont?:boolean;unsupported?:boolean;family?:SyncContentFamily;orientation?:'landscape'|'portrait';mode?:'light'|'dark';count?:number;phase?:'scheduled'|'live'|'paused'|'halftime'|'finished';noOwn?:boolean;seconds?:number;rssLayout?:'beeldheld'|'nachteditie'|'clubkrant';dynamic?:boolean;fontDelayMs?:number}={}){
  const sample=createSyncTemplatePreview(options.family??'standings','sync-onzetrots-v9');if(sample.rendererVersion!=='sync-onzetrots-v9')throw Error('New renderer unavailable');
  const presentation:SyncSlidePresentation=structuredClone(sample),standing=presentation.rich?.standings;
  presentation.orientation=options.orientation??presentation.orientation;
+ if(options.rssLayout){
+  presentation.authoring.rssLayout=options.rssLayout;
+  presentation.rich={news:[
+   {id:'rss-a',title:'Regionaal bericht A',intro:'Bericht uit de regionale redactie.',source:'Voorbeeldredactie',url:'https://redactie.example/bericht-a',heroImage:sample.rich?.featureImage},
+   {id:'rss-b',title:'Regionaal bericht B',intro:'Een ander bericht zonder artikelfoto.',source:'Andere redactie',url:'https://redactie.example/bericht-b'}
+  ]};
+ }
  presentation.visual.mode=options.mode??presentation.visual.mode;
  if(options.scale!==undefined&&presentation.rendererVersion==='sync-onzetrots-v9')presentation.authoring.welcomeScalePercent=options.scale;
  if(options.phase)presentation.rich={...presentation.rich,phase:options.phase};
@@ -50,6 +57,48 @@ async function mount(page:Page,options:{scale?:number;native?:boolean;own?:'firs
  await page.goto(origin);return{presentation,errors};
 }
 async function ready(page:Page){await expect.poll(()=>page.evaluate(()=>(globalThis as typeof globalThis&{ready:unknown[]}).ready?.length??0)).toBe(1);await expect(page.locator('[data-ot-rank-list]')).toBeVisible();}
+
+async function visibleRssFrame(page:Page){
+ await expect.poll(()=>page.evaluate(()=>(globalThis as typeof globalThis&{ready:unknown[]}).ready?.length??0)).toBe(1);
+ await expect(page.locator('.playback-sync')).toHaveAttribute('data-sync-ready','true');
+ await expect.poll(()=>page.locator('.rss-story-qr svg.ot-qr').evaluate(svg=>{
+  for(let element:Element|null=svg;element;element=element.parentElement){const style=getComputedStyle(element);if(Number(style.opacity)<.99||style.visibility==='hidden'||style.display==='none')return false;}
+  return svg.getBoundingClientRect().width>0;
+ })).toBe(true);
+ await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+}
+
+test('RSS live facts switch photo, full article and decoded QR together without restarting the Player',async({page})=>{
+ await page.setViewportSize({width:1920,height:1140});
+ const state=await mount(page,{family:'rss',orientation:'landscape',rssLayout:'nachteditie',dynamic:true,native:true,fontDelayMs:750});
+ await visibleRssFrame(page);
+ await expect(page.locator('[data-rss-title]')).toHaveText('Regionaal bericht A');
+ await expect(page.locator('.rss-story-qr')).toHaveAttribute('data-article-url','https://redactie.example/bericht-a');
+ await expect(page.locator('.rss-story-photo img')).toBeVisible();
+ const first='/tmp/castivo-rss-player-article-a.png';await page.screenshot({path:first});
+ execFileSync(process.execPath,['--import','tsx','tests/helpers/s291-decode-qr.mts',first,'https://redactie.example/bericht-a'],{timeout:15000});
+ const fontLoads=await page.evaluate(()=>(globalThis as typeof globalThis&{fontLoads:number}).fontLoads);
+ await page.getByRole('button',{name:'Gegevens verversen',exact:true}).click();
+ await expect(page.locator('[data-rss-title]')).toHaveText('Regionaal bericht B');
+ await expect(page.locator('.rss-source')).toHaveText('Andere redactie');
+ await expect(page.locator('.rss-story-photo img')).toHaveCount(0);
+ await expect(page.locator('.rss-story-qr')).toHaveAttribute('data-article-url','https://redactie.example/bericht-b');
+ await visibleRssFrame(page);
+ const frame='/tmp/castivo-rss-player-article-b.png';await page.screenshot({path:frame});
+ execFileSync(process.execPath,['--import','tsx','tests/helpers/s291-decode-qr.mts',frame,'https://redactie.example/bericht-b'],{timeout:15000});
+ expect(await page.evaluate(()=>(globalThis as typeof globalThis&{fontLoads:number}).fontLoads)).toBe(fontLoads);
+ expect(state.errors).toEqual([]);
+});
+
+for(const rssLayout of ['beeldheld','nachteditie','clubkrant'] as const)for(const orientation of ['landscape','portrait'] as const)test(`saved RSS ${rssLayout}/${orientation} reaches the actual verified Player component`,async({page})=>{
+ await page.setViewportSize(orientation==='portrait'?{width:1080,height:1920}:{width:1920,height:1080});
+ const state=await mount(page,{family:'rss',orientation,rssLayout,dynamic:true,native:true});
+ await expect.poll(()=>page.evaluate(()=>(globalThis as typeof globalThis&{ready:unknown[]}).ready?.length??0)).toBe(1);
+ await expect(page.locator('.screen')).toHaveAttribute('data-ot-rss-layout',rssLayout);
+ await expect(page.locator('[data-rss-title]')).toBeVisible();
+ expect(await page.locator('[data-rss-title]').evaluate(element=>getComputedStyle(element).fontFamily)).toContain('OTMarker');
+ expect(state.errors).toEqual([]);
+});
 async function position(page:Page){return page.locator('[data-ot-rank-list]').evaluate(list=>{const root=list as HTMLElement,own=root.querySelector<HTMLElement>('.own')!,bounds=root.getBoundingClientRect(),row=own.getBoundingClientRect();return{scroll:root.scrollTop,range:root.scrollHeight-root.clientHeight,ownCount:root.querySelectorAll('.own').length,ownY:(row.top-bounds.top)/(bounds.height/root.clientHeight),rowHeight:own.offsetHeight,viewport:root.clientHeight};});}
 test('an approved canvas remains pixel-identical when a legacy Sync stylesheet loads on the same page',async({page})=>{
  const state=await mount(page,{passive:true});await expect(page.locator('[data-ot-rank-list]')).toBeVisible();await page.evaluate(()=>document.fonts.ready);

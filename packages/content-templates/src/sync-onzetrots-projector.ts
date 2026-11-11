@@ -1,4 +1,4 @@
-import {syncOnzeTrotsSourceScopeSchema,syncOnzeTrotsMatchdayContextSchema,syncSlidePresentationSchema,type PlayerDynamicTemplatePayload,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
+import {syncSlideArticleUrl,syncOnzeTrotsSourceScopeSchema,syncOnzeTrotsMatchdayContextSchema,syncSlidePresentationSchema,type PlayerDynamicTemplatePayload,type SyncOnzeTrotsPresentation,type SyncOnzeTrotsRich,type SyncSlideAsset} from '@veyocast/contracts';
 import {type DynamicTemplateView} from './dynamic-template-view';
 import {selectSyncOnzeTrotsVisitors} from './sync-onzetrots-motion';
 
@@ -89,7 +89,7 @@ export function enrichSyncOnzeTrotsProjection(payload:PlayerDynamicTemplatePaylo
  }
  for(const page of view.pages){
   if(page.kind==='birthday'){for(const item of page.items){rich.birthdays??=[];add(rich.birthdays,{id:item.id,displayName:item.displayName,age:item.age,dateLabel:item.dateLabel,meta:item.meta});}}
-  else if(page.kind==='news'){for(const item of [page.item,...page.secondaryItems])if(item){rich.news??=[];add(rich.news,{id:item.id,title:item.title,intro:item.intro,source:item.source,url:item.link||undefined,heroImage:image(item.heroUrl),...(view.providerLogoUrl?{providerLogo:image(view.providerLogoUrl)}:{})});}}
+  else if(page.kind==='news'){for(const item of [page.item,...page.secondaryItems])if(item){rich.news??=[];const selected=presentation.rendererVersion==='sync-onzetrots-v9'&&presentation.authoring.rssLayout;add(rich.news,{id:item.id,title:item.title,intro:item.intro,source:selected?item.publisher??'':item.source,...(selected?{imageFocalPoint:item.imageFocalPoint,...(item.date?{dateLabel:item.date}:{})}:{}),url:(selected?syncSlideArticleUrl(item.link):item.link)||undefined,heroImage:image(item.heroUrl),...(view.providerLogoUrl?{providerLogo:image(view.providerLogoUrl)}:{})});}}
   else if(page.kind==='arrivals'||page.kind==='sport-list'||page.kind==='team'||page.kind==='sponsor'||page.kind==='trainings'||page.kind==='volunteers')for(const item of page.items){
    if(!('primary' in item))continue;
    if(payload.slideType==='sport_activities'){

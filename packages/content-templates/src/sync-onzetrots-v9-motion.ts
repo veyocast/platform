@@ -69,6 +69,45 @@ export function measureSyncOnzeTrotsV9Layout(root: ParentNode = document): numbe
   // Called after the verified fonts decode in preview, Worker and Player.
   // Give the complete headline priority; only the summary may be shortened.
   // Use logical dimensions so the same frame fits at every output scale.
+  {
+    const copy = screen.querySelector<HTMLElement>('[data-rss-copy]');
+    const title = copy?.querySelector<HTMLElement>('[data-rss-title]');
+    const summary = copy?.querySelector<HTMLElement>('[data-rss-summary]');
+    if (copy && title && summary) {
+      title.style.fontSize = '';
+      summary.textContent = summary.dataset.rssSummary ?? '';
+      summary.hidden = !summary.textContent;
+      const article = copy.closest<HTMLElement>('.rss-design');
+      if (article) delete article.dataset.rssTight;
+      let style = getComputedStyle(copy);
+      let gap = parseFloat(style.rowGap) || 0;
+      const source = copy.querySelector<HTMLElement>('.rss-source');
+      let room = copy.clientHeight - (source ? source.offsetHeight + gap : 0);
+      const reserve = summary.hidden ? 0 : Math.min(100, room * .25) + gap;
+      let size = parseFloat(getComputedStyle(title).fontSize);
+      while (size > 30 && (title.offsetHeight > room - reserve || title.scrollWidth > title.clientWidth + 1)) title.style.fontSize = `${--size}px`;
+      const glyphs = document.createRange();
+      glyphs.selectNodeContents(title);
+      if (article && (title.offsetHeight > room - 20 || glyphs.getBoundingClientRect().bottom > copy.getBoundingClientRect().bottom)) {
+        article.dataset.rssTight = 'true';
+        style = getComputedStyle(copy); gap = parseFloat(style.rowGap) || 0;
+        room = copy.clientHeight - (source ? source.offsetHeight + gap : 0);
+      }
+      const available = Math.max(0, room - title.offsetHeight - (summary.hidden ? 0 : gap) - 20);
+      const full = summary.dataset.rssSummary ?? '';
+      summary.style.maxHeight = `${available}px`;
+      if (summary.scrollHeight > available + 1) {
+        let low = 0, high = full.length;
+        while (low < high) {
+          const middle = Math.ceil((low + high) / 2);
+          summary.textContent = full.slice(0, middle).trimEnd() + '…';
+          if (summary.scrollHeight <= available + 1) low = middle; else high = middle - 1;
+        }
+        summary.textContent = low ? full.slice(0, low).trimEnd() + '…' : '';
+        summary.hidden = !low;
+      }
+    }
+  }
   if (screen.dataset.otCurrent) {
     const article = screen.querySelector<HTMLElement>('.rss-copy');
     const headline = article?.querySelector<HTMLElement>('[data-ot-article-title]');

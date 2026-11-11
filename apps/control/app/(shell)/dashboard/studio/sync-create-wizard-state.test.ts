@@ -85,7 +85,7 @@ describe("all Source families retain truthful direct creation", () => {
     const props = data(family), draft = initialSyncCreateWizardDraft(props), command = prepareSyncWizardCommand(props, draft, null, id(6));
     expect(command.kind).toBe("manual");
     if (command.kind !== "manual") throw Error("manual");
-    expect(command.document.syncPresentation).toEqual(props.initialPresentation);
+    expect(command.document.syncPresentation).toEqual(draft.presentation);
     expect(command.idempotencyKey).toBe(id(6));
     expect(command).toStrictEqual(JSON.parse(JSON.stringify(command)));
     expect(readSyncWizardJournal(JSON.stringify(journal(props, draft, command)), props)?.pending).toEqual(command);

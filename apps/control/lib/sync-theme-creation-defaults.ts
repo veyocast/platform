@@ -19,10 +19,11 @@ export function applySyncThemeCreationDefaults(presentation: SyncSlidePresentati
   delete style.backgroundAsset;
   const {rich:unusedRich,visual:unusedVisual,authoring:unusedAuthoring,...base}={...presentation,rich:isSyncOnzeTrotsPresentation(presentation)?presentation.rich:undefined,visual:isSyncOnzeTrotsPresentation(presentation)?presentation.visual:undefined,authoring:presentation.rendererVersion==='sync-onzetrots-v9'?presentation.authoring:undefined};
   void unusedRich;void unusedVisual;void unusedAuthoring;
+  const rssLayout = presentation.family === 'rss' ? { rssLayout: presentation.rendererVersion === 'sync-onzetrots-v9' ? presentation.authoring.rssLayout ?? 'beeldheld' : 'beeldheld' } : {};
   return syncSlidePresentationSchema.parse({ ...base, theme: themeId,
     rendererVersion:themeId==='onzetrots-tv'?syncOnzeTrotsV9RendererVersion:syncSlideRendererVersion,
     sourceRevision:themeId==='onzetrots-tv'?syncOnzeTrotsV9SourceRevision:syncSlideSourceRevision,
-    ...(themeId==='onzetrots-tv'?{rowsPerPage:6,authoring:{...(presentation.rendererVersion==='sync-onzetrots-v9'?presentation.authoring:{schemaVersion:1,headerSubtitles:{},headerTexts:{},welcomeScalePercent:150}),visualRevision:'onzetrots-20261024'},visual:{schemaVersion:1,mode:defaults.mode==='dark'?'dark':'light',scrollSpeed:'normal',panelOpacity:94},...(isSyncOnzeTrotsPresentation(presentation)&&presentation.rich?{rich:presentation.rich}:{})}:{}),
+    ...(themeId==='onzetrots-tv'?{rowsPerPage:6,authoring:{...(presentation.rendererVersion==='sync-onzetrots-v9'?presentation.authoring:{schemaVersion:1,headerSubtitles:{},headerTexts:{},welcomeScalePercent:150}),...rssLayout,visualRevision:'onzetrots-20261024'},visual:{schemaVersion:1,mode:defaults.mode==='dark'?'dark':'light',scrollSpeed:'normal',panelOpacity:94},...(isSyncOnzeTrotsPresentation(presentation)&&presentation.rich?{rich:presentation.rich}:{})}:{}),
     style: { ...style,
     accent: defaults.accent, font: defaults.font === "Georgia" ? "Serif" : defaults.font, fontChanged: true,
     background: themeId==='onzetrots-tv'?'clubmuur':defaults.mode === "light" ? "light" : defaults.background === "clubkleur" ? "gradient" : defaults.background,

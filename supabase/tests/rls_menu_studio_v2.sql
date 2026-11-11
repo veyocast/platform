@@ -1,4 +1,14 @@
 begin;
+create function pg_temp.ready_dynamic_output(p_snapshot_id uuid) returns void language plpgsql as $$
+declare tenant uuid; asset_id uuid := gen_random_uuid();
+begin
+ select tenant_id into strict tenant from public.dynamic_slide_snapshots where id=p_snapshot_id;
+ insert into public.media_assets(id,tenant_id,kind,title,original_file_name,mime_type,status,storage_bucket,storage_path,file_size_bytes,checksum_sha256,width,height,processed_at)
+ values(asset_id,tenant,'image','Publication fixture','poster.png','image/png','ready','tenant-media','tenants/'||tenant||'/assets/'||asset_id||'/original/poster.png',100,repeat('c',64),1920,1080,now());
+ insert into public.media_variants(tenant_id,asset_id,variant_type,storage_path,mime_type,file_size_bytes,checksum_sha256,width,height)
+ select tenant_id,id,'original',storage_path,mime_type,file_size_bytes,checksum_sha256,width,height from public.media_assets where id=asset_id;
+ update public.dynamic_slide_snapshots set status='ready',completed_at=now(),output_media_asset_id=asset_id where id=p_snapshot_id;
+end; $$;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
@@ -428,8 +438,7 @@ select is(
 );
 
 reset role;
-update public.dynamic_slide_snapshots
-set status = 'ready', completed_at = now()
+select pg_temp.ready_dynamic_output(id) from public.dynamic_slide_snapshots
 where dynamic_slide_id = (select id from menu_test_state where name = 'slide');
 update public.dynamic_slides
 set current_snapshot_id = (

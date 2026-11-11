@@ -1,4 +1,14 @@
 begin;
+create function pg_temp.freeze_legacy_publication(p_snapshot_id uuid) returns void language plpgsql as $$
+declare source_slide_id uuid; version_id uuid;
+begin
+ update public.dynamic_slide_versions version set status='published',published_at=now(),published_snapshot_id=p_snapshot_id
+ where version.id=(select dynamic_slide_version_id from public.dynamic_slide_snapshots where id=p_snapshot_id) and version.status='publishing'
+ returning version.dynamic_slide_id,version.id into source_slide_id,version_id;
+ if version_id is not null then
+  update public.dynamic_slides set current_published_version_id=version_id,active_draft_version_id=null where id=source_slide_id;
+ end if;
+end; $$;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
 select no_plan();
@@ -33,6 +43,7 @@ from public.dynamic_slides slide cross join generate_series(1,21909) number wher
 
 update public.dynamic_slides set current_snapshot_id='a1920000-0000-4000-8000-000000021909',status='ready'
 where id='a1910000-0000-4000-8000-000000002003';
+select pg_temp.freeze_legacy_publication('a1920000-0000-4000-8000-000000021909');
 insert into public.playlists(id,tenant_id,name) values ('a1910000-0000-4000-8000-000000002005','a1910000-0000-4000-8000-000000002001','Synthetic history');
 insert into public.playlist_releases(id,tenant_id,playlist_id,version,manifest_hash,manifest_json,item_count,total_duration_seconds,total_bytes)
 select ('a1930000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'a1910000-0000-4000-8000-000000002001','a1910000-0000-4000-8000-000000002005',n,repeat('a',64),'{}',1,10,100 from generate_series(1,1218)n;
@@ -163,6 +174,7 @@ select 'a1920000-0000-4000-8000-000000021910',tenant_id,id,template_version_id,d
 from public.dynamic_slides where id='a1910000-0000-4000-8000-000000002003';
 update public.dynamic_slides set current_snapshot_id='a1920000-0000-4000-8000-000000021910'
   where id='a1910000-0000-4000-8000-000000002003';
+select pg_temp.freeze_legacy_publication('a1920000-0000-4000-8000-000000021910');
 select is(private.publication_version_can_prune_v1('a1910000-0000-4000-8000-000000002001',
   (select id from public.dynamic_slide_versions where dynamic_slide_id='a1910000-0000-4000-8000-000000002003' and version_number=1)),
   false,'set-based old-version reachability preserves all authoring/live references within the deadline at historical scale');
@@ -187,6 +199,7 @@ select ('a1921000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,tenant_id,id,tem
 from public.dynamic_slides cross join generate_series(1,226)n where id='a1911000-0000-4000-8000-000000002003';
 update public.dynamic_slides set current_snapshot_id='a1921000-0000-4000-8000-000000000226',status='ready'
   where id='a1911000-0000-4000-8000-000000002003';
+select pg_temp.freeze_legacy_publication('a1921000-0000-4000-8000-000000000226');
 create temp table s191_other_tenant_count as select count(*)count from public.dynamic_slide_snapshots
   where tenant_id='a1910000-0000-4000-8000-000000002001';
 insert into s191_latency_results values('drain1',public.prune_superseded_publication_versions_v1('a1911000-0000-4000-8000-000000002001',25));

@@ -26,7 +26,7 @@ export function prepareSavedPreviewFixture() {
   const link = `import React from'react';export default function Link({children,...props}){return React.createElement('a',props,children)}`;
   const image = `import React from'react';export default function Image({fill,unoptimized,priority,...props}){return React.createElement('img',{...props,style:{...props.style,...(fill?{position:'absolute',inset:0,width:'100%',height:'100%'}:{})}})}`;
   const script = `const fs=require('node:fs'),path=require('node:path');const result=await require(${JSON.stringify(compiler)}).build({stdin:{contents:${JSON.stringify(entry)},resolveDir:process.cwd(),loader:'tsx'},nodePaths:[process.cwd()+'/apps/control/node_modules'],bundle:true,write:false,outfile:'fixture.js',platform:'browser',format:'esm',jsx:'automatic',loader:{'.module.css':'local-css','.css':'css','.woff2':'dataurl','.woff':'dataurl','.ttf':'dataurl'},plugins:[{name:'controlled-read-session-command-boundaries',setup(b){const mock=(path,contents)=>({path,namespace:'controlled',pluginData:{contents}});
-  b.onResolve({filter:/^next\\/(link|navigation|image)$/},a=>mock(a.path,a.path.endsWith('link')?${JSON.stringify(link)}:a.path.endsWith('image')?${JSON.stringify(image)}:'export const notFound=()=>{throw Error("Not found")};export const useRouter=()=>({refresh(){},push:href=>location.assign(href),replace:href=>location.assign(href)});export const usePathname=()=>location.pathname;export const useSearchParams=()=>new URLSearchParams(location.search);'));
+  b.onResolve({filter:/^next\\/(link|navigation|image)$/},a=>mock(a.path,a.path.endsWith('link')?${JSON.stringify(link)}:a.path.endsWith('image')?${JSON.stringify(image)}:'export const notFound=()=>{throw Error("Not found")};const router={refresh(){},push:href=>location.assign(href),replace:href=>location.assign(href)};export const useRouter=()=>router;export const usePathname=()=>location.pathname;export const useSearchParams=()=>new URLSearchParams(location.search);'));
   b.onResolve({filter:/^\\//},()=>({external:true}));b.onResolve({filter:/^server-only$/},a=>mock(a.path,''));b.onResolve({filter:/^node:crypto$/},a=>mock(a.path,'export const randomUUID=()=>crypto.randomUUID();export const createHash=()=>{throw Error("Unexpected old artifact preview branch")};'));b.onResolve({filter:/^next\\/cache$/},a=>mock(a.path,'export const revalidatePath=()=>{throw Error("Preview attempted cache invalidation")};'));
   b.onResolve({filter:/control-session$/},a=>mock(a.path,'export async function requireTenantControlSession(){return globalThis.fixture.session}'));
   b.onResolve({filter:/supabase\\/(server|admin)$/},a=>mock(a.path,${JSON.stringify(client)}+';export const createControlSupabaseClient=async()=>createFixtureClient();export const createControlAdminClient=()=>createFixtureClient();'));
@@ -80,6 +80,16 @@ export async function mountSavedPreview(page: Page, data = savedPreviewFixture("
     const request = route.request(), url = new URL(request.url());
     if (url.pathname === "/__saved/action") {
       const input = request.postDataJSON() as { kind: string; args: unknown[] };
+      if (input.kind === "readDynamicPublication") {
+        expect(input.args[0]).toBe(data.slideId);
+        const slide = data.tables.dynamic_slides![0]!;
+        const versionId = input.args[1] ?? slide.active_draft_version_id ?? slide.current_published_version_id;
+        const version = data.tables.dynamic_slide_versions!.find(row => row.id === versionId)!;
+        const snapshot = data.tables.dynamic_slide_snapshots!.find(row => row.dynamic_slide_version_id === versionId)!;
+        expect(version.status).toBe("publishing");
+        expect(snapshot.status).toBe("queued");
+        return route.fulfill({ json: { versionId, revision: version.edit_revision ?? 1, status: version.status, error: null, startedAt: snapshot.created_at } });
+      }
       if (input.kind === "previewSyncWizardAction") {
         const value = input.args[0] as { configuration: { syncConfiguration: unknown } };
         const cfg = syncDynamicConfigurationSchema.parse(value.configuration.syncConfiguration);

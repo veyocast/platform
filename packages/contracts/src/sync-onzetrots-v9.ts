@@ -11,6 +11,7 @@ export const syncOnzeTrotsV9AuthoringSchema = z.object({
   schemaVersion: z.literal(1).default(1),
   /** Explicit opt-in on a new or consciously saved draft; absent means historical v9. */
   visualRevision: z.literal('onzetrots-20261024').optional(),
+  rssLayout: z.enum(['beeldheld', 'nachteditie', 'clubkrant']).optional(),
   headerSubtitles: z.partialRecord(
     z.enum(syncContentFamilies.map(family => family.id)),
     z.string().max(120),

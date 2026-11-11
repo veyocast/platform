@@ -1042,6 +1042,10 @@ select
 from public.dynamic_slides slide
 where slide.id = '16100000-0000-4000-8000-000000000064';
 
+insert into public.media_variants(tenant_id,asset_id,variant_type,storage_path,mime_type,file_size_bytes,checksum_sha256,width,height)
+select tenant_id,id,'original',storage_path,mime_type,file_size_bytes,checksum_sha256,width,height from public.media_assets
+where id='16100000-0000-4000-8000-000000000063';
+
 update public.dynamic_slides slide
 set current_snapshot_id = '16100000-0000-4000-8000-000000000065',
     status = 'ready'

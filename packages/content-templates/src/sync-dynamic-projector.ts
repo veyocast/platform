@@ -2,6 +2,7 @@ import {
   playerDynamicTemplatePayloadSchema,
   syncDynamicFamilyMatches,
   syncSlidePresentationSchema,
+  syncSlideArticleUrl,
   isSyncOnzeTrotsPresentation,
   type PlayerDynamicTemplatePayload,
   type SyncSlideAsset,
@@ -331,11 +332,12 @@ export function projectSyncDynamicSnapshot(
           for (const item of [page.item, ...page.secondaryItems])
             if (item) {
               const id = `news:${item.id}`,
+                articleUrl = slide.rendererVersion === 'sync-onzetrots-v9' && slide.family === 'rss' && slide.authoring.rssLayout ? syncSlideArticleUrl(item.link) : item.link,
                 article = {
                   title: item.title,
                   intro: item.intro,
                   source: item.source,
-                  ...(item.link ? { url: item.link } : {}),
+                  ...(articleUrl ? { url: articleUrl } : {}),
                 },
                 serial = JSON.stringify(article),
                 previous = seen.get(id);

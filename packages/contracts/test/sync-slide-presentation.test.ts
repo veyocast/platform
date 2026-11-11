@@ -44,7 +44,7 @@ describe("Sync slide input and legacy separation", () => {
     );
     const migration = readFileSync(
       new URL(
-        "../../../supabase/migrations/20261024173000_onzetrots_consistency.sql",
+        "../../../supabase/migrations/20261111020903_rss_onzetrots_layouts.sql",
         import.meta.url,
       ),
       "utf8",
