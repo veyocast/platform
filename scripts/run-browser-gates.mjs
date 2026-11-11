@@ -106,13 +106,75 @@ export function validateCaseExecution(report, item, cwd = process.cwd()) {
   if (actual.length !== 1 || JSON.stringify(actual[0]) !== JSON.stringify(item)
     || report.status !== "passed" || !Array.isArray(report.started) || report.started.length !== 1 || report.started[0] !== item.id
     || !Array.isArray(report.results) || report.results.length !== 1) fail("PLAYER_CASE_CLOSURE_INVALID");
-  const result = report.results[0];
-  if (result.id !== item.id || result.retry !== 0 || !["passed", "failed", "skipped"].includes(result.status)
+  return validateCaseResult(report.results[0], item);
+}
+
+function validateCaseResult(result, item) {
+  if (!result || result.id !== item.id || result.retry !== 0 || !["passed", "failed", "skipped"].includes(result.status)
     || !["expected", "skipped"].includes(result.outcome)
     || !["passed", "failed", "skipped"].includes(result.expectedStatus)
     || result.status !== result.expectedStatus
     || (result.outcome === "skipped") !== (result.status === "skipped")) fail("PLAYER_CASE_RESULT_INVALID");
   return result;
+}
+
+export function playerShard(env) {
+  const index = env.PLAYWRIGHT_PLAYER_SHARD_INDEX, count = env.PLAYWRIGHT_PLAYER_SHARD_COUNT;
+  if (index === undefined && count === undefined) return { index: 1, count: 1 };
+  if (!/^[1-9]\d*$/u.test(index ?? "") || !/^[1-9]\d*$/u.test(count ?? "")
+    || !Number.isSafeInteger(Number(index)) || !Number.isSafeInteger(Number(count))
+    || Number(index) > Number(count)) fail("PLAYER_SHARD_INVALID");
+  return { index: Number(index), count: Number(count) };
+}
+
+export function partitionPlayerInventory(inventory, shard) {
+  if (!Number.isSafeInteger(shard.index) || !Number.isSafeInteger(shard.count)
+    || shard.index < 1 || shard.count < 1 || shard.index > shard.count) fail("PLAYER_SHARD_INVALID");
+  return inventory.flatMap((item, index) => index % shard.count === shard.index - 1 ? [{ index: index + 1, item }] : []);
+}
+
+function executionContext(env) {
+  const context = { revision: env.GITHUB_SHA, runId: env.GITHUB_RUN_ID, runAttempt: env.GITHUB_RUN_ATTEMPT };
+  if (!/^[a-f0-9]{40}$/u.test(context.revision ?? "")
+    || !/^[1-9]\d*$/u.test(context.runId ?? "") || !/^[1-9]\d*$/u.test(context.runAttempt ?? "")) fail("PLAYER_EXECUTION_CONTEXT_INVALID");
+  return context;
+}
+
+export function validatePlayerShardClosures(closures, { shardCount, context, files }) {
+  executionContext({ GITHUB_SHA: context?.revision, GITHUB_RUN_ID: context?.runId, GITHUB_RUN_ATTEMPT: context?.runAttempt });
+  if (!Number.isSafeInteger(shardCount) || shardCount < 2 || !Array.isArray(closures)
+    || closures.length !== shardCount) fail("PLAYER_SHARD_CLOSURE_INVALID");
+  const shards = new Set(), executions = [];
+  let inventory;
+  for (const closure of closures) {
+    if (closure?.schemaVersion !== 2 || closure.cliVersion !== "1.61.1" || closure.complete !== true
+      || JSON.stringify(closure.context) !== JSON.stringify(context)
+      || JSON.stringify(closure.files) !== JSON.stringify(files)
+      || !Array.isArray(closure.inventory) || !closure.inventory.length
+      || closure.caseCount !== closure.inventory.length || !Array.isArray(closure.executions)
+      || closure.shard?.count !== shardCount || shards.has(closure.shard.index)) fail("PLAYER_SHARD_CLOSURE_INVALID");
+    const plan = partitionPlayerInventory(closure.inventory, closure.shard);
+    shards.add(closure.shard.index);
+    const validationRoot = "/player-closure";
+    const validated = validatePlayerInventory({ schemaVersion: 1, rootDir: `${validationRoot}/tests`, workers: 1,
+      projects: [{ name: "chromium", retries: 0, repeatEach: 1 }], errors: 0,
+      cases: closure.inventory.map(item => ({ ...item, file: resolve(validationRoot, item.file) })) }, files, validationRoot);
+    if (JSON.stringify(validated) !== JSON.stringify(closure.inventory)
+      || (inventory && JSON.stringify(inventory) !== JSON.stringify(closure.inventory))
+      || closure.executions.length !== plan.length) fail("PLAYER_SHARD_INVENTORY_INVALID");
+    inventory = validated;
+    for (const [position, entry] of plan.entries()) {
+      const actual = closure.executions[position];
+      if (!actual || actual.index !== entry.index || actual.id !== entry.item.id || actual.file !== entry.item.file
+        || actual.invoked !== true || actual.exitCode !== 0) fail("PLAYER_SHARD_EXECUTION_INVALID");
+      validateCaseResult(actual.result, entry.item);
+      executions.push(actual);
+    }
+  }
+  executions.sort((left, right) => left.index - right.index);
+  if (executions.length !== inventory.length || executions.some((entry, index) => entry.index !== index + 1)) fail("PLAYER_SHARD_COVERAGE_INVALID");
+  return { schemaVersion: 2, cliVersion: "1.61.1", context, files, caseCount: inventory.length,
+    inventory, executions, shardCount, complete: true };
 }
 
 export function groupEnvironment(group, env) {
@@ -127,6 +189,9 @@ export function runBrowserGates({ env = process.env, groups = discoverGateGroups
   cwd = process.cwd(), write = value => process.stdout.write(value), version } = {}) {
   const selected = env.PLAYWRIGHT_GATE_GROUP?.split(",") ?? Object.keys(groups);
   if (!selected.length || selected.some(group => !Object.hasOwn(groups, group)) || new Set(selected).size !== selected.length) fail("BROWSER_GROUP_INVALID");
+  const shard = playerShard(env);
+  if (shard.count > 1 && (selected.length !== 1 || selected[0] !== "player")) fail("PLAYER_SHARD_GROUP_INVALID");
+  const context = shard.count > 1 ? executionContext(env) : null;
   const results = resolve(cwd, env.PLAYWRIGHT_GATE_OUTPUT ?? join(env.RUNNER_TEMP ?? "/tmp", "veyocast-browser-gates"));
   const commonArgs = ["--project=chromium", "--workers=1", "--timeout=60000"];
   for (const group of selected) {
@@ -141,7 +206,7 @@ export function runBrowserGates({ env = process.env, groups = discoverGateGroups
     }
     const output = join(results, "player");
     mkdirSync(output, { recursive: true });
-    const closure = { schemaVersion: 1, cliVersion: "1.61.1", files: groups.player, caseCount: null,
+    const closure = { schemaVersion: 2, cliVersion: "1.61.1", context, shard, files: groups.player, caseCount: null,
       inventory: [], executions: [], complete: false };
     const closurePath = join(output, "case-closure.json");
     const save = () => writeFileSync(closurePath, JSON.stringify(closure, null, 2), { mode: 0o600 });
@@ -160,8 +225,10 @@ export function runBrowserGates({ env = process.env, groups = discoverGateGroups
     const inventory = validatePlayerInventory(discovery, groups.player, cwd);
     closure.caseCount = inventory.length; closure.inventory = inventory;
     save();
-    write(`Browser gate: player; inventory ${inventory.length} cases; ${groups.player.length} spec files.\n`);
-    for (const [index, item] of inventory.entries()) {
+    const plan = partitionPlayerInventory(inventory, shard);
+    write(`Browser gate: player; inventory ${inventory.length} cases; ${groups.player.length} spec files; shard ${shard.index}/${shard.count}, ${plan.length} cases.\n`);
+    for (const entry of plan) {
+      const index = entry.index - 1, item = entry.item;
       const caseOutput = join(output, `case-${index + 1}`);
       mkdirSync(caseOutput, { recursive: true });
       const selector = join(caseOutput, "test-list.txt"), caseReport = join(caseOutput, "execution.json");
@@ -183,7 +250,7 @@ export function runBrowserGates({ env = process.env, groups = discoverGateGroups
       execution.result = validateCaseExecution(readReport(caseReport), item, cwd); save();
     }
     closure.complete = true; save();
-    write(`Browser gate: player; completed ${inventory.length}/${inventory.length} original cases; ${groups.player.length} spec files.\n`);
+    write(`Browser gate: player; completed ${plan.length}/${plan.length} original cases; ${groups.player.length} spec files; shard ${shard.index}/${shard.count}.\n`);
   }
   return 0;
 }

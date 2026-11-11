@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import process from "node:process";
 import test from "node:test";
-import { groupEnvironment, runBrowserGates, validateCaseExecution, validatePlayerInventory } from "./run-browser-gates.mjs";
+import { discoverGateGroups, groupEnvironment, partitionPlayerInventory, playerShard, runBrowserGates,
+  validateCaseExecution, validatePlayerInventory, validatePlayerShardClosures } from "./run-browser-gates.mjs";
 
 const cwd = "/fixture";
 const file = "tests/player/welcome.spec.ts";
@@ -33,8 +36,9 @@ function mockRunner(output, { failAt = -1, exitCode = 41, alter = () => {}, env 
     else {
       // Real Playwright clears its output before loading the selection file.
       rmSync(args.find(x => x.startsWith("--output=")).slice(9), { recursive: true, force: true });
-      assert.ok(readFileSync(args.find(x => x.startsWith("--test-list=")).slice(12), "utf8"));
-      const index = calls.length - 2;
+      const selection = readFileSync(args.find(x => x.startsWith("--test-list=")).slice(12), "utf8").trim();
+      const index = validatePlayerInventory(report(cases), [file], cwd).findIndex(entry => entry.selection === selection);
+      assert.notEqual(index, -1);
       if (index === failAt) return { status: exitCode };
       const value = execution(cases[index]); alter(value, index);
       writeFileSync(options.env.PLAYWRIGHT_CASE_REPORT, JSON.stringify(value));
@@ -203,3 +207,165 @@ test("optional original evidence hooks keep distinct per-case directories", () =
     ["/original-evidence/case-1", "/original-evidence/case-2", "/original-evidence/case-3"]);
   assert.equal(new Set(f.calls.slice(1).map(x => x.options.env.SITES_PLAYER_OPERATION_EVIDENCE_DIRECTORY)).size, 3);
 }));
+
+const context = { revision: "a".repeat(40), runId: "123", runAttempt: "2" };
+const contextEnv = { GITHUB_SHA: context.revision, GITHUB_RUN_ID: context.runId, GITHUB_RUN_ATTEMPT: context.runAttempt };
+
+function shardClosures(count = 4, cases = Array.from({ length: 536 }, (_, index) => item(`case-${index}`, [`case ${index}`])), files = [file]) {
+  const inventory = validatePlayerInventory(report(cases), files, cwd);
+  return Array.from({ length: count }, (_, index) => {
+    const shard = { index: index + 1, count };
+    return { schemaVersion: 2, cliVersion: "1.61.1", context: { ...context }, shard, files, caseCount: inventory.length,
+      inventory: JSON.parse(JSON.stringify(inventory)), executions: partitionPlayerInventory(inventory, shard).map(entry => ({
+        index: entry.index, id: entry.item.id, file: entry.item.file, invoked: true, exitCode: 0,
+        result: execution(cases[entry.index - 1]).results[0]
+      })), complete: true };
+  });
+}
+
+function aggregate(closures, files = [file]) {
+  return validatePlayerShardClosures(closures, { shardCount: 4, context, files });
+}
+
+test("sharding is opt-in with strictly paired positive integer settings", () => {
+  assert.deepEqual(playerShard({}), { index: 1, count: 1 });
+  assert.deepEqual(playerShard({ PLAYWRIGHT_PLAYER_SHARD_INDEX: "3", PLAYWRIGHT_PLAYER_SHARD_COUNT: "4" }), { index: 3, count: 4 });
+  for (const [index, count] of [[undefined, "4"], ["1", undefined], ["", ""], ["0", "4"], ["5", "4"],
+    ["1.5", "4"], [" 1", "4"], ["01", "4"], ["1", "Infinity"], ["1", "9007199254740992"]]) {
+    assert.throws(() => playerShard({ PLAYWRIGHT_PLAYER_SHARD_INDEX: index, PLAYWRIGHT_PLAYER_SHARD_COUNT: count }), /PLAYER_SHARD_INVALID/);
+  }
+});
+
+test("four deterministic balanced partitions retain all 536 cases exactly once in original relative order", () => {
+  for (const length of [1, 3, 5, 536, 539, 2001]) {
+    const inventory = Array.from({ length }, (_, index) => ({ id: `original-${index}` }));
+    const partitions = Array.from({ length: 4 }, (_, index) => partitionPlayerInventory(inventory, { index: index + 1, count: 4 }));
+    assert.ok(Math.max(...partitions.map(entries => entries.length)) - Math.min(...partitions.map(entries => entries.length)) <= 1);
+    assert.deepEqual(partitions.flat().sort((left, right) => left.index - right.index).map(entry => entry.item), inventory);
+    for (const [index, entries] of partitions.entries()) {
+      assert.deepEqual(entries, partitionPlayerInventory(inventory, { index: index + 1, count: 4 }));
+      assert.ok(entries.every((entry, position) => entry.index === index + 1 + position * 4));
+    }
+  }
+  for (const shard of [{ index: 0, count: 4 }, { index: 5, count: 4 }, { index: 1, count: 0 }, { index: 1.5, count: 4 }]) {
+    assert.throws(() => partitionPlayerInventory([], shard), /PLAYER_SHARD_INVALID/);
+  }
+});
+
+test("sharded execution still invokes one original case per fresh process, with global identity and evidence paths", () => fixture(output => {
+  const previous = mockRunner(output); assert.equal(previous.run(), 0);
+  const runner = mockRunner(output, { env: { ...contextEnv, PLAYWRIGHT_PLAYER_SHARD_INDEX: "2", PLAYWRIGHT_PLAYER_SHARD_COUNT: "4",
+    VEYOCAST_SITES_PLAYER_ORIGINAL_ROUTES: "1", SITES_PLAYER_ROUTE_EVIDENCE_DIRECTORY: "/original-evidence" } });
+  assert.equal(runner.run(), 0);
+  assert.equal(runner.calls.length, 2);
+  assert.equal(runner.closure().caseCount, 3);
+  assert.equal(runner.closure().inventory.length, 3);
+  assert.deepEqual(runner.closure().shard, { index: 2, count: 4 });
+  assert.deepEqual(runner.closure().context, context);
+  assert.deepEqual(runner.closure().executions.map(entry => [entry.index, entry.id]), [[2, "second"]]);
+  const call = runner.calls[1];
+  for (const arg of ["--project=chromium", "--workers=1", "--timeout=60000"]) assert.ok(call.args.includes(arg));
+  assert.equal(call.options.env.SITES_PLAYER_ROUTE_EVIDENCE_DIRECTORY, "/original-evidence/case-2");
+}));
+
+test("shards reject invalid source identity and mixed application groups before launching processes", () => fixture(output => {
+  let calls = 0;
+  const base = { cwd, groups: { player: [file], control: ["tests/control/fixture.spec.ts"] }, write: () => {},
+    execute: () => { calls++; }, env: { ...contextEnv, PLAYWRIGHT_GATE_GROUP: "player", PLAYWRIGHT_GATE_OUTPUT: output,
+      PLAYWRIGHT_PLAYER_SHARD_INDEX: "1", PLAYWRIGHT_PLAYER_SHARD_COUNT: "4" } };
+  for (const key of ["GITHUB_SHA", "GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"]) {
+    assert.throws(() => runBrowserGates({ ...base, env: { ...base.env, [key]: "" } }), /PLAYER_EXECUTION_CONTEXT_INVALID/);
+  }
+  for (const selected of ["control", "player,control"]) {
+    assert.throws(() => runBrowserGates({ ...base, env: { ...base.env, PLAYWRIGHT_GATE_GROUP: selected } }), /PLAYER_SHARD_GROUP_INVALID/);
+  }
+  assert.equal(calls, 0);
+}));
+
+test("shard failures retain incomplete evidence and never retry or execute another case", () => fixture(output => {
+  const runner = mockRunner(output, { failAt: 1, env: { ...contextEnv, PLAYWRIGHT_PLAYER_SHARD_INDEX: "2", PLAYWRIGHT_PLAYER_SHARD_COUNT: "4" } });
+  assert.equal(runner.run(), 41);
+  assert.equal(runner.calls.length, 2);
+  assert.equal(runner.closure().complete, false);
+  assert.equal(runner.closure().executions[0].index, 2);
+}));
+
+test("aggregation accepts all original cases once, independent of artifact download order", () => {
+  const combined = aggregate(shardClosures().reverse());
+  assert.equal(combined.complete, true);
+  assert.equal(combined.caseCount, 536);
+  assert.equal(combined.executions.length, 536);
+  assert.deepEqual(combined.executions.map(entry => entry.index), Array.from({ length: 536 }, (_, index) => index + 1));
+});
+
+test("missing, extra, duplicated, cancelled and partial shards fail the required final gate", () => {
+  for (const mutate of [closures => closures.pop(), closures => closures.push(closures[0]),
+    closures => closures[1] = closures[0], closures => closures[0].complete = false,
+    closures => closures[0].shard.index = 0, closures => closures[0].shard.count = 3,
+    closures => closures[0].schemaVersion = 1, closures => closures[0].cliVersion = "1.62.0",
+    closures => closures[0].executions.pop(), closures => closures[0].executions.push(closures[0].executions[0])]) {
+    const closures = shardClosures(); mutate(closures);
+    assert.throws(() => aggregate(closures), /PLAYER_SHARD_(CLOSURE|INVALID|INVENTORY)/);
+  }
+});
+
+test("mixed revisions, workflow attempts, inventories, selectors and original file lists cannot aggregate", () => {
+  for (const mutate of [closures => closures[0].context.revision = "b".repeat(40), closures => closures[0].context.runId = "456",
+    closures => closures[0].context.runAttempt = "3", closures => closures[0].files = ["tests/player/other.spec.ts"],
+    closures => closures[0].inventory[0].selection = "unrelated", closures => closures[0].inventory[0].line++,
+    closures => closures[0].inventory[1].id = closures[0].inventory[0].id, closures => closures[0].caseCount--,
+    closures => closures[0].inventory = [], closures => closures[0].inventory[0].file = "/outside.spec.ts"]) {
+    const closures = shardClosures(); mutate(closures);
+    assert.throws(() => aggregate(closures), /PLAYER_/);
+  }
+});
+
+test("duplicated, misplaced, uninvoked, failed, retried and incomplete case results cannot aggregate", () => {
+  for (const mutate of [entry => entry.index++, entry => entry.id = "other", entry => entry.file = "tests/player/other.spec.ts",
+    entry => entry.invoked = false, entry => entry.exitCode = 1, entry => entry.result = null,
+    entry => entry.result.retry = 1, entry => entry.result.outcome = "flaky", entry => entry.result.status = "failed",
+    entry => entry.result.expectedStatus = "skipped", entry => entry.result.id = "other", entry => entry.result.status = "interrupted"]) {
+    const closures = shardClosures(); mutate(closures[0].executions[0]);
+    assert.throws(() => aggregate(closures), /PLAYER_(SHARD_EXECUTION|CASE_RESULT)_INVALID/);
+  }
+});
+
+test("existing runtime skips and expected failures preserve original outcomes across shards", () => {
+  const closures = shardClosures();
+  const skipped = closures[0].executions[0].result;
+  skipped.status = "skipped"; skipped.expectedStatus = "skipped"; skipped.outcome = "skipped";
+  const expectedFailure = closures[1].executions[0].result;
+  expectedFailure.status = "failed"; expectedFailure.expectedStatus = "failed";
+  assert.equal(aggregate(closures).complete, true);
+});
+
+test("the real aggregation CLI writes only a complete combined closure and rejects missing artifacts", () => fixture(output => {
+  const files = discoverGateGroups().player;
+  const cases = files.map((path, index) => item(`original-${index}`, [`original ${index}`], path));
+  const closures = shardClosures(4, cases, files);
+  const reports = join(output, "reports"), combined = join(output, "combined");
+  for (const closure of closures) {
+    const directory = join(reports, `shard-${closure.shard.index}`); mkdirSync(directory, { recursive: true });
+    writeFileSync(join(directory, "case-closure.json"), JSON.stringify(closure));
+  }
+  const invoke = () => spawnSync(process.execPath, ["scripts/verify-player-shards.mjs"], { encoding: "utf8",
+    env: { ...process.env, ...contextEnv, PLAYWRIGHT_PLAYER_SHARD_COUNT: "4", PLAYWRIGHT_PLAYER_SHARD_REPORTS: reports,
+      PLAYWRIGHT_PLAYER_CLOSURE_OUTPUT: combined } });
+  const success = invoke(); assert.equal(success.status, 0, success.stderr);
+  assert.match(success.stdout, /original cases/);
+  assert.equal(JSON.parse(readFileSync(join(combined, "case-closure.json"), "utf8")).caseCount, files.length);
+  rmSync(join(reports, "shard-2"), { recursive: true });
+  const failure = invoke(); assert.equal(failure.status, 1); assert.match(failure.stderr, /PLAYER_SHARD_CLOSURE_INVALID/);
+}));
+
+test("workflow preserves all groups, four independent original-case shards and the required fail-closed gate", () => {
+  const workflow = readFileSync(".github/workflows/pr-gates.yml", "utf8");
+  for (const group of ["control", "marketing", "cross"]) assert.equal((workflow.match(new RegExp(`group: ${group},`, "g")) ?? []).length, 1);
+  for (let index = 1; index <= 4; index++) assert.ok(workflow.includes(`group: player, label: 'player ${index}/4', shardIndex: ${index}, shardCount: 4`));
+  assert.match(workflow, /name: Browser gates \(player\)\s+needs: browsers\s+if: always\(\)/);
+  assert.match(workflow, /run: test "\$BROWSER_RESULT" = success/);
+  assert.match(workflow, /PLAYWRIGHT_PLAYER_SHARD_COUNT: '4'/);
+  assert.match(workflow, /run: node scripts\/verify-player-shards.mjs/);
+  assert.match(workflow, /matrix.group == 'player' && 135 \|\| matrix.group == 'control' && 60 \|\| 45/);
+  assert.doesNotMatch(workflow, /continue-on-error: true|fail-fast: true/);
+});

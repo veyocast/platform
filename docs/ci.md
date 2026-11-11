@@ -59,6 +59,16 @@ Do not mark those gates as optional once their feature surface exists.
 
 ## VPS deployments
 
+### Player browser gate
+
+Player behoudt een verse CLI/server/browser per oorspronkelijke case, maar
+verdeelt de volledige ontdekte inventory over vier zelfstandige hosted jobs.
+De verplichte check `Browser gates (player)` controleert daarna alle vier
+bron-/rungebonden closures en bewijst dat iedere case precies eenmaal is
+uitgevoerd. Er is geen crashretry of verkleinde testsuite. Lokaal blijft de
+runner zonder shardinstellingen sequentieel. Zie
+[`S310`](s310-ci-player-shards.md) voor de nulmeting en meetgrenzen.
+
 `.github/workflows/deploy.yml` deployt uitsluitend na een push naar `main` of een
 gecontroleerde handmatige dispatch. De workflow bouwt de actuele SHA-images één
 keer, activeert staging na migration guards en lokale/publieke healthchecks en
