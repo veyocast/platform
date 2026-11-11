@@ -87,7 +87,7 @@ if [[ $3 == tests/helpers/sync-background-binary.ts ]]; then
   printf '{}' > "$S238_BACKGROUND_BINARIES/registry.json"
 else
   [[ $3 == tests/helpers/sync-onzetrots-export.ts ]] || exit 97
-  if [[ \${5:-} == sync-onzetrots-v9 && $TEST_FAIL_HELPER == true ]]; then exit 42; fi
+  if [[ \${6:-} == sync-onzetrots-v9 && $TEST_FAIL_HELPER == true ]]; then exit 42; fi
   mkdir "$4"
   for name in artifact.json presentation.json assets.json standings-full.mp4 standings-poster.png; do printf fixture > "$4/$name"; done
 fi`
