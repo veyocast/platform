@@ -1,5 +1,12 @@
 # VeyoCast MVP Plan
 
+S312 herstelt de daadwerkelijk op productie aangetoonde Menu-completionfout:
+een exact bevroren immutable providerlogo werd ten onrechte uitsluitend tegen
+tenant Media gevalideerd. Eén forwardmigration en gerichte SQL-regressies
+bewaren checksum-/tenant-/leasegrenzen en bewijzen echte versieactivering.
+Zie `docs/s312-menu-provider-logo-publication.md`; normale gates/uitrol blijven
+verplicht, concepten worden niet blind opnieuw gepubliceerd.
+
 S311 volgt de expliciet goedgekeurde gerichte Worker-imageoptimalisatie na
 twee echte staging-ENOSPC's. Alleen de bevroren geïnstalleerde runtimegraph en
 renderassets gaan naar de Workerimage; volledige native containercontroles

@@ -8,6 +8,8 @@ select ok(has_function_privilege('service_role','public.complete_menu_dom_job_v2
 select ok(not has_function_privilege('authenticated','public.complete_menu_binary_render_v2(uuid,uuid,text,uuid,jsonb)','execute'),'a browser cannot complete a Menu export');
 select ok(has_function_privilege('service_role','public.complete_menu_binary_render_v2(uuid,uuid,text,uuid,jsonb)','execute'),'the existing export worker owns Menu binary completion');
 select ok(not has_function_privilege('authenticated','private.assert_menu_dom_presentation_v2(public.dynamic_slide_snapshots,jsonb)','execute'),'the canonical Menu guard is not exposed');
+select ok(not has_function_privilege('anon','private.assert_menu_dom_presentation_v2(public.dynamic_slide_snapshots,jsonb)','execute'),'anonymous callers cannot execute the private logo validator');
+select ok(not has_function_privilege('service_role','private.assert_menu_dom_presentation_v2(public.dynamic_slide_snapshots,jsonb)','execute'),'the worker still uses only its guarded completion RPC');
 insert into public.tenants(id,name,slug)values('29220000-0000-4000-8000-000000000001','Menu DOM A','s292-menu-a'),('29220000-0000-4000-8000-000000000101','Menu DOM B','s292-menu-b');
 insert into public.dynamic_data_sources(id,tenant_id,name,kind)values('29220000-0000-4000-8000-000000000003','29220000-0000-4000-8000-000000000001','Menu A','manual_products');
 insert into public.tenant_products(id,tenant_id,data_source_id,source,slug,name,category,price_cents)values('29220000-0000-4000-8000-000000000004','29220000-0000-4000-8000-000000000001','29220000-0000-4000-8000-000000000003','manual','coffee','Clubkoffie','Warme dranken',250);
@@ -23,5 +25,88 @@ insert into public.media_assets(id,tenant_id,kind,title,original_file_name,mime_
 insert into public.media_variants(tenant_id,asset_id,variant_type,storage_bucket,storage_path,mime_type,file_size_bytes,checksum_sha256,width,height)select tenant_id,id,'original',storage_bucket,storage_path,mime_type,file_size_bytes,checksum_sha256,width,height from public.media_assets where id in('29220000-0000-4000-8000-000000000102','29220000-0000-4000-8000-000000000103');
 select throws_ok($$select private.assert_menu_dom_presentation_v2(snapshot,jsonb_set(presentation,'{content,logo}',jsonb_build_object('kind','tenant','mediaAssetId','29220000-0000-4000-8000-000000000103','checksumSha256',repeat('b',64))))from menu_dom_fixture$$,'23514','Menu DOM asset authority mismatch','tenant A cannot attest a tenant B image');
 select throws_ok($$select private.assert_menu_dom_presentation_v2(snapshot,jsonb_set(presentation,'{content,logo}',jsonb_build_object('kind','tenant','mediaAssetId','29220000-0000-4000-8000-000000000102','checksumSha256',repeat('b',64))))from menu_dom_fixture$$,'23514','Menu DOM asset authority mismatch','even an own image requires a real immutable document/configuration reference');
+insert into public.provider_asset_cache(id,provider,entity_type,external_entity_id,asset_role)
+values('29220000-0000-4000-8000-000000000201','sportlink','club','s312-menu-logo','logo');
+insert into public.provider_asset_versions(id,cache_id,checksum_sha256,storage_bucket,storage_path,mime_type,file_size_bytes,width,height)
+values
+ ('29220000-0000-4000-8000-000000000202','29220000-0000-4000-8000-000000000201',repeat('c',64),'provider-assets','s312/logo.webp','image/webp',1024,100,100),
+ ('29220000-0000-4000-8000-000000000203','29220000-0000-4000-8000-000000000201',repeat('d',64),'provider-assets','s312/other-logo.webp','image/webp',1024,100,100);
+
+create temp table menu_provider_logo_fixture as
+select jsonb_populate_record(snapshot,jsonb_build_object('snapshot_data_json',
+  jsonb_set((snapshot).snapshot_data_json,'{brand,logoMediaAssetId}','"29220000-0000-4000-8000-000000000202"'))) as snapshot,
+  jsonb_set(presentation,'{content,logo}',jsonb_build_object('kind','tenant',
+    'mediaAssetId','29220000-0000-4000-8000-000000000202','checksumSha256',repeat('c',64))) as presentation
+from menu_dom_fixture;
+
+select lives_ok($$select private.assert_menu_dom_presentation_v2(snapshot,presentation)from menu_provider_logo_fixture$$,
+  'a frozen provider logo is valid without copying it into tenant Media');
+select throws_ok($$select private.assert_menu_dom_presentation_v2(snapshot,jsonb_set(presentation,'{content,logo,checksumSha256}',to_jsonb(repeat('e',64))))from menu_provider_logo_fixture$$,
+  '23514','Menu DOM asset authority mismatch','provider logo bytes must match the exact immutable checksum');
+select throws_ok($$select private.assert_menu_dom_presentation_v2(snapshot,jsonb_set(presentation,'{content,logo}',jsonb_build_object('kind','tenant','mediaAssetId','29220000-0000-4000-8000-000000000203','checksumSha256',repeat('d',64))))from menu_provider_logo_fixture$$,
+  '23514','Menu DOM asset authority mismatch','a different valid provider logo cannot replace the frozen brand');
+select throws_ok($$select private.assert_menu_dom_presentation_v2(snapshot,jsonb_set(presentation,'{content,logo}',jsonb_build_object('kind','tenant','mediaAssetId','29220000-0000-4000-8000-000000000202','checksumSha256',repeat('c',64))))from menu_dom_fixture$$,
+  '23514','Menu DOM asset authority mismatch','a globally readable provider image still needs frozen snapshot authority');
+select throws_ok($$select private.assert_menu_dom_presentation_v2(
+  jsonb_populate_record(snapshot,jsonb_build_object('snapshot_data_json',jsonb_set((snapshot).snapshot_data_json,
+    '{sitesConfiguration,background}',jsonb_build_object('mediaAssetId','29220000-0000-4000-8000-000000000202')))),
+  jsonb_set(jsonb_set(presentation,'{configuration,background}',jsonb_build_object('mediaAssetId','29220000-0000-4000-8000-000000000202')),
+    '{content,logo}',jsonb_build_object('kind','tenant','mediaAssetId','29220000-0000-4000-8000-000000000202','checksumSha256',repeat('c',64))))
+  from menu_dom_fixture$$,'23514','Menu DOM asset authority mismatch',
+  'a null brand never authorizes a provider image through another configuration field');
+select throws_ok($$select private.assert_menu_dom_presentation_v2(jsonb_populate_record(snapshot,jsonb_build_object('snapshot_data_json',jsonb_set((snapshot).snapshot_data_json,'{brand,logoMediaAssetId}','"29220000-0000-4000-8000-000000000103"'))),jsonb_set(presentation,'{content,logo}',jsonb_build_object('kind','tenant','mediaAssetId','29220000-0000-4000-8000-000000000103','checksumSha256',repeat('b',64))))from menu_dom_fixture$$,
+  '23514','Menu DOM asset authority mismatch','even a frozen brand cannot authorize another tenant image');
+select lives_ok($$select private.assert_menu_dom_presentation_v2(jsonb_populate_record(snapshot,jsonb_build_object('snapshot_data_json',jsonb_set((snapshot).snapshot_data_json,'{brand,logoMediaAssetId}','"29220000-0000-4000-8000-000000000102"'))),jsonb_set(presentation,'{content,logo}',jsonb_build_object('kind','tenant','mediaAssetId','29220000-0000-4000-8000-000000000102','checksumSha256',repeat('b',64))))from menu_dom_fixture$$,
+  'the existing ready tenant logo path remains valid');
+
+insert into public.dynamic_slides(id,tenant_id,name,slide_type,orientation,template_id,template_version_id,data_source_id,selection_mode,status,configuration_json,menu_document_revision)
+select '29220000-0000-4000-8000-000000000210','29220000-0000-4000-8000-000000000001','Menu provider completion','price_list','landscape',
+  template.id,version.id,'29220000-0000-4000-8000-000000000003','latest','draft',(fixture.snapshot).snapshot_data_json->'menuDocument',
+  ((fixture.snapshot).snapshot_data_json#>>'{menuDocument,revision}')::bigint
+from public.dynamic_templates template
+join public.dynamic_template_versions version on version.id=template.current_published_version_id
+cross join menu_provider_logo_fixture fixture
+where template.slide_type='price_list' and template.orientation='landscape' and template.status='published'
+limit 1;
+insert into public.dynamic_slide_snapshots(id,tenant_id,dynamic_slide_id,template_version_id,data_source_id,source_revision_hash,snapshot_data_json,status,dynamic_slide_version_id)
+select (fixture.snapshot).id,slide.tenant_id,slide.id,slide.template_version_id,slide.data_source_id,repeat('a',64),
+  (fixture.snapshot).snapshot_data_json,'rendering',slide.active_draft_version_id
+from menu_provider_logo_fixture fixture
+cross join public.dynamic_slides slide where slide.id='29220000-0000-4000-8000-000000000210';
+update public.dynamic_slide_versions set status='publishing'
+where dynamic_slide_id='29220000-0000-4000-8000-000000000210';
+insert into public.dynamic_render_jobs(id,tenant_id,snapshot_id,output_media_asset_id,status,locked_by,lease_token,locked_at)
+values('29220000-0000-4000-8000-000000000211','29220000-0000-4000-8000-000000000001','29220000-0000-4000-8000-000000000021',
+  '29220000-0000-4000-8000-000000000212','rendering','s312-menu-worker','29220000-0000-4000-8000-000000000213',now());
+create temp table menu_provider_artifact as
+select jsonb_build_object('schemaVersion',2,'mimeType','application/vnd.veyocast.sync-dom+json',
+  'byteLength',1024,'checksumSha256',repeat('f',64),'width',1920,'height',1080,'durationMs',12000,
+  'storagePath','tenants/29220000-0000-4000-8000-000000000001/assets/'||job.output_media_asset_id::text||'/sync-dom/'||repeat('f',64)||'.json',
+  'presentation',presentation) as artifact from menu_provider_logo_fixture
+cross join public.dynamic_render_jobs job where job.id='29220000-0000-4000-8000-000000000211';
+grant select on menu_provider_artifact to service_role;
+set local role service_role;
+select lives_ok($$select public.complete_menu_dom_job_v2('29220000-0000-4000-8000-000000000211','s312-menu-worker',
+  '29220000-0000-4000-8000-000000000213',artifact)from menu_provider_artifact$$,
+  'the real fenced Menu completion accepts the provider logo');
+select lives_ok($$select public.complete_menu_dom_job_v2('29220000-0000-4000-8000-000000000211','s312-menu-worker',
+  '29220000-0000-4000-8000-000000000213',artifact)from menu_provider_artifact$$,
+  'replaying the confirmed completion is idempotent');
+reset role;
+select is((select status from public.dynamic_render_jobs where id='29220000-0000-4000-8000-000000000211'),'completed',
+  'the real queue job is completed, not merely relabelled in Control');
+select is((select status from public.dynamic_slide_versions where dynamic_slide_id='29220000-0000-4000-8000-000000000210'),'published',
+  'the same logical slide version becomes published');
+select ok((select slide.current_published_version_id=version.id and version.published_snapshot_id=snapshot.id
+  and snapshot.status='ready' and asset.status='ready' and variant.variant_type='original'
+  from public.dynamic_slides slide
+  join public.dynamic_slide_versions version on version.tenant_id=slide.tenant_id and version.dynamic_slide_id=slide.id
+  join public.dynamic_slide_snapshots snapshot on snapshot.tenant_id=version.tenant_id and snapshot.id=version.published_snapshot_id
+  join public.media_assets asset on asset.tenant_id=snapshot.tenant_id and asset.id=snapshot.output_media_asset_id
+  join public.media_variants variant on variant.tenant_id=asset.tenant_id and variant.asset_id=asset.id
+  where slide.id='29220000-0000-4000-8000-000000000210'),
+  'active version, ready snapshot and usable original output all agree');
+select is((select count(*)from public.dynamic_slide_versions where dynamic_slide_id='29220000-0000-4000-8000-000000000210'),1::bigint,
+  'completion and replay never create a duplicate slide version');
 select *from finish();
 rollback;
