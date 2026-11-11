@@ -362,10 +362,15 @@ test("workflow preserves all groups, four independent original-case shards and t
   const workflow = readFileSync(".github/workflows/pr-gates.yml", "utf8");
   for (const group of ["control", "marketing", "cross"]) assert.equal((workflow.match(new RegExp(`group: ${group},`, "g")) ?? []).length, 1);
   for (let index = 1; index <= 4; index++) assert.ok(workflow.includes(`group: player, label: 'player ${index}/4', shardIndex: ${index}, shardCount: 4`));
-  assert.match(workflow, /name: Browser gates \(player\)\s+needs: browsers\s+if: always\(\)/);
+  assert.match(workflow, /name: Browser gates \(player\)\s+needs: \[browsers, players\]\s+if: always\(\)/);
   assert.match(workflow, /run: test "\$BROWSER_RESULT" = success/);
   assert.match(workflow, /PLAYWRIGHT_PLAYER_SHARD_COUNT: '4'/);
   assert.match(workflow, /run: node scripts\/verify-player-shards.mjs/);
   assert.match(workflow, /matrix.group == 'player' && 135 \|\| matrix.group == 'control' && 60 \|\| 45/);
+  assert.match(workflow, /players:\s+name: Browser gates.*\s+needs: player-fixtures\s+runs-on: ubuntu-latest\s+timeout-minutes: 135/);
+  assert.match(workflow, /test "\$PLAYER_RESULT" = success/);
+  assert.equal((workflow.match(/run: bash scripts\/prepare-player-fixtures.sh/g) ?? []).length, 1);
+  assert.match(workflow, /name: player-case-closure-\$\{\{ matrix.shardIndex \}\}-\$\{\{ github.sha \}\}-\$\{\{ github.run_attempt \}\}/);
+  assert.match(workflow, /pattern: player-case-closure-\*-\$\{\{ github.sha \}\}-\$\{\{ github.run_attempt \}\}/);
   assert.doesNotMatch(workflow, /continue-on-error: true|fail-fast: true/);
 });

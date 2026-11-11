@@ -543,6 +543,10 @@ discard_checkout_next_build_caches() {
 NODE
 }
 
+ensure_build_capacity() {
+  bash "${repository_root}/scripts/ensure-build-capacity.sh"
+}
+
 build_release() {
   # De stagingrunner deelt zijn beperkte CPU/geheugenbudget met Rootless Docker.
   # Turbo's standaardparallelisme kan daardoor meerdere TypeScript-processen
@@ -578,6 +582,7 @@ build_release() {
   fi
 
   cd "${repository_root}"
+  ensure_build_capacity
   pnpm install --frozen-lockfile
   pnpm lint --concurrency="${release_gate_concurrency}"
   pnpm typecheck --concurrency="${release_gate_concurrency}"

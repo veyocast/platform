@@ -26,6 +26,9 @@ RUN --mount=type=secret,id=next_server_actions_encryption_key \
     && VEYOCAST_ENVIRONMENT=production pnpm --filter @veyocast/marketing build \
     && rm -rf -- /app/apps/marketing/.next/cache
 
+FROM dependencies AS worker-runtime
+RUN node scripts/prepare-worker-runtime.mjs /runtime
+
 FROM node:24-trixie-slim AS control
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
@@ -66,6 +69,6 @@ FROM base AS media-worker
 RUN apt-get update \
   && apt-get install --yes --no-install-recommends ca-certificates chromium ffmpeg \
   && rm -rf /var/lib/apt/lists/*
-COPY --chown=node:node --from=dependencies /app /app
+COPY --chown=node:node --from=worker-runtime /runtime /app
 USER node
 CMD ["node", "--import", "tsx", "apps/media-worker/src/index.ts", "--loop"]
