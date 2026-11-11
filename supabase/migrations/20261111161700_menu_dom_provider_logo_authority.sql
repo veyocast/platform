@@ -77,3 +77,28 @@ $$;
 
 revoke all on function private.assert_menu_dom_presentation_v2(public.dynamic_slide_snapshots,jsonb)
   from public,anon,authenticated,service_role;
+
+do $patch$
+declare
+  definition text;
+  marker text;
+begin
+  select pg_get_functiondef('public.refresh_dynamic_slide_v1(uuid)'::regprocedure) into definition;
+  marker := '  snapshot_status text;';
+  if position(marker in definition) = 0 then raise exception 'retry declaration precondition failed'; end if;
+  definition := replace(definition, marker, marker || E'\n  failed_snapshot_id uuid;');
+  marker := '  where id = p_slide_id and status <> ''archived'';';
+  if position(marker in definition) = 0 then raise exception 'retry lock precondition failed'; end if;
+  definition := replace(definition, marker, replace(marker, ';', ' for update;'));
+  marker := E'  if target_snapshot_id is null then\n    select snapshot.id, snapshot.status';
+  if position(marker in definition) = 0 then raise exception 'retry lookup precondition failed'; end if;
+  definition := replace(definition, marker, E'  if target_snapshot_id is null then\n    loop\n    select snapshot.id, snapshot.status');
+  marker := E'      and snapshot.source_revision_hash = content_hash;\n  end if;';
+  if position(marker in definition) = 0 then raise exception 'retry traversal precondition failed'; end if;
+  definition := replace(definition, marker, E'      and snapshot.source_revision_hash = content_hash;\n    exit when target_snapshot_id is null or snapshot_status <> ''failed'';\n    failed_snapshot_id := target_snapshot_id;\n    content_hash := encode(extensions.digest(convert_to(jsonb_build_object(\n      ''contentHash'', content_hash, ''failedSnapshotId'', failed_snapshot_id\n    )::text, ''UTF8''), ''sha256''), ''hex'');\n    end loop;\n  end if;');
+  marker := E'        ''jobId'', job_id\n';
+  if position(marker in definition) = 0 then raise exception 'retry audit precondition failed'; end if;
+  definition := replace(definition, marker, E'        ''jobId'', job_id, ''retryOfSnapshotId'', failed_snapshot_id\n');
+  execute definition;
+end;
+$patch$;

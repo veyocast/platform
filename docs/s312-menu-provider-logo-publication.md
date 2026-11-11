@@ -67,6 +67,34 @@ gebruiker naar de bestaande retryactie verwezen.
 
 ## Bevestigde vervolgscope en Ubuntu-storing
 
+Tijdens de begrensde klant-herstelproef is een tweede echte oorzaak vastgesteld:
+de gedeelde refreshroute zoekt de canonical inhoudshash en geeft bij ongewijzigde
+inhoud dezelfde terminale failed snapshot terug. De bestaande retrytest gebruikte
+`repeat('e',64)` en miste precies deze route. De test met de werkelijke hash faalt
+op de queued-assertion en probeert daarna terecht geen immutable fout te wijzigen.
+
+Dezelfde forwardmigration serializeert refresh per slide en volgt een
+deterministische hashketen van canonical inhoud plus de voorgaande failed
+snapshot-ID. Alleen een expliciete refresh/publicatie maakt een volgende poging;
+een herhaalde klik vindt de al queued/rendering/ready poging. Eerdere fouten,
+versies, selectie en inhoud blijven behouden. De bestaande actor-/tenantguards,
+frozen snapshots en echte fenced completion blijven verplicht. Audit vermeldt
+de oorspronkelijke failed snapshot. De uitgebreidere versieproef bewaakt twee
+opeenvolgende terminale fouten, beide herhalingen en de vorige werkende versie.
+Na deze bronwijziging moeten alle hostedgates opnieuw op de nieuwe SHA slagen.
+
+De definitieve zeven rollback-suites slagen nu met 207 assertions, waarvan 57
+voor versiebeheer/retry en ongewijzigd 27 voor Menu-DOM. Zonder de retryfix faalt
+de echte-hash-queued-tegenproef; met de fix blijven twee opeenvolgende retries
+en hun herhalingen correct. De afzonderlijke operationele fixture slaagt met
+36 assertions (21 bestaande Menu-guards plus 15 herstelcontroles): stale editor-
+state wordt geweigerd, twee uitvoeringen maken één taak/receipt, eerdere fouten
+en andere versies blijven gelijk, en uitsluitend echte fenced completion
+activeert dezelfde versie. Ook een herhaling na voltooiing maakt niets dubbel.
+Die fixture is transactioneel/rollback, met metadata-output, geen klantmutatie,
+werkelijke Storage-upload of fysieke TV-test. De geautoriseerde klantoperatie
+blijft geblokkeerd tot normale productie-uitrol van de exacte groene bron.
+
 De gebruiker bevestigt zowel de exacte ‘Prijslijst Kantine’-publicatie als de
 veilige mirrorfallback. Twee hosted pogingen stagneerden vóór browsercases:
 `archive.ubuntu.com` en `security.ubuntu.com` waren niet resolveerbaar. Canonical

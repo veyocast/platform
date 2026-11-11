@@ -32,3 +32,12 @@ van concepten of losse slide-identiteit. Vraag vóór een gerichte klant-retry o
 identificatie/toestemming als de getoonde slide niet ondubbelzinnig vaststaat.
 De bestaande vorige werkende release blijft beschermd. Rapporteer werkelijke
 SQL-/CI-/uitrol- en klantpublicatiebewijzen afzonderlijk.
+
+De gerichte herstelproef toont aanvullend dat de bestaande retryfixture een
+kunstmatige hash gebruikte: met de echte inhoudshash vindt refresh dezelfde
+terminale failed snapshot terug. Onder de oorspronkelijke opdracht voor een
+werkende retry omvat dezelfde forwardmigration nu ook die gedeelde refreshroute;
+root bezit aanvullend de gerichte versie-regressies. Serializeer per slide,
+behoud immutable fouten en geef opeenvolgende expliciete pogingen een
+deterministische identiteit onder dezelfde versie. Geen Auth-/permission-
+verruiming, bulkherstel of wijziging van bestaande migrations.

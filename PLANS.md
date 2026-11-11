@@ -7,6 +7,12 @@ bewaren checksum-/tenant-/leasegrenzen en bewijzen echte versieactivering.
 Zie `docs/s312-menu-provider-logo-publication.md`; normale gates/uitrol blijven
 verplicht, concepten worden niet blind opnieuw gepubliceerd.
 
+De aanvullende echte-hash-tegenproef toont dat de gedeelde retry dezelfde
+terminale failed snapshot hergebruikt. Dezelfde forwardmigration bewaart die
+historie en volgt nu deterministische pogingidentiteiten onder dezelfde versie,
+geserialiseerd per slide. De versie-regressie gebruikt voortaan de werkelijke
+inhoudshash en bewaakt herhaalde en opeenvolgende retries.
+
 De gebruiker bevestigt expliciet de specifieke klant-retry en een gedeelde,
 GPG-geverifieerde HTTPS-mirrorfallback in alleen de drie CI-gateworkflows.
 Alle fonts/dependencies/tests en deploymentguards blijven verplicht; geen
