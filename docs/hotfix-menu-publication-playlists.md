@@ -70,8 +70,14 @@ snapshot op. Alleen `published` + de actuele actieve-versieverwijzing + een
 `ready` snapshot met output wordt als gereed gemeld. Na voltooiing wordt de
 dashboardweergave automatisch bijgewerkt. Fouten worden zichtbaar; na twee
 minuten observeren, of een snapshot ouder dan tien minuten, volgt geen eindeloze
-publicatiemelding maar een herstelactie. De bibliotheek ververst maximaal twee
+publicatiemelding maar een herstelactie. De bibliotheek ververst eerst twee
 minuten iedere drie seconden en verwijst bij uitblijvende voltooiing naar herstel.
+Daarna blijven bibliotheek en versiecontrole iedere vijftien seconden rustig
+controleren zolang de betreffende weergave openstaat. Ook een later voltooide
+publicatie werkt daardoor automatisch door; de waarschuwing verdwijnt pas bij
+een bevestigde actieve versie. Sluiten van de editor annuleert de controle,
+inclusief een al onderweg zijnde oude response. Een concept wordt niet automatisch
+gepubliceerd door deze leescontroles.
 Een expliciete retry krijgt opnieuw twee minuten observatietijd, ook wanneer
 dezelfde oude, niet-terminale snapshot opnieuw in de wachtrij is gezet.
 

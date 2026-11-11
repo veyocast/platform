@@ -168,6 +168,14 @@ groen. De twaalf compacte/volle widgetproeven en de ongewijzigde originele
 categoriekoppixelvergelijkingen blijven groen. De volledige hosted browsermatrix
 moet vóór mainintegratie ook bij de definitieve SHA groen zijn.
 
+De aanvullende late-completioncontrole vond nog een randgeval: de waarschuwing
+na twee minuten stopte ook het lezen van de status. De UI blijft nu na die
+waarschuwing iedere vijftien seconden observeren, zonder opnieuw te publiceren.
+Vier echte componentbrowserproeven met een gecontroleerde statusboundary en
+virtuele klok bewaken late voltooiing, langzame dashboardverversing, annuleren
+van een vertraagde response na sluiten en herstel na een leesstoring. Alle vier
+zijn groen; dit is geen vervanging van de echte Worker-/RLS-publicatieproef.
+
 De gecombineerde branch/PR gaat via de ongewijzigde normale CI, immutable
 main→staging-build en expliciete productiepromotie met dezelfde digests.
 Exacte SHA's, workflowlinks en resultaten worden na de uitrol vastgelegd in het

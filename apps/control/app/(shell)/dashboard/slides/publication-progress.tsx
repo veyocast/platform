@@ -15,6 +15,7 @@ export function PublicationProgress({ slideId, versionId, onPublished, refreshOn
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
+    let slow = false;
     const deadline = Date.now() + 120_000;
     async function check() {
       try {
@@ -23,13 +24,13 @@ export function PublicationProgress({ slideId, versionId, onPublished, refreshOn
         setState(next); setError(null);
         if (next.status === "published") { onPublished?.(); if (refreshOnPublished) router.refresh(); return; }
         if (next.status !== "publishing") return;
-        if (Date.now() >= deadline || (attempt === 0 && next.startedAt && Date.now() - Date.parse(next.startedAt) > 600_000)) { setStalled(true); return; }
+        if (Date.now() >= deadline || (attempt === 0 && next.startedAt && Date.now() - Date.parse(next.startedAt) > 600_000)) { slow = true; setStalled(true); }
       } catch {
         if (cancelled) return;
         setError("De publicatiestatus kan niet worden gecontroleerd. Je opgeslagen versie blijft behouden.");
-        if (Date.now() >= deadline) { setStalled(true); return; }
+        if (Date.now() >= deadline) { slow = true; setStalled(true); }
       }
-      timer = setTimeout(check, 2_000);
+      timer = setTimeout(check, slow ? 15_000 : 2_000);
     }
     void check();
     return () => { cancelled = true; clearTimeout(timer); };
@@ -57,11 +58,15 @@ export function PublicationListRefresh({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) { setStalled(false); return; }
     const startedAt = Date.now();
-    const timer = setInterval(() => {
-      if (Date.now() - startedAt >= 120_000) { clearInterval(timer); setStalled(true); return; }
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = () => {
+      const slow = Date.now() - startedAt >= 120_000;
+      if (slow) setStalled(true);
       router.refresh();
-    }, 3_000);
-    return () => clearInterval(timer);
+      timer = setTimeout(refresh, slow ? 15_000 : 3_000);
+    };
+    timer = setTimeout(refresh, 3_000);
+    return () => clearTimeout(timer);
   }, [active, router]);
   return stalled ? <p role="alert" className="notice notice--warning">De verwerking duurt langer dan verwacht. Open de betreffende slide om de publicatie te controleren of opnieuw te proberen. De vorige werkende versie blijft actief.</p> : null;
 }
