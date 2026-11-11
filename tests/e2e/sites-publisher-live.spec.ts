@@ -101,7 +101,7 @@ test.describe("Sites publisher with real local storage", () => {
     await otherEditor.getByLabel("Naam playlist", { exact: true }).fill(`${prefix} tweede sessie`);
 
     await editor.getByRole("button", { name: "Volgorde", exact: true }).click();
-    await editor.getByRole("button", { name: `${prefix} eerste omhoog`, exact: true }).click();
+    await editor.getByRole("button", { name: `Omhoog verplaatsen: ${prefix} eerste`, exact: true }).click();
     await editor.getByRole("button", { name: "Opslaan", exact: true }).click();
     await expect.poll(() => database(playlistId).revision).toBe(firstSaved.revision + 1);
     await otherEditor.getByRole("button", { name: "Opslaan", exact: true }).click();

@@ -135,6 +135,10 @@ groen, inclusief beide ongewijzigde S305-herstelproeven. De brede lokale control
 vond daarnaast ontbrekende standaardseed/pgTAP-setup en twee S295-baselineafwijkingen;
 die zijn afzonderlijk tegen de situatie zonder deze hotfix vergeleken. Dat is
 geen vervanging voor de verplichte verse hosted reset/RLS-run bij de nieuwe SHA.
+De daaropvolgende verse SQL/RLS- en concurrencycontroles zijn groen. De echte
+uploadproef slaagt ook; de publicatieproef liep nog op één verouderde knopnaam
+uit. Alleen die selector is bijgewerkt naar `Omhoog verplaatsen: …`; geen opslag-,
+conflict-, publicatie- of first-frameassertie is verwijderd of overgeslagen.
 
 De gecombineerde branch/PR gaat via de ongewijzigde normale CI, immutable
 main→staging-build en expliciete productiepromotie met dezelfde digests.
