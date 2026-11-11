@@ -38,4 +38,14 @@ describe('saved RSS layouts through the shared renderer', () => {
     expect(rssArticleUrl('https://example.org/a?q=%26')).toBe('https://example.org/a?q=%26');
     expect(rssDisplayText('<p>Sport &amp; bewegen &#x1f3c3;</p><script>bad()</script>')).toBe('Sport & bewegen 🏃');
   });
+  it.each(['', 'not-a-url', 'javascript:alert(1)', 'https://user:password@example.org/a', 'http://example.org/a'])('keeps an article without a QR when its canonical URL is invalid: %s', link => {
+    const result = projectSyncDynamicSnapshot({ schemaVersion: 1, slideType: 'news', orientation: 'landscape', snapshotId: '40000000-0000-4000-8000-000000000309', snapshotHash: 'a'.repeat(64), templateVersionId: '50000000-0000-4000-8000-000000000309', templateSlug: 'rss-layout-test', data: { type: 'news', news: { sourceName: 'Voorbeeldredactie', articles: [{ externalId: 'article-a', title: 'Zonder bestemming', intro: 'Wel een echt bericht', link }] } } }, fixture('clubkrant'));
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw Error('The article must remain available');
+    expect(result.presentation.news[0]?.url).toBeUndefined();
+    const html = renderToStaticMarkup(<SyncSlideStaticView presentation={result.presentation}/>);
+    expect(html).toContain('Zonder bestemming');
+    expect(html).not.toContain('data-article-url=');
+    expect(html).not.toContain('Lees het hele artikel');
+  });
 });

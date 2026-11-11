@@ -74,6 +74,11 @@ const publicUrl = z
       return false;
     }
   }, "Gebruik een publieke HTTPS-link zonder aanmeldgegevens.");
+export function syncSlideArticleUrl(value: unknown): string | null {
+  const parsed = publicUrl.safeParse(value);
+  return parsed.success ? new URL(parsed.data).href : null;
+}
+
 const club = z
   .object({
     name: text,

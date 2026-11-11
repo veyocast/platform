@@ -82,8 +82,12 @@ de ZIP is als productie-inhoud overgenomen.
   onmiddellijke preview, portrait, reload, behouden selectie van zeven artikelen,
   verloren HTTP-response en exact dezelfde bevestigde opdracht bij retry.
   Beide geteste schermen hebben nul geteste axe-A/AA-overtredingen.
-- Zes regressie-units bewaken seed/duplicatie/serialisatie, beide oriëntaties,
+- Elf regressie-units bewaken seed/duplicatie/serialisatie, beide oriëntaties,
   historische ontbrekende keuze, ongeldige waarden, uitgever/datum/URL en tekst.
+  De volledige canonical projector behoudt ook artikelen met een ontbrekende,
+  ongeldige, credentialhoudende of niet-toegestane artikel-URL. Alleen QR/CTA
+  vallen weg. Dit hergebruikt dezelfde bestaande HTTPS-contractvalidatie;
+  ongeldige bronfeiten laten niet alsnog de volledige nieuwe RSS-slide afvallen.
 - De uitgebreide bestaande RSS-databaseproef telt 45 assertions, alle groen.
   De echte guarded writer bewaart alle drie indelingen in bestaande logische
   slides en behoudt bron en artikelselectie. Tenant-/viewernegatieve proeven
@@ -95,6 +99,9 @@ de ZIP is als productie-inhoud overgenomen.
   groen, inclusief Control2232, content300, Player755 en worker436 tests. Na de
   laatste serialisatiecorrectie zijn de echte Worker-/Player-proeven opnieuw
   groen (14/14) en de renderercontroles opnieuw uitgevoerd.
+- De aanvullende URL-correctie heeft opnieuw 19/19 packagegates groen, nu
+  content305 tests; de zes ontbrekende-URL-, zes Worker- en zes echte
+  Player-componentproeven zijn opnieuw groen (18/18).
 - Vijf transactionele DB-suites met beide migrations samen: 215 assertions
   groen (46 + 14 + 40 + 45 + 70), inclusief historische OnzeTrots-contracten.
 

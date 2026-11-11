@@ -1,14 +1,8 @@
 import React, { type CSSProperties, type ReactNode } from 'react';
-import type { SyncOnzeTrotsV9Presentation } from '@veyocast/contracts';
+import { syncSlideArticleUrl, type SyncOnzeTrotsV9Presentation } from '@veyocast/contracts';
 import type { SyncSlideAssetResolver } from './sync-slide-static-view';
 
-export function rssArticleUrl(value: string | undefined): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && !url.username && !url.password ? url.href : null;
-  } catch { return null; }
-}
+export const rssArticleUrl = syncSlideArticleUrl;
 
 export function rssDisplayText(value: string): string {
   const entities: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
