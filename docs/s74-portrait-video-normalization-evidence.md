@@ -40,3 +40,19 @@ Naast unitgrenzen voor fysiek portrait, landscape en displayrotatie is de
 productie-FFmpeg-versie rechtstreeks beproefd. Een synthetische
 `1920×1080`-MP4 met 90° displaymatrix leverde een rotatievrije
 `1080×1920`, yuv420p Player-variant op.
+
+## Fysieke acceptatie
+
+Op 1 augustus 2026 bevestigde de opdrachtgever na de aanvullende S75-correctie
+dat de opnieuw verwerkte portraitvideo op de fysieke LG 43UL3J-EP via
+`https://player.veyocast.nl/lg/legacy` correct werd afgespeeld. Daarmee is voor
+dit exacte model, deze productionruntime en deze mediaketen aangetoond dat:
+
+- de worker een echte `1080 × 1920`-playervariant kan opleveren;
+- de variant transactioneel als `ready` kan worden geregistreerd;
+- de immutable release door de LG Legacy Player kan worden opgehaald;
+- de portraitvideo zichtbaar als staande content wordt afgespeeld.
+
+Dit resultaat bewijst niet automatisch rebootretentie, offlinevideoplayback, de
+24-uurs mixed-media soak of algemene ondersteuning voor andere LG-modellen en
+firmwareversies. Die blijven afzonderlijke hardwaregates.
