@@ -1,0 +1,789 @@
+{
+  "recordedAtUtc": "2026-11-13T16:06:33.923893+00:00",
+  "records": [
+    {
+      "command": [
+        "gh",
+        "pr",
+        "view",
+        "343",
+        "--repo",
+        "veyocast/platform",
+        "--json",
+        "url,state,headRefOid,baseRefOid,mergeCommit,mergedAt"
+      ],
+      "exitCode": 0,
+      "result": {
+        "baseRefOid": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "headRefOid": "f69706cdfc42d5aa37493574a6d1557cc561ef07",
+        "mergeCommit": {
+          "oid": "67d8470198acec4272c47c4c7979b6071a915c4b"
+        },
+        "mergedAt": "2026-11-13T15:47:31Z",
+        "state": "MERGED",
+        "url": "https://github.com/veyocast/platform/pull/343"
+      }
+    },
+    {
+      "command": [
+        "gh",
+        "run",
+        "view",
+        "43456143838",
+        "--repo",
+        "veyocast/platform",
+        "--json",
+        "url,headSha,status,conclusion,jobs"
+      ],
+      "exitCode": 0,
+      "result": {
+        "conclusion": "success",
+        "headSha": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "jobs": [
+          {
+            "completedAt": "2026-11-13T15:47:58Z",
+            "conclusion": "success",
+            "databaseId": 131990679016,
+            "name": "Preflight",
+            "startedAt": "2026-11-13T15:47:39Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-11-13T15:47:42Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-11-13T15:47:40Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:46Z",
+                "conclusion": "success",
+                "name": "Checkout trusted main workflow",
+                "number": 2,
+                "startedAt": "2026-11-13T15:47:42Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:46Z",
+                "conclusion": "success",
+                "name": "Remove stale workspace files",
+                "number": 3,
+                "startedAt": "2026-11-13T15:47:46Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:47Z",
+                "conclusion": "success",
+                "name": "Resolve and authorize release",
+                "number": 4,
+                "startedAt": "2026-11-13T15:47:46Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:47Z",
+                "conclusion": "success",
+                "name": "Setup Node.js",
+                "number": 5,
+                "startedAt": "2026-11-13T15:47:47Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:51Z",
+                "conclusion": "success",
+                "name": "Setup pnpm",
+                "number": 6,
+                "startedAt": "2026-11-13T15:47:47Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:52Z",
+                "conclusion": "success",
+                "name": "Validate staging configuration and rootless daemon",
+                "number": 7,
+                "startedAt": "2026-11-13T15:47:51Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:54Z",
+                "conclusion": "success",
+                "name": "Post Setup pnpm",
+                "number": 12,
+                "startedAt": "2026-11-13T15:47:52Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:54Z",
+                "conclusion": "success",
+                "name": "Post Setup Node.js",
+                "number": 13,
+                "startedAt": "2026-11-13T15:47:54Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:55Z",
+                "conclusion": "success",
+                "name": "Post Checkout trusted main workflow",
+                "number": 14,
+                "startedAt": "2026-11-13T15:47:54Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:47:55Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 15,
+                "startedAt": "2026-11-13T15:47:55Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456143838/job/131990679016"
+          },
+          {
+            "completedAt": "2026-11-13T16:02:31Z",
+            "conclusion": "success",
+            "databaseId": 131990897219,
+            "name": "Build immutable release",
+            "startedAt": "2026-11-13T15:48:02Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-11-13T15:48:04Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-11-13T15:48:03Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:48:06Z",
+                "conclusion": "success",
+                "name": "Checkout authorized release",
+                "number": 2,
+                "startedAt": "2026-11-13T15:48:05Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:48:06Z",
+                "conclusion": "success",
+                "name": "Remove stale workspace files",
+                "number": 3,
+                "startedAt": "2026-11-13T15:48:06Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:48:06Z",
+                "conclusion": "success",
+                "name": "Setup Node.js",
+                "number": 4,
+                "startedAt": "2026-11-13T15:48:06Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T15:48:10Z",
+                "conclusion": "success",
+                "name": "Setup pnpm",
+                "number": 5,
+                "startedAt": "2026-11-13T15:48:06Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:01:38Z",
+                "conclusion": "success",
+                "name": "Build, test and record SHA images",
+                "number": 6,
+                "startedAt": "2026-11-13T15:48:10Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:25Z",
+                "conclusion": "success",
+                "name": "Post Setup pnpm",
+                "number": 10,
+                "startedAt": "2026-11-13T16:01:38Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:25Z",
+                "conclusion": "success",
+                "name": "Post Setup Node.js",
+                "number": 11,
+                "startedAt": "2026-11-13T16:02:25Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:26Z",
+                "conclusion": "success",
+                "name": "Post Checkout authorized release",
+                "number": 12,
+                "startedAt": "2026-11-13T16:02:25Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:26Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 13,
+                "startedAt": "2026-11-13T16:02:26Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456143838/job/131990897219"
+          },
+          {
+            "completedAt": "2026-11-13T16:03:30Z",
+            "conclusion": "success",
+            "databaseId": 131999381224,
+            "name": "Deploy and verify staging",
+            "startedAt": "2026-11-13T16:02:36Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-11-13T16:02:39Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-11-13T16:02:37Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:50Z",
+                "conclusion": "success",
+                "name": "Checkout authorized release",
+                "number": 2,
+                "startedAt": "2026-11-13T16:02:39Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:50Z",
+                "conclusion": "success",
+                "name": "Remove stale workspace files",
+                "number": 3,
+                "startedAt": "2026-11-13T16:02:50Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:51Z",
+                "conclusion": "success",
+                "name": "Setup Node.js",
+                "number": 4,
+                "startedAt": "2026-11-13T16:02:50Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:02:55Z",
+                "conclusion": "success",
+                "name": "Setup pnpm",
+                "number": 5,
+                "startedAt": "2026-11-13T16:02:51Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:00Z",
+                "conclusion": "success",
+                "name": "Install pinned migration tooling",
+                "number": 6,
+                "startedAt": "2026-11-13T16:02:55Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:16Z",
+                "conclusion": "success",
+                "name": "Deploy exact release to staging",
+                "number": 7,
+                "startedAt": "2026-11-13T16:03:00Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:17Z",
+                "conclusion": "success",
+                "name": "Prove live pairing and standalone LG recovery on staging",
+                "number": 8,
+                "startedAt": "2026-11-13T16:03:16Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:26Z",
+                "conclusion": "success",
+                "name": "Post Setup pnpm",
+                "number": 14,
+                "startedAt": "2026-11-13T16:03:17Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:26Z",
+                "conclusion": "success",
+                "name": "Post Setup Node.js",
+                "number": 15,
+                "startedAt": "2026-11-13T16:03:26Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:26Z",
+                "conclusion": "success",
+                "name": "Post Checkout authorized release",
+                "number": 16,
+                "startedAt": "2026-11-13T16:03:26Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:26Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 17,
+                "startedAt": "2026-11-13T16:03:26Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456143838/job/131999381224"
+          },
+          {
+            "completedAt": "2026-11-13T16:03:30Z",
+            "conclusion": "skipped",
+            "databaseId": 131999961527,
+            "name": "Deploy production (explicit dispatch)",
+            "startedAt": "2026-11-13T16:03:30Z",
+            "status": "completed",
+            "steps": [],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456143838/job/131999961527"
+          }
+        ],
+        "status": "completed",
+        "url": "https://github.com/veyocast/platform/actions/runs/43456143838"
+      }
+    },
+    {
+      "command": [
+        "gh",
+        "run",
+        "view",
+        "43456528973",
+        "--repo",
+        "veyocast/platform",
+        "--json",
+        "url,headSha,status,conclusion,jobs"
+      ],
+      "exitCode": 0,
+      "result": {
+        "conclusion": "success",
+        "headSha": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "jobs": [
+          {
+            "completedAt": "2026-11-13T16:03:50Z",
+            "conclusion": "success",
+            "databaseId": 131999962974,
+            "name": "Preflight",
+            "startedAt": "2026-11-13T16:03:35Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-11-13T16:03:37Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-11-13T16:03:36Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:40Z",
+                "conclusion": "success",
+                "name": "Checkout trusted main workflow",
+                "number": 2,
+                "startedAt": "2026-11-13T16:03:37Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:40Z",
+                "conclusion": "success",
+                "name": "Remove stale workspace files",
+                "number": 3,
+                "startedAt": "2026-11-13T16:03:40Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:40Z",
+                "conclusion": "success",
+                "name": "Resolve and authorize release",
+                "number": 4,
+                "startedAt": "2026-11-13T16:03:40Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:40Z",
+                "conclusion": "success",
+                "name": "Setup Node.js",
+                "number": 5,
+                "startedAt": "2026-11-13T16:03:40Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:44Z",
+                "conclusion": "success",
+                "name": "Setup pnpm",
+                "number": 6,
+                "startedAt": "2026-11-13T16:03:40Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:44Z",
+                "conclusion": "success",
+                "name": "Validate staging configuration and rootless daemon",
+                "number": 7,
+                "startedAt": "2026-11-13T16:03:44Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:46Z",
+                "conclusion": "success",
+                "name": "Post Setup pnpm",
+                "number": 12,
+                "startedAt": "2026-11-13T16:03:44Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:46Z",
+                "conclusion": "success",
+                "name": "Post Setup Node.js",
+                "number": 13,
+                "startedAt": "2026-11-13T16:03:46Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:47Z",
+                "conclusion": "success",
+                "name": "Post Checkout trusted main workflow",
+                "number": 14,
+                "startedAt": "2026-11-13T16:03:46Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:47Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 15,
+                "startedAt": "2026-11-13T16:03:47Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456528973/job/131999962974"
+          },
+          {
+            "completedAt": "2026-11-13T16:04:10Z",
+            "conclusion": "success",
+            "databaseId": 132000161665,
+            "name": "Build immutable release",
+            "startedAt": "2026-11-13T16:03:54Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-11-13T16:03:57Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-11-13T16:03:55Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:58Z",
+                "conclusion": "success",
+                "name": "Checkout authorized release",
+                "number": 2,
+                "startedAt": "2026-11-13T16:03:57Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:58Z",
+                "conclusion": "success",
+                "name": "Remove stale workspace files",
+                "number": 3,
+                "startedAt": "2026-11-13T16:03:58Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:03:59Z",
+                "conclusion": "success",
+                "name": "Setup Node.js",
+                "number": 4,
+                "startedAt": "2026-11-13T16:03:58Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:02Z",
+                "conclusion": "success",
+                "name": "Setup pnpm",
+                "number": 5,
+                "startedAt": "2026-11-13T16:03:59Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:03Z",
+                "conclusion": "success",
+                "name": "Build, test and record SHA images",
+                "number": 6,
+                "startedAt": "2026-11-13T16:04:02Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:06Z",
+                "conclusion": "success",
+                "name": "Post Setup pnpm",
+                "number": 10,
+                "startedAt": "2026-11-13T16:04:03Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:06Z",
+                "conclusion": "success",
+                "name": "Post Setup Node.js",
+                "number": 11,
+                "startedAt": "2026-11-13T16:04:06Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:06Z",
+                "conclusion": "success",
+                "name": "Post Checkout authorized release",
+                "number": 12,
+                "startedAt": "2026-11-13T16:04:06Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:06Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 13,
+                "startedAt": "2026-11-13T16:04:06Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456528973/job/132000161665"
+          },
+          {
+            "completedAt": "2026-11-13T16:05:01Z",
+            "conclusion": "success",
+            "databaseId": 132000357405,
+            "name": "Deploy and verify staging",
+            "startedAt": "2026-11-13T16:04:14Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-11-13T16:04:17Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-11-13T16:04:15Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:18Z",
+                "conclusion": "success",
+                "name": "Checkout authorized release",
+                "number": 2,
+                "startedAt": "2026-11-13T16:04:17Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:18Z",
+                "conclusion": "success",
+                "name": "Remove stale workspace files",
+                "number": 3,
+                "startedAt": "2026-11-13T16:04:18Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:19Z",
+                "conclusion": "success",
+                "name": "Setup Node.js",
+                "number": 4,
+                "startedAt": "2026-11-13T16:04:18Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:22Z",
+                "conclusion": "success",
+                "name": "Setup pnpm",
+                "number": 5,
+                "startedAt": "2026-11-13T16:04:19Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:28Z",
+                "conclusion": "success",
+                "name": "Install pinned migration tooling",
+                "number": 6,
+                "startedAt": "2026-11-13T16:04:22Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:42Z",
+                "conclusion": "success",
+                "name": "Deploy exact release to staging",
+                "number": 7,
+                "startedAt": "2026-11-13T16:04:28Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:43Z",
+                "conclusion": "success",
+                "name": "Prove live pairing and standalone LG recovery on staging",
+                "number": 8,
+                "startedAt": "2026-11-13T16:04:42Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:57Z",
+                "conclusion": "success",
+                "name": "Post Setup pnpm",
+                "number": 14,
+                "startedAt": "2026-11-13T16:04:43Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:57Z",
+                "conclusion": "success",
+                "name": "Post Setup Node.js",
+                "number": 15,
+                "startedAt": "2026-11-13T16:04:57Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:58Z",
+                "conclusion": "success",
+                "name": "Post Checkout authorized release",
+                "number": 16,
+                "startedAt": "2026-11-13T16:04:57Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:04:58Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 17,
+                "startedAt": "2026-11-13T16:04:58Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456528973/job/132000357405"
+          },
+          {
+            "completedAt": "2026-11-13T16:06:05Z",
+            "conclusion": "success",
+            "databaseId": 132000867794,
+            "name": "Deploy production (explicit dispatch)",
+            "startedAt": "2026-11-13T16:05:05Z",
+            "status": "completed",
+            "steps": [
+              {
+                "completedAt": "2026-11-13T16:05:09Z",
+                "conclusion": "success",
+                "name": "Set up job",
+                "number": 1,
+                "startedAt": "2026-11-13T16:05:07Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:26Z",
+                "conclusion": "success",
+                "name": "Checkout authorized release",
+                "number": 2,
+                "startedAt": "2026-11-13T16:05:09Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:26Z",
+                "conclusion": "success",
+                "name": "Remove stale workspace files",
+                "number": 3,
+                "startedAt": "2026-11-13T16:05:26Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:26Z",
+                "conclusion": "success",
+                "name": "Refuse a stale production release",
+                "number": 4,
+                "startedAt": "2026-11-13T16:05:26Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:27Z",
+                "conclusion": "success",
+                "name": "Setup Node.js",
+                "number": 5,
+                "startedAt": "2026-11-13T16:05:26Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:31Z",
+                "conclusion": "success",
+                "name": "Setup pnpm",
+                "number": 6,
+                "startedAt": "2026-11-13T16:05:27Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:36Z",
+                "conclusion": "success",
+                "name": "Install pinned migration tooling",
+                "number": 7,
+                "startedAt": "2026-11-13T16:05:31Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:54Z",
+                "conclusion": "success",
+                "name": "Verify and deploy exact staging release",
+                "number": 8,
+                "startedAt": "2026-11-13T16:05:36Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:05:54Z",
+                "conclusion": "success",
+                "name": "Prove live pairing and standalone LG recovery on production",
+                "number": 9,
+                "startedAt": "2026-11-13T16:05:54Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:06:02Z",
+                "conclusion": "success",
+                "name": "Post Setup pnpm",
+                "number": 16,
+                "startedAt": "2026-11-13T16:05:54Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:06:02Z",
+                "conclusion": "success",
+                "name": "Post Setup Node.js",
+                "number": 17,
+                "startedAt": "2026-11-13T16:06:02Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:06:02Z",
+                "conclusion": "success",
+                "name": "Post Checkout authorized release",
+                "number": 18,
+                "startedAt": "2026-11-13T16:06:02Z",
+                "status": "completed"
+              },
+              {
+                "completedAt": "2026-11-13T16:06:02Z",
+                "conclusion": "success",
+                "name": "Complete job",
+                "number": 19,
+                "startedAt": "2026-11-13T16:06:02Z",
+                "status": "completed"
+              }
+            ],
+            "url": "https://github.com/veyocast/platform/actions/runs/43456528973/job/132000867794"
+          }
+        ],
+        "status": "completed",
+        "url": "https://github.com/veyocast/platform/actions/runs/43456528973"
+      }
+    }
+  ]
+}

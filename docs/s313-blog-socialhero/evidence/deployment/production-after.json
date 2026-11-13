@@ -1,0 +1,108 @@
+{
+  "observedAt": "2026-11-13 16:07:07 UTC",
+  "environment": "production",
+  "projectRef": "gjmdqsukjfhmmblnmhqd",
+  "releaseSha": "67d8470198acec4272c47c4c7979b6071a915c4b",
+  "workflowRun": "https://github.com/veyocast/platform/actions/runs/43456528973",
+  "deploymentJob": "success",
+  "querySource": "docs/s313-blog-socialhero/evidence/deployment/readback.sql",
+  "queryMode": "BEGIN READ ONLY; metadata and aggregate counts; COMMIT",
+  "result": {
+    "sites": [],
+    "assetCount": 0,
+    "tokenCount": 0,
+    "mediaBucket": {
+      "id": "platform_blog_media",
+      "public": false,
+      "mimeTypes": [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ],
+      "fileSizeLimit": 8388608
+    },
+    "articleCount": 0,
+    "revisionCount": 0,
+    "blogTableCount": 10,
+    "migrationCount": 225,
+    "publishedCount": 0,
+    "latestMigration": "20261113124946",
+    "activeTokenCount": 0,
+    "blogTablesAllRls": true,
+    "blogFunctionCount": 15,
+    "s313MigrationPresent": true,
+    "anonymousDraftPointer": false,
+    "anonymousRevisionActor": false,
+    "anonymousBlogExecuteCount": 0,
+    "directAuthenticatedWrites": 0,
+    "publicViewSecurityInvoker": true
+  },
+  "provisioning": "No site, credential, article or media has been created. Operator activation still required.",
+  "health": [
+    {
+      "url": "https://control.veyocast.nl/api/health",
+      "status": 200,
+      "body": {
+        "environment": "production",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "control",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://player.veyocast.nl/healthz",
+      "status": 200,
+      "body": {
+        "environment": "production",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "player",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/api/health",
+      "status": 200,
+      "body": {
+        "environment": "production",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "marketing",
+        "status": "ok"
+      }
+    }
+  ],
+  "unauthenticatedChecks": [
+    {
+      "url": "https://veyocast.nl/blog",
+      "status": 200,
+      "expected": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "url": "https://veyocast.nl/api/socialhero/v1/capabilities",
+      "status": 401,
+      "expected": 401,
+      "contentType": "application/json",
+      "safeErrorCode": "INVALID_CREDENTIAL"
+    },
+    {
+      "url": "https://control.veyocast.nl/api/platform/blog",
+      "status": 403,
+      "expected": 403,
+      "contentType": "application/json",
+      "safeErrorCode": "PERMISSION_DENIED"
+    },
+    {
+      "url": "https://veyocast.nl/api/blog/media/31300000-0000-4000-8000-000000000099",
+      "status": 404,
+      "expected": 404,
+      "contentType": "application/json",
+      "safeErrorCode": "NOT_FOUND"
+    }
+  ],
+  "sourceHashes": {
+    "supabase/migrations/20261113124946_s313_blog_publication_kernel.sql": "e7864fd76e5d88afc17fb288522a22c8ff8af9bc4f0180f96e646cc38dfa906a",
+    "docs/s313-blog-socialhero/evidence/deployment/readback.sql": "2a0a0f8b5d61b14a872b9d30ae01ee7abcd36d89978d3acc890a965286c911ac",
+    "docs/s313-blog-socialhero/evidence/deployment/activate-veyocast.mjs": "f6a864795081db0520456eceb915ccb33e747575311d511b2ffc79a2f6d5e0cd",
+    "docs/s313-blog-socialhero/evidence/deployment/activate-veyocast.test.mjs": "ee33b0fdc6f1ed6ce47a4aeffea53c6aed7c8abff8885c5980512762ed30fb83"
+  }
+}

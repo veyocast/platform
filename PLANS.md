@@ -641,3 +641,13 @@ dashboardguard en publicatiepreview behouden hun rechten. De globale uploadbak
 raadpleegt geen media zonder tenant.media.read. Gerichte echte route-/sessie-
 tegenproef, gewone gates en hosted normale Auth/delegatie moeten dit bevestigen.
 Geen verruimde rol, migratie, Player- of publicatiecontractwijziging.
+
+S313 voegt platformredactie, veilige TipTap-/mediarevisies en publieke
+Marketing-blogroutes met het bestaande SocialHero-contract toe. De gebruiker
+autoriseerde de volledige uitrol: VeyoCast `67d84701` en SocialHero `2a80055`
+zijn via hun bestaande staging- en productieflows geactiveerd en onafhankelijk
+geverifieerd. De additieve migratie staat op beide VeyoCast-projecten; alle
+vereiste CI-, build-, runtime- en publieke browsergates zijn groen. Een echte
+owner/admin-MFA-sessie moet de VeyoCast-site en nieuwe sitegebonden credential
+nog activeren; er zijn geen productieartikelen of tokens aangemaakt. Zie
+`docs/s313-blog-socialhero/evidence/deployment/README.md` en `ACTIVEREN.md`.

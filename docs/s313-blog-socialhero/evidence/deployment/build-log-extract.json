@@ -1,0 +1,24 @@
+{
+  "recordedAtUtc": "2026-11-13T16:07:03.717360+00:00",
+  "command": [
+    "gh",
+    "run",
+    "view",
+    "43456143838",
+    "--repo",
+    "veyocast/platform",
+    "--job",
+    "131990897219",
+    "--log"
+  ],
+  "exitCode": 0,
+  "note": "Only build/test success summaries and image IDs selected; no raw log or credential values stored.",
+  "lines": [
+    "Build immutable release\tBuild, test and record SHA images\t2026-11-13T15:48:10.9569274Z {\"event\":\"build_capacity_ready\",\"imagesPreserved\":true,\"containersPreserved\":true,\"volumesPreserved\":true}",
+    "Build immutable release\tBuild, test and record SHA images\t2026-11-13T15:49:23.2448208Z  Tasks:    32 successful, 32 total",
+    "Build immutable release\tBuild, test and record SHA images\t2026-11-13T15:50:31.4801101Z  Tasks:    32 successful, 32 total",
+    "Build immutable release\tBuild, test and record SHA images\t2026-11-13T15:52:08.7128537Z  Tasks:    32 successful, 32 total",
+    "Build immutable release\tBuild, test and record SHA images\t2026-11-13T15:55:20.2255884Z  Tasks:    19 successful, 19 total",
+    "Build immutable release\tBuild, test and record SHA images\t2026-11-13T15:55:21.2886339Z {\"event\":\"next_build_cache_cleanup\",\"cachePaths\":[\"apps/control/.next/cache\",\"apps/player/.next/cache\",\"apps/marketing/.next/cache\"],\"removedCacheCount\":3,\"availableBytesBefore\":\"30742220800\",\"availableBytesAfter\":\"32273985536\",\"availableBytesDelta\":\"1531764736\"}"
+  ]
+}

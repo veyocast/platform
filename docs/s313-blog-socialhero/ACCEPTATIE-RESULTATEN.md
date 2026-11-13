@@ -1,9 +1,14 @@
 # Acceptatie S313
 
-Doelomgeving: lokaal, site `veyocast`, `development`, Marketing
-`http://127.0.0.1:9313`, contractversie `1`. Er is geen staging- of
-productieactivatie uitgevoerd. Bronversies en configuratie staan in [het
-uitvoeringsdossier](README.md). Het overdrachtspakket is onder `reference/`
+De primaire ketenacceptatie is lokaal uitgevoerd: site `veyocast`, `development`,
+Marketing `http://127.0.0.1:9313`, contractversie `1`. Daarna is VeyoCast via de
+bestaande releaseflow op staging en productie geactiveerd en geverifieerd als
+`67d8470198acec4272c47c4c7979b6071a915c4b`; zie het
+[hosted uitrolbewijs](evidence/deployment/README.md). SocialHero is vervolgens
+op beide omgevingen geactiveerd als `2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5`,
+met groene kandidaatbuilds, activaties en beide publieke readinesschecks.
+Bronversies en configuratie
+staan in [het uitvoeringsdossier](README.md). Het overdrachtspakket is onder `reference/`
 uitsluitend als ontwerp- en acceptatiereferentie opgenomen.
 
 De lokale integratie gebruikt `s313-local-postgres-test-adapter`: een eigen
@@ -14,7 +19,7 @@ externe Supabase Auth-/Storage-installatie of uitgerolde website.
 
 | Controle uit ACCEPTATIE.md | Bewijs en huidige grens |
 |---|---|
-| Bronbasis | Groen: VeyoCast `4f44`, SocialHero `6ddc`, prototype `68cadf`; aparte werkbomen, bestaande routes en deployflows. SocialHero definitief `8e2cf198`, PR1 en CI groen. |
+| Bronbasis | Groen: oorspronkelijke basis VeyoCast `4f44`, SocialHero `6ddc`, prototype `68cadf`; aparte werkbomen, bestaande routes en deployflows. Gemergde combinatie VeyoCast `67d84701`, SocialHero `2a80055`; beide PR's en vereiste exacte CI groen. |
 | UI-overname | Groen: dezelfde drie prototypeartikelen, fonts en 1440/390/320px; openbare main-screenshots identiek. Native Control-shell/baseline en editor ook vergeleken. Twee editorcontrasttokens doelbewust voor toegankelijkheid gecorrigeerd. |
 | TipTap | Groen: typen en plakken, koppen/lijsten/taken/quote/tabel/beeld, tabelbewerkingen, undo/redo, save/reopen met identiek JSON+HTML, veilige en schadelijke paste. Browser gebruikt expliciet fixturetransport. |
 | Redactie | Groen: capability/sessie/AAL2/origin, afgeschermde preview/media en herhaalbare save/publicatie gericht getoetst. Echte geauthenticeerde Supabase-browserflow blijft open. |
@@ -26,7 +31,7 @@ externe Supabase Auth-/Storage-installatie of uitgerolde website.
 | Gelijktijdigheid | Groen: acht echte PostgreSQL-twee-sessieraces en gelijktijdige HTTP-revisiewrites; één schrijver wint en verouderde revisie wordt geweigerd. |
 | Revisie en URL | Groen: oude live-inhoud blijft tijdens conceptwijziging; expliciete slugwijziging wordt gepubliceerd; elke oude slug geeft een directe308 naar actueel canoniek. |
 | Herstel | Groen: worker heropent SQLite en exact uploadsnapshot; pauze/onbereikbaarheid blokkeert vervolg. Na verloren lokale completion verifieert een nieuw proces dezelfde publicatie en bewaart één receipt. |
-| Cache en deploy | Groen lokaal:225 migraties+ seed vanaf nul,159 RLS-bestanden/5607 assertions, build/secretgates en zichtbaarheid na herstart. Staging-/productieactivatie is niet uitgevoerd. |
+| Cache en deploy | Groen lokaal:225 migraties+ seed vanaf nul,159 RLS-bestanden/5607 assertions, build/secretgates en zichtbaarheid na herstart. VeyoCast staging en productie daadwerkelijk groen; beide hosted databases225 migraties/10RLS-tabellen, alle5healthroutes exacteSHA. Publieke productieprobe12/12,6axe0. |
 
 ## Commandobewijs
 
@@ -74,6 +79,10 @@ Een echte Supabase Auth-/Storage-gateway, een geauthenticeerde SocialHero-wizard
 in de browser en een extern ingerichte marketingtesthost zijn niet bewezen door
 de lokale adapters. De bestaande socialprovider ontbreekt; de hosted queueguard
 is lokaal met een expliciete omgevingsinjectie getoetst en geeft na websiteverify
-terecht `PROVIDER_NOT_CONFIGURED`. Geen echte socialpost of externe deploy is
-uitgevoerd. De ontbrekende staging-Marketing-service vereist een expliciete host
-voordat de bestaande activatieflow kan worden gebruikt.
+terecht `PROVIDER_NOT_CONFIGURED`. Er is geen echte socialpost verzonden. De
+software-uitrol en publieke productiecontroles zijn wel uitgevoerd; zij bewijzen
+geen gekoppelde credential of echte Auth-/Storage-publicatieketen. Site en
+credential moeten met echte owner/admin-MFA worden geactiveerd; het concrete
+[runbook en de operatorclient](evidence/deployment/ACTIVEREN.md) zijn beschikbaar.
+De ontbrekende staging-Marketing-service vereist een afzonderlijke echte origin
+voordat een externe stagingblogverbinding kan worden geconfigureerd.

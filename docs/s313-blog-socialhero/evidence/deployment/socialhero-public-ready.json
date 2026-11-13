@@ -1,0 +1,31 @@
+{
+  "recordedAtUtc": "2026-11-13T16:13:15.358188+00:00",
+  "method": "Python urllib.request GET,10second timeout,allowlisted public fields",
+  "expectedSoftwareSha": "2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5",
+  "records": [
+    {
+      "environment": "staging",
+      "url": "https://socialhero-staging.dgwebservices.nl/api/ready",
+      "httpStatus": 200,
+      "result": {
+        "status": "ok",
+        "environment": "staging",
+        "releaseSha": "2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5",
+        "releaseId": "2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5-43458667644-1",
+        "workerRunning": true
+      }
+    },
+    {
+      "environment": "production",
+      "url": "https://socialhero.dgwebservices.nl/api/ready",
+      "httpStatus": 200,
+      "result": {
+        "status": "ok",
+        "environment": "production",
+        "releaseSha": "2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5",
+        "releaseId": "2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5-43460049432-1",
+        "workerRunning": true
+      }
+    }
+  ]
+}

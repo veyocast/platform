@@ -1,0 +1,325 @@
+{
+  "kind": "unauthenticated-public-production-baseline",
+  "observedAtUtc": "2026-11-13T15:48:18.265Z",
+  "branch": "veyocast/s313-blog-socialhero",
+  "candidateSource": "f69706cdfc42d5aa37493574a6d1557cc561ef07",
+  "operation": "Read-only HTTPS GET, redirect manual, per-request 8s total deadline and 2MiB body limit; no credentials, no cookies persisted, no content publication",
+  "command": "node --input-type=module (inline fetch probe)",
+  "browserToolAttempt": "web.open could not access these domains; direct bounded HTTPS fetch succeeded where recorded",
+  "results": [
+    {
+      "url": "https://veyocast.nl/api/health",
+      "status": 200,
+      "durationMs": 172,
+      "headers": {
+        "content-type": "application/json",
+        "cache-control": "no-store"
+      },
+      "bytes": 118,
+      "bodySha256": "e3d6b839e9da1bae4e5d69bb6ba5865ca988ad01944fbd819e0c73026159a6a4",
+      "json": {
+        "environment": "production",
+        "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "service": "marketing",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/",
+      "status": 200,
+      "durationMs": 156,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "s-maxage=31536000"
+      },
+      "bytes": 51510,
+      "bodySha256": "efbeb25042d975076cf0b5d17bfa76bfb96de5727e480b28f2e71aaaf01de79b",
+      "html": {
+        "title": "VeyoCast — Narrowcasting die je verhaal laat zien",
+        "h1": [
+          "Maak van ieder scherm een verhaal."
+        ],
+        "canonicals": [
+          "https://veyocast.nl"
+        ],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "index, follow"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [
+          {
+            "property": "og:url",
+            "content": "https://veyocast.nl"
+          },
+          {
+            "property": "og:image:height",
+            "content": "1254"
+          },
+          {
+            "property": "og:image",
+            "content": "https://veyocast.nl/assets/brand-hero-1254.webp"
+          },
+          {
+            "property": "og:image:width",
+            "content": "1254"
+          },
+          {
+            "property": "og:type",
+            "content": "website"
+          }
+        ],
+        "hasSharedHeader": true,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false,
+        "jsonLdCount": 2
+      }
+    },
+    {
+      "url": "https://veyocast.nl/blog",
+      "status": 200,
+      "durationMs": 211,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "bytes": 48319,
+      "bodySha256": "24646608f3aeb9e2bbb6e586f02930dabd1071b01422da1f9c4cb698d970f1c7",
+      "html": {
+        "title": "Productnotities en praktijk uit de VeyoCast-wereld | VeyoCast",
+        "h1": [
+          "Productnotities en praktijk uit de VeyoCast-wereld"
+        ],
+        "canonicals": [
+          "https://veyocast.nl/blog"
+        ],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "noindex, nofollow"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [
+          {
+            "property": "og:url",
+            "content": "https://veyocast.nl/blog"
+          },
+          {
+            "property": "og:image:height",
+            "content": "1254"
+          },
+          {
+            "property": "og:image",
+            "content": "https://veyocast.nl/assets/brand-hero-1254.webp"
+          },
+          {
+            "property": "og:image:width",
+            "content": "1254"
+          },
+          {
+            "property": "og:type",
+            "content": "website"
+          }
+        ],
+        "hasSharedHeader": true,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false,
+        "jsonLdCount": 2
+      }
+    },
+    {
+      "url": "https://veyocast.nl/sitemap.xml",
+      "status": 200,
+      "durationMs": 148,
+      "headers": {
+        "content-type": "application/xml",
+        "cache-control": "public, max-age=0, must-revalidate"
+      },
+      "bytes": 8115,
+      "bodySha256": "d88c66baa54f5fe198ab09dc08465d3c62aa637bc12117bf56a5fe949ff9855e",
+      "sitemap": {
+        "urls": [
+          "https://veyocast.nl",
+          "https://veyocast.nl/product",
+          "https://veyocast.nl/publisher",
+          "https://veyocast.nl/functies",
+          "https://veyocast.nl/clubtv",
+          "https://veyocast.nl/oplossingen",
+          "https://veyocast.nl/integraties",
+          "https://veyocast.nl/integraties/sportlink",
+          "https://veyocast.nl/integraties/twelve-xlsx",
+          "https://veyocast.nl/integraties/rss-nieuws",
+          "https://veyocast.nl/sponsor-hub",
+          "https://veyocast.nl/prijzen",
+          "https://veyocast.nl/demo",
+          "https://veyocast.nl/over-ons",
+          "https://veyocast.nl/contact",
+          "https://veyocast.nl/functies/playlists",
+          "https://veyocast.nl/functies/schermen",
+          "https://veyocast.nl/functies/media",
+          "https://veyocast.nl/functies/planning",
+          "https://veyocast.nl/functies/offline-afspelen",
+          "https://veyocast.nl/functies/monitoring",
+          "https://veyocast.nl/functies/templates",
+          "https://veyocast.nl/oplossingen/sportverenigingen",
+          "https://veyocast.nl/oplossingen/voetbalclubs",
+          "https://veyocast.nl/oplossingen/hockeyclubs",
+          "https://veyocast.nl/oplossingen/tennis-en-padel",
+          "https://veyocast.nl/oplossingen/zwemverenigingen",
+          "https://veyocast.nl/oplossingen/sportscholen",
+          "https://veyocast.nl/oplossingen/horeca-en-kantines",
+          "https://veyocast.nl/oplossingen/bedrijven",
+          "https://veyocast.nl/oplossingen/onderwijs",
+          "https://veyocast.nl/oplossingen/retail",
+          "https://veyocast.nl/kennisbank/wat-is-narrowcasting",
+          "https://veyocast.nl/kennisbank/wat-is-clubtv",
+          "https://veyocast.nl/kennisbank/narrowcasting-sportvereniging",
+          "https://veyocast.nl/kennisbank/contentkalender-sportclub",
+          "https://veyocast.nl/kennisbank/sponsors-zichtbaar-op-clubtv",
+          "https://veyocast.nl/kennisbank",
+          "https://veyocast.nl/veelgestelde-vragen",
+          "https://veyocast.nl/support",
+          "https://veyocast.nl/cookies",
+          "https://veyocast.nl/toegankelijkheid",
+          "https://veyocast.nl/privacy",
+          "https://veyocast.nl/account-verwijderen",
+          "https://veyocast.nl/data-verwijderen",
+          "https://veyocast.nl/narrowcasting",
+          "https://veyocast.nl/oplossingen/horeca",
+          "https://veyocast.nl/koppelingen",
+          "https://veyocast.nl/players"
+        ],
+        "urlCount": 49
+      }
+    },
+    {
+      "url": "https://veyocast.nl/api/socialhero/v1/capabilities",
+      "status": 404,
+      "durationMs": 177,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "bytes": 11593,
+      "bodySha256": "c9b852f95c8576f4ce4f65b69f39fb0e9e39c81d219be0284ee7c14dc814ce05",
+      "html": {
+        "title": "VeyoCast | ClubTV en narrowcasting",
+        "h1": [],
+        "canonicals": [],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "noindex"
+          },
+          {
+            "name": "robots",
+            "content": "index, follow"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [
+          {
+            "property": "og:image:height",
+            "content": "1254"
+          },
+          {
+            "property": "og:image",
+            "content": "https://veyocast.nl/assets/brand-hero-1254.webp"
+          },
+          {
+            "property": "og:image:width",
+            "content": "1254"
+          },
+          {
+            "property": "og:type",
+            "content": "website"
+          }
+        ],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false,
+        "jsonLdCount": 0
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/api/health",
+      "status": 200,
+      "durationMs": 154,
+      "headers": {
+        "content-type": "application/json",
+        "cache-control": "no-store"
+      },
+      "bytes": 116,
+      "bodySha256": "701bc516e114eca8189ef810ea6bdd6d88a20728c6ccbf23520aca26f6855af7",
+      "json": {
+        "environment": "production",
+        "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "service": "control",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/platform/blog",
+      "status": 404,
+      "durationMs": 164,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "bytes": 10173,
+      "bodySha256": "ffdb36194613a9fc28748c01d3a7ea54d4f87ac8a1f315b05e4b07f0a00d3396",
+      "html": {
+        "title": "404: This page could not be found.",
+        "h1": [
+          "404"
+        ],
+        "canonicals": [],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "noindex"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false,
+        "jsonLdCount": 0
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/api/platform/blog",
+      "status": 404,
+      "durationMs": 159,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "private, no-cache, no-store, max-age=0, must-revalidate"
+      },
+      "bytes": 10173,
+      "bodySha256": "ffdb36194613a9fc28748c01d3a7ea54d4f87ac8a1f315b05e4b07f0a00d3396",
+      "html": {
+        "title": "404: This page could not be found.",
+        "h1": [
+          "404"
+        ],
+        "canonicals": [],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "noindex"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false,
+        "jsonLdCount": 0
+      }
+    }
+  ]
+}

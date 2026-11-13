@@ -1,0 +1,15 @@
+{
+  "recordedAt": "2026-11-13T15:58:57.404620+00:00",
+  "command": "node --test docs/s313-blog-socialhero/evidence/deployment/activate-veyocast.test.mjs",
+  "result": "PASS",
+  "tests": 13,
+  "liveAuthExecuted": false,
+  "productionClientExecuted": false,
+  "network": "All Auth/RPC/capabilities calls mocked; no live fetch",
+  "tty": "Real local PTY no-echo probe; raw mode activated before prompt output",
+  "independentReview": "Root read-only review and independent13/13 rerun PASS",
+  "files": {
+    "activate-veyocast.mjs": "f6a864795081db0520456eceb915ccb33e747575311d511b2ffc79a2f6d5e0cd",
+    "activate-veyocast.test.mjs": "ee33b0fdc6f1ed6ce47a4aeffea53c6aed7c8abff8885c5980512762ed30fb83"
+  }
+}

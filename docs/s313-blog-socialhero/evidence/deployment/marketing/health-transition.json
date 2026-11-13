@@ -1,0 +1,44 @@
+{
+  "kind": "public-health-only-transition-observations",
+  "expectedRevision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+  "intervalSeconds": 30,
+  "pollSessionCompleted": true,
+  "observations": [
+    {
+      "observedAtUtc": "2026-11-13T15:59:46.084Z",
+      "services": [
+        "marketing",
+        "control",
+        "player"
+      ],
+      "status": "ok",
+      "httpStatus": 200,
+      "environment": "production",
+      "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770"
+    },
+    {
+      "observedAtUtc": "2026-11-13T16:05:47.821Z",
+      "services": [
+        "marketing",
+        "control",
+        "player"
+      ],
+      "error": "SyntaxError parsing health JSON",
+      "httpStatus": null,
+      "note": "The lightweight transition poll did not preserve HTTP status or response body, so it does not establish a precise outage cause or duration."
+    },
+    {
+      "observedAtUtc": "2026-11-13T16:06:17.959Z",
+      "services": [
+        "marketing",
+        "control",
+        "player"
+      ],
+      "status": "ok",
+      "httpStatus": 200,
+      "environment": "production",
+      "revision": "67d8470198acec4272c47c4c7979b6071a915c4b"
+    }
+  ],
+  "gate": "No HTTP page/browser acceptance probes ran before root confirmed production job43456528973 succeeded and every service independently matched the expected production SHA."
+}

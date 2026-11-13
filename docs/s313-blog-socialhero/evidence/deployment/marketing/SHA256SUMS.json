@@ -1,0 +1,20 @@
+{
+  "expectedProductionRevision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+  "rootConfirmedProductionJob": "43456528973",
+  "files": {
+    "after-production-first-probe.json": "dd706127f510b3f03e8b4f2ced899b43e3a5732d69e3bd0e73f79a89c7b11881",
+    "focus-after-enter.json": "a0df1de4cac3d08e045a8e3e63874e115a9efdc6847c08de81280eef4b336b20",
+    "after-production.json": "2ae6d3b60eccf611db10050a67e2e631b0f0f4d7b41a30b6dd1f49ed803625b5",
+    "health-transition.json": "d2772f4fb9340f8689ce18692b506f3953d4280976072fd48182c85873b74226",
+    "verify-production.mjs": "9e6df2354740ce6582a28056bccec5d756e7ddcbda364d0ef701f9aad5ff1cc5",
+    "production-home-390.png": "b5d2710bf16aab61623d3d55c3d8a170d7400e3ee6cb9440b12bda3d059c11b2",
+    "production-blog-390.png": "8766667cbfae0c218078d381424191ff747ec5db486fc4c0fea429876e5d8777",
+    "production-blog-320.png": "8377a99032f47c81e1bc90dc4f3545ba57f8add35a0fd20a49b66dec977d4878",
+    "production-home-1440.png": "b26f6e1cf7c4346e124710676bf47bfa6dcd1bc8b72a23f6ec5a6a63be8930c0",
+    "control-auth-baseline.json": "74fb0d165a1b92b043a66efdc31e71cacacfeb604ca0169e8c6e0c81952b1f28",
+    "baseline.json": "237207178740c9c6df005d7499e5846a3a6429d012ab82c85367c5c305f01e5c",
+    "production-home-320.png": "91b85977f7d68bdfc917276d5b9b2b7cf85a515df9a77bbbf38b98841071b769",
+    "production-blog-1440.png": "7a745968088148f380081655d1be8da22e2901eb55ad56ccb577f028497ee92a",
+    "README.md": "d81d4505d740478b28634f5c2cba92bfcc13c4159e177cc8ca951711aa5f1cba"
+  }
+}

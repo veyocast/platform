@@ -1,20 +1,25 @@
 # VeyoCast-blog en SocialHero — uitvoeringsdossier
 
-Status: implementatie en lokale acceptatie met expliciete testadapter. De echte
-Next-app, SocialHero-client en campagneworker zijn samen getest. Externe Auth,
-Storage, staging en productieactivatie blijven afzonderlijke controles.
+Status: beide applicaties zijn uitgerold en geverifieerd op staging en productie:
+VeyoCast `67d8470198acec4272c47c4c7979b6071a915c4b` en SocialHero
+`2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5`. De echte Next-app,
+SocialHero-client en campagneworker zijn samen lokaal getest. De site en nieuwe
+SocialHero-credential moeten nog met een echte owner/admin-sessie op AAL2 worden
+geactiveerd. Zie [daadwerkelijk uitrolbewijs](evidence/deployment/README.md) en
+[veilige activering](evidence/deployment/ACTIVEREN.md).
 
 ## Bronversies en omgeving
 
 | Onderdeel | Vastgelegde bron |
 |---|---|
-| VeyoCast | `veyocast/platform`, main `4f44bbdd68d22ca2aca42f01a8d68dbe1a120770` |
+| VeyoCast bronbasis | `veyocast/platform`, toenmalige main `4f44bbdd68d22ca2aca42f01a8d68dbe1a120770` |
 | Werkbranch | `veyocast/s313-blog-socialhero` |
-| VeyoCast implementatiecommit | `f0a5c63d2b793ee5bc92791b2a7e307c6fbfd2b9`; [concept-PR343](https://github.com/veyocast/platform/pull/343), gevolgd door uitsluitend opleverdocumentatie |
+| VeyoCast implementatiecommit | `f0a5c63d2b793ee5bc92791b2a7e307c6fbfd2b9`; [gemergde PR343](https://github.com/veyocast/platform/pull/343) |
+| VeyoCast actieve release | `67d8470198acec4272c47c4c7979b6071a915c4b`, staging en productie; migratie `20261113124946` op beide eigen Supabase-projecten |
 | Overdrachtsprototype | bron `68cadfd0e997a32169dc40c2c9290eb0657f3b77`, Sites-versie 2; bijgeleverd manifest/bewijs onder `reference/` |
 | SocialHero eerste audit | main `083b0d80b4231c0dc12e10340cb31e3434786f17` |
-| SocialHero definitieve wijziging | `8e2cf198a3f7c537df44366e3cfd05d08588c301`, [concept-PR1](https://github.com/socialherodgweb/platform/pull/1); standaard CI groen |
-| SocialHero actuele hercontrole | main `6ddc4be5cf74b113c186d4068ed18f87d71c37b6`; andere lopende werkbomen blijven intact |
+| SocialHero definitieve combinatie | `2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5`, [gemergde PR1](https://github.com/socialherodgweb/platform/pull/1); 219 tests en standaard CI groen, actuele bestemming-/canonical- en rollbackcorrecties behouden |
+| SocialHero actieve release | `2a800550ef3d5359cf73c6e37cc1f2eeb5b5b0c5`, staging en productie; configuratie `v2`, compatibiliteit `socialhero-sqlite-v2-images` |
 | Lokale Marketing-proef | `http://127.0.0.1:9313`, Next.js `15.5.20`, omgeving `development` (lege runtime eerst `test`), site `veyocast` |
 | Productiecanoniek | `https://veyocast.nl`; Control `https://control.veyocast.nl` |
 | Staging | Control `https://staging-control.veyocast.nl`; standaard geen Marketing-service |
@@ -165,13 +170,22 @@ is daarmee niet uitgevoerd.
   na websiteverificatie terecht `PROVIDER_NOT_CONFIGURED`; geen socialpost is
   werkelijk verzonden. De guard is lokaal met een expliciete omgevingsinjectie
   getest, zonder verkeer naar staging of productie.
-- Productie is niet geselecteerd. Het standaard stagingprofiel bevat geen
-  Marketing-app. Richt vóór activatie een afzonderlijke testorigin in en
-  configureer dezelfde origin/site/omgeving in database, runtime en SocialHero.
-- Beide concept-PR's zijn aangemaakt; SocialHero-CI is groen op
-  `8e2cf198a3f7c537df44366e3cfd05d08588c301`. VeyoCast-CI wordt door de
-  bestaande PR-workflows uitgevoerd; zie PR343 voor de actuele status. Er is
-  geen merge, stagingactivatie of productiedeployment uitgevoerd.
+- De gebruiker heeft de volledige uitrol expliciet opgedragen. Alle VeyoCast
+  PR-gates en beide releaseworkflows zijn groen. Alle vijf werkelijke healthroutes
+  tonen de nieuwe release; beide databases hebben 225 migraties en alle tien
+  blogtabellen hebben RLS. De publieke productienameting is 12/12 groen, inclusief
+  zes echte browsercaptures en zes aXe-scans zonder overtredingen.
+- SocialHero is daarna via eigen staging- en productiekandidaatbuilds en
+  activaties uitgerold. Alle exacte push-CI's, 219 tests, standaard builds en
+  afgescheiden smoke-tests zijn groen. Beide publieke readinessroutes tonen
+  dezelfde software-SHA en een actieve worker; zie het [uitrolbewijs](evidence/deployment/README.md).
+- Het standaard stagingprofiel bevat geen Marketing-app. Een externe
+  stagingblogkoppeling vereist eerst een echte afzonderlijke marketingorigin en
+  bijbehorende runtimeconfiguratie. Productie gebruikt `https://veyocast.nl`.
+- Site-/credentialprovisioning en de echte geauthenticeerde wizardcontrole blijven
+  open. De [operatorclient](evidence/deployment/ACTIVEREN.md) gebruikt uitsluitend
+  echte persoonlijke Auth/MFA en de bestaande guarded RPC's; 13 lokale proeven
+  zijn groen. Er is geen productietoken aangemaakt of testartikel gepubliceerd.
 
 Zie [acceptatieresultaten](ACCEPTATIE-RESULTATEN.md) voor de controle per eis.
 De actieve integratiedatabase kreeg na de ketenproef uitsluitend de finale

@@ -1,0 +1,123 @@
+{
+  "environments": {
+    "staging": {
+      "SUPABASE_PROJECT_REF": {
+        "present": true,
+        "value": "jibbtdicrptsyftobavq"
+      },
+      "NEXT_PUBLIC_SUPABASE_URL": {
+        "present": true,
+        "value": "https://jibbtdicrptsyftobavq.supabase.co"
+      },
+      "CONTROL_HOST": {
+        "present": true,
+        "value": "staging-control.veyocast.nl"
+      },
+      "PLAYER_HOST": {
+        "present": true,
+        "value": "staging-player.veyocast.nl"
+      },
+      "MARKETING_HOST": {
+        "present": false,
+        "http404": true
+      },
+      "MARKETING_BIND_PORT": {
+        "present": false,
+        "http404": true
+      },
+      "VEYOCAST_BLOG_SITE_ID": {
+        "present": false,
+        "http404": true
+      },
+      "VEYOCAST_BLOG_PUBLIC_ORIGIN": {
+        "present": false,
+        "http404": true
+      },
+      "secretNames": [
+        "DEVICE_LAB_ACCESS_TOKEN",
+        "DEVICE_LAB_SESSION_SECRET",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY",
+        "SLACK_ALERT_WEBHOOK_URL",
+        "SUPABASE_DB_URL",
+        "SUPABASE_RESTORE_DRILL_DB_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ],
+      "protection": {
+        "ruleTypes": [
+          "branch_policy"
+        ],
+        "branchPolicy": {
+          "protected_branches": false,
+          "custom_branch_policies": true
+        },
+        "deploymentBranches": [
+          {
+            "name": "main",
+            "type": "branch"
+          }
+        ]
+      }
+    },
+    "production": {
+      "SUPABASE_PROJECT_REF": {
+        "present": true,
+        "value": "gjmdqsukjfhmmblnmhqd"
+      },
+      "NEXT_PUBLIC_SUPABASE_URL": {
+        "present": true,
+        "value": "https://gjmdqsukjfhmmblnmhqd.supabase.co"
+      },
+      "CONTROL_HOST": {
+        "present": true,
+        "value": "control.veyocast.nl"
+      },
+      "PLAYER_HOST": {
+        "present": true,
+        "value": "player.veyocast.nl"
+      },
+      "MARKETING_HOST": {
+        "present": true,
+        "value": "veyocast.nl"
+      },
+      "MARKETING_BIND_PORT": {
+        "present": true,
+        "value": "23002"
+      },
+      "VEYOCAST_BLOG_SITE_ID": {
+        "present": false,
+        "http404": true
+      },
+      "VEYOCAST_BLOG_PUBLIC_ORIGIN": {
+        "present": false,
+        "http404": true
+      },
+      "secretNames": [
+        "DEVICE_LAB_ACCESS_TOKEN",
+        "DEVICE_LAB_SESSION_SECRET",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY",
+        "SLACK_ALERT_WEBHOOK_URL",
+        "SUPABASE_DB_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ],
+      "protection": {
+        "ruleTypes": [
+          "branch_policy"
+        ],
+        "branchPolicy": {
+          "protected_branches": false,
+          "custom_branch_policies": true
+        },
+        "deploymentBranches": [
+          {
+            "name": "main",
+            "type": "branch"
+          }
+        ]
+      }
+    }
+  },
+  "observedAt": "2026-11-13T15:49:38.932478+00:00",
+  "readScope": "GitHub variable allowlist, secret NAMES only, environment protection metadata"
+}

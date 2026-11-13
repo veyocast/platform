@@ -1,0 +1,647 @@
+{
+  "kind": "read-only-real-production-http-and-browser-verification",
+  "expectedRevision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+  "productionJob": "43456528973",
+  "rootConfirmedJobComplete": true,
+  "startedAtUtc": "2026-11-13T16:07:19.594Z",
+  "command": "S313_PRODUCTION_JOB_COMPLETE=43456528973 TMPDIR=/dev/shm/s313-marketing-production-browser node docs/s313-blog-socialhero/evidence/deployment/marketing/verify-production.mjs",
+  "health": [
+    {
+      "url": "https://veyocast.nl/api/health",
+      "status": 200,
+      "contentType": "application/json",
+      "location": null,
+      "cacheControl": "no-store",
+      "xRobotsTag": null,
+      "bodySha256": "62cea7f6c192c6f24c0ea9c727659849d065bfc46620074f385f66fa87c7427b",
+      "json": {
+        "environment": "production",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "marketing",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/api/health",
+      "status": 200,
+      "contentType": "application/json",
+      "location": null,
+      "cacheControl": "no-store",
+      "xRobotsTag": null,
+      "bodySha256": "9db851a5126744cd63cb21b0e8c0a4d4b8433df105276be994f137e9cfb1119d",
+      "json": {
+        "environment": "production",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "control",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://player.veyocast.nl/healthz",
+      "status": 200,
+      "contentType": "application/json",
+      "location": null,
+      "cacheControl": "no-store",
+      "xRobotsTag": null,
+      "bodySha256": "1cdcbe90bfc24523d0df1cef1b1bdf8e99dedca594f97210f7953a0c122b4e5c",
+      "json": {
+        "environment": "production",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "player",
+        "status": "ok"
+      }
+    }
+  ],
+  "http": [
+    {
+      "url": "https://veyocast.nl/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "location": null,
+      "cacheControl": "s-maxage=31536000",
+      "xRobotsTag": null,
+      "bodySha256": "dfed5f103776f885192f9e1de0280b58c0ecfd624c8e54be29df6186e603e823",
+      "html": {
+        "title": "VeyoCast — Narrowcasting die je verhaal laat zien",
+        "h1": [
+          "Maak van ieder scherm een verhaal."
+        ],
+        "canonicals": [
+          "https://veyocast.nl"
+        ],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "index, follow"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [
+          {
+            "property": "og:url",
+            "content": "https://veyocast.nl"
+          },
+          {
+            "property": "og:image:height",
+            "content": "1254"
+          },
+          {
+            "property": "og:image",
+            "content": "https://veyocast.nl/assets/brand-hero-1254.webp"
+          },
+          {
+            "property": "og:image:width",
+            "content": "1254"
+          },
+          {
+            "property": "og:type",
+            "content": "website"
+          }
+        ],
+        "hasSharedHeader": true,
+        "hasBlogLink": true,
+        "hasEmptyBlogText": false
+      }
+    },
+    {
+      "url": "https://veyocast.nl/blog",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "location": null,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "xRobotsTag": null,
+      "bodySha256": "639e051342d82206dd577e0097a0b479361680cd144c2374551186b7122f9721",
+      "html": {
+        "title": "Blog over ClubTV en narrowcasting | VeyoCast",
+        "h1": [
+          "Het VeyoCast-blog"
+        ],
+        "canonicals": [
+          "https://veyocast.nl/blog"
+        ],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "index, follow"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [
+          {
+            "property": "og:image:height",
+            "content": "1254"
+          },
+          {
+            "property": "og:image",
+            "content": "https://veyocast.nl/assets/brand-hero-1254.webp"
+          },
+          {
+            "property": "og:image:width",
+            "content": "1254"
+          },
+          {
+            "property": "og:type",
+            "content": "website"
+          }
+        ],
+        "hasSharedHeader": true,
+        "hasBlogLink": true,
+        "hasEmptyBlogText": true
+      }
+    },
+    {
+      "url": "https://veyocast.nl/sitemap.xml",
+      "status": 200,
+      "contentType": "application/xml",
+      "location": null,
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "xRobotsTag": null,
+      "bodySha256": "7a4178fe426b4531dc9d0361229d1ebf5de120e459a2f17f1a0685b309584ee1",
+      "sitemap": {
+        "urls": [
+          "https://veyocast.nl",
+          "https://veyocast.nl/product",
+          "https://veyocast.nl/publisher",
+          "https://veyocast.nl/functies",
+          "https://veyocast.nl/clubtv",
+          "https://veyocast.nl/oplossingen",
+          "https://veyocast.nl/integraties",
+          "https://veyocast.nl/integraties/sportlink",
+          "https://veyocast.nl/integraties/twelve-xlsx",
+          "https://veyocast.nl/integraties/rss-nieuws",
+          "https://veyocast.nl/sponsor-hub",
+          "https://veyocast.nl/prijzen",
+          "https://veyocast.nl/demo",
+          "https://veyocast.nl/over-ons",
+          "https://veyocast.nl/contact",
+          "https://veyocast.nl/functies/playlists",
+          "https://veyocast.nl/functies/schermen",
+          "https://veyocast.nl/functies/media",
+          "https://veyocast.nl/functies/planning",
+          "https://veyocast.nl/functies/offline-afspelen",
+          "https://veyocast.nl/functies/monitoring",
+          "https://veyocast.nl/functies/templates",
+          "https://veyocast.nl/oplossingen/sportverenigingen",
+          "https://veyocast.nl/oplossingen/voetbalclubs",
+          "https://veyocast.nl/oplossingen/hockeyclubs",
+          "https://veyocast.nl/oplossingen/tennis-en-padel",
+          "https://veyocast.nl/oplossingen/zwemverenigingen",
+          "https://veyocast.nl/oplossingen/sportscholen",
+          "https://veyocast.nl/oplossingen/horeca-en-kantines",
+          "https://veyocast.nl/oplossingen/bedrijven",
+          "https://veyocast.nl/oplossingen/onderwijs",
+          "https://veyocast.nl/oplossingen/retail",
+          "https://veyocast.nl/kennisbank/wat-is-narrowcasting",
+          "https://veyocast.nl/kennisbank/wat-is-clubtv",
+          "https://veyocast.nl/kennisbank/narrowcasting-sportvereniging",
+          "https://veyocast.nl/kennisbank/contentkalender-sportclub",
+          "https://veyocast.nl/kennisbank/sponsors-zichtbaar-op-clubtv",
+          "https://veyocast.nl/kennisbank",
+          "https://veyocast.nl/veelgestelde-vragen",
+          "https://veyocast.nl/support",
+          "https://veyocast.nl/cookies",
+          "https://veyocast.nl/toegankelijkheid",
+          "https://veyocast.nl/privacy",
+          "https://veyocast.nl/account-verwijderen",
+          "https://veyocast.nl/data-verwijderen",
+          "https://veyocast.nl/narrowcasting",
+          "https://veyocast.nl/oplossingen/horeca",
+          "https://veyocast.nl/koppelingen",
+          "https://veyocast.nl/players",
+          "https://veyocast.nl/blog"
+        ]
+      }
+    },
+    {
+      "url": "https://veyocast.nl/api/socialhero/v1/capabilities",
+      "status": 401,
+      "contentType": "application/json",
+      "location": null,
+      "cacheControl": "private, no-store",
+      "xRobotsTag": null,
+      "bodySha256": "8fb08f816e8e23fda09f0916313d1d1e1c755cb3b7dc428dc1027687af224aec",
+      "json": {
+        "error": {
+          "code": "INVALID_CREDENTIAL",
+          "message": "De verbinding is niet geldig. Verbind de website opnieuw met een geldige credential."
+        }
+      }
+    },
+    {
+      "url": "https://veyocast.nl/blog/s313-unpublished-does-not-exist",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "location": null,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "xRobotsTag": null,
+      "bodySha256": "ff8dc688ba41cec0730f672e880b13b5ff9ec119a001decf6fa1b9b9b864b3e0",
+      "html": {
+        "title": "VeyoCast | ClubTV en narrowcasting",
+        "h1": [],
+        "canonicals": [],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "noindex"
+          },
+          {
+            "name": "robots",
+            "content": "index, follow"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [
+          {
+            "property": "og:image:height",
+            "content": "1254"
+          },
+          {
+            "property": "og:image",
+            "content": "https://veyocast.nl/assets/brand-hero-1254.webp"
+          },
+          {
+            "property": "og:image:width",
+            "content": "1254"
+          },
+          {
+            "property": "og:type",
+            "content": "website"
+          }
+        ],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/login",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "location": null,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "xRobotsTag": null,
+      "bodySha256": "7e01bea380d26bec234d47ed52de8642b43c00e9144878521c470d4fc9aebb53",
+      "html": {
+        "title": "VeyoCast Control",
+        "h1": [
+          "Inloggen bij VeyoCast Control"
+        ],
+        "canonicals": [],
+        "robots": [],
+        "publicationMarkers": [],
+        "openGraph": [],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/platform",
+      "status": 307,
+      "contentType": "text/html; charset=utf-8",
+      "location": "/login?reden=sessie",
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "xRobotsTag": null,
+      "bodySha256": "cd985e30406e24376e6fe222ec273516df65e40cfa79cf0ddb07e15f96011b91",
+      "html": {
+        "title": "VeyoCast Control",
+        "h1": [],
+        "canonicals": [],
+        "robots": [],
+        "publicationMarkers": [],
+        "openGraph": [],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/dashboard",
+      "status": 307,
+      "contentType": "text/html; charset=utf-8",
+      "location": "/login?reden=sessie",
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "xRobotsTag": null,
+      "bodySha256": "a1a77069076f24af6fd3200e7623a2201c9e5d2a5017c8f5dd5080f3e8bcdc00",
+      "html": {
+        "title": "VeyoCast Control",
+        "h1": [],
+        "canonicals": [],
+        "robots": [],
+        "publicationMarkers": [],
+        "openGraph": [],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/platform/blog",
+      "status": 307,
+      "contentType": "text/html; charset=utf-8",
+      "location": "/login?reden=sessie",
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "xRobotsTag": null,
+      "bodySha256": "c318021567ef70756e307242236c6e1b1280d4e6a99cb57c7ac9f15b52f5fd2b",
+      "html": {
+        "title": "Blogbeheer · VeyoCast",
+        "h1": [],
+        "canonicals": [],
+        "robots": [
+          {
+            "name": "robots",
+            "content": "noindex, nofollow"
+          }
+        ],
+        "publicationMarkers": [],
+        "openGraph": [],
+        "hasSharedHeader": false,
+        "hasBlogLink": false,
+        "hasEmptyBlogText": false
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/api/platform/blog",
+      "status": 403,
+      "contentType": "application/json",
+      "location": null,
+      "cacheControl": "private, no-store",
+      "xRobotsTag": null,
+      "bodySha256": "1e451d2f1ccb2d89bc99a0e5ee132714e2515a12071a51193a1949056915da64",
+      "json": {
+        "error": {
+          "code": "PERMISSION_DENIED",
+          "message": "Deze actie is niet toegestaan. Controleer je rechten en de websiteverbinding."
+        }
+      }
+    }
+  ],
+  "browser": [
+    {
+      "url": "https://veyocast.nl/",
+      "route": "home",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "production-home-1440.png",
+      "sha256": "b26f6e1cf7c4346e124710676bf47bfa6dcd1bc8b72a23f6ec5a6a63be8930c0",
+      "overflow": 0,
+      "h1": [
+        "Maak van iederscherm eenverhaal."
+      ],
+      "headerCount": 1,
+      "footerCount": 1,
+      "canonicals": [
+        "https://veyocast.nl"
+      ],
+      "robots": [
+        "index, follow"
+      ],
+      "imageCount": 6,
+      "brokenImages": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [],
+      "failedResponses": [],
+      "axeViolations": [],
+      "keyboard": {
+        "skipFocused": true,
+        "hash": "#main",
+        "targetTag": "MAIN"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/blog",
+      "route": "blog",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "production-blog-1440.png",
+      "sha256": "7a745968088148f380081655d1be8da22e2901eb55ad56ccb577f028497ee92a",
+      "overflow": 0,
+      "h1": [
+        "Het VeyoCast-blog"
+      ],
+      "headerCount": 1,
+      "footerCount": 1,
+      "canonicals": [
+        "https://veyocast.nl/blog"
+      ],
+      "robots": [
+        "index, follow"
+      ],
+      "imageCount": 2,
+      "brokenImages": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [],
+      "failedResponses": [],
+      "axeViolations": [],
+      "keyboard": {
+        "skipFocused": true,
+        "hash": "#main-content",
+        "targetTag": "MAIN"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/",
+      "route": "home",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "production-home-390.png",
+      "sha256": "b5d2710bf16aab61623d3d55c3d8a170d7400e3ee6cb9440b12bda3d059c11b2",
+      "overflow": 0,
+      "h1": [
+        "Maak van iederscherm eenverhaal."
+      ],
+      "headerCount": 1,
+      "footerCount": 1,
+      "canonicals": [
+        "https://veyocast.nl"
+      ],
+      "robots": [
+        "index, follow"
+      ],
+      "imageCount": 6,
+      "brokenImages": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [],
+      "failedResponses": [],
+      "axeViolations": [],
+      "keyboard": {
+        "skipFocused": true,
+        "hash": "#main",
+        "targetTag": "MAIN"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/blog",
+      "route": "blog",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "production-blog-390.png",
+      "sha256": "8766667cbfae0c218078d381424191ff747ec5db486fc4c0fea429876e5d8777",
+      "overflow": 0,
+      "h1": [
+        "Het VeyoCast-blog"
+      ],
+      "headerCount": 1,
+      "footerCount": 1,
+      "canonicals": [
+        "https://veyocast.nl/blog"
+      ],
+      "robots": [
+        "index, follow"
+      ],
+      "imageCount": 2,
+      "brokenImages": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [],
+      "failedResponses": [],
+      "axeViolations": [],
+      "keyboard": {
+        "skipFocused": true,
+        "hash": "#main-content",
+        "targetTag": "MAIN"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/",
+      "route": "home",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "screenshot": "production-home-320.png",
+      "sha256": "91b85977f7d68bdfc917276d5b9b2b7cf85a515df9a77bbbf38b98841071b769",
+      "overflow": 0,
+      "h1": [
+        "Maak van iederscherm eenverhaal."
+      ],
+      "headerCount": 1,
+      "footerCount": 1,
+      "canonicals": [
+        "https://veyocast.nl"
+      ],
+      "robots": [
+        "index, follow"
+      ],
+      "imageCount": 6,
+      "brokenImages": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [],
+      "failedResponses": [],
+      "axeViolations": [],
+      "keyboard": {
+        "skipFocused": true,
+        "hash": "#main",
+        "targetTag": "MAIN"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/blog",
+      "route": "blog",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "screenshot": "production-blog-320.png",
+      "sha256": "8377a99032f47c81e1bc90dc4f3545ba57f8add35a0fd20a49b66dec977d4878",
+      "overflow": 0,
+      "h1": [
+        "Het VeyoCast-blog"
+      ],
+      "headerCount": 1,
+      "footerCount": 1,
+      "canonicals": [
+        "https://veyocast.nl/blog"
+      ],
+      "robots": [
+        "index, follow"
+      ],
+      "imageCount": 2,
+      "brokenImages": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [],
+      "failedResponses": [],
+      "axeViolations": [],
+      "keyboard": {
+        "skipFocused": true,
+        "hash": "#main-content",
+        "targetTag": "MAIN"
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "name": "homepage-canonical-shell-and-indexability",
+      "status": "passed"
+    },
+    {
+      "name": "new-blog-canonical-production-metadata-and-empty-state",
+      "status": "passed"
+    },
+    {
+      "name": "sitemap-includes-blog-and-retains-existing-urls",
+      "status": "passed"
+    },
+    {
+      "name": "socialhero-api-rejects-anonymous-json",
+      "status": "passed"
+    },
+    {
+      "name": "unknown-unpublished-article-stays-private",
+      "status": "passed"
+    },
+    {
+      "name": "control-login-and-protected-routes",
+      "status": "passed"
+    },
+    {
+      "name": "home-1440-browser-health-reflow-keyboard-and-a11y",
+      "status": "passed"
+    },
+    {
+      "name": "blog-1440-browser-health-reflow-keyboard-and-a11y",
+      "status": "passed"
+    },
+    {
+      "name": "home-390-browser-health-reflow-keyboard-and-a11y",
+      "status": "passed"
+    },
+    {
+      "name": "blog-390-browser-health-reflow-keyboard-and-a11y",
+      "status": "passed"
+    },
+    {
+      "name": "home-320-browser-health-reflow-keyboard-and-a11y",
+      "status": "passed"
+    },
+    {
+      "name": "blog-320-browser-health-reflow-keyboard-and-a11y",
+      "status": "passed"
+    }
+  ],
+  "failures": [],
+  "completedAtUtc": "2026-11-13T16:07:31.097Z",
+  "status": "passed",
+  "scope": {
+    "realProduction": true,
+    "credentialSubmission": false,
+    "contentWrites": false,
+    "configurationWrites": false,
+    "authenticatedEditorFlow": false,
+    "publishedArticleMetadata": false,
+    "publishedArticleReason": "No content publication is authorized by this read-only verification; index is expected to be empty."
+  }
+}

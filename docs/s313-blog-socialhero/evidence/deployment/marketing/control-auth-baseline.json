@@ -1,0 +1,41 @@
+{
+  "kind": "unauthenticated-existing-control-auth-baseline",
+  "observedAtUtc": "2026-11-13T15:48:33.309Z",
+  "operation": "Read-only GET, manual redirects, no credential submission and no cookie persistence",
+  "command": "node --input-type=module (inline bounded fetch probe)",
+  "results": [
+    {
+      "url": "https://control.veyocast.nl/login",
+      "status": 200,
+      "durationMs": 336,
+      "location": null,
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "contentType": "text/html; charset=utf-8",
+      "bodySha256": "60c2c5c40fada861166f863606186e8ad5ef2636ba32500903306844134fe0a4",
+      "title": "VeyoCast Control",
+      "hasPasswordInput": true
+    },
+    {
+      "url": "https://control.veyocast.nl/platform",
+      "status": 307,
+      "durationMs": 279,
+      "location": "/login?reden=sessie",
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "contentType": "text/html; charset=utf-8",
+      "bodySha256": "c57f7403c07fadeef4a7250e9a0e59d04bf18e553fced1fdf72e7a6c1a5a81d4",
+      "title": "VeyoCast Control",
+      "hasPasswordInput": false
+    },
+    {
+      "url": "https://control.veyocast.nl/dashboard",
+      "status": 307,
+      "durationMs": 279,
+      "location": "/login?reden=sessie",
+      "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "contentType": "text/html; charset=utf-8",
+      "bodySha256": "ef7af2ccfbe4c9debd625c0b0a07bc64b44baa30e43d451e554beb5b7ff9a267",
+      "title": "VeyoCast Control",
+      "hasPasswordInput": false
+    }
+  ]
+}

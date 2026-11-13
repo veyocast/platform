@@ -1,0 +1,130 @@
+{
+  "status": "measured",
+  "checkedAtUtc": "2026-11-13T16:08:20.177Z",
+  "expectedRevision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+  "rootConfirmedProductionJob": "43456528973",
+  "operation": "Read-only real browser keyboard focus measurement; no sign-in or content/configuration writes",
+  "previousProbe": "A direct targetOwnsFocus===true assertion failed before report write; this measurement records actual behavior without changing the application.",
+  "rows": [
+    {
+      "route": "home",
+      "width": 1440,
+      "skipFocused": true,
+      "afterEnter": {
+        "hash": "#main",
+        "targetTag": "MAIN",
+        "targetId": "main",
+        "activeTag": "BODY",
+        "activeId": "",
+        "targetOwnsFocus": false,
+        "scrollY": 0
+      },
+      "nextTab": {
+        "activeTag": "A",
+        "activeId": "",
+        "activeHref": "https://control.veyocast.nl",
+        "insideMain": true
+      }
+    },
+    {
+      "route": "blog",
+      "width": 1440,
+      "skipFocused": true,
+      "afterEnter": {
+        "hash": "#main-content",
+        "targetTag": "MAIN",
+        "targetId": "main-content",
+        "activeTag": "BODY",
+        "activeId": "",
+        "targetOwnsFocus": false,
+        "scrollY": 0
+      },
+      "nextTab": {
+        "activeTag": "A",
+        "activeId": "",
+        "activeHref": "/",
+        "insideMain": true
+      }
+    },
+    {
+      "route": "home",
+      "width": 390,
+      "skipFocused": true,
+      "afterEnter": {
+        "hash": "#main",
+        "targetTag": "MAIN",
+        "targetId": "main",
+        "activeTag": "BODY",
+        "activeId": "",
+        "targetOwnsFocus": false,
+        "scrollY": 0
+      },
+      "nextTab": {
+        "activeTag": "A",
+        "activeId": "",
+        "activeHref": "https://control.veyocast.nl",
+        "insideMain": true
+      }
+    },
+    {
+      "route": "blog",
+      "width": 390,
+      "skipFocused": true,
+      "afterEnter": {
+        "hash": "#main-content",
+        "targetTag": "MAIN",
+        "targetId": "main-content",
+        "activeTag": "BODY",
+        "activeId": "",
+        "targetOwnsFocus": false,
+        "scrollY": 0
+      },
+      "nextTab": {
+        "activeTag": "A",
+        "activeId": "",
+        "activeHref": "/",
+        "insideMain": true
+      }
+    },
+    {
+      "route": "home",
+      "width": 320,
+      "skipFocused": true,
+      "afterEnter": {
+        "hash": "#main",
+        "targetTag": "MAIN",
+        "targetId": "main",
+        "activeTag": "BODY",
+        "activeId": "",
+        "targetOwnsFocus": false,
+        "scrollY": 0
+      },
+      "nextTab": {
+        "activeTag": "A",
+        "activeId": "",
+        "activeHref": "https://control.veyocast.nl",
+        "insideMain": true
+      }
+    },
+    {
+      "route": "blog",
+      "width": 320,
+      "skipFocused": true,
+      "afterEnter": {
+        "hash": "#main-content",
+        "targetTag": "MAIN",
+        "targetId": "main-content",
+        "activeTag": "BODY",
+        "activeId": "",
+        "targetOwnsFocus": false,
+        "scrollY": 0
+      },
+      "nextTab": {
+        "activeTag": "A",
+        "activeId": "",
+        "activeHref": "/",
+        "insideMain": true
+      }
+    }
+  ]
+}

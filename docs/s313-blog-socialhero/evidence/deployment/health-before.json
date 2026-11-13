@@ -1,0 +1,70 @@
+{
+  "observedAt": "2026-11-13T15:47:15.513376+00:00",
+  "requests": "Unauthenticated HTTPS GET; bounded8s; no credentials",
+  "results": [
+    {
+      "url": "https://staging-control.veyocast.nl/api/health",
+      "status": 200,
+      "contentType": "application/json",
+      "redirected": false,
+      "health": {
+        "environment": "staging",
+        "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "service": "control",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://staging-player.veyocast.nl/healthz",
+      "status": 200,
+      "contentType": "application/json",
+      "redirected": false,
+      "health": {
+        "environment": "staging",
+        "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "service": "player",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://control.veyocast.nl/api/health",
+      "status": 200,
+      "contentType": "application/json",
+      "redirected": false,
+      "health": {
+        "environment": "production",
+        "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "service": "control",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://player.veyocast.nl/healthz",
+      "status": 200,
+      "contentType": "application/json",
+      "redirected": false,
+      "health": {
+        "environment": "production",
+        "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "service": "player",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/api/health",
+      "status": 200,
+      "contentType": "application/json",
+      "redirected": false,
+      "health": {
+        "environment": "production",
+        "revision": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+        "service": "marketing",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://veyocast.nl/api/socialhero/v1/capabilities",
+      "status": 404
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "observedAt": "2026-11-13 16:04:33 UTC",
+  "environment": "staging",
+  "projectRef": "jibbtdicrptsyftobavq",
+  "releaseSha": "67d8470198acec4272c47c4c7979b6071a915c4b",
+  "workflowRun": "https://github.com/veyocast/platform/actions/runs/43456143838",
+  "deploymentJob": "success",
+  "querySource": "docs/s313-blog-socialhero/evidence/deployment/readback.sql",
+  "queryMode": "BEGIN READ ONLY; metadata and aggregate counts; COMMIT",
+  "result": {
+    "sites": [],
+    "assetCount": 0,
+    "tokenCount": 0,
+    "mediaBucket": {
+      "id": "platform_blog_media",
+      "public": false,
+      "mimeTypes": [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ],
+      "fileSizeLimit": 8388608
+    },
+    "articleCount": 0,
+    "revisionCount": 0,
+    "blogTableCount": 10,
+    "migrationCount": 225,
+    "publishedCount": 0,
+    "latestMigration": "20261113124946",
+    "activeTokenCount": 0,
+    "blogTablesAllRls": true,
+    "blogFunctionCount": 15,
+    "s313MigrationPresent": true,
+    "anonymousDraftPointer": false,
+    "anonymousRevisionActor": false,
+    "anonymousBlogExecuteCount": 0,
+    "directAuthenticatedWrites": 0,
+    "publicViewSecurityInvoker": true
+  },
+  "provisioning": "No site or credential has been created. Staging has no Marketing service.",
+  "health": [
+    {
+      "url": "https://staging-control.veyocast.nl/api/health",
+      "status": 200,
+      "body": {
+        "environment": "staging",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "control",
+        "status": "ok"
+      }
+    },
+    {
+      "url": "https://staging-player.veyocast.nl/healthz",
+      "status": 200,
+      "body": {
+        "environment": "staging",
+        "revision": "67d8470198acec4272c47c4c7979b6071a915c4b",
+        "service": "player",
+        "status": "ok"
+      }
+    }
+  ]
+}

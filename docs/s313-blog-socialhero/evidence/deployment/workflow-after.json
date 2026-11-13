@@ -1,0 +1,28 @@
+{
+  "observedAt": "2026-11-13T16:07:54.979507+00:00",
+  "command": "gh api repos/veyocast/platform/actions/runs/<run-id> with metadata-only jq allowlist",
+  "runs": [
+    {
+      "conclusion": "success",
+      "created_at": "2026-11-13T15:47:34Z",
+      "event": "push",
+      "head_sha": "67d8470198acec4272c47c4c7979b6071a915c4b",
+      "html_url": "https://github.com/veyocast/platform/actions/runs/43456143838",
+      "id": 43456143838,
+      "run_attempt": 1,
+      "status": "completed",
+      "updated_at": "2026-11-13T16:03:31Z"
+    },
+    {
+      "conclusion": "success",
+      "created_at": "2026-11-13T15:49:53Z",
+      "event": "workflow_dispatch",
+      "head_sha": "67d8470198acec4272c47c4c7979b6071a915c4b",
+      "html_url": "https://github.com/veyocast/platform/actions/runs/43456528973",
+      "id": 43456528973,
+      "run_attempt": 1,
+      "status": "completed",
+      "updated_at": "2026-11-13T16:06:06Z"
+    }
+  ]
+}
