@@ -1,0 +1,230 @@
+[
+  {
+    "source": "actual Next runtime",
+    "origin": "http://127.0.0.1:9313",
+    "screenshot": "next-blog-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 858.21875
+    },
+    "title": {
+      "x": 136,
+      "y": 253.015625,
+      "width": 713.765625,
+      "height": 89.75
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  },
+  {
+    "source": "actual Next runtime",
+    "origin": "http://127.0.0.1:9313",
+    "screenshot": "next-blog-390.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 390,
+      "height": 705.40625
+    },
+    "title": {
+      "x": 49.546875,
+      "y": 177.328125,
+      "width": 290.890625,
+      "height": 86.5
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  },
+  {
+    "source": "actual Next runtime",
+    "origin": "http://127.0.0.1:9313",
+    "screenshot": "next-blog-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 320,
+      "height": 733.265625
+    },
+    "title": {
+      "x": 48,
+      "y": 156.1875,
+      "width": 224,
+      "height": 129.75
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  }
+]

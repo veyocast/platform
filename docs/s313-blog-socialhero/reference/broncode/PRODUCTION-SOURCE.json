@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/veyocast/platform",
+  "branch": "main",
+  "commit": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+  "previous_prototype_base": "4cb895c363c69bf754184902e804fda2792ac85c",
+  "synced_at": "2026-11-13",
+  "scope": "Control UI, dependencies, static assets and shared workspace packages; isolated Sites runtime adapter."
+}

@@ -1,0 +1,6 @@
+{
+  "source": "Real clipboard events parsed by native shared TipTap schema",
+  "editorHtml": "<h2>Veilige kop</h2><p><strong>Veilig vet</strong> en <a href=\"https://veyocast.nl/blog\">eigen link</a>.</p><ul><li><p>Een geplakt punt</p></li><li><p>Onveilige attributen slechte link</p></li></ul><h3>Kop via slashmenu</h3><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "unsafeCodeExecuted": false,
+  "restoredFocus": true
+}

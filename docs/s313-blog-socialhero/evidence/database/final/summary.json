@@ -1,0 +1,87 @@
+{
+  "sourceFiles": {
+    "migrationCount": 225,
+    "migrationsSha256": "d70de3992268a49945a0dd57cb0e357a6767d2e58f237d489b1d0b30e6da069e",
+    "blogMigrationSha256": "e7864fd76e5d88afc17fb288522a22c8ff8af9bc4f0180f96e646cc38dfa906a",
+    "blogTestSha256": "3b5a53f4dbaccbdf21dbca125e70db5e24564a5bca87c98e543b55d1a32a5c25",
+    "sharedDocumentSha256": "8d3674f099c1bb9c49a20100fa1b61691b5f71a5c02924ce4897d1d491b539a3"
+  },
+  "database": "s313_blog_acceptance_final",
+  "host": "127.0.0.1",
+  "port": 64422,
+  "role": "postgres",
+  "container": "supabase_db_veyocast-s295",
+  "branch": "veyocast/s313-blog-socialhero",
+  "head": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+  "sourceBefore": {
+    "database": "postgres",
+    "migrationCount": 213,
+    "migrationTip": "20261109000829",
+    "authUsers": 0,
+    "storageObjects": 0,
+    "tenants": 0,
+    "profiles": 0,
+    "blogInstalled": false,
+    "rolesDigest": "343c64857880ed338f77c84087191bd3"
+  },
+  "preparation": {
+    "archiveSha256": "c04858c15fc1d2a2d50b36919c0674b1fbd1e6088d2e8b2ed6ecae53e1c168c3",
+    "baseSqlSha256": "edee8b4e230d42b96b08e87e9bd8b38280c95af6ef08d882c4b665fb14e25f79",
+    "archiveBytes": 4739893,
+    "selectedObjects": 569,
+    "excludedObjects": 4233,
+    "baseline": {
+      "database": "s313_blog_acceptance_final",
+      "publicTables": 0,
+      "privateSchema": false,
+      "authUsers": 0,
+      "storageObjects": 0,
+      "appHistory": false
+    },
+    "source": "schema-only Supabase-managed objects from local PG15.8 image; application public/private objects and every policy excluded; Supabase API default grants retained; no data or roles copied"
+  },
+  "sourceAfter": {
+    "database": "postgres",
+    "migrationCount": 213,
+    "migrationTip": "20261109000829",
+    "authUsers": 0,
+    "storageObjects": 0,
+    "tenants": 0,
+    "profiles": 0,
+    "blogInstalled": false,
+    "rolesDigest": "343c64857880ed338f77c84087191bd3"
+  },
+  "sourceUnchanged": true,
+  "db:reset": {
+    "command": "pnpm --config.verify-deps-before-run=false db:reset --db-url postgresql://postgres@127.0.0.1:64422/s313_blog_acceptance_final?sslmode=disable --workdir /home/codex/.codex/worktrees/s313-blog-socialhero/castivo --yes",
+    "startedAt": "2026-11-13T14:43:25.972162+00:00",
+    "finishedAt": "2026-11-13T14:43:31.773079+00:00",
+    "exitCode": 0,
+    "log": "docs/s313-blog-socialhero/evidence/database/final/reset-20261113T144325.log"
+  },
+  "migrationReadback": {
+    "count": 225,
+    "latest": "20261113124946"
+  },
+  "test:rls": {
+    "command": "pnpm --config.verify-deps-before-run=false test:rls --db-url postgresql://postgres@127.0.0.1:64422/s313_blog_acceptance_final?sslmode=disable --workdir /home/codex/.codex/worktrees/s313-blog-socialhero/castivo",
+    "startedAt": "2026-11-13T14:43:54.291182+00:00",
+    "finishedAt": "2026-11-13T14:46:07.615073+00:00",
+    "exitCode": 0,
+    "log": "docs/s313-blog-socialhero/evidence/database/final/rls-20261113T144354.log",
+    "result": {
+      "files": 159,
+      "assertions": 5607,
+      "wallclockSeconds": 131,
+      "result": "PASS"
+    }
+  },
+  "transaction": {
+    "command": "docker exec -i supabase_db_veyocast-s295 psql -U postgres -d postgres -X -qAt -v ON_ERROR_STOP=1",
+    "input": "BEGIN; lock_timeout=5s; statement_timeout=60s; full new S313 migration and test source; ROLLBACK; source blog-table absence readback",
+    "assertions": 131,
+    "exitCode": 0,
+    "sourceBlogTableAbsent": true,
+    "log": "docs/s313-blog-socialhero/evidence/database/final/transaction-131.log"
+  }
+}

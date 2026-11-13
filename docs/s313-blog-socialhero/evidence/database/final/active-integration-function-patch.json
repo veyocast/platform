@@ -1,0 +1,148 @@
+{
+  "database": "s313_blog_acceptance",
+  "host": "127.0.0.1",
+  "port": 64422,
+  "role": "postgres",
+  "container": "supabase_db_veyocast-s295",
+  "coordination": "Marketing confirmed all integration/worker writes stopped before patch; no reset/drop",
+  "command": "docker exec -i supabase_db_veyocast-s295 psql -U postgres -X -qAt -v ON_ERROR_STOP=1 -d s313_blog_acceptance",
+  "operation": "BEGIN; fixed target guard; CREATE OR REPLACE private.blog_validate_payload from exact final migration; COMMIT",
+  "migrationSha256": "e7864fd76e5d88afc17fb288522a22c8ff8af9bc4f0180f96e646cc38dfa906a",
+  "before": {
+    "auth.users": {
+      "rows": 2,
+      "rowsDigest": "066311eeda109b23559f0983674db2b2"
+    },
+    "public.profiles": {
+      "rows": 2,
+      "rowsDigest": "1b101ef5c65b3e9eec1b0bc06b014317"
+    },
+    "storage.objects": {
+      "rows": 8,
+      "rowsDigest": "e1838fca999676dece6a2d989108a7df"
+    },
+    "public.audit_events": {
+      "rows": 31,
+      "rowsDigest": "4a43a9ab08e74add940ab2bc8da5e7b3"
+    },
+    "public.platform_blog_posts": {
+      "rows": 4,
+      "rowsDigest": "8233aea30448b50095ae7c7bf91603fd"
+    },
+    "public.platform_blog_sites": {
+      "rows": 2,
+      "rowsDigest": "25916810e80a0245d1a3ecded1d1eaed"
+    },
+    "public.platform_blog_assets": {
+      "rows": 8,
+      "rowsDigest": "3cd94c65d4cfcfc3c60f3d7ea8aa3029"
+    },
+    "public.platform_blog_routes": {
+      "rows": 6,
+      "rowsDigest": "8c41f02c00edfc993e9b9a76472ec924"
+    },
+    "public.platform_memberships": {
+      "rows": 2,
+      "rowsDigest": "6ff4421aa42c777ea4aa670f9cee249b"
+    },
+    "private.platform_blog_tokens": {
+      "rows": 6,
+      "rowsDigest": "eddaf70519e3e01f763700eec09bf84c"
+    },
+    "private.platform_blog_receipts": {
+      "rows": 22,
+      "rowsDigest": "60942a468f74ad4bf1b859138e2a2fb6"
+    },
+    "public.platform_blog_revisions": {
+      "rows": 7,
+      "rowsDigest": "0c2cc8f8c14ffdb61b27573b0c0c6f71"
+    },
+    "private.platform_blog_rate_limits": {
+      "rows": 10,
+      "rowsDigest": "05eaadf6825c0537c6a9436324ea5ca2"
+    },
+    "public.platform_blog_revision_assets": {
+      "rows": 13,
+      "rowsDigest": "0365caa823c2e3216e13ee7437e7e96c"
+    },
+    "supabase_migrations.schema_migrations": {
+      "rows": 225,
+      "rowsDigest": "0041d2892dd2070fb1611f836d659818"
+    },
+    "private.platform_blog_human_media_limits": {
+      "rows": 0,
+      "rowsDigest": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "after": {
+    "auth.users": {
+      "rows": 2,
+      "rowsDigest": "066311eeda109b23559f0983674db2b2"
+    },
+    "public.profiles": {
+      "rows": 2,
+      "rowsDigest": "1b101ef5c65b3e9eec1b0bc06b014317"
+    },
+    "storage.objects": {
+      "rows": 8,
+      "rowsDigest": "e1838fca999676dece6a2d989108a7df"
+    },
+    "public.audit_events": {
+      "rows": 31,
+      "rowsDigest": "4a43a9ab08e74add940ab2bc8da5e7b3"
+    },
+    "public.platform_blog_posts": {
+      "rows": 4,
+      "rowsDigest": "8233aea30448b50095ae7c7bf91603fd"
+    },
+    "public.platform_blog_sites": {
+      "rows": 2,
+      "rowsDigest": "25916810e80a0245d1a3ecded1d1eaed"
+    },
+    "public.platform_blog_assets": {
+      "rows": 8,
+      "rowsDigest": "3cd94c65d4cfcfc3c60f3d7ea8aa3029"
+    },
+    "public.platform_blog_routes": {
+      "rows": 6,
+      "rowsDigest": "8c41f02c00edfc993e9b9a76472ec924"
+    },
+    "public.platform_memberships": {
+      "rows": 2,
+      "rowsDigest": "6ff4421aa42c777ea4aa670f9cee249b"
+    },
+    "private.platform_blog_tokens": {
+      "rows": 6,
+      "rowsDigest": "eddaf70519e3e01f763700eec09bf84c"
+    },
+    "private.platform_blog_receipts": {
+      "rows": 22,
+      "rowsDigest": "60942a468f74ad4bf1b859138e2a2fb6"
+    },
+    "public.platform_blog_revisions": {
+      "rows": 7,
+      "rowsDigest": "0c2cc8f8c14ffdb61b27573b0c0c6f71"
+    },
+    "private.platform_blog_rate_limits": {
+      "rows": 10,
+      "rowsDigest": "05eaadf6825c0537c6a9436324ea5ca2"
+    },
+    "public.platform_blog_revision_assets": {
+      "rows": 13,
+      "rowsDigest": "0365caa823c2e3216e13ee7437e7e96c"
+    },
+    "supabase_migrations.schema_migrations": {
+      "rows": 225,
+      "rowsDigest": "0041d2892dd2070fb1611f836d659818"
+    },
+    "private.platform_blog_human_media_limits": {
+      "rows": 0,
+      "rowsDigest": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "rowsUnchanged": true,
+  "functionSha256Before": "9d9882398d086683d3e981647babc0dd463704772b03d5012ff839ad7e8d5651",
+  "functionSha256After": "26ede8c800d99a567ee06f79f72cf0bb717f0d2beb326c27d37b26459cdf099d",
+  "finalFreshDatabaseFunctionSha256": "26ede8c800d99a567ee06f79f72cf0bb717f0d2beb326c27d37b26459cdf099d",
+  "functionMatchesFinalFreshDatabase": true
+}

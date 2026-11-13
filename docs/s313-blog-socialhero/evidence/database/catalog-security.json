@@ -1,0 +1,318 @@
+{
+  "database": "s313_blog_acceptance",
+  "functions": [
+    {
+      "schema": "private",
+      "name": "blog_check_token",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "private",
+      "name": "blog_finish_media",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "private",
+      "name": "blog_immutable_revision",
+      "security_definer": false,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "private",
+      "name": "blog_post_response",
+      "security_definer": false,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "private",
+      "name": "blog_safe_link",
+      "security_definer": false,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "private",
+      "name": "blog_staff",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "service_role_execute": true
+    },
+    {
+      "schema": "private",
+      "name": "blog_text_length",
+      "security_definer": false,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "private",
+      "name": "blog_trim",
+      "security_definer": false,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "private",
+      "name": "blog_validate_payload",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": false
+    },
+    {
+      "schema": "public",
+      "name": "blog_authorize_media_upload",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "service_role_execute": false
+    },
+    {
+      "schema": "public",
+      "name": "blog_authorize_token",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": true
+    },
+    {
+      "schema": "public",
+      "name": "blog_command",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "service_role_execute": true
+    },
+    {
+      "schema": "public",
+      "name": "blog_complete_human_media",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_role_execute": true
+    },
+    {
+      "schema": "public",
+      "name": "blog_configure_site",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "service_role_execute": false
+    },
+    {
+      "schema": "public",
+      "name": "blog_manage_token",
+      "security_definer": true,
+      "settings": [
+        "search_path=\"\""
+      ],
+      "owner": "postgres",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "service_role_execute": false
+    }
+  ],
+  "tables": [
+    {
+      "schema": "private",
+      "name": "platform_blog_human_media_limits",
+      "rls": true,
+      "anon_select_all": false,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "private",
+      "name": "platform_blog_rate_limits",
+      "rls": true,
+      "anon_select_all": false,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "private",
+      "name": "platform_blog_receipts",
+      "rls": true,
+      "anon_select_all": false,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "private",
+      "name": "platform_blog_tokens",
+      "rls": true,
+      "anon_select_all": false,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "public",
+      "name": "platform_blog_assets",
+      "rls": true,
+      "anon_select_all": true,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "public",
+      "name": "platform_blog_posts",
+      "rls": true,
+      "anon_select_all": false,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "public",
+      "name": "platform_blog_revision_assets",
+      "rls": true,
+      "anon_select_all": true,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "public",
+      "name": "platform_blog_revisions",
+      "rls": true,
+      "anon_select_all": false,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "public",
+      "name": "platform_blog_routes",
+      "rls": true,
+      "anon_select_all": true,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    },
+    {
+      "schema": "public",
+      "name": "platform_blog_sites",
+      "rls": true,
+      "anon_select_all": true,
+      "authenticated_any_mutation": false,
+      "service_role_any_mutation": false
+    }
+  ],
+  "viewSettings": [
+    "security_invoker=true"
+  ],
+  "anonymousDraftPointer": false,
+  "anonymousRevisionActor": false,
+  "privateBucket": true,
+  "storagePolicies": [
+    {
+      "policyname": "blog_storage_insert",
+      "cmd": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "qual": null,
+      "with_check": "((bucket_id = 'platform_blog_media'::text) AND ( SELECT private.blog_staff() AS blog_staff) AND (( SELECT private.current_aal() AS current_aal) = 'aal2'::text) AND (EXISTS ( SELECT 1\n   FROM platform_blog_assets a\n  WHERE ((a.storage_path = objects.name) AND (a.status = 'pending'::text)))))"
+    },
+    {
+      "policyname": "blog_storage_select",
+      "cmd": "SELECT",
+      "roles": [
+        "authenticated"
+      ],
+      "qual": "((bucket_id = 'platform_blog_media'::text) AND ( SELECT private.blog_staff() AS blog_staff) AND (EXISTS ( SELECT 1\n   FROM platform_blog_assets a\n  WHERE (a.storage_path = objects.name))))",
+      "with_check": null
+    }
+  ],
+  "globalAnonymousSecurityDefiners": [
+    "acknowledge_player_command_v1",
+    "complete_player_command_v1",
+    "create_pairing_session",
+    "create_pairing_session_v2",
+    "create_pairing_session_v3",
+    "create_pairing_session_v4",
+    "create_pairing_session_v5",
+    "get_engage_campaign_public_v1",
+    "get_player_device_bootstrap",
+    "get_player_entitlement_v1",
+    "inspect_player_device_credential_v1",
+    "poll_player_commands_v1",
+    "record_player_heartbeat",
+    "record_player_heartbeat_v2",
+    "record_player_heartbeat_v3",
+    "record_sponsor_play_events_v1",
+    "recover_pending_pairing_v1",
+    "recover_player_pairing_v2",
+    "recover_player_pairing_v3",
+    "register_player_installation_v1",
+    "register_player_installation_v2",
+    "sync_player_automation_v1",
+    "unpair_player_installation_v1"
+  ]
+}

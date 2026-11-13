@@ -37,6 +37,8 @@ const allowedServerOnlyFiles = new Set([
   "packages/config/src/server.ts"
 ]);
 const protectedNextModules = new Set([
+  "packages/blog/src/server.ts",
+  "packages/blog/src/media.ts",
   "apps/control/lib/control-overview.ts",
   "apps/control/lib/control-session.ts",
   "apps/control/lib/runtime-health.ts",
@@ -46,6 +48,8 @@ const protectedNextModules = new Set([
   "packages/config/src/server.ts"
 ]);
 const packageImports = new Map([
+  ["@veyocast/blog/server", "packages/blog/src/server.ts"],
+  ["@veyocast/blog/media", "packages/blog/src/media.ts"],
   ["@veyocast/config/server", "packages/config/src/server.ts"]
 ]);
 

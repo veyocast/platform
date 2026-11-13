@@ -21,6 +21,16 @@ describe("capability decisions", () => {
     expect(hasCapability(["platform_owner"], "platform.user.manage")).toBe(true);
   });
 
+  it("limits platform blog editorial access to platform owners and administrators", () => {
+    for (const capability of ["platform.blog.read", "platform.blog.write", "platform.blog.publish"] as const) {
+      for (const role of [...platformRoles, ...tenantRoles]) {
+        expect(hasCapability([role], capability)).toBe(
+          role === "platform_owner" || role === "platform_admin"
+        );
+      }
+    }
+  });
+
   it("lets tenant editors prepare content without publishing or managing the tenant", () => {
     expect(hasCapability(["tenant_editor"], "tenant.media.write")).toBe(true);
     expect(hasCapability(["tenant_editor"], "tenant.playlist.write")).toBe(true);
