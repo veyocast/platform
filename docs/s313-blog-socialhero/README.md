@@ -10,6 +10,7 @@ Storage, staging en productieactivatie blijven afzonderlijke controles.
 |---|---|
 | VeyoCast | `veyocast/platform`, main `4f44bbdd68d22ca2aca42f01a8d68dbe1a120770` |
 | Werkbranch | `veyocast/s313-blog-socialhero` |
+| VeyoCast implementatiecommit | `f0a5c63d2b793ee5bc92791b2a7e307c6fbfd2b9`; [concept-PR343](https://github.com/veyocast/platform/pull/343), gevolgd door uitsluitend opleverdocumentatie |
 | Overdrachtsprototype | bron `68cadfd0e997a32169dc40c2c9290eb0657f3b77`, Sites-versie 2; bijgeleverd manifest/bewijs onder `reference/` |
 | SocialHero eerste audit | main `083b0d80b4231c0dc12e10340cb31e3434786f17` |
 | SocialHero definitieve wijziging | `8e2cf198a3f7c537df44366e3cfd05d08588c301`, [concept-PR1](https://github.com/socialherodgweb/platform/pull/1); standaard CI groen |
@@ -167,7 +168,9 @@ is daarmee niet uitgevoerd.
 - Productie is niet geselecteerd. Het standaard stagingprofiel bevat geen
   Marketing-app. Richt vóór activatie een afzonderlijke testorigin in en
   configureer dezelfde origin/site/omgeving in database, runtime en SocialHero.
-- PR/CI en finale bron-SHA's worden bij de Git-oplevering vastgelegd. Er is
+- Beide concept-PR's zijn aangemaakt; SocialHero-CI is groen op
+  `8e2cf198a3f7c537df44366e3cfd05d08588c301`. VeyoCast-CI wordt door de
+  bestaande PR-workflows uitgevoerd; zie PR343 voor de actuele status. Er is
   geen merge, stagingactivatie of productiedeployment uitgevoerd.
 
 Zie [acceptatieresultaten](ACCEPTATIE-RESULTATEN.md) voor de controle per eis.
