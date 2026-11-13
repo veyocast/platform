@@ -1,0 +1,29 @@
+{
+  "name": "@veyocast/blog",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./extensions": "./src/extensions.ts", "./server": "./src/server.ts", "./media": "./src/media.ts" },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@veyocast/config": "workspace:*",
+    "@tiptap/core": "3.33.1",
+    "@tiptap/extension-image": "3.33.1",
+    "@tiptap/extension-list": "3.33.1",
+    "@tiptap/extension-link": "3.33.1",
+    "@tiptap/extension-table": "3.33.1",
+    "@tiptap/extension-text-align": "3.33.1",
+    "@tiptap/extension-youtube": "3.33.1",
+    "@tiptap/extensions": "3.33.1",
+    "@tiptap/pm": "3.33.1",
+    "@tiptap/starter-kit": "3.33.1",
+    "marked": "18.2.0",
+    "sharp": "^0.34.5",
+    "zod": "^4.4.3"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "archiveSha256": "c04858c15fc1d2a2d50b36919c0674b1fbd1e6088d2e8b2ed6ecae53e1c168c3",
+  "baseSqlSha256": "edee8b4e230d42b96b08e87e9bd8b38280c95af6ef08d882c4b665fb14e25f79",
+  "archiveBytes": 4739893,
+  "selectedObjects": 569,
+  "excludedObjects": 4233,
+  "baseline": {
+    "database": "s313_blog_acceptance_final",
+    "publicTables": 0,
+    "privateSchema": false,
+    "authUsers": 0,
+    "storageObjects": 0,
+    "appHistory": false
+  },
+  "source": "schema-only Supabase-managed objects from local PG15.8 image; application public/private objects and every policy excluded; Supabase API default grants retained; no data or roles copied"
+}

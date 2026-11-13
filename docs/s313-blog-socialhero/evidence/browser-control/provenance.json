@@ -1,0 +1,15 @@
+{
+  "type": "native-control-component-fixture",
+  "session": "Explicit platform-owner fixture; no Auth/DB/RLS claim",
+  "transport": "In-memory HTTP fixture, schema-validated saves, raw isolated file upload; no storage/decoder claim",
+  "shellSha256": "0b081cee02891cec9287bd1d94e66abc4d94acdc12c6331599938a291581c942",
+  "candidateSha256": "7707d9d427fa742bc852f6db10874440636c7bcfc9764bfbbce8aa4429211c78",
+  "prototypeMountAdapter": "Prototype-only onCreate metadata transaction wakes useEditorState after immediatelyRender:false; source files, document and UI unchanged",
+  "prototypeSha256": "9639c29fbbd7d982440e8bb8cec0e46291285eeb0453fa4d766e941cbd7764c6",
+  "datasetSha256": "16db9a999fc41bc06950d68d7765ea8fd06b478c1a514eef5e9fc68a44a6b91f",
+  "cssSha256": "530b0ba921d84510dafa13e2f43dde0ebaba1dd13f6c3ee447de72b3d12095a5",
+  "baseline": "Same unchanged native Control shell, existing platform navigation with the new blog link omitted; explanatory fixture content",
+  "dataset": "Exact supplied prototype article text, dates, imagery, categories and tags; identity/media paths mapped to the shared contract",
+  "capturedAtUtc": "2026-11-13T14:53:16.342Z",
+  "fixtureOrigin": "http://127.0.0.1:39099"
+}

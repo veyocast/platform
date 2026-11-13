@@ -10,6 +10,11 @@ import {
 } from "./control-navigation";
 
 describe("control navigation", () => {
+  it("offers the platform blog only with its editorial read capability", () => {
+    expect(getNavigationForRoles(["platform.blog.read"]).map(item => item.href)).toEqual(["/platform/blog"]);
+    expect(getNavigationForRoles(["tenant_admin"]).some(item => item.href === "/platform/blog")).toBe(false);
+  });
+
   it.each(["tenant.media.read", "tenant.studio.read", "tenant.dynamic_slide.read", "tenant.studio.create", "tenant.dynamic_slide.write"] as const)("offers one Content entry for %s without overview.read", capability => {
     const links = getNavigationForRoles([capability]).map(item => item.href);
     expect(links).toContain("/dashboard/content");

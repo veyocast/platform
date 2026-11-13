@@ -1,0 +1,299 @@
+[
+  {
+    "source": "native baseline componentfixture, not Next runtime",
+    "screenshot": "baseline-home-1440.png",
+    "sha256": "94f5b6d127c1c8f050cc6ffcfd8165cdb9d2152ce1991b717f9f7d860f20b9b0",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 5914.5
+    },
+    "title": {
+      "x": 94,
+      "y": 207.5,
+      "width": 594,
+      "height": 255.796875
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "VeyoCast beeldmerk als verlichte teal en mint schermen in een donkere studio",
+        "loaded": true,
+        "naturalWidth": 720,
+        "naturalHeight": 720,
+        "objectPosition": "50% 50%"
+      },
+      {
+        "alt": "VeyoCast",
+        "loaded": true,
+        "naturalWidth": 888,
+        "naturalHeight": 210,
+        "objectPosition": "50% 50%"
+      },
+      {
+        "alt": "Het herkenbare VeyoCast opstartscherm",
+        "loaded": true,
+        "naturalWidth": 720,
+        "naturalHeight": 720,
+        "objectPosition": "50% 50%"
+      },
+      {
+        "alt": "VeyoCast",
+        "loaded": true,
+        "naturalWidth": 280,
+        "naturalHeight": 190,
+        "objectPosition": "50% 50%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ]
+  },
+  {
+    "source": "native baseline componentfixture, not Next runtime",
+    "screenshot": "baseline-home-390.png",
+    "sha256": "cdab92bcd045459b6cab155dfaf549768c23a474880971900ed6f45e03d8ac07",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 390,
+      "height": 6667.8125
+    },
+    "title": {
+      "x": 42,
+      "y": 155.390625,
+      "width": 306,
+      "height": 203.8125
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "VeyoCast beeldmerk als verlichte teal en mint schermen in een donkere studio",
+        "loaded": true,
+        "naturalWidth": 389,
+        "naturalHeight": 389,
+        "objectPosition": "50% 43%"
+      },
+      {
+        "alt": "VeyoCast",
+        "loaded": true,
+        "naturalWidth": 888,
+        "naturalHeight": 210,
+        "objectPosition": "50% 50%"
+      },
+      {
+        "alt": "Het herkenbare VeyoCast opstartscherm",
+        "loaded": true,
+        "naturalWidth": 389,
+        "naturalHeight": 389,
+        "objectPosition": "50% 42%"
+      },
+      {
+        "alt": "VeyoCast",
+        "loaded": true,
+        "naturalWidth": 280,
+        "naturalHeight": 190,
+        "objectPosition": "50% 50%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ]
+  },
+  {
+    "source": "native baseline componentfixture, not Next runtime",
+    "screenshot": "baseline-home-320.png",
+    "sha256": "858011b9e5dfa29e92dc4b3246d18ab91ab30671a375e0e6f4dde2d9ba24476c",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 320,
+      "height": 7023.515625
+    },
+    "title": {
+      "x": 36,
+      "y": 149.390625,
+      "width": 248,
+      "height": 187.1875
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "VeyoCast beeldmerk als verlichte teal en mint schermen in een donkere studio",
+        "loaded": true,
+        "naturalWidth": 320,
+        "naturalHeight": 320,
+        "objectPosition": "50% 43%"
+      },
+      {
+        "alt": "VeyoCast",
+        "loaded": true,
+        "naturalWidth": 888,
+        "naturalHeight": 210,
+        "objectPosition": "50% 50%"
+      },
+      {
+        "alt": "Het herkenbare VeyoCast opstartscherm",
+        "loaded": true,
+        "naturalWidth": 320,
+        "naturalHeight": 320,
+        "objectPosition": "50% 42%"
+      },
+      {
+        "alt": "VeyoCast",
+        "loaded": true,
+        "naturalWidth": 280,
+        "naturalHeight": 190,
+        "objectPosition": "50% 50%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ]
+  }
+]

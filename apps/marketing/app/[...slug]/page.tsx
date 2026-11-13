@@ -25,7 +25,7 @@ function pathnameFromSlug(slug: string[]) {
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return [...new Set([...marketingPages.map(page => page.pathname), ...Object.keys(syncPages).filter(path => path !== "/").map(path => path.replace(/\/$/, ""))])].map(path => ({ slug: path.split("/").filter(Boolean) }));
+  return [...new Set([...marketingPages.map(page => page.pathname), ...Object.keys(syncPages).filter(path => path !== "/").map(path => path.replace(/\/$/, ""))])].filter(path => path !== "/blog").map(path => ({ slug: path.split("/").filter(Boolean) }));
 }
 
 export async function generateMetadata({ params }: RouteProps): Promise<Metadata> {

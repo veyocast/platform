@@ -1,0 +1,99 @@
+{
+  "database": "s313_blog_acceptance",
+  "host": "127.0.0.1",
+  "port": 64422,
+  "role": "postgres",
+  "container": "supabase_db_veyocast-s295",
+  "branch": "veyocast/s313-blog-socialhero",
+  "head": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+  "sourceBefore": {
+    "database": "postgres",
+    "migrationCount": 213,
+    "migrationTip": "20261109000829",
+    "authUsers": 0,
+    "storageObjects": 0,
+    "tenants": 0,
+    "profiles": 0,
+    "blogInstalled": false,
+    "rolesDigest": "343c64857880ed338f77c84087191bd3"
+  },
+  "sourceAfter": {
+    "database": "postgres",
+    "migrationCount": 213,
+    "migrationTip": "20261109000829",
+    "authUsers": 0,
+    "storageObjects": 0,
+    "tenants": 0,
+    "profiles": 0,
+    "blogInstalled": false,
+    "rolesDigest": "343c64857880ed338f77c84087191bd3"
+  },
+  "sourceUnchanged": true,
+  "preparation": {
+    "archiveSha256": "f6a15e20ee1b690f1db83a6b361595a106772a687f133098fa3b0665b51bf909",
+    "baseSqlSha256": "e0267d7dbdb932f36b7e795db944ddfb12f32a3f51472f431285c0f3f3f0139e",
+    "archiveBytes": 4739893,
+    "selectedObjects": 569,
+    "excludedObjects": 4233,
+    "baseline": {
+      "database": "s313_blog_acceptance",
+      "publicTables": 0,
+      "privateSchema": false,
+      "authUsers": 0,
+      "storageObjects": 0,
+      "appHistory": false
+    },
+    "source": "schema-only Supabase-managed objects from local PG15.8 image; application public/private objects and every policy excluded; Supabase API default grants retained; no data or roles copied"
+  },
+  "db:reset": {
+    "command": "pnpm --config.verify-deps-before-run=false db:reset --db-url postgresql://postgres@127.0.0.1:64422/s313_blog_acceptance?sslmode=disable --workdir /home/codex/.codex/worktrees/s313-blog-socialhero/castivo --yes",
+    "startedAt": "2026-11-13T14:34:53.229706+00:00",
+    "finishedAt": "2026-11-13T14:34:58.167042+00:00",
+    "exitCode": 0,
+    "log": "docs/s313-blog-socialhero/evidence/database/reset-20261113T143453.log"
+  },
+  "previousErrors": [
+    "db:reset failed with exit 1; see sanitized log"
+  ],
+  "attempts": [
+    {
+      "command": "pnpm --config.verify-deps-before-run=false db:reset --db-url postgresql://postgres@127.0.0.1:64422/s313_blog_acceptance?sslmode=disable --yes",
+      "startedAt": "2026-11-13T14:23:44.199201+00:00",
+      "finishedAt": "2026-11-13T14:23:46.039737+00:00",
+      "exitCode": 1,
+      "log": "docs/s313-blog-socialhero/evidence/database/reset.log"
+    },
+    {
+      "command": "pnpm --config.verify-deps-before-run=false db:reset --db-url postgresql://postgres@127.0.0.1:64422/s313_blog_acceptance?sslmode=disable --yes",
+      "startedAt": "2026-11-13T14:29:44.793372+00:00",
+      "finishedAt": "2026-11-13T14:29:49.408696+00:00",
+      "exitCode": 0,
+      "log": "docs/s313-blog-socialhero/evidence/database/reset-20261113T142944.log"
+    },
+    {
+      "command": "pnpm --config.verify-deps-before-run=false test:rls --db-url postgresql://postgres@127.0.0.1:64422/s313_blog_acceptance?sslmode=disable",
+      "startedAt": "2026-11-13T14:30:14.296144+00:00",
+      "finishedAt": "2026-11-13T14:32:28.768547+00:00",
+      "exitCode": 0,
+      "log": "docs/s313-blog-socialhero/evidence/database/rls-20261113T143014.log"
+    }
+  ],
+  "migrationReadback": {
+    "count": 225,
+    "latest": "20261113124946"
+  },
+  "test:rls": {
+    "command": "pnpm --config.verify-deps-before-run=false test:rls --db-url postgresql://postgres@127.0.0.1:64422/s313_blog_acceptance?sslmode=disable --workdir /home/codex/.codex/worktrees/s313-blog-socialhero/castivo",
+    "startedAt": "2026-11-13T14:36:17.764029+00:00",
+    "finishedAt": "2026-11-13T14:38:29.903536+00:00",
+    "exitCode": 0,
+    "log": "docs/s313-blog-socialhero/evidence/database/rls-20261113T143617.log"
+  },
+  "sourceFiles": {
+    "migrationCount": 225,
+    "migrationsSha256": "68be6d2cd9c511a8576d7d7c90bf91b3a1576583bdba89260a8d9ae7c9a68f9f",
+    "blogMigrationSha256": "aa3f408503724189f6220d850ffdfd9ab3109ee3b66749a66ddd8e647677bdb7",
+    "blogTestSha256": "f2704200fba0d79035199e2e780462d95e4678ce65cabc7eff1a91ad2b3c90cf",
+    "sharedDocumentSha256": "8d3674f099c1bb9c49a20100fa1b61691b5f71a5c02924ce4897d1d491b539a3"
+  }
+}

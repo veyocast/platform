@@ -1,0 +1,797 @@
+[
+  {
+    "variant": "baseline",
+    "screenshot": "baseline-shell-1440.png",
+    "sha256": "f0fa38a9b1eb4a7e9c750791d094519600059860c085a1cdb5044a516bb1c15a",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "heading": "Systeem",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "list",
+    "screenshot": "prototype-list-1440.png",
+    "sha256": "e4a94af1604b65b86759e4b47a9d51a84b10503d1d20d805aded32900c348980",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "heading": "Blogbeheer",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "editor",
+    "screenshot": "prototype-editor-1440.png",
+    "sha256": "e91f1248a19ee4870c10631a0938a653af1e1446a565c180c9e11a55bc0ffcb0",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "editor-content",
+    "screenshot": "prototype-editor-content-1440.png",
+    "sha256": "b7b663c06f6e994e141cce2148d6434129dda787bd3839c85595a28b6d43c837",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "list",
+    "screenshot": "candidate-list-1440.png",
+    "sha256": "d4b1dea4d302ecce8b0d505d6c59799bef4e2803359af60d427c62b8f1a9f04e",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "heading": "Blogbeheer",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "editor",
+    "screenshot": "candidate-editor-1440.png",
+    "sha256": "8bf45fa35c331495c7b39692bfdab389a2b0093e20b7c3d2c17ad0f89118bdf7",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "editor-content",
+    "screenshot": "candidate-editor-content-1440.png",
+    "sha256": "f033dad350998fe859ec72eab70cdb0031267877f9a1575c969b90d734e46f50",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "baseline",
+    "screenshot": "baseline-shell-390.png",
+    "sha256": "5b1e3f08491b948d0582c24a36cd6d85a911c15b63160c18e17432aef11d8de2",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Systeem",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "list",
+    "screenshot": "prototype-list-390.png",
+    "sha256": "97739d46e3b1b399d0797175c3ea9be04f16e7507ea40c1ae7623dd11df1f954",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Blogbeheer",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "editor",
+    "screenshot": "prototype-editor-390.png",
+    "sha256": "829bc08dd7df8ffdc92875f3e16b437a35bf1b91edd0cfc0fbc771991aa722d8",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "editor-content",
+    "screenshot": "prototype-editor-content-390.png",
+    "sha256": "222a6632e71163eeeef30b03ca5c6aedba141947456ce752b49f6b14f9310c74",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "list",
+    "screenshot": "candidate-list-390.png",
+    "sha256": "1703f59d387ddc9c8eb8eb2fefddec7cd59646b6d76a977651d72ba956c3488e",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Blogbeheer",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "editor",
+    "screenshot": "candidate-editor-390.png",
+    "sha256": "ba35f80c66098bc90dbc403e8937f1d6fccd8305b6a701a5486c7a4dd8a8bf45",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "editor-content",
+    "screenshot": "candidate-editor-content-390.png",
+    "sha256": "bfc2db69e9abfc683edcc22bb1cda8d7fc0eee7fca8aeebbfcc47c3c50ffd01d",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "baseline",
+    "screenshot": "baseline-shell-320.png",
+    "sha256": "bf4618b498767ca614f793b1292904e6ebb52fb36a751de4f6cb438296e51589",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Systeem",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "list",
+    "screenshot": "prototype-list-320.png",
+    "sha256": "228519d3cc6ce8f03f69aa702b48e5fc8754ffdb301ecc3f2cfc11491c450718",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Blogbeheer",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "editor",
+    "screenshot": "prototype-editor-320.png",
+    "sha256": "047decc865d57054e8f75da6da4d4e5be34ecd41583f241072c4d019b82160b5",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "prototype",
+    "view": "editor-content",
+    "screenshot": "prototype-editor-content-320.png",
+    "sha256": "bbe654f34acdf8d4cd9fab01d303832865cc7cbdbe1408a7f6ac91bc499c6075",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "list",
+    "screenshot": "candidate-list-320.png",
+    "sha256": "a2537af5fac01f8ba469d6e74bded7b80ad96c45f9c1bec1f1e90834b97a8e32",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Blogbeheer",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "editor",
+    "screenshot": "candidate-editor-320.png",
+    "sha256": "d6e164faa6bc7287664a69a00c86d3394e75d59e85e496802ab48e19d4ba0153",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "variant": "candidate",
+    "view": "editor-content",
+    "screenshot": "candidate-editor-content-320.png",
+    "sha256": "6f70ef9469f7f8ea7e8db5516ddbd6446bec0d8835cd5349d86d1290061b092b",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "heading": "Zo richt je ClubTV in voor de wedstrijddag",
+    "headings": 1,
+    "mainFont": "Manrope, Inter, sans-serif",
+    "navigation": [],
+    "paragraphs": [
+      "Voor de eerste wedstrijd zoeken bezoekers vooral een aanvangstijd en veldnummer. Later op de dag willen ze de uitslagen en het resterende programma zien. Als je je afspeellijst op die momenten inricht, kunnen spelers en bezoekers de informatie in één oogopslag vinden.",
+      "Vóór de aftrap. Toon het eerstvolgende thuisprogramma met tijden, teamnamen en velden. Zet een wijziging bij de betreffende wedstrijd.",
+      "Tussen wedstrijden. Houd het resterende programma in beeld en wissel het af met recente uitslagen, kantinemededelingen en sponsorvermeldingen.",
+      "Na de laatste wedstrijd. Sluit af met de uitslagen en een korte vooruitblik op de volgende speeldag of clubactiviteit.",
+      "Geef elke slide één onderwerp. Gebruik korte regels, zet de tijd steeds op dezelfde plek en loop tijdens de test naar de verste tafel. Maak de tekst groter als je vanaf daar een teamnaam of veldnummer moet ontcijferen.",
+      "Bepaal vóór het weekend wie een last-minute veldwijziging kan plaatsen en wie controleert of een uitslag is bijgewerkt. Laat die vrijwilligers één testwedstrijd doorlopen. Bewaar daarnaast een korte afspeellijst met geldige clubinformatie voor momenten waarop een databron even wegvalt.",
+      "Voor een tweede scherm in de entree kan een korter programma al genoeg zijn. Lees ook hoe je je schermopstelling per plek kiest."
+    ],
+    "images": [
+      {
+        "alt": "VeyoCast",
+        "loaded": true
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      },
+      {
+        "alt": "",
+        "loaded": true
+      }
+    ]
+  }
+]

@@ -1,0 +1,614 @@
+[
+  {
+    "source": "actual Next runtime and actual API-published PostgreSQL dataset; local Auth/Storage test adapter",
+    "origin": "http://127.0.0.1:9313",
+    "view": "index",
+    "screenshot": "next-published-index-1440.png",
+    "sha256": "f21390478496d0775a12f6c8bf72100b3640e9a4d39470e71c894b8239b47957",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 1251.65625
+    },
+    "title": {
+      "x": 136,
+      "y": 253.015625,
+      "width": 713.765625,
+      "height": 89.75
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "Een verticaal scherm hangt naast de glazen ingang van een clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "55% 46%"
+      },
+      {
+        "alt": "Een vrijwilliger bekijkt documenten aan een tafel bij een scherm in het clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "43% 49%"
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "53% 44%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  },
+  {
+    "source": "actual Next runtime and actual API-published PostgreSQL dataset; local Auth/Storage test adapter",
+    "origin": "http://127.0.0.1:9313",
+    "view": "detail",
+    "screenshot": "next-published-detail-1440.png",
+    "sha256": "c796ed898c18a271357e3fb174fd76f0086278cdf6e37ddfe3f70d855d4759c9",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 96,
+      "width": 1440,
+      "height": 2573.078125
+    },
+    "title": {
+      "x": 120,
+      "y": 298.015625,
+      "width": 674.34375,
+      "height": 264.5625
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "53% 44%"
+      },
+      {
+        "alt": "Een verticaal scherm hangt naast de glazen ingang van een clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "55% 46%"
+      },
+      {
+        "alt": "Een vrijwilliger bekijkt documenten aan een tafel bij een scherm in het clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "43% 49%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      },
+      {
+        "text": "ClubTV",
+        "href": "/blog?categorie=clubtv"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  },
+  {
+    "source": "actual Next runtime and actual API-published PostgreSQL dataset; local Auth/Storage test adapter",
+    "origin": "http://127.0.0.1:9313",
+    "view": "index",
+    "screenshot": "next-published-index-390.png",
+    "sha256": "fb3c5aecb08e0ce0e0aeef29821b1bbb4e8ca759220c6f074f843a6b3af15483",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 390,
+      "height": 2052.40625
+    },
+    "title": {
+      "x": 49.546875,
+      "y": 177.328125,
+      "width": 290.890625,
+      "height": 86.5
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "Een verticaal scherm hangt naast de glazen ingang van een clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "55% 46%"
+      },
+      {
+        "alt": "Een vrijwilliger bekijkt documenten aan een tafel bij een scherm in het clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "43% 49%"
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "53% 44%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  },
+  {
+    "source": "actual Next runtime and actual API-published PostgreSQL dataset; local Auth/Storage test adapter",
+    "origin": "http://127.0.0.1:9313",
+    "view": "detail",
+    "screenshot": "next-published-detail-390.png",
+    "sha256": "2f38cf9a6523dc9a616b9cebac655c2aea282b8eaef59706c785aef57950357c",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 390,
+      "height": 3448.0625
+    },
+    "title": {
+      "x": 17.546875,
+      "y": 215.390625,
+      "width": 354.890625,
+      "height": 80.625
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "53% 44%"
+      },
+      {
+        "alt": "Een verticaal scherm hangt naast de glazen ingang van een clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "55% 46%"
+      },
+      {
+        "alt": "Een vrijwilliger bekijkt documenten aan een tafel bij een scherm in het clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "43% 49%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      },
+      {
+        "text": "ClubTV",
+        "href": "/blog?categorie=clubtv"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  },
+  {
+    "source": "actual Next runtime and actual API-published PostgreSQL dataset; local Auth/Storage test adapter",
+    "origin": "http://127.0.0.1:9313",
+    "view": "index",
+    "screenshot": "next-published-index-320.png",
+    "sha256": "a3d11004aa8c688f941b9f6517e66d2d1ec95cf36c8f6bc56871426accd3d7a8",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 320,
+      "height": 1962.234375
+    },
+    "title": {
+      "x": 48,
+      "y": 156.1875,
+      "width": 224,
+      "height": 129.75
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "Een verticaal scherm hangt naast de glazen ingang van een clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "55% 46%"
+      },
+      {
+        "alt": "Een vrijwilliger bekijkt documenten aan een tafel bij een scherm in het clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "43% 49%"
+      },
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "53% 44%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  },
+  {
+    "source": "actual Next runtime and actual API-published PostgreSQL dataset; local Auth/Storage test adapter",
+    "origin": "http://127.0.0.1:9313",
+    "view": "detail",
+    "screenshot": "next-published-detail-320.png",
+    "sha256": "9640f6c60f220ddf20d3e7188d1e3c5ffefcb1139ae1650e3fa99ffa031b3e8a",
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "overflow": 0,
+    "main": {
+      "x": 0,
+      "y": 79,
+      "width": 320,
+      "height": 3617.59375
+    },
+    "title": {
+      "x": 16,
+      "y": 215.390625,
+      "width": 288,
+      "height": 120.9375
+    },
+    "mainFont": "Manrope, Inter, sans-serif",
+    "headingFont": "Manrope, Inter, sans-serif",
+    "headingCount": 1,
+    "headerCount": 1,
+    "footerCount": 1,
+    "images": [
+      {
+        "alt": "Bezoekers zitten in een clubkantine met een groot wandbeeldscherm.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "53% 44%"
+      },
+      {
+        "alt": "Een verticaal scherm hangt naast de glazen ingang van een clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "55% 46%"
+      },
+      {
+        "alt": "Een vrijwilliger bekijkt documenten aan een tafel bij een scherm in het clubhuis.",
+        "loaded": true,
+        "naturalWidth": 1600,
+        "naturalHeight": 2000,
+        "objectPosition": "43% 49%"
+      }
+    ],
+    "navigation": [
+      {
+        "text": "VeyoCast — home",
+        "href": "/"
+      },
+      {
+        "text": "Platform",
+        "href": "/functies/"
+      },
+      {
+        "text": "Sportverenigingen",
+        "href": "/oplossingen/sportverenigingen/"
+      },
+      {
+        "text": "Horeca",
+        "href": "/oplossingen/horeca/"
+      },
+      {
+        "text": "Bedrijven",
+        "href": "/oplossingen/bedrijven/"
+      },
+      {
+        "text": "Koppelingen",
+        "href": "/koppelingen/"
+      },
+      {
+        "text": "Players",
+        "href": "/players/"
+      },
+      {
+        "text": "Narrowcasting",
+        "href": "/narrowcasting/"
+      },
+      {
+        "text": "Blog",
+        "href": "/blog"
+      },
+      {
+        "text": "Inloggen",
+        "href": "https://control.veyocast.nl"
+      },
+      {
+        "text": "Plan een demo",
+        "href": "/demo/"
+      },
+      {
+        "text": "ClubTV",
+        "href": "/blog?categorie=clubtv"
+      }
+    ],
+    "axeViolations": [],
+    "keyboardSkipLink": "passed"
+  }
+]

@@ -7,7 +7,6 @@ import {
   sitemapPages
 } from "./pages";
 import {
-  publishedBlogPosts,
   publishedCases
 } from "./published-details";
 
@@ -46,7 +45,6 @@ const requiredRoutes = [
   "/kennisbank/narrowcasting-sportvereniging",
   "/kennisbank/contentkalender-sportclub",
   "/kennisbank/sponsors-zichtbaar-op-clubtv",
-  "/blog",
   "/veelgestelde-vragen",
   "/support",
   "/status",
@@ -112,6 +110,7 @@ describe("marketing content canon", () => {
     expect(sitemapPages.every(({ index }) => index)).toBe(true);
     expect(sitemapPages.some(({ pathname }) => pathname === "/status")).toBe(false);
     expect(sitemapPages.some(({ pathname }) => pathname === "/cases")).toBe(false);
+    // Blog routes have their own runtime publication source and sitemap tests.
     expect(sitemapPages.some(({ pathname }) => pathname === "/blog")).toBe(false);
     expect(sitemapPages.some(({ pathname }) => pathname === "/integraties/sportlink")).toBe(true);
     expect(sitemapPages.some(({ pathname }) => pathname === "/sponsor-hub")).toBe(true);
@@ -119,9 +118,8 @@ describe("marketing content canon", () => {
     expect(sitemapPages.some(({ pathname }) => pathname === "/engage")).toBe(false);
   });
 
-  it("publishes no unapproved customer case or blog post", () => {
+  it("publishes no unapproved customer case", () => {
     expect(publishedCases).toEqual([]);
-    expect(publishedBlogPosts).toEqual([]);
   });
 
   it("publishes the approved launch price but keeps unsupported uptime blocked", () => {

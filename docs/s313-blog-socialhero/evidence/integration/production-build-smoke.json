@@ -1,0 +1,54 @@
+{
+  "kind": "local-production-build-with-postgres-test-adapter",
+  "checkedAt": "2026-11-13T14:49:08.477Z",
+  "realNextProcessRestart": true,
+  "environment": "development",
+  "origin": "http://127.0.0.1:9313",
+  "articleCount": 4,
+  "indexStatus": 200,
+  "results": [
+    {
+      "url": "http://127.0.0.1:9313/blog/worker-acceptatie-d08a3467ff",
+      "externalId": "sh_content_20261b15-4b6b-431e-8fdc-1219bdcc4609",
+      "revision": 1,
+      "verifier": "passed",
+      "sitemap": "passed",
+      "uppercaseMediaStatus": 200
+    },
+    {
+      "url": "http://127.0.0.1:9313/blog/schermen-plaatsen-clubhuis",
+      "externalId": "s313-82a45b5553-2",
+      "revision": 1,
+      "verifier": "passed",
+      "sitemap": "passed",
+      "uppercaseMediaStatus": 200
+    },
+    {
+      "url": "http://127.0.0.1:9313/blog/sponsoren-zichtbaar-op-clubscherm",
+      "externalId": "s313-82a45b5553-1",
+      "revision": 1,
+      "verifier": "passed",
+      "sitemap": "passed",
+      "uppercaseMediaStatus": 200
+    },
+    {
+      "url": "http://127.0.0.1:9313/blog/clubtv-inrichten-wedstrijddag-definitief",
+      "externalId": "s313-82a45b5553-0",
+      "revision": 4,
+      "verifier": "passed",
+      "sitemap": "passed",
+      "uppercaseMediaStatus": 200
+    }
+  ],
+  "malformedMultipart": {
+    "status": 422,
+    "code": "INVALID_MEDIA"
+  },
+  "sourceHashes": {
+    "apps/marketing/next.config.mjs": "6c339321ace8b054845e3dd39e96a1cd460e8c7c1ef0f77677ae9f581d359962",
+    "apps/marketing/app/_lib/blog-source.ts": "e463d2aef2da4f67637fc9ccba86e85ed7f8ac3934d57092213e2539a4217e6a",
+    "apps/marketing/app/api/blog/media/[id]/route.ts": "bcc9c30b8d67c2233438a997d25f30b262a7d89b994b4979c37a29c09764a37a",
+    "apps/marketing/app/api/socialhero/v1/media/route.ts": "48a0efdf0ed3723490e4ca091cc9f01fafbe4f8250e4283b3d539a3c26a71606"
+  },
+  "credentialsOmitted": true
+}

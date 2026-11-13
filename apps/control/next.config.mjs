@@ -11,7 +11,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-  transpilePackages: ["@veyocast/config", "@veyocast/content-templates"]
+  transpilePackages: ["@veyocast/config", "@veyocast/content-templates", "@veyocast/blog"]
 };
 
 export default nextConfig;

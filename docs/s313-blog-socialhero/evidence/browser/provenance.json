@@ -1,0 +1,12 @@
+{
+  "type": "native-component-fixture",
+  "baselineCommit": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+  "baselineShellSha256": "8c4fd87029fe19bcfcbf9136a5c14a300e48095e3074cf6400972f6d958af538",
+  "candidateShellSha256": "9808bf7df6d478e5c4aaa1859d55241fbc4a7bb7555bb987333b8075f944cb30",
+  "prototypeComponentSha256": "77c3295f9fd6cb20deaac7604dfb12c7971356f57dbf0721036f7c1119084000",
+  "prototypeDatasetSha256": "16db9a999fc41bc06950d68d7765ea8fd06b478c1a514eef5e9fc68a44a6b91f",
+  "cssSha256": "2b7bc945ae41b350cfd03bf5de18a8c257ab80f515027401402c23419c87dc59",
+  "note": "Actual React source with read-only data and media transport; Next Link rendered as native anchor. Tailwind preflight plus unchanged canonical/global/runtime/accessibility/retained CSS. Not a Next runtime or database acceptance proof.",
+  "fixtureOrigin": "http://127.0.0.1:42271",
+  "capturedAtUtc": "2026-11-13T14:53:27.777Z"
+}

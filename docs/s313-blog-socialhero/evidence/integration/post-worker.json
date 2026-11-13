@@ -1,0 +1,129 @@
+{
+  "status": "passed",
+  "command": "./node_modules/.bin/tsx tests/helpers/s313-blog-integration.mts --verify-worker",
+  "checkedAt": "2026-11-13T14:46:04.296Z",
+  "database": "s313_blog_acceptance",
+  "counts": {
+    "posts": 4,
+    "assets": 8,
+    "published": 4,
+    "revisions": 7,
+    "storageObjects": 8
+  },
+  "workerReport": {
+    "repository": "SocialHero",
+    "path": "docs/veyocast-blog-evidence/worker-next-result.json",
+    "sha256": "d051446b77e2a09723d7f25b6d706603650df70178f0b9c55777100a4524e799",
+    "assertions": {
+      "uploadedAssets": 2,
+      "conceptWrites": 1,
+      "publishWrites": 1,
+      "publicVerifications": 2,
+      "articleReceipts": 1,
+      "socialReceipts": 0,
+      "stableOperationKeys": true,
+      "snapshotFingerprintsRetained": true,
+      "secretsInBrowserState": false
+    }
+  },
+  "source": {
+    "veyocast": "4f44bbdd68d22ca2aca42f01a8d68dbe1a120770",
+    "uncommittedCandidate": true,
+    "files": {
+      "tests/helpers/s313-blog-backend.mts": "247ab6f515316cb4930a789b58a4f63a69ff1fc0a06c42adde95e4bd29201a56",
+      "tests/helpers/s313-blog-integration.mts": "90bd1a218282eae7e24d897a8467d92ac6de6894b9e6276ffce4ea46249599f2",
+      "tests/e2e/blog-publication.spec.ts": "4f333c1595fd60bc8ce458bddf229e1a235d8fdc4c35286f90cfe58dde70a1e3",
+      "apps/marketing/app/_lib/blog-source.ts": "e463d2aef2da4f67637fc9ccba86e85ed7f8ac3934d57092213e2539a4217e6a",
+      "apps/marketing/next.config.mjs": "6c339321ace8b054845e3dd39e96a1cd460e8c7c1ef0f77677ae9f581d359962",
+      "packages/blog/src/media.ts": "b3bd1a1cc99dbc7ba0dc493790b0a021e27f6cc0f6741ea0bd0e34dc3d21793a",
+      "packages/blog/src/server.ts": "1d863e6091b5d30a9cd7a7a83876da7429585628b3dcc197166480ce152ffe3c",
+      "packages/blog/src/config.ts": "b59755805a9c5e6b6c41eaaf569c5cec52c60bc94e4510de9fb2228c08243f96",
+      "apps/marketing/app/api/socialhero/v1/contract.test.ts": "07d9e4b579bc8a937f6e133be063530d971d24fe6f5152198436d6302a582be1",
+      "apps/marketing/app/api/socialhero/v1/posts/[externalId]/publish/route.ts": "8f732372fb639f05d567c9612834ea7bfd24a96e89d28b201535c0c8ed6b40f2",
+      "apps/marketing/app/api/socialhero/v1/posts/[externalId]/route.ts": "07312817837598f7ba5ad5855d313b0ffc81bb00ab93cb495a0e4d5b6ffdb291",
+      "apps/marketing/app/api/socialhero/v1/media/route.ts": "48a0efdf0ed3723490e4ca091cc9f01fafbe4f8250e4283b3d539a3c26a71606",
+      "apps/marketing/app/blog/page.tsx": "6503413a8cbf4a3846387b1252de75e3312b949b3527990d355092d7978be3e7",
+      "apps/marketing/app/api/blog/media/[id]/route.ts": "bcc9c30b8d67c2233438a997d25f30b262a7d89b994b4979c37a29c09764a37a",
+      "apps/marketing/app/blog/_blog/blog-public.module.css": "9f001637a9cc38d3662ef64137c85b13a8fcb6233096f92b601f3cc32db6764d",
+      "apps/marketing/app/blog/_blog/blog-public.tsx": "e64b7e223e8eeb3c42fd96d8c23bc3355f1972f3cd31737a020b915370c12212",
+      "apps/marketing/app/blog/_blog/metadata.ts": "f4eab9684712da301682b86e38b84c6b317183725b5667671a07a091eaf50f62",
+      "apps/marketing/app/blog/_blog/blog-content.tsx": "42d6443c9279e29e9593980e61959ad61ce9070b55bada00c4b3f1d269179ca0",
+      "apps/marketing/app/blog/_blog/blog.test.tsx": "a14c646015a4f48c3b53b4c6bb2d6b251444308f23a162b66b03d74b2477eb91",
+      "apps/marketing/app/blog/[slug]/page.tsx": "bf63dc7ce6b1c710a384f8c8a6c77e5aa985fdf815845acaaa6589172b8cd7f1",
+      "apps/marketing/app/api/socialhero/v1/capabilities/route.ts": "9c54be3a18ca2c07a8e52cc991a3eac30c604c91978447ee047bd46899d30dfa"
+    }
+  },
+  "installedDatabaseGateSource": {
+    "migrationCount": 225,
+    "migrationsSha256": "68be6d2cd9c511a8576d7d7c90bf91b3a1576583bdba89260a8d9ae7c9a68f9f",
+    "blogMigrationSha256": "aa3f408503724189f6220d850ffdfd9ab3109ee3b66749a66ddd8e647677bdb7",
+    "blogTestSha256": "f2704200fba0d79035199e2e780462d95e4678ce65cabc7eff1a91ad2b3c90cf",
+    "sharedDocumentSha256": "8d3674f099c1bb9c49a20100fa1b61691b5f71a5c02924ce4897d1d491b539a3"
+  },
+  "installedBlogFunctions": [
+    {
+      "sha256": "a20ea670a1b934de57e633c4db71409461de420c07630981f322211a09607e0d",
+      "signature": "private.blog_check_token(text,text,text,text)"
+    },
+    {
+      "sha256": "1b684a5efa57dc921ce3ffbd88a2b273f62861547bee62458c48c3cb1a51e63a",
+      "signature": "private.blog_finish_media(text,text,text,text)"
+    },
+    {
+      "sha256": "bbd3462f00fb8ccfa7da19626f5f9f29a5b85cf94aef56ea481720c4403c1ce2",
+      "signature": "private.blog_immutable_revision()"
+    },
+    {
+      "sha256": "e1ee49ae146f175bf0a10ea289af8ac5f3fe9f23afc32dd98140a6c8e1a56176",
+      "signature": "private.blog_post_response(platform_blog_posts,text,boolean)"
+    },
+    {
+      "sha256": "e5825c4fd5c75411abaacbab098b39c5bd0019fc34f1befe7f482d323fe06b63",
+      "signature": "private.blog_safe_link(text)"
+    },
+    {
+      "sha256": "643cd35d61f1e58c386822be8131510832eecdd1f1dc4be295b9a0244e2d3ff6",
+      "signature": "private.blog_staff()"
+    },
+    {
+      "sha256": "9956b75cc1024f4188f0de1eee20d8cc10b07f2babc512db39f063a0ca469744",
+      "signature": "private.blog_text_length(text)"
+    },
+    {
+      "sha256": "6192af1bdc453450f4365e1489661b5a76f1cf6ebe71076e49190aadd0152472",
+      "signature": "private.blog_trim(text)"
+    },
+    {
+      "sha256": "9d9882398d086683d3e981647babc0dd463704772b03d5012ff839ad7e8d5651",
+      "signature": "private.blog_validate_payload(jsonb,text,text,boolean)"
+    },
+    {
+      "sha256": "912fc24121352d7e7e5673006d021b1770543b4996eee7ac24f8c3afebf870b1",
+      "signature": "blog_authorize_media_upload(text,text)"
+    },
+    {
+      "sha256": "beac246086496d8d9bc50b3985499181596fef076ec0d83d5f6d8fdf4d00cebf",
+      "signature": "blog_authorize_token(text,text,text,text)"
+    },
+    {
+      "sha256": "35397e0978c4af458559516d7223eb2fd20ce7767dae7ed581ffe60d251f9bab",
+      "signature": "blog_command(text,text,text,text,jsonb,bigint,text,text)"
+    },
+    {
+      "sha256": "2a5f951c89d8f8c7e065a711495e308f3c3462a7b5931cf8766b339bea776a2e",
+      "signature": "blog_complete_human_media(text,text,jsonb,text,uuid)"
+    },
+    {
+      "sha256": "072fe47b1ccc1999e4c8dadb749732d85a76d688b64406d0b58b62c863b30e0a",
+      "signature": "blog_configure_site(text,text,text)"
+    },
+    {
+      "sha256": "8781bd501e5f42d4da8b8121220515cc6448f1f48d979d2f160de80eb76c3cc7",
+      "signature": "blog_manage_token(text,text,text,uuid,text,text,text[],timestamp with time zone)"
+    }
+  ],
+  "limitations": [
+    "Explicit LOCAL TEST ADAPTER with synthetic Auth and Storage HTTP; real PostgreSQL/RLS and actual Next routes.",
+    "This integration database remains at the recorded initial migration hash. A subsequent direct-RPC slug-type guard is checked by separate final fresh-database gates; application routes already reject those types."
+  ]
+}

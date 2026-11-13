@@ -165,6 +165,14 @@ const controlNavigation: readonly ControlNavigationItem[] = [
     scope: "platform"
   },
   {
+    description: "Artikelen en publicaties op de VeyoCast-website",
+    href: "/platform/blog",
+    label: "Blogbeheer",
+    requiredCapability: "platform.blog.read",
+    section: "product",
+    scope: "platform"
+  },
+  {
     description: "Vaste dynamische vormgeving en versies",
     href: "/platform/templates",
     label: "Renderformats",
