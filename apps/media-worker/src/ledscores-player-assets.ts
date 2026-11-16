@@ -110,6 +110,8 @@ export class LedScoresPlayerAssetError extends Error {
 }
 
 export class LedScoresPlayerAssetImporter {
+  private readonly pending = new Map<string, Promise<string>>();
+
   constructor(
     private readonly registry: LedScoresPlayerAssetRegistry,
     private readonly fetchImpl: typeof fetch = fetch
@@ -133,6 +135,18 @@ export class LedScoresPlayerAssetImporter {
     if (externalId.length > 512) {
       throw new LedScoresPlayerAssetError("ledscores_player_photo_identity_invalid");
     }
+    const key = JSON.stringify([tenantId, externalId, sourceUrl]);
+    const existing = this.pending.get(key);
+    if (existing) return existing;
+    if (this.pending.size >= 512) return this.importAsset(tenantId, externalId, sourceUrl);
+    const request = this.importAsset(tenantId, externalId, sourceUrl).finally(() => {
+      if (this.pending.get(key) === request) this.pending.delete(key);
+    });
+    this.pending.set(key, request);
+    return request;
+  }
+
+  private async importAsset(tenantId: string, externalId: string, sourceUrl: string) {
     const current = await this.registry.findCurrent(externalId, sourceUrl);
     if (current) return current;
     const bytes = await fetchLedScoresPlayerPhoto(sourceUrl, this.fetchImpl);
@@ -148,12 +162,38 @@ export class LedScoresPlayerAssetImporter {
 
 export class SupabaseLedScoresPlayerAssetRegistry implements LedScoresPlayerAssetRegistry {
   private readonly client: SupabaseClient<LedScoresPlayerAssetDatabase>;
+  private readonly current = new Map<string, { versionId: string; createdAt: number; expiresAt: number }>();
+  private readonly pending = new Map<string, Promise<string | null>>();
 
   constructor(client: SupabaseClient<LedScoresPlayerAssetDatabase>, private readonly entityType: "player" | "team" = "player") {
     this.client = client;
   }
 
   async findCurrent(externalId: string, sourceUrl: string) {
+    const key = JSON.stringify([externalId, sourceUrl]);
+    const cached = this.current.get(key);
+    const now = Date.now();
+    if (cached && now >= cached.createdAt && cached.expiresAt > now) return cached.versionId;
+    this.current.delete(key);
+    const existing = this.pending.get(key);
+    if (existing) return existing;
+    if (this.pending.size >= 512) {
+      return reusableLedScoresPlayerAssetVersion(await this.loadCurrent(externalId), sourceUrl);
+    }
+    const request = this.loadCurrent(externalId).then((row) => {
+      const versionId = reusableLedScoresPlayerAssetVersion(row, sourceUrl);
+      if (versionId && row?.last_checked_at && this.pending.get(key) === request) {
+        if (this.current.size >= 512) this.current.delete(this.current.keys().next().value!);
+        this.current.set(key, { versionId, createdAt: Date.now(), expiresAt: Math.min(Date.now() + 60_000,
+          Date.parse(row.last_checked_at) + LED_SCORES_PLAYER_PHOTO_REVALIDATE_MS) });
+      }
+      return versionId;
+    }).finally(() => { if (this.pending.get(key) === request) this.pending.delete(key); });
+    this.pending.set(key, request);
+    return request;
+  }
+
+  private async loadCurrent(externalId: string) {
     const result = await this.client
       .from("provider_asset_cache")
       .select("current_version_id, last_checked_at, source_url")
@@ -170,7 +210,7 @@ export class SupabaseLedScoresPlayerAssetRegistry implements LedScoresPlayerAsse
       last_checked_at?: string | null;
       source_url?: string | null;
     } | null;
-    return reusableLedScoresPlayerAssetVersion(row, sourceUrl);
+    return row;
   }
 
   async save(artifact: LedScoresPlayerPhotoArtifact) {
@@ -232,6 +272,9 @@ export class SupabaseLedScoresPlayerAssetRegistry implements LedScoresPlayerAsse
     if (currentResult.error) {
       throw new LedScoresPlayerAssetError("ledscores_player_photo_activation_failed");
     }
+    const key = JSON.stringify([artifact.externalId, artifact.sourceUrl]);
+    this.current.delete(key);
+    this.pending.delete(key);
     return assetVersionId;
   }
 }

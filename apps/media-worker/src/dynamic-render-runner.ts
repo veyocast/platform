@@ -54,6 +54,8 @@ export async function runDynamicRenderOnce({
   );
   if (!job) return { status: "idle" };
   const lease=createDynamicRenderLease(backend,job,config,signal);
+  let resolvedAssets: ReturnType<NonNullable<DynamicRenderBackend['resolveAssets']>> | undefined;
+  const resolveAssetsOnce = () => resolvedAssets ??= backend.resolveAssets?.(job) ?? Promise.resolve({});
   try {
     await lease.begin();
     signal=lease.signal;
@@ -67,7 +69,7 @@ export async function runDynamicRenderOnce({
     const requiresSource=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&Object.hasOwn(job.snapshotData,'syncConfiguration'));
     if(requiresSource){
       if(!job.leaseToken||!backend.renewJob)throw new DynamicRenderBackendError('sync_dynamic_lease_unavailable',false,'De gekoppelde bronweergave vereist een actuele beveiligde renderopdracht.');
-      const assets=await backend.resolveAssets?.(job)??{};
+      const assets=await resolveAssetsOnce();
       if(!job.publishedRefresh&&(job.snapshotData as Record<string,unknown>).syncPlaybackProtocol===2){
         const prepared=prepareSyncDynamicDescriptor({job,assets});
         const artifact={...prepared,storagePath:dynamicRenderStoragePath(job,prepared.dom.mimeType,prepared.checksumSha256)};
@@ -86,7 +88,7 @@ export async function runDynamicRenderOnce({
     const menuV2=Boolean(job.snapshotData&&typeof job.snapshotData==='object'&&(job.snapshotData as Record<string,unknown>).syncPlaybackProtocol===2);
     if(menuV2&&(!job.leaseToken||!backend.renewJob))throw new DynamicRenderBackendError('menu_dom_lease_unavailable',false,'De menuweergave vereist een actuele beveiligde opdracht.');
     if(menuV2&&!job.publishedRefresh){
-      const prepared=prepareMenuDomDescriptor(job,await backend.resolveAssets?.(job)??{});
+      const prepared=prepareMenuDomDescriptor(job,await resolveAssetsOnce());
       const artifact={...prepared,storagePath:dynamicRenderStoragePath(job,prepared.menuDom.mimeType,prepared.checksumSha256)};
       await lease.check();await backend.uploadArtifact(job,artifact);await lease.prepareCompletion();await backend.completeJob(job,config.workerId,artifact);
       return{jobId:job.jobId,mediaAssetId:job.outputMediaAssetId,status:'completed'};
@@ -102,7 +104,7 @@ export async function runDynamicRenderOnce({
     if (reactDomRenderer) {
       try {
         bytes = await reactDomRenderer.renderPng({
-          assets: await backend.resolveAssets?.(job) ?? {},
+          assets: await resolveAssetsOnce(),
           job,
           signal
         });
@@ -123,7 +125,7 @@ export async function runDynamicRenderOnce({
         width: job.manifest.canvas.width
       });
     }
-    const menuBinary=menuV2?{...prepareMenuDomDescriptor(job,await backend.resolveAssets?.(job)??{}).menuDom,mimeType:'image/png' as const}:undefined;
+    const menuBinary=menuV2?{...prepareMenuDomDescriptor(job,await resolveAssetsOnce()).menuDom,mimeType:'image/png' as const}:undefined;
     const checksumSha256=createHash('sha256').update(bytes).digest('hex');
     const artifact = {
       byteLength: bytes.byteLength,

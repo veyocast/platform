@@ -1,5 +1,10 @@
 # VeyoCast MVP Plan
 
+S315 analyseert en verbetert de werkelijke verversings- en databaseketen op basis
+van productielogs en queryprofielen. Geen blinde pollversnelling, mutable release
+of gedeelde authenticatiecache. Ownership en meetgrenzen staan in
+`prompts/sprints/S315-performance-refresh.md`.
+
 S312 herstelt de daadwerkelijk op productie aangetoonde Menu-completionfout:
 een exact bevroren immutable providerlogo werd ten onrechte uitsluitend tegen
 tenant Media gevalideerd. Eén forwardmigration en gerichte SQL-regressies

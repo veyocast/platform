@@ -1,16 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useVisibleRouteRefresh } from "../../../../../lib/use-visible-route-refresh";
 
 export function ThemeRolloutRefresh({ active }: { active: boolean }) {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!active) return;
-    const timer = window.setInterval(() => router.refresh(), 3_000);
-    return () => window.clearInterval(timer);
-  }, [active, router]);
+  useVisibleRouteRefresh(active, 3_000);
 
   return null;
 }
