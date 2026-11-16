@@ -295,10 +295,12 @@ Het eerste volledige unitverzoek miste een bestaand native PNG-fixture in deze
 sparse worktree. Het exacte tracked referentiebeeld is hersteld, niet vervangen
 door nepuitvoer; de herhaalde volledige unitgate slaagt.
 
-De lokale Chromium-proef gebruikt het aanwezige headless-Chromium via een
-afzonderlijke niet-gecommitte testconfig: de verwachte standaardbinary van de
-gedeelde dependencytoolchain ontbreekt. Dit wijzigt geen productionconfig en
-vervangt de normale gepinde CI-browsergates niet.
+De eerste lokale Chromium-proeven gebruikten de aanwezige andere browserbinary
+via een afzonderlijke niet-gecommitte testconfig. Voor het aanvullende
+watchdogonderzoek is daarna de daadwerkelijk gepinde Chromium 1228 in een
+afzonderlijke taakcache geïnstalleerd. De vijf nieuwe browserproeven en de
+volledige watchdogsuite zijn ook daarmee groen. Geen productionconfig of
+normale gepinde CI-browsergate is vervangen.
 
 De schone volledige migratie/RLS-, build-, browser/a11y-, Player/offline- en
 native Workerimagegates blijven verplicht vóór normale uitrol. Productie heeft
@@ -352,6 +354,51 @@ mainhistorie en afwezigheid van de kandidaatindex. Transactionele voorgangers
 worden niet meer samengevoegd in zo'n harness; volledige replay blijft een
 verplichte schone disposable-CI-gate. Het incident blijft expliciet onderdeel
 van dit dossier, ook na geslaagd herstel.
+
+## 9. Hosted bewijs en expliciet geautoriseerde watchdogfixture
+
+De eerste volledige hosted eindrun op `7139ffb22` bevestigt 161 SQL-bestanden /
+5.628 assertions na schone migratiereplay; echte private uploads, selectie,
+TUS-herstel, immutable publicatie en eerste frame; alle foundationgates en
+19 builds; de echte Workerimage met 354 geverifieerde assets, zes native
+RSS-captures, zestien menuproducten, SVG en H.264. Marketing 27 browserproeven,
+Control en alle vijf oorspronkelijke Sites-/responsivegates slagen eveneens.
+
+Van 536 oorspronkelijke Playerproeven faalt één oude watchdogproef in shard 1;
+drie shards slagen en de aggregate closure blijft terecht rood. Niets wordt
+gedeployd of op main samengevoegd met deze rode gate. Eerst leek de diagnose-
+tekst verouderd. De bewaarde native trace toont echter ook extra decodefouten:
+de Player rapporteert al RESTART_LOOP met recoveredAt en vervolgens een lege
+foutheartbeat, terwijl de oorspronkelijke proef exact SKIP_ITEM verwacht.
+De ongewijzigde proef slaagt tienmaal op de bestaande mainimage met dezelfde
+gepinde browser. Dit is een timingafhankelijke vermenging van herstelniveaus,
+niet een door S315 gewijzigde Player of slechts een tekstcorrectie.
+
+De gebruiker autoriseert eerst gericht testherstel en daarna expliciet een
+deterministische tweefoutenfixture plus aparte foutenreeksproef. De oorspronkelijke
+naam en exacte SKIP_ITEM-, item-ID-, zichtbare fallback-, recoveredAt- en
+foutopruimingsasserties blijven bestaan. De fixture laat echte native fouten
+van corrupte videobytes door, één per video-instance en alleen voor de
+verwachte itemvolgorde. Extra foutmeldingen tellen niet ongemerkt als een
+ander scenario. De extra proef gebruikt een tweede defect playlistitem en
+eist na precies drie toegelaten fouten exact RESTART_LOOP voor dat item,
+daarna hetzelfde echte fallbackframe en dezelfde heartbeatopruiming. Beide
+bewaken bovendien de daadwerkelijk getoonde retrytekst tussen fout één en twee.
+Geen OR-versoepeling van herstelacties, timeoutverhoging, skip of Playerdelta.
+
+Gericht: beide scenario's vijfmaal groen met gepinde Chromium. Vervolgens
+de volledige watchdogsuite plus de vijf nieuwe Control/Marketingproeven:
+11/11 groen in productie-servermodus. De eerste lokale brede proef gebruikte
+abusievelijk de dev-testmodus tegen een productionbuild; alleen de bestaande
+stallassertie gebruikte daardoor 2,5 s in plaats van haar bestaande 14,5 s.
+Met de juiste bestaande modus is die proef groen, zonder test-/timeoutwijziging.
+
+Deze aanvullende browserproef gebruikt een begrensde, read-only QA-container
+van de bestaande mainimage op een alleen-lokale poort via SSH, zonder
+Supabasecredentials. Het is geen fysieke TV- of tenantproef en verandert geen
+live playlist of omgeving. Alle normale hostedgates moeten op de daaropvolgende
+testfix-SHA opnieuw slagen vóór staging-/productiepromotie. Actuele resultaten
+en uitrolbewijs horen bij [PR 344](https://github.com/veyocast/platform/pull/344).
 
 ## Primaire referenties
 

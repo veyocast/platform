@@ -23,6 +23,22 @@ root breidt ownership gericht uit met uitsluitend de preload in
 en `tests/e2e/marketing-s315-blog-preload.spec.ts`. Geen ontwerp-/asset- of
 blogpublicatie-/cachewijziging; geen algemene footer-/prefetchherbouw.
 
+De eerste volledige CI meldt één bestaande watchdogproef met een diagnose-
+tekstverschil; Playerbron en test zijn op main hetzelfde als vóór S315.
+De gebruiker autoriseert gericht herstel van
+`tests/player/watchdog-recovery.spec.ts`, met behoud van retry-, zichtbare
+fallback-, herstelheartbeat- en foutopruimingscontroles. Geen Playerlogica of
+versoepelde gate. Native trace en herhaalde proef moeten de oorzaak onderbouwen.
+Nadere tracecontrole toont daadwerkelijke extra decodefouten en een herstelde
+RESTART_LOOP-heartbeat, niet slechts andere tekst. Na tien groene ongewijzigde
+proeven op de bestaande mainimage autoriseert de gebruiker expliciet een
+deterministische tweefoutenfixture plus afzonderlijke foutenreeksproef.
+Beide gebruiken echte native decodefouten van corrupte bytes en laten precies
+twee/drie itemgebonden errorcallbacks door, één per video-instance. Een tweede
+defect item maakt de derde fout deterministisch zonder race met een goed frame.
+Exacte actie, zichtbare fallback, herstelreceipt, volgende foutvrije heartbeat
+en de zichtbare retrytekst tussen de eerste twee fouten blijven verplicht.
+
 De productiecache toont opnieuw reserveringen voor een historische menuversie.
 De private enqueuevoorwaarde behandelt een ontbrekend protocol als SQL NULL en
 laat daardoor niet-ondersteunde uitvoer toe. Dezelfde forwardmigration krijgt
