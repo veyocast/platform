@@ -84,6 +84,7 @@ export function BlogIndexPage({ articles, category }: { articles: readonly BlogA
   const visible = selected ? articles.filter((article) => article.category === selected.value) : articles;
   return (
     <main id="main-content" className={styles.blog}>
+      <link rel="preload" as="image" href="/fieldflow/photos/FF-PHOTO-01-clubhouse-exterior-21x9.webp" fetchPriority="high" />
       <section className={styles.intro} aria-labelledby="blog-title">
         <div className={styles.introContent}>
           <nav className={styles.introCrumbs} aria-label="Broodkruimelpad">

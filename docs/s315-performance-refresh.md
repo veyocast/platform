@@ -10,7 +10,8 @@ Een snelle healthroute of een berekende besparing bewijst geen zichtbaar TV-fram
 De grootste aantoonbare kansen zijn niet overal sneller pollen. Het zijn
 een ontbrekende index voor het tenantoverzicht, herhaalde providerassetlezingen,
 dubbele assetvoorbereiding bij legacy-Menu-rendering, overbodige verborgen-tab-
-refreshes en ongeldige binaire opdrachten door SQL NULL-logica.
+refreshes, ongeldige binaire opdrachten door SQL NULL-logica en een laat
+ontdekte publieke blogachtergrond.
 
 ## 1. Onderzochte keten
 
@@ -85,6 +86,28 @@ Eén niet-geauthenticeerde GET per route vanaf deze worker, inclusief netwerk:
 homepage TTFB 128 ms, blog 261 ms, Control-login 178 ms en Player-health
 133 ms; alle HTTP 200. Homepage circa 51,7 kB HTML. Dit is geen Lighthouse-,
 LCP-, INP-, mobiele 4G- of end-userp95-meting.
+
+### Aanvullende koude browsersteekproef
+
+Eén Chromium-sample per route/variant, zonder scrollen, met lege browsercache:
+
+| Variant | Homepage LCP | Blog LCP |
+| --- | ---: | ---: |
+| Desktop 1440×900, niet vertraagd | 340 ms | 428 ms |
+| Viewport 390×844; 150 ms latency, 1,6 Mbps down, 0,75 Mbps up, 4× CPU | 1.840 ms | 3.492 ms |
+
+Alle vier HTTP 200, geen pageerrors of horizontale overflow, fonts geladen;
+CLS 0,0008–0,0021 in het observatievenster. Dit is een korte labsteekproef,
+geen fysieke mobiele meting, INP of veld-CWV/p75. Een tweede mobiele blogproef
+mat LCP 3.476 ms en identificeerde de introsectie als LCP-element. Haar
+158-kB-achtergrond werd pas op 1.168 ms via CSS ontdekt en eindigde op
+3.111 ms, terwijl navigatie- en prefetchresources dezelfde verbinding gebruikten.
+
+VPS-steekproef vóór uitrol: 24 GB vrij (84% gebruikt), alle acht actieve
+containers gezond, 3,2 GB beschikbaar RAM en load average 0,57. Bestaande
+bouwpreflight eist 12 GiB en ruimt zo nodig uitsluitend oude ongebruikte
+default-buildercache op met image/container/volumevingerafdrukken. Geen
+onnodige imageprune of verwijdering van rollback-/andere projectdata uitgevoerd.
 
 ## 3. Geïmplementeerd
 
@@ -170,6 +193,31 @@ De bestaande operator-drain/Storage-firstprocedure blijft noodzakelijk voor
 reeds achtergebleven reserveringen; budget verhogen of SQL-only vrijboeken
 zou de veiligheidsgrens breken.
 
+### F. Vroege ontdekking van de blogachtergrond
+
+De bestaande introfoto blijft exact hetzelfde bestand op dezelfde positie.
+Alleen de blogindex declareert een image-preload met hoge fetchprioriteit,
+zodat de browser niet op de stylesheet hoeft te wachten voor ontdekking.
+Artikeldetails laden deze indexachtergrond niet extra. Geen nieuwe client-JS,
+beeldcompressie, kleur, layout, brondata- of publicatiecachewijziging.
+
+Een unitcontract koppelt de preload-URL aan de werkelijke CSS-achtergrond.
+Twee Chromium-proeven renderen de echte Server Component naar HTML, vervangen
+alleen Next Link/datatransport/CSS-modulebindings en vertragen de stylesheet.
+Bij 390 en 1440 pixels begint de echte imageaanvraag vóór de CSS-completion;
+na het toepassen van die stylesheet blijft het bij precies één download.
+Dit bewijst resourceontdekking en hergebruik, niet een productie-LCP-SLA.
+
+Een afzonderlijke lokale HTML-interventie gebruikte exact één opgevangen
+productiedocument, in beide varianten lokaal geserveerd. Alleen de preloadlink
+verschilde; drie afwisselende koude paren onder dezelfde mobiele vertraging:
+baseline LCP 3.388/2.992/2.976 ms, preload 2.304/2.276/2.296 ms. Mediaan
+2.992 → 2.296 ms (circa 23% lager); achtergrondontdekking circa 911–934 →
+13–16 ms. Iedere proef downloadde die foto eenmaal en dezelfde 522.729
+resourcebytes. Document-TTFB is in beide varianten door de interventie
+uitgesloten. Dit is causaal labbewijs voor de preload, geen na-uitrolmeting,
+fysieke telefoon of algemene siteversnellingsclaim.
+
 ## 4. Waarom niet alles cachen of sneller pollen?
 
 - De bestaande Control-sessie gebruikt al request-scoped React `cache()`.
@@ -230,7 +278,7 @@ score-, nieuws- of publicatiefeiten; een ongewijzigde logo-URL kan maximaal
 ## 7. Controles en uitrolstatus
 
 Lokaal: foundation lint, typecheck en unit elk 32/32 tasks; gerichte cache-,
-render- en refreshregressies; drie Chromium-proeven; twaalf
+render- en refreshregressies; vijf Chromium-proeven; twaalf
 enqueue-eligibilityproeven en negen index-/tenantproeven in rollbacktransacties.
 De bestaande binaire regressie heeft 70 controles en het Menu-contract 27.
 Na de goedgekeurde lokale reconciliatie zijn die proeven opnieuw uitgevoerd,
@@ -239,6 +287,8 @@ de werkelijke hook in React StrictMode met een gecontroleerde Next-routeradapter
 een gesuspendeerde transition houdt de vorige content zichtbaar, veroorzaakt
 geen overlappende polls, hervat na completion en stopt bij deactivatie/unmount.
 Dit is geen volledige Next-RSC-netwerk- of fysieke TV-proef.
+De twee aanvullende blogproeven bewaken vroege resourceontdekking zonder
+dubbele download op desktop en mobiel; het blogunitcontract bewaakt de CSS-URL.
 Zie het lokale verificatie-incident hieronder: de oorspronkelijke afzonderlijke
 S315-fixtures rolden correct terug, maar een latere predecessor-harness niet volledig.
 Het eerste volledige unitverzoek miste een bestaand native PNG-fixture in deze
@@ -308,4 +358,5 @@ van dit dossier, ook na geslaagd herstel.
 - [PostgreSQL: ORDER BY en indexen](https://www.postgresql.org/docs/current/indexes-ordering.html): B-tree + LIMIT kan de eerste rijen direct leveren.
 - [Next.js useRouter](https://nextjs.org/docs/app/api-reference/functions/use-router): refresh is een router-/Server Component-update, geen providerimport.
 - [React useTransition](https://react.dev/reference/react/useTransition): pendingstatus en transitions ondersteunen niet-blokkerende updates.
+- [React link](https://react.dev/reference/react-dom/components/link): declaratieve image-preload, fetchprioriteit en plaatsing in de documenthead.
 - [Supabase indexadvisor](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys): waarschuwingen vragen query-/write-analyse, geen blinde indexstorm.

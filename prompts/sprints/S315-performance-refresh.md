@@ -15,6 +15,14 @@ Ownership wordt vóór aanvullende implementatie in dit bestand uitgebreid.
 Geen dependency-/lockfilewijziging, geen wijziging van secrets, deploymentstraat,
 locked assets of service worker. Geen subagents zonder nieuwe expliciete opdracht.
 
+Na een aanvullende mobiele browsermeting is vóór extra implementatie gemeld
+dat de blogintro zijn CSS-achtergrond te laat ontdekt: LCP circa 3,5 s bij
+150 ms latency/1,6 Mbps/4x CPU. De website valt onder de gebruikersopdracht;
+root breidt ownership gericht uit met uitsluitend de preload in
+`apps/marketing/app/blog/_blog/blog-public.tsx`, de naastliggende regressietest
+en `tests/e2e/marketing-s315-blog-preload.spec.ts`. Geen ontwerp-/asset- of
+blogpublicatie-/cachewijziging; geen algemene footer-/prefetchherbouw.
+
 De productiecache toont opnieuw reserveringen voor een historische menuversie.
 De private enqueuevoorwaarde behandelt een ontbrekend protocol als SQL NULL en
 laat daardoor niet-ondersteunde uitvoer toe. Dezelfde forwardmigration krijgt

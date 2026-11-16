@@ -4,6 +4,8 @@ S315 analyseert en verbetert de werkelijke verversings- en databaseketen op basi
 van productielogs en queryprofielen. Geen blinde pollversnelling, mutable release
 of gedeelde authenticatiecache. Ownership en meetgrenzen staan in
 `prompts/sprints/S315-performance-refresh.md`.
+Een aanvullende mobiele blogmeting leidt tot een gerichte preload van de
+bestaande CSS-hero, zonder visuele of publicatiecachewijziging.
 
 S312 herstelt de daadwerkelijk op productie aangetoonde Menu-completionfout:
 een exact bevroren immutable providerlogo werd ten onrechte uitsluitend tegen
