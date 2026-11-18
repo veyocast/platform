@@ -1,5 +1,13 @@
 # VeyoCast Task Ledger
 
+S316: expliciete Media-achtergronden op eigen branch/worktree, volgend op S315.
+Oude wizardtegenproef daadwerkelijk RED; finale 33 bestaande/gerichte browsers
+en zes provider-/oriëntatiecomponentproeven groen, inclusief DialogTrigger-focus
+en open-dialog-axe. Finale foundation ieder32/32 groen; normale hostedgates volgen.
+Alleen UI/config-
+selectie; geen dataherclassificatie, renderer-/Player-/publicatiewijziging.
+AI-agent/S317 blijft afzonderlijk en is niet vrijgegeven door deze wijziging.
+
 S315 aanvullend op 18 november: expliciet goedgekeurde Control-observerrace
 hersteld zonder product-/assertie-/gatewijziging. Veertien originele gevallen
 driemaal: 42/42 gepinde Chromium groen; foundation ieder32/32. Nieuwe volledige

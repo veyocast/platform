@@ -55,6 +55,7 @@ import { syncSlideCss } from "@veyocast/content-templates/sync-slide-styles";
 import { ONZETROTS_PRIMARY } from "@veyocast/content-templates/onzetrots-brand";
 import styles from "./sync-studio-frame.module.css";
 import { SyncBackgroundPicker } from "./sync-background-picker";
+import { MediaBackgroundPicker } from "./media-background-picker";
 import {SyncSlidePreview} from '../playlists/_components/sites/sync-studio-preview';
 import {SyncOnzeTrotsManualCards} from './sync-onzetrots-manual-cards';
 import {SyncOnzeTrotsV9Authoring} from './sync-onzetrots-v9-authoring';
@@ -589,6 +590,7 @@ export function SyncStudioFrame(props: FrameProps) {
                 </FieldGroup>
                 </>}
                 <SyncBackgroundPicker presentation={presentation} onChange={onChange} disabled={props.inputsDisabled} />
+                <MediaBackgroundPicker disabled={props.inputsDisabled || props.readOnly || props.busy} images={props.assets.flatMap(asset => asset.kind === "image" && asset.checksumSha256 ? [{ id: asset.id, title: asset.title, url: asset.previewUrl ?? asset.sourceUrl, checksumSha256: asset.checksumSha256 }] : [])} selectedId={presentation.style.backgroundAsset?.kind === "tenant" ? presentation.style.backgroundAsset.mediaAssetId : undefined} onSelect={image => setStyle({ background: "photo", backgroundAsset: { kind: "tenant", mediaAssetId: image.id, checksumSha256: image.checksumSha256 } })} />
                 {props.onBackgroundUpload&&<><Button variant="secondary" onClick={()=>imageInput.current?.click()}><ImagePlus size={16}/>{props.uploading?'Achtergrond controleren…':'Eigen achtergrond uploaden'}</Button><input ref={imageInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden aria-label="Achtergrond uploaden" onChange={event=>{const file=event.target.files?.[0];event.target.value='';if(file)void props.onBackgroundUpload?.(file);}}/></>}
                 {!isSyncOnzeTrotsPresentation(presentation)&&                <Field label={`Veilige marge · ${presentation.style.safeMargin}%`}>
                   <input
@@ -612,11 +614,6 @@ export function SyncStudioFrame(props: FrameProps) {
                   onChange={(showFooter) => setStyle({ showFooter })}
                 />
                 <details><summary>Clubbeelden en achtergrond</summary>
-                {imageSelect(
-                    presentation.style.backgroundAsset,
-                    (backgroundAsset) => setStyle({ backgroundAsset,background:backgroundAsset?'photo':'stadium' }),
-                    "Achtergrondfoto",
-                  )}
                 <Field label="Uitsnede foto">
                   <select
                     value={presentation.style.backgroundPosition}

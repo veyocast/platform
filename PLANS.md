@@ -1,5 +1,11 @@
 # VeyoCast MVP Plan
 
+S316 scheidt de expliciete schermthema’s van tenant Media en verwijdert de
+automatische eerste-fotoselectie. Eén gedeelde, toegankelijke picker behoudt
+historische referenties en werkt ook met AI uit. Geen datamigratie of Playerdelta;
+zie `docs/s316-explicit-media-background.md`. De Control-agent uit dezelfde
+bijlage wordt afzonderlijk ontwikkeld onder S317; geen voortijdige activatie.
+
 S315 analyseert en verbetert de werkelijke verversings- en databaseketen op basis
 van productielogs en queryprofielen. Geen blinde pollversnelling, mutable release
 of gedeelde authenticatiecache. Ownership en meetgrenzen staan in

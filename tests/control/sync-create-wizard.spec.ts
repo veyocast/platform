@@ -10,6 +10,61 @@ import { applySyncThemeCreationDefaults, syncThemeCreationStarterDefaults } from
 
 test.beforeAll(prepareWizardFixture);
 
+test("opening and cancelling Media never changes the design or club style", async ({ page }) => {
+  const props = fixture();
+  const state = await mount(page, props);
+  await next(page); await next(page);
+  const before = await page.evaluate(() => Object.entries(sessionStorage));
+  await page.getByRole("button", { name: /^(Eigen foto kiezen|Kies uit Media)$/ }).click();
+  expect(await page.evaluate(() => Object.entries(sessionStorage))).toEqual(before);
+  expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+  await page.getByRole("dialog").getByRole("button", { name: "Annuleren", exact: true }).focus();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Kies uit Media", exact: true })).toBeFocused();
+  await page.getByRole("button", { name: "Kies uit Media", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Annuleren", exact: true }).click();
+  expect(await page.evaluate(() => Object.entries(sessionStorage))).toEqual(before);
+  expect(state.creates).toEqual([]);
+  expect(state.errors).toEqual([]);
+});
+
+for (const orientation of ["landscape", "portrait"] as const) test(`new Media cannot become a theme or background without selection in ${orientation}`, async ({ page }) => {
+  const props = fixture();
+  const state = await mount(page, props, { dropFirst: true });
+  await next(page); await next(page);
+  if (orientation === "portrait") await page.getByRole("button", { name: "Staand · 9:16", exact: true }).click();
+  const before = await page.evaluate(() => Object.entries(sessionStorage));
+  const uploaded = [
+    { id: id(21), title: "Nieuwe clubavondposter", checksumSha256: "b".repeat(64), url: `${origin}/assets/clubmuur-wall.webp` },
+    { id: id(22), title: "Nieuw sponsorlogo", checksumSha256: "c".repeat(64), url: `${origin}/assets/clubmuur-wall.webp` }
+  ];
+  props.images = [...uploaded, ...props.images!];
+  await page.evaluate(data => (globalThis as typeof globalThis & { changeWizardData: (value: SyncCreateWizardData) => void }).changeWizardData(data), props);
+  expect(await page.evaluate(() => Object.entries(sessionStorage))).toEqual(before);
+  await expect(page.getByText("Nieuwe clubavondposter", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "OnzeTrots TV", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "FieldFlow", exact: true })).toHaveCount(1);
+  await page.getByRole("button", { name: "Kies uit Media", exact: true }).click();
+  expect(await page.evaluate(() => Object.entries(sessionStorage))).toEqual(before);
+  await page.getByRole("dialog").getByRole("button", { name: "Annuleren", exact: true }).click();
+  expect(await page.evaluate(() => Object.entries(sessionStorage))).toEqual(before);
+  await page.getByRole("button", { name: "Kies uit Media", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Gebruik Nieuw sponsorlogo als achtergrond", exact: true }).click();
+  await expect(page.getByText("Gekozen achtergrond:", { exact: false })).toContainText("Nieuw sponsorlogo");
+  await page.reload();
+  await expect(page.getByText("Gekozen achtergrond:", { exact: false })).toContainText("Nieuw sponsorlogo");
+  await next(page); await page.getByRole("button", { name: "Ontwerp maken", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true })).toBeEnabled();
+  const original = state.creates[0]!.input;
+  if (original.kind !== "manual") throw Error("Expected a manual command");
+  expect(original.document.syncPresentation).toMatchObject({ theme: "onzetrots-tv", orientation, style: { background: "photo", backgroundAsset: { kind: "tenant", mediaAssetId: id(22), checksumSha256: "c".repeat(64) } } });
+  await page.reload(); await page.getByRole("button", { name: "Dezelfde opdracht bevestigen", exact: true }).click();
+  await expect.poll(() => state.creates.length).toBe(2);
+  expect(state.creates[1]!.input).toEqual(original);
+  expect(state.receipts.size).toBe(1); expect(state.errors).toEqual([]);
+});
+
 for (const width of [390, 1440]) test(`RSS feed stays selected and its article limit survives reload and receipt recovery at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
   const props = fixture("rss"); props.initialMode = "connected"; props.initialSourceId = id(3);
@@ -92,8 +147,9 @@ for (const width of [390, 1440]) {
     await expect(page.getByText("Eigen toelichting", { exact: true })).toHaveCSS("font-size", "14px");
     await page.getByRole("textbox", { name: "Eigen toelichting", exact: true }).fill("Welkom op ons sportpark.");
     await next(page); await page.getByRole("button", { name: "Staand · 9:16", exact: true }).click();
-    await page.getByRole("button", { name: "Eigen foto kiezen", exact: true }).click();
-    await expect(page.getByRole("combobox", { name: "Achtergrondfoto", exact: true })).toHaveValue(id(20));
+    await page.getByRole("button", { name: "Kies uit Media", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: /^Gebruik .+ als achtergrond$/ }).first().click();
+    await expect(page.getByText("Gekozen achtergrond:", { exact: false })).toContainText("Eigen foto");
     await page.getByRole("button", { name: "Vorige", exact: true }).click();
     await expect(page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true })).toHaveValue("Mijn eigen ontvangstscherm");
     await page.reload(); await expect(page.getByRole("textbox", { name: "Naam van je ontwerp", exact: true })).toHaveValue("Mijn eigen ontvangstscherm");

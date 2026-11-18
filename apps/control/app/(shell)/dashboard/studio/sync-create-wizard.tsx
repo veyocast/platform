@@ -24,6 +24,7 @@ import type { SyncCreateWizardCommand, SyncCreateWizardData } from "./sync-creat
 import {SyncOnzeTrotsV9Authoring} from './sync-onzetrots-v9-authoring';
 import styles from "./sync-create-wizard.module.css";
 import { SyncBackgroundPicker } from "./sync-background-picker";
+import { MediaBackgroundPicker } from "./media-background-picker";
 import { orientSyncBackground } from "../../../../lib/sync-background-choice";
 
 const steps = ["Bron", "Inhoud", "Vormgeving", "Controleren"];
@@ -179,7 +180,6 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
   const engagePageKey = `${display.poll?.id ?? ""}:${display.orientation}`;
   const visibleEngagePage = engagePage.key === engagePageKey ? Math.min(engagePage.page, engagePages - 1) : 0;
   const matchFamily = ["scoreboard", "goal", "matchday", "next-match"].includes(data.family);
-  const image = (data.images ?? []).find(value => p.style.backgroundAsset?.kind === "tenant" && value.id === p.style.backgroundAsset.mediaAssetId && value.checksumSha256 === p.style.backgroundAsset.checksumSha256);
 
   return <div className={styles.wizard} data-sync-create-family={data.family}>
     <header className={styles.header}>
@@ -248,8 +248,8 @@ function ScopedWizard({ data }: { data: SyncCreateWizardData }) {
               <Field label={`Containerdekking · ${p.visual.panelOpacity}%`}><input type="range" min={80} max={100} value={p.visual.panelOpacity} onChange={event=>patch({visual:{...p.visual,panelOpacity:Number(event.target.value)}})}/></Field>
             </>}
             <SyncBackgroundPicker presentation={p} onChange={patch} disabled={locked} />
-            {Boolean(data.images?.length) && <Button variant="secondary" onClick={() => { const first = data.images?.[0]; if (first) style({ background: "photo", backgroundAsset: { kind: "tenant", mediaAssetId: first.id, checksumSha256: first.checksumSha256 } }); }}>Eigen foto kiezen</Button>}
-            {p.style.background === "photo" && <>{p.style.backgroundAsset?.kind === "tenant" && <Field label="Achtergrondfoto"><select value={image?.id ?? ""} onChange={event => { const selected = data.images?.find(value => value.id === event.target.value); if (selected) style({ backgroundAsset: { kind: "tenant", mediaAssetId: selected.id, checksumSha256: selected.checksumSha256 } }); }}><option value="" disabled>Kies een beschikbare foto</option>{data.images?.map(value => <option key={value.id} value={value.id}>{value.title}</option>)}</select></Field>}<Field label="Uitsnede"><select value={p.style.backgroundPosition} onChange={event => style({ backgroundPosition: event.target.value as SyncSlidePresentation["style"]["backgroundPosition"] })}>{([ ["center", "Midden"], ["top", "Boven"], ["bottom", "Onder"], ["left", "Links"], ["right", "Rechts"] ] as const).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field></>}
+            <MediaBackgroundPicker disabled={locked} images={data.images ?? []} selectedId={p.style.backgroundAsset?.kind === "tenant" ? p.style.backgroundAsset.mediaAssetId : undefined} onSelect={selected => style({ background: "photo", backgroundAsset: { kind: "tenant", mediaAssetId: selected.id, checksumSha256: selected.checksumSha256 } })} />
+            {p.style.background === "photo" && <><Field label="Uitsnede"><select value={p.style.backgroundPosition} onChange={event => style({ backgroundPosition: event.target.value as SyncSlidePresentation["style"]["backgroundPosition"] })}>{([ ["center", "Midden"], ["top", "Boven"], ["bottom", "Onder"], ["left", "Links"], ["right", "Rechts"] ] as const).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field></>}
             {!data.images?.length && <p className={styles.hint}>Je kunt nu de vaste achtergronden gebruiken. Voeg een eigen foto toe bij <Link href="/dashboard/media">Media</Link> om die hier te kiezen.</p>}
             <div className={styles.twoFields}><Field label={p.rendererVersion!=='sync-v1'?"Binnenkomst":"Beweging"}><select value={p.style.motion ?? "geen"} onChange={event => style({ motion: event.target.value as "rustig" | "dynamisch" | "geen" })}><option value="geen">Geen</option><option value="rustig">Rustig</option><option value="dynamisch">Dynamisch</option></select></Field><Field label="Seconden per pagina" hint="3 tot 120 seconden; handmatige ontwerpen maximaal 120 seconden totaal."><input type="number" inputMode="numeric" min={3} max={120} step={1} value={draft.seconds} onChange={event => edit({ ...draft, seconds: event.target.value })} /></Field></div>
             {syncWizardRowFamilies.has(data.family)&&!(p.rendererVersion!=='sync-v1'&&['standings','period-standings','matchday','birthdays','activities','agenda'].includes(p.family)) && <Field label="Regels per pagina"><select value={p.rowsPerPage} onChange={event => patch({ rowsPerPage: Number(event.target.value) })}>{Array.from({ length: 8 }, (_, index) => <option key={index} value={index + 1}>{index + 1}</option>)}</select></Field>}
