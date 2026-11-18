@@ -1,5 +1,10 @@
 # VeyoCast Task Ledger
 
+S316 CI-regressieherstel: standalone LED heeft geen Next-router, dus de nieuwe
+picker gebruikt een gewone secundaire Media-link. De bestaande Source-matrix
+kiest afbeeldingen nu via de echte dialoog; readiness en opgeslagen keuze
+blijven strikt gecontroleerd. Origineel CI-rood 12→gericht 12/12 groen.
+
 S316: expliciete Media-achtergronden op eigen branch/worktree, volgend op S315.
 Oude wizardtegenproef daadwerkelijk RED; finale 33 bestaande/gerichte browsers
 en zes provider-/oriëntatiecomponentproeven groen, inclusief DialogTrigger-focus

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { AssetImage } from "@veyocast/content-templates/sites-media";
-import Link from "next/link";
 import { Button, Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@veyocast/ui";
 import styles from "./media-background-picker.module.css";
 
@@ -37,7 +36,7 @@ export function MediaBackgroundPicker({ images, selectedId, onSelect, disabled =
             </button>)}
           </div>
           {!images.length && <p>Er zijn nog geen geschikte, verwerkte afbeeldingen beschikbaar. Upload een afbeelding bij Media en open het ontwerp opnieuw. Video blijft beschikbaar als slide-inhoud, niet als fotoachtergrond.</p>}
-          <div className={styles.actions}><Button variant="secondary" onClick={() => setOpen(false)}>Annuleren</Button><Button asChild variant="ghost"><Link href="/dashboard/media">Media openen</Link></Button></div>
+          <div className={styles.actions}><Button variant="secondary" onClick={() => setOpen(false)}>Annuleren</Button><Button asChild variant="ghost"><a href="/dashboard/media">Media openen</a></Button></div>
         </DialogBody>
       </DialogContent>
     </Dialog>

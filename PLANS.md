@@ -1,5 +1,10 @@
 # VeyoCast MVP Plan
 
+S316 volledige CI-vervolg: de onnodige Next Link-afhankelijkheid in de gedeelde
+picker is verwijderd en twee bestaande chooser-locators zijn naar de bewuste
+Media-dialoog bijgewerkt. De twaalf originele rode LED/Sportlink/Menu-gevallen
+zijn 12/12 groen zonder versoepelde asserties; nieuwe exacte-head-CI blijft nodig.
+
 S316 scheidt de expliciete schermthema’s van tenant Media en verwijdert de
 automatische eerste-fotoselectie. Eén gedeelde, toegankelijke picker behoudt
 historische referenties en werkt ook met AI uit. Geen datamigratie of Playerdelta;

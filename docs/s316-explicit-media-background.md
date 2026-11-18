@@ -44,6 +44,16 @@ intact. Geen vaste productlimiet of andere toepassing van 12 gewijzigd.
 
 ## Bewijs en grenzen
 
+De eerste volledige CI op 44918f950 vond twaalf regressies in twee bestaande
+browserbestanden. De standalone LED-fixture mist terecht de Next-router;
+de nieuwe picker importeerde daarvoor onnodig Next Link. De secundaire normale
+Media-link is nu een semantisch anker, zodat ook de zelfstandige host werkt.
+De bestaande Sportlink-readiness- en Menu-widgetproeven bedienen nu eerst
+‘Kies uit Media’ en daarna de exacte afbeelding in het echte dialoog. Alle
+oorspronkelijke readiness-, bewaar-, heropen-, vorm-, touch- en axe-asserties
+blijven behouden. Alle twaalf oorspronkelijke rode gevallen zijn daarna groen
+in de gepinde Chromium (45,3 seconden); geen timeouts of gates verruimd.
+
 - Oude echte browsertegenproef: alleen openen wijzigt het duurzame journal (RED).
 - Gewijzigde twee bestaande browserbestanden: 33/33 groen met de normale gepinde
   Chromium. Beide oriëntaties, extra poster/logo-keuzes, behoud bij nieuwe
