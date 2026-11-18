@@ -400,6 +400,22 @@ live playlist of omgeving. Alle normale hostedgates moeten op de daaropvolgende
 testfix-SHA opnieuw slagen vóór staging-/productiepromotie. Actuele resultaten
 en uitrolbewijs horen bij [PR 344](https://github.com/veyocast/platform/pull/344).
 
+## Goedgekeurd Control-fixtureherstel — 18 november
+
+De verloren-responseproef navigeert bewust opnieuw. Haar testobserver las
+sessionStorage via page.evaluate terwijl die navigatie het context vernietigde.
+De ongewijzigde proef faalde lokaal eenmaal in tien herhalingen. Alleen het
+gecontroleerde browsertransport legt nu dezelfde duurzame gegevens synchroon
+vóór fetch vast; de route ontvangt de momentopname zonder browser-RPC tijdens
+reload. Alle oorspronkelijke journal-, replay-, CAS-, annulering-, rol-, focus-
+en toegankelijkheidsasserties blijven intact. Geen Control-productcodewijziging.
+
+De volledige veertienproevensuite is driemaal uitgevoerd met de normale gepinde
+Chromium: 42/42 groen, geen retries/skips. Workspace lint/typecheck/test:
+ieder 32/32 groen (32/32, 32/32, 31/32 bestaande Turbo-cachehits). Dependencies
+zijn opnieuw frozen geïnstalleerd omdat oude lokale symlinkdoelen ontbraken;
+package- en lockfile blijven ongewijzigd. Normale nieuwe hosted CI is verplicht.
+
 ## Primaire referenties
 
 - [PostgreSQL: ORDER BY en indexen](https://www.postgresql.org/docs/current/indexes-ordering.html): B-tree + LIMIT kan de eerste rijen direct leveren.

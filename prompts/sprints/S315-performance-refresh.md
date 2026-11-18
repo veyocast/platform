@@ -45,6 +45,13 @@ laat daardoor niet-ondersteunde uitvoer toe. Dezelfde forwardmigration krijgt
 een fail-closed eligibilityfix met afzonderlijke lokale RED/GREEN-regressies;
 geen bestaande reserveringen of private Storagebestanden worden automatisch gewist.
 
+De gebruiker autoriseert op 18 november ook het geïsoleerde observerherstel in
+`tests/control/sync-media-frame-card-actions.spec.ts`. De transportfixture legt
+de reeds duurzame sessionStorage vast vóór fetch; de route leest alleen die
+exacte momentopname. Een page.evaluate tijdens de bedoelde reload veroorzaakte
+contextvernietiging (1/10 lokaal, één hosted failure). Geen applicatiecode,
+replay-/CAS-/duurzaamheidsassertie, gate of timeout verandert.
+
 ## Meet- en veiligheidsgrenzen
 
 - Productiemetingen zijn read-only, begrensd en voorzien van meetvenster.

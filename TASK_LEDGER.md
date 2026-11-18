@@ -1,5 +1,10 @@
 # VeyoCast Task Ledger
 
+S315 aanvullend op 18 november: expliciet goedgekeurde Control-observerrace
+hersteld zonder product-/assertie-/gatewijziging. Veertien originele gevallen
+driemaal: 42/42 gepinde Chromium groen; foundation ieder32/32. Nieuwe volledige
+CI en staging/productie worden gevolgd via PR344; geen uitrolclaim vooraf.
+
 Gebruik dit bestand als single source of truth voor Codex-taken.
 
 | ID | Status | Branch | Owner | Scope | Paths | Gates | Notes |
