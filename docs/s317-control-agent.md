@@ -145,6 +145,26 @@ uitdrukkelijk vervolgwerk, geen stilzwijgend geleverde functionaliteit.
 
 ## Bewijs, uitrol en grenzen
 
+Aanvullende pre-uitrolreview: twee nieuwe echte Storage-RLS-proeven waren rood
+wanneer een eerdere uploader zijn Media-lees- én schrijfrechten kwijtraakte.
+Beide private-owner/storage-grenzen controleren die huidige rechten nu ook;
+TUS met geldige lees- of schrijfrechten blijft werken. Beide oude rode gevallen
+zijn groen. Definitieve ronde:164bestanden/5737SQL-asserties,109gericht,37agent-
+units, Control2300PASS34bestaandeSKIP en opnieuw32/32 foundation pergate plus
+Controlproductiebuild/auth/secretgrenzen. JPEG/WebP-editbronnen behouden hun juiste
+MIME/extensie en een gearchiveerde bron kan vóór de betaalde call niet worden
+gebruikt. De volledige normale hostedgates lopen opnieuw op deze correctie;
+de vorige kandidaat en zijn bewijzen blijven historische informatie.
+
+De afzonderlijk goedgekeurde lokale reconciliatie is daarna databehoudend
+afgerond: vier bestaande functiedefinities hersteld naar de werkelijk
+gereconstrueerde main én dezelfde hashes op staging/productie. Alle969functie-
+definities en1051semantische structuur-/indexobjecten matchen daarna main.
+Functie-identiteiten, ACL’s, beheerde Supabase-bootstrapprivileges, fysieke
+kolomvolgorde en alle gegevens blijven behouden;0tenants/0Auth-gebruikers en225
+historierijen blijven gelijk. Volledige backup en transactie-/hashreceipt staan
+buiten Git. Geen reset en geen herstelwijziging op staging/productie.
+
 Definitieve lokale kandidaat: lint/typecheck/test elk32/32 groen; Control2297
 PASS/34 bestaande SKIP, Worker458PASS/343 bestaande native-conditionele SKIP.
 De verplichte native Sites-/Player-workflows blijven volledig vereist. Eigen

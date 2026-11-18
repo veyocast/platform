@@ -74,11 +74,12 @@ export async function generateAgentImage(input: { conversationId: string; prompt
     const owned = await client.from("ai_attachments").select("id").eq("id", input.referenceId).eq("conversation_id", input.conversationId).eq("user_id", session.userId).eq("tenant_id", session.tenantId).maybeSingle();
     if (owned.error || !owned.data) throw Error("De ingezonden bronafbeelding hoort niet bij dit gesprek. Kies een eigen privébijlage.");
     const admin = createControlAdminClient();
-    const asset = await admin.from("media_assets").select("storage_bucket,storage_path,mime_type,status,kind").eq("tenant_id", session.tenantId).eq("id", input.referenceId).single();
+    const asset = await admin.from("media_assets").select("storage_bucket,storage_path,mime_type,status,kind").eq("tenant_id", session.tenantId).eq("id", input.referenceId).is("deleted_at", null).single();
     if (asset.error || asset.data.status !== "ready" || asset.data.kind !== "image" || !["image/png", "image/jpeg", "image/webp"].includes(asset.data.mime_type) || asset.data.storage_bucket !== "tenant-media" || !asset.data.storage_path.startsWith(`tenants/${session.tenantId}/assets/${input.referenceId}/`)) throw Error("De bronafbeelding is nog niet veilig beschikbaar of heeft geen ondersteund PNG-, JPEG- of WebP-formaat. Wacht op Gereed of kies een geschikte afbeelding.");
     const source = await admin.storage.from(asset.data.storage_bucket).download(asset.data.storage_path);
     if (source.error || source.data.size > 50 * 1024 * 1024) throw Error("De bronafbeelding kon niet veilig worden geladen. Er is geen generatie gestart.");
-    body = new FormData(); body.set("prompt", input.prompt); body.set("size", size); body.set("quality", "low"); body.set("n", "1"); body.set("output_format", "png"); body.append("image[]", new File([source.data], "bronafbeelding.png", { type: asset.data.mime_type }));
+    const extension = asset.data.mime_type === "image/jpeg" ? "jpg" : asset.data.mime_type === "image/webp" ? "webp" : "png";
+    body = new FormData(); body.set("prompt", input.prompt); body.set("size", size); body.set("quality", "low"); body.set("n", "1"); body.set("output_format", "png"); body.append("image[]", new File([source.data], `bronafbeelding.${extension}`, { type: asset.data.mime_type }));
   }
   const response = await callAiProvider({ operationId: randomUUID(), operation: input.referenceId ? "image_edit" : "image_generation", body });
   const image = Array.isArray(response.data) ? (response.data[0] as { b64_json?: unknown } | undefined)?.b64_json : null;

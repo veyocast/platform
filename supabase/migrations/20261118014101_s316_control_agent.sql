@@ -480,7 +480,8 @@ create policy media_variants_ai_temporary_hidden on public.media_variants as res
 create function private.ai_temporary_storage_object(p_bucket text,p_name text) returns boolean
 language sql stable security definer set search_path = '' as $$
   select p_bucket='tenant-media' and split_part(p_name,'/',1)='tenants' and split_part(p_name,'/',3)='assets' and exists(select 1 from public.ai_attachments where not retained and tenant_id::text=split_part(p_name,'/',2) and id::text=split_part(p_name,'/',4)
-    and not(user_id=private.current_user_id() and cleanup_state='private' and private.ai_agent_allowed(tenant_id)));
+    and not(user_id=private.current_user_id() and cleanup_state='private' and private.ai_agent_allowed(tenant_id)
+      and (private.has_tenant_capability(tenant_id,'tenant.media.read') or private.has_tenant_capability(tenant_id,'tenant.media.write'))));
 $$;
 revoke all on function private.ai_temporary_storage_object(text,text) from public,anon,service_role;
 grant execute on function private.ai_temporary_storage_object(text,text) to authenticated;
@@ -491,7 +492,8 @@ create policy storage_ai_temporary_update on storage.objects as restrictive for 
 create function private.ai_owned_storage_object(p_bucket text,p_name text) returns boolean
 language sql stable security definer set search_path = '' as $$
   select p_bucket='tenant-media' and split_part(p_name,'/',1)='tenants' and split_part(p_name,'/',3)='assets' and exists(select 1 from public.ai_attachments where not retained and cleanup_state='private' and user_id=private.current_user_id()
-    and private.ai_agent_allowed(tenant_id) and tenant_id::text=split_part(p_name,'/',2) and id::text=split_part(p_name,'/',4));
+    and private.ai_agent_allowed(tenant_id) and (private.has_tenant_capability(tenant_id,'tenant.media.read') or private.has_tenant_capability(tenant_id,'tenant.media.write'))
+    and tenant_id::text=split_part(p_name,'/',2) and id::text=split_part(p_name,'/',4));
 $$;
 revoke all on function private.ai_owned_storage_object(text,text) from public,anon,service_role;
 grant execute on function private.ai_owned_storage_object(text,text) to authenticated;

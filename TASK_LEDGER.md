@@ -1,5 +1,15 @@
 # VeyoCast Task Ledger
 
+S317 extra veiligheidsreview: ingetrokken Mediarechten leverden twee concrete
+RLS-REDs op voor eigen oude privébytes. Beide Storage-ownergrenzen hersteld;
+45bijlage/config-SQLproeven en volledig164bestanden/5737asserties groen.
+Agentunits37, Control2300PASS34bestaandeSKIP; opnieuw32/32 foundation en build/
+auth-/secretgrenzen groen. Normale exacte-head-CI opnieuw verplicht.
+Lokale goedgekeurde mainreconciliatie: alleen4bestaande functiedefinities,
+969functiehashes en1051semantische structuur-/indexobjecten daarna gelijk aanmain;
+bron-ACL/identiteiten en0tenants/0Auth/225historie behouden, volledige backup.
+Geen remote databasewrite, uitrol of AI-activatie.
+
 S317 finale lokale kandidaat vóór CI: foundation32/32 pergate; agentunits34,
 cleanup9, echte SQL164bestanden/5735asserties inclusief107gerichte; gecombineerde
 Workspace/themabrowsers42/42 met9agentgevallen. Control2297PASS34bestaandeSKIP,

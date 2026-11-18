@@ -8,8 +8,8 @@ vi.mock("../media/validated-image-upload", () => ({ uploadValidatedImageCandidat
 import { generateAgentImage, uploadAgentImage } from "./attachments";
 
 function query(data: unknown, error: unknown = null) {
-  const builder = { select: vi.fn(), eq: vi.fn(), maybeSingle: vi.fn(async () => ({ data, error })), single: vi.fn(async () => ({ data, error })) };
-  builder.select.mockReturnValue(builder); builder.eq.mockReturnValue(builder);
+  const builder = { select: vi.fn(), eq: vi.fn(), is: vi.fn(), maybeSingle: vi.fn(async () => ({ data, error })), single: vi.fn(async () => ({ data, error })) };
+  builder.select.mockReturnValue(builder); builder.eq.mockReturnValue(builder); builder.is.mockReturnValue(builder);
   return builder;
 }
 const input = { conversationId: "31700000-0000-4000-8000-000000000001", title: "Clubposter", prompt: "Een abstracte achtergrond, geen tekst", orientation: "portrait" as const };
@@ -38,6 +38,18 @@ describe("private attachment cost and replay guards", () => {
   it("invalid generation input costs nothing", async () => {
     await expect(generateAgentImage({ ...input, prompt: "" })).rejects.toThrow("Vul");
     expect(fixture.actor).not.toHaveBeenCalled(); expect(fixture.provider).not.toHaveBeenCalled();
+  });
+  it.each([["image/png", "png"], ["image/jpeg", "jpg"], ["image/webp", "webp"]])("preserves %s edit source MIME and file extension without accepting archived files", async (mimeType, extension) => {
+    const referenceId = "31700000-0000-4000-8000-000000000002";
+    fixture.actor.mockResolvedValue({ session: { tenantId: "tenant-a", userId: "actor-a" }, client: { from: () => query({ id: referenceId }) } });
+    const asset = query({ storage_bucket: "tenant-media", storage_path: `tenants/tenant-a/assets/${referenceId}/original/source.${extension}`, mime_type: mimeType, status: "ready", kind: "image" });
+    fixture.admin.mockReturnValue({ from: () => asset, storage: { from: () => ({ download: async () => ({ data: new Blob(["synthetic source"], { type: mimeType }), error: null }) }) } });
+    fixture.provider.mockRejectedValue(Error("stop_after_payload_capture"));
+    await expect(generateAgentImage({ ...input, referenceId })).rejects.toThrow("stop_after_payload_capture");
+    expect(asset.is).toHaveBeenCalledWith("deleted_at", null);
+    const body = fixture.provider.mock.calls[0]![0].body as FormData;
+    const source = body.get("image[]") as File;
+    expect(source.name).toBe(`bronafbeelding.${extension}`); expect(source.type).toBe(mimeType);
   });
   it("reconciles a lost ready-upload acknowledgement without another upload or asset", async () => {
     const rpc = vi.fn(async () => ({ data: input.conversationId, error: null }));

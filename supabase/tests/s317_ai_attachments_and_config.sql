@@ -54,6 +54,17 @@ select throws_ok($$select public.begin_ai_provider_request_v1(pg_temp.uid(10),pg
 select throws_ok($$select public.set_platform_ai_config_v1('staging',1,null,'test-chat','test-image',true)$$,'42501',null,'ordinary tenant role cannot rotate or revoke platform key');
 reset role;
 update public.media_assets set status='ready' where id=pg_temp.uid(30);
+insert into public.tenant_custom_roles(id,tenant_id,name,capabilities) values(pg_temp.uid(60),pg_temp.uid(10),'No Media rights',array[]::text[]);
+insert into public.ai_conversations(id,tenant_id,user_id) values(pg_temp.uid(22),pg_temp.uid(10),pg_temp.uid(2));
+insert into public.ai_attachments(id,tenant_id,conversation_id,user_id) values(pg_temp.uid(32),pg_temp.uid(10),pg_temp.uid(22),pg_temp.uid(2));
+insert into public.media_assets(id,tenant_id,kind,title,original_file_name,mime_type,status,storage_path,file_size_bytes,checksum_sha256,width,height)
+values(pg_temp.uid(32),pg_temp.uid(10),'image','Earlier own upload','own.png','image/png','ready','tenants/'||pg_temp.uid(10)||'/assets/'||pg_temp.uid(32)||'/original/own.png',2048,repeat('c',64),1920,1080);
+insert into storage.objects(bucket_id,name,owner) values('tenant-media','tenants/'||pg_temp.uid(10)||'/assets/'||pg_temp.uid(32)||'/original/own.png',pg_temp.uid(2));
+update public.tenant_memberships set custom_role_id=pg_temp.uid(60) where tenant_id=pg_temp.uid(10) and user_id=pg_temp.uid(2);
+set local role authenticated;
+select ok(not private.ai_owned_storage_object('tenant-media','tenants/'||pg_temp.uid(10)||'/assets/'||pg_temp.uid(32)||'/original/own.png'),'removing Media read/write rights also revokes private owner TUS-read admission');
+select is((select count(*) from storage.objects where name='tenants/'||pg_temp.uid(10)||'/assets/'||pg_temp.uid(32)||'/original/own.png'),0::bigint,'private Storage bytes are inaccessible after role revocation, even to the prior owner');
+reset role;
 insert into public.media_variants(asset_id,tenant_id,variant_type,mime_type,storage_path,checksum_sha256,file_size_bytes,width,height) values(pg_temp.uid(30),pg_temp.uid(10),'original','image/png','tenants/'||pg_temp.uid(10)||'/assets/'||pg_temp.uid(30)||'/original/poster.png',repeat('a',64),2048,1920,1080);
 insert into public.playlists(id,tenant_id,name) values(pg_temp.uid(40),pg_temp.uid(10),'Private retention guard');
 select throws_ok($$insert into public.playlist_items(tenant_id,playlist_id,media_asset_id,sort_order) values(pg_temp.uid(10),pg_temp.uid(40),pg_temp.uid(30),0)$$,'42501',null,'domain FK boundary rejects private media before explicit retention');
