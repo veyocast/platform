@@ -118,9 +118,35 @@ test("does not treat an intentional video pause as a playback stall", async ({
   ).toHaveCount(0);
 });
 
-test("retries a decode failure once, skips it and reports recovery in heartbeat", async ({
+type DecodeFailureFixture = Window & {
+  decodeFailureFixture: { nativeFailures: number; delivered: number; retryText: string };
+};
+
+for (const recoveryCase of [
+  { name: "retries a decode failure once, skips it and reports recovery in heartbeat", failures: 2,
+    action: "SKIP_ITEM", itemId: "invalid-video", message: "niet-speelbaar item is overgeslagen" },
+  { name: "retains the latest target when repeated decode failures escalate to loop recovery", failures: 3,
+    action: "RESTART_LOOP", itemId: "invalid-video-next", message: "Playbackherstel: probleemitem overgeslagen; nieuwste doel blijft behouden." }
+]) {
+test(recoveryCase.name, async ({
   page
 }) => {
+  await page.addInitScript(expectedTitles => {
+    const deliveredVideos = new WeakSet<HTMLVideoElement>();
+    const fixture = { nativeFailures: 0, delivered: 0, retryText: "" };
+    (window as DecodeFailureFixture).decodeFailureFixture = fixture;
+    document.addEventListener("error", event => {
+      if (!event.isTrusted || !(event.target instanceof HTMLVideoElement)) return;
+      fixture.nativeFailures += 1;
+      if (deliveredVideos.has(event.target) || event.target.getAttribute("aria-label") !== expectedTitles[fixture.delivered]) {
+        event.stopImmediatePropagation();
+        return;
+      }
+      deliveredVideos.add(event.target);
+      if (fixture.delivered === 1) fixture.retryText = document.querySelector('[aria-label="Player diagnostics"]')?.textContent ?? "";
+      fixture.delivered += 1;
+    }, true);
+  }, ["Ongeldige video", "Ongeldige video", ...(recoveryCase.failures === 3 ? ["Ongeldige volgende video"] : [])]);
   const manifestResponse = await page.request.get(
     `${playerURL}/api/player/manifest?deviceToken=demo-online`
   );
@@ -167,6 +193,12 @@ test("retries a decode failure once, skips it and reports recovery in heartbeat"
   };
   const heartbeatBodies: Array<Record<string, unknown>> = [];
 
+  if (recoveryCase.failures === 3) {
+    manifest.manifest.items.splice(1, 0, { ...manifest.manifest.items[0]!, id: "invalid-video-next", title: "Ongeldige volgende video" });
+    manifest.manifest.totalBytes += invalidVideo.byteLength;
+    manifest.manifest.totalDurationSeconds += 30;
+  }
+
   await page.route("**/watchdog-invalid.mp4", (route) =>
     route.fulfill({ body: invalidVideo, contentType: "video/mp4" })
   );
@@ -184,16 +216,16 @@ test("retries a decode failure once, skips it and reports recovery in heartbeat"
     timeout: 8_000
   });
   await expect(page.getByLabel("Player diagnostics")).toContainText(
-    "niet-speelbaar item is overgeslagen"
+    recoveryCase.message
   );
   await expect.poll(() => heartbeatBodies
     .map((body) => body.lastPlaybackError)
     .filter(Boolean) as Array<{ action?: string; code?: string; itemId?: string; recoveredAt?: string }>,
   { timeout: 5_000 }).toContainEqual(
     expect.objectContaining({
-      action: "SKIP_ITEM",
+      action: recoveryCase.action,
       code: expect.stringMatching(/^VIDEO_/),
-      itemId: "invalid-video",
+      itemId: recoveryCase.itemId,
       recoveredAt: expect.any(String)
     })
   );
@@ -206,7 +238,11 @@ test("retries a decode failure once, skips it and reports recovery in heartbeat"
       .slice(recoveredIndex + 1)
       .some((body) => body.lastPlaybackError === null);
   }, { timeout: 5_000 }).toBe(true);
+  expect(await page.evaluate(() => (window as DecodeFailureFixture).decodeFailureFixture.delivered)).toBe(recoveryCase.failures);
+  expect(await page.evaluate(() => (window as DecodeFailureFixture).decodeFailureFixture.nativeFailures)).toBeGreaterThanOrEqual(recoveryCase.failures);
+  expect(await page.evaluate(() => (window as DecodeFailureFixture).decodeFailureFixture.retryText)).toContain("huidig item wordt één keer opnieuw geprobeerd");
 });
+}
 
 test("detects a stalled video that stops making time progress", async ({ page,context }) => {
   const manifestResponse = await page.request.get(

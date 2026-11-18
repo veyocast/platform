@@ -1,5 +1,31 @@
 # VeyoCast MVP Plan
 
+S317 bouwt de standaard-uit Control-agent met echte domeinservices, onveranderlijk
+backendakkoord, gedeeltelijke receipts, privébijlagen/TUS, officiële server-side
+beeldgeneratie, AAL2-platformconfiguratie en verzoekniveau-verbruiksregistratie.
+Zie docs/s317-control-agent.md voor de exacte gekoppelde acties en grenzen.
+Geen sleutel/tenantactivatie of live-providerclaim; normale volledige gates en
+same-SHA staging/productie blijven verplicht. Gedeelde lokale gegevens blijven
+intact; schone migratiereconstructie en SQL-proeven gebruiken een eigen testdatabase.
+
+S316 volledige CI-vervolg: de onnodige Next Link-afhankelijkheid in de gedeelde
+picker is verwijderd en twee bestaande chooser-locators zijn naar de bewuste
+Media-dialoog bijgewerkt. De twaalf originele rode LED/Sportlink/Menu-gevallen
+zijn 12/12 groen zonder versoepelde asserties; nieuwe exacte-head-CI blijft nodig.
+
+S316 scheidt de expliciete schermthema’s van tenant Media en verwijdert de
+automatische eerste-fotoselectie. Eén gedeelde, toegankelijke picker behoudt
+historische referenties en werkt ook met AI uit. Geen datamigratie of Playerdelta;
+zie `docs/s316-explicit-media-background.md`. De Control-agent uit dezelfde
+bijlage wordt afzonderlijk ontwikkeld onder S317; geen voortijdige activatie.
+
+S315 analyseert en verbetert de werkelijke verversings- en databaseketen op basis
+van productielogs en queryprofielen. Geen blinde pollversnelling, mutable release
+of gedeelde authenticatiecache. Ownership en meetgrenzen staan in
+`prompts/sprints/S315-performance-refresh.md`.
+Een aanvullende mobiele blogmeting leidt tot een gerichte preload van de
+bestaande CSS-hero, zonder visuele of publicatiecachewijziging.
+
 S312 herstelt de daadwerkelijk op productie aangetoonde Menu-completionfout:
 een exact bevroren immutable providerlogo werd ten onrechte uitsluitend tegen
 tenant Media gevalideerd. Eén forwardmigration en gerichte SQL-regressies

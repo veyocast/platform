@@ -65,11 +65,16 @@ for (const width of [390, 1440]) {
       expect(requested.length).toBeGreaterThan(0);
       await expect(name).toHaveValue("Behoud mijn clubnaam"); await expect(name).toBeFocused();
       await info.attach(`fallback-${width}`, { body: Buffer.from(JSON.stringify({ visible: await page.locator(".vc-goal").isVisible(), input: await name.inputValue(), requested })), contentType: "application/json" });
+      const fallbackCanvas = await page.locator("#preview-host .vc-goal").evaluateHandle(root => root);
       release(); await Promise.all([...pending]);
       await page.evaluate(() => document.fonts.ready);
+      await expect.poll(() => fallbackCanvas.evaluate(root => root.isConnected)).toBe(false);
+      await fallbackCanvas.dispose();
+      await expect(page.locator("#preview-host .vc-goal")).toBeVisible();
       await expect(page.getByText("Voorbeeld laden…", { exact: true })).toHaveCount(0);
       await expect(name).toHaveValue("Behoud mijn clubnaam"); await expect(name).toBeFocused();
       const dimensions = await page.locator("#preview-host .vc-goal").evaluate(root => ({ width: root.clientWidth, height: root.clientHeight, fontSize: getComputedStyle(root).fontSize }));
+      expect(dimensions.width).toBeGreaterThan(0); expect(dimensions.height).toBeGreaterThan(0); expect(dimensions.fontSize).not.toBe("");
       const reference = await page.evaluate(dimensions => {
         const w = window as typeof window & { goalReference: { render: (...args: unknown[]) => void; css: string; configuration: unknown; event: unknown } };
         const host = document.createElement("div"); host.id = "reference-host";

@@ -6,6 +6,7 @@ import { createControlSupabaseClient } from "../../lib/supabase/server";
 import { ControlShell } from "./_components/control-shell";
 import type { GlobalUploadTrayItem } from "./_components/global-upload-tray";
 import { getNavigationGroupsForRoles } from "./_lib/control-navigation";
+import { loadAgentAvailability } from "../../lib/agent/availability";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,6 +19,11 @@ export default async function ShellLayout({
     session.capabilities,
     Boolean(session.tenantId) || !session.isLive
   );
+  if (await loadAgentAvailability(session.tenantId, session.isLive)) navigationGroups.push({
+    id: "tenant-ai-agent", scope: "tenant", section: "organization", contextLabel: session.tenant,
+    title: "Beheer", description: "Hulp met bestaande beheerrechten",
+    items: [{ href: "/dashboard/agent", label: "AI-agent", description: "Leesvragen en expliciet goedgekeurde voorstellen", requiredCapability: "tenant.overview.read", section: "organization", scope: "tenant" }]
+  });
   const uploadQueue = hasCapability(session.capabilities, "tenant.media.read")
     ? await loadGlobalUploadQueue(session.tenantId, session.isLive)
     : [];

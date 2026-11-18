@@ -1,9 +1,63 @@
 # VeyoCast Task Ledger
 
+S317 normale CI vond tweemaal een bestaande Goal-fixturerace: de font-ready-
+remount ontkoppelde de gemeten fallbacknode, waardoor de referentie 0×0 kreeg.
+Na expliciete scope-/stoprapportage wacht alleen die bestaande test nu op de
+daadwerkelijke detach en zichtbare definitieve node, met positieve maatasserties.
+Strikte rendererpariteit, deadlines, focus, invoer en fout-/writecontroles blijven;
+geen renderer-/app-/Player-/workflowwijziging. Gerichte herhaling40/40 groen;
+foundation32/32 pergate (32/32/31cachehits). Nieuwe exacte-head-CI verplicht.
+
+S317 extra veiligheidsreview: ingetrokken Mediarechten leverden twee concrete
+RLS-REDs op voor eigen oude privébytes. Beide Storage-ownergrenzen hersteld;
+45bijlage/config-SQLproeven en volledig164bestanden/5737asserties groen.
+Agentunits37, Control2300PASS34bestaandeSKIP; opnieuw32/32 foundation en build/
+auth-/secretgrenzen groen. Normale exacte-head-CI opnieuw verplicht.
+Lokale goedgekeurde mainreconciliatie: alleen4bestaande functiedefinities,
+969functiehashes en1051semantische structuur-/indexobjecten daarna gelijk aanmain;
+bron-ACL/identiteiten en0tenants/0Auth/225historie behouden, volledige backup.
+Geen remote databasewrite, uitrol of AI-activatie.
+
+S317 finale lokale kandidaat vóór CI: foundation32/32 pergate; agentunits34,
+cleanup9, echte SQL164bestanden/5735asserties inclusief107gerichte; gecombineerde
+Workspace/themabrowsers42/42 met9agentgevallen. Control2297PASS34bestaandeSKIP,
+Worker458PASS343bestaandeconditioneleSKIP; native hostedgates blijven verplicht.
+Controlproductiebuild/auth/secretgrens en Workerbuild groen. Twee echte rode
+position_key/publicatieasserties zijn via de bestaande v2-orderservice hersteld.
+Geen gedeelde lokale DB-reset, live write, sleutel of klantactivatie.
+
+S317: eigen branch/worktree na S315 en S316. Providergrens/crypto/tenant/cost-
+proeven, echte SQL-approval/replay/partial/CAS/privémedia/rollen en domeinpublicatie
+naar twee schermen; actuele volledige gates volgen de definitieve kandidaat.
+163 SQL-bestanden groen op schone eigen migratiereconstructie, gedeelde lokale
+DB niet gereset. Vijf echte Workspace-browsergevallen inclusief mobiel/keyboard/
+axe groen met gecontroleerde servertransporten. Controlproductiebuild/auth- en
+secret-boundary groen; herbouw en volledige normale CI blijven vereist na de
+laatste aanvullingen. Geen productie-/stagingwrite, sleutel of tenantactivatie.
+
+S316 CI-regressieherstel: standalone LED heeft geen Next-router, dus de nieuwe
+picker gebruikt een gewone secundaire Media-link. De bestaande Source-matrix
+kiest afbeeldingen nu via de echte dialoog; readiness en opgeslagen keuze
+blijven strikt gecontroleerd. Origineel CI-rood 12→gericht 12/12 groen.
+
+S316: expliciete Media-achtergronden op eigen branch/worktree, volgend op S315.
+Oude wizardtegenproef daadwerkelijk RED; finale 33 bestaande/gerichte browsers
+en zes provider-/oriëntatiecomponentproeven groen, inclusief DialogTrigger-focus
+en open-dialog-axe. Finale foundation ieder32/32 groen; normale hostedgates volgen.
+Alleen UI/config-
+selectie; geen dataherclassificatie, renderer-/Player-/publicatiewijziging.
+AI-agent/S317 blijft afzonderlijk en is niet vrijgegeven door deze wijziging.
+
+S315 aanvullend op 18 november: expliciet goedgekeurde Control-observerrace
+hersteld zonder product-/assertie-/gatewijziging. Veertien originele gevallen
+driemaal: 42/42 gepinde Chromium groen; foundation ieder32/32. Nieuwe volledige
+CI en staging/productie worden gevolgd via PR344; geen uitrolclaim vooraf.
+
 Gebruik dit bestand als single source of truth voor Codex-taken.
 
 | ID | Status | Branch | Owner | Scope | Paths | Gates | Notes |
 |---|---|---|---|---|---|---|---|
+| S315 | watchdogfixture gericht hersteld; nieuwe volledige CI vereist | veyocast/s315-performance-refresh | root | Gemeten database-, providerasset-, render-, Control- en publieke bloglaadkosten verminderen | Gerichte Worker/Control-code, één blogpreload, één forwardmigration, regressies en analysebewijs; expliciet geautoriseerde watchdogfixture | Lint/typecheck/unit elk32/32; Chromium11 gepind +10 gerichte herhalingen; SQL153; hosted fresh161files/5628,19builds/echte Workerimage/publicatie/Control/Sites groen; eerste Player536 één oude timingafhankelijke watchdog-RED, geen uitrol | Lokale predecessor-COMMIT expliciet gemeld en met backup/guards/toestemming naar main gereconcilieerd; geen gegevensreset, kandidaat teruggedraaid. Native trace toont RESTART_LOOP i.p.v. veronderstelde SKIP; gebruiker autoriseert exact twee fouten plus aparte driefoutenproef, strikte heartbeats/cleanup behouden, geen Playerlogica of timeouts veranderd. Nieuwe finale CI en normale staging/productie volgen. Zie docs/s315-performance-refresh.md en PR344. |
 | S313 | lokaal geaccepteerd met expliciete testadapter; concept-PR343, externe activatie open | veyocast/s313-blog-socialhero | root; blog_database; blog_marketing; socialhero_audit | Platformblog, TipTap-redactie, veilige media en bestaand SocialHero v1-contract | Eigen blogpackage, Control platformblog/API, Marketing blog/API/sitemap, forwardmigration/authcaps, noodzakelijke dependency/config en eigen bewijs | Foundation lint/typecheck/test elk32/32; fresh225+seed en volledige RLS159files/5607; S313SQL131 +8 races; document16/media15; API9/UUID2; echte keten22 en worker3processen; publiek+editorbrowser/axe groen; Control-shell26 cases na infrastructuurherstel groen | Bron4f44bbdd; implementatie f0a5c63d/PR343; prototype68cadfd0; SocialHero8e2cf198/PR1/CIgroen. Alleen lokale testcontent; echte Auth/Storage, externe wizardbrowser en staging/prodactivatie open. Zie docs/s313-blog-socialhero/README.md en ACCEPTATIE-RESULTATEN.md. |
 | S312 | provider- en echte-hash-retryfix bewezen; volledige nieuwe gates vereist | veyocast/s312-menu-provider-logo | root | Menu-publicatie met exact bevroren providerlogo; immutable retryketen; ondertekend CI-transport | Eén forwardmigration, Menu-DOM- en versie-SQL-tests, drie CI-gateworkflows/gedeelde mirrorhelper/tests, eigen prompt/doc/plan/ledger; begrensde recoveryartifacts | Oude validator6RED; echte-hash-retry44RED;27Menu/57versie/207SQL groen;36 operatorfixture-assertions incl replay/completion/stale-state groen;18mirrorproeven en echte4suite-GPG/tamperproef groen; volledige finale hostedgates/uitrol vereist | Expliciete klant-retry/mirrorautorisatie; oorspronkelijke opdracht vereist werkelijk werkende retries. Geen Player/app/dependency/deployworkflow/secretsdelta, DNS- of sleutelwijziging; alle fonts/deps/tests, tenant-, checksum-, lease- en immutable grenzen behouden. Alleen bevestigde publicatie herhalen, geen Auth/AAL2-impersonatie of bulkpublicatie. |
 | S311 | echte hosted Workerimage groen; finale CI na capaciteits-/fixturefix vereist | veyocast/s311-worker-runtime-image | root | Kleinere Workerimage, eenmaal volledige Player-fixtures, poginggebonden bewijs en veilige bouwcapaciteit | Dockerfile, runtime/fixture-/capaciteitsscripts/tests, PR-workflow, deploy-preflight, eigen prompt/doc/plan | Hosted554.193.552bytes/354assets/6RSSnative/16productenmenu/SVG/H264; lokaal205infraregressies groen; finale normale gates/uitrol volgen | Gebruiker autoriseert op11nov na werkende Tailscale-sudo de volledige deployment-/ruimteoptimalisatie. Geen dependency-/lockfile/app-/SQL-/secretsdelta; alle case-isolatie/rendergrenzen/immutable/rollbackguards behouden. Andere VPS-projecten/data blijven beschermd. |

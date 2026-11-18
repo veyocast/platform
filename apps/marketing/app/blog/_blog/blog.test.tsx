@@ -43,6 +43,20 @@ beforeEach(() => {
 });
 
 describe("published blog rendering", () => {
+  it("preloads only the visible index background, matching the existing stylesheet", async () => {
+    const { readFileSync } = await import("node:fs");
+    const css = readFileSync("app/blog/_blog/blog-public.module.css", "utf8");
+    const html = renderToStaticMarkup(<BlogIndexPage articles={[article]} />);
+    const preloads = html.match(/<link[^>]*rel="preload"[^>]*as="image"[^>]*>/gu) ?? [];
+    expect(preloads).toHaveLength(1);
+    expect(preloads[0]).toContain('fetchPriority="high"');
+    const href = preloads[0]?.match(/href="([^"]+)"/u)?.[1];
+    expect(href).toBeTruthy();
+    expect(css).toContain(`url('${href}')`);
+    const detail = renderToStaticMarkup(<BlogArticlePage article={article} />);
+    expect(detail).not.toContain(href);
+  });
+
   it("keeps the prototype home route, category filter and empty state without demo content", () => {
     const empty = renderToStaticMarkup(<BlogIndexPage articles={[]} />);
     expect(empty).toContain('href="/"');

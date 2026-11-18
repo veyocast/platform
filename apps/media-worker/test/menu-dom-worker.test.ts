@@ -17,3 +17,15 @@ it('uses the existing renderer only for an explicitly claimed legacy/export cach
 it('rejects a Menu DOM attempt without lease renewal before uploading any descriptor',async()=>{
  const value=fixture(),backend:DynamicRenderBackend={...value.backend,renewJob:undefined};expect(await runDynamicRenderOnce({...value,backend})).toMatchObject({status:'failed',errorCode:'menu_dom_lease_unavailable'});expect(value.backend.uploadArtifact).not.toHaveBeenCalled();
 });
+it('resolves the exact render assets once for both LG pixels and descriptor metadata',async()=>{
+ const value=fixture();const binaryJob={...value.job,publishedRefresh:true};value.backend.claimJob.mockResolvedValue(binaryJob);
+ expect(await runDynamicRenderOnce(value)).toMatchObject({status:'completed'});
+ expect(value.backend.resolveAssets).toHaveBeenCalledOnce();
+ expect(value.backend.resolveAssets).toHaveBeenCalledWith(expect.objectContaining({tenantId:value.job.tenantId,snapshotId:value.job.snapshotId}));
+});
+it('does not reuse one job asset resolution for a later render attempt',async()=>{
+ const value=fixture();const binaryJob={...value.job,publishedRefresh:true};value.backend.claimJob.mockResolvedValue(binaryJob);
+ expect(await runDynamicRenderOnce(value)).toMatchObject({status:'completed'});
+ expect(await runDynamicRenderOnce(value)).toMatchObject({status:'completed'});
+ expect(value.backend.resolveAssets).toHaveBeenCalledTimes(2);
+});

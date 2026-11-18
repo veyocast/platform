@@ -14,6 +14,27 @@ const sourceUrl = "https://api.ledscores.score.tel/players/player-7.png";
 const tenantId = "20000000-0000-4000-8000-000000000002";
 
 describe("LED Scores player media", () => {
+  it("shares a cold import including native decode, upload and activation", async () => {
+    const bytes = await sharp({ create: { background: '#ffffff', channels: 3, height: 20, width: 20 } }).png().toBuffer();
+    const registry: LedScoresPlayerAssetRegistry = {
+      findCurrent: vi.fn(async () => null), save: vi.fn(async artifact => artifact.assetVersionId)
+    };
+    const fetchImpl = vi.fn(async () => new Response(new Uint8Array(bytes), { headers: { 'Content-Type': 'image/png' } }));
+    const importer = new LedScoresPlayerAssetImporter(registry, fetchImpl as unknown as typeof fetch);
+    const input = { connectionId: 'connection-1', playerKey: 'player-7', sourceUrl, teamKey: 'team-1', tenantId };
+    const results = await Promise.all(Array.from({ length: 25 }, () => importer.importPlayerPhoto(input)));
+    expect(new Set(results).size).toBe(1);
+    expect(fetchImpl).toHaveBeenCalledOnce();expect(registry.save).toHaveBeenCalledOnce();
+    expect(registry.findCurrent).toHaveBeenCalledOnce();
+    await importer.importPlayerPhoto(input);expect(registry.findCurrent).toHaveBeenCalledTimes(2);
+  });
+  it("does not share a cold import between tenant identities", async () => {
+    const registry: LedScoresPlayerAssetRegistry = { findCurrent: vi.fn(async () => 'version'), save: vi.fn() };
+    const importer = new LedScoresPlayerAssetImporter(registry);
+    const input = { connectionId: 'connection-1', playerKey: 'player-7', sourceUrl, teamKey: 'team-1', tenantId };
+    await Promise.all([importer.importPlayerPhoto(input), importer.importPlayerPhoto({ ...input, tenantId: '20000000-0000-4000-8000-000000000003' })]);
+    expect(registry.findCurrent).toHaveBeenCalledTimes(2);
+  });
   it("decodes bounded provider media and creates a deterministic private WebP artifact", async () => {
     const input = await sharp({
       create: {

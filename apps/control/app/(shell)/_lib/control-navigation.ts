@@ -107,6 +107,14 @@ export type ControlSession = {
 };
 
 const controlNavigation: readonly ControlNavigationItem[] = [
+  {
+    description: "Projectsleutel, modeltoegang en verbindingsstatus",
+    href: "/platform/integrations/openai",
+    label: "OpenAI",
+    requiredCapability: "platform.tenant.lifecycle",
+    section: "product",
+    scope: "platform"
+  },
 
   {
     description: "Websiteaanvragen en ontvangststatus",

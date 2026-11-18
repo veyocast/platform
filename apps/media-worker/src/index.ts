@@ -8,6 +8,7 @@ import { readMediaWorkerConfig } from "./worker-config";
 import { parseQueueHintV3, QueueWakeup } from "./queue-wakeup";
 import { PublishedDataRefreshRunner } from "./published-data-refresh-runner";
 import { PublicationVersionPruneRunner } from "./publication-version-prune-runner";
+import { AiAttachmentCleanupRunner } from "./ai-attachment-cleanup-runner";
 import { runInquiryMailLoop, runInquiryMailOnce, readInquiryMailConfig } from "./inquiry-mail-runner";
 import { createConfiguredMediaWorkerClient, SupabaseMediaWorkerBackend } from "./worker-backend";
 import { closeServer, createWorkerRuntimeHealth } from "./worker-health";
@@ -280,6 +281,7 @@ async function main() {
   let hintPayloadBytes = 0;
   const publishedDataRunner = new PublishedDataRefreshRunner(queueClient, { workerId: config.workerId });
   const versionPruneRunner = new PublicationVersionPruneRunner(queueClient);
+  const aiCleanupRunner = new AiAttachmentCleanupRunner(queueClient);
   const queueWakeup = new QueueWakeup(async () => {
     const { data, error } = await queueClient.rpc("get_worker_queue_hint_v3", { p_max_attempts: config.maxAttempts })
       .abortSignal(AbortSignal.timeout(10_000));
@@ -339,6 +341,9 @@ async function main() {
         process.exit(1);
       },
       tasks: [
+        supervise("ai_attachment_cleanup", () => aiCleanupRunner.loop({ signal: controller.signal, onSettled: result => {
+          if (result.status === "failed") logger.warn("media.job.failed", { queue: "ai_attachment_cleanup", errorCode: result.errorCode });
+        } })),
         supervise("inquiry_mail", () => runInquiryMailLoop(queueClient, controller.signal)),
         supervise("published", () => publishedDataRunner.loop({
           signal: controller.signal,

@@ -1,0 +1,13 @@
+.picker { display:grid; gap:12px; min-width:0; }
+.current { margin:0; color:var(--vc-text); font-size:14px; overflow-wrap:anywhere; }
+.dialog { width:min(720px,calc(100vw - 32px)); }
+.search { display:grid; gap:8px; margin-bottom:16px; font-size:14px; }
+.search input { min-height:44px; min-width:0; border:1px solid var(--vc-border); border-radius:8px; padding:10px; background:var(--vc-surface); color:var(--vc-text); }
+.grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-height:50dvh; overflow:auto; padding:4px; }
+.grid button { min-width:0; min-height:44px; border:1px solid var(--vc-border); padding:8px; border-radius:10px; background:var(--vc-surface); color:var(--vc-text); text-align:left; font-size:14px; }
+.grid button[aria-pressed=true] { border-color:var(--vc-focus); }
+.grid button:focus-visible { outline:3px solid var(--vc-focus); outline-offset:2px; }
+.grid img { width:100%; height:auto; aspect-ratio:16/9; object-fit:contain; }
+.grid span { display:block; overflow-wrap:anywhere; }
+.actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+@media(max-width:540px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
