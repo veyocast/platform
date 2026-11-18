@@ -42,10 +42,10 @@ export async function prepareMediaVideoUpload(candidate: VideoUploadCandidate) {
   }
 }
 
-export async function finalizeMediaVideoUpload(uploadSessionId: string) {
+export async function finalizeMediaVideoUpload(uploadSessionId: string, agentConversationId?: string) {
   await requireTenantCapability("tenant.media.write");
   try {
-    await finalizeValidatedVideoUpload(uploadSessionId);
+    await finalizeValidatedVideoUpload(uploadSessionId, agentConversationId);
     revalidatePath("/dashboard/media");
     revalidatePath("/dashboard/pilot");
     return {

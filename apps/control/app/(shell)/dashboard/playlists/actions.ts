@@ -11,10 +11,7 @@ import {
 
 import { requireTenantCapability } from "../../../../lib/control-session";
 import { createControlSupabaseClient } from "../../../../lib/supabase/server";
-import { loadDraftPreflight } from "../releases/data";
-import { loadPlaylistStudio } from "./data";
-import { getReadinessCopy } from "./readiness-copy";
-import {loadPublicationMediaPreview}from'./publish-media-frame-preview.server';
+import { checkPlaylistPublication, PlaylistPublicationBlocked, PlaylistPublicationConflict } from "./publication-check.server";
 
 type MutationRow = { actual_revision: number; outcome: "applied" | "conflict" };
 type GuardedMutationResult = {
@@ -43,21 +40,21 @@ export async function createPlaylist(formData: FormData) {
   const name = playlistName(formData);
   const description = String(formData.get("description") ?? "").trim();
   if (description.length > 500) failList("De beschrijving mag maximaal 500 tekens bevatten.");
+  const commandKey = idempotencyValue(formData);
 
-  const { data, error } = await supabase.from("playlists").insert({
-    created_by: session.userId,
-    description: description || null,
-    name,
-    status: "draft",
-    tenant_id: session.tenantId,
-    updated_by: session.userId
-  }).select("id").single();
+  const { data, error } = await supabase.rpc("create_playlist_draft_v2", {
+    p_tenant_id: session.tenantId,
+    p_playlist_id: commandKey,
+    p_name: name,
+    p_description: description || null,
+    p_idempotency_key: commandKey
+  });
 
-  if (error || !data) {
+  if (error || typeof data?.playlistId !== "string" || !/^[0-9a-f-]{36}$/i.test(data.playlistId)) {
     console.error("Playlist maken mislukt", error);
     failList("De playlist kon niet worden gemaakt. Er is niets opgeslagen; controleer je rechten en probeer opnieuw.");
   }
-  redirect(`/dashboard/playlists/${data.id}?succes=${encodeURIComponent("De conceptplaylist is gemaakt. Voeg nu gereedstaande media toe.")}`);
+  redirect(`/dashboard/playlists/${data.playlistId}?succes=${encodeURIComponent("De conceptplaylist is gemaakt. Voeg nu gereedstaande media toe.")}`);
 }
 
 export async function duplicatePlaylist(formData: FormData) {
@@ -517,44 +514,16 @@ export async function publishPlaylistGuided(formData: FormData) {
   if (releaseNotes.length > 500) failPublish(playlistId, "De releasenotitie mag maximaal 500 tekens bevatten.");
   if (formData.get("confirmPublish") !== "on") failPublish(playlistId, "Bevestig dat je de actuele configuratie naar de gekozen schermen publiceert.");
 
-  const studio = await loadPlaylistStudio(session.tenantId, playlistId, false);
-  if (!studio.playlist || !studio.readiness) failPublish(playlistId, "Het concept kon niet opnieuw worden gecontroleerd. Er is geen release gemaakt.");
-  if (studio.playlist.revision !== revision) conflict(playlistId, revision, studio.playlist.revision, "publish");
-  if (!studio.readiness.canPublish) {
-    const blocker = studio.readiness.reasons[0];
-    const message = blocker ? getReadinessCopy(blocker) : null;
-    failPublish(playlistId, message ? `${message.label}. ${message.detail} ${message.recovery}` : "De playlist is nog niet klaar voor publicatie.");
+  try {
+    const checked = await checkPlaylistPublication({ tenantId: session.tenantId!, playlistId, revision, screenIds });
+    if (checked.needsRiskConfirmation && formData.get("confirmRisk") !== "on") {
+      failPublish(playlistId, "Bevestig bewust de waarschuwingen en onbekende telemetry voordat je publiceert.");
+    }
+  } catch (cause) {
+    if (cause instanceof PlaylistPublicationConflict) conflict(playlistId, revision, cause.actualRevision, "publish");
+    if (cause instanceof Error && cause.message.startsWith("NEXT_REDIRECT")) throw cause;
+    failPublish(playlistId, cause instanceof PlaylistPublicationBlocked ? cause.message : "De publicatie kon niet volledig worden gecontroleerd. Je concept blijft behouden; controleer de verbinding en probeer opnieuw.");
   }
-  const enabledSections = new Set(
-    studio.sections
-      .filter((section) => section.enabled)
-      .map((section) => section.id)
-  );
-  let targetItems:Array<{checksumSha256:string;fileSizeBytes:number;sourceDomProtocol?:2}> = studio.items.flatMap((item) =>
-    item.enabled &&
-    (item.sectionId === null || enabledSections.has(item.sectionId)) &&
-    item.asset?.variant
-      ? [{
-          checksumSha256: item.asset.variant.checksumSha256,
-          fileSizeBytes: item.asset.variant.fileSizeBytes
-        }]
-      : []
-  );
-  if(studio.items.some(item=>item.asset?.kind==='composition')){
-    try{targetItems=(await loadPublicationMediaPreview(session.tenantId,studio.items,enabledSections)).targetItems;}
-    catch{failPublish(playlistId,'De complete weergave kon niet worden gecontroleerd. Je concept blijft behouden; vernieuw de playlist en probeer opnieuw.');}
-  }
-  const preflight = await loadDraftPreflight(session.tenantId, targetItems);
-  if (preflight.error) failPublish(playlistId, `${preflight.error} Er is geen release gemaakt.`);
-  const targets = preflight.screenStates.filter((state) => screenIds.includes(state.screen.id));
-  if (targets.length !== screenIds.length) failPublish(playlistId, "Een of meer doelschermen zijn niet beschikbaar binnen deze vereniging.");
-  if (targets.some((state) => state.preflight.status === "blocked")) {
-    failPublish(playlistId, "Publiceren is geblokkeerd: minimaal één doelscherm is uitgeschakeld, incompatibel of heeft aantoonbaar onvoldoende opslag.");
-  }
-  if (targets.some((state) => state.preflight.status === "warning" || state.preflight.status === "unknown") && formData.get("confirmRisk") !== "on") {
-    failPublish(playlistId, "Bevestig bewust de waarschuwingen en onbekende telemetry voordat je publiceert.");
-  }
-
   const { data, error } = await supabase.rpc("publish_playlist_to_targets_v3", {
     p_expected_revision: revision,
     p_idempotency_key: idempotencyValue(formData),

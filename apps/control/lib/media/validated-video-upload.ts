@@ -13,6 +13,7 @@ export type VideoUploadCandidate = {
   idempotencyKey: string;
   mimeType: string;
   title: string;
+  agentConversationId?: string;
 };
 
 export type PreparedVideoUpload = {
@@ -31,7 +32,8 @@ export async function prepareValidatedVideoUpload(
   validateCandidate(candidate);
 
   const safeFileName = sanitizeVideoFileName(candidate.fileName, candidate.mimeType);
-  const { data, error } = await supabase.rpc("create_media_video_upload_intent", {
+  const { data, error } = await supabase.rpc(candidate.agentConversationId ? "create_ai_video_upload_intent_v1" : "create_media_video_upload_intent", {
+    ...(candidate.agentConversationId ? { p_conversation_id: candidate.agentConversationId } : {}),
     p_expected_mime_type: candidate.mimeType,
     p_expected_size_bytes: candidate.fileSizeBytes,
     p_idempotency_key: candidate.idempotencyKey,
@@ -64,7 +66,7 @@ export async function prepareValidatedVideoUpload(
   };
 }
 
-export async function finalizeValidatedVideoUpload(uploadSessionId: string) {
+export async function finalizeValidatedVideoUpload(uploadSessionId: string, agentConversationId?: string) {
   const { supabase } = await requireWritableMediaSession();
   if (!isUuid(uploadSessionId)) {
     throw new MediaUploadError(
@@ -72,7 +74,8 @@ export async function finalizeValidatedVideoUpload(uploadSessionId: string) {
     );
   }
 
-  const { data, error } = await supabase.rpc("finalize_media_video_upload_v2", {
+  const { data, error } = await supabase.rpc(agentConversationId ? "finalize_ai_video_upload_v1" : "finalize_media_video_upload_v2", {
+    ...(agentConversationId ? { p_conversation_id: agentConversationId } : {}),
     p_upload_session_id: uploadSessionId
   });
   if (error || !Array.isArray(data) || data.length !== 1) {

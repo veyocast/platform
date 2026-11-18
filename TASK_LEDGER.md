@@ -1,5 +1,22 @@
 # VeyoCast Task Ledger
 
+S317 finale lokale kandidaat vóór CI: foundation32/32 pergate; agentunits34,
+cleanup9, echte SQL164bestanden/5735asserties inclusief107gerichte; gecombineerde
+Workspace/themabrowsers42/42 met9agentgevallen. Control2297PASS34bestaandeSKIP,
+Worker458PASS343bestaandeconditioneleSKIP; native hostedgates blijven verplicht.
+Controlproductiebuild/auth/secretgrens en Workerbuild groen. Twee echte rode
+position_key/publicatieasserties zijn via de bestaande v2-orderservice hersteld.
+Geen gedeelde lokale DB-reset, live write, sleutel of klantactivatie.
+
+S317: eigen branch/worktree na S315 en S316. Providergrens/crypto/tenant/cost-
+proeven, echte SQL-approval/replay/partial/CAS/privémedia/rollen en domeinpublicatie
+naar twee schermen; actuele volledige gates volgen de definitieve kandidaat.
+163 SQL-bestanden groen op schone eigen migratiereconstructie, gedeelde lokale
+DB niet gereset. Vijf echte Workspace-browsergevallen inclusief mobiel/keyboard/
+axe groen met gecontroleerde servertransporten. Controlproductiebuild/auth- en
+secret-boundary groen; herbouw en volledige normale CI blijven vereist na de
+laatste aanvullingen. Geen productie-/stagingwrite, sleutel of tenantactivatie.
+
 S316 CI-regressieherstel: standalone LED heeft geen Next-router, dus de nieuwe
 picker gebruikt een gewone secundaire Media-link. De bestaande Source-matrix
 kiest afbeeldingen nu via de echte dialoog; readiness en opgeslagen keuze

@@ -1,5 +1,11 @@
 export const platformTenantFeatureDefinitions = [
   {
+    description: "Gesprekken, generatie en goedgekeurde beheeropdrachten met bestaande rechten. Standaard uit; uitschakelen blokkeert nieuwe providerverzoeken en agentmutaties, niet de gewone bediening of bestaande publicaties.",
+    key: "control_ai_agent",
+    label: "AI-agent inschakelen",
+    status: "EXPLICIETE ACTIVATIE"
+  },
+  {
     description: "Pauzeert nieuwe Sites-ontwerpen en wijzigingen. Bestaande immutable releases, datarefresh en herstel blijven beschikbaar; deze flag verleent geen rechten.",
     key: "sites_authoring_paused",
     label: "Sites-authoring pauzeren",

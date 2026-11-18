@@ -56,13 +56,15 @@ export async function uploadValidatedImageCandidate({
   supabase,
   tenantId,
   title,
-  userId
+  userId,
+  reservedAssetId
 }: {
   candidate: FormDataEntryValue | null;
   supabase: SupabaseClient;
   tenantId: string;
   title: string;
   userId: string;
+  reservedAssetId?: string;
 }) {
 
   if (!(candidate instanceof File) || candidate.size === 0) {
@@ -147,7 +149,7 @@ export async function uploadValidatedImageCandidate({
     }
   }
 
-  const assetId = randomUUID();
+  const assetId = reservedAssetId ?? randomUUID();
   const safeFileName = sanitizeFileName(candidate.name, detectedMimeType);
   const storagePath =
     `tenants/${tenantId}/assets/${assetId}/original/${safeFileName}`;

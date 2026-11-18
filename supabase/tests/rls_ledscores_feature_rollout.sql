@@ -122,8 +122,8 @@ grant select, insert on s139_feature_results to authenticated;
 
 select is(
   (select count(*) from private.tenant_feature_flag_definitions),
-  26::bigint,
-  'every existing tenant feature key including the managed Sites pause has a canonical definition'
+  27::bigint,
+  'every existing tenant feature key including the managed Sites pause and opt-in AI agent has a canonical definition'
 );
 select ok(
   not exists (

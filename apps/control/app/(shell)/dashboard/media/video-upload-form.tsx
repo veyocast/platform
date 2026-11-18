@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload } from "tus-js-client";
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type FormEvent
@@ -22,6 +23,9 @@ type VideoUploadFormProps = {
   anonKey: string;
   canUpload: boolean;
   supabaseUrl: string;
+  agentConversationId?: string;
+  initialFile?: File;
+  onComplete?: () => void;
 };
 
 type UploadNotice = {
@@ -44,7 +48,10 @@ const tusChunkSize = 6 * 1024 * 1024;
 export function VideoUploadForm({
   anonKey,
   canUpload,
-  supabaseUrl
+  supabaseUrl,
+  agentConversationId,
+  initialFile,
+  onComplete
 }: VideoUploadFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const progressRef = useRef(0);
@@ -56,22 +63,32 @@ export function VideoUploadForm({
   const [isPaused, setIsPaused] = useState(false);
   const [notice, setNotice] = useState<UploadNotice | null>(null);
   const [progress, setProgress] = useState(0);
+  const formId = useId();
+  const initialStarted = useRef(false);
+  const uploadKey = agentConversationId ? `${pendingUploadKey}:${agentConversationId}:${encodeURIComponent(initialFile ? `${initialFile.name}:${initialFile.size}:${initialFile.lastModified}` : "manual")}` : pendingUploadKey;
+  const fieldPrefix = agentConversationId ? `agent-video-${formId}` : "video";
 
   useEffect(() => {
-    const pending = readPendingUpload();
+    const pending = readPendingUpload(uploadKey);
     if (!pending) return;
     pendingRef.current = pending;
     setNotice({
       message: `Een onderbroken upload van ${pending.fileName} kan worden hervat. Kies hetzelfde bestand; reeds verstuurde delen worden niet opnieuw verzonden.`,
       tone: "warning"
     });
-  }, []);
+  }, [uploadKey]);
+
+  useEffect(() => {
+    if (!initialFile || !canUpload || initialStarted.current) return;
+    initialStarted.current = true;
+    formRef.current?.requestSubmit();
+  }, [initialFile, canUpload]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const title = String(formData.get("video-title") ?? "").trim();
-    const file = formData.get("video-file");
+    const file = initialFile ?? formData.get("video-file");
     if (!(file instanceof File) || file.size === 0) {
       setNotice({
         message: "Kies een MP4- of WebM-video met inhoud. De upload is niet gestart.",
@@ -101,7 +118,7 @@ export function VideoUploadForm({
       tone: "warning"
     });
 
-    const previous = readPendingUpload();
+    const previous = readPendingUpload(uploadKey);
     const matchesPrevious = previous
       && previous.fileName === file.name
       && previous.fileSizeBytes === file.size
@@ -116,6 +133,7 @@ export function VideoUploadForm({
       fileSizeBytes: file.size,
       idempotencyKey,
       mimeType: file.type,
+      ...(agentConversationId ? { agentConversationId } : {}),
       title
     });
     if (!preparation.ok) {
@@ -134,7 +152,7 @@ export function VideoUploadForm({
       uploadSessionId: upload.uploadSessionId
     };
     pendingRef.current = pending;
-    writePendingUpload(pending);
+    writePendingUpload(pending, uploadKey);
 
     const supabase = createBrowserClient(supabaseUrl, anonKey);
     const { data: { session } } = await supabase.auth.getSession();
@@ -238,7 +256,7 @@ export function VideoUploadForm({
     setProgress(0);
     progressRef.current = 0;
     if (cancellation.blocked) {
-      clearPendingUpload();
+      clearPendingUpload(uploadKey);
       pendingRef.current = null;
       uploadRef.current = null;
       formRef.current?.reset();
@@ -261,18 +279,19 @@ export function VideoUploadForm({
       message: "VeyoCast vergelijkt opslagmetadata en zet daarna precies één verwerkingsjob klaar.",
       tone: "warning"
     });
-    const result = await finalizeMediaVideoUpload(uploadSessionId);
+    const result = await finalizeMediaVideoUpload(uploadSessionId, agentConversationId);
     setIsBusy(false);
     setNotice({ message: result.message, tone: result.ok ? "success" : "critical" });
     if (result.ok) {
-      clearPendingUpload();
+      clearPendingUpload(uploadKey);
       pendingRef.current = null;
       uploadRef.current = null;
       setFinalizationSessionId(null);
       formRef.current?.reset();
+      onComplete?.();
       router.refresh();
     } else if (!result.retryable) {
-      clearPendingUpload();
+      clearPendingUpload(uploadKey);
       pendingRef.current = null;
       uploadRef.current = null;
       setFinalizationSessionId(null);
@@ -283,12 +302,11 @@ export function VideoUploadForm({
   return (
     <form aria-busy={isBusy} className="upload-form" onSubmit={submit} ref={formRef}>
       <div className="field">
-        <label htmlFor="video-title">Videotitel</label>
-        <input disabled={!canUpload || isBusy || isPaused} id="video-title" maxLength={120} minLength={2} name="video-title" placeholder="Bijvoorbeeld welkom loop" required type="text" />
+        <label htmlFor={`${fieldPrefix}-title`}>Videotitel</label>
+        <input defaultValue={initialFile?.name.slice(0,120)} disabled={!canUpload || isBusy || isPaused} id={`${fieldPrefix}-title`} maxLength={120} minLength={2} name="video-title" placeholder="Bijvoorbeeld welkom loop" required type="text" />
       </div>
       <div className="field">
-        <label htmlFor="video-file">Videobestand</label>
-        <input accept="video/mp4,video/webm,.mp4,.webm" disabled={!canUpload || isBusy || isPaused} id="video-file" name="video-file" required type="file" />
+        {initialFile ? <p>{initialFile.name}</p> : <><label htmlFor={`${fieldPrefix}-file`}>Videobestand</label><input accept="video/mp4,video/webm,.mp4,.webm" disabled={!canUpload || isBusy || isPaused} id={`${fieldPrefix}-file`} name="video-file" required type="file" /></>}
       </div>
       {progress > 0 ? (
         <div className="upload-progress">
@@ -330,9 +348,9 @@ function resumableEndpoint(supabaseUrl: string) {
   return endpoint.toString();
 }
 
-function readPendingUpload(): PendingUpload | null {
+function readPendingUpload(storageKey = pendingUploadKey): PendingUpload | null {
   try {
-    const value = window.localStorage.getItem(pendingUploadKey);
+    const value = window.localStorage.getItem(storageKey);
     if (!value) return null;
     const parsed = JSON.parse(value) as Partial<PendingUpload>;
     if (
@@ -346,12 +364,12 @@ function readPendingUpload(): PendingUpload | null {
   }
 }
 
-function writePendingUpload(upload: PendingUpload) {
-  window.localStorage.setItem(pendingUploadKey, JSON.stringify(upload));
+function writePendingUpload(upload: PendingUpload, storageKey = pendingUploadKey) {
+  window.localStorage.setItem(storageKey, JSON.stringify(upload));
 }
 
-function clearPendingUpload() {
-  window.localStorage.removeItem(pendingUploadKey);
+function clearPendingUpload(storageKey = pendingUploadKey) {
+  window.localStorage.removeItem(storageKey);
 }
 
 function formatBytes(value: number) {
