@@ -1,5 +1,13 @@
 # VeyoCast Task Ledger
 
+S317 normale CI vond tweemaal een bestaande Goal-fixturerace: de font-ready-
+remount ontkoppelde de gemeten fallbacknode, waardoor de referentie 0×0 kreeg.
+Na expliciete scope-/stoprapportage wacht alleen die bestaande test nu op de
+daadwerkelijke detach en zichtbare definitieve node, met positieve maatasserties.
+Strikte rendererpariteit, deadlines, focus, invoer en fout-/writecontroles blijven;
+geen renderer-/app-/Player-/workflowwijziging. Gerichte herhaling40/40 groen;
+foundation32/32 pergate (32/32/31cachehits). Nieuwe exacte-head-CI verplicht.
+
 S317 extra veiligheidsreview: ingetrokken Mediarechten leverden twee concrete
 RLS-REDs op voor eigen oude privébytes. Beide Storage-ownergrenzen hersteld;
 45bijlage/config-SQLproeven en volledig164bestanden/5737asserties groen.

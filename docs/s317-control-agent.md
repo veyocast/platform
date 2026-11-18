@@ -145,6 +145,19 @@ uitdrukkelijk vervolgwerk, geen stilzwijgend geleverde functionaliteit.
 
 ## Bewijs, uitrol en grenzen
 
+De laatste normale hosted-Controlgate vond tweemaal een bestaande meetrace in
+de ongewijzigde Goal-readinessproef, bij afwisselend1440/390px. Beide traces
+geven de referentiebouwer width0/height0/fontSizeleeg: de fonts-ready-remount had
+juist de gemeten fallbacknode losgekoppeld. Het origineel slaagt lokaal20/20,
+maar dat neemt de echte CI-rood niet weg. Na expliciete scope-/stoprapportage
+wacht uitsluitend die test op het daadwerkelijk ontkoppelen van de oorspronkelijke
+fallbacknode en de zichtbare definitieve canvas, en eist positieve afmetingen.
+Alle bestaande strikte font-/rendererpariteit, leesbaarheid, focus, invoer,
+fout-/writeasserties en deadlines blijven behouden; geen productpreview,
+locked renderer, Player of workflow aangepast. Beide gevallen elk twintigmaal:
+40/40 groen in2,9min; foundation ieder32/32 met32/32/31cachehits. Nieuwe
+volledige exacte-head-gates blijven vereist.
+
 Aanvullende pre-uitrolreview: twee nieuwe echte Storage-RLS-proeven waren rood
 wanneer een eerdere uploader zijn Media-lees- én schrijfrechten kwijtraakte.
 Beide private-owner/storage-grenzen controleren die huidige rechten nu ook;
